@@ -16,6 +16,9 @@
 package com.android.tools.idea.profilers.perfd;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +26,7 @@ import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -46,6 +50,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class TransportServiceProxyTest {
   @Test
@@ -62,14 +68,14 @@ public class TransportServiceProxyTest {
   }
 
   @Test
-  public void testUnknownDeviceLabel() {
+  public void testUnknownDeviceLabel() throws Exception {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     Common.Device profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
     assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
   }
 
   @Test
-  public void testUnknownEmulatorLabel() {
+  public void testUnknownEmulatorLabel() throws Exception {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     when(mockDevice.isEmulator()).thenReturn(true);
     when(mockDevice.getAvdName()).thenReturn(null);
@@ -108,7 +114,7 @@ public class TransportServiceProxyTest {
   }
 
   @NotNull
-  private IDevice createMockDevice(int version, @NotNull Client[] clients) {
+  private IDevice createMockDevice(int version, @NotNull Client[] clients) throws Exception {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");
     when(mockDevice.getName()).thenReturn("Device");
@@ -117,6 +123,14 @@ public class TransportServiceProxyTest {
     when(mockDevice.getClients()).thenReturn(clients);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
     when(mockDevice.getAbis()).thenReturn(Collections.singletonList("armeabi"));
+    doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        ((IShellOutputReceiver)args[1]).addOutput("boot-id\n".getBytes(), 0, 8);
+        return null;
+      }
+    }).when(mockDevice).executeShellCommand(anyString(), any(IShellOutputReceiver.class));
     return mockDevice;
   }
 
@@ -133,15 +147,6 @@ public class TransportServiceProxyTest {
   }
 
   private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
-    @Override
-    public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
-      responseObserver.onNext(GetDevicesResponse.newBuilder().addDevice(Common.Device.newBuilder()
-                                                                          .setSerial("Serial")
-                                                                          .setBootId("Boot")
-                                                                          .build()).build());
-      responseObserver.onCompleted();
-    }
-
     @Override
     public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
       responseObserver.onNext(TimeResponse.getDefaultInstance());
