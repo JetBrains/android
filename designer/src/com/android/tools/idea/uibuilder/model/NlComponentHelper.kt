@@ -417,11 +417,8 @@ fun NlComponent.createChild(tagName: String,
 }
 
 fun NlComponent.navigateTo(): Boolean {
-  if (!tag.isValid) {
-    return false
-  }
-
-  PsiNavigateUtil.navigate(tag)
+  val element = backend.tag ?: return false
+  PsiNavigateUtil.navigate(element)
   return true
 }
 
@@ -436,7 +433,7 @@ fun NlComponent.clearAttributes() {
  * @param needsFocusEditor true for focusing the editor after navigation. false otherwise.
  */
 fun NlComponent.tryNavigateTo(needsFocusEditor: Boolean): Boolean {
-  val element = tag.navigationElement
+  val element = backend.tag?.navigationElement ?: return false
   if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
     (element as Navigatable).navigate(needsFocusEditor)
     return true
