@@ -85,7 +85,11 @@ public final class ProjectSyncStatusNotificationProvider extends EditorNotificat
       return NotificationPanel.Type.NONE;
     }
 
-    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    return notificationPanelType(GradleSyncState.getInstance(project));
+  }
+
+  @NotNull
+  NotificationPanel.Type notificationPanelType(@NotNull GradleSyncState syncState) {
     if (!syncState.areSyncNotificationsEnabled()) {
       return NotificationPanel.Type.NONE;
     }
@@ -103,7 +107,6 @@ public final class ProjectSyncStatusNotificationProvider extends EditorNotificat
     if (gradleSyncNeeded == YES) {
       return NotificationPanel.Type.SYNC_NEEDED;
     }
-
     return NotificationPanel.Type.NONE;
   }
 
