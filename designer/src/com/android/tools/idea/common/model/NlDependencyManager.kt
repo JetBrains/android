@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -39,24 +40,30 @@ class NlDependencyManager {
   /**
    * Make sure the dependencies of the components being added are present and resolved in the module.
    * If they are not: ask the user if they can be added now.
-   * Return true if the dependencies were already present or if they have just been added.
-   * Return false if the user decided not to install the missing dependencies.
+   * Return true if the dependencies are present now (they may have just been added).
    */
-  fun addDependencies(components: Iterable<NlComponent>, facet: AndroidFacet): Boolean {
+  @JvmOverloads
+  fun addDependencies(components: Iterable<NlComponent>,
+                      facet: AndroidFacet,
+                      syncDoneCallback: (() -> Unit)? = null): Boolean {
     val moduleSystem = facet.module.getModuleSystem()
     val missingDependencies = collectDependencies(components).filter { moduleSystem.getRegisteredDependency(it) == null }
     if (missingDependencies.isEmpty()) {
-      // We don't have any missing dependencies, therefore they're all present.
+      syncDoneCallback?.invoke()
       return true
     }
 
     if (facet.module.addDependencies(missingDependencies, false, false).isNotEmpty()) {
-      // User clicked "No" when asked to install the missing dependencies, so they won't be present.
       return false
     }
 
-    // When the user clicks "Yes" to install the missing dependencies, sync the project so they'll effectively be present.
-    facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+    val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
+      facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+
+    if (syncDoneCallback != null) {
+      syncResult.addCallback(success = { _ -> syncDoneCallback() }, failure = { _ -> syncDoneCallback() })
+    }
+
     return true
   }
 
