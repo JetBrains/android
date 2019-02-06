@@ -73,28 +73,28 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
 
-    Type type = myNotificationProvider.notificationPanelType(myProject);
+    Type type = myNotificationProvider.notificationPanelType(mySyncState);
     assertEquals(Type.NONE, type);
   }
 
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(false);
 
-    Type type = myNotificationProvider.notificationPanelType(myProject);
+    Type type = myNotificationProvider.notificationPanelType(mySyncState);
     assertEquals(Type.NONE, type);
   }
 
   public void testNotificationPanelTypeWithSyncInProgress() {
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType(myProject);
+    Type type = myNotificationProvider.notificationPanelType(mySyncState);
     assertEquals(Type.IN_PROGRESS, type);
   }
 
   public void testNotificationPanelTypeWithLastSyncFailed() {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType(myProject);
+    Type type = myNotificationProvider.notificationPanelType(mySyncState);
     assertEquals(Type.FAILED, type);
     assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
   }
@@ -102,7 +102,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   public void testNotificationPanelTypeWithSyncErrors() {
     when(mySyncSummary.hasSyncErrors()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType(myProject);
+    Type type = myNotificationProvider.notificationPanelType(mySyncState);
     assertEquals(Type.ERRORS, type);
     assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
   }
@@ -110,7 +110,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   public void testNotificationPanelTypeWithSyncNeeded() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
 
-    Type type = myNotificationProvider.notificationPanelType(myProject);
+    Type type = myNotificationProvider.notificationPanelType(mySyncState);
     assertEquals(Type.SYNC_NEEDED, type);
     assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
   }
