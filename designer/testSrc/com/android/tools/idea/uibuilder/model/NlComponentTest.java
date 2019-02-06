@@ -46,6 +46,8 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.UIUtil;
 import java.util.Arrays;
 import java.util.Collections;
@@ -400,5 +402,54 @@ public final class NlComponentTest extends LayoutTestCase {
     NlComponent newTextView = createComponent(TEXT_VIEW, "textView2");
     NlWriteCommandActionUtil.run(frameLayout, "addTextView", () -> newTextView.addTags(frameLayout, null, InsertType.PASTE));
     assertThat(frameLayout.getChildren()).isEmpty();
+  }
+
+  public void testSetAttribute() {
+    String textViewString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                            "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                            "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                            "\n" +
+                            "<TextView" +
+                            " xmlns:android=\"" + ANDROID_URI + "\"" +
+                            " xmlns:tools=\"" + TOOLS_URI + "\"" +
+                            " android:text=\"Initial\"" +
+                            " android:layout_width=\"wrap_content\"" +
+                            " android:layout_height=\"wrap_content\" />";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", textViewString);
+    XmlTag relativeLayoutTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent textViewComponent = createComponent(relativeLayoutTag);
+
+    when(myModel.getProject()).thenReturn(myModule.getProject());
+    String expectedText = "Hello world";
+
+    NlWriteCommandActionUtil.run(
+      textViewComponent, "set Text", () -> textViewComponent.setAttribute(ANDROID_URI, "text", expectedText));
+
+    assertEquals(expectedText, textViewComponent.getAttribute(ANDROID_URI, "text"));
+  }
+
+  public void testSetAttributeInvalidProcess() {
+    String textViewString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                            "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                            "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                            "\n" +
+                            "<TextView" +
+                            " xmlns:android=\"" + ANDROID_URI + "\"" +
+                            " xmlns:tools=\"" + TOOLS_URI + "\"" +
+                            " android:text=\"Initial\"" +
+                            " android:layout_width=\"wrap_content\"" +
+                            " android:layout_height=\"wrap_content\" />";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", textViewString);
+    XmlTag relativeLayoutTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent textViewComponent = createComponent(relativeLayoutTag);
+
+    when(myModel.getProject()).thenReturn(myModule.getProject());
+    String expectedText = "Hello world";
+
+    // IntelliJ doesn't allow tag.setAttribute to be triggered outside WriteCommandAction.
+    assertThrows(
+      IncorrectOperationException.class,
+      (ThrowableRunnable<Throwable>)() ->
+        textViewComponent.setAttribute(ANDROID_URI, "text", expectedText));
   }
 }
