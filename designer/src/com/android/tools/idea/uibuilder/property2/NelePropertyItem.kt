@@ -272,7 +272,7 @@ open class NelePropertyItem(
     get() = model.facet.module.project
 
   protected val firstTag: XmlTag?
-    get() = firstComponent?.backend?.getTag()
+    get() = firstComponent?.backend?.tag
 
   private val nlModel: NlModel?
     get() = firstComponent?.model

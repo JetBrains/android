@@ -26,10 +26,10 @@ import com.intellij.psi.xml.XmlTag
  * TODO: Update APIs accordingly once refactoring is finished.
  * TODO: Evaluate if psi element dependencies are necessary.
  */
-open interface NlComponentBackend {
+interface NlComponentBackend {
 
   // TODO: remove
-  fun setTag(tag: XmlTag)
+  fun setTagElement(tag: XmlTag)
 
   // TODO: remove
   @Deprecated("Use getTag", ReplaceWith("getTag()"))
@@ -39,7 +39,7 @@ open interface NlComponentBackend {
    * Returns the [XmlTag] element, or null if the tag was not set or the tag element is no longer valid.
    * Has to be called with read access allowed.
    */
-  fun getTag(): XmlTag?
+  val tag: XmlTag?
 
   // TODO: remove
   fun getTagPointer(): SmartPsiElementPointer<XmlTag>
