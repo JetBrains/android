@@ -20,13 +20,14 @@ import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.uibuilder.model.NlComponentTest.createTag;
-import static com.android.tools.idea.uibuilder.model.NlComponentTest.createTagPointer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlComponentUtilTest extends AndroidTestCase {
   private NlModel myModel;
@@ -39,10 +40,24 @@ public class NlComponentUtilTest extends AndroidTestCase {
   }
 
   @NotNull
+  private XmlTag createTag(@NotNull String tagName) {
+    String text = String.format("<%s id=\"@+id/%s\" layout_width=\"wrap_content\" layout_height=\"wrap_content\"/>", tagName, tagName);
+    return XmlElementFactory.getInstance(getProject()).createTagFromText(text);
+  }
+
+  @NotNull
   private NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent result = new NlComponent(myModel, tag, createTagPointer(tag));
     NlComponentHelper.INSTANCE.registerComponent(result);
     return result;
+  }
+
+  @NotNull
+  private static SmartPsiElementPointer<XmlTag> createTagPointer(XmlTag tag) {
+    //noinspection unchecked
+    SmartPsiElementPointer<XmlTag> tagPointer = mock(SmartPsiElementPointer.class);
+    when(tagPointer.getElement()).thenReturn(tag);
+    return tagPointer;
   }
 
   public void testGroupSiblings() {
