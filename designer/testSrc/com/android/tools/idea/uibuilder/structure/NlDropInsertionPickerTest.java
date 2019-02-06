@@ -15,29 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlTag;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Arrays;
+import java.util.List;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ConstantConditions")
 public class NlDropInsertionPickerTest {
@@ -45,6 +53,9 @@ public class NlDropInsertionPickerTest {
   private static final int NODE_SIZE = 10;
   private static final int COMPONENT_NUMBER = 10;
   private static final int LAST_COMPONENT_Y_POSITION = COMPONENT_NUMBER * NODE_SIZE - NODE_SIZE / 2;
+
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   @Mock
   private NlModel myModel;
@@ -122,6 +133,7 @@ public class NlDropInsertionPickerTest {
     ourRoot = buildDummyComponentHierarchy();
     myTreePaths = buildDummyTreePathArray(ourRoot);
     when(myModel.getComponents()).thenReturn(ImmutableList.of(ourRoot));
+    when(myModel.getProject()).thenReturn(myRule.getProject());
 
     myPicker = getDefaultPicker();
     myDragged = ImmutableList.of(new DummyComponent(-1, myModel, false));
