@@ -357,11 +357,8 @@ public class NlComponent implements NlAttributesHolder {
       myDelegate.setAttribute(this, namespace, attribute, value);
       return;
     }
-
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-
-    XmlTag tag = myBackend.getTag();
-    if (tag == null) {
+    XmlTag tag = getTag();
+    if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
       return;
     }
