@@ -612,7 +612,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     else {
-      deployTarget = currentTargetProvider.getDeployTarget();
+      deployTarget = currentTargetProvider.getDeployTarget(facet);
     }
 
     return deployTarget;
