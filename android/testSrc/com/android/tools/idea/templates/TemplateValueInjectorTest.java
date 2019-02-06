@@ -32,6 +32,8 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.mock.MockApplicationEx;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.Disposer;
 import org.junit.After;
 import org.junit.Before;
@@ -63,10 +65,9 @@ public class TemplateValueInjectorTest {
     ApplicationManager.setApplication(instance, myDisposable);
 
     PluginManagerCore.getPlugins();
-    String kotlinEpName = ConvertJavaToKotlinProvider.EP_NAME.getName();
+    ExtensionPointName<ConvertJavaToKotlinProvider> kotlinEpName = ConvertJavaToKotlinProvider.EP_NAME;
     if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
-      getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinDefaultImpl.class.getName());
-      Disposer.register(myDisposable, () -> getRootArea().unregisterExtensionPoint(kotlinEpName));
+      getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinDefaultImpl.class.getName(), ExtensionPoint.Kind.INTERFACE, myDisposable);
     }
   }
 

@@ -35,8 +35,6 @@ public final class AndroidStudioPreferences {
       }
     }
 
-    for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
-      preferences.unregisterExtension(toRemove);
-    }
+    preferences.unregisterExtensions(ep -> !nonStudioExtensions.contains(ep));
   }
 }
