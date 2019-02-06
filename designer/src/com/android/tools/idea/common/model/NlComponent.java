@@ -140,7 +140,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public void setTag(@NotNull XmlTag tag) {
-    myBackend.setTag(tag);
+    myBackend.setTagElement(tag);
   }
 
   @Nullable
