@@ -454,7 +454,11 @@ open class MigrateToAndroidxProcessor(val project: Project,
     if (gradleUsages.isNotEmpty()) {
       fun addGoogleRepoUsage(repositoriesModel: RepositoriesModel) {
         if (!repositoriesModel.hasGoogleMavenRepository()) {
-          gradleUsages.add(MigrateToAppCompatUsageInfo.AddGoogleRepositoryUsageInfo(projectBuildModel, repositoriesModel))
+          val repositoriesModelPsiElement = repositoriesModel.psiElement
+          if (repositoriesModelPsiElement != null) {
+            gradleUsages.add(
+              MigrateToAppCompatUsageInfo.AddGoogleRepositoryUsageInfo(projectBuildModel, repositoriesModel, repositoriesModelPsiElement))
+          }
         }
       }
 
