@@ -33,12 +33,7 @@ import java.awt.*;
 
 public class ThemeEditorNotificationProvider extends EditorNotifications.Provider<ThemeEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.theme");
-  private final @NotNull Project myProject;
   private boolean myDismissed = false;
-
-  public ThemeEditorNotificationProvider(final @NotNull Project project) {
-    myProject = project;
-  }
 
   @NotNull
   @Override
@@ -48,12 +43,12 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
 
   @Nullable
   @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor, @NotNull Project project) {
     if (myDismissed) {
       return null;
     }
 
-    final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myProject, file);
+    final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
     if (!ThemeEditorProvider.isAndroidTheme(psiFile)) {
       return null;
     }
@@ -63,7 +58,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
       public void run() {
-        ThemeEditorUtils.openThemeEditor(myProject);
+        ThemeEditorUtils.openThemeEditor(project);
       }
     });
     panel.createActionLabel("Hide notification", new Runnable() {

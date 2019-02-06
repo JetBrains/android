@@ -1049,12 +1049,12 @@
     <packaging.artifactPropertiesProvider implementation="org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider"/>
     <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
 
-    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.AutoImportNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.gradle.notification.AutoImportNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;build-common.jar;android-rt.jar"/>
     <compileServer.plugin classpath="sdklib.jar;common-26.1.2.jar;jarutils.jar;layoutlib-api.jar"/>
@@ -1066,8 +1066,8 @@
     <lang.formatter language="XML" implementationClass="org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder"/>
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlCodeStyleSettingsProvider"/>
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle"/>
-    <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
-    <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
+    <editorNotificationProviderApp implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
+    <editorNotificationProviderApp implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
@@ -1114,7 +1114,7 @@
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
 
     <!-- Translations Editor -->
-    <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
+    <editorNotificationProviderApp implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider"/>
 
     <!-- XsltRefactoringSupportProvider clobbers this so move this first -->
