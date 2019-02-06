@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              >
+
+    <ScrollView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/dots_title"
+                style="?android:textAppearanceMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:lineSpacingMultiplier="1.1"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:paddingTop="24dp"
+                android:text="Tap to toggle color"
+                android:textColor="#5E5D5D"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/dots_subtitle"
+                style="?android:textAppearanceMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:lineSpacingMultiplier="1.1"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:paddingTop="5dp"
+                android:text="Tap boxes below to switch colors"
+                android:textColor="#5E5D5D"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/linearLayout_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="24dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <src.nex3z.togglebuttongroup.SingleSelectToggleGroup
+                    android:id="@+id/dots_color"
+                    android:layout_width="256dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    app:tbgCheckedButton="@+id/choice_a"
+                    app:tbgChildSpacing="10dp"
+                    app:tbgRowSpacing="12dp">
+
+                </src.nex3z.togglebuttongroup.SingleSelectToggleGroup>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="24dp"
+                android:background="#dadada"></View>
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <ScrollView
+        android:id="@+id/dots_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="24dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:id="@+id/linearLayout_checkboxes">
+
+                <src.nex3z.togglebuttongroup.MultiSelectToggleGroup
+                    android:id="@+id/dots_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tbgCheckedButton="@+id/dots_layout"
+                    app:tbgChildSpacing="10dp"
+                    app:tbgRowSpacing="12dp"
+                    >
+                </src.nex3z.togglebuttongroup.MultiSelectToggleGroup>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <include layout="@layout/footer"
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"></include>
+
+</LinearLayout>

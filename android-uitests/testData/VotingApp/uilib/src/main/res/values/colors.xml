@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_default_marker">#2979D6</color>
+    <color name="color_transparent">#333333</color>
+</resources>

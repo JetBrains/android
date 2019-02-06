@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <ImageView
+        android:id="@+id/iv_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        tools:src="@drawable/bg_label_checked"/>
+
+    <ImageView
+        android:id="@+id/iv_bg_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        tools:src="@drawable/bg_label_checked"/>
+
+    <TextView
+        android:id="@+id/tv_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:minHeight="36dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        tools:background="@drawable/bg_label_unchecked"
+        tools:text="MON"/>
+
+</merge>
