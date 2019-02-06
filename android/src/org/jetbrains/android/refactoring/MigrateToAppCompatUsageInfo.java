@@ -708,8 +708,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     private final ProjectBuildModel myProjectBuildModel;
 
     public AddGoogleRepositoryUsageInfo(@NotNull ProjectBuildModel projectBuildModel,
-                                        @NotNull RepositoriesModel repositoriesModel) {
-      super(repositoriesModel.getPsiElement());
+                                        @NotNull RepositoriesModel repositoriesModel,
+                                        @NotNull PsiElement repositoriesModelPsiElement) {
+      super(repositoriesModelPsiElement);
       myProjectBuildModel = projectBuildModel;
       myRepositoriesModel = repositoriesModel;
     }
