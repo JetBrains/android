@@ -24,11 +24,13 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -40,7 +42,6 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
@@ -51,18 +52,17 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -95,7 +95,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -155,11 +154,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * pooled threads.
    */
   @NotNull private final Executor myRenderTaskDisposerExecutor;
-  /**
-   * True if we are currently in the middle of a render. This attribute is used to prevent listeners from triggering unnecessary renders.
-   * If we try to schedule a new render while this is true, we simply re-use the last render in progress.
-   */
-  private final AtomicBoolean myIsCurrentlyRendering = new AtomicBoolean(false);
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -418,10 +412,12 @@ public class LayoutlibSceneManager extends SceneManager {
         layout(true);
       }
       else {
-        requestRender(getTriggerFromChangeType(model.getLastChangeType()))
-          .thenRun(() -> {
-              mySelectionChangeListener
-                .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+        render(getTriggerFromChangeType(model.getLastChangeType()))
+          .thenAccept(result -> {
+              if (result != null) {
+                mySelectionChangeListener
+                  .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+              }
           });
       }
     }
@@ -500,11 +496,6 @@ public class LayoutlibSceneManager extends SceneManager {
     synchronized (myRenderFutures) {
       myRenderFutures.add(callback);
     }
-
-    if (myIsCurrentlyRendering.get()) {
-      return callback;
-    }
-
     // This update is low priority so the model updates take precedence
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
@@ -918,7 +909,6 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    myIsCurrentlyRendering.set(true);
     try {
       DesignSurface surface = getDesignSurface();
       logConfigurationChange(surface);
@@ -928,7 +918,6 @@ public class LayoutlibSceneManager extends SceneManager {
       return renderImpl()
         .thenApply(result -> {
           if (result == null) {
-            completeRender();
             return null;
           }
 
@@ -959,33 +948,23 @@ public class LayoutlibSceneManager extends SceneManager {
             }
           });
           fireRenderListeners();
-          completeRender();
 
           return result;
         });
     }
     catch (Throwable e) {
       if (!getModel().getFacet().isDisposed()) {
-        completeRender();
         throw e;
       }
+    } finally {
+      ImmutableList<CompletableFuture<Void>> callbacks;
+      synchronized (myRenderFutures) {
+        callbacks = ImmutableList.copyOf(myRenderFutures);
+        myRenderFutures.clear();
+      }
+      callbacks.forEach(callback -> callback.complete(null));
     }
-    completeRender();
     return CompletableFuture.completedFuture(null);
-  }
-
-  /**
-   * Completes all the futures created by {@link #requestRender()} and signals the current render as finished by
-   * setting {@link #myIsCurrentlyRendering} to false.
-   */
-  private void completeRender() {
-    ImmutableList<CompletableFuture<Void>> callbacks;
-    synchronized (myRenderFutures) {
-      callbacks = ImmutableList.copyOf(myRenderFutures);
-      myRenderFutures.clear();
-    }
-    callbacks.forEach(callback -> callback.complete(null));
-    myIsCurrentlyRendering.set(false);
   }
 
   @NotNull
