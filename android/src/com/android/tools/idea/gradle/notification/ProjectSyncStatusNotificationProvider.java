@@ -49,22 +49,10 @@ import static com.intellij.util.ThreeState.YES;
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
-public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
+public final class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
   implements DumbAware {
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
-
-  @NotNull private final Project myProject;
-  @NotNull private final GradleProjectInfo myProjectInfo;
-  @NotNull private final GradleSyncState mySyncState;
-
-  public ProjectSyncStatusNotificationProvider(@NotNull Project project,
-                                               @NotNull GradleProjectInfo projectInfo,
-                                               @NotNull GradleSyncState syncState) {
-    myProject = project;
-    myProjectInfo = projectInfo;
-    mySyncState = syncState;
-  }
 
   @Override
   @NotNull
@@ -74,9 +62,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(getKey());
-    NotificationPanel.Type newPanelType = notificationPanelType();
+    NotificationPanel.Type newPanelType = notificationPanelType(project);
 
     if (oldPanel != null) {
       if (oldPanel.type == newPanelType) {
@@ -87,29 +75,31 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       }
     }
 
-    return newPanelType.create(myProject);
+    return newPanelType.create(project);
   }
 
   @VisibleForTesting
   @NotNull
-  NotificationPanel.Type notificationPanelType() {
-    if (!myProjectInfo.isBuildWithGradle()) {
+  NotificationPanel.Type notificationPanelType(@NotNull Project project) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return NotificationPanel.Type.NONE;
     }
-    if (!mySyncState.areSyncNotificationsEnabled()) {
+
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (!syncState.areSyncNotificationsEnabled()) {
       return NotificationPanel.Type.NONE;
     }
-    if (mySyncState.isSyncInProgress()) {
+    if (syncState.isSyncInProgress()) {
       return NotificationPanel.Type.IN_PROGRESS;
     }
-    if (mySyncState.lastSyncFailed()) {
+    if (syncState.lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (mySyncState.getSummary().hasSyncErrors()) {
+    if (syncState.getSummary().hasSyncErrors()) {
       return NotificationPanel.Type.ERRORS;
     }
 
-    ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
+    ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
     if (gradleSyncNeeded == YES) {
       return NotificationPanel.Type.SYNC_NEEDED;
     }

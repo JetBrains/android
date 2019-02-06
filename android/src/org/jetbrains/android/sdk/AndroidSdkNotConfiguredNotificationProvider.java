@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
 import com.intellij.ide.highlighter.XmlFileType;
@@ -20,16 +21,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public final class AndroidSdkNotConfiguredNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.sdk.not.configured.notification");
-
-  private final Project myProject;
-  private final EditorNotifications myNotifications;
-
-  public AndroidSdkNotConfiguredNotificationProvider(Project project, final EditorNotifications notifications) {
-    myProject = project;
-    myNotifications = notifications;
-  }
 
   @NotNull
   @Override
@@ -39,11 +32,11 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     if (file.getFileType() != XmlFileType.INSTANCE) {
       return null;
     }
-    final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+    final Module module = ModuleUtilCore.findModuleForFile(file, project);
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
 
     if (facet == null) {
@@ -60,8 +53,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
     return null;
   }
 
-  private class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {
-
+  private static final class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {
     MySdkNotConfiguredNotificationPanel(@NotNull final Module module) {
       setText("Android SDK is not configured for module '" + module.getName() + "' or corrupted");
 
@@ -69,7 +61,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
         @Override
         public void run() {
           ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.NAME);
-          myNotifications.updateAllNotifications();
+          EditorNotifications.getInstance(module.getProject()).updateAllNotifications();
         }
       });
     }
