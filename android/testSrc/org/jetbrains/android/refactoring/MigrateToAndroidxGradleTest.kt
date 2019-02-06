@@ -148,6 +148,23 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     })
   }
 
+  /**
+   * Regression test for b/123303598
+   */
+  fun testBug123303598() {
+    loadProject(MIGRATE_TO_ANDROID_X)
+
+    val appGradleFile = myFixture.project.baseDir.findFileByRelativePath("build.gradle")!!
+    var appGradleContent = getTextForFile("build.gradle")
+
+    // Remove repositories blocks and check that we do not throw an NPE when evaluating the block
+    appGradleContent = appGradleContent.replace(Regex("repositories \\{.*?AndroidGradleTestCase[\\n\\s]+}\n",
+                                                      setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL)),
+                                                "")
+    setFileContent(appGradleFile, appGradleContent)
+    runProcessor(checkPrerequisites = false)
+  }
+
   private fun setFileContent(file: VirtualFile, content: String) {
     WriteCommandAction.runWriteCommandAction(project) {
       myFixture.openFileInEditor(file)
