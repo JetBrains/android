@@ -106,10 +106,7 @@ public class DebugOnEmulatorTest {
 
     String avdName = avdRule.getMyAvd().getName();
 
-    ideFrameFixture
-      .debugApp(APP_NAME)
-      .selectDevice(avdName)
-      .clickOk();
+    ideFrameFixture.debugApp("app", avdName);
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
