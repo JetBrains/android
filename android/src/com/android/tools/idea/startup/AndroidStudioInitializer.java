@@ -21,15 +21,12 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.application.Topics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
-import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
-import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -42,13 +39,8 @@ import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
-import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
+import com.intellij.util.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -76,7 +68,6 @@ public class AndroidStudioInitializer implements Runnable {
     checkInstallation();
     setUpNewFilePopupActions();
     setUpMakeActions();
-    disableGroovyLanguageInjection();
     setUpNewProjectActions();
     setupAnalytics();
     disableIdeaJUnitConfigurations();
@@ -195,24 +186,6 @@ public class AndroidStudioInitializer implements Runnable {
     hideAction(ACTION_COMPILE);
   }
 
-  // Fix https://code.google.com/p/android/issues/detail?id=201624
-  private static void disableGroovyLanguageInjection() {
-    Topics.subscribe(ProjectManager.TOPIC, null, new ProjectManagerListener() {
-      @Override
-      public void projectOpened(@NotNull Project project) {
-        ExtensionPoint<MultiHostInjector> extensionPoint = MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME.getPoint(project);
-        for (MultiHostInjector injector : extensionPoint.getExtensionList()) {
-          if (injector instanceof GrConcatenationInjector) {
-            extensionPoint.unregisterExtension(injector);
-            return;
-          }
-        }
-
-        getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
-      }
-    });
-  }
-
   private static void setUpNewProjectActions() {
     replaceAction("NewClass", new CreateClassAction());
 
@@ -228,23 +201,16 @@ public class AndroidStudioInitializer implements Runnable {
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
-    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
-    for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
-      if (runConfigurationProducer instanceof JUnitConfigurationProducer
-          && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
-        // In AndroidStudio these ConfigurationProducer s are replaced
-        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer);
-      }
-    }
+    RunConfigurationProducer.EP_NAME.getPoint(null).unregisterExtension((className, adapter) -> {
+      Class<?> clazz = adapter.getImplementationClass();
+      // In AndroidStudio these ConfigurationProducers are replaced
+      return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, clazz) || ReflectionUtil.isAssignable(AndroidJUnitConfigurationProducer.class, clazz);
+    });
 
-    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
-      Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
-    for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
-      if (configurationType instanceof JUnitConfigurationType) {
-        // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
-        configurationTypeExtensionPoint.unregisterExtension(configurationType);
-      }
-    }
+    ConfigurationType.CONFIGURATION_TYPE_EP.getPoint(null).unregisterExtension((className, adapter) -> {
+      // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
+      return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, adapter.getImplementationClass());
+    });
 
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
     hideAction("excludeFromSuite");
