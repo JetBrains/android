@@ -207,7 +207,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       val file = fixture.addFileToProject("res/layout/${layoutFileName.toLowerCase()}.xml", text) as XmlFile
       val parent = MockNlComponent.create(file.rootTag!!)
       val components = mutableListOf<NlComponent>()
-      file.rootTag!!.subTags.forEach { components.add(MockNlComponent.create(it)) }
+      file.rootTag!!.subTags.forEach { components.add(MockNlComponent.create(parent.model, it)) }
       components.forEach { parent.addChild(it) }
       return Pair(file, components)
     }
