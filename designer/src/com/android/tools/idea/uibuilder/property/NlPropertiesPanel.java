@@ -281,6 +281,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
     updateDefaultProperties(myPropertiesManager);
     myInspectorPanel.setComponent(components, properties, myPropertiesManager);
+    setFilter(myFilter.myPattern);
   }
 
   @NotNull
