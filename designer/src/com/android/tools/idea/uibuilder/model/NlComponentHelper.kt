@@ -350,27 +350,10 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 val NlComponent.viewHandler: ViewHandler?
-  get() {
-    return ApplicationManager.getApplication().runReadAction(Computable{
-      if (!tag.isValid) {
-        null
-      }
-      else {
-        ViewHandlerManager.get(tag.project).getHandler(this)
-      }
-    })
-  }
+  get() = ViewHandlerManager.get(model.project).getHandler(this)
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
-  get() {
-    @Suppress("SENSELESS_COMPARISON")
-    // tag can be null for a mock component. To avoid the need of creating a fully functionnal mock XmlTag
-    // that passes all tests, we check the nullity.
-    if (tag == null || !tag.isValid) {
-      return null
-    }
-    return ViewHandlerManager.get(tag.project).findLayoutHandler(this, false)
-  }
+  get() = ViewHandlerManager.get(model.project).findLayoutHandler(this, false)
 
 /**
  * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
