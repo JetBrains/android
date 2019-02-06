@@ -37,7 +37,6 @@ import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.SdkConstants.VIEW
 import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.SdkConstants.VIEW_MERGE
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
@@ -58,10 +57,10 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Computable
 import com.intellij.pom.Navigatable
 import com.intellij.util.PsiNavigateUtil
 
