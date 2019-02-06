@@ -17,8 +17,8 @@ import android.widget.Button;
 // it's normal for the *classes* to be unused; it's the *constructors* that are not
 // marked as unused (except for the expected cases, e.g. the 4 arg view constructor,
 // the non-framework class, etc.)
-public class <warning descr="Class 'UnusedConstructors' is never used">UnusedConstructors</warning> {
-    public static class <warning descr="Class 'MyButton' is never used">MyButton</warning> extends Button {
+public class UnusedConstructors {
+    public static class MyButton extends Button {
         public MyButton(Context context) {
             super(context);
         }
@@ -42,7 +42,7 @@ public class <warning descr="Class 'UnusedConstructors' is never used">UnusedCon
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class <warning descr="Class 'MyFragment' is never used">MyFragment</warning> extends Fragment {
+    public static class MyFragment extends Fragment {
         public MyFragment() {
         }
     }
@@ -52,7 +52,7 @@ public class <warning descr="Class 'UnusedConstructors' is never used">UnusedCon
         }
     }
 
-    public static abstract class <warning descr="Class 'MyBackupAgent' is never used">MyBackupAgent</warning> extends BackupAgent {
+    public static abstract class MyBackupAgent extends BackupAgent {
         public MyBackupAgent() {
         }
     }
@@ -68,7 +68,7 @@ public class <warning descr="Class 'UnusedConstructors' is never used">UnusedCon
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    public static abstract class <warning descr="Class 'MyActionProvider' is never used">MyActionProvider</warning> extends ActionProvider {
+    public static abstract class MyActionProvider extends ActionProvider {
 
         public MyActionProvider(Context context) {
             super(context);
