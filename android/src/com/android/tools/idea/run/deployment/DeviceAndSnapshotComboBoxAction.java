@@ -58,7 +58,6 @@ import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@VisibleForTesting
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
   private static final Key<Instant> SELECTION_TIME = new Key<>("DeviceAndSnapshotComboBoxAction.selectionTime");
@@ -241,7 +240,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       group.addSeparator();
     }
 
-    // group.add(myRunOnMultipleDevicesAction);
+    group.add(myRunOnMultipleDevicesAction);
     group.add(myOpenAvdManagerAction);
 
     AnAction action = getTroubleshootDeviceConnectionsAction();
