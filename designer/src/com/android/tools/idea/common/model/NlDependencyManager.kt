@@ -17,6 +17,7 @@ package com.android.tools.idea.common.model
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.concurrent.addCallback
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
