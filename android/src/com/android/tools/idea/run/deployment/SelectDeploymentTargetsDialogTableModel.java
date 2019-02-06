@@ -62,6 +62,11 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
     timer.start();
   }
 
+  @NotNull
+  Device getDeviceAt(int modelRowIndex) {
+    return myDevices.get(modelRowIndex);
+  }
+
   @Override
   public int getRowCount() {
     return myDevices.size();

@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.execution.Executor;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
+import java.util.Map;
 import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
+  private boolean myProvidingMultipleTargets;
+
   private DeviceAndSnapshotComboBoxTargetProvider() {
   }
 
@@ -78,9 +88,52 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     }
   }
 
+  @Override
+  public boolean requiresRuntimePrompt() {
+    return myProvidingMultipleTargets;
+  }
+
+  void setProvidingMultipleTargets(@SuppressWarnings("SameParameterValue") boolean providingMultipleTargets) {
+    myProvidingMultipleTargets = providingMultipleTargets;
+  }
+
+  @Nullable
+  @Override
+  public DeployTarget showPrompt(@NotNull Executor executor,
+                                 @NotNull ExecutionEnvironment environment,
+                                 @NotNull AndroidFacet facet,
+                                 @NotNull DeviceCount count,
+                                 boolean androidInstrumentedTests,
+                                 @NotNull Map providerIdToStateMap,
+                                 int configurationId,
+                                 @NotNull LaunchCompatibilityChecker checker) {
+    assert myProvidingMultipleTargets;
+    myProvidingMultipleTargets = false;
+
+    SelectDeploymentTargetsDialog dialog = new SelectDeploymentTargetsDialog(facet.getModule().getProject());
+
+    if (!dialog.showAndGet()) {
+      return null;
+    }
+
+    return new DeviceAndSnapshotComboBoxTarget(dialog.getSelectedDevices());
+  }
+
   @NotNull
   @Override
   public DeployTarget getDeployTarget() {
-    return new DeviceAndSnapshotComboBoxTarget();
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
+  public DeployTarget getDeployTarget(@NotNull AndroidFacet facet) {
+    assert !myProvidingMultipleTargets;
+
+    ActionManager manager = ActionManager.getInstance();
+    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
+    Device device = action.getSelectedDevice(facet.getModule().getProject());
+
+    return new DeviceAndSnapshotComboBoxTarget(device == null ? Collections.emptyList() : Collections.singletonList(device));
   }
 }
