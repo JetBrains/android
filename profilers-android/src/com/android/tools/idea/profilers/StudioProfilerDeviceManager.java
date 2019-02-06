@@ -65,6 +65,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -303,6 +305,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
     @Override
     public void run() {
+      if (!AndroidProfilerDownloader.makeSureProfilerIsInPlace()) return;
       try {
         // Waits to make sure the device has completed boot sequence.
         if (!waitForBootComplete()) {
@@ -394,11 +397,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean executable)
       throws AdbCommandRejectedException, IOException {
-      File dir = new File(PathManager.getHomePath(), hostReleaseDir);
-      if (!dir.exists()) {
-        // Development mode
-        dir = new File(PathManager.getHomePath(), hostDevDir);
-      }
+      File dir = getProfilerDir(hostReleaseDir, hostDevDir);
 
       File file = null;
       if (executable) {
@@ -417,6 +416,20 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
       }
       pushFileToDevice(file, fileName, deviceDir, executable);
+    }
+
+    @NotNull
+    private File getProfilerDir(String hostReleaseDir, String hostDevDir) {
+      File dir = new File(PathManager.getHomePath(), hostReleaseDir);
+      if (!dir.exists()) {
+        // Development mode
+        dir = new File(PathManager.getHomePath(), hostDevDir);
+        if (!dir.exists()) {
+          // IDEA development mode
+          dir = AndroidProfilerDownloader.getHostDir(hostReleaseDir);
+        }
+      }
+      return dir;
     }
 
     private void pushFileToDevice(File file, String fileName, String deviceDir, boolean executable)
@@ -486,10 +499,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void pushAbiDependentBinaryFiles(String devicePath, String hostReleaseDir, String hostDevDir, String hostFilename,
                                              String deviceFilenameFormat) throws AdbCommandRejectedException, IOException {
-      File dir = new File(PathManager.getHomePath(), hostReleaseDir);
-      if (!dir.exists()) {
-        dir = new File(PathManager.getHomePath(), hostDevDir);
-      }
+      File dir = getProfilerDir(hostReleaseDir, hostDevDir);
       // Multiple abis of same cpu arch need only one binary to push, for example, "armeabi" and "armeabi-v7a" abis' cpu arch is "arm".
       Set<String> cpuArchSet = new HashSet<>();
       for (String abi : myDevice.getAbis()) {
