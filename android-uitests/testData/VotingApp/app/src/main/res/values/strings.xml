@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Feedback Loop</string>
+    <string name="validation_error">Please enter an access code. </string>
+
+</resources>
