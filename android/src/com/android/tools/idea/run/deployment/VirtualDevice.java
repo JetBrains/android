@@ -214,16 +214,15 @@ final class VirtualDevice extends Device {
     return ddmlibDevice.getVersion();
   }
 
-  @NotNull
   @Override
-  DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
     AndroidDevice device = getAndroidDevice();
 
     if (!myConnected) {
       device.launch(project, snapshot);
     }
 
-    return new DeviceFutures(Collections.singletonList(device));
+    futures.getDevices().add(device);
   }
 
   @Override
