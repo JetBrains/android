@@ -51,8 +51,7 @@ class MorphComponentAction(component: NlComponent)
     val dependencyManager = NlDependencyManager.get()
     val newTag = listOf(NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>")))
     if (dependencyManager.checkIfUserWantsToAddDependencies(newTag, myFacet)) {
-      if (dependencyManager.addDependencies(newTag, myFacet)) {
-        // Only edit the tag name and attributes if dependencies are added (or if they were already there)
+      dependencyManager.addDependencies(newTag, myFacet) {
         editTagNameAndAttributes(newTagName)
       }
     }
