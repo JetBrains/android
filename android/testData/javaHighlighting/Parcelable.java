@@ -16,7 +16,7 @@ public class MyParcelable implements Parcelable {
     }
   };
 
-  public static final Creator<MyParcelable> CREATOR1 = new Creator<MyParcelable>() {
+  public static final Creator<MyParcelable> <warning>CREATOR1</warning> = new Creator<MyParcelable>() {
     @Override
     public MyParcelable createFromParcel(Parcel source) {
       return new MyParcelable();
