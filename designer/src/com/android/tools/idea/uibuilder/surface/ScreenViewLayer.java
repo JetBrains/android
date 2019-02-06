@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -275,8 +276,8 @@ public class ScreenViewLayer extends Layer {
                                                     double scaleY,
                                                     boolean fastScaling) {
     // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
-    double xRetinaScale = 2 * scaleX;
-    double yRetinaScale = 2 * scaleY;
+    double xRetinaScale = JBUI.sysScale() * scaleX;
+    double yRetinaScale = JBUI.sysScale() * scaleY;
 
     if (fastScaling) {
       original = ImageUtils.lowQualityFastScale(original, xRetinaScale, yRetinaScale);
@@ -294,7 +295,7 @@ public class ScreenViewLayer extends Layer {
                                           double xScaleFactor,
                                           double yScaleFactor) {
     BufferedImage scaledImage = null;
-    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+    if (UIUtil.isJreHiDPI() && ImageUtils.supportsRetina()) {
       scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, false);
     }
     if (scaledImage == null) {
