@@ -49,6 +49,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
+import javax.swing.event.HyperlinkEvent
 
 class AnalysisRunnable(private val hprofPath: Path,
                        private val deleteAfterAnalysis: Boolean) : Runnable {
@@ -181,7 +182,9 @@ class ShowReportDialog(report: String) : DialogWrapper(false) {
       isOpaque = false
       isFocusable = false
       addHyperlinkListener {
-        it.url?.let(BrowserUtil::browse)
+        if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          it.url?.let(BrowserUtil::browse)
+        }
       }
       text = AndroidBundle.message("heap.dump.analysis.report.dialog.footer")
       pane.add(this, BorderLayout.PAGE_END)
