@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
@@ -89,6 +90,11 @@ public final class NlComponentTest extends LayoutTestCase {
                      component(TEXT_VIEW)
                        .withBounds(0, 0, 200, 200)
                        .id("@id/textView1")
+                       .wrapContentHeight()
+                       .wrapContentWidth(),
+                     component(FRAME_LAYOUT)
+                       .withBounds(0, 200, 200, 200)
+                       .id("@id/frameLayout1")
                        .wrapContentHeight()
                        .wrapContentWidth()
                    )).build();
@@ -384,5 +390,15 @@ public final class NlComponentTest extends LayoutTestCase {
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
     assertEquals(expected, xmlFile.getText());
+  }
+
+  public void testAddTagsWithInvalidXmlTag() {
+    myModel = createModel();
+    NlComponent frameLayout = myModel.find("frameLayout1");
+    deleteXmlTag(frameLayout);
+
+    NlComponent newTextView = createComponent(TEXT_VIEW, "textView2");
+    NlWriteCommandActionUtil.run(frameLayout, "addTextView", () -> newTextView.addTags(frameLayout, null, InsertType.PASTE));
+    assertThat(frameLayout.getChildren()).isEmpty();
   }
 }
