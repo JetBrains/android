@@ -54,6 +54,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -232,7 +233,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ActionButtonFixture findAttachDebuggerToAndroidProcessButton() {
-    return findActionButtonByText("Attach debugger to Android process");
+    GenericTypeMatcher<ActionButton> matcher = Matchers.byText(ActionButton.class, "Attach Debugger to Android Process").andIsShowing();
+    return ActionButtonFixture.findByMatcher(matcher, robot(), target());
   }
 
   @NotNull
@@ -253,6 +255,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
+  public void runApp(@NotNull String appName, @NotNull String deviceName) {
+    new DeviceSelectorFixture(robot()).runApp(this, appName, deviceName);
+  }
+
+  /**
+   * @deprecated Use {@link #runApp(String, String)}
+   */
+  @Deprecated
   public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
     selectApp(appName);
     findRunApplicationButton().waitUntilEnabledAndShowing().click();
