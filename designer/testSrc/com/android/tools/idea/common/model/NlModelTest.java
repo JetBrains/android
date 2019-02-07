@@ -24,7 +24,6 @@ import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_VERTICAL;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
@@ -45,7 +44,6 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -73,7 +71,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -845,75 +842,6 @@ public class NlModelTest extends LayoutTestCase {
       expectedModificationCount += 1;
       assertEquals(expectedModificationCount, model.getModificationCount());
     }
-  }
-
-  public void testCreateComponentValidChild() {
-    SyncNlModel model = createModel(
-      "<LinearLayout" +
-      "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
-      "         android:layout_width=\"match_parent\"" +
-      "         android:layout_height=\"match_parent\">" +
-      "</LinearLayout>");
-    XmlTag tagToAdd = XmlElementFactory.getInstance(myModule.getProject()).createTagFromText(
-      "<TextView" +
-      " xmlns:android=\"" + ANDROID_URI + "\"" +
-      " xmlns:tools=\"" + TOOLS_URI + "\"" +
-      " android:text=\"Initial\"" +
-      " android:layout_width=\"wrap_content\"" +
-      " android:layout_height=\"wrap_content\" />");
-
-    NlComponent root = model.getComponents().get(0);
-
-    NlWriteCommandActionUtil.run(
-      root, "Add", () -> assertNotNull(model.createComponent(tagToAdd))
-    );
-  }
-
-  public void testCreateComponentInvalidChild() {
-    SyncNlModel model = createModel(
-       "<LinearLayout" +
-       "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
-       "         android:layout_width=\"match_parent\"" +
-       "         android:layout_height=\"match_parent\">" +
-       "</LinearLayout>");
-    XmlTag tagToAdd = mock(XmlTag.class);
-    when(tagToAdd.isValid()).thenReturn(false);
-
-    NlComponent root = model.getComponents().get(0);
-
-    NlWriteCommandActionUtil.run(
-      root, "Add", () -> assertNull(model.createComponent(null, tagToAdd, root, null, InsertType.PASTE))
-    );
-  }
-
-  public void testCreateComponentInvalidParent() {
-    SyncNlModel model = createModel(
-      "<LinearLayout" +
-      "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
-      "         android:layout_width=\"match_parent\"" +
-      "         android:layout_height=\"match_parent\">" +
-      "</LinearLayout>");
-    XmlTag tagToAdd = mock(XmlTag.class);
-    when(tagToAdd.isValid()).thenReturn(false);
-
-    NlComponent root = model.getComponents().get(0);
-
-    NlComponent parent = mock(NlComponent.class);
-    NlComponentBackend backend = mock(NlComponentBackend.class);
-    when(parent.getBackend()).thenReturn(backend);
-    when(backend.isValid()).thenReturn(false);
-
-    NlWriteCommandActionUtil.run(
-      root, "Add", () -> assertNull(model.createComponent(null, tagToAdd, parent, null, InsertType.PASTE))
-    );
-  }
-
-  private SyncNlModel createModel(String xml) {
-    XmlTag rootTag = XmlElementFactory.getInstance(myModule.getProject()).createTagFromText(xml);
-    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
-    SyncNlModel model = modelBuilder.build();
-    model.syncWithPsi(rootTag, ImmutableList.of());
-    return model;
   }
 
   @NotNull
