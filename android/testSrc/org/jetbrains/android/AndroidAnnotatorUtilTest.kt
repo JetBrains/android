@@ -34,7 +34,7 @@ class AndroidAnnotatorUtilTest {
     val task = AndroidAnnotatorUtil.ColorRenderer.createSetColorTask(tag)
 
     val color = Color.BLUE
-    task.invoke(color)
+    task.consume(color)
 
     Mockito.verify(tagValue).text = colorToString(color)
   }
@@ -47,7 +47,7 @@ class AndroidAnnotatorUtilTest {
     val task = AndroidAnnotatorUtil.ColorRenderer.createSetColorTask(attributeValue)
 
     val color = Color.BLUE
-    task.invoke(color)
+    task.consume(color)
 
     Mockito.verify(xmlAttribute).value = colorToString(color)
   }
