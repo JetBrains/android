@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -251,8 +252,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     }
 
     if (found) {
-      Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(fullInstallationsDownloadSize, patchesDownloadSize,
-                                                                              spaceToBeFreedUp);
+      Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(getSdkHandler().getLocation(), fullInstallationsDownloadSize,
+                                                                              patchesDownloadSize, spaceToBeFreedUp);
       // Now form the summary message ordering the constituents properly.
       HtmlBuilder message = new HtmlBuilder();
       message.openHtmlBody();
@@ -329,8 +330,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     return Pair.of(archive.getComplete().getSize(), false);
   }
 
-  private Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(long fullInstallationsDownloadSize,
-                                                              long patchesDownloadSize, long spaceToBeFreedUp) {
+  @VisibleForTesting
+  static Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(@Nullable File sdkRoot, long fullInstallationsDownloadSize,
+                                                             long patchesDownloadSize, long spaceToBeFreedUp) {
     HtmlBuilder message = new HtmlBuilder();
     message.add("Disk usage:\n");
     boolean issueDiskSpaceWarning = false;
@@ -341,38 +343,17 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     long totalDownloadSize = patchesDownloadSize + fullInstallationsDownloadSize;
     if (totalDownloadSize > 0) {
       message.listItem().add("Estimated download size: " + new Storage(totalDownloadSize).toUiString());
-      long tempDirUsageAfterDownload = patchesDownloadSize + ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize;
-      message.listItem().add("Estimated disk space required in temp directory during installation: "
-                             + new Storage(tempDirUsageAfterDownload).toUiString());
-      long sdkRootUsageAfterInstallation = ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize;
+      long sdkRootUsageAfterInstallation = patchesDownloadSize + ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize
+                                           - spaceToBeFreedUp;
       message.listItem().add("Estimated disk space to be additionally occupied on SDK partition after installation: "
                              + new Storage(sdkRootUsageAfterInstallation).toUiString());
-      File tempDir = new File(System.getProperty("java.io.tmpdir"));
-      File sdkRoot = getSdkHandler().getLocation();
-      long sdkRootUsableSpace = 0;
       if (sdkRoot != null) {
-        sdkRootUsableSpace = sdkRoot.getUsableSpace();
-      }
-      long tempDirUsableSpace = tempDir.getUsableSpace();
-      // Checking for strict equality between the available space does not 100% guarantee that the SDK root and temp
-      // folders are on the same partition of course, but for the purposes of this dialog the frequency of that edge case can be
-      // considered negligible. Even when it happens, the dialog will still show technically correct information, just not as
-      // fully as in the regular case.
-      // Also there is an opposite edge case when there were some changes to the disk space between the two calls to
-      // getUsableSpace() above. The probability of that can be considered negligible in this context as well, and even
-      // when it happens, it'll still be fine.
-      if (sdkRoot == null || sdkRootUsableSpace == tempDirUsableSpace) {
-        message.listItem().add("Currently available disk space: " + new Storage(tempDirUsableSpace).toUiString());
-      }
-      else {
-        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot,
+        long sdkRootUsableSpace = sdkRoot.getUsableSpace();
+        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot.getAbsolutePath(),
                                              new Storage(sdkRootUsableSpace).toUiString()));
-        message.listItem().add(String.format("Currently available disk space in tmpdir (%1$s): %2$s", tempDir,
-                                             new Storage(tempDirUsableSpace).toUiString()));
+        long totalSdkUsableSpace = sdkRootUsableSpace + spaceToBeFreedUp;
+        issueDiskSpaceWarning = (totalSdkUsableSpace < sdkRootUsageAfterInstallation);
       }
-      long totalSdkUsableSpace = sdkRootUsableSpace + spaceToBeFreedUp;
-      issueDiskSpaceWarning = ((tempDirUsableSpace < tempDirUsageAfterDownload)
-                               || ((sdkRoot != null) && (totalSdkUsableSpace < sdkRootUsageAfterInstallation)));
     }
     message.endList();
     if (issueDiskSpaceWarning) {
