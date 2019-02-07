@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -970,25 +971,29 @@ public final class GradleUtil {
    * Given a project, return what types of build files are used.
    *
    * @param   project Project to analyse
-   * @return  A set containing values from {{@link{FN_BUILD_GRADLE}, {@link{FN_BUILD_GRADLE_KTS}}
+   * @return  A set containing values from {{@link{DOT_GRADLE}, {@link{DOT_KTS}}
    */
   public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
     HashSet<String> result = new HashSet<>();
-    addBuildFileName(result, getGradleBuildFile(getBaseDirPath(project)));
+    addBuildFileType(result, getGradleBuildFile(getBaseDirPath(project)));
     for(Module module : ModuleManager.getInstance(project).getModules()) {
-      addBuildFileName(result, getGradleBuildFile(module));
+      addBuildFileType(result, getGradleBuildFile(module));
     }
     return result;
   }
 
-  private static void addBuildFileName(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
+  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
     if (buildFile != null) {
-      String buildFileName = buildFile.getName();
-      if (buildFileName.equalsIgnoreCase(FN_BUILD_GRADLE)) {
-        result.add(FN_BUILD_GRADLE);
+      String buildFileExtension = buildFile.getExtension();
+      if (buildFileExtension == null) {
+        return;
       }
-      else if (buildFileName.equalsIgnoreCase(FN_BUILD_GRADLE_KTS)) {
-        result.add(FN_BUILD_GRADLE_KTS);
+      buildFileExtension = "." + buildFileExtension;
+      if (buildFileExtension.equalsIgnoreCase(DOT_GRADLE)) {
+        result.add(DOT_GRADLE);
+      }
+      else if (buildFileExtension.equalsIgnoreCase(DOT_KTS)) {
+        result.add(DOT_KTS);
       }
     }
   }
