@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
@@ -562,8 +562,8 @@ public class GradleSyncState {
              .setTrigger(myTrigger)
              .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled())
              .setSyncType(getSyncType())
-             .setUsesBuildGradle(buildFilesTypes.contains(FN_BUILD_GRADLE))
-             .setUsesBuildGradleKts(buildFilesTypes.contains(FN_BUILD_GRADLE_KTS));
+             .setUsesBuildGradle(buildFilesTypes.contains(DOT_GRADLE))
+             .setUsesBuildGradleKts(buildFilesTypes.contains(DOT_KTS));
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return UsageTrackerUtils.withProjectId(event, myProject);
