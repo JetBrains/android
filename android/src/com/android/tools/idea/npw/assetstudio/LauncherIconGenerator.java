@@ -218,14 +218,14 @@ public class LauncherIconGenerator extends IconGenerator {
         scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
       }
       options.foregroundImage =
-          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, 1, getGraphicGeneratorContext());
+          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, getGraphicGeneratorContext());
     }
     // Set background image.
     ImageAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();
     if (backgroundAsset != null) {
       double scaleFactor = backgroundAsset.scalingPercent().get() / 100.;
       options.backgroundImage =
-          new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, 1, getGraphicGeneratorContext());
+          new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, getGraphicGeneratorContext());
     }
 
     options.backgroundColor = myBackgroundColor.get().getRGB();
