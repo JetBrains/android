@@ -17,20 +17,22 @@ package com.android.tools.idea.tests.gui.cuj
 
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddLibraryDependencyDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
+import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
 import java.io.IOException
-import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.event.KeyEvent
 
 /**
  * UI test for "Adding new QR scanning feature to existing app" CUJ
@@ -96,9 +98,50 @@ class QrScanningCujTest {
           .createConstraintFromBottomToBottomOfLayout()
           .createConstraintFromLeftToLeftOfLayout()
           .createConstraintFromRightToRightOfLayout()
-        dragComponentToSurface("Common", "ImageView")
-        ChooseResourceDialogFixture.find(robot())
-          .clickCancel()
       }
+
+    // Import SVG resource using the Resource Explorer
+    ide.openResourceManager()
+      .run {
+        ResourceExplorerFixture.find(robot())
+          .clickAddButton()
+        openFromMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+          .useLocalFile(GuiTests.getTestDataDir()!!.toString() + "/VotingApp/ic_qr_code.svg")
+          .setName("ic_qr_code")
+          .clickNext()
+          .clickFinish()
+      }
+      .closeResourceManager()
+
+    // Add an image view to the layout
+    ide.editor
+      .getLayoutEditor(false).run {
+        dragComponentToSurface("Common", "ImageView")
+        ChooseResourceDialogFixture.find(robot()).run {
+          searchField.setText("ic_qr")
+            .pressAndReleaseKeys(KeyEvent.VK_DOWN)
+          clickOK()
+        }
+        findView("ImageView", 0)
+          .createConstraintFromLeftToLeftOfLayout()
+          .createConstraintFromRightToRightOfLayout()
+        configToolbar.chooseDevice("Pixel 3 XL")
+          .chooseLayoutVariant("Landscape")
+          .chooseDevice("Pixel 2")
+          .chooseLayoutVariant("Portrait")
+      }
+
+    // Edit MainActivity.java
+    ide.editor
+      .open("app/src/main/java/com/src/adux/votingapp/MainActivity.java")
+      .select("(activity_main_edit_text)")
+      .typeText("activity_main_qr")
+      .autoCompleteWindow
+      .item("activity_main_qr_scan")
+      .doubleClick()
+
+    // Check that the project compiles
+    ide.waitAndInvokeMenuPath("Build", "Rebuild Project")
+      .waitForBuildToFinish(BuildMode.REBUILD)
   }
 }

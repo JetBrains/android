@@ -54,6 +54,7 @@ iml_module(
         "//tools/idea/platform/testFramework/bootstrap:intellij.tools.testsBootstrap[module, test]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )
 
