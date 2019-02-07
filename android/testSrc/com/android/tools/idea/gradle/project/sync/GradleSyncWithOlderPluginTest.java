@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
-import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
-
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.testing.AndroidGradleTests.*;
+import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
+import static com.android.tools.idea.testing.AndroidGradleTests.replaceRegexGroup;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateBuildToolsVersion;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateCompileSdkVersion;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateTargetSdkVersion;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE30;
@@ -50,6 +37,22 @@ import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.mock;
+
+import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
+import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
@@ -225,8 +228,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     // It is expected that symbols in AppCompatActivity cannot be resolved yet, since AARs have not been exploded yet.
     assertThat(highlights).isNotEmpty();
     // Generate sources to explode AARs in build cache.
-    GradleInvocationResult result = generateSources();
-    assertTrue(result.isBuildSuccessful());
+    generateSources();
 
     highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
     // All symbols in AppCompatActivity should be resolved now.
