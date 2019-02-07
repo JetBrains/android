@@ -15,6 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.formatDuration;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -53,20 +70,11 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.util.Set;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.INFO;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.formatDuration;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
@@ -546,13 +554,16 @@ public class GradleSyncState {
   public AndroidStudioEvent.Builder generateSyncEvent(@NotNull AndroidStudioEvent.EventKind kind) {
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
     GradleSyncStats.Builder syncStats = GradleSyncStats.newBuilder();
+    Set<String> buildFilesTypes = projectBuildFilesTypes(myProject);
     // @formatter:off
     syncStats.setTotalTimeMs(getSyncTotalTimeMs())
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
              .setTrigger(myTrigger)
              .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled())
-             .setSyncType(getSyncType());
+             .setSyncType(getSyncType())
+             .setUsesBuildGradle(buildFilesTypes.contains(FN_BUILD_GRADLE))
+             .setUsesBuildGradleKts(buildFilesTypes.contains(FN_BUILD_GRADLE_KTS));
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return UsageTrackerUtils.withProjectId(event, myProject);

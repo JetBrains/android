@@ -112,6 +112,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -962,6 +963,33 @@ public final class GradleUtil {
         .collect(Collectors.toList());
     } else {
       return artifact.getGeneratedSourceFolders();
+    }
+  }
+
+  /**
+   * Given a project, return what types of build files are used.
+   *
+   * @param   project Project to analyse
+   * @return  A set containing values from {{@link{FN_BUILD_GRADLE}, {@link{FN_BUILD_GRADLE_KTS}}
+   */
+  public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
+    HashSet<String> result = new HashSet<>();
+    addBuildFileName(result, getGradleBuildFile(getBaseDirPath(project)));
+    for(Module module : ModuleManager.getInstance(project).getModules()) {
+      addBuildFileName(result, getGradleBuildFile(module));
+    }
+    return result;
+  }
+
+  private static void addBuildFileName(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
+    if (buildFile != null) {
+      String buildFileName = buildFile.getName();
+      if (buildFileName.equalsIgnoreCase(FN_BUILD_GRADLE)) {
+        result.add(FN_BUILD_GRADLE);
+      }
+      else if (buildFileName.equalsIgnoreCase(FN_BUILD_GRADLE_KTS)) {
+        result.add(FN_BUILD_GRADLE_KTS);
+      }
     }
   }
 }
