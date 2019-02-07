@@ -50,6 +50,7 @@ import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.util.List;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
@@ -220,7 +221,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   @NotNull
   public JPanelFixture getBackNavigationPanel() {
-    return new JPanelFixture(robot(), BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME);
+    JPanel backNavPanel = GuiTests.waitUntilShowing(robot(),
+                                                    Matchers.byName(JPanel.class, BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME));
+    return new JPanelFixture(robot(), backNavPanel);
   }
 
   @NotNull
