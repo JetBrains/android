@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.ListenableFutureTask
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.CompletionStage
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
@@ -85,3 +86,8 @@ fun <T> executeOnPooledThread(action: ()->T): ListenableFuture<T> {
   ApplicationManager.getApplication().executeOnPooledThread(futureTask)
   return futureTask
 }
+
+/**
+ * Converts a [ListenableFuture] to a [CompletionStage].
+ */
+fun <T> ListenableFuture<T>.toCompletionStage(): CompletionStage<T> = ListenableFutureToCompletionStageAdapter(this)
