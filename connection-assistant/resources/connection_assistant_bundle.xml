@@ -44,7 +44,7 @@
         <stepElement>
           <action
               key="connection.list.devices"
-              label="Rescan USB devices">
+              label="Rescan devices">
           </action>
         </stepElement>
         <stepElement>
