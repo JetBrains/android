@@ -733,4 +733,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Build"))).deselect();
     return this;
   }
+
+  @NotNull
+  public IdeFrameFixture openResourceManager() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).select();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture closeResourceManager() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).deselect();
+    return this;
+  }
 }

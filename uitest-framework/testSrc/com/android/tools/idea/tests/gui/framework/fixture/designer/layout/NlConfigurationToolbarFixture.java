@@ -113,8 +113,10 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
-  public void chooseLayoutVariant(@NotNull String layoutVariant) {
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> chooseLayoutVariant(@NotNull String layoutVariant) {
     selectDropDownActionButtonItem("Orientation for Preview (O)", Predicate.isEqual(layoutVariant));
+    return this;
   }
 
   /**
