@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.resources.ResourceFolderType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.FileImportRowViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceImportDialogViewModel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.VerticalLayout
@@ -28,9 +26,11 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -43,6 +43,7 @@ import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.DocumentEvent
 
 private const val DIALOG_TITLE = "Import drawables"
 private val DIALOG_SIZE = JBUI.size(1000, 700)
@@ -159,12 +160,19 @@ class ResourceImportDialog(
   /**
    * View showing a [DesignAssetSet] and its contained [DesignAsset].
    */
-  private inner class DesignAssetSetView(private val assetSet: DesignAssetSet) : JPanel(BorderLayout(0, 0)) {
-    val assetNameLabel = JBLabel(assetSet.name, UIUtil.ComponentStyle.LARGE)
+  private inner class DesignAssetSetView(private var assetSet: DesignAssetSet) : JPanel(BorderLayout(0, 0)) {
+    val assetNameLabel = JBTextField(assetSet.name, 20).apply {
+      this.font = UIUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
+      document.addDocumentListener(object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          performRename(e.document.getText(0, document.length))
+        }
+      })
+    }
+
     val itemNumberLabel = JBLabel(dialogViewModel.getItemNumberString(assetSet),
                                   UIUtil.ComponentStyle.SMALL,
                                   UIUtil.FontColor.BRIGHTER)
-    //val newAlternativeButton = JBLabel("New alternative", StudioIcons.Common.ADD, JBLabel.RIGHT)
 
     val fileViewContainer = JPanel(VerticalFlowLayout(true, false)).apply {
       assetSet.designAssets.forEach { asset ->
@@ -179,7 +187,6 @@ class ResourceImportDialog(
         add(assetNameLabel)
         add(itemNumberLabel)
       }, BorderLayout.WEST)
-      //add(newAlternativeButton, BorderLayout.EAST)
     }
 
     init {
@@ -192,7 +199,7 @@ class ResourceImportDialog(
     }
 
     private fun singleAssetView(asset: DesignAsset): FileImportRow {
-      val viewModel = FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE, removeCallback = this::removeAsset)
+      val viewModel = dialogViewModel.createFileViewModel(asset, removeCallback = this::removeAsset)
       val fileImportRow = FileImportRow(viewModel)
       dialogViewModel.getAssetPreview(asset).whenComplete { image, _ ->
         image?.let {
@@ -201,6 +208,13 @@ class ResourceImportDialog(
         }
       }
       return fileImportRow
+    }
+
+    private fun performRename(assetName: String) {
+      dialogViewModel.rename(assetSet, assetName) { oldName, renamedAssetSet ->
+        val assetSetView = assetSetToView.remove(oldName)!!
+        assetSetToView[renamedAssetSet.name] = assetSetView
+      }
     }
 
     private fun removeAsset(it: DesignAsset) {
