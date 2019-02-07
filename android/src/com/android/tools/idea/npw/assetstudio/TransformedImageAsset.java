@@ -61,14 +61,12 @@ public final class TransformedImageAsset {
    * @param targetSize the size of the transformed image
    * @param scaleFactor the scale factor to be applied to the image
    * @param tint the tint to apply to the image
-   * @param opacity the opacity to apply to the image
    * @param context the trim rectangle calculator
    */
   public TransformedImageAsset(@NotNull BaseAsset asset,
                                @NotNull Dimension targetSize,
                                double scaleFactor,
                                @Nullable Color tint,
-                               double opacity,
                                @NotNull GraphicGeneratorContext context) {
     myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() : null;
     myImageFuture = myDrawableFuture == null ? asset.toImage() : null;

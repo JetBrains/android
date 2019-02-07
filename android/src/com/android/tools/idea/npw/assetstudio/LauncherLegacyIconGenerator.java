@@ -134,7 +134,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
       double paddingFactor = asset.paddingPercent().get() / 100.;
       double scaleFactor = 1. / (1 + paddingFactor * 2);
       options.image =
-          new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor, color, 1, getGraphicGeneratorContext());
+          new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor, color, getGraphicGeneratorContext());
     }
 
     options.shape = myShape.get();
