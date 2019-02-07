@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.utils.HashCodes;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -46,7 +47,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   private final VirtualFile myFile;
   private final ResourceResolver myResourceResolver;
 
-  public GutterIconRenderer(ResourceResolver resourceResolver, @NotNull PsiElement element, @NotNull VirtualFile file) {
+  public GutterIconRenderer(@NotNull ResourceResolver resourceResolver, @NotNull PsiElement element, @NotNull VirtualFile file) {
     myResourceResolver = resourceResolver;
     myElement = element;
     myFile = file;
@@ -73,12 +74,13 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   }
 
   @Override
+  @NotNull
   public AnAction getClickAction() {
     return new GutterIconClickAction(myFile, myResourceResolver, myElement);
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
@@ -92,9 +94,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   @Override
   public int hashCode() {
-    int result = myElement.hashCode();
-    result = 31 * result + myFile.hashCode();
-    return result;
+    return HashCodes.mix(myElement.hashCode(), myFile.hashCode());
   }
 
   private static class GutterIconClickAction extends AnAction {
@@ -106,7 +106,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     private final ResourceResolver myResourceResolver;
     private final PsiElement myElement;
 
-    private GutterIconClickAction(VirtualFile file, ResourceResolver resourceResolver, PsiElement element) {
+    private GutterIconClickAction(@NotNull VirtualFile file, @NotNull ResourceResolver resourceResolver, @NotNull PsiElement element) {
       myFile = file;
       myResourceResolver = resourceResolver;
       myElement = element;
@@ -134,7 +134,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     }
 
     @Nullable
-    private JBPopup createPreview(Runnable onClick) {
+    private JBPopup createPreview(@NotNull Runnable onClick) {
       AndroidFacet facet = AndroidFacet.getInstance(myElement);
       if (facet == null) {
         return null;
