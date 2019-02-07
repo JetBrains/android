@@ -15,6 +15,11 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_DRAWABLE;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -56,22 +61,21 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
+import com.intellij.util.Consumer;
+import com.intellij.util.EmptyConsumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
+import java.awt.Color;
+import java.awt.MouseInfo;
+import java.util.List;
+import java.util.Objects;
+import javax.swing.Icon;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParser;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-import java.util.Objects;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Static methods to be used by Android annotators.
@@ -290,7 +294,7 @@ public class AndroidAnnotatorUtil {
   public static class ColorRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
-    private final Function1<Color, Unit> mySetColorTask;
+    private final Consumer<Color> mySetColorTask;
 
     public ColorRenderer(@NotNull PsiElement element, @Nullable Color color) {
       myElement = element;
@@ -367,7 +371,7 @@ public class AndroidAnnotatorUtil {
     private void setColorToAttribute(@NotNull Color color) {
       Project project = myElement.getProject();
       TransactionGuard.submitTransaction(project, () ->
-        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.invoke(color))
+        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(color))
       );
     }
 
@@ -378,7 +382,7 @@ public class AndroidAnnotatorUtil {
 
       ColorRenderer that = (ColorRenderer)o;
       // TODO: Compare with modification count in app resources (if not framework).
-      if (myColor != null ? !myColor.equals(that.myColor) : that.myColor != null) return false;
+      if (!Objects.equals(myColor, that.myColor)) return false;
       if (!myElement.equals(that.myElement)) return false;
 
       return true;
@@ -390,31 +394,19 @@ public class AndroidAnnotatorUtil {
     }
 
     @VisibleForTesting
-    public static Function1<Color, Unit> createSetColorTask(@NotNull PsiElement element) {
+    public static Consumer<Color> createSetColorTask(@NotNull PsiElement element) {
       if (element instanceof XmlTag) {
         XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
-        return new Function1<Color, Unit>() {
-          @Override
-          public Unit invoke(Color color) {
-            xmlTagValue.setText(ResourceHelper.colorToString(color));
-            return Unit.INSTANCE;
-          }
-        };
+        return color -> xmlTagValue.setText(ResourceHelper.colorToString(color));
       }
       else if (element instanceof XmlAttributeValue) {
         XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
         if (xmlAttribute != null) {
-          return new Function1<Color, Unit>() {
-            @Override
-            public Unit invoke(Color color) {
-              xmlAttribute.setValue(ResourceHelper.colorToString(color));
-              return Unit.INSTANCE;
-            }
-          };
+          return color -> xmlAttribute.setValue(ResourceHelper.colorToString(color));
         }
       }
       // Unknown case, do nothing.
-      return color -> Unit.INSTANCE;
+      return EmptyConsumer.getInstance();
     }
   }
 }
