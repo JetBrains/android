@@ -65,10 +65,7 @@ public final class DeviceSelectorFixture {
 
   public void selectDevice(@NotNull String deviceName) {
     if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      DeployTargetPickerDialogFixture.find(myRobot)
-        .selectDevice(deviceName)
-        .clickOk();
-
+      selectDeviceWithDialog(deviceName);
       return;
     }
 
@@ -89,15 +86,32 @@ public final class DeviceSelectorFixture {
   public void recordEspressoTest(@NotNull IdeFrameFixture ide, @NotNull String deviceName) {
     if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
       ide.invokeMenuPath("Run", "Record Espresso Test");
-
-      DeployTargetPickerDialogFixture.find(myRobot)
-        .selectDevice(deviceName)
-        .clickOk();
+      selectDeviceWithDialog(deviceName);
 
       return;
     }
 
     selectDevice(deviceName);
     ide.invokeMenuPath("Run", "Record Espresso Test");
+  }
+
+  public void runApp(@NotNull IdeFrameFixture ide, @NotNull String appName, @NotNull String deviceName) {
+    ide.selectApp(appName);
+
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      ide.findRunApplicationButton().click();
+      selectDeviceWithDialog(deviceName);
+
+      return;
+    }
+
+    selectDevice(deviceName);
+    ide.findRunApplicationButton().click();
+  }
+
+  private void selectDeviceWithDialog(@NotNull String deviceName) {
+    DeployTargetPickerDialogFixture.find(myRobot)
+      .selectDevice(deviceName)
+      .clickOk();
   }
 }
