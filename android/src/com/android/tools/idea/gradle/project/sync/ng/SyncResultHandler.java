@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.open;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.scheduleExternalViewStructureUpdate;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.util.ExceptionUtil.getRootCause;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
@@ -28,6 +34,7 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCach
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,19 +43,15 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.tools.idea.gradle.util.GradleProjects.open;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.scheduleExternalViewStructureUpdate;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.ExceptionUtil.getRootCause;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class SyncResultHandler {
   @NotNull private final Project myProject;
@@ -86,30 +89,34 @@ class SyncResultHandler {
     if (models != null) {
       try {
         setUpProject(models, setupRequest, indicator, syncListener, taskId);
-        Runnable runnable = () -> {
-          boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-          boolean isImportedProject = myProjectInfo.isImportedProject();
+
+        boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
+        boolean isImportedProject = myProjectInfo.isImportedProject();
+        Executor backgroundExecutor = !isTest ? AppExecutorUtil.getAppExecutorService() : MoreExecutors.directExecutor();
+        Executor edtExecutor = !isTest ? EdtExecutorService.getInstance() : MoreExecutors.directExecutor();
+
+        // If it's an imported project, we open it. Then we call Project#save asynchronously to avoid blocking the EDT while the save
+        // happens and then proceed to configuring the Gradle project on the EDT thread.
+        CompletableFuture.runAsync(() -> {
           if (isImportedProject && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
             open(myProject);
           }
-          if (!isTest) {
-            CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
-          }
-          if (isImportedProject) {
-            // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-            // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
-            // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
-            // listeners to be registered.
-            AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
-            projectComponent.configureGradleProject();
-          }
-        };
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          runnable.run();
-        }
-        else {
-          invokeLater(myProject, runnable);
-        }
+        }, edtExecutor)
+          .thenRunAsync(() -> {
+            if (!isTest) {
+              CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
+            }
+          }, backgroundExecutor)
+          .thenRunAsync(() -> {
+            if (isImportedProject) {
+              // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
+              // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+              // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
+              // listeners to be registered.
+              AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
+              projectComponent.configureGradleProject();
+            }
+          }, edtExecutor);
       }
       catch (Throwable e) {
         notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
