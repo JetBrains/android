@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -404,9 +404,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidGradleTests.updateGradleVersions(projectRoot);
   }
 
-  @NotNull
-  protected GradleInvocationResult generateSources() throws InterruptedException {
-    return invokeGradle(getProject(), GradleBuildInvoker::generateSources);
+  protected void generateSources() throws InterruptedException {
+    GradleInvocationResult result = invokeGradle(getProject(), GradleBuildInvoker::generateSources);
+    assertTrue("Generating sources failed.", result.isBuildSuccessful());
+    refreshProjectFiles();
   }
 
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
@@ -575,15 +576,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     syncListener.await();
     return syncListener;
-  }
-
-  private static void refreshProjectFiles() {
-    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
-    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
-    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
-    // This refresh must be synchronous and recursive so it is completed before continuing the test and clean everything so indexes are
-    // properly updated. Apparently this solves outdated indexes and stubs problems
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
 
   @NotNull

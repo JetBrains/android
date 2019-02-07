@@ -954,7 +954,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
     requestSyncAndWait()
 
     createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "app/src/androidTest/res/values/strings.xml",
       // language=xml
       """
@@ -966,7 +966,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "lib/src/androidTest/res/values/strings.xml",
       // language=xml
       """
@@ -978,7 +978,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "lib/src/main/res/values/strings.xml",
       // language=xml
       """
@@ -1000,7 +1000,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
   fun testAppResources() {
     val androidTest = createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
@@ -1042,7 +1042,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
   fun testLibResources() {
     val androidTest = createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
@@ -1080,7 +1080,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
   fun testScoping() {
     val unitTest = createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
       // language=java
       """
@@ -1101,7 +1101,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
     myFixture.checkHighlighting()
 
     val normalClass = createFile(
-      project.baseDir,
+      project.guessProjectDir()!!,
       "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
       // language=java
       """
@@ -1174,11 +1174,6 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
                  .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
 
     generateSources()
-
-    runWriteAction {
-      VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot.toVirtualFile(refresh = true))
-    }
-    UIUtil.dispatchAllInvocationEvents()
 
     assertThat(ResourceRepositoryManager.getAppResources(myModules.appModule)!!
                  .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
