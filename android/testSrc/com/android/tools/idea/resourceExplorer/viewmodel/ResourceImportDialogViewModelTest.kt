@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
+import com.android.resources.ResourceType
+import com.android.tools.idea.gradle.stubs.FileStructure
+import com.android.tools.idea.gradle.stubs.android.SourceProviderStub
+import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.resourceExplorer.createFakeResDirectory
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -27,6 +33,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.util.Consumer
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
@@ -67,6 +74,23 @@ class ResourceImportDialogViewModelTest {
     }
     assertThat(viewModel.assetSets).hasSize(1)
     assertThat(viewModel.assetSets.elementAt(0).designAssets).hasSize(2)
+  }
+
+  @Test
+  fun renameAsset() {
+    val first = createFakeResDirectory(rule.module.androidFacet!!)
+    val testFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
+    val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
+    val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset))
+    val designAssetSet = viewModel.assetSets.first()
+    viewModel.rename(designAssetSet, "newName") { oldName, newAsset ->
+      assertThat(newAsset).isNotEqualTo(designAssetSet)
+      assertThat(newAsset).isNotSameAs(designAssetSet)
+      assertThat(newAsset.name).isEqualTo("newName")
+      assertThat(oldName).isEqualTo("icon_category_entertainment")
+    }
+    viewModel.doImport()
+    assertThat(File(first, "drawable/newName.png").exists()).isTrue()
   }
 
   private fun getTestFiles(vararg path: String): List<VirtualFile> {

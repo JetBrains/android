@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.chooseDesignAssets
@@ -53,6 +54,8 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   private val rendererManager = DesignAssetRendererManager.getInstance()
   val fileCount: Int get() = assetSets.sumBy { it.designAssets.size }
   var updateCallback: () -> Unit = {}
+
+  private val fileViewModels = mutableMapOf<DesignAsset, FileImportRowViewModel>()
 
   fun doImport() {
     designAssetImporter.importDesignAssets(assetSetsToImport.values, facet)
@@ -102,12 +105,12 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
     }
   }
 
-  private fun addAssetSet(it: DesignAssetSet,
+  private fun addAssetSet(assetSet: DesignAssetSet,
                           assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
-    val existingAssetSet = assetSetsToImport[it.name]
+    val existingAssetSet = assetSetsToImport[assetSet.name]
     if (existingAssetSet != null) {
       val existingPaths = existingAssetSet.designAssets.map { designAsset -> designAsset.file.path }.toSet()
-      val onlyNewFiles = it.designAssets.filter { designAsset -> designAsset.file.path !in existingPaths }
+      val onlyNewFiles = assetSet.designAssets.filter { designAsset -> designAsset.file.path !in existingPaths }
       if (onlyNewFiles.isNotEmpty()) {
         existingAssetSet.designAssets += onlyNewFiles
         assetAddedCallback(existingAssetSet, onlyNewFiles)
@@ -115,9 +118,47 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
       }
     }
     else {
-      assetSetsToImport[it.name] = it
-      assetAddedCallback(it, it.designAssets)
+      assetSetsToImport[assetSet.name] = assetSet
+      assetAddedCallback(assetSet, assetSet.designAssets)
       updateCallback()
     }
+  }
+
+
+  /**
+   * Creates a copy of [assetSet] with [newName] set as the [DesignAssetSet]'s name.
+   * This method does not modify the underlying [DesignAsset], which is just passed to the newly
+   * created [DesignAssetSet].
+   *
+   * [assetRenamedCallback] is a callback with the old [assetSet] name and the newly created [DesignAssetSet].
+   * This meant to be used by the view to update itself when it is holding a map from view to [DesignAssetSet].
+   */
+  fun rename(assetSet: DesignAssetSet,
+             newName: String,
+             assetRenamedCallback: (oldName: String, newAssetSet: DesignAssetSet) -> Unit
+  ) {
+    val existingAssetSet = assetSetsToImport.remove(assetSet.name) ?: return
+    val renamedAssetSet = DesignAssetSet(newName, existingAssetSet.designAssets)
+    assetSetsToImport[renamedAssetSet.name] = renamedAssetSet
+    assetRenamedCallback(existingAssetSet.name, renamedAssetSet)
+  }
+
+  /**
+   * Creates a [FileImportRowViewModel] for the provided [asset].
+   *
+   * To let the [FileImportRowViewModel] delete itself, a callback needs to
+   * be provided to notify its owner that it has been deleted, and the view needs to be
+   * updated.
+   */
+  fun createFileViewModel(asset: DesignAsset,
+                          removeCallback: (DesignAsset) -> Unit
+  ): FileImportRowViewModel {
+    val viewModelRemoveCallback: (DesignAsset) -> Unit = {
+      removeCallback(asset)
+      fileViewModels.remove(asset)
+    }
+    val fileImportRowViewModel = FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE, removeCallback = viewModelRemoveCallback)
+    fileViewModels[asset] = fileImportRowViewModel
+    return fileImportRowViewModel
   }
 }

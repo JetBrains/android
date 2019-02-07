@@ -22,10 +22,18 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
 private const val IMPORT_COMMAND_NAME = "Import resources"
+
+/**
+ * Utility class meant to be use temporarily to map a source file to the desired name and folder after import.
+ * It is used to do the transition from [DesignAssetSet] to resource file in the res/ directory because
+ * [DesignAssetSet] are grouped by name while Android resources are grouped by qualifiers.
+ */
+private data class ImportingAsset(val name: String, val sourceFile: VirtualFile, var targetFolder: String)
 
 /**
  * Manage importing a batch of resources into the project.
@@ -41,38 +49,44 @@ class DesignAssetImporter {
     // Flatten all the design assets and then regroup them by folder name
     // so assets with the same folder name are imported together.
     val groupedAssets = assetSets
-      .flatMap { assetSet -> assetSet.designAssets }
-      .groupBy { designAsset -> getFolderName(designAsset) }
+      .flatMap(this::toImportingAsset)
+      .groupBy(ImportingAsset::targetFolder)
 
     LocalFileSystem.getInstance().refreshIoFiles(listOf(resFolder))
 
     WriteCommandAction.runWriteCommandAction(androidFacet.module.project, IMPORT_COMMAND_NAME, null, {
       groupedAssets
-        .forEach { folderName, designAssets ->
-          copyAssetsInFolder(folderName, designAssets, resFolder)
+        .forEach { folderName, importingAsset ->
+          copyAssetsInFolder(folderName, importingAsset, resFolder)
         }
     }, emptyArray())
   }
 
   /**
+   * Transform the [DesignAsset] of the [assetSet] into a list of [ImportingAsset].
+   */
+  private fun toImportingAsset(assetSet: DesignAssetSet) =
+    assetSet.designAssets.map { ImportingAsset(assetSet.name, it.file, getFolderName(it)) }
+
+  /**
    * Copy the [DesignAsset]s into [folderName] within the provided [resFolder]
    */
   private fun copyAssetsInFolder(folderName: String,
-                                 designAssets: List<DesignAsset>,
+                                 designAssets: List<ImportingAsset>,
                                  resFolder: File) {
     val folder = VfsUtil.findFileByIoFile(resFolder, true)
     val directory = VfsUtil.createDirectoryIfMissing(folder, folderName)
     designAssets.forEach {
-      val resourceName = """${it.name}.${it.file.extension}"""
-      if (it.file.fileSystem.protocol != LocalFileSystem.getInstance().protocol) {
+      val resourceName = """${it.name}.${it.sourceFile.extension}"""
+      if (it.sourceFile.fileSystem.protocol != LocalFileSystem.getInstance().protocol) {
         directory.findChild(resourceName)?.delete(this)
         val projectFile = directory.createChildData(this, resourceName)
-        val contentsToByteArray = it.file.contentsToByteArray()
+        val contentsToByteArray = it.sourceFile.contentsToByteArray()
         projectFile.setBinaryContent(contentsToByteArray)
       }
       else {
         directory.findChild(resourceName)?.delete(this)
-        it.file.copy(this, directory, resourceName)
+        it.sourceFile.copy(this, directory, resourceName)
       }
     }
   }
