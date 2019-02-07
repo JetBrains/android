@@ -75,26 +75,27 @@ public class ActionBarIconGenerator extends IconGenerator {
       double scaleFactor = 1. / (1 + paddingFactor * 2);
 
       Color color;
-      double opacity;
+      int opacityPercent;
       switch (myTheme.get()) {
         case HOLO_DARK:
           color = HOLO_DARK_COLOR;
-          opacity = 0.8;
+          opacityPercent = 80;
           break;
         case HOLO_LIGHT:
           color = HOLO_LIGHT_COLOR;
-          opacity = 0.6;
+          opacityPercent = 60;
           break;
         case CUSTOM:
           color = myCustomColor.get();
-          opacity = 0.8;
+          opacityPercent = 80;
           break;
         default:
           color = null;
-          opacity = 1;
+          opacityPercent = 100;
           break;
       }
-      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, opacity, getGraphicGeneratorContext());
+      asset.opacityPercent().set(opacityPercent);
+      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, getGraphicGeneratorContext());
     }
 
     return options;
