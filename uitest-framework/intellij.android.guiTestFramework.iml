@@ -49,5 +49,6 @@
     <orderEntry type="module" module-name="intellij.tools.testsBootstrap" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.layoutinspector" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.naveditor" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
   </component>
 </module>
