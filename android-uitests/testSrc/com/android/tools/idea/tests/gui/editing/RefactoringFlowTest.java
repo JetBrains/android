@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture.ConflictsDialogFixture;
@@ -31,7 +29,6 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 
 /** Tests the editing flow of refactoring */
-@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRemoteRunner.class)
 public class RefactoringFlowTest {
 

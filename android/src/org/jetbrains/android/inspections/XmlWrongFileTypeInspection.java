@@ -32,6 +32,7 @@ import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
+import org.jetbrains.android.dom.color.AndroidColorDomUtil;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -81,6 +82,9 @@ public class XmlWrongFileTypeInspection extends LocalInspectionTool {
       }
       for (String tag : TransitionDomUtil.getPossibleRoots()) {
         builder.put(tag, ResourceFolderType.TRANSITION);
+      }
+      for (String tag : AndroidColorDomUtil.getPossibleRoots()) {
+        builder.put(tag, ResourceFolderType.COLOR);
       }
       ourResourceFolderTypeMap = builder.build();
     }

@@ -24,17 +24,43 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-
+/**
+ * Create a new event builder with the project information attached.
+ *
+ * This attaches two pieces of information:
+ *
+ * 1. The anonymized project ID
+ *
+ *    This is only stable for this user on this machine for the 28-day log rotation period.
+ *
+ *    This uses the base path of the project, to match the build system (See
+ *    `tools/base/build-system/profile/src/main/java/com/android/builder/profile/ProcessProfileWriterFactory.java#setGlobalProperties`)
+ *
+ *    The base path is null for the default project (identified by [Project.isDefault] == true), which is used to store defaults.
+ *    In that case just the project ID is recorded as "DEFAULT", as this is not a real user project.
+ *
+ * 2. The raw project ID
+ *
+ *    This currently is the current variant application ID from the first encountered application module.
+ *
+ *    This is only populated when the raw project ID is available, which it might not be before the project sync is complete.
+ *
+ *    TODO(b/123518352): Expand this to include all application IDs in the model.
+ */
 fun AndroidStudioEvent.Builder.withProjectId(project: Project?) : AndroidStudioEvent.Builder {
   project?.let {
+
+    // The base path is only  null for the default project (identified by [Project.isDefault] == true), which is used to store defaults.
+    // In that case just store "DEFAULT", as this is not a real user project.
+    this.projectId = if (project.isDefault) {
+      "DEFAULT"
+    }
+    else {
+      AnonymizerUtil.anonymizeUtf8(project.basePath!!)
+    }
     val appId = getApplicationId(it)
     if (appId != null) {
       this.rawProjectId = appId
-      this.projectId = AnonymizerUtil.anonymizeUtf8(appId)
-    }
-    else {
-      // if this is not an android app, we still want to distinguish the project, so we use the project's path as a key to the anonymziation.
-      this.projectId = AnonymizerUtil.anonymizeUtf8(project.toString())
     }
   }
   return this

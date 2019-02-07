@@ -33,7 +33,7 @@ public class Gradle2RequiredErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return String.format("Gradle %1$s is required.", SdkConstants.GRADLE_MINIMUM_VERSION);
     }
     return null;

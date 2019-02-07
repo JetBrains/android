@@ -45,6 +45,7 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.event.ActionEvent
@@ -81,6 +82,7 @@ class SessionsViewTest {
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }
 
+  @Ignore("b/123901060")
   @Test
   fun testSessionsListUpToDate() {
     val sessionsPanel = mySessionsView.sessionsPanel
@@ -346,6 +348,7 @@ class SessionsViewTest {
     assertThat(myProfilers.sessionsManager.selectedSessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
   }
 
+  @Ignore("b/123901060")
   @Test
   fun testSessionItemSelection() {
     val sessionsPanel = mySessionsView.sessionsPanel
@@ -396,6 +399,7 @@ class SessionsViewTest {
     assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
   }
 
+  @Ignore("b/123901060")
   @Test
   fun testSessionArtifactKeyboardSelect() {
     val sessionsPanel = mySessionsView.sessionsPanel
@@ -430,6 +434,7 @@ class SessionsViewTest {
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
   }
 
+  @Ignore("b/123901060")
   @Test
   fun testSessionArtifactKeyboardDelete() {
     val sessionsPanel = mySessionsView.sessionsPanel

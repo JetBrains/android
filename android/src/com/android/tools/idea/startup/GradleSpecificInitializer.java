@@ -401,12 +401,6 @@ public class GradleSpecificInitializer implements Runnable {
   @VisibleForTesting
   static void modifyCodeStyleSettings() {
     CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
-    CodeStyleScheme scheme = schemes.getDefaultScheme();
-
-    if (scheme != null) {
-      AndroidCodeStyleSettings.modify(scheme.getCodeStyleSettings());
-    }
-
     CommonCodeStyleSettings settings = schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE);
 
     if (Objects.equals(settings.getArrangementSettings(), AndroidXmlPredefinedCodeStyle.createVersion1Settings())) {

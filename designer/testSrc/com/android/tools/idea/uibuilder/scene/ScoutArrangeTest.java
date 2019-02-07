@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;

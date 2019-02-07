@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.NotificationUpdate;
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND;
+
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.openapi.application.ApplicationManager;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link ClassLoadingErrorHandler}.
@@ -37,27 +42,30 @@ import static com.google.common.truth.Truth.assertThat;
 public class ClassLoadingErrorHandlerTest extends AndroidGradleTestCase {
 
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWhenClassNotLoaded() throws Exception {
-    assertErrorAndHyperlinksDisplayed(new ClassNotFoundException("java.util.List not found"));
+    assertErrorAndHyperlinksDisplayed(new ClassNotFoundException("java.util.List not found"), CLASS_NOT_FOUND);
   }
 
   public void testHandleErrorWhenMethodNotFound() throws Exception {
-    assertErrorAndHyperlinksDisplayed(new NoSuchMethodError("org.slf4j.spi.LocationAwareLogger.log"));
+    assertErrorAndHyperlinksDisplayed(new NoSuchMethodError("org.slf4j.spi.LocationAwareLogger.log"), METHOD_NOT_FOUND);
   }
 
   public void testHandleErrorWhenClassCannotBeCast() throws Exception {
     assertErrorAndHyperlinksDisplayed(
-      new Throwable("Cause: org.slf4j.impl.JDK14LoggerFactory cannot be cast to ch.qos.logback.classic.LoggerContext"));
+      new Throwable("Cause: org.slf4j.impl.JDK14LoggerFactory cannot be cast to ch.qos.logback.classic.LoggerContext"), null);
   }
 
-  private void assertErrorAndHyperlinksDisplayed(@NotNull Throwable cause) throws Exception {
+  private void assertErrorAndHyperlinksDisplayed(@NotNull Throwable cause, @Nullable AndroidStudioEvent.GradleSyncFailure syncFailure)
+    throws Exception {
     registerSyncErrorToSimulate(cause);
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
@@ -83,5 +91,8 @@ public class ClassLoadingErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFix).isInstanceOf(SyncProjectWithExtraCommandLineOptionsHyperlink.class);
     quickFix = quickFixes.get(1);
     assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
+
+    assertEquals(syncFailure, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }

@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -42,7 +44,6 @@ import static com.intellij.openapi.util.text.StringUtil.splitByLines;
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
   private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
-
   @Override
   @Nullable
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
@@ -50,7 +51,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
                                                       @Nullable String buildFilePath) {
     if (error instanceof ExternalSystemException) {
       // This is already a user-friendly error.
-      logSyncFailure();
+      logSyncFailure(null);
       return (ExternalSystemException)error;
     }
 
@@ -75,13 +76,14 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     return exception;
   }
 
-  public void logSyncFailure() {
+  public void logSyncFailure(@Nullable Project project) {
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
     // @formatter:off
       event.setCategory(GRADLE_SYNC)
-           .setKind(GRADLE_SYNC_FAILURE)
+           .setKind(GRADLE_SYNC_FAILURE_DETAILS)
            .setGradleSyncFailure(UNKNOWN_GRADLE_FAILURE);
     // @formatter:on
+    UsageTrackerUtils.withProjectId(event, project);
     UsageTracker.log(event);
   }
 

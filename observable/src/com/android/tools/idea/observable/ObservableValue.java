@@ -17,9 +17,9 @@ package com.android.tools.idea.observable;
 
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.idea.observable.expressions.bool.IsEqualToExpression;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class that represents a value which, when modified, notifies all listeners.
@@ -51,11 +51,21 @@ public interface ObservableValue<T> {
   void addWeakListener(@NotNull InvalidationListener listener);
 
   /**
-   * Returns an expression that transforms this observable into a modified value (possibly of a different type)
+   * Returns an expression that transforms this observable into a modified value (possibly of a different type).
    */
   @NotNull
-  <S> Expression<S> transform(@NotNull Function<T, S> function);
+  default <S> Expression<S> transform(@NotNull Function<T, S> function) {
+    return new Expression<S>(this) {
+      @Override
+      @NotNull
+      public S get() {
+        return function.apply(ObservableValue.this.get());
+      }
+    };
+  }
 
   @NotNull
-  ObservableBool isEqualTo(@NotNull T value);
+  default ObservableBool isEqualTo(@NotNull T value) {
+    return new IsEqualToExpression<>(this, value);
+  }
 }

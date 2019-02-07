@@ -46,8 +46,13 @@ class NdkContentEntriesSetup extends ContentEntriesSetup {
     }
     addOrphans();
     // Exclude .externalNativeBuild (b/72450552)
+    excludeFromContentEntries(contentEntries, ".externalNativeBuild");
+    excludeFromContentEntries(contentEntries, ".cxx");
+  }
+
+  private void excludeFromContentEntries(@NotNull List<ContentEntry> contentEntries, @NotNull String folderName) {
     File rootDirPath = myAndroidModel.getRootDirPath();
-    File externalNativeBuildFolder = new File(rootDirPath, ".externalNativeBuild");
+    File externalNativeBuildFolder = new File(rootDirPath, folderName);
     ContentEntry parentEntry = findParentContentEntry(externalNativeBuildFolder, contentEntries.stream());
     if (parentEntry != null) {
       addExcludedFolder(parentEntry, externalNativeBuildFolder);

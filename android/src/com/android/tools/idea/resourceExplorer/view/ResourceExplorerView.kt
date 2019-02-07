@@ -37,7 +37,6 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
@@ -132,8 +131,6 @@ class ResourceExplorerView(
   private val listeners = mutableListOf<SelectionListener>()
   private val sectionListModel: SectionListModel = SectionListModel()
   private val dragHandler = resourceDragHandler()
-  private val imageCache = ImageCache(
-    mergingUpdateQueue = MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
   private val headerPanel = JTabbedPane(JTabbedPane.NORTH).apply {
     tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
@@ -218,7 +215,7 @@ class ResourceExplorerView(
     val parent = parent
     parent.remove(this)
 
-    val detailView = ResourceDetailView(designAssetSet, imageCache, resourcesBrowserViewModel) { detailView ->
+    val detailView = ResourceDetailView(designAssetSet, resourcesBrowserViewModel) { detailView ->
       parent.remove(detailView)
       parent.add(this@ResourceExplorerView)
       parent.revalidate()
@@ -243,7 +240,6 @@ class ResourceExplorerView(
     add(headerPanel, BorderLayout.NORTH)
     add(sectionList)
     add(footerPanel, BorderLayout.SOUTH)
-    Disposer.register(this, imageCache)
   }
 
   private fun getSelectedAssets(): List<DesignAsset> {

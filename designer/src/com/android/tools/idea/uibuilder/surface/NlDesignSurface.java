@@ -70,6 +70,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Iterator;
@@ -213,28 +214,24 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     // When displaying both Design and Blueprint, we need to make sure they didn't overlap each other.
-    int x;
-    int y;
-    int width;
-    int height;
-
+    Rectangle viewRect = myScrollPane.getViewport().getViewRect();
     // TODO: find better way to determine the position of SceneView.
     if (isStackVertically()) {
-      x = getX();
-      width = getWidth();
-      height = getHeight() / 2;
-      y = sceneView instanceof BlueprintView ? getY() + height : getY();
+      viewRect.height /= 2;
+      if (sceneView instanceof BlueprintView) {
+        viewRect.y += viewRect.height;
+      }
     }
     else {
-      y = getY();
-      height = getHeight();
-      width = getWidth() / 2;
-      x = sceneView instanceof BlueprintView ? getX() + width : getX();
+      viewRect.width /= 2;
+      if (sceneView instanceof BlueprintView) {
+        viewRect.x += viewRect.width;
+      }
     }
     if (rectangle == null) {
       rectangle = new Rectangle();
     }
-    rectangle.setBounds(x, y, width, height);
+    rectangle.setBounds(viewRect);
     return rectangle;
   }
 

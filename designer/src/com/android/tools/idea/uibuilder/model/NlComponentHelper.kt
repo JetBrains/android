@@ -45,7 +45,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
 import com.android.support.AndroidxName
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
@@ -172,7 +172,7 @@ fun NlComponent.ensureLiveId(): String {
   val id = assignId()
   attributes.apply()
 
-  NlWriteCommandAction.run(this, "Added ID", { attributes.commit() })
+  NlWriteCommandActionUtil.run(this, "Added ID", { attributes.commit() })
   return id
 }
 

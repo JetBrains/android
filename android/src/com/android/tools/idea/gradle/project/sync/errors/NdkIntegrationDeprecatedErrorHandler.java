@@ -38,7 +38,7 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).contains(NDK_INTEGRATION_DEPRECATED)) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return NDK_INTEGRATION_DEPRECATED;
     }
     return null;

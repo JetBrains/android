@@ -38,16 +38,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.uibuilder.palette.CategoryListModel;
-import com.android.tools.idea.uibuilder.palette.DataModel;
-import com.android.tools.idea.uibuilder.palette.DependencyManager;
-import com.android.tools.idea.uibuilder.palette.ItemListModel;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.uibuilder.palette.Palette;
+import com.android.tools.idea.util.FutureUtils;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.Time;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.swing.ListModel;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -87,13 +90,26 @@ public class DataModelTest extends AndroidTestCase {
     myUseAndroidxDependencies = false;
   }
 
+  /**
+   * Sets the given layout type and waits for the updates to propagate in the model.
+   */
+  private void setLayoutTypeAndWait(@NotNull LayoutEditorFileType type) {
+    try {
+      // setLayoutTypeAsync requires some operations to be executed on the UI thread so let the events execute until it completes
+      FutureUtils.pumpEventsAndWaitForFuture(myDataModel.setLayoutTypeAsync(myFacet, type), 5, TimeUnit.SECONDS);
+    }
+    catch (Exception e) {
+      fail(e.getMessage());
+    }
+  }
+
   public void testEmptyModelHoldsUsableListModels() {
     assertThat(myCategoryListModel.getSize()).isEqualTo(0);
     assertThat(myItemListModel.getSize()).isEqualTo(0);
   }
 
-  public void testCommonLayoutGroup() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testCommonLayoutGroup() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel)).isEmpty();
@@ -102,8 +118,8 @@ public class DataModelTest extends AndroidTestCase {
       .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();
   }
 
-  public void testAddFavorite() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testAddFavorite() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
@@ -115,8 +131,8 @@ public class DataModelTest extends AndroidTestCase {
       .inOrder();
   }
 
-  public void testRemoveFavorite() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testRemoveFavorite() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
@@ -125,8 +141,8 @@ public class DataModelTest extends AndroidTestCase {
       .containsExactly("TextView", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();
   }
 
-  public void testButtonsGroup() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testButtonsGroup() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
@@ -136,8 +152,8 @@ public class DataModelTest extends AndroidTestCase {
       "FloatingActionButton").inOrder();
   }
 
-  public void testContainersGroup() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testContainersGroup() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(8);
     assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
@@ -148,8 +164,8 @@ public class DataModelTest extends AndroidTestCase {
       "<include>", "<fragment>", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
   }
 
-  public void testSearch() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testSearch() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("ima");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Widgets").inOrder();
@@ -178,8 +194,8 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo(FLOATING_ACTION_BUTTON.oldName());
   }
 
-  public void testMetaSearch() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testMetaSearch() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("material");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
@@ -202,16 +218,16 @@ public class DataModelTest extends AndroidTestCase {
       TAB_ITEM.newName()).inOrder();
   }
 
-  public void testMenuType() {
-    myDataModel.setLayoutType(myFacet, MenuFileType.INSTANCE);
+  public void testMenuType() throws TimeoutException {
+    setLayoutTypeAndWait(MenuFileType.INSTANCE);
     assertThat(myCategoryListModel.getSize()).isEqualTo(1);
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
       .containsExactly("Cast Button", "Menu Item", "Search Item", "Switch Item", "Menu", "Group").inOrder();
   }
 
-  public void testUsingAndroidxDependencies() {
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+  public void testUsingAndroidxDependencies() throws TimeoutException {
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     myUseAndroidxDependencies = true;
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
@@ -227,10 +243,10 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo(TEXT_INPUT_LAYOUT.newName());
   }
 
-  public void testUsingOldDependencies() {
+  public void testUsingOldDependencies() throws TimeoutException {
     myUseAndroidxDependencies = false;
 
-    myDataModel.setLayoutType(myFacet, LayoutFileType.INSTANCE);
+    setLayoutTypeAndWait(LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("Floating");
     assertThat(getMatchCounts()).containsExactly(1, 1).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));

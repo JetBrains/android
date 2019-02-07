@@ -47,6 +47,7 @@ public class GradleModuleModel implements ModuleModel {
 
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
+  @Nullable private final String myAgpVersion;
 
   /**
    * @param moduleName    the name of the IDE module.
@@ -54,12 +55,14 @@ public class GradleModuleModel implements ModuleModel {
    * @param gradlePlugins the list of gradle plugins applied to this module.
    * @param buildFilePath the path of the build.gradle file.
    * @param gradleVersion the version of Gradle used to sync the project.
+   * @param agpVersion    the version of AGP used to sync the project.
    */
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull GradleProject gradleProject,
                            @NotNull Collection<String> gradlePlugins,
                            @Nullable File buildFilePath,
-                           @Nullable String gradleVersion) {
+                           @Nullable String gradleVersion,
+                           @Nullable String agpVersion) {
     myModuleName = moduleName;
     myTaskNames = getTaskNames(gradleProject);
     myGradlePath = gradleProject.getPath();
@@ -67,6 +70,7 @@ public class GradleModuleModel implements ModuleModel {
     myGradlePlugins = ImmutableList.copyOf(gradlePlugins);
     myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
+    myAgpVersion = agpVersion;
   }
 
   @NotNull
@@ -121,6 +125,11 @@ public class GradleModuleModel implements ModuleModel {
   @Nullable
   public String getGradleVersion() {
     return myGradleVersion;
+  }
+
+  @Nullable
+  public String getAgpVersion() {
+    return myAgpVersion;
   }
 
   @NotNull

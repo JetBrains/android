@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -143,13 +144,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         // perform each task
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
-        success = task.perform(device, launchStatus, consolePrinter);
+        LaunchResult result = task.run(device, launchStatus, consolePrinter);
+        success = result.getSuccess();
         myStats.endLaunchTask(task, details, success);
         if (!success) {
-          myErrorNotificationListener = task.getNotificationListener();
-          myError = task.getError();
-          launchStatus.terminateLaunch(task.getFailureReason());
-          myStats.setErrorId(task.getErrorId());
+          myErrorNotificationListener = result.getNotificationListener();
+          myError = result.getError();
+          launchStatus.terminateLaunch(result.getConsoleError());
+          myStats.setErrorId(result.getErrorId());
           break;
         }
 

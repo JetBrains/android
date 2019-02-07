@@ -99,6 +99,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
    * Once the file is loaded, myPendingEditor will be null.
    */
   private TextEditor myPendingEditor;
+
   private TextEditor myEditor;
   private CaretModel myCaretModel;
   private SceneMode mySceneMode;
@@ -563,5 +564,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myPendingFile = null;
       setActiveModel(null);
     }
+  }
+
+  @Nullable
+  public final TextEditor getEditor() {
+    return myEditor;
   }
 }

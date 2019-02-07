@@ -46,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -88,7 +89,8 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
 
     // Create app module.
     String moduleId = "project::app";
-    Module appModule = createAppModuleWithFacet();
+    Module module = createModule("app");
+    Module appModule = createAppModuleWithFacet(module);
     when(myProjectStructure.getModuleFinder()).thenReturn(myFinder);
     when(myFinder.findModuleByModuleId(moduleId)).thenReturn(appModule);
 
@@ -125,10 +127,11 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
 
     // Create app module.
     String moduleId = "project::app";
+    Module module = createModule("app");
     NdkVariant ndkVariant = mock(NdkVariant.class);
     when(ndkVariant.getName()).thenReturn("debug-x86");
     when(myNdkModuleModel.getSelectedVariant()).thenReturn(ndkVariant);
-    Module appModule = createAppModuleWithNdkFacet();
+    Module appModule = createAppModuleWithNdkFacet(module);
     when(myProjectStructure.getModuleFinder()).thenReturn(myFinder);
     when(myFinder.findModuleByModuleId(moduleId)).thenReturn(appModule);
 
@@ -152,6 +155,7 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
     verify(myNdkModuleModel).addVariantOnlyModuleModel(any());
     // Verify the selected variant is updated.
     verify(myNdkModuleModel).setSelectedVariantName("release-x86");
+
     // Verify that ndk module setup steps were invoked before android module setup steps.
     InOrder inOrder = inOrder(myNdkModuleSetup, myAndroidModuleSetup);
     inOrder.verify(myNdkModuleSetup).setUpModule(appModuleContext, myNdkModuleModel);
@@ -161,11 +165,13 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
     verify(myCachedProjectModels).saveToDisk(myProject);
     assertNotNull(myCachedProjectModels.findCacheForModule("java"));
     verify(myCachedProjectModels.findCacheForModule("java"), never()).addModel(any());
+
+    // Verify that NdkFacet's configuration was also updated with the selected build variant.
+    assertThat(NdkFacet.getInstance(module).getConfiguration().SELECTED_BUILD_VARIANT).isEqualTo("release-x86");
   }
 
   @NotNull
-  private Module createAppModuleWithFacet() {
-    Module module = createModule("app");
+  private Module createAppModuleWithFacet(@NotNull Module module) {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
     facet.getConfiguration().setModel(myAndroidModuleModel);
@@ -178,8 +184,7 @@ public class VariantOnlyProjectModelsSetupTest extends IdeaTestCase {
   }
 
   @NotNull
-  private Module createAppModuleWithNdkFacet() {
-    Module module = createModule("app");
+  private Module createAppModuleWithNdkFacet(@NotNull Module module) {
     FacetManager facetManager = FacetManager.getInstance(module);
     NdkFacet ndkFacet = facetManager.createFacet(NdkFacet.getFacetType(), NdkFacet.getFacetName(), null);
     ndkFacet.setNdkModuleModel(myNdkModuleModel);

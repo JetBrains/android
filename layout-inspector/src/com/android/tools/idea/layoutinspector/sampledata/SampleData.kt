@@ -28,6 +28,7 @@ import java.awt.image.SinglePixelPackedSampleModel
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.FileInputStream
+import java.lang.invoke.MethodHandles
 import java.util.zip.ZipInputStream
 
 /**
@@ -36,12 +37,13 @@ import java.util.zip.ZipInputStream
  *
  * TODO: remove this file and the .skp.dump files.
  */
-val chromeSampleData = read("../../adt/idea/layout-inspector/resources/sampledata/2018-12-12_001545_com.android.chrome.skp.dump")
-val videosSampleData = read("../../adt/idea/layout-inspector/resources/sampledata/2018-12-20_154905_com.google.android.videos.skp.dump")
-val youtubeSampleData = read("../../adt/idea/layout-inspector/resources/sampledata/2018-12-27_161641_com.google.android.youtube.skp.dump")
+val chromeSampleData = read("sampledata/2018-12-12_001545_com.android.chrome.skp.dump")
+val videosSampleData = read("sampledata/2018-12-20_154905_com.google.android.videos.skp.dump")
+val youtubeSampleData = read("sampledata/2018-12-27_161641_com.google.android.youtube.skp.dump")
 
 private fun read(filename: String) : InspectorModel {
-  ZipInputStream(BufferedInputStream(FileInputStream(filename))).use { zos ->
+  val stream = MethodHandles.lookup().lookupClass().classLoader.getResourceAsStream(filename)
+  ZipInputStream(BufferedInputStream(stream)).use { zos ->
     zos.nextEntry
     DataInputStream(BufferedInputStream(zos)).use { return InspectorModel(readNode(it)) }
   }

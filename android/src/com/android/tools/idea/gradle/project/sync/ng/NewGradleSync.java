@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
+
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.ArtifactModel;
@@ -27,7 +29,11 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModelFactory;
-import com.android.tools.idea.gradle.project.sync.*;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
@@ -45,16 +51,13 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 
 public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
@@ -265,13 +268,18 @@ public class NewGradleSync implements GradleSync {
           // Ignored. We got here because the project is using Gradle 1.8 or older.
         }
 
+        AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
+        // Note: currently getModelVersion() matches the AGP version and it is the only way to get the AGP version.
+        // Note: agpVersion is currently not available for Java modules.
+        String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
+
         File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-        GradleModuleModel gradleModel = new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null);
+        GradleModuleModel gradleModel =
+          new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null, agpVersion);
         newModels.addModel(GradleModuleModel.class, gradleModel);
 
         File moduleRootPath = gradleProject.getProjectDirectory();
 
-        AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
         if (androidProject != null) {
           AndroidModuleModel androidModel = new AndroidModuleModel(name, moduleRootPath, androidProject, emptyVariantName,
                                                                    dependenciesFactory);

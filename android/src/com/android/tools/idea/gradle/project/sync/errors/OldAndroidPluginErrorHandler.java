@@ -45,7 +45,7 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     // To override this check from the command line please set the ANDROID_DAILY_OVERRIDE environment variable to "e3353206c64a2c010454e8bb4f2d7187b56c198"
     String text = rootCause.getMessage();
     if (isMatching(text)) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       // This way we remove extra lines and spaces from original message.
       return Joiner.on('\n').join(Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text));
     }

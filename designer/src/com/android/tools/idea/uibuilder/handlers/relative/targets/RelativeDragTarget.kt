@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
@@ -74,7 +74,7 @@ class RelativeDragTarget : DragBaseTarget() {
       attributes.apply()
 
       if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+        NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }
 

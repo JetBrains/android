@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.intellij.openapi.util.text.StringUtil;
+import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public final class ConflictResolution {
@@ -59,26 +64,71 @@ public final class ConflictResolution {
     if (source == null) {
       return false;
     }
+
+    String newVariant = resolveNewVariant(conflict, showConflictResolutionDialog);
+    if (StringUtil.isEmpty(newVariant)) {
+      return false;
+    }
+
+    // If the module has an NDK model, then also update the variant in the Ndk model.
+    NdkFacet ndkFacet = NdkFacet.getInstance(conflict.getSource());
+    NdkModuleModel ndkModel = ndkFacet == null ? null : ndkFacet.getNdkModuleModel();
+    if (ndkModel != null) {
+      String newNdkVariant = resolveNewNdkVariant(ndkModel, newVariant);
+      if (newNdkVariant == null) {
+        return false;  // Cannot solve NDK variant induced conflict.
+      }
+
+      ndkModel.setSelectedVariantName(newNdkVariant);
+      ndkFacet.setNdkModuleModel(ndkModel);
+    }
+
+    source.setSelectedVariantName(newVariant);
+    source.syncSelectedVariantAndTestArtifact(facet);
+    return true;
+  }
+
+  /**
+   * @return The name of the variant (without ABI) to use in order to resolve the provided conflict.
+   */
+  @Nullable
+  private static String resolveNewVariant(@NotNull Conflict conflict, boolean showConflictResolutionDialog) {
     Collection<String> variants = conflict.getVariants();
     if (variants.size() == 1) {
-      String expectedVariant = getFirstItem(variants);
-      if (isNotEmpty(expectedVariant)) {
-        source.setSelectedVariantName(expectedVariant);
-        source.syncSelectedVariantAndTestArtifact(facet);
-        return true;
-      }
+      return getFirstItem(variants);
     }
-    else if (showConflictResolutionDialog) {
-      ConflictResolutionDialog dialog = new ConflictResolutionDialog(conflict);
-      if (dialog.showAndGet()) {
-        String selectedVariant = dialog.getSelectedVariant();
-        if (isNotEmpty(selectedVariant)) {
-          source.setSelectedVariantName(selectedVariant);
-          source.syncSelectedVariantAndTestArtifact(facet);
-          return true;
-        }
-      }
+
+    if (!showConflictResolutionDialog) {
+      return null;
     }
-    return false;
+
+    ConflictResolutionDialog dialog = new ConflictResolutionDialog(conflict);
+    if (!dialog.showAndGet()) {
+      return null;
+    }
+
+    return dialog.getSelectedVariant();
+  }
+
+  /**
+   * @param ndkModel The NDK model for the conflicting module.
+   * @param newVariant The variant (without ABI) that will be used to resolve the current conflict.
+   * @return The name of the variant (with ABI) to use in order to resolve the current conflict.
+   */
+  @Nullable
+  private static String resolveNewNdkVariant(@NotNull NdkModuleModel ndkModel, @NotNull String newVariant) {
+    String userSelectedAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
+    String ndkVariant = newVariant + "-" + userSelectedAbi;  // e.g., debug-x86
+
+    if (ndkModel.variantExists(ndkVariant)) {
+      return ndkVariant;
+    }
+
+    // The given newVariant does not have the same ABI available. For instance, we are trying to fix a conflict by changing variant from
+    // "release-x86" to "debug-x86", but the user has explicitly filtered out "debug-x86".
+    // We fall back to any other available ABI under that variant, such as "debug-x86_64".
+    String expectedPrefix = newVariant + "-";
+    Optional<NdkVariant> variant = ndkModel.getVariants().stream().filter(it -> it.getName().startsWith(expectedPrefix)).findFirst();
+    return variant.map(NdkVariant::getName).orElse(null);
   }
 }

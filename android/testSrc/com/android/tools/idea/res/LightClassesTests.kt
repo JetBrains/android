@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -414,6 +414,45 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
+    }
+
+    fun testInvalidManifest() {
+      runWriteCommandAction(project) {
+        myFacet.manifest!!.`package`!!.value = "."
+      }
+
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(${"R" highlightedAs ERROR}${caret}.string.appString);
+            }
+        }
+        """.trimIndent()
+      )
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      // The R class is not reachable from Java, but we should not crash trying to create an invalid package name.
+      myFixture.checkHighlighting()
+
+
+      runWriteCommandAction(project) {
+        myFacet.manifest!!.`package`!!.value = "p1.p2"
+      }
+
+      // The first call to checkHighlighting removes error markers from the Document, so this makes sure there are no errors.
+      myFixture.checkHighlighting()
+      val rClass = resolveReferenceUnderCaret()
+      assertThat(rClass).isInstanceOf(ModuleRClass::class.java)
+      assertThat((rClass as ModuleRClass).qualifiedName).isEqualTo("p1.p2.R")
     }
   }
 

@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
+import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.ATTR_STYLE
 import com.android.SdkConstants.BUTTON
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil.checkSection
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PsiTestUtil
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 
 private const val PROJECT_STYLES = """
 <resources>
@@ -31,38 +35,55 @@ private const val PROJECT_STYLES = """
     <style name="MyButtonStyle.Blue"/>
 </resources>"""
 
-class StyleEnumSupportTest: AndroidTestCase() {
+class StyleEnumSupportTest {
 
-  override fun setUp() {
-    super.setUp()
-    val testPath = AndroidTestBase.getModulePath("designer/testData/property/appcompat-aar")
-    PsiTestUtil.addLibrary(myModule, "appcompat.aar", testPath, "classes.jar", "res")
-    myFixture.addFileToProject("res/values/project_styles.xml", PROJECT_STYLES)
-  }
+  @JvmField
+  @Rule
+  val myProjectRule = AndroidProjectRule.withSdk().initAndroid(true)
 
+  @JvmField
+  @Rule
+  val myEdtRule = EdtRule()
+
+  @RunsInEdt
+  @Test
   fun testButtonStyles() {
-    val util = SupportTestUtil(myFacet, myFixture, BUTTON)
+    Dependencies.add(myProjectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
+    myProjectRule.fixture.addFileToProject("res/values/project_styles.xml", PROJECT_STYLES)
+    val util = SupportTestUtil(myProjectRule, BUTTON)
     val property = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
     val support = StyleEnumSupport(property)
 
     val values = support.values
     val expectedProjectValues = listOf("@style/MyButtonStyle", "@style/MyButtonStyle.Blue")
     val expectedProjectDisplayValues = listOf("MyButtonStyle", "MyButtonStyle.Blue")
-    val expectedAppCompatValues = listOf("@style/Widget.AppCompat.Button", "@style/Widget.AppCompat.Button.Colored")
-    val expectedAppCompatDisplayValues = listOf("Widget.AppCompat.Button", "Widget.AppCompat.Button.Colored")
+    val expectedAppCompatValues = listOf(
+      "@style/Widget.AppCompat.Button",
+      "@style/Widget.AppCompat.Button.Borderless",
+      "@style/Widget.AppCompat.Button.Borderless.Colored",
+      "@style/Widget.AppCompat.Button.ButtonBar.AlertDialog",
+      "@style/Widget.AppCompat.Button.Colored",
+      "@style/Widget.AppCompat.Button.Small")
+    val expectedAppCompatDisplayValues = listOf(
+      "Widget.AppCompat.Button",
+      "Widget.AppCompat.Button.Borderless",
+      "Widget.AppCompat.Button.Borderless.Colored",
+      "Widget.AppCompat.Button.ButtonBar.AlertDialog",
+      "Widget.AppCompat.Button.Colored",
+      "Widget.AppCompat.Button.Small")
     val expectedAndroidValues = listOf(
-        "@android:style/Widget.Button",
-        "@android:style/Widget.Button.Inset",
-        "@android:style/Widget.Button.Small",
-        "@android:style/Widget.Button.Toggle")
+      "@android:style/Widget.Button",
+      "@android:style/Widget.Button.Inset",
+      "@android:style/Widget.Button.Small",
+      "@android:style/Widget.Button.Toggle")
     val expectedAndroidDisplayValues = listOf(
-        "Widget.Button",
-        "Widget.Button.Inset",
-        "Widget.Button.Small",
-        "Widget.Button.Toggle")
+      "Widget.Button",
+      "Widget.Button.Inset",
+      "Widget.Button.Small",
+      "Widget.Button.Toggle")
     var index = 0
     index = checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
-    index = checkSection(values, index, APPCOMPAT_HEADER, 2, expectedAppCompatValues, expectedAppCompatDisplayValues)
+    index = checkSection(values, index, APPCOMPAT_HEADER, 6, expectedAppCompatValues, expectedAppCompatDisplayValues)
     index = checkSection(values, index, ANDROID_HEADER, -40, expectedAndroidValues, expectedAndroidDisplayValues)
     assertThat(index).isEqualTo(-1)
   }

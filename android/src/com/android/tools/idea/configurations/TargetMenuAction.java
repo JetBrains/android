@@ -151,6 +151,12 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @Override
+  protected boolean hasDropDownArrow() {
+    // This menu always has at least two options, "Automatically pick" and the actual API level
+    return true;
+  }
+
+  @Override
   protected boolean updateActions() {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();

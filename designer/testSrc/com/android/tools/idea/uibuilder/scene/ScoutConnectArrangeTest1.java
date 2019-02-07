@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.android.tools.idea.uibuilder.scout.ScoutChainsArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutConnectArrange;
 import org.jetbrains.annotations.NotNull;
 
@@ -118,7 +117,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
                        "    android:layout_width=\"200dp\"\n" +
                        "    android:layout_height=\"50dp\"/>");
     ScoutConnectArrange.connect(list, Scout.Connect.ConnectTopToTop,false,false);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
     .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
             .expectXml("<TextView\n" +
@@ -135,7 +134,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
                        "        tools:layout_editor_absoluteX=\"325dp\"\n" +
                        "        tools:layout_editor_absoluteY=\"575dp\" />");
     ScoutConnectArrange.connect(list, Scout.Connect.ConnectStartToEnd,false,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
 
     myScreen.get("@+id/textview2")
@@ -193,7 +192,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
     assertFalse(result);
 
     ScoutConnectArrange.connect(list, Scout.Connect.ConnectBottomToBottom,false,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
 
     myScreen.get("@+id/textview2")
@@ -216,7 +215,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
 
 
     ScoutConnectArrange.connect(list, Scout.Connect.ConnectEndToEnd,false,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
             .expectXml("<TextView\n" +
@@ -244,7 +243,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
 
 
     ScoutConnectArrange.connect(list2, Scout.Connect.ConnectTopToBottom,true,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list2, Scout.Arrange.ConnectTop.toString(), () -> list2.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview3")
             .expectXml("<TextView\n" +
@@ -257,7 +256,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
 
 
     ScoutConnectArrange.connect(list2, Scout.Connect.ConnectBottomToTop,true,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list2, Scout.Arrange.ConnectTop.toString(), () -> list2.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview3")
             .expectXml("<TextView\n" +
@@ -269,7 +268,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
                        "        app:layout_constraintTop_toBottomOf=\"@+id/textview4\"\n" +
                        "        tools:layout_editor_absoluteX=\"325dp\" />");
     ScoutConnectArrange.connect(list2, Scout.Connect.ConnectStartToStart,true,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list2, Scout.Arrange.ConnectTop.toString(), () -> list2.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview3")
             .expectXml("<TextView\n" +
@@ -283,7 +282,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
                        "        app:layout_constraintStart_toStartOf=\"@+id/textview4\"\n" +
                        "        app:layout_constraintTop_toBottomOf=\"@+id/textview4\" />");
     ScoutConnectArrange.connect(list2, Scout.Connect.ConnectEndToStart,true,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list2, Scout.Arrange.ConnectTop.toString(), () -> list2.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview3")
             .expectXml("<TextView\n" +

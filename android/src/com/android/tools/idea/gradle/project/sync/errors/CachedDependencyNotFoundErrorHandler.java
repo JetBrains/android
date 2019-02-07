@@ -34,7 +34,7 @@ public class CachedDependencyNotFoundErrorHandler extends BaseSyncErrorHandler {
     if (isNotEmpty(text)) {
       String firstLine = getFirstLineMessage(text);
       if (firstLine.startsWith("No cached version of ") && firstLine.contains("available for offline mode.")) {
-        updateUsageTracker();
+        updateUsageTracker(project);
         return firstLine;
       }
     }

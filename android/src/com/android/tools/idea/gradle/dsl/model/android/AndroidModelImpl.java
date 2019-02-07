@@ -275,7 +275,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
     if (signingConfigs == null) {
       signingConfigs = new SigningConfigsDslElement(myDslElement);
-      myDslElement.setNewElement(signingConfigs);
+      myDslElement.addNewElementAt(0, signingConfigs);
     }
 
     SigningConfigDslElement configElement = signingConfigs.getPropertyElement(config, SigningConfigDslElement.class);

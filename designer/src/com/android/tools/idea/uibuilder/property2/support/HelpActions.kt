@@ -24,10 +24,10 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
 import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_LAYOUT_PARAMS
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.ide.BrowserUtil
@@ -42,7 +42,7 @@ object HelpActions {
   val help = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
       val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
-      val tag = property.components.first().backend.getTag()
+      val tag = property.components.first().backend.getTagDeprecated()
       val documentation = createHelpText(property, allowEmptyDescription = false).nullize() ?: return
       DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation)
     }

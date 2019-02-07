@@ -20,10 +20,9 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SimpleConfigurable;
 import com.intellij.xdebugger.settings.DebuggerConfigurableProvider;
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 
 public class AdbConfigurableProvider extends DebuggerConfigurableProvider {
   @NotNull

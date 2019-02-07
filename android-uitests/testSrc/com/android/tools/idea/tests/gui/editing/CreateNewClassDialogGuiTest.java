@@ -36,7 +36,6 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNewClassDialogGuiTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";

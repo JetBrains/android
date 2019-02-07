@@ -70,10 +70,10 @@ public class JavaHeapSpaceErrorHandler extends BaseSyncErrorHandler {
                 "<em>org.gradle.jvmargs=-Xmx1024m</em>";
       if (rootCause instanceof OutOfMemoryError) {
         newMsg = "Out of memory: " + newMsg;
-        updateUsageTracker(OUT_OF_MEMORY);
+        updateUsageTracker(project, OUT_OF_MEMORY);
       }
       else {
-        updateUsageTracker();
+        updateUsageTracker(project);
       }
       return newMsg;
     }

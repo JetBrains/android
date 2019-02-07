@@ -74,7 +74,7 @@ class DependencyManagerTest : AndroidTestCase() {
     dependencyManager = DependencyManager(project)
     dependencyManager?.setSyncTopicListener { syncListeners.add(it) }
     if (getTestName(true) != "noNotificationOnProjectSyncBeforeSetPalette") {
-      syncListeners.add(dependencyManager!!.setPalette(palette!!, myModule))
+      dependencyManager!!.setPalette(palette!!, myModule)
       waitAndDispatchAll()
     }
     Disposer.register(disposable!!, dependencyManager!!)
@@ -180,7 +180,7 @@ class DependencyManagerTest : AndroidTestCase() {
     val tempProject = ProjectManagerEx.getInstanceEx().createProject(null, foo.path)!!
     val localDependencyManager: DependencyManager
 
-    val future = try {
+    try {
       val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
         ModuleManager.getInstance(tempProject).newModule(bar.path, StdModuleTypes.JAVA.id)
       })
@@ -194,10 +194,6 @@ class DependencyManagerTest : AndroidTestCase() {
         Disposer.dispose(tempProject)
       }
     }
-
-    // Test: The following lines should not yield project already disposed exceptions:
-    UIUtil.dispatchAllInvocationEvents()
-    assertThat(future.isDone).isTrue()
   }
 
   private fun simulateProjectSync() {

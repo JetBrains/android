@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import com.intellij.openapi.util.io.FileUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -62,7 +63,9 @@ public class FrameworkResJarCreator {
         @Override
         @NotNull
         public FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
-          String relativePath = parentDir.relativize(file).toString();
+          // When running on Windows, we need to make sure that the file entries are correctly encoded with the Unix path separator since the
+          // ZIP file spec only allows for that one.
+          String relativePath = FileUtil.toSystemIndependentName(parentDir.relativize(file).toString());
           if (!relativePath.equals("res/version")) { // Skip the "version" file.
             createZipEntry(relativePath, Files.readAllBytes(file), zip);
           }

@@ -27,14 +27,21 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.util.ArrayList;
@@ -42,8 +49,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDeployTask implements LaunchTask {
 
@@ -53,7 +60,10 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull private List<LaunchTaskDetail> mySubTaskDetails;
-  @Nullable private DeploymentErrorHandler myErrorHandler;
+
+  private static final String APPLY_CHANGES_LINK = "apply_changes";
+  private static final String RERUN_LINK = "rerun";
+
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
@@ -64,30 +74,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
     mySubTaskDetails = new ArrayList<>();
   }
 
-  @NotNull
-  @Override
-  public String getFailureReason() {
-    return myErrorHandler != null ? myErrorHandler.getConsoleErrorString() : LaunchTask.super.getFailureReason();
-  }
-
-  @NotNull
-  @Override
-  public String getErrorId() {
-    return myErrorHandler != null ? myErrorHandler.getErrorId() : LaunchTask.super.getErrorId();
-  }
-
-  @NotNull
-  @Override
-  public String getError() {
-    return myErrorHandler != null ? myErrorHandler.getNotificationErrorString() : LaunchTask.super.getFailureReason();
-  }
-
-  @Nullable
-  @Override
-  public NotificationListener getNotificationListener() {
-    return myErrorHandler != null ? myErrorHandler.getNotificationListener() : null;
-  }
-
   @Override
   public int getDuration() {
     return 20;
@@ -95,6 +81,11 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    return false;
+  }
+
+  @Override
+  public LaunchResult run(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LogWrapper logger = new LogWrapper(LOG);
 
     AdbClient adb = new AdbClient(device, logger);
@@ -109,15 +100,14 @@ public abstract class AbstractDeployTask implements LaunchTask {
         perform(device, deployer, applicationId, apkFiles);
       }
       catch (DeployerException e) {
-        myErrorHandler = new DeploymentErrorHandler(getDescription(), e);
-        return false;
+        return toLaunchResult(e);
       }
     }
 
     NOTIFICATION_GROUP.createNotification(getDescription() + " successful", NotificationType.INFORMATION)
       .setImportant(false).notify(myProject);
 
-    return true;
+    return new LaunchResult();
   }
 
   abstract protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
@@ -158,5 +148,54 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   public Collection<LaunchTaskDetail> getSubTaskDetails() {
     return mySubTaskDetails;
+  }
+
+  public LaunchResult toLaunchResult(DeployerException e) {
+    String title = getDescription() + " failed.\n";
+
+    LaunchResult result = new LaunchResult();
+    result.setSuccess(false);
+    StringBuilder links = new StringBuilder();
+    // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
+    if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(e.getError())) {
+      links.append("<a href='" + APPLY_CHANGES_LINK + "'>Apply Changes</a>");
+      links.append(" | ");
+    }
+    links.append("<a href='" + RERUN_LINK + "'>Rerun</a>");
+
+    result.setError(title + e.getMessage() + "\n" + links.toString());
+
+    result.setConsoleError(title + e.getMessage() + "\n" + e.getDetails());
+
+    result.setNotificationListener(new DeploymentErrorNotificationListener());
+    result.setErrorId(e.getId());
+    return result;
+  }
+
+  private static class DeploymentErrorNotificationListener implements NotificationListener {
+    @Override
+    public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+      if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+        return;
+      }
+      ActionManager manager = ActionManager.getInstance();
+      String actionId = null;
+      switch (event.getDescription()) {
+        case APPLY_CHANGES_LINK: // TODO
+          actionId = ApplyChangesAction.ID;
+          break;
+        case RERUN_LINK:
+          actionId = IdeActions.ACTION_DEFAULT_RUNNER;
+          break;
+      }
+      if (actionId == null) {
+        return;
+      }
+      AnAction action = manager.getAction(actionId);
+      if (action == null) {
+        return;
+      }
+      manager.tryToExecute(action, ActionCommand.getInputEvent(ApplyChangesAction.ID), null, ActionPlaces.UNKNOWN, true);
+    }
   }
 }

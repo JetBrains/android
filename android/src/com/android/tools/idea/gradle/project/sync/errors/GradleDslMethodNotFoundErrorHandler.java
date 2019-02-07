@@ -58,7 +58,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error));
+    String text = findErrorMessage(project, getRootCause(error));
     if (text != null) {
       // Handle update notification inside of getQuickFixHyperlinks,
       // because it uses different interfaces based on conditions
@@ -69,12 +69,12 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private static String findErrorMessage(@NotNull Throwable rootCause) {
+  private static String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String errorType = rootCause.getClass().getName();
     if (errorType.equals("org.gradle.api.internal.MissingMethodException") ||
         errorType.equals("org.gradle.internal.metaobject.AbstractDynamicObject$CustomMessageMissingMethodException")) {
       String method = parseMissingMethod(rootCause.getMessage());
-      updateUsageTracker(DSL_METHOD_NOT_FOUND, method);
+      updateUsageTracker(project, DSL_METHOD_NOT_FOUND, method);
       return GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'";
     }
     return null;

@@ -308,6 +308,8 @@ enum class TestFileName(val path: String) {
   SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS("signingConfigModel/addConsoleReadPasswordElements"),
   SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD("signingConfigModel/changeEnvironmentVariablePasswordToConsoleReadPassword"),
   SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS("signingConfigModel/changeConsoleReadPasswordElementsToPlainTextPasswordElements"),
+  SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK("signingConfigModel/addedToTopOfAndroidBlock"),
+  SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED("signingConfigModel/addedToTopOfAndroidBlockExpected"),
   SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT("sourceDirectoryModel/sourceDirectoryText"),
   SOURCE_FILE_MODEL_SOURCE_FILE("sourceFileModel/sourceFile"),
   SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET("sourceFileModel/sourceFileEditAndReset"),

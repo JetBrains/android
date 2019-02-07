@@ -49,11 +49,21 @@ class NlDropInsertionPicker {
   }
 
   /**
+   * Same as {@link #findInsertionPointAt(Point, List, boolean)} with ignoreMissingDependency as false.
+   *
+   * @see #findInsertionPointAt(Point, List, boolean)
+   */
+  public Result findInsertionPointAt(@NotNull Point location, @NotNull List<NlComponent> dragged) {
+    return findInsertionPointAt(location, dragged, false);
+  }
+
+  /**
    * Find the {@link NlComponent} that will receive the dragged components and
    * the component before which the dragged component will be inserted
    *
-   * @param location Coordinate where to find the insertion point in the {@link JTree}
-   * @param dragged  The component being dragged
+   * @param location                Coordinate where to find the insertion point in the {@link JTree}
+   * @param dragged                 The component being dragged
+   * @param ignoreMissingDependency Indicate if dependency checking should be ignored when finding insertion point of dragged components.
    * @return an array of two ints used to know where to display the insertion point or null if
    * the components can't be inserted at the location of the event.
    * <p>The first int represents the row number of the path in the Tree after
@@ -74,7 +84,8 @@ class NlDropInsertionPicker {
    */
   @Nullable
   public Result findInsertionPointAt(@NotNull Point location,
-                                     @NotNull List<NlComponent> dragged) {
+                                     @NotNull List<NlComponent> dragged,
+                                     boolean ignoreMissingDependency) {
     if (dragged.isEmpty()) {
       return findInsertionPointAt(location);
     }
@@ -123,7 +134,7 @@ class NlDropInsertionPicker {
       receiverComponent = (NlComponent)referencePath.getLastPathComponent();
     }
 
-    if (canAddComponent(receiverComponent.getModel(), receiverComponent, dragged)) {
+    if (canAddComponent(receiverComponent.getModel(), receiverComponent, dragged, ignoreMissingDependency)) {
       // The receiver is a ViewGroup and can accept component
       result.receiver = receiverComponent;
       if (receiverComponent.getChildCount() != 0) {
@@ -151,7 +162,7 @@ class NlDropInsertionPicker {
 
       // Now that we should be able to add the component, we do a final check.
       // It should almost never fall in this case.
-      if (!canAddComponent(result.receiver.getModel(), result.receiver, dragged)) {
+      if (!canAddComponent(result.receiver.getModel(), result.receiver, dragged, ignoreMissingDependency)) {
         result.receiver = null;
         result.nextComponent = null;
         return null;
@@ -234,8 +245,11 @@ class NlDropInsertionPicker {
     return component.getNextSibling() == null && myTree.getExpandedDescendants(path) == null;
   }
 
-  private static boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver, @NotNull List<NlComponent> dragged) {
-    return model.canAddComponents(dragged, receiver, receiver.getChild(0))
+  private static boolean canAddComponent(@NotNull NlModel model,
+                                         @NotNull NlComponent receiver,
+                                         @NotNull List<NlComponent> dragged,
+                                         boolean ignoreMissingDependency) {
+    return model.canAddComponents(dragged, receiver, receiver.getChild(0), ignoreMissingDependency)
            || (NlComponentHelperKt.isMorphableToViewGroup(receiver)
                && !NlComponentUtil.isDescendant(receiver, dragged));
   }

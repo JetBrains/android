@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -101,7 +101,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
 
   private void addListItemAttribute(NlComponent component) {
     String newLayoutResource = createNewIncludedLayout();
-    NlWriteCommandAction.run(component, "Add listitem attribute", () ->
+    NlWriteCommandActionUtil.run(component, "Add listitem attribute", () ->
       component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + newLayoutResource));
   }
 
@@ -147,7 +147,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
           addShowInAttribute(transaction);
           addSizeAttributes(transaction, getAndroidBounds());
           addMockupAttributes(transaction, getSelectionBounds());
-          NlWriteCommandAction.run(component, "", transaction::commit);
+          NlWriteCommandActionUtil.run(component, "", transaction::commit);
         }
       });
     }

@@ -20,10 +20,9 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.Getter;
 import com.intellij.util.SmartList;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.concurrent.GuardedBy;
 import java.util.List;
+import javax.annotation.concurrent.GuardedBy;
+import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsService implements Getter<AdbOptionsService> {
   private static final String USE_LIBUSB = "adb.use.libusb";

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.inspector
 import com.android.SdkConstants
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.idea.common.property2.api.EditorProvider
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.testing.addManifest
@@ -26,7 +27,6 @@ import com.android.tools.idea.uibuilder.property2.inspector.groups.CONSTRAINT_GR
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -53,8 +53,8 @@ class AllAttributesInspectorBuilderTest {
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     Truth.assertThat(util.inspector.lines).hasSize(2)
-    Truth.assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-    Truth.assertThat(util.inspector.lines[1].type).isEqualTo(LineType.TABLE)
+    Truth.assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
+    Truth.assertThat(util.inspector.lines[1].type).isEqualTo(TestLineType.TABLE)
 
     Truth.assertThat(util.inspector.lines[0].title).isEqualTo("All Attributes")
     Truth.assertThat(util.inspector.lines[0].expandable).isTrue()

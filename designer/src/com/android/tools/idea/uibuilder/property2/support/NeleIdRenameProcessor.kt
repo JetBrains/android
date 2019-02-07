@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE

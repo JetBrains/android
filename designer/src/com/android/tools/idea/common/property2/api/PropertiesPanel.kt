@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.common.property2.api
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.property2.impl.ui.PropertiesPage
 import com.android.tools.idea.common.property2.impl.ui.WatermarkPanel
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer

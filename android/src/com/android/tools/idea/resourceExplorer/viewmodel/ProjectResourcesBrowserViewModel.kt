@@ -59,7 +59,7 @@ class ProjectResourcesBrowserViewModel(
   private val dataManager = ResourceDataManager(facet)
 
   private val imageCache = ImageCache(
-    mergingUpdateQueue = MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+    mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
   private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
     if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventR
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueOutputEvent;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
@@ -192,6 +193,8 @@ public abstract class AbstractSyncMessages implements Disposable {
     if (result == null) {
       result = Collections.emptyList();
     }
+    // Report any sync issues reported to the user to the usage tracker.
+    SyncIssueUsageReporter.Companion.getInstance(getProject()).reportToUsageTracker();
     return result;
   }
 

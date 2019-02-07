@@ -15,177 +15,143 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
+import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.CHECK_BOX;
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValueImpl;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.Dependencies;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.ImmutableList;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlTag;
-import java.util.Collections;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.util.ui.UIUtil;
+import com.intellij.util.xml.XmlName;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
 
 @RunWith(JUnit4.class)
+@RunsInEdt
 public class StyleEnumSupportTest {
-  private static final StyleResourceValue CHECKBOX_STYLE = createFrameworkStyle("Widget.CompoundButton.CheckBox");
-  private static final StyleResourceValue MATERIAL_STYLE = createFrameworkStyle("Widget.Material.CompoundButton.CheckBox");
-  private static final StyleResourceValue APPCOMPAT_STYLE = createStyle("Widget.AppCompat.CompoundButton.CheckBox", APPCOMPAT_LIB_ARTIFACT);
-  private static final StyleResourceValue APPLICATION_STYLE = createStyle("MyCheckBox", null);
 
-  @Mock
-  private NlProperty myProperty;
-  @Mock
-  private NlComponent myComponent;
-  @Mock
-  private XmlTag myTag;
-  @Mock
-  private ResourceResolver myResolver;
-  @Mock
-  private StyleFilter myStyleFilter;
+  @Rule
+  public final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk().initAndroid(true);
 
-  private StyleEnumSupport mySupport;
-  private Disposable myDisposable;
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
+
+  private SyncNlModel myModel;
+  private NlComponent myLayout;
 
   @Before
   public void setUp() {
-    initMocks(this);
-    myDisposable = Disposer.newDisposable();
-    ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
-    when(myProperty.getResolver()).thenReturn(myResolver);
-    when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
-    when(myProperty.getComponents()).thenReturn(Collections.singletonList(myComponent));
-    when(myComponent.getTag()).thenReturn(myTag);
-    when(myTag.knownNamespaces()).thenReturn(new String[]{ANDROID_URI, TOOLS_URI});
-    when(myResolver.getStyle(any())).thenAnswer(invocation -> resolveStyle(invocation.getArgument(0)));
-    mySupport = new StyleEnumSupport(myProperty, myStyleFilter, ResourceNamespace.TODO());
+    addProjectStyles();
+    myModel = createModel().build();
+    myLayout = myModel.getComponents().get(0);
   }
 
   @After
   public void tearDown() {
-    Disposer.dispose(myDisposable);
-    myProperty = null;
-    myComponent = null;
-    myTag = null;
-    myResolver = null;
-    myStyleFilter = null;
-    mySupport = null;
-    myDisposable = null;
-  }
-
-  private static StyleResourceValue resolveStyle(@NotNull ResourceReference reference) {
-    if (reference.getNamespace().equals(ResourceNamespace.ANDROID)) {
-      switch (reference.getName()) {
-        case "Widget.CompoundButton.CheckBox":
-          return CHECKBOX_STYLE;
-        case "Widget.Material.CompoundButton.CheckBox":
-          return MATERIAL_STYLE;
-        default:
-          return null;
-      }
-    }
-    else if (reference.getNamespace().equals(ResourceNamespace.RES_AUTO)) {
-      switch (reference.getName()) {
-        case "Widget.AppCompat.CompoundButton.CheckBox":
-          return APPCOMPAT_STYLE;
-        case "MyCheckBox":
-          return APPLICATION_STYLE;
-        default:
-          return null;
-      }
-    }
-    return null;
+    myModel = null;
+    myLayout = null;
   }
 
   @Test
   public void testFindPossibleValues() {
-    when(myProperty.getTagName()).thenReturn(CHECK_BOX);
-    when(myStyleFilter.getWidgetStyles(CHECK_BOX)).thenReturn(ImmutableList.of(
-      CHECKBOX_STYLE, MATERIAL_STYLE, APPCOMPAT_STYLE, APPLICATION_STYLE));
-    assertThat(mySupport.getAllValues()).containsExactly(
-      new ValueWithDisplayString("Widget.CompoundButton.CheckBox", "@android:style/Widget.CompoundButton.CheckBox"),
-      new ValueWithDisplayString("Widget.Material.CompoundButton.CheckBox", "@android:style/Widget.Material.CompoundButton.CheckBox"),
+    Dependencies.INSTANCE.add(myProjectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID);
+    NlComponent checkBox = myLayout.getChild(0);
+    NlPropertyItem property = NlPropertyItem.create(new XmlName(ATTR_STYLE, ""), null, ImmutableList.of(checkBox), null);
+    StyleEnumSupport support = new StyleEnumSupport(property);
+    assertThat(support.getAllValues()).containsExactly(
+      new ValueWithDisplayString("MyCheckBox", "@style/MyCheckBox"),
       ValueWithDisplayString.SEPARATOR,
       new ValueWithDisplayString("Widget.AppCompat.CompoundButton.CheckBox", "@style/Widget.AppCompat.CompoundButton.CheckBox"),
       ValueWithDisplayString.SEPARATOR,
-      new ValueWithDisplayString("MyCheckBox", "@style/MyCheckBox")).inOrder();
+      androidStyle("Widget.CompoundButton.CheckBox"),
+      androidStyle("Widget.DeviceDefault.CompoundButton.CheckBox"),
+      androidStyle("Widget.DeviceDefault.Light.CompoundButton.CheckBox"),
+      androidStyle("Widget.Holo.CompoundButton.CheckBox"),
+      androidStyle("Widget.Holo.Light.CompoundButton.CheckBox"),
+      androidStyle("Widget.Material.CompoundButton.CheckBox"),
+      androidStyle("Widget.Material.Light.CompoundButton.CheckBox")
+    ).inOrder();
   }
 
   @Test
-  public void testCreateDefaultValue() {
-    assertThat(mySupport.createValue(""))
-      .isEqualTo(ValueWithDisplayString.UNSET);
+  public void testFindPossibleValuesWithInvalidXmlTag() {
+    NlComponent checkBox = myLayout.getChild(0);
+    NlPropertyItem property = NlPropertyItem.create(new XmlName(ATTR_STYLE, ""), null, ImmutableList.of(checkBox), null);
+    deleteTag(checkBox);
+    StyleEnumSupport support = new StyleEnumSupport(property);
+    assertThat(support.getAllValues()).containsExactly(
+      new ValueWithDisplayString("MyCheckBox", "@style/MyCheckBox"),
+      ValueWithDisplayString.SEPARATOR,
+      androidStyle("Widget.CompoundButton.CheckBox"),
+      androidStyle("Widget.DeviceDefault.CompoundButton.CheckBox"),
+      androidStyle("Widget.DeviceDefault.Light.CompoundButton.CheckBox"),
+      androidStyle("Widget.Holo.CompoundButton.CheckBox"),
+      androidStyle("Widget.Holo.Light.CompoundButton.CheckBox"),
+      androidStyle("Widget.Material.CompoundButton.CheckBox"),
+      androidStyle("Widget.Material.Light.CompoundButton.CheckBox")
+    ).inOrder();
   }
 
-  @Test
-  public void testCreateFromCompleteFrameworkAttributeValue() {
-    assertThat(mySupport.createValue("@android:style/Widget.CompoundButton.CheckBox"))
-      .isEqualTo(new ValueWithDisplayString("Widget.CompoundButton.CheckBox", "@android:style/Widget.CompoundButton.CheckBox"));
+  private void deleteTag(@NotNull NlComponent component) {
+    XmlTag tag = component.getBackend().getTagPointer().getElement();
+    WriteCommandAction.writeCommandAction(myProjectRule.getProject()).run(() -> tag.delete());
+    UIUtil.dispatchAllInvocationEvents();
   }
 
-  @Test
-  public void testCreateFromCompleteAppcompatAttributeValue() {
-    assertThat(mySupport.createValue("@style/Widget.AppCompat.CompoundButton.CheckBox"))
-      .isEqualTo(new ValueWithDisplayString("Widget.AppCompat.CompoundButton.CheckBox", "@style/Widget.AppCompat.CompoundButton.CheckBox"));
+  @NotNull
+  private static ValueWithDisplayString androidStyle(@NotNull String styleName) {
+    return new ValueWithDisplayString(styleName, "@android:style/" + styleName);
   }
 
-  @Test
-  public void testCreateFromCompleteUserDefinedAttributeValue() {
-    assertThat(mySupport.createValue("@style/MyCheckBox"))
-      .isEqualTo(new ValueWithDisplayString("MyCheckBox", "@style/MyCheckBox"));
+  private void addProjectStyles() {
+    String styles =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<resources xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+      "    <style name=\"MyCheckBox\" parent=\"android:Widget.CompoundButton.CheckBox\"/>\n" +
+      "</resources>\n";
+    myProjectRule.fixture.addFileToProject("res/values/styles.xml", styles);
   }
 
-  @Test
-  public void testCreateFromIncompleteFrameworkAttributeValue() {
-    assertThat(mySupport.createValue("Widget.CompoundButton.CheckBox"))
-      .isEqualTo(new ValueWithDisplayString("Widget.CompoundButton.CheckBox", "@android:style/Widget.CompoundButton.CheckBox"));
-  }
-
-  @Test
-  public void testCreateFromIncompleteAppcompatAttributeValue() {
-    assertThat(mySupport.createValue("Widget.AppCompat.CompoundButton.CheckBox"))
-      .isEqualTo(new ValueWithDisplayString("Widget.AppCompat.CompoundButton.CheckBox", "@style/Widget.AppCompat.CompoundButton.CheckBox"));
-  }
-
-  @Test
-  public void testCreateFromIncompleteUserDefinedAttributeValue() {
-    assertThat(mySupport.createValue("MyCheckBox"))
-      .isEqualTo(new ValueWithDisplayString("MyCheckBox", "@style/MyCheckBox"));
-  }
-
-  @Test
-  public void testCreateFromIncompleteUnknownAttributeValue() {
-    assertThat(mySupport.createValue("Unknown.Medium"))
-      .isEqualTo(new ValueWithDisplayString("Unknown.Medium", "@style/Unknown.Medium"));
-  }
-
-  static StyleResourceValue createFrameworkStyle(@NotNull String name) {
-    return new StyleResourceValueImpl(ResourceNamespace.ANDROID, name, null, null);
-  }
-
-  static StyleResourceValue createStyle(@NotNull String name, @Nullable String libraryName) {
-    return new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, name, null, libraryName);
+  private ModelBuilder createModel() {
+    return NlModelBuilderUtil.model(
+      myProjectRule,
+      "constraint.xml",
+      new ComponentDescriptor(CONSTRAINT_LAYOUT.defaultName())
+        .id("@id/root")
+        .withBounds(0, 0, 2000, 2000)
+        .width("1000dp")
+        .height("1000dp")
+        .withAttribute("android:padding", "20dp")
+        .children(
+          new ComponentDescriptor(CHECK_BOX)
+            .id("@id/button")
+            .withBounds(100, 100, 200, 40)
+            .width("100dp")
+            .height("20dp"),
+          new ComponentDescriptor(TEXT_VIEW)
+            .id("@id/button")
+            .withBounds(200, 100, 200, 40)
+            .width("100dp")
+            .height("20dp")
+        ));
   }
 }

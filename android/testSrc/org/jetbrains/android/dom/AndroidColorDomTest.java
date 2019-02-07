@@ -18,8 +18,8 @@ package org.jetbrains.android.dom;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidColorStateListDomTest extends AndroidDomTestCase {
-  public AndroidColorStateListDomTest() {
+public class AndroidColorDomTest extends AndroidDomTestCase {
+  public AndroidColorDomTest() {
     super("dom/color");
   }
 
@@ -58,8 +58,20 @@ public class AndroidColorStateListDomTest extends AndroidDomTestCase {
     doTestCompletion();
   }
 
+  public void testGradientCompletion1() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testGradientCompletion2() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testGradientCompletion3() throws Throwable {
+    doTestCompletion();
+  }
+
   public void testRootTagCompletion() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "selector");
+    doTestCompletionVariants(getTestName(true) + ".xml", "selector", "gradient");
   }
 }
 

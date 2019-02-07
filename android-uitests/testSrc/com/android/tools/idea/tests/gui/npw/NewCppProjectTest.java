@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
@@ -37,7 +35,6 @@ public class NewCppProjectTest {
    * This checks that our (default) project templates are warnings-clean.
    * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
    */
-  @RunIn(TestGroup.PROJECT_WIZARD)
   @Test
   public void noWarningsInNewProjectWithCpp() {
     NewCppProjectTestUtil.createCppProject(CppStandardType.DEFAULT, guiTest);

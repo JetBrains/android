@@ -53,7 +53,7 @@ public class MissingPlatformErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error));
+    String text = findErrorMessage(project, getRootCause(error));
     if (text != null) {
       // Handle update notification inside of findAndAddQuickFixes,
       // because notification message might be changed there.
@@ -64,12 +64,12 @@ public class MissingPlatformErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private String findErrorMessage(@NotNull Throwable rootCause) {
+  private String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if ((rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) &&
         isNotEmpty(text) &&
         getMissingPlatform(text) != null) {
-      updateUsageTracker(MISSING_ANDROID_PLATFORM);
+      updateUsageTracker(project, MISSING_ANDROID_PLATFORM);
       return text;
     }
     return null;

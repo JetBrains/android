@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.animation.Animation;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
@@ -202,17 +203,36 @@ public class DrawAnchor extends DrawRegion {
 
   public static void add(@NotNull DisplayList list,
                          @NotNull SceneContext transform,
-                         @AndroidDpCoordinate float left,
-                         @AndroidDpCoordinate float top,
-                         @AndroidDpCoordinate float right,
-                         @AndroidDpCoordinate float bottom,
+                         @AndroidDpCoordinate float x,
+                         @AndroidDpCoordinate float y,
                          Type type,
                          boolean isConnected,
                          Mode mode) {
-    @SwingCoordinate int l = transform.getSwingXDip(left);
-    @SwingCoordinate int t = transform.getSwingYDip(top);
-    @SwingCoordinate int w = transform.getSwingDimensionDip(right - left);
-    @SwingCoordinate int h = transform.getSwingDimensionDip(bottom - top);
-    list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
+    assert type != Type.BASELINE;
+    @SwingCoordinate int swingX = transform.getSwingXDip(x);
+    @SwingCoordinate int swingY = transform.getSwingYDip(y);
+
+    int l = swingX - AnchorTarget.ANCHOR_SIZE;
+    int t = swingY - AnchorTarget.ANCHOR_SIZE;
+    list.add(new DrawAnchor(l, t, AnchorTarget.ANCHOR_SIZE * 2, AnchorTarget.ANCHOR_SIZE * 2, type, isConnected, mode));
+  }
+
+  public static void addBaseline(@NotNull DisplayList list,
+                                 @NotNull SceneContext transform,
+                                 @AndroidDpCoordinate float x,
+                                 @AndroidDpCoordinate float y,
+                                 @AndroidDpCoordinate float componentWidth,
+                                 Type type,
+                                 boolean isConnected,
+                                 Mode mode) {
+    assert type == Type.BASELINE;
+    @SwingCoordinate int swingX = transform.getSwingXDip(x);
+    @SwingCoordinate int swingY = transform.getSwingYDip(y);
+    @SwingCoordinate int swingWidth = transform.getSwingDimensionDip(componentWidth);
+
+    int l = swingX - swingWidth / 2 + AnchorTarget.ANCHOR_SIZE;
+    int t = swingY - AnchorTarget.ANCHOR_SIZE;
+    int w = swingWidth - 2 * AnchorTarget.ANCHOR_SIZE;
+    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE * 2, type, isConnected, mode));
   }
 }

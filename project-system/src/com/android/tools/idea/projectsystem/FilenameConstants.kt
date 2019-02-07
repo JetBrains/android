@@ -30,4 +30,14 @@ object FilenameConstants {
    * Default name for Gradle task outputs. In 3.2 R.java files for libraries ended up in a directory with this name.
    */
   const val OUT = "out"
+
+  /**
+   * Directory under which AGP puts generated sources.
+   */
+  const val GENERATED = "generated"
+
+  /**
+   * Default Gradle build directory name.
+   */
+  const val BUILD = "build"
 }

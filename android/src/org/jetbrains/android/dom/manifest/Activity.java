@@ -57,4 +57,8 @@ public interface Activity extends ApplicationComponent {
   List<IntentFilter> getIntentFilters();
 
   IntentFilter addIntentFilter();
+
+  List<NavGraph> getNavGraphs();
+
+  NavGraph addNavGraph();
 }

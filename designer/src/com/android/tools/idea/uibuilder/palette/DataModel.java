@@ -26,21 +26,25 @@ import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * The Palette UI will interact exclusively with this data model.
@@ -63,6 +67,8 @@ public class DataModel {
   private final List<String> myFavoriteItems;
   private NlPaletteModel myPaletteModel;
   private LayoutEditorFileType myLayoutType;
+  private final ReentrantReadWriteLock myPaletteLock = new ReentrantReadWriteLock();
+  @GuardedBy("myPaletteLock")
   private Palette myPalette;
   private Palette.Group myCurrentSelectedGroup;
 
@@ -101,10 +107,16 @@ public class DataModel {
     return myItemModel;
   }
 
-  public void setLayoutType(@NotNull AndroidFacet facet, @NotNull LayoutEditorFileType layoutType) {
+  /**
+   * This method changes the {@link LayoutEditorFileType} for this palette. If different to the current one, the model will automatically
+   * update. This method is asynchronous since it executes potentially blocking operations.
+   * When the returned {@link CompletableFuture} completes, the {@link DataModel} will be fully up-to-date.
+   */
+  @NotNull
+  public CompletableFuture<Void> setLayoutTypeAsync(@NotNull AndroidFacet facet, @NotNull LayoutEditorFileType layoutType) {
     NlPaletteModel paletteModel = NlPaletteModel.get(facet);
     if (layoutType.equals(myLayoutType) && paletteModel == myPaletteModel) {
-      return;
+      return CompletableFuture.completedFuture(null);
     }
 
     if (myPaletteModel != null) {
@@ -112,10 +124,19 @@ public class DataModel {
     }
     myLayoutType = layoutType;
     myPaletteModel = paletteModel;
-    myPalette = paletteModel.getPalette(layoutType);
-    myDependencyManager.setPalette(myPalette, facet.getModule());
     myPaletteModel.setUpdateListener(this::update);
-    update();
+
+    return CompletableFuture.supplyAsync(() -> paletteModel.getPalette(layoutType), AppExecutorUtil.getAppExecutorService())
+      .thenAccept(palette -> {
+        myPaletteLock.writeLock().lock();
+        try {
+          myPalette = palette;
+          myDependencyManager.setPalette(myPalette, facet.getModule());
+        } finally {
+          myPaletteLock.writeLock().unlock();
+        }
+      })
+      .thenCompose(palette -> update());
   }
 
   public void setFilterPattern(@NotNull String pattern) {
@@ -163,9 +184,14 @@ public class DataModel {
   }
 
   @NotNull
-  @TestOnly
+  @VisibleForTesting
   Palette getPalette() {
-    return myPalette;
+    myPaletteLock.readLock().lock();
+    try {
+      return myPalette;
+    } finally {
+      myPaletteLock.readLock().unlock();
+    }
   }
 
   @NotNull
@@ -183,9 +209,9 @@ public class DataModel {
     }
   }
 
-  private void update() {
+  @NotNull
+  private CompletableFuture<Void>  update() {
     assert myLayoutType != null;
-    myPalette = myPaletteModel.getPalette(myLayoutType);
     boolean isUserSearch = myFilterPattern.hasPattern();
     List<Palette.Group> groups = new ArrayList<>();
     List<Integer> matchCounts = isUserSearch ? new ArrayList<>() : Collections.emptyList();
@@ -196,7 +222,7 @@ public class DataModel {
       matchCounts.add(0); // Updated later
     }
 
-    myPalette.accept(new Palette.Visitor() {
+    getPalette().accept(new Palette.Visitor() {
       private Palette.Group currentGroup = isUserSearch ? RESULTS : COMMON;
       private int matchCount;
 
@@ -224,7 +250,7 @@ public class DataModel {
         }
       }
     });
-    updateCategoryModel(groups, matchCounts);
+    return updateCategoryModel(groups, matchCounts);
   }
 
   /**
@@ -235,8 +261,11 @@ public class DataModel {
     categorySelectionChanged(myCurrentSelectedGroup);
   }
 
-  private void updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
-    UIUtil.invokeLaterIfNeeded(() -> myListModel.update(groups, matchCounts));
+  @NotNull
+  private CompletableFuture<Void> updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
+    return CompletableFuture.runAsync(() -> {
+      myListModel.update(groups, matchCounts);
+    }, EdtExecutor.INSTANCE);
   }
 
   private void createFilteredItems(@NotNull Palette.Group selectedGroup) {
@@ -251,11 +280,12 @@ public class DataModel {
       selectedGroup.accept(visitor);
     }
     else if (myListModel.getSize() <= 1 || selectedGroup == RESULTS) {
-      myPalette.accept(visitor);
+      getPalette().accept(visitor);
     }
     else {
+      Palette palette = getPalette();
       for (String id : myFavoriteItems) {
-        Palette.Item item = myPalette.getItemById(id);
+        Palette.Item item = palette.getItemById(id);
         if (item != null) {
           visitor.visit(item);
         }

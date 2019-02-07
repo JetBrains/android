@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,11 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidResFolderNode extends AndroidSourceTypeNode {
   AndroidResFolderNode(@NotNull Project project,
                        @NotNull AndroidFacet androidFacet,
+                       @NotNull AndroidSourceType sourceType,
                        @NotNull ViewSettings settings,
                        @NotNull Set<VirtualFile> sourceRoots,
                        @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, androidFacet, settings, AndroidSourceType.RES, sourceRoots, projectViewPane);
+    super(project, androidFacet, settings, sourceType, sourceRoots, projectViewPane);
   }
 
   /**

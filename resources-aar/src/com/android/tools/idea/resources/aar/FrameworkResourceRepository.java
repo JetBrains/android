@@ -19,12 +19,12 @@ import static com.android.SdkConstants.DOT_JAR;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.utils.SdkUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;

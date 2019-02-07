@@ -82,7 +82,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager") {
   private fun selectFromResourceDialog(property: NelePropertyItem): String? {
     val module = property.model.facet.module
     val propertyName = property.name
-    val tag = if (property.components.size == 1) property.components[0].tag else null
+    val tag = property.components.firstOrNull()?.backend?.getTag() ?: return null
     val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
     val defaultResourceType = getDefaultResourceType(propertyName)
     val isImageViewDrawable = hasImageTag.isPresent &&

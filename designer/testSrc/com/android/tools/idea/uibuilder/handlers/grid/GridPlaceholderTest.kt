@@ -17,9 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.grid
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.model.TestNlAttributeHolder
 import com.android.tools.idea.common.scene.Region
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import org.mockito.Mockito
 import java.awt.Point
 
 class GridPlaceholderTest : SceneTest() {
@@ -30,21 +33,32 @@ class GridPlaceholderTest : SceneTest() {
     val handler = GridLayoutHandler()
     val placeholders = handler.getPlaceholders(gridLayout)
 
-    assertEquals(9, placeholders.size)
-
-    val regions = arrayOf(
+    val expected = arrayOf(
+      // Row 0
       Region(0, 0, 200, 200),
       Region(0, 200, 200, 400),
-      Region(0, 400, 200, 500),
+      Region(0, 400, 200, 900),
+      Region(0, 900, 200, 1000),
+      // Row 1
       Region(200, 0, 400, 200),
       Region(200, 200, 400, 400),
-      Region(200, 400, 400, 500),
-      Region(400, 0, 500, 200),
-      Region(400, 200, 500, 400),
-      Region(400, 400, 500, 500)
+      Region(200, 400, 400, 900),
+      Region(200, 900, 400, 1000),
+      // Row 2
+      Region(400, 0, 900, 200),
+      Region(400, 200, 900, 400),
+      Region(400, 400, 900, 900),
+      Region(400, 900, 900, 1000),
+      // Row 3
+      Region(900, 0, 1000, 200),
+      Region(900, 200, 1000, 400),
+      Region(900, 400, 1000, 900),
+      Region(900, 900, 1000, 1000)
     )
 
-    for (r in regions) {
+    assertEquals(expected.size, placeholders.size)
+
+    for (r in expected) {
       assertNotNull(placeholders.singleOrNull { it.region == r })
     }
   }
@@ -94,20 +108,40 @@ class GridPlaceholderTest : SceneTest() {
     assertEquals("1", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
     assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
 
-    val row0column2 = placeholders.single { it.region == Region(400, 0, 500, 200) }
+    val row0column2 = placeholders.single { it.region == Region(400, 0, 900, 200) }
     applyPlaceholderToSceneComponent(button2, row0column2)
     mySceneManager.update()
     assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
     assertEquals("2", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
   }
 
+  fun testGapPlaceholder() {
+    // GridLayout has gap area if row and/or column indices are not continue. This test checks the Placeholder of gap area.
+    val gridLayout = myScene.getSceneComponent("grid")!!
+
+    val handler = GridLayoutHandler()
+    val placeholders = handler.getPlaceholders(gridLayout)
+
+    val gapPlaceholders = placeholders.filter { it.region.left == 400 }.filter { it.region.top == 400 }
+    assertEquals(1, gapPlaceholders.size)
+
+    val attributeHolder = TestNlAttributeHolder()
+
+    val gapPlaceholder = gapPlaceholders[0]
+    assertEquals(900, gapPlaceholder.region.right)
+    assertEquals(900, gapPlaceholder.region.bottom)
+    gapPlaceholder.updateAttribute(Mockito.mock(SceneComponent::class.java), attributeHolder)
+    assertEquals("2", attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW))
+    assertEquals("2", attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN))
+  }
+
   override fun createModel(): ModelBuilder {
     return model("gridlayout.xml",
                  component(SdkConstants.GRID_LAYOUT)
-                   .withBounds(0, 0, 1000, 1000)
+                   .withBounds(0, 0, 2000, 2000)
                    .id("@id/grid")
-                   .matchParentWidth()
-                   .matchParentHeight()
+                   .width("1000dp")
+                   .height("1000dp")
                    .children(
                      component(SdkConstants.BUTTON)
                        .withBounds(0, 0, 400, 400)
@@ -129,7 +163,14 @@ class GridPlaceholderTest : SceneTest() {
                        .width("200dp")
                        .height("200dp")
                        .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "0")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "1")
+                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "1"),
+                     component(SdkConstants.BUTTON)
+                       .withBounds(1800, 1800, 200, 200)
+                       .id("@id/button3")
+                       .width("100dp")
+                       .height("100dp")
+                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "3")
+                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "3")
                    )
     )
   }

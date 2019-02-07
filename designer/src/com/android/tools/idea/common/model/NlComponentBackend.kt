@@ -32,7 +32,14 @@ open interface NlComponentBackend {
   fun setTag(tag: XmlTag)
 
   // TODO: remove
-  fun getTag(): XmlTag
+  @Deprecated("Use getTag", ReplaceWith("getTag()"))
+  fun getTagDeprecated(): XmlTag
+
+  /**
+   * Returns the [XmlTag] element, or null if the tag was not set or the tag element is no longer valid.
+   * Has to be called with read access allowed.
+   */
+  fun getTag(): XmlTag?
 
   // TODO: remove
   fun getTagPointer(): SmartPsiElementPointer<XmlTag>

@@ -77,6 +77,7 @@ public class SyncIssuesReporter {
   /**
    * Reports all sync errors for the provided collection of modules.
    */
+  @VisibleForTesting
   public void report(@NotNull Map<Module, List<SyncIssue>> issuesByModules) {
     if (issuesByModules.isEmpty()) {
       return;
@@ -112,12 +113,13 @@ public class SyncIssuesReporter {
     Map<Integer, List<SyncIssue>> sortedSyncIssues = syncIssues.entrySet().stream().sorted(
       Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparing(issues -> issues.get(0).getSeverity())))).collect(
       Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
+    SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(project);
     for (Map.Entry<Integer, List<SyncIssue>> entry : sortedSyncIssues.entrySet()) {
       BaseSyncIssuesReporter strategy = myStrategies.get(entry.getKey());
       if (strategy == null) {
         strategy = myDefaultMessageFactory;
       }
-      strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
+      strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
     }
 
     if (hasSyncErrors[0]) {

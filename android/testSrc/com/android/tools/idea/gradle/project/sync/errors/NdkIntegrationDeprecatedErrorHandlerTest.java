@@ -16,27 +16,33 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler.SetUseDeprecatedNdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.SET_USE_DEPRECATED_NDK_HYPERLINK;
 
 /**
  * Tests for {@link NdkIntegrationDeprecatedErrorHandler}.
  */
 public class NdkIntegrationDeprecatedErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleError() throws Exception {
@@ -58,5 +64,8 @@ public class NdkIntegrationDeprecatedErrorHandlerTest extends AndroidGradleTestC
 
     assertThat(quickFixes.get(0)).isInstanceOf(OpenUrlHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(SetUseDeprecatedNdkHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(OPEN_URL_HYPERLINK, SET_USE_DEPRECATED_NDK_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }
