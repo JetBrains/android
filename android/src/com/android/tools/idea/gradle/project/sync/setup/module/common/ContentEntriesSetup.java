@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.ContentEntries.isPathInContentEntry;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.SourceFolder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.model.JpsElement;
-import org.jetbrains.jps.model.java.JavaSourceRootProperties;
-import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.ContentEntries.isPathInContentEntry;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.JpsElement;
+import org.jetbrains.jps.model.java.JavaResourceRootProperties;
+import org.jetbrains.jps.model.java.JavaSourceRootProperties;
+import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 public abstract class ContentEntriesSetup {
   @NotNull private final ModifiableRootModel myModuleModel;
@@ -75,6 +75,9 @@ public abstract class ContentEntriesSetup {
       JpsElement properties = sourceRoot.getProperties();
       if (properties instanceof JavaSourceRootProperties) {
         ((JavaSourceRootProperties)properties).setForGeneratedSources(true);
+      }
+      else if (properties instanceof JavaResourceRootProperties) {
+        ((JavaResourceRootProperties)properties).setForGeneratedSources(true);
       }
     }
   }

@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.ide.util.PropertiesComponent;
@@ -35,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests that the defaults are populated correctly in Instant App Activities
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class InstantAppActivityDefaultsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

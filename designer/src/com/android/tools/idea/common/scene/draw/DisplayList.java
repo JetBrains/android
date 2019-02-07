@@ -311,11 +311,23 @@ public class DisplayList {
                 @AndroidDpCoordinate float y1,
                 @AndroidDpCoordinate float x2,
                 @AndroidDpCoordinate float y2,
-                Color c) {
+                @NotNull Color c) {
       this.x1 = transform.getSwingXDip(x1);
       this.y1 = transform.getSwingYDip(y1);
       this.x2 = transform.getSwingXDip(x2);
       this.y2 = transform.getSwingYDip(y2);
+      this.color = c;
+    }
+
+    public Line(@SwingCoordinate int x1,
+                @SwingCoordinate int y1,
+                @SwingCoordinate int x2,
+                @SwingCoordinate int y2,
+                @NotNull Color c) {
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
       this.color = c;
     }
 
@@ -383,6 +395,14 @@ public class DisplayList {
     add(new Rect(l, t, w, h, color));
   }
 
+  public void addRect(@SwingCoordinate int left,
+                      @SwingCoordinate int top,
+                      @SwingCoordinate int right,
+                      @SwingCoordinate int bottom,
+                      @NotNull Color color) {
+    add(new Rect(left, top, right - left, bottom - top, color));
+  }
+
   public void addConnection(SceneContext context,
                             @AndroidDpCoordinate float x1,
                             @AndroidDpCoordinate float y1,
@@ -401,8 +421,16 @@ public class DisplayList {
                       @AndroidDpCoordinate float y1,
                       @AndroidDpCoordinate float x2,
                       @AndroidDpCoordinate float y2,
-                      Color color) {
+                      @NotNull Color color) {
     add(new Line(context, x1, y1, x2, y2, color));
+  }
+
+  public void addLine(@SwingCoordinate int x1,
+                      @SwingCoordinate int y1,
+                      @SwingCoordinate int x2,
+                      @SwingCoordinate int y2,
+                      @NotNull Color color) {
+    add(new Line(x1, y1, x2, y2, color));
   }
 
   //endregion

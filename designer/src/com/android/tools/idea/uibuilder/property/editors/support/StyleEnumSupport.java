@@ -20,7 +20,6 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
 import static com.android.SdkConstants.REFERENCE_STYLE;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -29,6 +28,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
@@ -105,6 +106,9 @@ public class StyleEnumSupport extends EnumSupport {
 
   @NotNull
   protected ResourceNamespace.Resolver getResolver() {
+    // The following assert assures that the XmlTag is still valid when used in ResourceHelper.getNamespaceResolver(tag).
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
     XmlTag tag = getTagOfFirstComponent();
     return tag != null ? ResourceHelper.getNamespaceResolver(tag) : ResourceNamespace.Resolver.EMPTY_RESOLVER;
   }
@@ -112,7 +116,7 @@ public class StyleEnumSupport extends EnumSupport {
   @Nullable
   private XmlTag getTagOfFirstComponent() {
     List<NlComponent> components = myProperty.getComponents();
-    return !components.isEmpty() ? components.get(0).getTag() : null;
+    return !components.isEmpty() ? components.get(0).getBackend().getTag() : null;
   }
 
   @Nullable

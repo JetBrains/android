@@ -30,7 +30,7 @@ import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.ID_PREFIX
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
@@ -156,7 +156,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   private fun configureNewBottomAppBar(parent: NlComponent, bottomAppBar: NlComponent) {
     val fab = parent.children.firstOrNull { FLOATING_ACTION_BUTTON.newName() == it.tagName }
     if (fab != null && !bottomAppBar.id.isNullOrEmpty()) {
-      NlWriteCommandAction.run(listOf(fab), "Move fab to BottomAppBar") {
+      NlWriteCommandActionUtil.run(listOf(fab), "Move fab to BottomAppBar") {
         fab.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, ID_PREFIX + bottomAppBar.id!!)
         fab.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, null)
         fab.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN, null)

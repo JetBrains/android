@@ -233,7 +233,7 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
 
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), GRADLE_PATH_SEPARATOR + module.getName(),
                                                             getBaseDirPath(getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null);
     gradleFacet.setGradleModuleModel(model);
   }
 

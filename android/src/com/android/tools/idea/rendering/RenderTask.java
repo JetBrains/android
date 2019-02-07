@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
 import com.android.ide.common.rendering.api.Features;
@@ -63,6 +62,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -622,7 +622,7 @@ public class RenderTask {
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running.
-   * See {@link RenderService#runAsyncRenderAction(Callable)}.
+   * See {@link RenderService#runAsyncRenderAction(Supplier)}.
    */
   @VisibleForTesting
   @NotNull
@@ -686,7 +686,7 @@ public class RenderTask {
   }
 
   /**
-   * Only do a measure pass using the current render session
+   * Only do a measure pass using the current render session.
    */
   @NotNull
   public CompletableFuture<RenderResult> layout() {

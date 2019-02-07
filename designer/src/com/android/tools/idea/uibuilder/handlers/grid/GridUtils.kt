@@ -24,16 +24,58 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.model.Insets
+import java.awt.Rectangle
 
 /**
- * data for record the information of barriers of GridLayout
+ * Data class for providing the information of barriers of GridLayout
+ * [rows] and [columns] is the index-coordinate mapping, which specified the start positions of indices of row and column in GridLayout
+ * The unit of coordinate is [AndroidDpCoordinate].
  */
-class GridBarriers(@AndroidDpCoordinate val left: Int,
-                   @AndroidDpCoordinate val top: Int,
-                   @AndroidDpCoordinate val right: Int,
-                   @AndroidDpCoordinate val bottom: Int,
-                   @AndroidDpCoordinate val rows: Array<Int>,
-                   @AndroidDpCoordinate val columns: Array<Int>)
+class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int, Int>) {
+  @AndroidDpCoordinate val left = columns.minBy { it.key }?.value ?: -1
+  @AndroidDpCoordinate val top = rows.minBy { it.key }?.value ?: -1
+  @AndroidDpCoordinate val right = columns.maxBy { it.key }?.value ?: -1
+  @AndroidDpCoordinate val bottom = rows.maxBy { it.key }?.value ?: -1
+
+  val rowIndices = rows.keys
+  val columnIndices = columns.keys
+
+  val array : Array<Int> = arrayOf(1, 2, 3)
+  init {
+    array.asSequence()
+  }
+
+  @AndroidDpCoordinate fun getBounds(row: Int, column: Int): Rectangle? {
+    val left = columns[column] ?: return null
+    val top = rows[row] ?: return null
+    val right = columns.asSequence()
+                  .filter { it.key > column }
+                  .minBy { it.key }
+                  ?.value ?: return null
+    val bottom = rows.asSequence()
+                   .filter { it.key > row }
+                   .minBy { it.key }
+                   ?.value ?: return null
+    return Rectangle(left, top, right - left, bottom - top)
+  }
+
+  @AndroidDpCoordinate fun getColumnValue(columnIndex: Int) = columns[columnIndex]
+  @AndroidDpCoordinate fun getRowValue(rowIndex: Int) = rows[rowIndex]
+
+  /**
+   * Return the column index of GridLayout which contains the given x coordinate, or -1 if there is no column contains it.
+   */
+  fun getColumnAtX(@AndroidDpCoordinate x: Int): Int = columns.filter { it.value > x }
+                                                           .minBy { it.key }
+                                                           ?.key ?: -1
+
+  /**
+   * Return the row index of GridLayout which contains the given y coordinate, or -1 if there is no row contains it.
+   */
+  fun getRowAtY(@AndroidDpCoordinate y: Int): Int = rows.filter { it.value > y }
+                                                        .minBy { it.key }
+                                                        ?.key ?: -1
+}
 
 /**
  * Function for getting Barriers of
@@ -66,10 +108,10 @@ fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
       continue
     }
     val cellData = retrieveCellData(child.authoritativeNlComponent, isSupportLibrary)
-    if (cellData.column == UNDEFINED_COLUMN) {
+    if (cellData.column == -1) {
       cellData.column = previousColumn + 1
     }
-    if (cellData.row == UNDEFINED_ROW) {
+    if (cellData.row == -1) {
       cellData.row = previousRow
     }
 
@@ -110,22 +152,14 @@ fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
 
   columnMap[0] = left
   columnMap[columnCount] = right
-
   rowMap[0] = top
   rowMap[rowCount] = bottom
-
-  val columnArray: Array<Int> = Array(columnCount + 1) { columnMap[it] ?: Int.MIN_VALUE }
-  val rowArray: Array<Int> = Array(rowCount + 1) { rowMap[it] ?: Int.MIN_VALUE }
-
-  return GridBarriers(left, top, right, bottom, rowArray, columnArray)
+  return GridBarriers(rowMap, columnMap)
 }
-
-private const val UNDEFINED_ROW = -1
-private const val UNDEFINED_COLUMN = -1
 
 /**
  * Class for record the cell attributes.
- * If the row/column is not defined, the value would be [UNDEFINED_ROW]/[UNDEFINED_COLUMN]
+ * If the row/column is not defined, the value would be -1/-1
  * If the rowSpan/columnSpan is not defined, the value would be 0 as the default value in Android framework.
  */
 private class CellInfo(var row: Int, var column: Int, val rowSpan: Int, val columnSpan: Int)
@@ -142,8 +176,8 @@ private fun retrieveCellData(nlComponent: NlComponent, isSupportLibrary: Boolean
 
   // If the span is not defined, the default (rowSpan, columnSpan) is (1, 1)
   // If the row and column is not defined, the value of (row, column) is (row of previousComponent, column of previousComponent + 1)
-  return CellInfo(getAttribute(SdkConstants.ATTR_LAYOUT_ROW, UNDEFINED_ROW),
-      getAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, UNDEFINED_COLUMN),
+  return CellInfo(getAttribute(SdkConstants.ATTR_LAYOUT_ROW, -1),
+      getAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, -1),
       getAttribute(SdkConstants.ATTR_LAYOUT_ROW_SPAN, 1),
       getAttribute(SdkConstants.ATTR_LAYOUT_COLUMN_SPAN, 1))
 }

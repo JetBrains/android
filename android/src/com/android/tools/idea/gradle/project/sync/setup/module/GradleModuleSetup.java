@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static java.util.Collections.emptyList;
+
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.java.model.GradlePluginModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
-
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static java.util.Collections.emptyList;
 
 public class GradleModuleSetup {
   @NotNull
@@ -65,7 +65,13 @@ public class GradleModuleSetup {
 
     File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
 
-    return new GradleModuleModel(module.getName(), gradleProject, getGradlePlugins(models), buildFilePath, getGradleVersion(module));
+    AndroidProject androidProject = models.findModel(AndroidProject.class);
+    // Note: currently getModelVersion() matches the AGP version and it is the only way to get the AGP version.
+    // Note: agpVersion is currently not available for Java modules.
+    String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
+
+    return new GradleModuleModel(module.getName(), gradleProject, getGradlePlugins(models), buildFilePath, getGradleVersion(module),
+                                 agpVersion);
   }
 
   @NotNull

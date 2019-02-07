@@ -35,7 +35,7 @@ public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
-    VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
+    VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
     setProperties();
   }
 

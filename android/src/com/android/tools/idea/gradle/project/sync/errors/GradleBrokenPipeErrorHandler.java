@@ -32,7 +32,7 @@ public class GradleBrokenPipeErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Broken pipe")) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       text = "Broken pipe.\nThe Gradle daemon may be trying to use ipv4 instead of ipv6.";
       return text;
     }

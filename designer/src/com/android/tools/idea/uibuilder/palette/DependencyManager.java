@@ -85,17 +85,19 @@ public class DependencyManager implements Disposable {
     myListeners.add(listener);
   }
 
-  public Future<?> setPalette(@NotNull Palette palette, @NotNull Module module) {
+  /**
+   * This method sets the {@link Palette} and {@link Module} to be used by the dependency manager as source for the data.
+   * The method runs expensive computations to calculate the dependency changes so do not run this method on the UI thread.
+   */
+  public void setPalette(@NotNull Palette palette, @NotNull Module module) {
     synchronized (mySync) {
       myPalette = palette;
       myModule = module;
     }
-    // These computations are quite expensive, run them on a background thread to avoid blocking the UI.
-    return ensureRunningOnBackgroundThread(() -> {
-      checkForRelevantDependencyChanges();
-      registerDependencyUpdates();
-      ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
-    });
+
+    checkForRelevantDependencyChanges();
+    registerDependencyUpdates();
+    ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
   }
 
   public boolean useAndroidXDependencies() {
@@ -150,7 +152,6 @@ public class DependencyManager implements Disposable {
   // This method is only called from checkForRelevantDependencyChanges where the mySync monitor is already held.
   @SuppressWarnings("FieldAccessNotGuarded")
   private boolean checkForNewMissingDependencies() {
-    assert(!ApplicationManager.getApplication().isDispatchThread());
     Set<String> missing = Collections.emptySet();
 
     if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {

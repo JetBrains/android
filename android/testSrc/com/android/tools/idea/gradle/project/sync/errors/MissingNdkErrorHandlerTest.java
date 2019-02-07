@@ -18,11 +18,16 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,11 +36,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWithNdkLicenceMissing() throws Exception {
@@ -43,27 +50,31 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
       "Failed to install the following Android SDK packages as some licences have not been accepted. blah blah ndk-bundle NDK blah blah";
     registerSyncErrorToSimulate(errMsg);
     loadProjectAndExpectMissingNdkError(
-      "Failed to install the following Android SDK packages as some licences have not been accepted. blah blah ndk-bundle NDK blah blah");
+      "Failed to install the following Android SDK packages as some licences have not been accepted. blah blah ndk-bundle NDK blah blah",
+      ImmutableList.of(INSTALL_NDK_HYPERLINK));
   }
 
   public void testHandleErrorWithNdkInstallFailed() throws Exception {
     String errMsg = "Failed to install the following SDK components: blah blah ndk-bundle NDK blah blah";
     registerSyncErrorToSimulate(errMsg);
-    loadProjectAndExpectMissingNdkError("Failed to install the following SDK components: blah blah ndk-bundle NDK blah blah");
+    loadProjectAndExpectMissingNdkError("Failed to install the following SDK components: blah blah ndk-bundle NDK blah blah",
+                                        ImmutableList.of(INSTALL_NDK_HYPERLINK));
   }
 
   public void testHandleErrorWithNdkNotConfigured() throws Exception {
     registerSyncErrorToSimulate("NDK not configured. /some/path");
-    loadProjectAndExpectMissingNdkError("NDK not configured.");
+    loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of(INSTALL_NDK_HYPERLINK));
   }
 
   public void testHandleErrorWithNdkLocationNotFound() throws Exception {
     registerSyncErrorToSimulate("NDK location not found. Define location with ndk.dir in the local.properties file " +
                                 "or with an ANDROID_NDK_HOME environment variable.");
-    loadProjectAndExpectMissingNdkError("NDK not configured.");
+    loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of(INSTALL_NDK_HYPERLINK));
   }
 
-  private void loadProjectAndExpectMissingNdkError(@NotNull String expected) throws Exception {
+  private void loadProjectAndExpectMissingNdkError(@NotNull String expected,
+                                                   @NotNull Collection<AndroidStudioEvent.GradleSyncQuickFix> syncQuickFixes)
+    throws Exception {
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
@@ -75,5 +86,8 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(InstallNdkHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());
   }
 }

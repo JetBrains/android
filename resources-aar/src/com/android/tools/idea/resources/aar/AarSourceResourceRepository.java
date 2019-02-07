@@ -16,7 +16,6 @@
 package com.android.tools.idea.resources.aar;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
@@ -42,7 +41,6 @@ import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
@@ -73,6 +71,7 @@ import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.aar.Base128InputStream.StreamFormatException;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -759,15 +758,13 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           if (event == XmlPullParser.START_TAG) {
             int numAttributes = parser.getAttributeCount();
             for (int i = 0; i < numAttributes; i++) {
-              if (ANDROID_URI.equals(parser.getAttributeNamespace(i))) {
-                String idValue = parser.getAttributeValue(i);
-                if (idValue.startsWith(NEW_ID_PREFIX) && idValue.length() > NEW_ID_PREFIX.length()) {
-                  String resourceName = idValue.substring(NEW_ID_PREFIX.length());
-                  ResourceVisibility visibility = getVisibility(ResourceType.ID, resourceName);
-                  AarValueResourceItem item = new AarValueResourceItem(ResourceType.ID, resourceName, sourceFile, visibility, null);
-                  if (!resourceAlreadyDefined(item)) { // Don't create duplicate ID resources.
-                    addValueResourceItem(item);
-                  }
+              String idValue = parser.getAttributeValue(i);
+              if (idValue.startsWith(NEW_ID_PREFIX) && idValue.length() > NEW_ID_PREFIX.length()) {
+                String resourceName = idValue.substring(NEW_ID_PREFIX.length());
+                ResourceVisibility visibility = getVisibility(ResourceType.ID, resourceName);
+                AarValueResourceItem item = new AarValueResourceItem(ResourceType.ID, resourceName, sourceFile, visibility, null);
+                if (!resourceAlreadyDefined(item)) { // Don't create duplicate ID resources.
+                  addValueResourceItem(item);
                 }
               }
             }
@@ -1402,9 +1399,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         }
       } while (event != XmlPullParser.END_DOCUMENT);
 
-      String result = ValueXmlHelper.unescapeResourceString(text.toString(), false, true);
-      assert result != null;
-      return result;
+      return ValueXmlHelper.unescapeResourceString(text.toString(), false, true);
     }
 
     private boolean getTextInclusionState() {

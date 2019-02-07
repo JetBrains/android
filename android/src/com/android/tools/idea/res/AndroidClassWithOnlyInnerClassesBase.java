@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@ package com.android.tools.idea.res;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -46,10 +48,12 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
                                               @NotNull PsiManager psiManager,
                                               @NotNull Collection<String> modifiers) {
     super(psiManager, modifiers);
+    Project project = getProject();
+
     myShortName = shortName;
 
     myClassCache =
-      CachedValuesManager.getManager(getProject()).createCachedValue(() -> {
+      CachedValuesManager.getManager(project).createCachedValue(() -> {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Recomputing inner classes of " + this.getClass());
         }
@@ -57,12 +61,17 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
         return CachedValueProvider.Result.create(innerClasses, getInnerClassesDependencies());
       });
 
-    PsiFileFactory factory = PsiFileFactory.getInstance(myManager.getProject());
+    PsiFileFactory factory = PsiFileFactory.getInstance(project);
     myFile = (PsiJavaFile)factory.createFileFromText(shortName + ".java", JavaFileType.INSTANCE,
                                                      "// This class is generated on-the-fly by the IDE.");
-    if (packageName != null) {
-      myFile.setPackageName(packageName);
+
+    // We need to set the package name of the file, otherwise Util#checkReference will highlight all references to the class. This name is
+    // sometimes shown in "quick documentation" for the R class itself, but is not considered when resolving references etc., where
+    // getQualifiedName is what matters and needs to stay up-to-date with the manifest etc.
+    if (packageName == null || !PsiNameHelper.getInstance(project).isQualifiedName(packageName)) {
+      packageName = "_";
     }
+    myFile.setPackageName(packageName);
   }
 
   @NotNull

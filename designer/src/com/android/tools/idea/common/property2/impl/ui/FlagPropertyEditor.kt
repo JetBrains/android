@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager

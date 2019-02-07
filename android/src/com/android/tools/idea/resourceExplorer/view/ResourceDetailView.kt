@@ -16,7 +16,6 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
-import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.rendering.AssetIcon
@@ -69,14 +68,12 @@ private val BACK_BUTTON_SIZE = JBUI.size(20)
  * A [JPanel] displaying the [DesignAsset]s composing the provided [designAssetSet].
  * When double clicking on the the [DesignAsset], it opens the corresponding file.
  *
- * @param imageCache the [ImageCache] to reuse for the rendering of the drawable asset.
  * @param viewModel an existing instance of [ResourceExplorerViewModel]
  * @param backCallback a callback that will be called to remove this view and show the previous one.
  *                     The callback receives this view as a parameter to allow the parent view to remove it.
  */
 class ResourceDetailView(
   private val designAssetSet: DesignAssetSet,
-  private val imageCache: ImageCache,
   private val viewModel: ResourceExplorerViewModel,
   private val backCallback: (ResourceDetailView) -> Unit)
   : JPanel(BorderLayout()), DataProvider {

@@ -32,11 +32,11 @@ public class MissingNdkErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String message = rootCause.getMessage();
     if (isNotEmpty(message) && matchesNdkNotConfigured(getFirstLineMessage(message))) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return "NDK not configured.";
     }
     else if (isNotEmpty(message) && matchesTriedInstall(message)) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return message;
     }
     return null;

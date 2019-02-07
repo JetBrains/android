@@ -248,9 +248,6 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
           return;
         }
         getPropertiesPanel().setItems(components, properties);
-        if (myToolWindow != null) {
-          myToolWindow.stopFiltering();
-        }
         if (postUpdateRunnable != null) {
           myLoading = false;
           postUpdateRunnable.run();

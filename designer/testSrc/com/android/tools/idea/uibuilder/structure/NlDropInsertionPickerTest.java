@@ -115,7 +115,9 @@ public class NlDropInsertionPickerTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     when(myModel.canAddComponents(anyList(), any(DummyComponent.class), any())).thenReturn(false);
+    when(myModel.canAddComponents(anyList(), any(DummyComponent.class), any(), anyBoolean())).thenReturn(false);
     when(myModel.canAddComponents(anyList(), any(DummyComponentGroup.class), any())).thenReturn(true);
+    when(myModel.canAddComponents(anyList(), any(DummyComponentGroup.class), any(), anyBoolean())).thenReturn(true);
 
     ourRoot = buildDummyComponentHierarchy();
     myTreePaths = buildDummyTreePathArray(ourRoot);
@@ -216,6 +218,7 @@ public class NlDropInsertionPickerTest {
   public void testInsertRowIsAfterChildren() throws Exception {
     NlComponent receiver = ourRoot.getChild(2);
     when(myModel.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
+    when(myModel.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
     assertFalse(myModel.canAddComponents(myDragged, receiver, null));
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(15, 35), myDragged);
     assertEquals(ourRoot, result.receiver);
@@ -237,6 +240,7 @@ public class NlDropInsertionPickerTest {
     DummyTree tree = new DummyTree();
     NlComponent receiver = root.getChild(0);
     when(myModel.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
+    when(myModel.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
     assertFalse(myModel.canAddComponents(myDragged, receiver, null));
     NlDropInsertionPicker picker = new NlDropInsertionPicker(tree);
     NlDropInsertionPicker.Result result = picker.findInsertionPointAt(new Point(15, 15), myDragged);

@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.model.HorizontalEditorPanelModel
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -47,7 +47,7 @@ class TextViewInspectorBuilderTest {
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(util.inspector.lines).hasSize(10)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
+    assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
     assertThat(util.inspector.lines[1].editorModel?.property?.namespace).isEqualTo(ANDROID_URI)

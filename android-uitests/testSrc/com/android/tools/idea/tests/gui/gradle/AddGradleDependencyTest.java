@@ -32,7 +32,6 @@ import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.E
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class AddGradleDependencyTest {
 

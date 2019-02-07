@@ -69,7 +69,7 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
     String text = getRootCause(error).getMessage();
     List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(project, text);
     if (!hyperlinks.isEmpty()) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }

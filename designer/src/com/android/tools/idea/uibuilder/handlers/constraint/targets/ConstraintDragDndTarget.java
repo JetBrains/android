@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
@@ -109,7 +109,7 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         }
       }
       attributes.apply();
-      NlWriteCommandAction.run(component, "drag", attributes::commit);
+      NlWriteCommandActionUtil.run(component, "drag", attributes::commit);
     }
     if (myChangedComponent) {
       myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);

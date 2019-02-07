@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.util.XmlTagUtil
@@ -51,8 +51,7 @@ class MorphComponentAction(component: NlComponent)
     val dependencyManager = NlDependencyManager.get()
     val newTag = listOf(NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>")))
     if (dependencyManager.checkIfUserWantsToAddDependencies(newTag, myFacet)) {
-      if (dependencyManager.addDependencies(newTag, myFacet)) {
-        // Only edit the tag name and attributes if dependencies are added (or if they were already there)
+      dependencyManager.addDependencies(newTag, myFacet) {
         editTagNameAndAttributes(newTagName)
       }
     }
@@ -63,7 +62,7 @@ class MorphComponentAction(component: NlComponent)
    */
   private fun editTagNameAndAttributes(newTagName: String) {
     DumbService.getInstance(myProject).runWhenSmart {
-      NlWriteCommandAction.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}") {
+      NlWriteCommandActionUtil.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}") {
         myNlComponent.tag.name = newTagName
         TransactionGuard.getInstance().submitTransactionAndWait {
           myNlComponent.removeObsoleteAttributes()

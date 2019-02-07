@@ -91,6 +91,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -107,7 +108,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
@@ -931,22 +931,18 @@ public final class GradleUtil {
    * generate/not_namespaced_r_class_sources) but in reality this is where aapt output goes, so this includes Manifest.java if custom
    * permissions are defined in the manifest.
    */
-  public static boolean isAaptGeneratedSourcesFolder(@NotNull File folder, @NotNull AndroidModuleModel androidModuleModel) {
+  public static boolean isAaptGeneratedSourcesFolder(@NotNull File folder, @NotNull File buildFolder) {
     try {
-      File generatedFolder = new File(androidModuleModel.getAndroidProject().getBuildFolder(), "generated");
-      if (FileUtil.namesEqual(folder.getParentFile().getName(), FD_RES_CLASS)) {
-        // Naming convention used in 3.1 and below.
-        return filesEqual(folder.getParentFile().getParentFile(),
-                          new File(generatedFolder, FD_SOURCE_GEN));
-      }
-      else if (FileUtil.namesEqual(folder.getName(), FD_RES_CLASS) || FileUtil.namesEqual(folder.getName(), FilenameConstants.OUT)) {
-        // Naming convention used in 3.2 and above, if R.java files are generated at all.
-        return filesEqual(folder.getParentFile().getParentFile().getParentFile(),
-                          new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
-      }
-      else {
-        return false;
-      }
+      File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
+
+      // Folder used in 3.1 and below. Additional level added below for androidTest.
+      File generatedSourceR = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FD_RES_CLASS);
+      // Naming convention used in 3.2 and above, if R.java files are generated at all.
+      File rClassSources = new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES);
+
+      return filesEqual(folder.getParentFile(), generatedSourceR) ||
+             filesEqual(folder.getParentFile().getParentFile(), generatedSourceR) ||
+             filesEqual(folder.getParentFile().getParentFile().getParentFile(), rClassSources);
     }
     catch (NullPointerException e) {
       return false;
@@ -959,9 +955,10 @@ public final class GradleUtil {
    */
   public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      File buildFolder = model.getAndroidProject().getBuildFolder();
       return artifact.getGeneratedSourceFolders()
         .stream()
-        .filter(folder -> !isAaptGeneratedSourcesFolder(folder, model))
+        .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
         .collect(Collectors.toList());
     } else {
       return artifact.getGeneratedSourceFolders();

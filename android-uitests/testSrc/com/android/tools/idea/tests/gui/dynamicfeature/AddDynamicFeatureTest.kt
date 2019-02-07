@@ -31,12 +31,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner::class)
 class AddDynamicFeatureTest {
   @Rule
@@ -351,7 +351,7 @@ class AddDynamicFeatureTest {
 
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard, with conditional delivery specifying "minsdk = 24".
+   * new module wizard, without specifying device feature conditions.
    */
   @Test
   @Throws(Exception::class)
@@ -371,8 +371,6 @@ class AddDynamicFeatureTest {
       .enterName("My Dynamic Feature Title")
       .setFusing(false)
       .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
-      .checkMinimumSdkApiCheckBox()
-      .selectMinimumSdkApi("24")
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
@@ -386,7 +384,6 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("""<dist:delivery>""")
       assertThat(this).contains("""<dist:install-time>""")
       assertThat(this).contains("""<dist:conditions>""")
-      assertThat(this).contains("""<dist:min-sdk dist:value="24" />""")
       assertThat(this).contains("""</dist:conditions>""")
       assertThat(this).contains("""</dist:install-time>""")
       assertThat(this).doesNotContain("""<dist:on-demand />""")
@@ -425,7 +422,6 @@ class AddDynamicFeatureTest {
       .enterName("My Dynamic Feature Title")
       .setFusing(false)
       .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
-      .uncheckMinimumSdkApiCheckBox()
       .addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
       .addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
       .addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
@@ -440,18 +436,31 @@ class AddDynamicFeatureTest {
     ideFrame.editor
       .open("MyDynamicFeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
-      assertThat(this).contains("""<dist:delivery>""")
-      assertThat(this).contains("""<dist:install-time>""")
-      assertThat(this).contains("""<dist:conditions>""")
-      assertThat(this).doesNotContain("""<dist:min-sdk""")
-      assertThat(this).contains("""<dist:device-feature dist:name="test" />""")
-      assertThat(this).contains("""<dist:device-feature dist:glEsVersion="0x2000000" />""")
-      assertThat(this).doesNotContain("""<dist:device-feature dist:name="test2" />""")
-      assertThat(this).contains("""</dist:conditions>""")
-      assertThat(this).contains("""</dist:install-time>""")
-      assertThat(this).doesNotContain("""<dist:on-demand />""")
-      assertThat(this).contains("""</dist:delivery>""")
-      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
+
+        val expected =
+"""<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:dist="http://schemas.android.com/apk/distribution"
+    package="com.example.mydynamicfeature">
+
+    <dist:module
+        dist:instant="false"
+        dist:title="@string/title_mydynamicfeature">
+        <dist:delivery>
+            <dist:install-time>
+                <dist:conditions>
+                    <dist:device-feature dist:name="test" />
+                    <dist:device-feature
+                        dist:name="android.hardware.opengles.version"
+                        dist:version="0x2000000" />
+                </dist:conditions>
+            </dist:install-time>
+        </dist:delivery>
+        <dist:fusing dist:include="false" />
+    </dist:module>
+</manifest>
+
+"""
+      assertEquals(expected, this)
     }
 
     ideFrame.editor

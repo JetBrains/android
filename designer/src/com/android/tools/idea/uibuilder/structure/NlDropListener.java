@@ -24,7 +24,7 @@ import static com.android.SdkConstants.TOOLS_PREFIX;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -106,7 +106,8 @@ public class NlDropListener extends DropTargetAdapter {
 
   @Override
   public void drop(@NotNull DropTargetDropEvent dropEvent) {
-    NlDropInsertionPicker.Result finderResult = myInsertionPicker.findInsertionPointAt(dropEvent.getLocation(), myDragged);
+    NlDropInsertionPicker.Result finderResult =
+      myInsertionPicker.findInsertionPointAt(dropEvent.getLocation(), myDragged, true);
     if (finderResult != null) {
       if (finderResult.shouldDelegate) {
         DelegatedTreeEvent.Type type = DelegatedTreeEvent.Type.DROP;
@@ -174,7 +175,7 @@ public class NlDropListener extends DropTargetAdapter {
    * @see NlDropInsertionPicker#findInsertionPointAt(Point, List)
    */
   private void updateInsertionPoint(@NotNull NlDropEvent event) {
-    NlDropInsertionPicker.Result result = myInsertionPicker.findInsertionPointAt(event.getLocation(), myDragged);
+    NlDropInsertionPicker.Result result = myInsertionPicker.findInsertionPointAt(event.getLocation(), myDragged, true);
     if (result == null) {
       myTree.clearInsertionPoint();
       event.reject();
@@ -197,7 +198,8 @@ public class NlDropListener extends DropTargetAdapter {
     NlModel model = myTree.getDesignerModel();
     assert model != null;
 
-    if (NlComponentHelperKt.isGroup(myDragReceiver) && model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0))) {
+    if (NlComponentHelperKt.isGroup(myDragReceiver) &&
+        model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0), true)) {
       performNormalDrop(event, insertType, model);
     }
     else if (!myDragReceiver.isRoot()
@@ -257,7 +259,7 @@ public class NlDropListener extends DropTargetAdapter {
       }
     }
 
-    NlWriteCommandAction.run(myDragReceiver, "", () -> {
+    NlWriteCommandActionUtil.run(myDragReceiver, "", () -> {
       XmlTag tag = myDragReceiver.getTag();
       tag.setName(DependencyManagementUtil.mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(tag), CONSTRAINT_LAYOUT));
 

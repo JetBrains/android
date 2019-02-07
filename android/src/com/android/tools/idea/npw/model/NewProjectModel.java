@@ -278,9 +278,10 @@ public class NewProjectModel extends WizardModel {
    * Loads saved value for Kotlin support.
    */
   private static boolean getInitialKotlinSupport() {
-    return PropertiesComponent.getInstance().isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
+    PropertiesComponent props = PropertiesComponent.getInstance();
+    // If the value is not defined, we default to recommended (kotlin as nov-2018)
+    return !props.isValueSet(PROPERTIES_KOTLIN_SUPPORT_KEY) || props.isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
   }
-
 
   /**
    * Returns the initial value of the androidx support property. The value is true if we allow androidx to be the default

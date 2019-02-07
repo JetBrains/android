@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -38,12 +39,14 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testGetInstance() {
@@ -70,7 +73,10 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
 
     assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenFileHyperlink.class);
-  }
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
+}
 
   public void testInstallHyperlinksForSyncIssues() throws Exception {
     loadSimpleApplication();
@@ -83,5 +89,8 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
     List<NotificationHyperlink> links = handler.getQuickFixHyperlinks("23.0.2", ImmutableList.of(module), ImmutableMap.of(module, file));
     assertSize(1, links);
     assertThat(links.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }

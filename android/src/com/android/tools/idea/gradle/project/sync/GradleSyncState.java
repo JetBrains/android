@@ -543,7 +543,7 @@ public class GradleSyncState {
   }
 
   @NotNull
-  private AndroidStudioEvent.Builder generateSyncEvent(@NotNull AndroidStudioEvent.EventKind kind) {
+  public AndroidStudioEvent.Builder generateSyncEvent(@NotNull AndroidStudioEvent.EventKind kind) {
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
     GradleSyncStats.Builder syncStats = GradleSyncStats.newBuilder();
     // @formatter:off

@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -43,7 +43,7 @@ class SelectedComponentBuilderTest {
     val builder = SelectedComponentBuilder()
     builder.attachToInspector(util.inspector, util.properties)
     Truth.assertThat(util.inspector.lines).hasSize(1)
-    Truth.assertThat(util.inspector.lines[0].type).isEqualTo(LineType.PANEL)
+    Truth.assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.PANEL)
   }
 
   @Test

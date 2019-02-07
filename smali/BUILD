@@ -10,7 +10,6 @@ iml_module(
     ],
     iml_files = ["intellij.android.smali.iml"],
     resources = ["resources"],
-    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [

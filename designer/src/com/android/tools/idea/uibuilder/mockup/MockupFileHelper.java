@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.pixelprobe.Image;
@@ -89,7 +89,7 @@ public class MockupFileHelper {
       return;
     }
 
-    NlWriteCommandAction.run(component, "Edit Mockup Crop", () -> {
+    NlWriteCommandActionUtil.run(component, "Edit Mockup Crop", () -> {
       if (mockup.isFullScreen()) {
         component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
       }

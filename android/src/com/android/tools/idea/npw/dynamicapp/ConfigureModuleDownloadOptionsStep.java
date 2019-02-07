@@ -86,22 +86,17 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
     myBindings.bindTwoWay(new TextProperty(myFeatureTitle), getModel().featureTitle());
     myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myInstallationOptionCombo), getModel().downloadInstallKind());
-    myBindings.bindTwoWay(new SelectedProperty(myDownloadConditionsForm.myMinimumSDKLevelCheckBox), getModel().conditionalMinSdk());
 
     // Initialize "conditions" sub-form
     BooleanExpression isConditionalPanelActive =
       new IsEqualToExpression<>(getModel().downloadInstallKind(), Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS));
     myDownloadConditionsForm
-      .init(getModel().getProject(), this, getModel().conditionalMinSdkInfo(), myValidatorPanel, isConditionalPanelActive);
+      .init(getModel().getProject(), myValidatorPanel, isConditionalPanelActive);
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
     myListeners.receiveAndFire(getModel().downloadInstallKind(), value ->
       setVisible(value.isPresent() && value.get() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS,
                  myDownloadConditionsForm.myRootPanel));
-
-    // Disable the SDK dropdown if the "min sdk" condition is inactive
-    myListeners.receiveAndFire(getModel().conditionalMinSdk(), value ->
-      myDownloadConditionsForm.setSdkControlEnabled(value));
 
     myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
       StringUtil.isEmptyOrSpaces(value) ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
@@ -109,10 +104,6 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
 
   @Override
   protected void onEntering() {
-    // Start downloading list of SDKs
-    FormFactor formFactor = FormFactor.MOBILE;
-    TemplateHandle templateHandle = getModel().getTemplateHandle();
-    myDownloadConditionsForm.startSdkDataLoading(formFactor, templateHandle.getMetadata().getMinSdk());
     myFeatureTitle.selectAll();
   }
 

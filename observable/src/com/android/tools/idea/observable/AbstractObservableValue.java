@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.observable;
 
-import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.bool.IsEqualToExpression;
-import com.android.tools.idea.observable.expressions.Expression;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation for {@link ObservableValue}, providing the logic for adding/removing listeners.
  */
 public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
-  private final List<InvalidationListener> myListeners = Lists.newArrayListWithCapacity(0);
-  private final List<WeakReference<InvalidationListener>> myWeakListeners = Lists.newArrayListWithCapacity(0);
+  private final List<InvalidationListener> myListeners = new ArrayList<>(0);
+  private final List<WeakReference<InvalidationListener>> myWeakListeners = new ArrayList<>(0);
   private boolean myNotificationsEnabled = true;
 
   @Override
@@ -54,24 +49,6 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
   @Override
   public final void addWeakListener(@NotNull InvalidationListener listener) {
     myWeakListeners.add(new WeakReference<>(listener));
-  }
-
-  @NotNull
-  @Override
-  public final <S> Expression<S> transform(@NotNull Function<T, S> function) {
-    return new Expression<S>(this) {
-      @NotNull
-      @Override
-      public S get() {
-        return function.apply(AbstractObservableValue.this.get());
-      }
-    };
-  }
-
-  @NotNull
-  @Override
-  public final ObservableBool isEqualTo(@NotNull T value) {
-    return new IsEqualToExpression<>(this, value);
   }
 
   /**

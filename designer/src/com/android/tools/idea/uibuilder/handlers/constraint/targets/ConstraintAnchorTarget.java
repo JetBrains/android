@@ -175,8 +175,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (myLastX != -1 && myLastY != -1) {
         if ((myConnectedX == -1 && myConnectedY == -1)
             || !(myLastX == myConnectedX && myLastY == myConnectedY)) {
-          float x = myLeft + (myRight - myLeft) / 2;
-          float y = myTop + (myBottom - myTop) / 2;
+          float x = getCenterX();
+          float y = getCenterY();
           list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
         }
       }

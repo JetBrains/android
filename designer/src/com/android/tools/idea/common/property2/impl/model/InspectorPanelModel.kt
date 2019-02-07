@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.api.TableLineModel
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.codeStyle.NameUtil
 
 /**

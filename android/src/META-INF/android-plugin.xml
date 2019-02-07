@@ -200,6 +200,7 @@
       <action internal="true" id="Android.SwingProfiler" class="com.android.tools.adtui.actions.EnableSwingProfilerAction"/>
       <action internal="true" id="Android.IdeaProjectStructure" class="com.android.tools.idea.structure.IdeaProjectStructureAction"/>
       <action internal="true" id="Android.ShowSatisfactionDialog" class="com.android.tools.idea.stats.ShowSatisfactionDialogAction"/>
+      <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.profilers.demo.TransportPipelineAction"/>
       <add-to-group group-id="Internal"/>
     </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
@@ -432,7 +433,8 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ScaleDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.color.ColorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
 
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
@@ -711,6 +713,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInlinedApi" displayName="Using inlined constants on older versions" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintInlinedApiInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInnerclassSeparator" displayName="Inner classes should use $ rather than ." bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintInnerclassSeparatorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInOrMmUsage" displayName="Using mm or in dimensions" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintInOrMmUsageInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintInsecureBaseConfiguration" displayName="Insecure base configuration" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintInsecureBaseConfigurationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInstantApps" displayName="Instant App Issues" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintInstantAppsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintIntentReset" displayName="Suspicious mix of setType and setData" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintIntentResetInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidAnalyticsName" displayName="Invalid Analytics name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintInvalidAnalyticsNameInspection"/>
@@ -998,6 +1001,8 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter"
+                    serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
@@ -1321,6 +1326,7 @@
 
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.TestArtifactSearchScopeSetupStep"/>
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.AndroidRunConfigurationSetupStep"/>
+    <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.RecordSuccessfulSyncAgpVersion"/>
 
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectStructureCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>

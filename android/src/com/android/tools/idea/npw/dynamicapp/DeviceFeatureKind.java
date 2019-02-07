@@ -21,9 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * Enum defining the various distribution options for a device feature of a dynamic feature module.
  */
 public enum DeviceFeatureKind {
-  GL_ES_VERSION("dist:glEsVersion"),
+  GL_ES_VERSION("OpenGL ES Version"),
 
-  NAME("dist:name");
+  NAME("Name");
 
   @NotNull
   private String myDisplayName;

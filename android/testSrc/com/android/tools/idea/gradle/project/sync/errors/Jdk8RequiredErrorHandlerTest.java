@@ -17,27 +17,33 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_JDK8_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK;
 
 /**
  * Tests for {@link Jdk8RequiredErrorHandler}.
  */
 public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleError() throws Exception {
@@ -69,5 +75,8 @@ public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
 
     quickFix = quickFixes.get(expectedQuickFixCount - 1);
     assertThat(quickFix).isInstanceOf(DownloadJdk8Hyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(USE_EMBEDDED_JDK_HYPERLINK, DOWNLOAD_JDK8_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

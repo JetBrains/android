@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.XMLNS;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
 import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
@@ -38,23 +45,25 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Represents a component editable in the UI builder. A component has properties,
@@ -116,7 +125,7 @@ public class NlComponent implements NlAttributesHolder {
   @NotNull
   @Deprecated
   public XmlTag getTag() {
-    return myBackend.getTag();
+    return myBackend.getTagDeprecated();
   }
 
   @NotNull
@@ -468,8 +477,22 @@ public class NlComponent implements NlAttributesHolder {
     return Collections.emptyList();
   }
 
-  public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
-    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)getTag().getContainingFile(), namespace, prefix);
+  /**
+   * Make sure there is a namespace declaration for the specified namespace.
+   *
+   * @param suggestedPrefix use this prefix if a namespace declaration is to be added
+   * @param namespace the namespace a declaration is needed for
+   * @return the prefix for the namespace. This will be the existing namespace prefix unless
+   *         a new namespace declaration was added in which case it will be suggestedPrefix.
+   *         If the corresponding XmlTag doesn't exist a null is returned.
+   */
+  @Nullable
+  public String ensureNamespace(@NotNull String suggestedPrefix, @NotNull String namespace) {
+    XmlTag tag = getBackend().getTag();
+    if (tag == null) {
+      return null;
+    }
+    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, suggestedPrefix);
   }
 
   public boolean isShowing() {

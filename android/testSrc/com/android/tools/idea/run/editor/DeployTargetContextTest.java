@@ -18,7 +18,6 @@ package com.android.tools.idea.run.editor;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.TargetSelectionMode;
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import java.util.Arrays;
 import java.util.List;
@@ -36,15 +35,6 @@ public final class DeployTargetContextTest {
   @Before
   public void initProviders() {
     myProviders = Arrays.asList(DeployTargetProvider.EP_NAME.getExtensions());
-  }
-
-  @Test
-  public void getCurrentDeployTargetProviderSelectDeviceSnapshotComboBoxIsVisible() {
-    DeployTargetContext context = new DeployTargetContext(() -> true, myProviders);
-
-    Object provider = context.getCurrentDeployTargetProvider();
-
-    assertEquals(DeployTargetProvider.EP_NAME.findExtension(DeviceAndSnapshotComboBoxTargetProvider.class), provider);
   }
 
   @Test
@@ -73,6 +63,19 @@ public final class DeployTargetContextTest {
 
     Object provider = context.getCurrentDeployTargetProvider();
 
+    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
+  }
+
+  @Test
+  public void getCurrentDeployTargetProviderDoesntReturnDeviceAndSnapshotComboBoxTargetProviderWhenFlagIsEnabled() {
+    // Arrange
+    DeployTargetContext context = new DeployTargetContext(() -> true, myProviders);
+    context.setTargetSelectionMode(TargetSelectionMode.SHOW_DIALOG);
+
+    // Act
+    Object provider = context.getCurrentDeployTargetProvider();
+
+    // Assert
     assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
   }
 }

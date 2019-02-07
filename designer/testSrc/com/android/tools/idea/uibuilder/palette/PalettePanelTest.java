@@ -54,6 +54,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
+import com.android.tools.idea.util.FutureUtils;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
@@ -85,6 +86,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
@@ -476,9 +480,7 @@ public class PalettePanelTest extends LayoutTestCase {
   private DesignSurface setUpLayoutDesignSurface() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
-    DesignSurface surface = createDesignSurface(LayoutFileType.INSTANCE);
-    myPanel.setToolContext(surface);
-    return surface;
+    return createDesignSurface(LayoutFileType.INSTANCE);
   }
 
   @NotNull
@@ -487,7 +489,13 @@ public class PalettePanelTest extends LayoutTestCase {
     DesignSurface surface = myModel.getSurface();
     LayoutTestUtilities.createScreen(myModel);
     doReturn(layoutType).when(surface).getLayoutType();
-    myPanel.setToolContext(myModel.getSurface());
+    // setToolContextAsyncImpl requires some operations to be executed on the UI thread so let the events execute until it completes
+    try {
+      FutureUtils.pumpEventsAndWaitForFuture(myPanel.setToolContextAsyncImpl(surface), 5, TimeUnit.SECONDS);
+    }
+    catch (Exception e) {
+      fail(e.getMessage());
+    }
     return surface;
   }
 

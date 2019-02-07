@@ -42,7 +42,7 @@ public class MissingAndroidSupportRepoErrorHandler extends BaseSyncErrorHandler 
         isNotEmpty(text) &&
         text.contains("Could not find") &&
         text.contains("com.android.support:")) {
-      updateUsageTracker(MISSING_ANDROID_SUPPORT_REPO);
+      updateUsageTracker(project, MISSING_ANDROID_SUPPORT_REPO);
       // We keep the original error message and we append a hint about how to fix the missing dependency.
       text += EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
       return text;

@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
@@ -43,7 +41,6 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static java.util.regex.Pattern.DOTALL;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleTasksTest {
 

@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
+import org.jetbrains.android.dom.color.AndroidColorDomUtil;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
@@ -61,7 +62,14 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       }
     });
 
-    a.add(new CreateTypedResourceFileAction(ResourceType.COLOR.getDisplayName(), ResourceFolderType.COLOR, false, false));
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.COLOR.getDisplayName(), ResourceFolderType.COLOR) {
+      @NotNull
+      @Override
+      public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
+        return AndroidColorDomUtil.getPossibleRoots();
+      }
+    });
+
     a.add(new CreateTypedResourceFileAction("Values", ResourceFolderType.VALUES, true, false));
     a.add(new CreateTypedResourceFileAction(ResourceType.MENU.getDisplayName(), ResourceFolderType.MENU, false, false));
 

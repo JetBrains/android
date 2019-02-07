@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2.model
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
+import com.google.common.annotations.VisibleForTesting
 
 /**
  * Model for an editor with one or more sub editors.

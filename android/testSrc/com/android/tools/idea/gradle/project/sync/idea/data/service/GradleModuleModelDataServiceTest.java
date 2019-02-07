@@ -62,7 +62,7 @@ public class GradleModuleModelDataServiceTest extends IdeaTestCase {
     Module appModule = createModule(appModuleName);
 
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), ":app", getBaseDirPath(getProject()));
-    GradleModuleModel model = new GradleModuleModel(appModuleName, gradleProjectStub, emptyList(), null, null);
+    GradleModuleModel model = new GradleModuleModel(appModuleName, gradleProjectStub, emptyList(), null, null, null);
 
     DataNode<GradleModuleModel> dataNode = new DataNode<>(GRADLE_MODULE_MODEL, model, null);
     Collection<DataNode<GradleModuleModel>> dataNodes = Collections.singleton(dataNode);

@@ -27,7 +27,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -55,9 +55,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -985,42 +982,24 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface,
                             @Nullable Runnable attributeUpdatingTask) {
-    // Make a copy of the components list, as it's not immutable and can be modified/cleared while we're still adding the components.
-    // For instance, NlDropListener#clearDraggedComponents clears the list of components shortly after it passes them to addComponents.
-    ImmutableList<NlComponent> componentsToAdd = ImmutableList.copyOf(toAdd);
-
-    if (!canAddComponents(componentsToAdd, receiver, before)) {
+    if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
 
-    // Add the components in a separate thread as it might end up running network operations to add missing dependencies.
-    ProgressManager.getInstance().run(new Task.Backgroundable(myFacet.getModule().getProject(), "Adding Components...") {
-
-      private boolean myHasDependencies;
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        myHasDependencies = NlDependencyManager.Companion.get().addDependencies(componentsToAdd, getFacet());
-      }
-
-      @Override
-      public void onSuccess() {
-        if (myHasDependencies) {
-          // Only add the components if dependencies are added (or if they were already there)
-          addComponentInWriteCommand(componentsToAdd, receiver, before, insertType, surface, attributeUpdatingTask);
-        }
-      }
-    });
+    NlDependencyManager.Companion.get().addDependencies(
+      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask)
+    );
   }
 
-  private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
+  @Nullable
+  private Unit addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
                                           @NotNull NlComponent receiver,
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
                                           @Nullable DesignSurface surface,
                                           @Nullable Runnable attributeUpdatingTask) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
-      NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
         if (attributeUpdatingTask != null) {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
@@ -1030,6 +1009,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       notifyModified(ChangeType.ADD_COMPONENTS);
     });
+    return null;
   }
 
   @NotNull
@@ -1050,7 +1030,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                       @NotNull NlComponent receiver,
                       @Nullable NlComponent before,
                       final @NotNull InsertType insertType) {
-    NlWriteCommandAction.run(added, generateAddComponentsDescription(added, insertType), () -> {
+    NlWriteCommandActionUtil.run(added, generateAddComponentsDescription(added, insertType), () -> {
       for (NlComponent component : added) {
         component.addTags(receiver, before, insertType);
       }

@@ -22,14 +22,12 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ApplicationNamesInfo
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.MemoryDumpHelper
-import com.intellij.util.io.createDirectories
 import com.intellij.util.io.exists
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.daemon.common.usedMemory
@@ -37,7 +35,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
 
@@ -84,11 +81,10 @@ class HeapDumpSnapshotRunnable(
 
       // Capture only large memory heaps, unless explicitly requested by the user
       if (usedMemoryMB < MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB) {
-        LOG.info("Heap dump too small: $usedMemoryMB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB (in MB)")
+        LOG.info("Heap dump too small: $usedMemoryMB MB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB MB")
         return
       }
     }
-
 
     val hprofPath = AndroidStudioSystemHealthMonitor.ourHProfDatabase.createHprofTemporaryFilePath()
 
@@ -97,7 +93,7 @@ class HeapDumpSnapshotRunnable(
 
     // Check if there is enough space
     if (spaceInMB < estimatedRequiredMB) {
-      LOG.info("Not enough space for heap dump: $spaceInMB < $estimatedRequiredMB (in MB)")
+      LOG.info("Not enough space for heap dump: $spaceInMB MB < $estimatedRequiredMB MB")
       // If invoked by the user action, show a message why a heap dump cannot be captured.
       if (invokedByUser) {
         val message = AndroidBundle.message("heap.dump.snapshot.no.space", hprofPath.parent.toString(),
@@ -156,9 +152,7 @@ class HeapDumpSnapshotRunnable(
 
     override fun onSuccess() {
       if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START && restart) {
-        SwingUtilities.invokeLater {
-          ApplicationManager.getApplication().restart()
-        }
+        ApplicationManager.getApplication().invokeLater(ApplicationManager.getApplication()::restart, ModalityState.NON_MODAL)
       }
     }
 

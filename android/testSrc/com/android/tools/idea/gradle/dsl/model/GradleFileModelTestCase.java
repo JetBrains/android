@@ -342,8 +342,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull File file, @NotNull String contents) throws IOException {
-    assertThat(loadFile(file).replaceAll("[ \\t]+", "").trim())
-      .isEqualTo(contents.replaceAll("[ \\t]+", "").trim());
+    assertEquals(loadFile(file).replaceAll("[ \\t]+", "").trim(), contents.replaceAll("[ \\t]+", "").trim());
   }
 
   protected void verifyFileContents(@NotNull File file, @NotNull TestFileName expected) throws IOException {

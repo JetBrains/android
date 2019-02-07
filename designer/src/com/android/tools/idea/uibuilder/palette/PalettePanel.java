@@ -33,6 +33,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
@@ -83,6 +84,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -383,27 +386,39 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     };
   }
 
-  @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  @NotNull
+  CompletableFuture<Void> setToolContextAsyncImpl(@Nullable DesignSurface designSurface) {
     assert designSurface == null || designSurface instanceof NlDesignSurface;
     Module module = getModule(designSurface);
+    CompletableFuture<Void> result;
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
       assert designSurface.getLayoutType() instanceof LayoutEditorFileType;
       myLayoutType = (LayoutEditorFileType)designSurface.getLayoutType();
-      myDataModel.setLayoutType(facet, myLayoutType);
-      if (myDataModel.getCategoryListModel().hasExplicitGroups()) {
-        setCategoryListVisible(true);
-        myCategoryList.setSelectedIndex(0);
-      }
-      else {
-        setCategoryListVisible(false);
-        myDataModel.categorySelectionChanged(DataModel.COMMON);
-        myItemList.setSelectedIndex(0);
-      }
+      result = myDataModel.setLayoutTypeAsync(facet, myLayoutType)
+        .thenRunAsync(() -> {
+          if (myDataModel.getCategoryListModel().hasExplicitGroups()) {
+            setCategoryListVisible(true);
+            myCategoryList.setSelectedIndex(0);
+          }
+          else {
+            setCategoryListVisible(false);
+            myDataModel.categorySelectionChanged(DataModel.COMMON);
+            myItemList.setSelectedIndex(0);
+          }
+        }, EdtExecutor.INSTANCE);
+    }
+    else {
+      result = CompletableFuture.completedFuture(null);
     }
     myDesignSurface = new WeakReference<>(designSurface);
+    return result;
+  }
+
+  @Override
+  public void setToolContext(@Nullable DesignSurface designSurface) {
+    setToolContextAsyncImpl(designSurface);
   }
 
   private void setCategoryListVisible(boolean visible) {

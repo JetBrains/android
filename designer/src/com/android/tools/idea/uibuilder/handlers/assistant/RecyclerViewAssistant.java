@@ -22,7 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.HorizontalSpinner;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -305,7 +305,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
    * Set the design-time itemCount attribute in the given component
    */
   private static void setItemCount(@NotNull NlComponent component, int newCount) {
-    NlWriteCommandAction.run(component, "Set itemCount", () -> {
+    NlWriteCommandActionUtil.run(component, "Set itemCount", () -> {
       String itemCountNewValue = ITEM_COUNT_DEFAULT == newCount ? null : Integer.toString(newCount);
       component.setAttribute(TOOLS_URI, ATTR_ITEM_COUNT, itemCountNewValue);
     });

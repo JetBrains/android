@@ -33,7 +33,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error));
+    String text = findErrorMessage(project, getRootCause(error));
     if (text != null) {
       List<NotificationHyperlink> hyperlinks = new ArrayList<>();
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
@@ -46,10 +46,10 @@ public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private String findErrorMessage(@NotNull Throwable rootCause) {
+  private String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains("error in opening zip file")) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return "Failed to open zip file.\n" +
              "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n";
     }

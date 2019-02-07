@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
+
+import com.android.builder.model.SyncIssue;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.base.Splitter;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
@@ -25,16 +32,11 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class SyncErrorHandler {
   private static final ExtensionPointName<SyncErrorHandler> EXTENSION_POINT_NAME =
@@ -67,29 +69,21 @@ public abstract class SyncErrorHandler {
     return rootCause;
   }
 
-  protected static void updateUsageTracker() {
-    updateUsageTracker(null, null);
+  protected static void updateUsageTracker(@NotNull Project project) {
+    updateUsageTracker(project, null, null);
   }
 
-  protected static void updateUsageTracker(@NotNull GradleSyncFailure syncFailure) {
-    updateUsageTracker(syncFailure, null);
+  protected static void updateUsageTracker(@NotNull Project project, @NotNull GradleSyncFailure syncFailure) {
+    updateUsageTracker(project, syncFailure, null);
   }
 
-  protected static void updateUsageTracker(@Nullable GradleSyncFailure gradleSyncFailure, @Nullable String gradleMissingSignature) {
-    AndroidStudioEvent.Builder builder =
-      AndroidStudioEvent.newBuilder();
-    if (gradleSyncFailure == null) {
-      gradleSyncFailure = UNKNOWN_GRADLE_FAILURE;
+  protected static void updateUsageTracker(@NotNull Project project,
+                                           @Nullable GradleSyncFailure gradleSyncFailure,
+                                           @Nullable String gradleMissingSignature) {
+
+    if (gradleSyncFailure != null) {
+      SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);
     }
-    // @formatter:off
-    builder.setCategory(GRADLE_SYNC)
-           .setKind(GRADLE_SYNC_FAILURE)
-           .setGradleSyncFailure(gradleSyncFailure);
-    // @formatter:on
-    if (gradleMissingSignature != null) {
-      builder.setGradleMissingSignature(gradleMissingSignature);
-    }
-    UsageTracker.log(builder);
   }
 
   @NotNull

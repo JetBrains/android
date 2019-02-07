@@ -20,7 +20,7 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
@@ -45,7 +45,7 @@ class SelectedComponentModelTest {
   fun testModel() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeIdProperty()
-    NlWriteCommandAction.run(util.components[0], "") {
+    NlWriteCommandActionUtil.run(util.components[0], "") {
       util.components.first().setAttribute(ANDROID_URI, ATTR_ID, null)
     }
     val model = SelectedComponentModel(property, util.components, "What?")
