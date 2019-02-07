@@ -88,8 +88,6 @@ import org.jetbrains.annotations.Nullable;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
-
-  public static final long CREATE_COMPONENTS_TIMEOUT_MS = 300;
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
@@ -874,14 +872,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
                                      @NotNull InsertType insertType) {
-    if (!tag.isValid()) {
-      return null;
-    }
-
     if (parent != null) {
-      if (!parent.getBackend().isValid()) {
-        return null;
-      }
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
       if (before != null) {
