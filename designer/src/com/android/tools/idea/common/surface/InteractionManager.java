@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface;
 
 import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
 import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
-import static com.android.tools.idea.common.model.NlModel.CREATE_COMPONENTS_TIMEOUT_MS;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.annotations.VisibleForTesting;
@@ -26,7 +25,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.NlComponent;
@@ -45,7 +43,6 @@ import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
@@ -74,8 +71,6 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
@@ -879,24 +874,12 @@ public class InteractionManager {
       interaction.setTransferItem(item);
 
       List<NlComponent> dragged = interaction.getDraggedComponents();
-      final List<NlComponent> components = new ArrayList();
+      List<NlComponent> components;
       if (insertType.isMove()) {
-        components.addAll(mySurface.getSelectionModel().getSelection());
+        components = mySurface.getSelectionModel().getSelection();
       }
       else {
-
-        CountDownLatch latch = new CountDownLatch(1);
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          components.addAll(model.createComponents(item, insertType, mySurface));
-          latch.countDown();
-        });
-
-        try {
-          latch.await(CREATE_COMPONENTS_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-          Logger.getInstance(NlWriteCommandActionUtil.class).error("Unable to create components, write lock timed out.");
-          return null;
-        }
+        components = model.createComponents(item, insertType, mySurface);
 
         if (components.isEmpty()) {
           return null;  // User cancelled
