@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.intellij.build.FilePosition;
+import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.FileMessageEventImpl;
 import com.intellij.build.events.impl.MessageEventImpl;
@@ -46,7 +47,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   private static final String MESSAGES_GROUP = "Android issues";
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super MessageEvent> messageConsumer) {
+  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super BuildEvent> messageConsumer) {
     if (line.startsWith(STDOUT_ERROR_TAG)) {
       // Message started, start storing lines
       return processMessage(line, reader.getBuildId(), messageConsumer);
