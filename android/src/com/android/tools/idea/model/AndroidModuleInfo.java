@@ -35,7 +35,7 @@ import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
  *
  * Note that in some cases you may need to obtain information from the merged manifest file. In such a case,
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
- * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifest#get(Module)}.
+ * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
 public class AndroidModuleInfo extends AndroidFacetScopedService {
   private static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
@@ -96,7 +96,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return MergedManifest.get(facet).getApplicationId();
+    return MergedManifestManager.getSnapshot(facet).getApplicationId();
   }
 
   /**
@@ -117,7 +117,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(facet).getMinSdkVersion();
+    return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
   }
 
   @NotNull
@@ -132,7 +132,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(facet).getMinSdkVersion();
+    return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
   }
 
   @NotNull
@@ -147,7 +147,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return MergedManifest.get(facet).getTargetSdkVersion();
+    return MergedManifestManager.getSnapshot(facet).getTargetSdkVersion();
   }
 
   @Nullable
@@ -177,7 +177,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       }
     }
 
-    return MergedManifest.get(facet).getApplicationDebuggable();
+    return MergedManifestManager.getSnapshot(facet).getApplicationDebuggable();
   }
 
   @NotNull

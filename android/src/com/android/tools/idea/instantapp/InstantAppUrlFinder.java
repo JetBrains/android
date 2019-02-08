@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.lint.checks.AndroidPatternMatcher;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -51,7 +51,7 @@ public final class InstantAppUrlFinder {
   @NotNull private final AttributesResolver myResolver;
 
   public InstantAppUrlFinder(@NotNull Module module) {
-    this(new AttributesResolver(module), MergedManifest.get(module).getActivities());
+    this(new AttributesResolver(module), MergedManifestManager.getSnapshot(module).getActivities());
   }
 
   @VisibleForTesting
@@ -321,7 +321,7 @@ public final class InstantAppUrlFinder {
     @Nullable private final ResourceResolver myResourceResolver;
 
     private AttributesResolver(@NotNull Module module) {
-      List<VirtualFile> manifestFiles = MergedManifest.get(module).getManifestFiles();
+      List<VirtualFile> manifestFiles = MergedManifestManager.getSnapshot(module).getManifestFiles();
       myResourceResolver = manifestFiles == null || manifestFiles.isEmpty()
                            ? null
                            : ConfigurationManager.getOrCreateInstance(module).getConfiguration(manifestFiles.get(0)).getResourceResolver();

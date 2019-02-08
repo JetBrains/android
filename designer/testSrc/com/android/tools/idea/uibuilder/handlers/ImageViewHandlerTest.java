@@ -19,7 +19,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
@@ -50,7 +51,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
     myModel = createModel();
 
-    MergedManifest manifest = MergedManifest.get(myModel.getModule());
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myModel.getModule());
     String pkg = StringUtil.notNullize(manifest.getPackage());
     assertThat(pkg).isEqualTo("com.example");
   }

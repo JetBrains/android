@@ -19,7 +19,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.resourceExplorer.ImageCacheRule
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,7 +29,6 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -87,7 +86,7 @@ class DrawableIconProviderTest {
 
 private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
-  val manifest = MergedManifest.get(androidFacet)
+  val manifest = MergedManifestManager.getSnapshot(androidFacet)
   val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
   return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault())
 }

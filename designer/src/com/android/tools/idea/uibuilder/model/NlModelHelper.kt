@@ -27,7 +27,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -144,7 +144,7 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
       // Assume we are since this is how the default activities are created.
       return true
   if (activityClassName!!.startsWith(".")) {
-    val manifest = MergedManifest.get(this.module)
+    val manifest = MergedManifestManager.getSnapshot(this.module)
     val pkg = StringUtil.notNullize(manifest.`package`)
     activityClassName = pkg + activityClassName
   }

@@ -30,7 +30,8 @@ import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -128,7 +129,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JPopupMenu myPopup;
   private JMenuItem myRemoveItem;
 
-  private MergedManifest myManifest;
+  private MergedManifestSnapshot myManifest;
   private final List<File> myFiles = new ArrayList<>();
   private final List<File> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
@@ -273,7 +274,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
 
-  public void setManifest(@NotNull MergedManifest manifest, @NotNull VirtualFile selectedManifest) {
+  public void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
     myFile = selectedManifest;
     myManifest = manifest;
     Document document = myManifest.getDocument();
@@ -291,24 +292,22 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       recordLocationReferences(root, referenced);
     }
 
-    if (manifestFiles != null) {
-      for (VirtualFile f : manifestFiles) {
-        if (!f.equals(selectedManifest)) {
-          File file = VfsUtilCore.virtualToIoFile(f);
-          if (referenced.contains(file)) {
-            myFiles.add(file);
-          } else {
-            myOtherFiles.add(file);
-          }
+    for (VirtualFile f : manifestFiles) {
+      if (!f.equals(selectedManifest)) {
+        File file = VfsUtilCore.virtualToIoFile(f);
+        if (referenced.contains(file)) {
+          myFiles.add(file);
+        } else {
+          myOtherFiles.add(file);
         }
       }
-      Collections.sort(myFiles, MANIFEST_SORTER);
-      Collections.sort(myOtherFiles, MANIFEST_SORTER);
+    }
+    Collections.sort(myFiles, MANIFEST_SORTER);
+    Collections.sort(myOtherFiles, MANIFEST_SORTER);
 
-      // Build.gradle - injected
-      if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
-        myFiles.add(GRADLE_MODEL_MARKER_FILE);
-      }
+    // Build.gradle - injected
+    if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
+      myFiles.add(GRADLE_MODEL_MARKER_FILE);
     }
 
     if (root != null) {
@@ -783,7 +782,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       assert manifestOverlayPsiFile != null;
 
       if (androidModuleModel.getBuildTypeNames().contains(name)) {
-        final String packageName = MergedManifest.get(facet).getPackage();
+        final String packageName = MergedManifestManager.getSnapshot(facet).getPackage();
         assert packageName != null;
         if (applicationId.startsWith(packageName)) {
           link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {

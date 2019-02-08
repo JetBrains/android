@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.ir.client.InstantRunBuildInfo;
@@ -206,7 +206,6 @@ public class InstantRunGradleUtils {
     if (facet == null) {
       return true;
     }
-    MergedManifest mergedManifest = MergedManifest.get(facet);
-    return mergedManifest.getApplicationHasCode();
+    return MergedManifestManager.getSnapshot(facet).getApplicationHasCode();
   }
 }
