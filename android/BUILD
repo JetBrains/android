@@ -209,7 +209,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/spellchecker:intellij.spellchecker[module, test]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
