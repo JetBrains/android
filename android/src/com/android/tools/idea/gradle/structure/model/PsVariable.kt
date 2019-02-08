@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.concurrent.transform
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.helpers.formatAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.projectsystem.transform
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
