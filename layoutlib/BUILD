@@ -90,7 +90,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib-loader[module, test]",
         "//tools/idea/.idea/libraries:Guava[test]",
