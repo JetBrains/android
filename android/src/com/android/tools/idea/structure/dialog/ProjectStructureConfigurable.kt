@@ -58,6 +58,7 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import com.intellij.util.ui.UIUtil.requestFocus
@@ -216,7 +217,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     val left = object : JPanel(BorderLayout()) {
       override fun getMinimumSize(): Dimension {
         val original = super.getMinimumSize()
-        return Dimension(Math.max(original.width, 100), original.height)
+        return Dimension(Math.max(original.width, JBUI.scale(150)), original.height)
       }
     }
 
@@ -296,6 +297,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         // Do not close on Escape.
         if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) return
         super.doCancelAction()
+      }
+
+      init {
+        contentPanel.preferredSize = Dimension(JBUI.scale(950), JBUI.scale(500))
+        contentPanel.minimumSize = Dimension(JBUI.scale(900), JBUI.scale(400))
       }
     }
     UiNotifyConnector.Once(dialog.contentPane, object : Activatable.Adapter() {
