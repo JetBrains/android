@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("FutureUtils")
-package com.android.tools.idea.concurrent
+package com.android.tools.idea.projectsystem
 
 import com.google.common.base.Function
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.JdkFutureAdapters
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.ListenableFutureTask
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
-import com.intellij.openapi.application.ApplicationManager
-
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
 
@@ -78,10 +74,4 @@ fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), s
  */
 fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), futureCalback: FutureCallback<I>) {
   Futures.addCallback(this, futureCalback, executor)
-}
-
-fun <T> executeOnPooledThread(action: ()->T): ListenableFuture<T> {
-  val futureTask = ListenableFutureTask.create(action)
-  ApplicationManager.getApplication().executeOnPooledThread(futureTask)
-  return futureTask
 }
