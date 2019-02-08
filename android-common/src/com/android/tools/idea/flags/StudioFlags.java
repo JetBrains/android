@@ -311,6 +311,13 @@ public final class StudioFlags {
     "Use JVMTI to support application refresh. This implies incremental deployment",
     true);
 
+  public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
+    RUNDEBUG,
+    "deltainstall",
+    "Delta install",
+    "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
+    true);
+
   public static final Flag<Boolean> UNIFIED_DEPLOYMENT = Flag.create(
     RUNDEBUG,
     "unified.deploy",
