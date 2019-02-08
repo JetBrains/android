@@ -72,7 +72,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
@@ -813,7 +813,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     XmlTag dataTag = getDataTag(layout);
     String className;
     String classPackage;
-    String modulePackage = MergedManifest.get(myFacet).getPackage();
+    String modulePackage = MergedManifestManager.getSnapshot(myFacet).getPackage();
     String classAttrValue = null;
     if (dataTag != null) {
       classAttrValue = dataTag.getAttributeValue(ATTR_CLASS);

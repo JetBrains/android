@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.manifmerger.MergingReport;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,8 +82,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   private String[] getErrorHtml() {
-    MergedManifest manifest = MergedManifest.get(myAndroidFacet);
-    manifest.clear();
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myAndroidFacet, true);
     ImmutableList<MergingReport.Record> records = manifest.getLoggingRecords();
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {

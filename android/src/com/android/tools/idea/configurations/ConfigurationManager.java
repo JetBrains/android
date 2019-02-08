@@ -25,8 +25,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -34,7 +35,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -322,7 +322,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    MergedManifest manifest = MergedManifest.get(getModule());
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(getModule());
 
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
 
@@ -334,7 +334,7 @@ public class ConfigurationManager implements Disposable {
         activityFqcn = pkg + activity;
       }
 
-      ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
+      ActivityAttributesSnapshot attributes = manifest.getActivityAttributes(activityFqcn);
       if (attributes != null) {
         String theme = attributes.getTheme();
         // Check that the theme looks like a reference.

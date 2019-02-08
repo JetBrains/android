@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,8 +28,8 @@ public class FeatureMergedManifestTest extends AndroidGradleTestCase {
   public void testLibraryManifestMergedOnFeature() throws Exception {
     loadProject(INSTANT_APP_LIBRARY_DEPENDENCY);
     Module featureModule = getModule("feature");
-    MergedManifest mergedManifest = MergedManifest.get(featureModule);
-    assertSize(1, mergedManifest.getActivities());
+    MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(featureModule);
+    assertSize(1, mergedManifestManager.getActivities());
   }
 
   public void testCanFindURL() throws Exception {

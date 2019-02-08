@@ -18,7 +18,7 @@ package com.android.tools.idea;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -361,7 +361,7 @@ public class AndroidPsiUtils {
       boolean startsWithDot = context.charAt(0) == '.';
       if (startsWithDot || context.indexOf('.') == -1) {
         // Prepend application package
-        String pkg = MergedManifest.get(module).getPackage();
+        String pkg = MergedManifestManager.getSnapshot(module).getPackage();
         return startsWithDot ? pkg + context : pkg + '.' + context;
       }
       return context;

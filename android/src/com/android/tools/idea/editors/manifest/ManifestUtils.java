@@ -21,10 +21,10 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.IntentFilterNodeKeyResolver;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
-import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -66,12 +66,12 @@ public class ManifestUtils {
   @Nullable/*activity does not exist in any project manifests*/
   public static SourceFilePosition getSourceFilePosition(@NotNull Module module, @NotNull String activityName) {
     // we need to look in the merged manifest for the activity as we may be using placeholders for the name
-    MergedManifest mergedManifest = MergedManifest.get(module);
-    Element item = mergedManifest.findActivity(activityName);
+    MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(module);
+    Element item = mergedManifestManager.findActivity(activityName);
     if (item == null) {
       return null;
     }
-    List<? extends Actions.Record> records = getRecords(mergedManifest, item);
+    List<? extends Actions.Record> records = getRecords(mergedManifestManager, item);
     if (records.isEmpty()) {
       return null;
     }
@@ -79,7 +79,7 @@ public class ManifestUtils {
   }
 
   @NotNull
-  public static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node node) {
+  public static List<? extends Actions.Record> getRecords(@NotNull MergedManifestSnapshot manifest, @NotNull Node node) {
     Actions actions = manifest.getActions();
     if (actions != null) {
       // if node is an Attr, element is node's owner element; otherwise element is (Element)node
@@ -122,7 +122,7 @@ public class ManifestUtils {
   }
 
   @Nullable/*can not find report node for xml tag*/
-  static XmlNode.NodeKey getNodeKey(@NotNull MergedManifest manifest, @NotNull Element element) {
+  static XmlNode.NodeKey getNodeKey(@NotNull MergedManifestSnapshot manifest, @NotNull Element element) {
     XmlNode.NodeKey key = manifest.getNodeKey(element.getNodeName());
     if (key == null) {
       Attr nameAttribute = element.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
@@ -154,7 +154,7 @@ public class ManifestUtils {
       assert vFile != null;
       Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
       if (fileModule != null && !fileModule.equals(module)) { // redirect to library merged manifest?
-        MergedManifest manifest = MergedManifest.get(fileModule);
+        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(fileModule);
         Document document = manifest.getDocument();
         assert document != null;
         Element root = document.getDocumentElement();
@@ -189,7 +189,7 @@ public class ManifestUtils {
       assert vFile != null;
       Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
       if (fileModule != null && !fileModule.equals(module)) {
-        MergedManifest manifest = MergedManifest.get(fileModule);
+        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(fileModule);
         Document document = manifest.getDocument();
         assert document != null;
         Element root = document.getDocumentElement();
