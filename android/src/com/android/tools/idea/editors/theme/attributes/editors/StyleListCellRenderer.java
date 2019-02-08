@@ -20,7 +20,8 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemesListModel;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
@@ -78,7 +79,7 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
     String defaultAppThemeResourceUrl = null;
     final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
     if (facet != null) {
-      MergedManifest info = MergedManifest.get(facet);
+      MergedManifestSnapshot info = MergedManifestManager.getSnapshot(facet);
       defaultAppThemeResourceUrl = info.getManifestTheme();
     }
 

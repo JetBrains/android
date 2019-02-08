@@ -24,7 +24,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
-import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -89,7 +89,7 @@ class DefaultModuleSystem(val module: Module) :
             continue
           }
           AndroidFacet.getInstance(moduleForEntry) ?: continue
-          val manifestInfo = MergedManifest.get(moduleForEntry)
+          val manifestInfo = MergedManifestManager.getSnapshot(moduleForEntry)
           if ("android.support.v7.appcompat" == manifestInfo.`package`) {
             return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
           }

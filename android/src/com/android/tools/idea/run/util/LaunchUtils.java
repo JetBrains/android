@@ -19,7 +19,8 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.execution.Executor;
@@ -86,7 +87,7 @@ public class LaunchUtils {
       return false;
     }
 
-    MergedManifest info = MergedManifest.get(facet);
+    MergedManifestSnapshot info = MergedManifestManager.getSnapshot(facet);
     if (!info.getActivities().isEmpty()) {
       return false;
     }
@@ -105,7 +106,7 @@ public class LaunchUtils {
 
   /** Returns whether the watch hardware feature is required for the given facet. */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    MergedManifest mergedManifest = MergedManifest.get(facet);
+    MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
     Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
     return feature != null && isRequired(feature);
   }

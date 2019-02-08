@@ -71,7 +71,7 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
@@ -223,7 +223,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    String javaPackage = MergedManifest.get(myModule).getPackage();
+    String javaPackage = MergedManifestManager.getSnapshot(myModule).getPackage();
     if (javaPackage != null && !javaPackage.isEmpty()) {
       myNamespace = URI_PREFIX + javaPackage;
     } else {

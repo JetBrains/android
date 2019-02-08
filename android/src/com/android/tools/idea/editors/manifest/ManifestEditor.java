@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.manifest;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -98,7 +98,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
   private void reload() {
     if (mySelected) {
-      myManifestPanel.setManifest(MergedManifest.get(myFacet), mySelectedFile);
+      myManifestPanel.setManifestSnapshot(MergedManifestManager.getSnapshot(myFacet), mySelectedFile);
     }
   }
 

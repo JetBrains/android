@@ -22,8 +22,9 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
@@ -66,7 +67,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public boolean getSplitActionBarWhenNarrow() {
-    ActivityAttributes attributes = getActivityAttributes();
+    ActivityAttributesSnapshot attributes = getActivityAttributes();
     if (attributes != null) {
       return VALUE_SPLIT_ACTION_BAR_WHEN_NARROW.equals(attributes.getUiOptions());
     }
@@ -172,7 +173,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public HomeButtonStyle getHomeButtonStyle() {
-    ActivityAttributes attributes = getActivityAttributes();
+    ActivityAttributesSnapshot attributes = getActivityAttributes();
     if (attributes != null && attributes.getParentActivity() != null) {
       return HomeButtonStyle.SHOW_HOME_AS_UP;
     }
@@ -202,10 +203,10 @@ public class ActionBarHandler extends ActionBarCallback {
   }
 
   @Nullable
-  private ActivityAttributes getActivityAttributes() {
+  private ActivityAttributesSnapshot getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      MergedManifest manifest = MergedManifest.get(myRenderTask.getContext().getModule());
+      MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myRenderTask.getContext().getModule());
       String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {

@@ -21,7 +21,8 @@ import static com.android.xml.AndroidManifest.NODE_INTENT;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -78,7 +79,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
-    final MergedManifest mergedManifest = MergedManifest.get(facet);
+    final MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
 
     return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(
       () -> computeDefaultActivity(ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases()), device));
