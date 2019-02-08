@@ -80,14 +80,6 @@ public final class AndroidArtworkIcons {
      */
     public static final Icon Baseline = load("/icons/baseline.png");
     /**
-     * 13x13
-     */
-    public static final Icon Captures = load("/icons/captures.png");
-    /**
-     * 16x16
-     */
-    public static final Icon Car = load("/icons/car.png");
-    /**
      * 16x16
      */
     public static final Icon Clearweights = load("/icons/clearweights.png");
@@ -99,28 +91,12 @@ public final class AndroidArtworkIcons {
      * 16x16
      */
     public static final Icon Configuration = load("/icons/configuration.png");
-    /**
-     * 16x16
-     */
-    public static final Icon Cpu_monitor = load("/icons/cpu_monitor.png");
 
     public final static class Ddms {
       /**
        * 16x16
        */
-      public static final Icon Allocation_tracker = load("/icons/ddms/allocation_tracker.png");
-      /**
-       * 16x16
-       */
       public static final Icon AttachDebugger = load("/icons/ddms/attachDebugger.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Cause_garbage_collection = load("/icons/ddms/cause_garbage_collection.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Dump_hprof_file = load("/icons/ddms/dump_hprof_file.png");
       /**
        * 16x16
        */
@@ -137,14 +113,6 @@ public final class AndroidArtworkIcons {
        * 16x16
        */
       public static final Icon File_explorer = load("/icons/ddms/file_explorer.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Heap = load("/icons/ddms/heap.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Heap_info = load("/icons/ddms/heap_info.png");
       /**
        * 16x16
        */
@@ -172,15 +140,7 @@ public final class AndroidArtworkIcons {
       /**
        * 16x16
        */
-      public static final Icon Start_method_profiling = load("/icons/ddms/start_method_profiling.png");
-      /**
-       * 16x16
-       */
       public static final Icon Sysinfo = load("/icons/ddms/sysinfo.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Threads = load("/icons/ddms/threads.png");
 
     }
     /**
@@ -1334,15 +1294,7 @@ public final class AndroidArtworkIcons {
     /**
      * 16x16
      */
-    public static final Icon Glass = load("/icons/glass.png");
-    /**
-     * 16x16
-     */
     public static final Icon Globe = load("/icons/globe.png");
-    /**
-     * 16x16
-     */
-    public static final Icon Gpu_monitor = load("/icons/gpu_monitor.png");
     /**
      * 16x16
      */
@@ -1398,15 +1350,7 @@ public final class AndroidArtworkIcons {
     /**
      * 16x16
      */
-    public static final Icon Memory_monitor = load("/icons/memory_monitor.png");
-    /**
-     * 16x16
-     */
     public static final Icon Mnc = load("/icons/mnc.png");
-    /**
-     * 16x16
-     */
-    public static final Icon Mobile = load("/icons/mobile.png");
 
     public final static class Mockup {
       /**
@@ -1437,54 +1381,6 @@ public final class AndroidArtworkIcons {
        * 100x100
        */
       public static final Icon No_mockup = load("/icons/mockup/no_mockup.png");
-
-    }
-
-    public final static class ModuleTemplates {
-      /**
-       * 512x512
-       */
-      public static final Icon Android_module = load("/icons/module_templates/android_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Car_module = load("/icons/module_templates/car_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Eclipse_module = load("/icons/module_templates/eclipse_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Feature_module = load("/icons/module_templates/feature_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Glass_module = load("/icons/module_templates/glass_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Gradle_module = load("/icons/module_templates/gradle_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Instant_app_module = load("/icons/module_templates/instant_app_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Mobile_module = load("/icons/module_templates/mobile_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Things_module = load("/icons/module_templates/things_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Tv_module = load("/icons/module_templates/tv_module.png");
-      /**
-       * 512x512
-       */
-      public static final Icon Wear_module = load("/icons/module_templates/wear_module.png");
 
     }
     /**
@@ -1726,10 +1622,6 @@ public final class AndroidArtworkIcons {
     /**
      * 16x16
      */
-    public static final Icon Network_monitor = load("/icons/network_monitor.png");
-    /**
-     * 16x16
-     */
     public static final Icon Nightmode = load("/icons/nightmode.png");
     /**
      * 16x16
@@ -1752,809 +1644,13 @@ public final class AndroidArtworkIcons {
       /**
        * 16x16
        */
-      public static final Icon Absolute_layout = load("/icons/palette/absolute-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Absolute_layout_large = load("/icons/palette/absolute-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Ad_view = load("/icons/palette/ad-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Ad_view_large = load("/icons/palette/ad-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Adapter_view_flipper = load("/icons/palette/adapter-view-flipper.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Adapter_view_flipper_large = load("/icons/palette/adapter-view-flipper_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Analog_clock = load("/icons/palette/analog-clock.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Analog_clock_large = load("/icons/palette/analog-clock_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon App_bar_layout = load("/icons/palette/app-bar-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon App_bar_layout_large = load("/icons/palette/app-bar-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Autocomplete_textview = load("/icons/palette/autocomplete-textview.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Autocomplete_textview_large = load("/icons/palette/autocomplete-textview_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Browse_fragment = load("/icons/palette/browse-fragment.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Browse_fragment_large = load("/icons/palette/browse-fragment_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Button = load("/icons/palette/button.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Button_large = load("/icons/palette/button_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Calendar_view = load("/icons/palette/calendar-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Calendar_view_large = load("/icons/palette/calendar-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Card_view_compat = load("/icons/palette/card-view-compat.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Card_view_compat_large = load("/icons/palette/card-view-compat_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Checkbox = load("/icons/palette/checkbox.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Checkbox_large = load("/icons/palette/checkbox_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Checked_textview = load("/icons/palette/checked-textview.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Checked_textview_large = load("/icons/palette/checked-textview_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Chronometer = load("/icons/palette/chronometer.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Chronometer_large = load("/icons/palette/chronometer_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Constraint_layout = load("/icons/palette/constraint-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Constraint_layout_large = load("/icons/palette/constraint-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Coordinator_layout = load("/icons/palette/coordinator-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Coordinator_layout_large = load("/icons/palette/coordinator-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Date_picker = load("/icons/palette/date-picker.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Date_picker_large = load("/icons/palette/date-picker_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Date_textfield = load("/icons/palette/date-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Date_textfield_large = load("/icons/palette/date-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Details_fragment = load("/icons/palette/details-fragment.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Details_fragment_large = load("/icons/palette/details-fragment_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Digital_clock = load("/icons/palette/digital-clock.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Digital_clock_large = load("/icons/palette/digital-clock_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Download_overlay = load("/icons/palette/download-overlay.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Download_overlay_large = load("/icons/palette/download-overlay_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Download = load("/icons/palette/download.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Download_large = load("/icons/palette/download_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Email_textfield = load("/icons/palette/email-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Email_textfield_large = load("/icons/palette/email-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Expandable_list_view = load("/icons/palette/expandable-list-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Expandable_list_view_large = load("/icons/palette/expandable-list-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Flex_box_layout = load("/icons/palette/flex-box-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Flex_box_layout_large = load("/icons/palette/flex-box-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Floating_action_button = load("/icons/palette/floating-action-button.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Floating_action_button_large = load("/icons/palette/floating-action-button_large.png");
-      /**
-       * 16x16
-       */
       public static final Icon Fragment = load("/icons/palette/fragment.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Fragment_large = load("/icons/palette/fragment_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Frame_layout = load("/icons/palette/frame-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Frame_layout_large = load("/icons/palette/frame-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Gesture_overlay_view = load("/icons/palette/gesture-overlay-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Gesture_overlay_view_large = load("/icons/palette/gesture-overlay-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Grid_layout_compat = load("/icons/palette/grid-layout-compat.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Grid_layout_compat_large = load("/icons/palette/grid-layout-compat_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Grid_layout = load("/icons/palette/grid-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Grid_layout_large = load("/icons/palette/grid-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Grid_view = load("/icons/palette/grid-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Grid_view_large = load("/icons/palette/grid-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Horizontal_scroll_view = load("/icons/palette/horizontal-scroll-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Horizontal_scroll_view_large = load("/icons/palette/horizontal-scroll-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Image_button = load("/icons/palette/image-button.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Image_button_large = load("/icons/palette/image-button_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Image_switcher = load("/icons/palette/image-switcher.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Image_switcher_large = load("/icons/palette/image-switcher_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Image_view = load("/icons/palette/image-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Image_view_large = load("/icons/palette/image-view_large.png");
       /**
        * 16x16
        */
       public static final Icon Include_advanced = load("/icons/palette/include-advanced.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Include_advanced_large = load("/icons/palette/include-advanced_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Linear_layout_horz = load("/icons/palette/linear-layout-horz.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Linear_layout_horz_large = load("/icons/palette/linear-layout-horz_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Linear_layout_vert = load("/icons/palette/linear-layout-vert.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Linear_layout_vert_large = load("/icons/palette/linear-layout-vert_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon List_view = load("/icons/palette/list-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon List_view_large = load("/icons/palette/list-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Map_fragment = load("/icons/palette/map-fragment.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Map_fragment_large = load("/icons/palette/map-fragment_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Map_view = load("/icons/palette/map-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Map_view_large = load("/icons/palette/map-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Media_controller = load("/icons/palette/media-controller.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Media_controller_large = load("/icons/palette/media-controller_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Merge = load("/icons/palette/merge.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Merge_large = load("/icons/palette/merge_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Multi_autocomplete_textview = load("/icons/palette/multi-autocomplete-textview.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Multi_autocomplete_textview_large = load("/icons/palette/multi-autocomplete-textview_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Multiline_textfield = load("/icons/palette/multiline-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Multiline_textfield_large = load("/icons/palette/multiline-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Nested_scroll_view = load("/icons/palette/nested-scroll-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Nested_scroll_view_large = load("/icons/palette/nested-scroll-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Number_decimal_textfield = load("/icons/palette/number-decimal-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Number_decimal_textfield_large = load("/icons/palette/number-decimal-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Number_picker = load("/icons/palette/number-picker.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Number_picker_large = load("/icons/palette/number-picker_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Number_signed_textfield = load("/icons/palette/number-signed-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Number_signed_textfield_large = load("/icons/palette/number-signed-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Number_textfield = load("/icons/palette/number-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Number_textfield_large = load("/icons/palette/number-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Password_numeric_textfield = load("/icons/palette/password-numeric-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Password_numeric_textfield_large = load("/icons/palette/password-numeric-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Password_textfield = load("/icons/palette/password-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Password_textfield_large = load("/icons/palette/password-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Phone_textfield = load("/icons/palette/phone-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Phone_textfield_large = load("/icons/palette/phone-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Plain_textfield = load("/icons/palette/plain-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Plain_textfield_large = load("/icons/palette/plain-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Playback_overlay_fragment = load("/icons/palette/playback-overlay-fragment.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Playback_overlay_fragment_large = load("/icons/palette/playback-overlay-fragment_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Postal_address_textfield = load("/icons/palette/postal-address-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Postal_address_textfield_large = load("/icons/palette/postal-address-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Progress_bar_horizontal = load("/icons/palette/progress-bar-horizontal.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Progress_bar_horizontal_large = load("/icons/palette/progress-bar-horizontal_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Progress_bar = load("/icons/palette/progress-bar.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Progress_bar_large = load("/icons/palette/progress-bar_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Quick_contact_badge = load("/icons/palette/quick-contact-badge.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Quick_contact_badge_large = load("/icons/palette/quick-contact-badge_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Radio_button = load("/icons/palette/radio-button.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Radio_button_large = load("/icons/palette/radio-button_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Radio_group = load("/icons/palette/radio-group.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Radio_group_large = load("/icons/palette/radio-group_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Rating_bar = load("/icons/palette/rating-bar.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Rating_bar_large = load("/icons/palette/rating-bar_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Recycler_view_compat = load("/icons/palette/recycler-view-compat.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Recycler_view_compat_large = load("/icons/palette/recycler-view-compat_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Relative_layout = load("/icons/palette/relative-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Relative_layout_large = load("/icons/palette/relative-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Request_focus_advanced = load("/icons/palette/request-focus-advanced.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Request_focus_advanced_large = load("/icons/palette/request-focus-advanced_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Ringtone_preference = load("/icons/palette/ringtone-preference.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Ringtone_preference_large = load("/icons/palette/ringtone-preference_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Scroll_view = load("/icons/palette/scroll-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Scroll_view_large = load("/icons/palette/scroll-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Search_fragment = load("/icons/palette/search-fragment.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Search_fragment_large = load("/icons/palette/search-fragment_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Search_view = load("/icons/palette/search-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Search_view_large = load("/icons/palette/search-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Seek_bar_discrete = load("/icons/palette/seek-bar-discrete.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Seek_bar_discrete_large = load("/icons/palette/seek-bar-discrete_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Seek_bar = load("/icons/palette/seek-bar.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Seek_bar_large = load("/icons/palette/seek-bar_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Space = load("/icons/palette/space.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Space_large = load("/icons/palette/space_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Spinner = load("/icons/palette/spinner.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Spinner_large = load("/icons/palette/spinner_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Stack_view = load("/icons/palette/stack-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Stack_view_large = load("/icons/palette/stack-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Surface_view = load("/icons/palette/surface-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Surface_view_large = load("/icons/palette/surface-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Switch = load("/icons/palette/switch.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Switch_large = load("/icons/palette/switch_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Tab_host = load("/icons/palette/tab-host.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Tab_host_large = load("/icons/palette/tab-host_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Tab_item = load("/icons/palette/tab-item.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Tab_item_large = load("/icons/palette/tab-item_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Tab_layout = load("/icons/palette/tab-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Tab_layout_large = load("/icons/palette/tab-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Tab_widget = load("/icons/palette/tab-widget.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Tab_widget_large = load("/icons/palette/tab-widget_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Table_layout = load("/icons/palette/table-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Table_layout_large = load("/icons/palette/table-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Table_row = load("/icons/palette/table-row.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Table_row_large = load("/icons/palette/table-row_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Text_clock = load("/icons/palette/text-clock.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Text_clock_large = load("/icons/palette/text-clock_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Text_input_layout = load("/icons/palette/text-input-layout.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Text_input_layout_large = load("/icons/palette/text-input-layout_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Text_switcher = load("/icons/palette/text-switcher.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Text_switcher_large = load("/icons/palette/text-switcher_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Texture_view = load("/icons/palette/texture-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Texture_view_large = load("/icons/palette/texture-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Textview = load("/icons/palette/textview.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Textview_large = load("/icons/palette/textview_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Time_picker = load("/icons/palette/time-picker.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Time_picker_large = load("/icons/palette/time-picker_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Time_textfield = load("/icons/palette/time-textfield.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Time_textfield_large = load("/icons/palette/time-textfield_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Toggle_button = load("/icons/palette/toggle-button.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Toggle_button_large = load("/icons/palette/toggle-button_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Toolbar_compat = load("/icons/palette/toolbar-compat.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Toolbar_compat_large = load("/icons/palette/toolbar-compat_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Video_view = load("/icons/palette/video-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Video_view_large = load("/icons/palette/video-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon View_advanced = load("/icons/palette/view-advanced.png");
-      /**
-       * 24x24
-       */
-      public static final Icon View_advanced_large = load("/icons/palette/view-advanced_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon View_animator = load("/icons/palette/view-animator.png");
-      /**
-       * 24x24
-       */
-      public static final Icon View_animator_large = load("/icons/palette/view-animator_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon View_flipper = load("/icons/palette/view-flipper.png");
-      /**
-       * 24x24
-       */
-      public static final Icon View_flipper_large = load("/icons/palette/view-flipper_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon View_stub_advanced = load("/icons/palette/view-stub-advanced.png");
-      /**
-       * 24x24
-       */
-      public static final Icon View_stub_advanced_large = load("/icons/palette/view-stub-advanced_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon View_switcher = load("/icons/palette/view-switcher.png");
-      /**
-       * 24x24
-       */
-      public static final Icon View_switcher_large = load("/icons/palette/view-switcher_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Web_view = load("/icons/palette/web-view.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Web_view_large = load("/icons/palette/web-view_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Zoom_button = load("/icons/palette/zoom-button.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Zoom_button_large = load("/icons/palette/zoom-button_large.png");
-      /**
-       * 16x16
-       */
-      public static final Icon Zoom_controls = load("/icons/palette/zoom-controls.png");
-      /**
-       * 24x24
-       */
-      public static final Icon Zoom_controls_large = load("/icons/palette/zoom-controls_large.png");
 
     }
-    /**
-     * 16x16
-     */
-    public static final Icon Play_store = load("/icons/play_store.png");
     /**
      * 16x16
      */
@@ -3126,10 +2222,6 @@ public final class AndroidArtworkIcons {
     /**
      * 16x16
      */
-    public static final Icon Sunburst = load("/icons/sunburst.png");
-    /**
-     * 16x16
-     */
     public static final Icon Swidth = load("/icons/swidth.png");
     /**
      * 16x16
@@ -3147,10 +2239,6 @@ public final class AndroidArtworkIcons {
      * 13x13
      */
     public static final Icon ThemesPreview = load("/icons/themesPreview.png");
-    /**
-     * 16x16
-     */
-    public static final Icon Things = load("/icons/things.png");
 
     public final static class Toolwindows {
       /**
@@ -3167,10 +2255,6 @@ public final class AndroidArtworkIcons {
      * 16x16
      */
     public static final Icon Touch = load("/icons/touch.png");
-    /**
-     * 16x16
-     */
-    public static final Icon TV = load("/icons/tv.png");
     /**
      * 16x16
      */
@@ -3273,16 +2357,20 @@ public final class AndroidArtworkIcons {
        * 32x32
        */
       public static final Icon Oreo_32 = load("/icons/versions/Oreo_32.png");
+      /**
+       * 128x128
+       */
+      public static final Icon Pie = load("/icons/versions/Pie.png");
+      /**
+       * 32x32
+       */
+      public static final Icon Pie_32 = load("/icons/versions/Pie_32.png");
 
     }
     /**
      * 16x16
      */
     public static final Icon Viewport_render = load("/icons/viewport-render.png");
-    /**
-     * 16x16
-     */
-    public static final Icon Wear = load("/icons/wear.png");
     /**
      * 16x16
      */
@@ -3305,6 +2393,22 @@ public final class AndroidArtworkIcons {
        * 16x16
        */
       public static final Icon Github_icon = load("/icons/wizards/github_icon.png");
+
+      public final static class Navigation {
+        /**
+         * 256x256
+         */
+        public static final Icon Bottom_navigation = load("/icons/wizards/navigation/bottom_navigation.png");
+        /**
+         * 256x256
+         */
+        public static final Icon Navigation_drawer = load("/icons/wizards/navigation/navigation_drawer.png");
+        /**
+         * 256x256
+         */
+        public static final Icon Navigation_tabs = load("/icons/wizards/navigation/navigation_tabs.png");
+
+      }
       /**
        * 143x627
        */
@@ -3362,19 +2466,11 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
-        public static final Icon Device_car_selected = load("/studio/icons/avd/device-car-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Device_car = load("/studio/icons/avd/device-car.png");
         /**
          * 32x32
          */
         public static final Icon Device_car_large = load("/studio/icons/avd/device-car_large.png");
-        /**
-         * 16x16
-         */
-        public static final Icon Device_glass_selected = load("/studio/icons/avd/device-glass-selected.png");
         /**
          * 16x16
          */
@@ -3386,10 +2482,6 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
-        public static final Icon Device_mobile_selected = load("/studio/icons/avd/device-mobile-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Device_mobile = load("/studio/icons/avd/device-mobile.png");
         /**
          * 32x32
@@ -3398,15 +2490,7 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
-        public static final Icon Device_phone_selected = load("/studio/icons/avd/device-phone-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Device_phone = load("/studio/icons/avd/device-phone.png");
-        /**
-         * 16x16
-         */
-        public static final Icon Device_play_store_selected = load("/studio/icons/avd/device-play-store-selected.png");
         /**
          * 16x16
          */
@@ -3414,15 +2498,7 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
-        public static final Icon Device_tablet_selected = load("/studio/icons/avd/device-tablet-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Device_tablet = load("/studio/icons/avd/device-tablet.png");
-        /**
-         * 16x16
-         */
-        public static final Icon Device_tv_selected = load("/studio/icons/avd/device-tv-selected.png");
         /**
          * 16x16
          */
@@ -3434,10 +2510,6 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
-        public static final Icon Device_wear_selected = load("/studio/icons/avd/device-wear-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Device_wear = load("/studio/icons/avd/device-wear.png");
         /**
          * 32x32
@@ -3446,23 +2518,11 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
-        public static final Icon Edit_selected = load("/studio/icons/avd/edit-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Edit = load("/studio/icons/avd/edit.png");
         /**
          * 16x16
          */
-        public static final Icon Quick_boot_selected = load("/studio/icons/avd/quick-boot-selected.png");
-        /**
-         * 16x16
-         */
         public static final Icon Quick_boot = load("/studio/icons/avd/quick-boot.png");
-        /**
-         * 16x16
-         */
-        public static final Icon Run_selected = load("/studio/icons/avd/run-selected.png");
         /**
          * 16x16
          */
@@ -3494,6 +2554,10 @@ public final class AndroidArtworkIcons {
         /**
          * 16x16
          */
+        public static final Icon Delete = load("/studio/icons/common/delete.png");
+        /**
+         * 16x16
+         */
         public static final Icon Edit = load("/studio/icons/common/edit.png");
         /**
          * 16x16
@@ -3515,6 +2579,10 @@ public final class AndroidArtworkIcons {
          * 16x16
          */
         public static final Icon Filter = load("/studio/icons/common/filter.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Help = load("/studio/icons/common/help.png");
         /**
          * 16x16
          */
@@ -3551,6 +2619,34 @@ public final class AndroidArtworkIcons {
          * 14x14
          */
         public static final Icon Move_down_selected = load("/studio/icons/common/move-down-selected.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Overflow = load("/studio/icons/common/overflow.png");
+        /**
+         * 15x20
+         */
+        public static final Icon Property_bound_focus = load("/studio/icons/common/property-bound-focus.png");
+        /**
+         * 15x20
+         */
+        public static final Icon Property_bound = load("/studio/icons/common/property-bound.png");
+        /**
+         * 15x20
+         */
+        public static final Icon Property_unbound_focus = load("/studio/icons/common/property-unbound-focus.png");
+        /**
+         * 15x20
+         */
+        public static final Icon Property_unbound = load("/studio/icons/common/property-unbound.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Remove = load("/studio/icons/common/remove.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Reorder = load("/studio/icons/common/reorder.png");
         /**
          * 16x16
          */
@@ -3603,6 +2699,38 @@ public final class AndroidArtworkIcons {
          * 16x16
          */
         public static final Icon Zoom_out = load("/studio/icons/common/zoom-out.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Zoom_select = load("/studio/icons/common/zoom-select.png");
+
+      }
+
+      public final static class Cursors {
+        /**
+         * 32x32
+         */
+        public static final Icon Ew_resize = load("/studio/icons/cursors/ew-resize.png");
+        /**
+         * 32x32
+         */
+        public static final Icon Grab = load("/studio/icons/cursors/grab.png");
+        /**
+         * 32x32
+         */
+        public static final Icon Grabbing = load("/studio/icons/cursors/grabbing.png");
+        /**
+         * 32x32
+         */
+        public static final Icon Nesw_resize = load("/studio/icons/cursors/nesw-resize.png");
+        /**
+         * 32x32
+         */
+        public static final Icon Ns_resize = load("/studio/icons/cursors/ns-resize.png");
+        /**
+         * 32x32
+         */
+        public static final Icon Nwse_resize = load("/studio/icons/cursors/nwse-resize.png");
 
       }
 
@@ -3640,6 +2768,14 @@ public final class AndroidArtworkIcons {
           /**
            * 16x16
            */
+          public static final Icon Pipette = load("/studio/icons/layout-editor/extras/pipette.png");
+          /**
+           * 24x24
+           */
+          public static final Icon Pipette_large = load("/studio/icons/layout-editor/extras/pipette_large.png");
+          /**
+           * 16x16
+           */
           public static final Icon Root_inline_selected = load("/studio/icons/layout-editor/extras/root-inline-selected.png");
           /**
            * 16x16
@@ -3656,239 +2792,247 @@ public final class AndroidArtworkIcons {
 
         }
 
+        public final static class Menu {
+          /**
+           * 16x16
+           */
+          public static final Icon Cast = load("/studio/icons/layout-editor/menu/cast.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Group = load("/studio/icons/layout-editor/menu/group.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Item = load("/studio/icons/layout-editor/menu/item.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Menu = load("/studio/icons/layout-editor/menu/menu.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Search = load("/studio/icons/layout-editor/menu/search.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Switch = load("/studio/icons/layout-editor/menu/switch.png");
+
+        }
+
+        public final static class Motion {
+          /**
+           * 16x16
+           */
+          public static final Icon Add_keyframe = load("/studio/icons/layout-editor/motion/add-keyframe.png");
+          /**
+           * 24x24
+           */
+          public static final Icon Chart_line = load("/studio/icons/layout-editor/motion/chart-line.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Circle_play = load("/studio/icons/layout-editor/motion/circle-play.png");
+          /**
+           * 16x16
+           */
+          public static final Icon End_graphic = load("/studio/icons/layout-editor/motion/end-graphic.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Go_to_end = load("/studio/icons/layout-editor/motion/go-to-end.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Go_to_start = load("/studio/icons/layout-editor/motion/go-to-start.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Ic_delete_forever = load("/studio/icons/layout-editor/motion/ic_delete_forever.png");
+          /**
+           * 32x32
+           */
+          public static final Icon Ic_delete_forever_2x = load("/studio/icons/layout-editor/motion/ic_delete_forever_2x.png");
+          /**
+           * 48x48
+           */
+          public static final Icon Ic_delete_forever_3x = load("/studio/icons/layout-editor/motion/ic_delete_forever_3x.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Loop = load("/studio/icons/layout-editor/motion/loop.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Max_scale = load("/studio/icons/layout-editor/motion/max-scale.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Min_scale = load("/studio/icons/layout-editor/motion/min-scale.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Motion_view_icon = load("/studio/icons/layout-editor/motion/motion_view_icon.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Pause = load("/studio/icons/layout-editor/motion/pause.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Play = load("/studio/icons/layout-editor/motion/play.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Remove_keyframe = load("/studio/icons/layout-editor/motion/remove-keyframe.png");
+          /**
+           * 24x24
+           */
+          public static final Icon Skip_next = load("/studio/icons/layout-editor/motion/skip-next.png");
+          /**
+           * 24x24
+           */
+          public static final Icon Skip_previous = load("/studio/icons/layout-editor/motion/skip-previous.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Slow_motion = load("/studio/icons/layout-editor/motion/slow-motion.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Start_graphic = load("/studio/icons/layout-editor/motion/start-graphic.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Stop = load("/studio/icons/layout-editor/motion/stop.png");
+
+        }
+
         public final static class Palette {
           /**
            * 16x16
            */
           public static final Icon Ad_view = load("/studio/icons/layout-editor/palette/ad-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Ad_view_large = load("/studio/icons/layout-editor/palette/ad-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Adapter_view_flipper = load("/studio/icons/layout-editor/palette/adapter-view-flipper.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Adapter_view_flipper_large = load("/studio/icons/layout-editor/palette/adapter-view-flipper_large.png");
           /**
            * 16x16
            */
           public static final Icon Analog_clock = load("/studio/icons/layout-editor/palette/analog-clock.png");
           /**
-           * 24x24
-           */
-          public static final Icon Analog_clock_large = load("/studio/icons/layout-editor/palette/analog-clock_large.png");
-          /**
            * 16x16
            */
           public static final Icon App_bar_layout = load("/studio/icons/layout-editor/palette/app-bar-layout.png");
-          /**
-           * 24x24
-           */
-          public static final Icon App_bar_layout_large = load("/studio/icons/layout-editor/palette/app-bar-layout_large.png");
           /**
            * 16x16
            */
           public static final Icon Auto_complete_text_view = load("/studio/icons/layout-editor/palette/auto-complete-text-view.png");
           /**
-           * 24x24
+           * 16x16
            */
-          public static final Icon Auto_complete_text_view_large = load("/studio/icons/layout-editor/palette/auto-complete-text-view_large.png");
+          public static final Icon Bottom_app_bar = load("/studio/icons/layout-editor/palette/bottom-app-bar.png");
           /**
            * 16x16
            */
           public static final Icon Bottom_navigation_view = load("/studio/icons/layout-editor/palette/bottom-navigation-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Bottom_navigation_view_large = load("/studio/icons/layout-editor/palette/bottom-navigation-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Button = load("/studio/icons/layout-editor/palette/button.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Button_large = load("/studio/icons/layout-editor/palette/button_large.png");
           /**
            * 16x16
            */
           public static final Icon Calendar_view = load("/studio/icons/layout-editor/palette/calendar-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Calendar_view_large = load("/studio/icons/layout-editor/palette/calendar-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Card_view = load("/studio/icons/layout-editor/palette/card-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Card_view_large = load("/studio/icons/layout-editor/palette/card-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Check_box = load("/studio/icons/layout-editor/palette/check-box.png");
           /**
-           * 24x24
-           */
-          public static final Icon Check_box_large = load("/studio/icons/layout-editor/palette/check-box_large.png");
-          /**
            * 16x16
            */
           public static final Icon Checked_text_view = load("/studio/icons/layout-editor/palette/checked-text-view.png");
           /**
-           * 24x24
+           * 16x16
            */
-          public static final Icon Checked_text_view_large = load("/studio/icons/layout-editor/palette/checked-text-view_large.png");
+          public static final Icon Chip_group = load("/studio/icons/layout-editor/palette/chip-group.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Chip = load("/studio/icons/layout-editor/palette/chip.png");
           /**
            * 16x16
            */
           public static final Icon Chronometer = load("/studio/icons/layout-editor/palette/chronometer.png");
           /**
-           * 24x24
-           */
-          public static final Icon Chronometer_large = load("/studio/icons/layout-editor/palette/chronometer_large.png");
-          /**
            * 16x16
            */
           public static final Icon Collapsing_toolbar_layout = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Collapsing_toolbar_layout_large = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout_large.png");
           /**
            * 16x16
            */
           public static final Icon Constraint_layout = load("/studio/icons/layout-editor/palette/constraint-layout.png");
           /**
-           * 24x24
-           */
-          public static final Icon Constraint_layout_large = load("/studio/icons/layout-editor/palette/constraint-layout_large.png");
-          /**
            * 16x16
            */
           public static final Icon Coordinator_layout = load("/studio/icons/layout-editor/palette/coordinator-layout.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Coordinator_layout_large = load("/studio/icons/layout-editor/palette/coordinator-layout_large.png");
           /**
            * 16x16
            */
           public static final Icon Custom_view = load("/studio/icons/layout-editor/palette/custom-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Custom_view_large = load("/studio/icons/layout-editor/palette/custom-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Date_picker = load("/studio/icons/layout-editor/palette/date-picker.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Date_picker_large = load("/studio/icons/layout-editor/palette/date-picker_large.png");
           /**
            * 16x16
            */
           public static final Icon Date_textfield = load("/studio/icons/layout-editor/palette/date-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Date_textfield_large = load("/studio/icons/layout-editor/palette/date-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Edit_text = load("/studio/icons/layout-editor/palette/edit-text.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Edit_text_large = load("/studio/icons/layout-editor/palette/edit-text_large.png");
           /**
            * 16x16
            */
           public static final Icon Email_textfield = load("/studio/icons/layout-editor/palette/email-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Email_textfield_large = load("/studio/icons/layout-editor/palette/email-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Expandable_list_view = load("/studio/icons/layout-editor/palette/expandable-list-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Expandable_list_view_large = load("/studio/icons/layout-editor/palette/expandable-list-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Floating_action_button = load("/studio/icons/layout-editor/palette/floating-action-button.png");
           /**
-           * 24x24
-           */
-          public static final Icon Floating_action_button_large = load("/studio/icons/layout-editor/palette/floating-action-button_large.png");
-          /**
            * 16x16
            */
           public static final Icon Fragment = load("/studio/icons/layout-editor/palette/fragment.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Fragment_large = load("/studio/icons/layout-editor/palette/fragment_large.png");
           /**
            * 16x16
            */
           public static final Icon Frame_layout = load("/studio/icons/layout-editor/palette/frame-layout.png");
           /**
-           * 24x24
-           */
-          public static final Icon Frame_layout_large = load("/studio/icons/layout-editor/palette/frame-layout_large.png");
-          /**
            * 16x16
            */
           public static final Icon Grid_layout_compat = load("/studio/icons/layout-editor/palette/grid-layout-compat.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Grid_layout_compat_large = load("/studio/icons/layout-editor/palette/grid-layout-compat_large.png");
           /**
            * 16x16
            */
           public static final Icon Grid_layout = load("/studio/icons/layout-editor/palette/grid-layout.png");
           /**
-           * 24x24
-           */
-          public static final Icon Grid_layout_large = load("/studio/icons/layout-editor/palette/grid-layout_large.png");
-          /**
            * 16x16
            */
           public static final Icon Grid_view = load("/studio/icons/layout-editor/palette/grid-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Grid_view_large = load("/studio/icons/layout-editor/palette/grid-view_large.png");
-          /**
-           * 16x16
-           */
-          public static final Icon Group = load("/studio/icons/layout-editor/palette/group.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Group_large = load("/studio/icons/layout-editor/palette/group_large.png");
-          /**
            * 16x16
            */
           public static final Icon Horizontal_divider = load("/studio/icons/layout-editor/palette/horizontal-divider.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Horizontal_divider_large = load("/studio/icons/layout-editor/palette/horizontal-divider_large.png");
           /**
            * 16x16
            */
@@ -3898,489 +3042,245 @@ public final class AndroidArtworkIcons {
            */
           public static final Icon Horizontal_scroll_view = load("/studio/icons/layout-editor/palette/horizontal-scroll-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Horizontal_scroll_view_large = load("/studio/icons/layout-editor/palette/horizontal-scroll-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Image_button = load("/studio/icons/layout-editor/palette/image-button.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Image_button_large = load("/studio/icons/layout-editor/palette/image-button_large.png");
           /**
            * 16x16
            */
           public static final Icon Image_switcher = load("/studio/icons/layout-editor/palette/image-switcher.png");
           /**
-           * 24x24
-           */
-          public static final Icon Image_switcher_large = load("/studio/icons/layout-editor/palette/image-switcher_large.png");
-          /**
            * 16x16
            */
           public static final Icon Image_view = load("/studio/icons/layout-editor/palette/image-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Image_view_large = load("/studio/icons/layout-editor/palette/image-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Include = load("/studio/icons/layout-editor/palette/include.png");
           /**
-           * 24x24
-           */
-          public static final Icon Include_large = load("/studio/icons/layout-editor/palette/include_large.png");
-          /**
-           * 16x16
-           */
-          public static final Icon Item = load("/studio/icons/layout-editor/palette/item.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Item_large = load("/studio/icons/layout-editor/palette/item_large.png");
-          /**
            * 16x16
            */
           public static final Icon Linear_layout_horz = load("/studio/icons/layout-editor/palette/linear-layout-horz.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Linear_layout_horz_large = load("/studio/icons/layout-editor/palette/linear-layout-horz_large.png");
           /**
            * 16x16
            */
           public static final Icon Linear_layout_vert = load("/studio/icons/layout-editor/palette/linear-layout-vert.png");
           /**
-           * 24x24
-           */
-          public static final Icon Linear_layout_vert_large = load("/studio/icons/layout-editor/palette/linear-layout-vert_large.png");
-          /**
            * 16x16
            */
           public static final Icon List_view = load("/studio/icons/layout-editor/palette/list-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon List_view_large = load("/studio/icons/layout-editor/palette/list-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Map_fragment = load("/studio/icons/layout-editor/palette/map-fragment.png");
           /**
-           * 24x24
-           */
-          public static final Icon Map_fragment_large = load("/studio/icons/layout-editor/palette/map-fragment_large.png");
-          /**
            * 16x16
            */
           public static final Icon Map_view = load("/studio/icons/layout-editor/palette/map-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Map_view_large = load("/studio/icons/layout-editor/palette/map-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Menu = load("/studio/icons/layout-editor/palette/menu.png");
           /**
-           * 24x24
-           */
-          public static final Icon Menu_large = load("/studio/icons/layout-editor/palette/menu_large.png");
-          /**
            * 16x16
            */
           public static final Icon Merge = load("/studio/icons/layout-editor/palette/merge.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Merge_large = load("/studio/icons/layout-editor/palette/merge_large.png");
           /**
            * 16x16
            */
           public static final Icon Multi_auto_complete_text_view = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view.png");
           /**
-           * 24x24
+           * 16x16
            */
-          public static final Icon Multi_auto_complete_text_view_large = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view_large.png");
+          public static final Icon Nav_host_fragment = load("/studio/icons/layout-editor/palette/nav-host-fragment.png");
           /**
            * 16x16
            */
           public static final Icon Navigation_view = load("/studio/icons/layout-editor/palette/navigation-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Navigation_view_large = load("/studio/icons/layout-editor/palette/navigation-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Nested_scroll_view = load("/studio/icons/layout-editor/palette/nested-scroll-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Nested_scroll_view_large = load("/studio/icons/layout-editor/palette/nested-scroll-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Number_decimal_textfield = load("/studio/icons/layout-editor/palette/number-decimal-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Number_decimal_textfield_large = load("/studio/icons/layout-editor/palette/number-decimal-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Number_picker = load("/studio/icons/layout-editor/palette/number-picker.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Number_picker_large = load("/studio/icons/layout-editor/palette/number-picker_large.png");
           /**
            * 16x16
            */
           public static final Icon Number_signed_textfield = load("/studio/icons/layout-editor/palette/number-signed-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Number_signed_textfield_large = load("/studio/icons/layout-editor/palette/number-signed-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Number_textfield = load("/studio/icons/layout-editor/palette/number-textfield.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Number_textfield_large = load("/studio/icons/layout-editor/palette/number-textfield_large.png");
           /**
            * 16x16
            */
           public static final Icon Password_numeric_textfield = load("/studio/icons/layout-editor/palette/password-numeric-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Password_numeric_textfield_large = load("/studio/icons/layout-editor/palette/password-numeric-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Password_textfield = load("/studio/icons/layout-editor/palette/password-textfield.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Password_textfield_large = load("/studio/icons/layout-editor/palette/password-textfield_large.png");
           /**
            * 16x16
            */
           public static final Icon Phone_textfield = load("/studio/icons/layout-editor/palette/phone-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Phone_textfield_large = load("/studio/icons/layout-editor/palette/phone-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Postal_address_textfield = load("/studio/icons/layout-editor/palette/postal-address-textfield.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Postal_address_textfield_large = load("/studio/icons/layout-editor/palette/postal-address-textfield_large.png");
           /**
            * 16x16
            */
           public static final Icon Progress_bar_horizontal = load("/studio/icons/layout-editor/palette/progress-bar-horizontal.png");
           /**
-           * 24x24
-           */
-          public static final Icon Progress_bar_horizontal_large = load("/studio/icons/layout-editor/palette/progress-bar-horizontal_large.png");
-          /**
            * 16x16
            */
           public static final Icon Progress_bar = load("/studio/icons/layout-editor/palette/progress-bar.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Progress_bar_large = load("/studio/icons/layout-editor/palette/progress-bar_large.png");
           /**
            * 16x16
            */
           public static final Icon Quick_contact_badge = load("/studio/icons/layout-editor/palette/quick-contact-badge.png");
           /**
-           * 24x24
-           */
-          public static final Icon Quick_contact_badge_large = load("/studio/icons/layout-editor/palette/quick-contact-badge_large.png");
-          /**
            * 16x16
            */
           public static final Icon Radio_button = load("/studio/icons/layout-editor/palette/radio-button.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Radio_button_large = load("/studio/icons/layout-editor/palette/radio-button_large.png");
           /**
            * 16x16
            */
           public static final Icon Radio_group = load("/studio/icons/layout-editor/palette/radio-group.png");
           /**
-           * 24x24
-           */
-          public static final Icon Radio_group_large = load("/studio/icons/layout-editor/palette/radio-group_large.png");
-          /**
            * 16x16
            */
           public static final Icon Rating_bar = load("/studio/icons/layout-editor/palette/rating-bar.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Rating_bar_large = load("/studio/icons/layout-editor/palette/rating-bar_large.png");
           /**
            * 16x16
            */
           public static final Icon Recycler_view = load("/studio/icons/layout-editor/palette/recycler-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Recycler_view_large = load("/studio/icons/layout-editor/palette/recycler-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Relative_layout = load("/studio/icons/layout-editor/palette/relative-layout.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Relative_layout_large = load("/studio/icons/layout-editor/palette/relative-layout_large.png");
           /**
            * 16x16
            */
           public static final Icon Request_focus = load("/studio/icons/layout-editor/palette/request-focus.png");
           /**
-           * 24x24
-           */
-          public static final Icon Request_focus_large = load("/studio/icons/layout-editor/palette/request-focus_large.png");
-          /**
            * 16x16
            */
           public static final Icon Scroll_view = load("/studio/icons/layout-editor/palette/scroll-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Scroll_view_large = load("/studio/icons/layout-editor/palette/scroll-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Search_view = load("/studio/icons/layout-editor/palette/search-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Search_view_large = load("/studio/icons/layout-editor/palette/search-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Seek_bar_discrete = load("/studio/icons/layout-editor/palette/seek-bar-discrete.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Seek_bar_discrete_large = load("/studio/icons/layout-editor/palette/seek-bar-discrete_large.png");
           /**
            * 16x16
            */
           public static final Icon Seek_bar = load("/studio/icons/layout-editor/palette/seek-bar.png");
           /**
-           * 24x24
-           */
-          public static final Icon Seek_bar_large = load("/studio/icons/layout-editor/palette/seek-bar_large.png");
-          /**
            * 16x16
            */
           public static final Icon Space = load("/studio/icons/layout-editor/palette/space.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Space_large = load("/studio/icons/layout-editor/palette/space_large.png");
           /**
            * 16x16
            */
           public static final Icon Spinner = load("/studio/icons/layout-editor/palette/spinner.png");
           /**
-           * 24x24
-           */
-          public static final Icon Spinner_large = load("/studio/icons/layout-editor/palette/spinner_large.png");
-          /**
            * 16x16
            */
           public static final Icon Stack_view = load("/studio/icons/layout-editor/palette/stack-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Stack_view_large = load("/studio/icons/layout-editor/palette/stack-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Surface_view = load("/studio/icons/layout-editor/palette/surface-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Surface_view_large = load("/studio/icons/layout-editor/palette/surface-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Switch = load("/studio/icons/layout-editor/palette/switch.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Switch_large = load("/studio/icons/layout-editor/palette/switch_large.png");
           /**
            * 16x16
            */
           public static final Icon Tab_host = load("/studio/icons/layout-editor/palette/tab-host.png");
           /**
-           * 24x24
-           */
-          public static final Icon Tab_host_large = load("/studio/icons/layout-editor/palette/tab-host_large.png");
-          /**
            * 16x16
            */
           public static final Icon Tab_item = load("/studio/icons/layout-editor/palette/tab-item.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Tab_item_large = load("/studio/icons/layout-editor/palette/tab-item_large.png");
           /**
            * 16x16
            */
           public static final Icon Tab_layout = load("/studio/icons/layout-editor/palette/tab-layout.png");
           /**
-           * 24x24
-           */
-          public static final Icon Tab_layout_large = load("/studio/icons/layout-editor/palette/tab-layout_large.png");
-          /**
            * 16x16
            */
           public static final Icon Tab_widget = load("/studio/icons/layout-editor/palette/tab-widget.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Tab_widget_large = load("/studio/icons/layout-editor/palette/tab-widget_large.png");
           /**
            * 16x16
            */
           public static final Icon Table_layout = load("/studio/icons/layout-editor/palette/table-layout.png");
           /**
-           * 24x24
-           */
-          public static final Icon Table_layout_large = load("/studio/icons/layout-editor/palette/table-layout_large.png");
-          /**
            * 16x16
            */
           public static final Icon Table_row = load("/studio/icons/layout-editor/palette/table-row.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Table_row_large = load("/studio/icons/layout-editor/palette/table-row_large.png");
           /**
            * 16x16
            */
           public static final Icon Text_clock = load("/studio/icons/layout-editor/palette/text-clock.png");
           /**
-           * 24x24
-           */
-          public static final Icon Text_clock_large = load("/studio/icons/layout-editor/palette/text-clock_large.png");
-          /**
            * 16x16
            */
           public static final Icon Text_input_layout = load("/studio/icons/layout-editor/palette/text-input-layout.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Text_input_layout_large = load("/studio/icons/layout-editor/palette/text-input-layout_large.png");
           /**
            * 16x16
            */
           public static final Icon Text_switcher = load("/studio/icons/layout-editor/palette/text-switcher.png");
           /**
-           * 24x24
-           */
-          public static final Icon Text_switcher_large = load("/studio/icons/layout-editor/palette/text-switcher_large.png");
-          /**
            * 16x16
            */
           public static final Icon Text_view = load("/studio/icons/layout-editor/palette/text-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Text_view_large = load("/studio/icons/layout-editor/palette/text-view_large.png");
           /**
            * 16x16
            */
           public static final Icon Textfield_multiline = load("/studio/icons/layout-editor/palette/textfield-multiline.png");
           /**
-           * 24x24
-           */
-          public static final Icon Textfield_multiline_large = load("/studio/icons/layout-editor/palette/textfield-multiline_large.png");
-          /**
            * 16x16
            */
           public static final Icon Textfield = load("/studio/icons/layout-editor/palette/textfield.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Textfield_large = load("/studio/icons/layout-editor/palette/textfield_large.png");
           /**
            * 16x16
            */
           public static final Icon Texture_view = load("/studio/icons/layout-editor/palette/texture-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Texture_view_large = load("/studio/icons/layout-editor/palette/texture-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Time_picker = load("/studio/icons/layout-editor/palette/time-picker.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Time_picker_large = load("/studio/icons/layout-editor/palette/time-picker_large.png");
           /**
            * 16x16
            */
           public static final Icon Time_textfield = load("/studio/icons/layout-editor/palette/time-textfield.png");
           /**
-           * 24x24
-           */
-          public static final Icon Time_textfield_large = load("/studio/icons/layout-editor/palette/time-textfield_large.png");
-          /**
            * 16x16
            */
           public static final Icon Toggle_button = load("/studio/icons/layout-editor/palette/toggle-button.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Toggle_button_large = load("/studio/icons/layout-editor/palette/toggle-button_large.png");
           /**
            * 16x16
            */
           public static final Icon Toolbar = load("/studio/icons/layout-editor/palette/toolbar.png");
           /**
-           * 24x24
-           */
-          public static final Icon Toolbar_large = load("/studio/icons/layout-editor/palette/toolbar_large.png");
-          /**
            * 16x16
            */
           public static final Icon Unknown_view = load("/studio/icons/layout-editor/palette/unknown-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Unknown_view_large = load("/studio/icons/layout-editor/palette/unknown-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Vertical_divider = load("/studio/icons/layout-editor/palette/vertical-divider.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Vertical_divider_large = load("/studio/icons/layout-editor/palette/vertical-divider_large.png");
           /**
            * 16x16
            */
@@ -4390,65 +3290,33 @@ public final class AndroidArtworkIcons {
            */
           public static final Icon Video_view = load("/studio/icons/layout-editor/palette/video-view.png");
           /**
-           * 24x24
-           */
-          public static final Icon Video_view_large = load("/studio/icons/layout-editor/palette/video-view_large.png");
-          /**
            * 16x16
            */
           public static final Icon View_animator = load("/studio/icons/layout-editor/palette/view-animator.png");
-          /**
-           * 24x24
-           */
-          public static final Icon View_animator_large = load("/studio/icons/layout-editor/palette/view-animator_large.png");
           /**
            * 16x16
            */
           public static final Icon View_flipper = load("/studio/icons/layout-editor/palette/view-flipper.png");
           /**
-           * 24x24
-           */
-          public static final Icon View_flipper_large = load("/studio/icons/layout-editor/palette/view-flipper_large.png");
-          /**
            * 16x16
            */
           public static final Icon View_pager = load("/studio/icons/layout-editor/palette/view-pager.png");
-          /**
-           * 24x24
-           */
-          public static final Icon View_pager_large = load("/studio/icons/layout-editor/palette/view-pager_large.png");
           /**
            * 16x16
            */
           public static final Icon View_stub = load("/studio/icons/layout-editor/palette/view-stub.png");
           /**
-           * 24x24
-           */
-          public static final Icon View_stub_large = load("/studio/icons/layout-editor/palette/view-stub_large.png");
-          /**
            * 16x16
            */
           public static final Icon View_switcher = load("/studio/icons/layout-editor/palette/view-switcher.png");
-          /**
-           * 24x24
-           */
-          public static final Icon View_switcher_large = load("/studio/icons/layout-editor/palette/view-switcher_large.png");
           /**
            * 16x16
            */
           public static final Icon View = load("/studio/icons/layout-editor/palette/view.png");
           /**
-           * 24x24
-           */
-          public static final Icon View_large = load("/studio/icons/layout-editor/palette/view_large.png");
-          /**
            * 16x16
            */
           public static final Icon Web_view = load("/studio/icons/layout-editor/palette/web-view.png");
-          /**
-           * 24x24
-           */
-          public static final Icon Web_view_large = load("/studio/icons/layout-editor/palette/web-view_large.png");
 
         }
 
@@ -4477,6 +3345,10 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Favorites = load("/studio/icons/layout-editor/properties/favorites.png");
+          /**
+           * 14x14
+           */
+          public static final Icon Flag = load("/studio/icons/layout-editor/properties/flag.png");
           /**
            * 16x16
            */
@@ -4525,10 +3397,30 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Toggle_properties = load("/studio/icons/layout-editor/properties/toggle-properties.png");
+          /**
+           * 12x12
+           */
+          public static final Icon Tools_attribute = load("/studio/icons/layout-editor/properties/tools-attribute.png");
 
         }
+        /**
+         * 16x16
+         */
+        public static final Icon Remove_keyframe_2 = load("/studio/icons/layout-editor/remove-keyframe 2.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Remove_keyframe_3 = load("/studio/icons/layout-editor/remove-keyframe 3.png");
+        /**
+         * 16x16
+         */
+        public static final Icon Remove_keyframe = load("/studio/icons/layout-editor/remove-keyframe.png");
 
         public final static class Toolbar {
+          /**
+           * 16x16
+           */
+          public static final Icon Add_component = load("/studio/icons/layout-editor/toolbar/add-component.png");
           /**
            * 16x16
            */
@@ -4629,6 +3521,78 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Clear_weight = load("/studio/icons/layout-editor/toolbar/clear-weight.png");
+
+          public final static class Constraint {
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_parent_bottom = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-bottom.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_parent_bottom_dark_ = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-bottom_dark_.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_parent_end = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-end.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_parent_start = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-start.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_parent_top = load("/studio/icons/layout-editor/toolbar/constraint/constrain-parent-top.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_src_bottom = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-bottom.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_src_bottom_dark_ = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-bottom_dark_.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_src_end = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-end.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_src_start = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-start.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_src_top = load("/studio/icons/layout-editor/toolbar/constraint/constrain-src-top.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_to_baseline = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-baseline.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_to_bottom = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-bottom.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_to_end = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-end.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_to_start = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-start.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_to_start_dark_ = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-start_dark_.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain_to_top = load("/studio/icons/layout-editor/toolbar/constraint/constrain-to-top.png");
+            /**
+             * 16x16
+             */
+            public static final Icon Constrain = load("/studio/icons/layout-editor/toolbar/constraint/constrain.png");
+
+          }
           /**
            * 16x16
            */
@@ -4934,6 +3898,14 @@ public final class AndroidArtworkIcons {
 
       }
 
+      public final static class Misc {
+        /**
+         * 16x16
+         */
+        public static final Icon Gradle_variable = load("/studio/icons/misc/gradle-variable.png");
+
+      }
+
       public final static class NavEditor {
 
         public final static class ExistingDestinations {
@@ -4946,9 +3918,13 @@ public final class AndroidArtworkIcons {
            */
           public static final Icon Destination = load("/studio/icons/nav-editor/existing-destinations/destination.png");
           /**
-           * 73x94
+           * 53x78
            */
           public static final Icon Nested = load("/studio/icons/nav-editor/existing-destinations/nested.png");
+          /**
+           * 73x94
+           */
+          public static final Icon Placeholder = load("/studio/icons/nav-editor/existing-destinations/placeholder.png");
 
         }
 
@@ -4960,17 +3936,29 @@ public final class AndroidArtworkIcons {
           /**
            * 16x16
            */
+          public static final Icon Argument = load("/studio/icons/nav-editor/properties/argument.png");
+          /**
+           * 16x16
+           */
           public static final Icon Global_action = load("/studio/icons/nav-editor/properties/global-action.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Pop_action = load("/studio/icons/nav-editor/properties/pop-action.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Source = load("/studio/icons/nav-editor/properties/source.png");
 
         }
 
         public final static class Surface {
           /**
-           * 14x14
+           * 56x56
            */
           public static final Icon Deeplink = load("/studio/icons/nav-editor/surface/deeplink.png");
           /**
-           * 14x14
+           * 56x56
            */
           public static final Icon Start_destination = load("/studio/icons/nav-editor/surface/start-destination.png");
 
@@ -4984,7 +3972,15 @@ public final class AndroidArtworkIcons {
           /**
            * 16x16
            */
-          public static final Icon Add_existing = load("/studio/icons/nav-editor/toolbar/add-existing.png");
+          public static final Icon Assign_start = load("/studio/icons/nav-editor/toolbar/assign-start.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Auto_arrange = load("/studio/icons/nav-editor/toolbar/auto-arrange.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Deeplink = load("/studio/icons/nav-editor/toolbar/deeplink.png");
 
         }
 
@@ -5005,6 +4001,10 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Nested_graph = load("/studio/icons/nav-editor/tree/nested-graph.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Placeholder = load("/studio/icons/nav-editor/tree/placeholder.png");
 
         }
 
@@ -5100,6 +4100,18 @@ public final class AndroidArtworkIcons {
           /**
            * 22x22
            */
+          public static final Icon Allocation_tracking_full = load("/studio/icons/profiler/events/allocation-tracking-full.png");
+          /**
+           * 22x22
+           */
+          public static final Icon Allocation_tracking_none = load("/studio/icons/profiler/events/allocation-tracking-none.png");
+          /**
+           * 22x22
+           */
+          public static final Icon Allocation_tracking_sampled = load("/studio/icons/profiler/events/allocation-tracking-sampled.png");
+          /**
+           * 22x22
+           */
           public static final Icon Back_button = load("/studio/icons/profiler/events/back-button.png");
           /**
            * 22x22
@@ -5125,6 +4137,14 @@ public final class AndroidArtworkIcons {
            * 22x22
            */
           public static final Icon Volume_up = load("/studio/icons/profiler/events/volume-up.png");
+
+        }
+
+        public final static class Files {
+          /**
+           * 16x16
+           */
+          public static final Icon Profiler_capture = load("/studio/icons/profiler/files/profiler-capture.png");
 
         }
 
@@ -5166,17 +4186,25 @@ public final class AndroidArtworkIcons {
 
         public final static class Sessions {
           /**
-           * 24x24
+           * 16x16
+           */
+          public static final Icon Allocations = load("/studio/icons/profiler/sessions/allocations.png");
+          /**
+           * 16x16
            */
           public static final Icon Bookmark = load("/studio/icons/profiler/sessions/bookmark.png");
           /**
-           * 24x24
+           * 16x16
            */
           public static final Icon Cpu = load("/studio/icons/profiler/sessions/cpu.png");
           /**
-           * 24x24
+           * 16x16
            */
           public static final Icon Heap = load("/studio/icons/profiler/sessions/heap.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Save = load("/studio/icons/profiler/sessions/save.png");
 
         }
 
@@ -5196,7 +4224,19 @@ public final class AndroidArtworkIcons {
           /**
            * 16x16
            */
+          public static final Icon Capture_clock = load("/studio/icons/profiler/toolbar/capture-clock.png");
+          /**
+           * 16x16
+           */
           public static final Icon Clock = load("/studio/icons/profiler/toolbar/clock.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Collapse_session = load("/studio/icons/profiler/toolbar/collapse-session.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Expand_session = load("/studio/icons/profiler/toolbar/expand-session.png");
           /**
            * 16x16
            */
@@ -5221,6 +4261,10 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Stop_recording = load("/studio/icons/profiler/toolbar/stop-recording.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Stop_session = load("/studio/icons/profiler/toolbar/stop-session.png");
 
         }
 
@@ -5305,6 +4349,14 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Render_script = load("/studio/icons/shell/filetree/render-script.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Sceneform_asset_description_file = load("/studio/icons/shell/filetree/sceneform-asset-description-file.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Sceneform_binary = load("/studio/icons/shell/filetree/sceneform-binary.png");
 
         }
 
@@ -5329,6 +4381,18 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon Theme_editor = load("/studio/icons/shell/menu/theme-editor.png");
+
+        }
+
+        public final static class Telemetry {
+          /**
+           * 16x16
+           */
+          public static final Icon Sentiment_negative = load("/studio/icons/shell/telemetry/sentiment-negative.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Sentiment_positive = load("/studio/icons/shell/telemetry/sentiment-positive.png");
 
         }
 
@@ -5394,6 +4458,10 @@ public final class AndroidArtworkIcons {
            */
           public static final Icon Inspection = load("/studio/icons/shell/tool-windows/inspection.png");
           /**
+           * 13x13
+           */
+          public static final Icon Lint = load("/studio/icons/shell/tool-windows/lint.png");
+          /**
            * 16x16
            */
           public static final Icon Lock = load("/studio/icons/shell/tool-windows/lock.png");
@@ -5405,6 +4473,10 @@ public final class AndroidArtworkIcons {
            * 13x13
            */
           public static final Icon Palette = load("/studio/icons/shell/tool-windows/palette.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Pop_out_window = load("/studio/icons/shell/tool-windows/pop-out-window.png");
           /**
            * 13x13
            */
@@ -5442,6 +4514,10 @@ public final class AndroidArtworkIcons {
            */
           public static final Icon Version_control = load("/studio/icons/shell/tool-windows/version-control.png");
           /**
+           * 13x13
+           */
+          public static final Icon Visual_assets = load("/studio/icons/shell/tool-windows/visual-assets.png");
+          /**
            * 16x16
            */
           public static final Icon Window_toggle = load("/studio/icons/shell/tool-windows/window-toggle.png");
@@ -5468,7 +4544,15 @@ public final class AndroidArtworkIcons {
           /**
            * 16x16
            */
+          public static final Icon Device_manager = load("/studio/icons/shell/toolbar/device-manager.png");
+          /**
+           * 16x16
+           */
           public static final Icon Gradle_sync = load("/studio/icons/shell/toolbar/gradle-sync.png");
+          /**
+           * 16x16
+           */
+          public static final Icon Instant_run_code_swap = load("/studio/icons/shell/toolbar/instant-run-code-swap.png");
           /**
            * 16x16
            */
@@ -5509,10 +4593,6 @@ public final class AndroidArtworkIcons {
            * 16x16
            */
           public static final Icon User_profile = load("/studio/icons/shell/toolbar/user-profile.png");
-          /**
-           * 16x16
-           */
-          public static final Icon Virtual_devices = load("/studio/icons/shell/toolbar/virtual-devices.png");
 
         }
 
@@ -5531,6 +4611,58 @@ public final class AndroidArtworkIcons {
          * 171x97
          */
         public static final Icon Disconnect = load("/studio/illustrations/common/disconnect.png");
+
+      }
+
+      public final static class FormFactors {
+        /**
+         * 64x64
+         */
+        public static final Icon Car = load("/studio/illustrations/form-factors/car.png");
+        /**
+         * 100x100
+         */
+        public static final Icon Car_large = load("/studio/illustrations/form-factors/car_large.png");
+        /**
+         * 64x64
+         */
+        public static final Icon Glass = load("/studio/illustrations/form-factors/glass.png");
+        /**
+         * 100x100
+         */
+        public static final Icon Glass_large = load("/studio/illustrations/form-factors/glass_large.png");
+        /**
+         * 64x64
+         */
+        public static final Icon Mobile = load("/studio/illustrations/form-factors/mobile.png");
+        /**
+         * 100x100
+         */
+        public static final Icon Mobile_large = load("/studio/illustrations/form-factors/mobile_large.png");
+        /**
+         * 64x64
+         */
+        public static final Icon Things = load("/studio/illustrations/form-factors/things.png");
+        /**
+         * 100x100
+         */
+        public static final Icon Things_large = load("/studio/illustrations/form-factors/things_large.png");
+        /**
+         * 64x64
+         */
+        public static final Icon TV = load("/studio/illustrations/form-factors/tv.png");
+        /**
+         * 100x100
+         */
+        public static final Icon Tv_large = load("/studio/illustrations/form-factors/tv_large.png");
+        /**
+         * 64x64
+         */
+        public static final Icon Wear = load("/studio/illustrations/form-factors/wear.png");
+        /**
+         * 100x100
+         */
+        public static final Icon Wear_large = load("/studio/illustrations/form-factors/wear_large.png");
 
       }
 
