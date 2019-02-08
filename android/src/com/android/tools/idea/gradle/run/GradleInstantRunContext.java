@@ -32,7 +32,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
@@ -107,7 +107,7 @@ public class GradleInstantRunContext implements InstantRunContext {
 
   @VisibleForTesting
   static HashCode getManifestResourcesHash(@NotNull AndroidFacet facet) {
-    Document manifest = MergedManifest.get(facet).getDocument();
+    Document manifest = MergedManifestManager.getSnapshot(facet).getDocument();
     if (manifest == null || manifest.getDocumentElement() == null) {
       return HashCode.fromInt(0);
     }
@@ -187,7 +187,7 @@ public class GradleInstantRunContext implements InstantRunContext {
 
   @Override
   public boolean usesMultipleProcesses() {
-    Document manifest = MergedManifest.get(myFacet).getDocument();
+    Document manifest = MergedManifestManager.getSnapshot(myFacet).getDocument();
     if (manifest == null) {
       return false;
     }

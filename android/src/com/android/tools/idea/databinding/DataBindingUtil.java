@@ -22,7 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
@@ -269,7 +269,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static String getGeneratedPackageName(@NotNull AndroidFacet facet) {
-    return MergedManifest.get(facet).getPackage();
+    return MergedManifestManager.getSnapshot(facet).getPackage();
   }
 
   /**

@@ -19,7 +19,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import org.jetbrains.android.facet.AndroidFacet
@@ -67,7 +67,7 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
 
 private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
-  val manifest = MergedManifest.get(androidFacet)
+  val manifest = MergedManifestManager.getSnapshot(androidFacet)
   val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
   val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
   return configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())

@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -106,7 +106,7 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, false); // Android Modules are called Gradle Projects
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.getConfiguration().isLibraryProject());
 
-    String appTheme = MergedManifest.get(facet).getManifestTheme();
+    String appTheme = MergedManifestManager.getSnapshot(facet).getManifestTheme();
     myTemplateValues.put(ATTR_HAS_APPLICATION_THEME, appTheme != null);
 
     Module module = facet.getModule();
