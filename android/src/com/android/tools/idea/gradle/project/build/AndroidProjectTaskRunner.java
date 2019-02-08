@@ -117,6 +117,12 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
             super.onFailure(id, e);
             aggregatedCallback.finished(new ProjectTaskResult(false, 1, 0));
           }
+
+          @Override
+          public void onCancel(@NotNull ExternalSystemTaskId id) {
+            super.onCancel(id);
+            aggregatedCallback.finished(new ProjectTaskResult(true, 0, 0));
+          }
         };
 
       request.setTaskListener(listenerDelegate);
