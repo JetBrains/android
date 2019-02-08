@@ -49,7 +49,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, mapOf(), null)
     deployTask.perform(device, deployer, "", listOf())
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
+    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -60,7 +60,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, mapOf(), "-v")
     deployTask.perform(device, deployer, "", listOf())
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
+    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -71,7 +71,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, mapOf(), null)
     deployTask.perform(device, deployer, "", listOf())
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
+    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -82,7 +82,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, mapOf(), "-v")
     deployTask.perform(device, deployer, "", listOf())
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
+    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -93,7 +93,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, mapOf(), null)
     deployTask.perform(device, deployer, "", listOf())
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
+    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -104,6 +104,6 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, mapOf(), "-v")
     deployTask.perform(device, deployer, "", listOf())
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
+    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }
 }

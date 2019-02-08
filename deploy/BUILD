@@ -40,5 +40,6 @@ iml_module(
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )

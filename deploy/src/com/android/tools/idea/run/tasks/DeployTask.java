@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -76,7 +77,11 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     LOG.info("Installing application: " + applicationId);
-    deployer.install(applicationId, getPathsToInstall(files), options.build());
+    Deployer.InstallMode installMode = Deployer.InstallMode.FULL;
+    if (StudioFlags.DELTA_INSTALL.get()) {
+        installMode = Deployer.InstallMode.DELTA;
+    }
+    deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
   }
 
   @NotNull
