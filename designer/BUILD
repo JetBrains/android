@@ -90,6 +90,7 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_shard_count = 8,
     test_srcs = ["testSrc"],
