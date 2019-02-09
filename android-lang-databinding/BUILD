@@ -24,7 +24,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/data-binding:studio.compiler[module]",
@@ -77,7 +77,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
