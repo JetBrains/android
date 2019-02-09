@@ -30,7 +30,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea:intellij.java.analysis.impl[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
