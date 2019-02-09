@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"<fold text='...'>
+xmlns:app="http://schemas.android.com/apk/res-auto">
+<data<fold text='...'>>
+  <import type="test.langdb.calc.Calculator.Op" />
+  <variable<fold text='...'>
+    name="calc"
+    type="test.langdb.calc.Calculator<fold text='<'>&lt;</fold>String>" /</fold>>
+</data</fold>>
+
+<androidx.constraintlayout.widget.ConstraintLayout<fold text='...'>
+android:layout_width="match_parent"
+android:layout_height="match_parent">
+<TextView<fold text='...'>
+  android:id="@+id/tlm_no"
+  android:text="@{calc.a <fold text='<'>&lt;</fold> (calc.b <fold text='<'>&lt;</fold><fold text='<'>&lt;</fold> 2) ? calc.textA : calc.textB}"/</fold>>
+</androidx.constraintlayout.widget.ConstraintLayout</fold>>
+    </layout</fold>>
+
