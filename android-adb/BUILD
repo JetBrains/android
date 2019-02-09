@@ -13,7 +13,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Guava",
     ],
 )

@@ -15,7 +15,7 @@ iml_module(
         "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/idea/platform/util-rt:intellij.platform.util.rt[module]",
         "//tools/idea/.idea/libraries:aapt-proto",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:protobuf",
     ],
 )

@@ -37,7 +37,7 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
         "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
@@ -59,7 +59,7 @@ kotlin_test(
         "//tools/adt/idea/perfd-host:intellij.android.perfdHost",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:tools.testutils",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
     ],
 )
