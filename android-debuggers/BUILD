@@ -33,7 +33,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",

@@ -96,6 +96,6 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/idea/.idea/libraries:ASM[test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime[test]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
     ],
 )
