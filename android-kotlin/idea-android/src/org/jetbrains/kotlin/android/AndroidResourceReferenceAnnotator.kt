@@ -69,7 +69,7 @@ class AndroidResourceReferenceAnnotator : Annotator {
                 AndroidAnnotatorUtil.resolveDrawableFile(resourceValue, resourceResolver, androidFacet)
             if (iconFile != null) {
                 val annotation = holder.createInfoAnnotation(element, null)
-                annotation.gutterIconRenderer = GutterIconRenderer(resourceResolver, element, iconFile)
+                annotation.gutterIconRenderer = GutterIconRenderer(resourceResolver, androidFacet, iconFile, configuration)
             }
         }
     }
