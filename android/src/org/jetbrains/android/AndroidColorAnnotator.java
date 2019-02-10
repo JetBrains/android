@@ -15,6 +15,14 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX;
+import static com.android.SdkConstants.ANDROID_DRAWABLE_PREFIX;
+import static com.android.SdkConstants.COLOR_RESOURCE_PREFIX;
+import static com.android.SdkConstants.DRAWABLE_PREFIX;
+import static com.android.SdkConstants.MIPMAP_PREFIX;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
@@ -40,16 +48,12 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.awt.Color;
 import org.jetbrains.android.AndroidAnnotatorUtil.ColorRenderer;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
 
 /**
  * Annotator which puts colors in the editor gutter for both color files, as well
@@ -80,7 +84,7 @@ public class AndroidColorAnnotator implements Annotator {
     } else if (element instanceof XmlAttributeValue) {
       XmlAttributeValue v = (XmlAttributeValue)element;
       String value = v.getValue();
-      if (value == null || value.isEmpty()) {
+      if (value.isEmpty()) {
         return;
       }
       annotateXml(element, holder, value);
@@ -153,21 +157,18 @@ public class AndroidColorAnnotator implements Annotator {
 
     ResourceValue value = AndroidAnnotatorUtil.findResourceValue(type, name, isFramework, module, configuration);
     if (value != null) {
-      // TODO: Use a *shared* fallback resolver for this?
-      ResourceResolver resourceResolver = configuration.getResourceResolver();
-      if (resourceResolver != null) {
-        annotateResourceValue(type, holder, element, value, resourceResolver, facet);
-      }
+      annotateResourceValue(type, holder, element, value, facet, configuration);
     }
   }
 
-  /** Annotates the given element with the resolved value of the given {@link ResourceValue} */
+  /** Annotates the given element with the resolved value of the given {@link ResourceValue}. */
   private static void annotateResourceValue(@NotNull ResourceType type,
                                             @NotNull AnnotationHolder holder,
                                             @NotNull PsiElement element,
                                             @NotNull ResourceValue value,
-                                            @NotNull ResourceResolver resourceResolver,
-                                            @NotNull AndroidFacet facet) {
+                                            @NotNull AndroidFacet facet,
+                                            @NotNull Configuration configuration) {
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
     Project project = element.getProject();
     if (type == ResourceType.COLOR) {
       Color color = ResourceHelper.resolveColor(resourceResolver, value, project);
@@ -178,11 +179,7 @@ public class AndroidColorAnnotator implements Annotator {
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
 
-      VirtualFile file = ResourceHelper.resolveDrawable(resourceResolver, value, project);
-      if (file != null && file.getPath().endsWith(DOT_XML)) {
-        file = AndroidAnnotatorUtil.pickBitmapFromXml(file, resourceResolver, project, facet, value);
-      }
-      VirtualFile iconFile = AndroidAnnotatorUtil.pickBestBitmap(file);
+      VirtualFile iconFile = AndroidAnnotatorUtil.resolveDrawableFile(value, resourceResolver, facet);
       if (iconFile != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new GutterIconRenderer(resourceResolver, element, iconFile));
