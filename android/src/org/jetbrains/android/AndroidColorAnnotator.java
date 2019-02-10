@@ -63,7 +63,6 @@ import org.jetbrains.annotations.NotNull;
  * TODO: Use {@link ResourceItemResolver} when possible!
  */
 public class AndroidColorAnnotator implements Annotator {
-
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element instanceof XmlTag) {
@@ -103,7 +102,7 @@ public class AndroidColorAnnotator implements Annotator {
     }
   }
 
-  private static void annotateXml(PsiElement element, AnnotationHolder holder, String value) {
+  private static void annotateXml(@NotNull PsiElement element, @NotNull AnnotationHolder holder, @NotNull String value) {
     if (value.startsWith("#")) {
       PsiFile file = element.getContainingFile();
       if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
@@ -182,7 +181,7 @@ public class AndroidColorAnnotator implements Annotator {
       VirtualFile iconFile = AndroidAnnotatorUtil.resolveDrawableFile(value, resourceResolver, facet);
       if (iconFile != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new GutterIconRenderer(resourceResolver, element, iconFile));
+        annotation.setGutterIconRenderer(new GutterIconRenderer(resourceResolver, facet, iconFile, configuration));
       }
     }
   }
