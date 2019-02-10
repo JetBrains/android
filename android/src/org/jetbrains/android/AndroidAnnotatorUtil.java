@@ -18,9 +18,9 @@ package org.jetbrains.android;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_DRAWABLE;
 import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -31,10 +31,12 @@ import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.LightCalloutPopup;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -44,6 +46,7 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
 import com.android.utils.HashCodes;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -88,19 +91,29 @@ public class AndroidAnnotatorUtil {
   /**
    * Returns a bitmap to be used as an icon to annotate an Android resource reference in an XML file.
    *
-   * @param file the XML file being annotated
-   * @param resourceResolver the resource resolver to use
-   * @param project the project
-   * @param facet the android facet
    * @param resourceValue the resource value defining the resource being referenced
+   * @param resourceResolver the resource resolver to use
+   * @param facet the android facet
    * @return the bitmap for the annotation icon, or null to have no annotation icon
    */
   @Nullable
-  public static VirtualFile pickBitmapFromXml(@NotNull VirtualFile file,
-                                              @NotNull ResourceResolver resourceResolver,
-                                              @NotNull Project project,
-                                              @NotNull AndroidFacet facet,
-                                              @NotNull ResourceValue resourceValue) {
+  public static VirtualFile resolveDrawableFile(@NotNull ResourceValue resourceValue,
+                                                @NotNull ResourceResolver resourceResolver,
+                                                @NotNull AndroidFacet facet) {
+    Project project = facet.getModule().getProject();
+    VirtualFile file = ResourceHelper.resolveDrawable(resourceResolver, resourceValue, project);
+    if (file != null && file.getPath().endsWith(DOT_XML)) {
+      file = pickBitmapFromXml(file, resourceResolver, project, facet, resourceValue);
+    }
+    return pickBestBitmap(file);
+  }
+
+  @Nullable
+  private static VirtualFile pickBitmapFromXml(@NotNull VirtualFile file,
+                                               @NotNull ResourceResolver resourceResolver,
+                                               @NotNull Project project,
+                                               @NotNull AndroidFacet facet,
+                                               @NotNull ResourceValue resourceValue) {
     try {
       XmlPullParser parser = FileResourceReader.createXmlPullParser(file);
       if (parser == null) {
@@ -110,7 +123,7 @@ public class AndroidAnnotatorUtil {
         return null;
       }
 
-      String source = null;
+      String source;
       String tagName = parser.getName();
 
       switch (tagName) {
