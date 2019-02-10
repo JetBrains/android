@@ -42,11 +42,11 @@ public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsagePr
       return true;
     }
 
-    // The android gradle plugin reads sdk.dir, ndk.dir and android.dir from local.properties
+    // The android gradle plugin reads sdk.dir, ndk.dir and some others from local.properties
     if (Comparing.equal(file.getName(), FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
       String name = property.getName();
       return SDK_DIR_PROPERTY.equals(name) || "ndk.dir".equals(name) || "android.dir".equals(name) || "cmake.dir".equals(name)
-             || "cxx.cache.dir".equals(name);
+             || "cxx.cache.dir".equals(name) || "ndk.symlinkdir".equals(name);
     }
 
     return false;
