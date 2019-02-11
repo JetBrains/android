@@ -55,8 +55,7 @@ public class SmaliFileNotificationProviderTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    Project project = getProject();
-    myNotificationProvider = new SmaliFileNotificationProvider(project, DexSourceFiles.getInstance(project));
+    myNotificationProvider = new SmaliFileNotificationProvider();
   }
 
   @Override
@@ -75,13 +74,13 @@ public class SmaliFileNotificationProviderTest extends IdeaTestCase {
     VirtualFile rSmaliFile = findFileByIoFile(rSmaliFilePath, true);
     assertNotNull(rSmaliFile);
 
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(rSmaliFile, myFileEditor);
+    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(rSmaliFile, myFileEditor, myProject);
     assertNotNull(notificationPanel);
   }
 
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(getProject().getBaseDir(), myFileEditor);
+    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(getProject().getBaseDir(), myFileEditor, myProject);
     assertNull(notificationPanel);
   }
 

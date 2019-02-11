@@ -170,8 +170,7 @@ public class GradleSyncTest {
 
     Project project = guiTest.ideFrame().getProject();
     AndroidTreeStructureProvider treeStructureProvider = null;
-    TreeStructureProvider[] treeStructureProviders = TreeStructureProvider.EP_NAME.getExtensions(project);
-    for (TreeStructureProvider current : treeStructureProviders) {
+    for (TreeStructureProvider current : TreeStructureProvider.EP.getExtensions(project)) {
       if (current instanceof AndroidTreeStructureProvider) {
         treeStructureProvider = (AndroidTreeStructureProvider)current;
       }

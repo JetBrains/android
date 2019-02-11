@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
+import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FileMessageEvent;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.output.BuildOutputInstantReader;
@@ -39,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class GradleBuildOutputParserTest {
   @Mock private BuildOutputInstantReader myReader;
-  @Mock private Consumer<MessageEvent> myConsumer;
+  @Mock private Consumer<BuildEvent> myConsumer;
   @Nullable private GradleBuildOutputParser myParser;
 
   @Before

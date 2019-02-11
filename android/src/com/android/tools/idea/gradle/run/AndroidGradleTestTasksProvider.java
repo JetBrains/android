@@ -11,10 +11,6 @@ import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestTasksProvide
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Vladislav.Soroka
- * @since 1/28/2016
- */
 public class AndroidGradleTestTasksProvider implements GradleTestTasksProvider {
   @NotNull
   @Override

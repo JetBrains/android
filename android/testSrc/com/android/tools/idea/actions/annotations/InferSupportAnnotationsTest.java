@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.List;
 public class InferSupportAnnotationsTest extends CodeInsightTestCase {
   private static final String INFER_PATH = "/infer/";
 
+  @NotNull
   @Override
   protected String getTestDataPath() {
     return AndroidTestBase.getTestDataPath();

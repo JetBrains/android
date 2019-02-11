@@ -47,6 +47,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
     return IdeInfo.getInstance().isAndroidStudio() || AndroidModuleModel.get(module) != null;
   }
 
+  @NotNull
   @Override
   public GradleOrderEnumeratorHandler createHandler(@NotNull Module module) {
     return new GradleOrderEnumeratorHandler(module) {

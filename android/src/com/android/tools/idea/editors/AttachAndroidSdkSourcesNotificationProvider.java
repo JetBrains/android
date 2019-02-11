@@ -20,13 +20,15 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
-import com.intellij.ProjectTopics;
 import com.intellij.codeEditor.JavaEditorFileSwapper;
 import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.JdkOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
@@ -46,18 +48,6 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("add sdk sources to class");
 
-  private final Project myProject;
-
-  public AttachAndroidSdkSourcesNotificationProvider(@NotNull Project project, @NotNull EditorNotifications notifications) {
-    myProject = project;
-    myProject.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
-      @Override
-      public void rootsChanged(@NotNull ModuleRootEvent event) {
-        notifications.updateAllNotifications();
-      }
-    });
-  }
-
   @Override
   @NotNull
   public Key<EditorNotificationPanel> getKey() {
@@ -66,14 +56,14 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     if (file.getFileType() != JavaClassFileType.INSTANCE) {
       return null;
     }
 
     // Locate the java source of the class file, if not found, then it might come from a SDK.
-    if (JavaEditorFileSwapper.findSourceFile(myProject, file) == null) {
-      JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file);
+    if (JavaEditorFileSwapper.findSourceFile(project, file) == null) {
+      JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file, project);
 
       if (jdkOrderEntry == null) {
         return null;
@@ -99,7 +89,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
         List<String> requested = Lists.newArrayList();
         requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
 
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
         if (dialog != null && dialog.showAndGet()) {
           updateSdkSourceRoot(sdk);
         }
@@ -111,8 +101,8 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
   }
 
   @Nullable
-  private JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file) {
-    ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(myProject);
+  private static JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file, @NotNull Project project) {
+    ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(project);
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {
         JdkOrderEntry jdkOrderEntry = (JdkOrderEntry) entry;

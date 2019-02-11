@@ -27,16 +27,12 @@ public final class AndroidStudioPreferences {
   public static void cleanUpPreferences(@NotNull ExtensionPoint<ConfigurableEP<Configurable>> preferences,
                                         @NotNull List<String> bundlesToRemove) {
     List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
-
-    ConfigurableEP<Configurable>[] extensions = preferences.getExtensions();
-    for (ConfigurableEP<Configurable> extension : extensions) {
+    for (ConfigurableEP<Configurable> extension : preferences.getExtensionList()) {
       if (bundlesToRemove.contains(extension.instanceClass)) {
         nonStudioExtensions.add(extension);
       }
     }
 
-    for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
-      preferences.unregisterExtension(toRemove);
-    }
+    preferences.unregisterExtensions(ep -> !nonStudioExtensions.contains(ep));
   }
 }

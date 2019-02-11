@@ -62,6 +62,7 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="javax.activation" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="jaxb-runtime" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="com.android.tools.lint:lint-api" level="project" />
