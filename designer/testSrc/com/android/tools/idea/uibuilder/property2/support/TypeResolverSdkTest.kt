@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT_MODE
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CLASS_PREFERENCE
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.SdkConstants.FLOATING_ACTION_BUTTON
+import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.MATERIAL1_PKG
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -48,6 +51,7 @@ private const val ANDROID_PREFERENCES_HEADER = "Android Preferences"
 private const val APPCOMPAT_VIEWS_HEADER = "AppCompat Views"
 private const val CONSTRAINT_LAYOUT_HEADER = "Constraint Layout"
 private const val DESIGN_HEADER = "Material Design"
+private const val RECYCLER_VIEW_HEADER = "RecyclerView v7"
 private const val CONSTRAINT_LAYOUT_ID = "constraint"
 private const val DESIGN_ID = "design"
 private const val PREFERENCE_PACKAGE = "android.preference"
@@ -55,6 +59,7 @@ private const val APPCOMPAT_VIEW_PACKAGE = "android.support.v7.widget"
 private const val CONSTRAINT_LAYOUT_PACKAGE = "android.support.constraint"
 private const val TOTAL_ERROR_MESSAGE = "attributes with mismatched types"
 private const val LAYOUT_FILE_SUFFIX = "_layout"
+private const val RECYCLER_VIEW_V7_ID = "recyclerview-v7"
 
 @RunsInEdt
 class TypeResolverSdkTest {
@@ -132,21 +137,39 @@ class TypeResolverSdkTest {
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
+  @Test
+  fun testRecyclerViewAttributeTypes() {
+    Dependencies.add(projectRule.fixture, RECYCLER_VIEW_V7_ID)
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage("android.support.v7.widget")!!
+    val report = Report(RECYCLER_VIEW_HEADER)
+    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach {
+      checkViewAttributes(it.qualifiedName!!, report)
+    }
+    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach {
+      checkViewLayoutAttributes(it.qualifiedName!!, report)
+    }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
   private fun checkViewAttributes(tagName: String, report: Report) {
-    val util = SupportTestUtil(projectRule, tagName)
-    val tag = util.components.first().tag
+    val util = SupportTestUtil(projectRule, tagName, parentTag = FRAME_LAYOUT, fileName = tagName)
+    val tag = util.components.first().backend.tag!!
     checkAttributes(tag, report)
   }
 
   private fun checkViewLayoutAttributes(tagName: String, report: Report) {
     val util = SupportTestUtil(projectRule, BUTTON, parentTag = tagName, fileName = "${tagName}${LAYOUT_FILE_SUFFIX}")
-    val tag = util.components.first().parent!!.tag
+    val tag = util.components.first().parent!!.backend.tag!!
     checkAttributes(tag, report)
   }
 
   private fun checkAttributes(tag: XmlTag, report: Report) {
     val descriptorProvider = AndroidDomElementDescriptorProvider()
-    val descriptor = descriptorProvider.getDescriptor(tag)!!
+    val descriptor = descriptorProvider.getDescriptor(tag) ?: return
     val attrDescriptors = descriptor.getAttributesDescriptors(tag)
     val resourceManagers = ModuleResourceManagers.getInstance(projectRule.module.androidFacet!!)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager!!
@@ -155,16 +178,16 @@ class TypeResolverSdkTest {
     val systemAttrDefs = frameworkResourceManager.attributeDefinitions!!
     attrDescriptors.forEach {
       val name = it.name
-      val namespaceUri = (it as NamespaceAwareXmlAttributeDescriptor).getNamespace(tag) ?: SdkConstants.ANDROID_URI
+      val namespaceUri = (it as NamespaceAwareXmlAttributeDescriptor).getNamespace(tag) ?: ANDROID_URI
       val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
-      if (namespace != ResourceNamespace.TOOLS && namespace != null) {
-        val attrDefs = if (SdkConstants.ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
+      if (namespace != null) {
+        val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
         val attrDefinition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name))
         val type = TypeResolver.resolveType(it.name, attrDefinition)
         val lookupType = AndroidAttributeFact.lookup(it.name)
 
         // Remove this when we have a library in prebuilts with this bug fixed: b/119883920
-        if (tag.name == SdkConstants.FLOATING_ACTION_BUTTON.oldName() && it.name == SdkConstants.ATTR_BACKGROUND_TINT_MODE) {
+        if (tag.name == FLOATING_ACTION_BUTTON.oldName() && it.name == ATTR_BACKGROUND_TINT_MODE) {
           // ignore for now...
         }
         else if (type != lookupType) {
