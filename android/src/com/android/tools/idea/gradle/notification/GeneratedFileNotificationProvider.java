@@ -36,20 +36,8 @@ import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIF
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
-public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public final class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
-
-  @NotNull private final Project myProject;
-  @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
-  @NotNull private final GradleProjectInfo myProjectInfo;
-
-  public GeneratedFileNotificationProvider(@NotNull Project project,
-                                           @NotNull GeneratedSourceFileChangeTracker changeTracker,
-                                           @NotNull GradleProjectInfo projectInfo) {
-    myProject = project;
-    myGeneratedSourceFileChangeTracker = changeTracker;
-    myProjectInfo = projectInfo;
-  }
 
   @NotNull
   @Override
@@ -59,21 +47,30 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    AndroidModuleModel androidModel = myProjectInfo.findAndroidModelInModule(file, false /* include excluded files */);
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
+    return createNotificationPanel(file, project, GradleProjectInfo.getInstance(project));
+  }
+
+  @Nullable
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull Project project,
+                                                         @NotNull GradleProjectInfo projectInfo) {
+    AndroidModuleModel androidModel = projectInfo.findAndroidModelInModule(file, false /* include excluded files */);
     if (androidModel == null) {
       return null;
     }
     if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
       return null;
     }
+
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     VirtualFile buildFolder = findFileByIoFile(buildFolderPath, false /* do not refresh */);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
     }
+
     if (isAncestor(buildFolder, file, false /* not strict */)) {
-      if (myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
+      if (GeneratedSourceFileChangeTracker.getInstance(project).isEditedGeneratedFile(file)) {
         // A warning is already being displayed by GeneratedFileEditingNotificationProvider
         return null;
       }

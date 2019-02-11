@@ -16,13 +16,9 @@
 <idea-plugin version="2">
   <id>com.android.tools.idea.smali</id>
   <name>Smali Support</name>
-  <version>1.0</version>
   <vendor url="http://www.google.com">Google, Inc.</vendor>
 
   <description><![CDATA[Adds support for <em>smali</em> files produced by Android disassembler]]></description>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="145.0"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->

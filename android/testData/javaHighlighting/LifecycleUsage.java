@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-public class <warning descr="Class 'LifecycleUsage' is never used">LifecycleUsage</warning> {
+public class LifecycleUsage {
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     void addLocationListener() {
     }
