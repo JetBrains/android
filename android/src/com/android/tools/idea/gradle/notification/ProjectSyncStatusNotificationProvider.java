@@ -99,9 +99,6 @@ public final class ProjectSyncStatusNotificationProvider extends EditorNotificat
     if (syncState.lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (syncState.getSummary().hasSyncErrors()) {
-      return NotificationPanel.Type.ERRORS;
-    }
 
     ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
     if (gradleSyncNeeded == YES) {

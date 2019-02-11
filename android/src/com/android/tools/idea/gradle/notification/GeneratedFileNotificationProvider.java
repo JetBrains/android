@@ -59,9 +59,6 @@ public final class GeneratedFileNotificationProvider extends EditorNotifications
     if (androidModel == null) {
       return null;
     }
-    if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
-      return null;
-    }
 
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     VirtualFile buildFolder = findFileByIoFile(buildFolderPath, false /* do not refresh */);

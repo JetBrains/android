@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
@@ -35,7 +36,7 @@ import org.mockito.Mock;
 
 public class AndroidGradlePluginWarningParserTest {
   @Mock private BuildOutputInstantReader myReader;
-  @Mock private Consumer<MessageEvent> myConsumer;
+  @Mock private Consumer<BuildEvent> myConsumer;
   @Nullable private AndroidGradlePluginWarningParser myParser;
 
   @Before
