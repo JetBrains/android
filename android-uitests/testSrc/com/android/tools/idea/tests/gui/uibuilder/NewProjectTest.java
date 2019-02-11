@@ -83,7 +83,7 @@ public class NewProjectTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-      "Project '" + guiTest.getProjectPath() + "' TestApplication",
+      "Project '" + guiTest.getProjectPath() + "' Test Application",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android",
       "        Lint",
