@@ -44,8 +44,9 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_SCROLLBARS,
-      ATTR_LISTITEM,
       ATTR_BACKGROUND,
+      TOOLS_NS_NAME_PREFIX + ATTR_ITEM_COUNT,
+      TOOLS_NS_NAME_PREFIX + ATTR_LISTITEM,
       ATTR_CLIP_TO_PADDING,
       ATTR_CLIP_CHILDREN);
   }
