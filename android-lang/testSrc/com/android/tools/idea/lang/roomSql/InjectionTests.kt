@@ -82,8 +82,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from User", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from User")
     }
   }
 
@@ -102,8 +102,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from User", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from User")
     }
   }
 
@@ -125,9 +125,9 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, places ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from User where id = :id", psi.text)
-      assertEquals(2, places.size)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from User where id = :id")
+      assertThat(places.size).isEqualTo(2)
     }
   }
 
@@ -150,8 +150,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from UserTable", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from UserTable")
     }
   }
 }
@@ -179,8 +179,8 @@ class OtherApisInjectionTest : RoomLightTestCase() {
 
 
     myFixture.checkInjection("delete from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("delete from User", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("delete from User")
     }
   }
 
@@ -222,7 +222,7 @@ class OtherApisInjectionTest : RoomLightTestCase() {
     }
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
     }
 
     myFixture.checkNoInjection("tableName")
