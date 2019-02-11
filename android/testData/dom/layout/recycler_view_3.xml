@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout>
+  <androidx.recyclerview.widget.RecyclerView
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:<caret>>
+</androidx.recyclerview.widget.RecyclerView>
+</LinearLayout>
