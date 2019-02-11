@@ -15,43 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import java.util.regex.Pattern;
 import org.fest.swing.core.Robot;
-import org.fest.swing.driver.BasicJComboBoxCellReader;
-import org.fest.swing.driver.JComboBoxDriver;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ApiLevelComboBoxFixture {
-
-  private final Robot myRobot;
-  private final JComboBox myTarget;
+public class ApiLevelComboBoxFixture extends JComboBoxFixture {
 
   ApiLevelComboBoxFixture(@NotNull Robot robot, @NotNull JComboBox target) {
-    myRobot = robot;
-    myTarget = target;
+    super(robot, target);
   }
 
   public void selectApiLevel(@NotNull String apiLevel) {
-    int itemIndex = GuiQuery.getNonNull(
-      () -> {
-        BasicJComboBoxCellReader cellReader = new BasicJComboBoxCellReader();
-        int itemCount = myTarget.getItemCount();
-        for (int i = 0; i < itemCount; i++) {
-          String value = cellReader.valueAt(myTarget, i);
-          if (value != null && value.startsWith("API " + apiLevel + ":")) {
-            return i;
-          }
-        }
-        return -1;
-      });
-    if (itemIndex < 0) {
-      throw new LocationUnavailableException("Unable to find SDK " + apiLevel + " in drop-down");
-    }
-    JComboBoxDriver comboBoxDriver = new JComboBoxDriver(myRobot);
-    comboBoxDriver.selectItem(myTarget, itemIndex);
+    selectItem(Pattern.compile("API " + apiLevel + ":.*"));
   }
-
 }
