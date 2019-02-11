@@ -39,7 +39,9 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
@@ -58,20 +60,20 @@ import javax.swing.table.TableCellEditor
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
 class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
-  property: ModelPropertyT,
-  propertyContext: ModelPropertyContext<PropertyT>,
-  variablesScope: PsVariablesScope?,
-  private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
-  cellEditor: TableCellEditor? = null,
-  private val logValueEdited: () -> Unit = {}
+    property: ModelPropertyT,
+    propertyContext: ModelPropertyContext<PropertyT>,
+    variablesScope: PsVariablesScope?,
+    private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
+    cellEditor: TableCellEditor? = null,
+    private val isPropertyContext: Boolean = false,
+    private val logValueEdited: () -> Unit = {}
 ) :
-  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
-  ModelPropertyEditor<PropertyT>,
-  ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
+    PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
+    ModelPropertyEditor<PropertyT>,
+    ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
 
   init {
-    check(
-      extensions.count { it.isMainAction } <= 1) {
+    check(extensions.count { it.isMainAction } <= 1) {
       "Multiple isMainAction == true editor extensions: ${extensions.filter { it.isMainAction }}"
     }
   }
@@ -225,21 +227,30 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   inner class EditorWrapper(private val property: ModelPropertyT) : JPanel(BorderLayout()) {
     init {
       add(renderedComboBox)
-      extensions.firstOrNull { it.isMainAction }?.let {
-        add(createMiniButton(it), BorderLayout.EAST)
-      }
+      add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
     }
 
-    private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>): JComponent =
-      JLabel().apply {
-        icon = StudioIcons.Common.PROPERTY_UNBOUND
-        toolTipText = extensionAction.tooltip
-        addMouseListener(object : MouseAdapter() {
-          override fun mousePressed(event: MouseEvent) {
-            extensionAction.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+    private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>?): JComponent =
+        JLabel().apply {
+          if (extensionAction != null) {
+            icon = StudioIcons.Common.PROPERTY_UNBOUND
+            toolTipText = extensionAction.tooltip
+            addMouseListener(object : MouseAdapter() {
+              override fun mousePressed(event: MouseEvent) {
+                extensionAction.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+              }
+            })
           }
-        })
-      }
+          else {
+            if (isPropertyContext) {
+              icon = object : Icon {
+                override fun getIconHeight(): Int = 20
+                override fun getIconWidth(): Int = 15
+                override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+              }
+            }
+          }
+        }
 
     override fun requestFocus() {
       renderedComboBox.requestFocus()
@@ -286,18 +297,31 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   }
 
   override fun createNew(
-    property: ModelPropertyT,
-    cellEditor: TableCellEditor?,
-    isPropertyContext: Boolean
+      property: ModelPropertyT,
+      cellEditor: TableCellEditor?,
+      isPropertyContext: Boolean
   ): ModelPropertyEditor<PropertyT> =
-    SimplePropertyEditor(
-      property,
-      propertyContext,
-      variablesScope,
-      extensions.filter { isPropertyContext || it.availableInNonPropertyContext },
-      cellEditor) { /* no usage tracking */ }
+      simplePropertyEditor(property, propertyContext, variablesScope, extensions, isPropertyContext, cellEditor)
 
   init {
     reload()
   }
 }
+
+fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePropertyEditor(
+    boundProperty: ModelPropertyT,
+    boundPropertyContext: ModelPropertyContext<PropertyT>,
+    variablesScope: PsVariablesScope?,
+    extensions: Collection<EditorExtensionAction<PropertyT, ModelPropertyT>>,
+    isPropertyContext: Boolean,
+    cellEditor: TableCellEditor?,
+    logValueEdited: () -> Unit = { /* no usage tracking */ }
+): SimplePropertyEditor<PropertyT, ModelPropertyT> =
+    SimplePropertyEditor(
+        boundProperty,
+        boundPropertyContext,
+        variablesScope,
+        extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
+        cellEditor,
+        isPropertyContext,
+        logValueEdited)
