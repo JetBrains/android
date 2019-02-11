@@ -37,7 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.intellij.ide.ui.UISettings.setupAntialiasing;
@@ -83,7 +83,7 @@ public class Header extends JPanel {
     myButtonPanel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
 
     add(myButtonPanel, BorderLayout.EAST);
-    setBorder(JBUI.Borders.empty());
+    setBorder(JBUI.CurrentTheme.ToolWindow.tabBorder());
   }
 
   @NotNull
@@ -145,13 +145,13 @@ public class Header extends JPanel {
   @Override
   public Dimension getPreferredSize() {
     Dimension size = super.getPreferredSize();
-    return new Dimension(size.width, getTabsHeight());
+    return new Dimension(size.width, getTabsHeight(size.height));
   }
 
   @Override
   public Dimension getMinimumSize() {
     Dimension size = super.getMinimumSize();
-    return new Dimension(size.width, getTabsHeight());
+    return new Dimension(size.width, getTabsHeight(size.height));
   }
 
   public void setAdditionalActions(@NotNull List<AnAction> actions) {
