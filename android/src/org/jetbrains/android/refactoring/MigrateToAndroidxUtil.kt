@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
+import com.android.support.AndroidxName
 import com.intellij.lang.properties.psi.PropertiesFile
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -55,13 +56,20 @@ fun Project.setAndroidxProperties(value: String = "true") {
 /**
  * Checks that the "useAndroidx" is set explicitly. This method does not say anything about its value.
  */
-fun Project.hasAndroidxProperty(): Boolean = ReadAction.compute<Boolean, RuntimeException> {
+fun Project.hasAndroidxProperty(): Boolean = runReadAction {
   getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY) != null
 }
 
 /**
  * Checks that the "useAndroidx" property is set to true
  */
-fun Project.isAndroidx(): Boolean = ReadAction.compute<Boolean, RuntimeException> {
+fun Project.isAndroidx(): Boolean = runReadAction {
   getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.value?.toBoolean() ?: false
+}
+
+/**
+ * Returns the actual name of an [AndroidxName] class to be used in a given [Project], based on the AndroidX properties set by the project.
+ */
+fun AndroidxName.getNameInProject(project: Project): String = runReadAction {
+  if (project.isAndroidx()) newName() else oldName()
 }

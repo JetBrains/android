@@ -1,28 +1,32 @@
 /*
- * Copyright 2000-2009 JetBrains s.r.o.
+ * Copyright (C) 2019 The Android Open Source Project
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.jetbrains.android.dom;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.vfs.VirtualFile;
-
+import com.intellij.util.ArrayUtil;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 
 /**
  * Tests for code editor features when working with resources under res/xml.
@@ -41,6 +45,24 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+
+    // Simulate enough of the AndroidX library to write the tests, until we fix our fixtures to work against real AARs.
+    runWriteCommandAction(getProject(), () -> MigrateToAndroidxUtil.setAndroidxProperties(myFixture.getProject(), "true"));
+    myFixture.addClass("package androidx.preference; public class Preference {}");
+    myFixture.addClass("package androidx.preference; public abstract class PreferenceGroup extends Preference {}");
+    myFixture.addClass("package androidx.preference; public class PreferenceScreen extends PreferenceGroup {}");
+
+    myFixture.addFileToProject(
+      "res/values/styleables.xml",
+      // language=XML
+      "<resources>" +
+      "<declare-styleable name='Preference'>" +
+      "  <attr name='onlyAndroidx' format='string' />\n" +
+      "  <attr name='key' format='string' />\n" +
+      "  <attr name='android:key' />" +
+      "</declare-styleable>" +
+      "</resources>"
+    );
   }
 
   @Override
@@ -52,8 +74,22 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
     toTestCompletion("pref1.xml", "pref1_after.xml");
   }
 
-  public void testPreferenceChildrenCompletion() throws Throwable {
+  public void testPreferenceGroupChildrenCompletion() throws Throwable {
     toTestCompletion("pref2.xml", "pref2_after.xml");
+  }
+
+  public void testPreferenceGroupChildrenCompletion_androidx() throws Throwable {
+    VirtualFile file = copyFileToProject("pref2_androidx.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertThat(lookupElementStrings).contains("androidx.preference.Preference");
+    assertThat(lookupElementStrings).contains("androidx.preference.PreferenceScreen");
+    assertThat(lookupElementStrings).doesNotContain("androidx.preference.PreferenceGroup");
+  }
+
+  public void testPreferenceChildrenCompletion() throws Throwable {
+    doTestCompletionVariants("pref10.xml", ArrayUtil.EMPTY_STRING_ARRAY);
   }
 
   public void testPreferenceAttributeNamesCompletion1() throws Throwable {
@@ -62,6 +98,16 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
 
   public void testPreferenceAttributeNamesCompletion2() throws Throwable {
     toTestCompletion("pref4.xml", "pref4_after.xml");
+  }
+
+  public void testPreferenceAttributeNamesCompletion_androidX() throws Throwable {
+    VirtualFile file = copyFileToProject("pref3_androidx.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertThat(lookupElementStrings).contains("app:key");
+    assertThat(lookupElementStrings).contains("android:key");
+    assertThat(lookupElementStrings).contains("app:onlyAndroidx");
   }
 
   public void testPreferenceAttributeValueCompletion() throws Throwable {
@@ -76,6 +122,8 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
     assertNotNull(lookupElementStrings);
     assertTrue(lookupElementStrings.contains("PreferenceScreen"));
     assertFalse(lookupElementStrings.contains("android.preference.PreferenceScreen"));
+
+    assertTrue(lookupElementStrings.contains("androidx.preference.PreferenceScreen"));
   }
 
   public void testPreferenceCompletion7() throws Throwable {
