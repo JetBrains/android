@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.ATTR_DISCARD;
 import static com.android.SdkConstants.ATTR_IGNORE;
+import static com.android.SdkConstants.ATTR_ITEM_COUNT;
 import static com.android.SdkConstants.ATTR_KEEP;
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.ATTR_LISTFOOTER;
@@ -104,6 +105,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.FLAGS))
     .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.REFERENCE, AttributeFormat.STRING))
     .put(ATTR_IGNORE, NO_FORMATS)
+    .put(ATTR_ITEM_COUNT, singletonList(AttributeFormat.INTEGER))
     .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_LISTHEADER, singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_LISTITEM, singletonList(AttributeFormat.REFERENCE))
