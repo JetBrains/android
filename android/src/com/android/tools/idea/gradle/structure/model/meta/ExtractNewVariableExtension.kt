@@ -31,8 +31,10 @@ class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>
   override val title: String = "Extract Variable"
   override val tooltip: String = "Extract Variable"
   override val icon: Icon = AllIcons.Nodes.Variable
-  override val availableInNonPropertyContext: Boolean = false
   override val isMainAction: Boolean = true
+
+  override fun isAvailableFor(property: PropertyCoreT, isPropertyContext: Boolean): Boolean =
+      property is GradleModelCoreProperty<*, *> && isPropertyContext
 
   override fun invoke(
     property: PropertyCoreT,
