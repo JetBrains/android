@@ -10,6 +10,7 @@ See the links below for implementation details and make sure to read
 * [Building webp](adt-ui/lib/libwebp/README.md)
 * [Color picker](android/src/com/android/tools/idea/ui/resourcechooser/colorpicker2/README.md)
 * [Custom languages](android-lang/src/com/android/tools/idea/lang/README.md)
+* [DOM](android/src/org/jetbrains/android/dom/README.md)
 * [Databinding](android-lang-databinding/README.md)
 * [Layout editor placeholder](designer/src/com/android/tools/idea/common/scene/README.md.html)
 * [Notch](designer/src/com/android/tools/idea/uibuilder/scene/target/README.md.html)

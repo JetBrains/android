@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,7 +330,6 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
  * whether a class with given qualified name can be shortened to a simple name, or is required to have
  * a package qualifier.
  *
- *
  * Accesses JavaPsiFacade, and thus should be run inside read action.
  *
  * @see .isViewPackageNeeded
@@ -352,9 +351,7 @@ fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: I
  * Returns whether a class with given qualified name resides directly in a package with
  * given prefix (as opposed to reside in a subpackage).
  *
- *
- * For example,
- *
+ * For example:
  *  * isDirectlyInPackage("android.view.View", "android.view.") -> true
  *  * isDirectlyInPackage("android.view.internal.View", "android.view.") -> false
  *
