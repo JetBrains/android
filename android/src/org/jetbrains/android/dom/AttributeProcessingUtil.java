@@ -25,6 +25,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.ATTR_DISCARD;
+import static com.android.SdkConstants.ATTR_ITEM_COUNT;
 import static com.android.SdkConstants.ATTR_KEEP;
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
@@ -53,6 +54,7 @@ import static com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
 import static com.android.SdkConstants.GRID_LAYOUT;
+import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.REQUEST_FOCUS;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.TABLE_LAYOUT;
@@ -532,6 +534,20 @@ public class AttributeProcessingUtil {
       if (newDrawerLayout != null && psiClass != null &&
           (psiClass.isEquivalentTo(newDrawerLayout) || psiClass.isInheritor(newDrawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
+      }
+
+      PsiClass oldRecyclerView = map.get(RECYCLER_VIEW.oldName());
+      if (oldRecyclerView != null && psiClass != null &&
+          (psiClass.isEquivalentTo(oldRecyclerView) || psiClass.isInheritor(oldRecyclerView, true))) {
+        registerToolsAttribute(ATTR_ITEM_COUNT, callback);
+        registerToolsAttribute(ATTR_LISTITEM, callback);
+      }
+
+      PsiClass newRecyclerView = map.get(RECYCLER_VIEW.newName());
+      if (newRecyclerView != null && psiClass != null &&
+          (psiClass.isEquivalentTo(newRecyclerView) || psiClass.isInheritor(newRecyclerView, true))) {
+        registerToolsAttribute(ATTR_ITEM_COUNT, callback);
+        registerToolsAttribute(ATTR_LISTITEM, callback);
       }
 
       // Mockup attributes can be associated with any View, even include tag
