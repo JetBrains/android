@@ -42,14 +42,10 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     return KEY;
   }
 
-  @Nullable
-  @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor, @NotNull Project project) {
     if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
       return null;
     }
-
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor, @NotNull Project project) {
     if (myDismissed) {
       return null;
     }
@@ -59,7 +55,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
       return null;
     }
 
-    if (!ThemeEditorUtils.findAndroidModules(myProject).findAny().isPresent()) {
+    if (!ThemeEditorUtils.findAndroidModules(project).findAny().isPresent()) {
       return null;
     }
 
