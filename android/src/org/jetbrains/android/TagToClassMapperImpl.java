@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 package org.jetbrains.android;
 
+import static com.intellij.util.ArrayUtilRt.find;
+import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
+
+import com.android.ide.common.util.DisjointUnionMap;
+import com.android.support.AndroidxName;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.Maps;
@@ -37,14 +42,12 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.intellij.util.ArrayUtilRt.find;
-import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class TagToClassMapperImpl implements TagToClassMapper {
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
@@ -71,10 +74,20 @@ class TagToClassMapperImpl implements TagToClassMapper {
    * In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
    * to {@link PsiModificationTracker#JAVA_STRUCTURE_MODIFICATION_COUNT}.
    */
-  // TODO: correctly support classes from external non-platform jars
   @Override
   @NotNull
-  public Map<String, PsiClass> getClassMap(@NotNull String className) {
+  public Map<String, PsiClass> getClassMap(@NotNull String frameworkClass, @Nullable AndroidxName androidXClass) {
+    Map<String, PsiClass> frameworkClasses = getClassMap(frameworkClass);
+    if (androidXClass == null) {
+      return Collections.unmodifiableMap(frameworkClasses);
+    }
+
+    Map<String, PsiClass> libClasses = getClassMap(MigrateToAndroidxUtil.getNameInProject(androidXClass, myModule.getProject()));
+    return libClasses.isEmpty() ? Collections.unmodifiableMap(frameworkClasses)
+                                : new DisjointUnionMap<>(frameworkClasses, libClasses);
+  }
+
+  private Map<String, PsiClass> getClassMap(String className) {
     CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
