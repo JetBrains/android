@@ -37,6 +37,7 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
+import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -107,6 +108,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JCheckBox myUseAndroidxCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
 
+
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
@@ -163,15 +165,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
 
 
-    myValidatorPanel.registerValidator(myProjectModel.applicationName(), value -> {
-      if (value.isEmpty()) {
-        return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
-      }
-      else if (!Character.isUpperCase(value.charAt(0))) {
-        return new Validator.Result(Validator.Severity.INFO, message("android.wizard.validate.lowercase.application.name"));
-      }
-      return Validator.Result.OK;
-    });
+    myValidatorPanel.registerValidator(myProjectModel.applicationName(), new ProjectNameValidator());
 
     Expression<File> locationFile = myProjectModel.projectLocation().transform(File::new);
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
