@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2010 JetBrains s.r.o.
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,9 +50,9 @@ public class AndroidXmlResourcesUtil {
     .put("header", "PreferenceHeader")
     .build();
 
-  private static final ImmutableSet<String> ROOT_TAGS = ImmutableSet
-    .of(SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
-        PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
+  private static final ImmutableSet<String> ROOT_TAGS = ImmutableSet.of(
+    SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
+    PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
 
   private AndroidXmlResourcesUtil() {
   }
