@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ColorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -24,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ColorPanel;
 import com.intellij.ui.components.fields.ExtendableTextField;
 import javax.swing.text.JTextComponent;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
@@ -103,9 +105,15 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   public AssetStudioWizardFixture switchToLocalFile() {
     JRadioButton radioButton =
       GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JRadioButton.class, "Local file (SVG, PSD)"));
-    JRadioButtonFixture fixture = new JRadioButtonFixture(robot(), radioButton);
-    if (!radioButton.isSelected())
-      fixture.select();
+    new JRadioButtonFixture(robot(), radioButton).select();
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture switchToClipArt() {
+    JRadioButton radioButton =
+      GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JRadioButton.class, "Clip Art"));
+    new JRadioButtonFixture(robot(), radioButton).select();
     return this;
   }
 
@@ -137,6 +145,15 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   public AssetStudioWizardFixture setName(@NotNull String name) {
     JTextField field =  robot().finder().findByLabel(target(), "Name:", JTextField.class);
     new JTextComponentFixture(robot(), field).setText(name);
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture setColor(@NotNull String hexColor) {
+    new ColorPanelFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), Matchers.byType(ColorPanel.class))).click();
+    ColorPickerDialogFixture.find(robot())
+      .setHexColor(hexColor)
+      .clickChoose();
     return this;
   }
 
