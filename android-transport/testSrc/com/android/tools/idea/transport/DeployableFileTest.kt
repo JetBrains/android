@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,44 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers
+package com.android.tools.idea.transport
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
-class ProfilerHostFileTest {
+class DeployableFileTest {
   @Rule
   @JvmField
   val temporaryFolder = TemporaryFolder()
 
   @Test
   fun testFileName() {
-    ProfilerHostFileBuilder("myName").build().let {
+    DeployableFile.Builder("myName").build().let {
       assertThat(it.fileName).isEqualTo("myName")
     }
   }
 
   @Test
   fun testIsExecutable() {
-    ProfilerHostFileBuilder("myName").setExecutable(true).build().let {
+    DeployableFile.Builder("myName").setExecutable(true).build().let {
       assertThat(it.isExecutable).isTrue()
     }
 
-    ProfilerHostFileBuilder("myName").setExecutable(false).build().let {
+    DeployableFile.Builder("myName").setExecutable(false).build().let {
       assertThat(it.isExecutable).isFalse()
     }
   }
 
   @Test
   fun testOnDeviceAbiFileNameFormat() {
-    ProfilerHostFileBuilder("myName").build().let {
+    DeployableFile.Builder("myName").build().let {
       assertThat(it.onDeviceAbiFileNameFormat).isNull()
       assertThat(it.isAbiDependent).isFalse()
     }
 
-    ProfilerHostFileBuilder("myName").setOnDeviceAbiFileNameFormat("myFormat_%s").build().let {
+    DeployableFile.Builder("myName").setOnDeviceAbiFileNameFormat("myFormat_%s").build().let {
       assertThat(it.onDeviceAbiFileNameFormat).isEqualTo("myFormat_%s")
       assertThat(it.isAbiDependent).isTrue()
     }
@@ -61,7 +61,7 @@ class ProfilerHostFileTest {
     val releaseDir = temporaryFolder.newFolder("release")
     temporaryFolder.newFolder("dev")
 
-    val hostFile = ProfilerHostFileBuilder("myfile")
+    val hostFile = DeployableFile.Builder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
@@ -74,7 +74,7 @@ class ProfilerHostFileTest {
   fun getDirIsDevDirIfNoReleaseDir() {
     val devDir = temporaryFolder.newFolder("dev")
 
-    val hostFile = ProfilerHostFileBuilder("myfile")
+    val hostFile = DeployableFile.Builder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)

@@ -75,7 +75,7 @@ import org.jetbrains.annotations.TestOnly;
  * A proxy TransportService on host that intercepts grpc requests from transport-database to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  */
-public class TransportServiceProxy extends TransportProxyService
+public class TransportServiceProxy extends ServiceProxy
   implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
   private static Logger getLog() {
