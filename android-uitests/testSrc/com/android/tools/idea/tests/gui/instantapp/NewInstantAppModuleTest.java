@@ -25,9 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
@@ -50,13 +48,12 @@ import org.junit.runner.RunWith;
 /**
  * Test that newly created Instant App modules do not have errors in them
  */
-@RunIn(TestGroup.UNRELIABLE) // b/123684808
 @RunWith(GuiTestRemoteRunner.class)
 public class NewInstantAppModuleTest {
   private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
+  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest(); // b/123684808
   @Nullable private String myOldSavedCompanyDomain;
 
   @Before
