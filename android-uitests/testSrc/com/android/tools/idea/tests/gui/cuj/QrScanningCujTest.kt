@@ -283,6 +283,5 @@ class QrScanningCujTest {
       .select("(<FrameLayout[\\s\\S]*</FrameLayout>)")
       .pasteText(layoutText)
 
-    pause(1000000)
   }
 }
