@@ -1,0 +1,19 @@
+query RepositoriesByIds($ids: [ID!]!) {
+  nodes(ids: $ids) {
+    ... on Repository {
+      name
+      description
+      id
+      licenseInfo {
+        name
+        nickname
+      }
+      owner {
+        avatarUrl
+        id
+        login
+      }
+      url
+    }
+  }
+}
