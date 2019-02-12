@@ -156,4 +156,9 @@ public abstract class ToolWindowFixture {
     return GuiQuery.getNonNull(
       () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
   }
+
+  @NotNull
+  public Robot robot() {
+    return myRobot;
+  }
 }
