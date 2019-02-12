@@ -335,7 +335,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   }
 
   public void saveData(@NotNull AndroidDataSource dataSource) {
-    myNameComponent.apply(dataSource);
+    myNameComponent.save(dataSource);
     AndroidDataSource.State state = dataSource.getState();
     state.deviceId = getSelectedDeviceId();
     state.packageName = getSelectedPackage();
@@ -347,6 +347,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   @Override
   public void apply() {
     saveData(myDataSource);
+    myNameComponent.apply(myDataSource);
 
     if (DbImplUtil.canConnectTo(myDataSource)) {
       AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
@@ -360,7 +361,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   @Override
   protected void reset(@NotNull AndroidDataSource o) {
     AndroidDataSource.State state = o.getState();
-    myNameComponent.reset(o);
+    myNameComponent.reset(o, null);
 
     myInternalStorageRadioButton.setSelected(!state.external);
     myExternalStorageRadioButton.setSelected(state.external);
