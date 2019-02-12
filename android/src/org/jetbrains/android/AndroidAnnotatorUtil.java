@@ -31,12 +31,10 @@ import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.LightCalloutPopup;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -278,9 +276,14 @@ public class AndroidAnnotatorUtil {
     }
   }
 
-  /** Picks a suitable configuration to use for resource resolution */
+  /**
+   * Picks a suitable configuration to use for resource resolution within a given file.
+   *
+   * @param file the file to determine a configuration for
+   * @param facet {@link AndroidFacet} of the {@code file}
+   */
   @Nullable
-  public static Configuration pickConfiguration(@NotNull AndroidFacet facet, @NotNull Module module, @NotNull PsiFile file) {
+  public static Configuration pickConfiguration(@NotNull PsiFile file, @NotNull AndroidFacet facet) {
     VirtualFile virtualFile = file.getVirtualFile();
     if (virtualFile == null) {
       return null;
@@ -293,7 +296,7 @@ public class AndroidAnnotatorUtil {
     VirtualFile layout;
     String parentName = parent.getName();
     if (!parentName.startsWith(FD_RES_LAYOUT)) {
-      layout = ResourceHelper.pickAnyLayoutFile(module, facet);
+      layout = ResourceHelper.pickAnyLayoutFile(facet);
       if (layout == null) {
         return null;
       }
@@ -301,7 +304,7 @@ public class AndroidAnnotatorUtil {
       layout = virtualFile;
     }
 
-    return ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout);
+    return ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(layout);
   }
 
   public static class ColorRenderer extends GutterIconRenderer {

@@ -592,7 +592,7 @@ public class AndroidJavaDocRenderer {
 
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
         if (facet != null) {
-          VirtualFile layout = ResourceHelper.pickAnyLayoutFile(myModule, facet);
+          VirtualFile layout = ResourceHelper.pickAnyLayoutFile(facet);
           if (layout != null) {
             Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
             myResourceResolver = configuration.getResourceResolver();
