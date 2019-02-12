@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 public final class TransportProxy {
 
   private Server myProxyServer;
-  @NotNull private final List<TransportProxyService> myProxyServices;
+  @NotNull private final List<ServiceProxy> myProxyServices;
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
 
@@ -43,7 +43,7 @@ public final class TransportProxy {
     myProxyServices.add(new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel));
   }
 
-  public void registerProxyService(TransportProxyService proxyService) {
+  public void registerProxyService(ServiceProxy proxyService) {
     myProxyServices.add(proxyService);
   }
 
@@ -67,7 +67,7 @@ public final class TransportProxy {
     if (myProxyServer == null) {
       throw new IllegalStateException("Proxy server has not been built");
     }
-    myProxyServices.forEach(TransportProxyService::disconnect);
+    myProxyServices.forEach(ServiceProxy::disconnect);
     myProxyServer.shutdownNow();
   }
 

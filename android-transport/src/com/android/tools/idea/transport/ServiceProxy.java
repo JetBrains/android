@@ -28,11 +28,11 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Map;
 
-public abstract class TransportProxyService {
+public abstract class ServiceProxy {
 
   private final ServiceDescriptor myServiceDescriptor;
 
-  public TransportProxyService(@NotNull ServiceDescriptor serviceDescriptor) {
+  public ServiceProxy(@NotNull ServiceDescriptor serviceDescriptor) {
     myServiceDescriptor = serviceDescriptor;
   }
 
@@ -46,7 +46,7 @@ public abstract class TransportProxyService {
   }
 
   /**
-   * TODO this only handles calls of {@link io.grpc.MethodDescriptor.MethodType.UNARY} type at the moment.
+   * TODO this only handles calls of {@link MethodDescriptor.MethodType.UNARY} type at the moment.
    *
    * @param overrides    a map of overridden descriptor-handlers which do not need forwarding to the stubs.
    * @param blockingStub the stub to redirect any un-mapped unary calls to
