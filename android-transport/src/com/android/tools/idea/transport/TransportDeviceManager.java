@@ -30,7 +30,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
@@ -38,6 +40,8 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.Topic;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
@@ -59,9 +63,10 @@ import org.jetbrains.annotations.NotNull;
  * On device connection it will spawn the performance daemon on device, and will notify the pipeline system that
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
-public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener,
-                                                        AndroidDebugBridge.IDeviceChangeListener,
-                                                        IdeSdks.IdeSdkChangeListener, Disposable {
+public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener,
+                                                     AndroidDebugBridge.IDeviceChangeListener,
+                                                     IdeSdks.IdeSdkChangeListener, Disposable {
+  public static final Topic<TransportDeviceManagerListener> TOPIC = new Topic<>("TransportDevice", TransportDeviceManagerListener.class);
 
   private static Logger getLogger() {
     return Logger.getInstance(TransportDeviceManager.class);
@@ -75,18 +80,19 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
   // On-device daemon uses Unix abstract socket for O and future devices.
   public static final String DEVICE_SOCKET_NAME = "AndroidStudioTransport";
 
-  @NotNull
-  protected final DataStoreService myDataStoreService;
+  @NotNull private final DataStoreService myDataStoreService;
+  @NotNull private final MessageBus myMessageBus;
   private boolean isAdbInitialized;
 
   /**
    * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
    * All accesses to the {@link DeviceContext} must be through its synchronization methods.
    */
-  protected final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
+  private final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
 
-  public TransportDeviceManager(@NotNull DataStoreService dataStoreService) {
+  public TransportDeviceManager(@NotNull DataStoreService dataStoreService, @NotNull MessageBus messageBus) {
     myDataStoreService = dataStoreService;
+    myMessageBus = messageBus;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
@@ -213,17 +219,8 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     });
   }
 
-  /**
-   * Subclass implements this method to return an instance of TransportThread to be spawned
-   *
-   * @param device
-   * @return instance of TransportThread
-   */
-  protected abstract TransportThread getTransportThread(@NonNull IDevice device,
-                                                        @NotNull Map<String, DeviceContext> serialToDeviceContextMap);
-
   private void spawnTransportThread(@NonNull IDevice device) {
-    TransportThread transportThread = getTransportThread(device, mySerialToDeviceContextMap);
+    TransportThread transportThread = new TransportThread(device, myDataStoreService, myMessageBus, mySerialToDeviceContextMap);
     mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
       assert context != null && (context.myLastKnownTransportProxy == null || context.myLastKnownTransportProxy.getDevice() != device);
       context.myLastKnownTransportThreadFuture = context.myExecutor.submit(transportThread);
@@ -231,16 +228,18 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     });
   }
 
-  protected static abstract class TransportThread implements Runnable {
-    @NotNull protected final DataStoreService myDataStore;
-    @NotNull protected final IDevice myDevice;
+  private static final class TransportThread implements Runnable {
+    @NotNull private final DataStoreService myDataStore;
+    @NotNull private final IDevice myDevice;
+    @NotNull private final MessageBus myMessageBus;
     private int myLocalPort;
-    protected volatile TransportProxy myTransportProxy;
+    private volatile TransportProxy myTransportProxy;
     private final Map<String, DeviceContext> mySerialToDeviceContextMap;
 
-    public TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore,
+    private TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore, @NotNull MessageBus messageBus,
                            @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
       myDataStore = datastore;
+      myMessageBus = messageBus;
       myDevice = device;
       myLocalPort = 0;
       mySerialToDeviceContextMap = serialToDeviceContextMap;
@@ -254,9 +253,9 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
           throw new TimeoutException("Timed out waiting for device to be ready.");
         }
 
-        preStartTransportThread();
+        TransportFileManager fileManager = new TransportFileManager(myDevice, myMessageBus);
+        fileManager.copyFilesToDevice();
         startTransportThread();
-
         getLogger().info("Terminating Transport thread");
       }
       catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException | SyncException e) {
@@ -271,29 +270,6 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     }
 
     /**
-     * Subclass implements this method to perform actions before Transport daemon is started. This is when files should
-     * be copied to the device.
-     *
-     * @throws SyncException
-     * @throws AdbCommandRejectedException
-     * @throws TimeoutException
-     * @throws ShellCommandUnresponsiveException
-     * @throws IOException
-     */
-    protected abstract void preStartTransportThread()
-      throws SyncException, AdbCommandRejectedException, TimeoutException, ShellCommandUnresponsiveException, IOException;
-
-    /**
-     * @return Path to Transport executable
-     */
-    protected abstract String getExecutablePath();
-
-    /**
-     * @return Config file path for Transport executable
-     */
-    protected abstract String getConfigPath();
-
-    /**
      * Executes shell command on device to start the Transport daemon
      *
      * @throws TimeoutException
@@ -303,7 +279,7 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
      */
     private void startTransportThread()
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-      String command = getExecutablePath() + " -config_file=" + getConfigPath();
+      String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getAgentConfigPath();
       getLogger().info("[Transport]: Executing " + command);
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
         @Override
@@ -400,10 +376,7 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
         String channelName = myDevice.getSerialNumber();
         Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
         myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
-
-        // Subclass can register proxies here
-        postProxyCreation();
-
+        myMessageBus.syncPublisher(TOPIC).customizeProxyService(myTransportProxy);
         myTransportProxy.initializeProxyServer(channelName);
         myTransportProxy.connect();
 
@@ -433,12 +406,6 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     }
 
     /**
-     * Subclass implements this method to perform actions after myTransportProxy has been initialized, but before
-     * the proxy server itself has been built. This is where proxy services should be registered.
-     */
-    protected abstract void postProxyCreation();
-
-    /**
      * A helper method to check whether the device has completed the boot sequence.
      * In emulator userdebug builds, the device can appear online before boot has finished, and pushing and running Transport on device at
      * that point would result in a failure. Therefore we poll a device property (dev.bootcomplete) at regular intervals to make sure the
@@ -459,10 +426,28 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     }
   }
 
-  protected static class DeviceContext {
+  private static class DeviceContext {
     @NotNull public final ExecutorService myExecutor = new ThreadPoolExecutor(0, 1, 1L,
                                                                               TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     @Nullable public TransportProxy myLastKnownTransportProxy;
     @Nullable public Future<?> myLastKnownTransportThreadFuture;
+  }
+
+  public interface TransportDeviceManagerListener {
+    /**
+     * Allows for subscribers to customize the Transport pipeline's ServiceProxy before it is fully initialized.
+     */
+    void customizeProxyService(@NotNull TransportProxy proxy);
+
+    /**
+     * Allows for subscribers to customize the agent config before it is being pushed to the device, which is then used to initialized
+     * the transport daemon and app agent.
+     *
+     * @param configBuilder the AgentConifg.Builder to customize. Note that it is up to the subscriber to not override fields that are set
+     *                      in {@link TransportFileManager#pushAgentConfig(AndroidRunConfigurationBase)} which are primarily used for
+     *                      establishing connection to the transport daemon and app agent.
+     * @param runConfig     the run config associated with the current app launch.
+     */
+    void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder, @Nullable AndroidRunConfigurationBase runConfig);
   }
 }
