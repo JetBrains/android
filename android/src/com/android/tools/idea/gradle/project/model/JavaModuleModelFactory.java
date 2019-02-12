@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static java.util.Arrays.asList;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.java.model.ArtifactModel;
@@ -27,19 +31,19 @@ import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.model.java.NewJarLibraryDependencyFactory;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.Pair;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static java.util.Arrays.asList;
 
 /**
  * Factory class to create JavaModuleModel instance from JavaProject returned by Java Library plugin.
@@ -124,7 +128,10 @@ public class JavaModuleModelFactory {
     SourceSet testSourceSet = sourceSets.getTestSourceSet();
     if (mainSourceSet != null && testSourceSet != null) {
       Collection<JavaLibrary> dependenciesForMain = mainSourceSet.getCompileClasspathDependencies();
-      Collection<JavaLibrary> dependenciesForTest = testSourceSet.getCompileClasspathDependencies();
+      // We include the runtime dependencies for the TEST_SCOPE to ensure that all the required classes are present when running
+      // unit tests. Unfortunately this also causes the IDE to suggest these runtime dependencies, even though they will not be present
+      // at compile time. This issue should be corrected at a later date.
+      Collection<JavaLibrary> dependenciesForTest = testSourceSet.getRuntimeClasspathDependencies();
       Set<JavaLibrary> dependenciesForMainInSet = ImmutableSet.copyOf(dependenciesForMain);
 
       // Set scope based on sourceSet name, dependencies for main is COMPILE_SCOPE,
@@ -135,12 +142,37 @@ public class JavaModuleModelFactory {
         createDependency(library, COMPILE_SCOPE, javaModuleDependencies, jarLibraryDependencies);
       }
       for (JavaLibrary library : dependenciesForTest) {
-        if (!dependenciesForMainInSet.contains(library)) {
+        // If we already have the library in the compile scope we don't need to also add it to in test.
+        if (!libraryAlreadyPresent(dependenciesForMainInSet, library)) {
           createDependency(library, TEST_SCOPE, javaModuleDependencies, jarLibraryDependencies);
         }
       }
     }
     return Pair.create(javaModuleDependencies, jarLibraryDependencies);
+  }
+
+  /**
+   * Checks to see whether the given library already existing in the set. This method compares the libraries using their
+   * {@link JavaLibrary#getBuildId()} and {@link JavaLibrary#getProject()}, if either of these are null then we fall back to
+   * comparing all of the other fields.
+   *
+   * We require this extra logic because it Gradle currently produces different names for the libraries in the runtime and compile
+   * configurations, e.g for a basic Java module compile configurations always produces module names as "main" whereas in the runtime
+   * configuration the name is the name of the corresponding Gradle project.
+   *
+   * @param set the set of existing java libraries
+   * @param library the library to check for the presence of
+   * @return true if the library is present in the set, false otherwise.
+   */
+  private static boolean libraryAlreadyPresent(@NotNull Set<JavaLibrary> set, @NotNull JavaLibrary library) {
+    return set.stream().anyMatch((existing) -> {
+      if (library.getBuildId() == null || library.getProject() == null) {
+        return library.equals(existing);
+      }
+
+
+      return library.getBuildId().equals(existing.getBuildId()) && library.getProject().equals(existing.getProject());
+    });
   }
 
   private void createDependency(@NotNull JavaLibrary javaLibrary,
