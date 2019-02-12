@@ -155,7 +155,6 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
-   * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
   private static void addFoldersToClasspath(@NotNull Module module,
                                             @Nullable JavaArtifact testArtifact,

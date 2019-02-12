@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.java.model.JavaLibrary;
 import com.android.java.model.JavaProject;
 import com.android.java.model.LibraryVersion;
@@ -23,24 +32,16 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link JavaModuleModelFactory}.
@@ -101,14 +102,21 @@ public class JavaModuleModelFactoryTest {
     JavaLibrary moduleLibrary = mock(JavaLibrary.class);
     JavaLibrary compileJarLibrary = mock(JavaLibrary.class);
     JavaLibrary testJarLibrary = mock(JavaLibrary.class);
+    // We test the deduplication by providing a test module library with a different name to ensure it still gets removed.
+    JavaLibrary testModuleLibrary = mock(JavaLibrary.class);
     LibraryVersion libraryVersion = mock(LibraryVersion.class);
 
     when(moduleLibrary.getName()).thenReturn("lib2");
     when(moduleLibrary.getProject()).thenReturn(":lib2");
     when(moduleLibrary.getBuildId()).thenReturn("/mock/project");
 
+    when(testModuleLibrary.getName()).thenReturn("veryCoolName");
+    when(testModuleLibrary.getProject()).thenReturn(":lib2");
+    when(testModuleLibrary.getBuildId()).thenReturn("/mock/project");
+
     when(compileJarLibrary.getJarFile()).thenReturn(compileJarFile);
     when(compileJarLibrary.getLibraryVersion()).thenReturn(libraryVersion);
+
     when(libraryVersion.getGroup()).thenReturn("com.google.example");
     when(libraryVersion.getName()).thenReturn("MyApplication");
     when(libraryVersion.getVersion()).thenReturn("1.0");
@@ -121,7 +129,8 @@ public class JavaModuleModelFactoryTest {
 
     SourceSet testSourceSet = mock(SourceSet.class);
     when(testSourceSet.getName()).thenReturn("test");
-    when(testSourceSet.getCompileClasspathDependencies()).thenReturn(Arrays.asList(compileJarLibrary, testJarLibrary));
+    when(testSourceSet.getRuntimeClasspathDependencies())
+      .thenReturn(Arrays.asList(compileJarLibrary, testJarLibrary, testModuleLibrary));
 
     when(myJavaProject.getSourceSets()).thenReturn(Arrays.asList(mainSourceSet, testSourceSet));
 
