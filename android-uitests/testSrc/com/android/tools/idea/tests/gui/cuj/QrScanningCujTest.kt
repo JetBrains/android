@@ -143,5 +143,45 @@ class QrScanningCujTest {
     // Check that the project compiles
     ide.waitAndInvokeMenuPath("Build", "Rebuild Project")
       .waitForBuildToFinish(BuildMode.REBUILD)
+
+    // Add dependency by typing it in build.gradle file
+    ide.editor
+      .open("app/build.gradle")
+      .moveBetween("dependencies {\n", "")
+      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
+      .ideFrame
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .closeBuildPanel()
+
+    // Create a new layout file from the File > New > Android Resource File menu
+    ide.openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("File", "New", "Android Resource File"))
+      .setType("layout")
+      .setRootElement("LinearLayout")
+      .setFilename("actions_main")
+      .clickOk()
+
+    // Create a new vector drawable from an icon available in the Vector Asset Wizard
+    ide.openFromMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("File", "New", "Vector Asset")).run {
+      switchToClipArt()
+      chooseIcon()
+        .filterByNameAndSelect("flash on")
+        .clickOk()
+      setName("ic_flash_on_white_24dp")
+      setColor("FFFFFF")
+      clickNext()
+      clickFinish()
+    }
+
+    // Add an ImageView by dragging it from the palette in the preview, and select ic_flash_on_white_24dp as the source
+    ide.editor
+      .getLayoutPreview(false).run {
+        dragComponentToSurface("Common", "ImageView")
+        ChooseResourceDialogFixture.find(robot()).run {
+          searchField.setText("ic_flash_on_white")
+            .pressAndReleaseKeys(KeyEvent.VK_DOWN)
+          clickOK()
+        }
+      }
   }
 }
