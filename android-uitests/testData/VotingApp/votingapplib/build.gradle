@@ -53,10 +53,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:+'
     compile 'uk.co.chrisjenx:calligraphy:+'
     compile 'com.google.code.gson:gson:+'
-//    compile 'com.jaeger.statusbarutil:library:+'
+    compile 'com.jaeger.statusbarutil:library:+'
     compile 'com.squareup.okhttp3:okhttp:+'
     compile project(':uilib')
-    implementation 'com.android.support:recyclerview-v7:+'
-    implementation 'com.android.support:design:+'
 }
 
