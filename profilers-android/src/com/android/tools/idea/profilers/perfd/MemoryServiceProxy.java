@@ -21,7 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
-import com.android.tools.idea.transport.TransportProxyService;
+import com.android.tools.idea.transport.ServiceProxy;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -44,7 +44,7 @@ import java.util.function.BiFunction;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.*;
 
-public class MemoryServiceProxy extends TransportProxyService {
+public class MemoryServiceProxy extends ServiceProxy {
 
   private static Logger getLogger() {
     return Logger.getInstance(MemoryServiceProxy.class);

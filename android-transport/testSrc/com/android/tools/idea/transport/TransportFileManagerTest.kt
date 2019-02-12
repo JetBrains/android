@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers
+package com.android.tools.idea.transport
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
+import com.intellij.util.messages.MessageBusFactory
 
 import org.junit.Before
 import org.junit.Rule
@@ -28,8 +30,9 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.io.File
 
-class ProfilerDeviceFileManagerTest {
+class TransportFileManagerTest {
   @JvmField
   @Rule
   val temporaryFolder = TemporaryFolder()
@@ -48,7 +51,7 @@ class ProfilerDeviceFileManagerTest {
       newFile("dev/perfa.jar")
     }
 
-    val hostFile = ProfilerHostFileBuilder("perfa.jar")
+    val hostFile = DeployableFile.Builder("perfa.jar")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(false)
@@ -58,15 +61,15 @@ class ProfilerDeviceFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = ProfilerDeviceFileManager(mockDevice)
+    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(Disposable {}))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
     val expectedPaths = listOf(
-      Pair("dev/perfa.jar", "perfa.jar")
+      Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
-      Pair("${temporaryFolder.root.absolutePath}/$host", fileManager.deviceFullDir + device)
+      Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
     }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
@@ -86,7 +89,7 @@ class ProfilerDeviceFileManagerTest {
       }
     }
 
-    val hostFile = ProfilerHostFileBuilder("transport")
+    val hostFile = DeployableFile.Builder("transport")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(true)
@@ -106,15 +109,15 @@ class ProfilerDeviceFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = ProfilerDeviceFileManager(mockDevice)
+    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(Disposable {}))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
     val expectedPaths = listOf(
-      Pair("dev/${Abi.ARMEABI_V7A}/transport", "transport")
+      Pair("dev" + File.separator + Abi.ARMEABI_V7A + File.separator + "transport", "transport")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
-      Pair("${temporaryFolder.root.absolutePath}/$host", fileManager.deviceFullDir + device)
+      Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
     }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
@@ -134,7 +137,7 @@ class ProfilerDeviceFileManagerTest {
       }
     }
 
-    val hostFile = ProfilerHostFileBuilder("simpleperf")
+    val hostFile = DeployableFile.Builder("simpleperf")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(true)
@@ -157,7 +160,7 @@ class ProfilerDeviceFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    val fileManager = ProfilerDeviceFileManager(mockDevice)
+    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(Disposable {}))
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
@@ -166,10 +169,12 @@ class ProfilerDeviceFileManagerTest {
       Abi.X86_64
     )
 
-    val expectedHostPaths = expectedAbis.map { "${temporaryFolder.root.absolutePath}/dev/${it}/simpleperf" }
+    val expectedHostPaths = expectedAbis.map {
+      temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "simpleperf"
+    }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
-    val expectedDevicePaths = expectedAbis.map { "${fileManager.deviceFullDir}simpleperf_${it.cpuArch}" }
+    val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}simpleperf_${it.cpuArch}" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
   }
 }

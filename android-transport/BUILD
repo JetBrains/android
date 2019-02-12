@@ -34,5 +34,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
+        "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
     ],
 )

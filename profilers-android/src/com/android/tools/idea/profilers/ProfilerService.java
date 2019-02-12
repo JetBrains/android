@@ -17,8 +17,9 @@ package com.android.tools.idea.profilers;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.idea.transport.IntellijLogService;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.transport.IntellijLogService;
+import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.profilers.ProfilerClient;
@@ -28,11 +29,11 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.util.messages.MessageBus;
 import java.io.File;
 import java.nio.file.Paths;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProfilerService implements Disposable {
   /**
@@ -53,7 +54,8 @@ public class ProfilerService implements Disposable {
     synchronized (ourServiceLock) {
       if (ourInitializedProject == null || ourInitializedProject == project) {
         return ServiceManager.getService(project, ProfilerService.class);
-      } else {
+      }
+      else {
         return null;
       }
     }
@@ -68,11 +70,13 @@ public class ProfilerService implements Disposable {
   private static final String DATASTORE_NAME_PREFIX = "DataStoreService";
 
   @NotNull
-  private final StudioProfilerDeviceManager myManager;
+  private final TransportDeviceManager myManager;
   @NotNull
   private final ProfilerClient myClient;
   @NotNull
   private final DataStoreService myDataStoreService;
+  @NotNull
+  private final MessageBus myMessageBus;
   @NotNull
   private final NativeSymbolizer myNativeSymbolizer;
 
@@ -88,7 +92,8 @@ public class ProfilerService implements Disposable {
     Disposer.register(this, () -> myDataStoreService.shutdown());
     myDataStoreService.setNativeSymbolizer(myNativeSymbolizer);
 
-    myManager = new StudioProfilerDeviceManager(myDataStoreService);
+    myMessageBus = project.getMessageBus();
+    myManager = new TransportDeviceManager(myDataStoreService, myMessageBus);
     Disposer.register(this, myManager);
     myManager.initialize(project);
     IdeSdks.subscribe(myManager, this);
@@ -116,6 +121,11 @@ public class ProfilerService implements Disposable {
   @NotNull
   public DataStoreService getDataStoreService() {
     return myDataStoreService;
+  }
+
+  @NotNull
+  public MessageBus getMessageBus() {
+    return myMessageBus;
   }
 
   @NotNull
