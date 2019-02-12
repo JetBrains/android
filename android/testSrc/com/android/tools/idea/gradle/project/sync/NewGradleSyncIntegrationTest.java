@@ -15,24 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.TaskData;
-import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
-
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.TASK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.TaskData;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.OrderEnumerator;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Integration tests for 'Gradle Sync' using the new Sync infrastructure.
@@ -46,6 +54,27 @@ public class NewGradleSyncIntegrationTest extends GradleSyncIntegrationTest {
   public void testTaskViewPopulated() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     verifyTaskViewPopulated(getProject());
+  }
+
+  public void testUnitTestClassPath() throws Exception {
+    prepareProjectForImport(JAVA_LIB);
+    ProjectBuildModel pbm = ProjectBuildModel.get(getProject());
+    GradleBuildModel gbm = pbm.getModuleBuildModel(new File(getProjectFolderPath(), "lib"));
+    gbm.dependencies().addArtifact("testImplementation", "org.mockito:mockito-core:2.7.1");
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> pbm.applyChanges());
+
+    importProject(getProject().getName(), getBaseDirPath(getProject()), null);
+
+
+    Module module = myModules.getAppModule();
+    assertNotNull(module);
+
+    List<String> dependencies =
+      OrderEnumerator.orderEntries(module).recursively().getPathsList().getPathList().stream().map(path -> new File(path).getName())
+        .collect(Collectors.toList());
+    assertThat(dependencies)
+      .containsExactly("android.jar", "res", "junit-4.12.jar", "mockito-core-2.7.1.jar", "hamcrest-core-1.3.jar", "byte-buddy-1.6.5.jar",
+                       "byte-buddy-agent-1.6.5.jar", "objenesis-2.5.jar");
   }
 
   static void verifyTaskViewPopulated(@NotNull Project project) {
