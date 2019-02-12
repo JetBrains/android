@@ -507,8 +507,8 @@ fun RenderResources.resolveStringValue(value: String): String {
  * resolved). This picks one of the open layout files, and if not found, the first layout
  * file found in the resources (if any).
  */
-fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
-  val openFiles = FileEditorManager.getInstance(module.project).openFiles
+fun pickAnyLayoutFile(facet: AndroidFacet): VirtualFile? {
+  val openFiles = FileEditorManager.getInstance(facet.module.project).openFiles
   for (file in openFiles) {
     if (file.name.endsWith(DOT_XML) && file.parent != null &&
         file.parent.name.startsWith(FD_RES_LAYOUT)) {
