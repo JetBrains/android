@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.model;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -34,12 +36,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class for handling actions related to the java to kotlin conversion.
@@ -53,7 +52,9 @@ public class JavaToKotlinHandler {
   public static ConvertJavaToKotlinProvider getJavaToKotlinConversionProvider() {
     ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
     if (providers.length == 0)
-      throw new RuntimeException("Could not find a JavaToKotlinConversionProvider, even though one should be bundled with Studio");
+      throw new RuntimeException(
+        "Could not find a ConvertJavaToKotlinProvider, even though the Kotlin plugin is bundled with Studio.\n" +
+        "Is the Kotlin plugin disabled?");
     return providers[0];
   }
 
