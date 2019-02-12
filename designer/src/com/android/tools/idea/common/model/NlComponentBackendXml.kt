@@ -17,8 +17,10 @@ package com.android.tools.idea.common.model
 
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.templates.TemplateUtils
+import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,6 +34,10 @@ open class NlComponentBackendXml private constructor(
   private lateinit var myTag: XmlTag
   private lateinit var myTagName: String
   private lateinit var myTagPointer: SmartPsiElementPointer<XmlTag>
+
+  companion object {
+    val DEBUG = false
+  }
 
   internal constructor(model: NlModel, tag: XmlTag) : this(model) {
     myTag = tag
@@ -121,11 +127,48 @@ open class NlComponentBackendXml private constructor(
     }
   }
 
+  override fun getAttribute(attribute: String, namespace: String?): String? {
+    val application = ApplicationManager.getApplication()
+    if (application.isReadAccessAllowed) {
+      return getAttributeImpl(attribute, namespace)
+    }
+    return application.runReadAction(Computable { getAttributeImpl(attribute, namespace) })
+  }
+
+  private fun getAttributeImpl(attribute: String, namespace: String?): String? {
+    val xmlTag = tag
+    if (xmlTag == null) {
+      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+        "Unable to get attribute from ${getTagName()} becaause XmlTag is invalidated ${getStackTrace()}")
+      return null
+    }
+    return xmlTag.getAttributeValue(attribute, namespace)
+  }
+
+  override fun setAttribute(attribute: String, namespace: String?, value: String?): Boolean {
+    val application = ApplicationManager.getApplication()
+    if (!application.isWriteAccessAllowed) {
+      // We shouldn't allow write to be performed outside the WriteCommandAction.
+      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+        "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action ${getStackTrace()}")
+      return false
+    }
+
+    val xmlTag = tag
+    if (xmlTag == null) {
+      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+        "Unable to set attribute to ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
+      return false
+    }
+    return xmlTag.setAttribute(attribute, namespace, value) != null
+  }
+
   override fun reformatAndRearrange() {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     val xmlTag = myTagPointer.element
     if (xmlTag?.containingFile?.virtualFile == null) {
-      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn("Not reformatting ${getTagName()} because its virtual file is null")
+      Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+        "Not reformatting ${getTagName()} because its virtual file is null ${getStackTrace()}")
       return
     }
 
@@ -134,5 +177,12 @@ open class NlComponentBackendXml private constructor(
 
   override fun isValid(): Boolean {
     return ApplicationManager.getApplication().isReadAccessAllowed && myTagPointer.element?.isValid == true
+  }
+
+  private fun getStackTrace(): String {
+    if (!DEBUG) {
+      return ""
+    }
+    return "\n" + TraceUtils.getCurrentStack(1)
   }
 }

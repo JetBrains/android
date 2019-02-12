@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,10 +56,12 @@ public class MenuHandler extends ViewGroupHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-
-    return true;
+    return NlWriteCommandActionUtil.compute(newChild, "Create Menu",
+      () -> {
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+        return true;
+    });
   }
 
   @Override
