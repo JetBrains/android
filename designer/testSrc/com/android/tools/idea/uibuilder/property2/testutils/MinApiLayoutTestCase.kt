@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 const val MOST_RECENT_API_LEVEL = AndroidVersion.VersionCodes.O_MR1
 const val DEFAULT_MIN_API_LEVEL = AndroidVersion.VersionCodes.LOLLIPOP_MR1
@@ -36,22 +37,25 @@ abstract class MinApiLayoutTestCase : LayoutTestCase() {
 
   override fun setUp() {
     super.setUp()
-    setUpManifest()
+    setUpManifest(myFixture, getTestName(true))
   }
 
   override fun providesCustomManifest() = true
 
-  @Throws(Exception::class)
-  open fun setUpManifest() {
-    val minApiAsString = StringUtil.substringAfter(getTestName(true), "MinApi")
-    val minApi = if (minApiAsString != null) Integer.parseInt(minApiAsString) else DEFAULT_MIN_API_LEVEL
-    val manifest = """
+  companion object {
+
+    @Throws(Exception::class)
+    fun setUpManifest(fixture: CodeInsightTestFixture, testName: String? = null) {
+      val minApiAsString = if (testName != null) StringUtil.substringAfter(testName, "MinApi") else null
+      val minApi = if (minApiAsString != null) Integer.parseInt(minApiAsString) else DEFAULT_MIN_API_LEVEL
+      val manifest = """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
               <uses-sdk android:minSdkVersion="$minApi"
                         android:targetSdkVersion="${MOST_RECENT_API_LEVEL}"/>
       </manifest>
 """.trimIndent()
-    myFixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifest)
+      fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifest)
+    }
   }
 }
