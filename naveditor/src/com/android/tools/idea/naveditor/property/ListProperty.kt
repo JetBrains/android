@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty

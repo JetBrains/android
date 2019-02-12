@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.AUTO_URI
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface

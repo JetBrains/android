@@ -15,7 +15,7 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
 import com.android.SdkConstants.TAG_INCLUDE
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
