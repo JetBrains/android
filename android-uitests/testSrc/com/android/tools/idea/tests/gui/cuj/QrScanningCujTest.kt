@@ -22,12 +22,16 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
+import com.android.tools.idea.tests.gui.framework.fixture.MoveFilesOrDirectoriesDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
+import org.fest.swing.timing.Pause.pause
+import org.intellij.lang.annotations.Language
 import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
@@ -78,7 +82,8 @@ class QrScanningCujTest {
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
         .openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
         .setFilename("activity_main_qr_scan")
-        .setRootElement("android.support.constraint.ConstraintLayout").clickOk()
+        .setRootElement("android.support.constraint.ConstraintLayout")
+        .clickOk()
       invokeMenuPath("Build", "Make Project")
     }
       .closeBuildPanel()
@@ -183,5 +188,101 @@ class QrScanningCujTest {
           clickOK()
         }
       }
+
+    ide.projectView
+      .selectProjectPane().run {
+        clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "qrcodelib")
+          .invokeMenuPath("Cut")
+        clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "app", "src", "main", "java")
+          .openFromMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, arrayOf("Paste"))
+          .clickOk()
+      }
+
+    ide.projectView
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
+      .openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+      .setFilename("barcode_capture")
+      .setRootElement("FrameLayout")
+      .clickOk()
+
+    @Language("XML")
+    val layoutText = """
+      <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:id="@+id/topLayout"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:keepScreenOn="true"
+          android:orientation="vertical">
+
+          <qrcodelib.CameraSourcePreview
+              android:id="@+id/preview"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+      <!--   TODO: Need to fix the qrcodelib.CameraSourcePreview customView so that it appears correctly in the layout editor-->
+
+              <qrcodelib.GraphicOverlay
+                  android:id="@+id/graphicOverlay"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent" />
+
+          </qrcodelib.CameraSourcePreview>
+
+          <RelativeLayout
+              android:layout_width="match_parent"
+              android:layout_height="150dp"
+              android:layout_gravity="center_horizontal|bottom"
+              android:visibility="gone">
+
+              <TextView
+                  android:id="@+id/textView"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_centerHorizontal="true"
+                  android:layout_centerVertical="true"
+                  android:layout_gravity="center_horizontal|bottom"
+                  android:text=""
+                  android:textAppearance="?android:attr/textAppearanceLarge" />
+
+          </RelativeLayout>
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:textAppearance="?android:attr/textAppearanceMedium"
+              android:shadowDx="1"
+              android:shadowDy="1"
+              android:shadowRadius="2"
+              android:layout_marginTop="64dp"
+              android:layout_marginLeft="16dp"
+              android:layout_marginRight="16dp"
+              android:textColor="@android:color/white"
+              android:textStyle="bold"
+              android:id="@+id/topText"
+              tools:text="Scanning..."
+              android:layout_gravity="center_horizontal|top" />
+
+          <include layout="@layout/actions_main"/>
+
+          <ImageView
+              android:id="@+id/barcode_square"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_gravity="center"
+              android:layout_margin="38dp"
+              android:adjustViewBounds="true"
+              android:alpha="0.5"
+              tools:srcCompat="@drawable/material_barcode_square_512" />
+
+      </FrameLayout>""".trimIndent()
+
+    ide.editor
+      .selectEditorTab(EditorFixture.Tab.EDITOR)
+      .select("(<FrameLayout[\\s\\S]*</FrameLayout>)")
+      .pasteText(layoutText)
+
+    pause(1000000)
   }
 }
