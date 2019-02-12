@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.SdkConstants.*
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.editor.NavEditor
