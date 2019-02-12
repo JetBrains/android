@@ -46,7 +46,7 @@ class AndroidResourceReferenceAnnotator : Annotator {
         }
 
         val referenceType = referenceTarget.getResourceReferenceType()
-        val configuration = pickConfiguration(androidFacet, androidFacet.module, element.containingFile) ?: return
+        val configuration = pickConfiguration(element.containingFile, androidFacet) ?: return
         val resourceValue = findResourceValue(
             resourceType,
             reference.text,

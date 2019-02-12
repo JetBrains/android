@@ -149,7 +149,7 @@ public class AndroidColorAnnotator implements Annotator {
     if (file == null) {
       return;
     }
-    Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(facet, module, file);
+    Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(file, facet);
     if (configuration == null) {
       return;
     }
