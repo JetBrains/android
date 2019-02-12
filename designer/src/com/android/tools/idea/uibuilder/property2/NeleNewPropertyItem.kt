@@ -54,7 +54,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       delegate = findDelegate(propertyNamespace, propertyName)
 
       // Give the model a change to hide expanded flag items
-      model.firePropertyValueChange()
+      model.firePropertyValueChangeIfNeeded()
     }
 
   override fun isSameProperty(qualifiedName: String): Boolean {
