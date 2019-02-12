@@ -372,7 +372,7 @@ public class NlComponent implements NlAttributesHolder {
       return;
     }
     // Handle validity
-    tag.setAttribute(attribute, namespace, value);
+    myBackend.setAttribute(attribute, namespace, value);
     if (mySnapshot != null) {
       mySnapshot.setAttribute(attribute, namespace, prefix, value);
     }
@@ -417,20 +417,13 @@ public class NlComponent implements NlAttributesHolder {
     return getAttributeImpl(namespace, attribute);
   }
 
+  @Nullable
   public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
-    else {
-      XmlTag tag = getTag();
-      if (AndroidPsiUtils.isValid(tag)) {
-        return AndroidPsiUtils.getAttributeSafely(tag, namespace, attribute);
-      }
-      else {
-        // Newly created components for example
-        return null;
-      }
-    }
+
+    return myBackend.getAttribute(attribute, namespace);
   }
 
   @Nullable
