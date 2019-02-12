@@ -167,7 +167,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     if (myGradleProjectInfo.isBuildWithGradle()) {
       configureGradleProject();
-      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() || !myGradleProjectInfo.hasGradleFacets()) {
+      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() ||
+          (!myGradleProjectInfo.hasGradleFacets() && !myGradleProjectInfo.getAndroidModules().isEmpty())) {
         // Request sync since it was not done when importing
         myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
         checkSupported = false;
