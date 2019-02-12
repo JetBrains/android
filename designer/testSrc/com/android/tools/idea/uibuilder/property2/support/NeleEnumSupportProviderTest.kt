@@ -156,7 +156,7 @@ class NeleEnumSupportProviderTest: AndroidTestCase() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_VISIBILITY)
     definition.setValueMappings(mapOf("visible" to 1, "invisible" to 2, "gone" to 3))
-    val property = util.makeProperty(ANDROID_URI, definition)
+    val property = util.makeProperty(ANDROID_URI, definition, NelePropertyType.ENUM)
     val provider = NeleEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
     assertThat(enumSupport.values.map{ it.value }).containsExactly("visible", "invisible", "gone").inOrder()
