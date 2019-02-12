@@ -27,7 +27,7 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.ModelListener;

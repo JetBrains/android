@@ -14,7 +14,7 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel

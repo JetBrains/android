@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.configurations.Configuration

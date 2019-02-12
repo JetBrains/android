@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel;
 import com.android.tools.adtui.stdui.CommonBorder;

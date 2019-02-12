@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.common.property.inspector.InspectorProviders
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
