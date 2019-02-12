@@ -24,7 +24,7 @@ dependencies {
     testCompile 'junit:junit:+'
     compile 'com.android.support:appcompat-v7:+'
     compile 'uk.co.chrisjenx:calligraphy:+'
-//    compile 'org.greenrobot:eventbus:+'
+    compile 'org.greenrobot:eventbus:+'
     compile 'com.squareup.okhttp3:okhttp:+'
     compile project(':votingapplib')
 }
