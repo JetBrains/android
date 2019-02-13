@@ -82,7 +82,7 @@ public final class StudioFlags {
     "Use Navigation Controller in a project that has multiple destinations, " +
     "for example: Navigation Drawer Activity or Bottom Navigation Activity. This flag is used not to include the Navigation Component " +
     "before it becomes stable.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
