@@ -52,6 +52,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private SystemImageDescription myWearImageDescription;
   private SystemImageDescription myWearCnImageDescription;
   private Device myBigPhone;
+  private Device myFoldable;
   private Device myGapiPhoneDevice;
   private Device myPlayStorePhoneDevice;
   private Device mySmallTablet;
@@ -151,8 +152,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     // Get a Wear device
     myWearDevice = devMgr.getDevice("wear_square", "Google");
 
-    //Get a big phone and a small tablet
+    //Get a big phone, a bigger foldable, and a small tablet
     myBigPhone = devMgr.getDevice("pixel_3_xl", "Google");
+    myFoldable = devMgr.getDevice("Foldable_A", "Generic");
     mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
   }
 
@@ -188,6 +190,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   public void testPhoneVsTablet() {
     assertFalse(DeviceDefinitionList.isTablet(myBigPhone));
+    assertFalse(DeviceDefinitionList.isTablet(myFoldable));
     assertTrue(DeviceDefinitionList.isTablet(mySmallTablet));
   }
 }
