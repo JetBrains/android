@@ -142,6 +142,11 @@ public final class AvdScreenData {
     screen.setSize(ScreenSize.getScreenSize(effectiveDiagonal));
     screen.setXDimension(screenWidth);
     screen.setYDimension(screenHeight);
+    screen.setFoldedXOffset(myDeviceData.screenFoldedXOffset().get());
+    screen.setFoldedYOffset(myDeviceData.screenFoldedYOffset().get());
+    screen.setFoldedWidth(myDeviceData.screenFoldedWidth().get());
+    screen.setFoldedHeight(myDeviceData.screenFoldedHeight().get());
+
 
     screen.setRatio(getScreenRatio(screenWidth, screenHeight));
 
