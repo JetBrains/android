@@ -18,19 +18,20 @@ package com.android.tools.idea.transport.demo;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.stdui.CommonAction;
-import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.idea.transport.TransportClient;
 import com.android.tools.idea.transport.TransportService;
+import com.android.tools.idea.transport.poller.TransportEventListener;
+import com.android.tools.idea.transport.poller.TransportEventPoller;
+import com.android.tools.idea.transport.poller.TransportEventPollerFactory;
 import com.android.tools.pipeline.example.proto.Echo;
 import com.android.tools.profiler.proto.Commands;
-import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.proto.Commands.Command;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -42,13 +43,10 @@ import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -57,16 +55,16 @@ import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO move this to android-transport once the TransportService is complete.
-public class TransportPipelineDialog extends DialogWrapper implements Updatable {
+public class TransportPipelineDialog extends DialogWrapper {
   static final String TITLE = "Transport Pipeline";
+  private static final String NO_DEVICES_DETECTED = "No devices detected";
+  private static final String NO_DEBUGGABLE_PROCESSES = "No debuggable processes detected";
 
   private JPanel myRootPanel;
 
   private static final Map<Command.CommandType, Command.Builder> SUPPORTED_COMMANDS = ImmutableMap.of(
     ECHO, Command.newBuilder().setType(ECHO).setEchoData(Echo.EchoData.newBuilder().setData("Hello World"))
   );
-
 
   @NotNull private final CommonAction myProcessSelectionAction;
   @NotNull private final CommonDropDownButton myProcessSelectionDropDown;
@@ -76,13 +74,30 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
   @NotNull private final ComboBox<Common.Event.Kind> myEventFilter;
   @NotNull private final JBTextArea myEventLog;
 
-  @NotNull private final Updater myUpdater;
-  @NotNull private final TransportClient myClient;
+  @Nullable private final TransportClient myClient;
   @Nullable private Common.Stream mySelectedStream = Common.Stream.getDefaultInstance();
   @Nullable private Common.Process mySelectedProcess = Common.Process.getDefaultInstance();
-  private Map<Common.Stream, List<Common.Process>> myProcessesMap;
-  private boolean myAgentConnected;
-  private long myLastEventRequestTimestampNs = Long.MIN_VALUE;
+  @NotNull private final Map<Long, List<Common.Process>> myProcessesMap;
+  @NotNull private final Map<Long, Common.Stream> myStreamIdMap;
+  @NotNull private final Map<Long, Common.Process> myProcessIdMap;
+
+  @NotNull private final TransportEventPoller myTransportEventPoller;
+  private TransportEventListener mySelectedEventListener;
+  private TransportEventListener myAgentStatusListener;
+
+  // This is necessary because when reopening the dialog, the AGENT connected can be received before a process
+  // is selected by the user (it is already connected). In that case, we don't want to toggle the controls
+  // off again when going into "awaiting agent" because it doesn't come back up, so just register the listener
+  // after user selects a dropdown item.
+  private boolean myAgentConnected = false;
+
+  private long getSelectedStreamId() {
+    return mySelectedStream.getStreamId();
+  }
+
+  private int getSelectedProcessId() {
+    return mySelectedProcess.getPid();
+  }
 
   public TransportPipelineDialog(@Nullable Project project) {
     super(project);
@@ -90,8 +105,6 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     setModal(false);
 
     myClient = new TransportClient(TransportService.getInstance().getChannelName());
-    myUpdater = new Updater(new FpsTimer(1));
-    myUpdater.register(this);
 
     myProcessSelectionAction = new CommonAction("Select Process", StudioIcons.Common.ADD);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
@@ -114,6 +127,16 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
       }
     });
 
+    myProcessesMap = new HashMap<>();
+    myStreamIdMap = new HashMap<>();
+    myProcessIdMap = new HashMap<>();
+
+    myTransportEventPoller = TransportEventPollerFactory.getInstance().createPoller(myClient.getTransportStub(),
+                                                         TimeUnit.MILLISECONDS.toNanos(250));
+
+    // Register the event listeners with myTransportEventPoller
+    initializeEventListeners();
+
     myEventFilter = new ComboBox<>();
     for (Common.Event.Kind kind : Common.Event.Kind.values()) {
       if (kind != Common.Event.Kind.UNRECOGNIZED) {
@@ -122,12 +145,32 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     }
     myEventLog = new JBTextArea();
     myEventFilter.addActionListener(e -> {
-      myLastEventRequestTimestampNs = Long.MIN_VALUE;
       myEventLog.setText("");
+      // First unregister the old listener
+      if (mySelectedEventListener != null) {
+        myTransportEventPoller.unregisterListener(mySelectedEventListener);
+      }
+
+      // Create listener for selected status
+      Common.Event.Kind currentEventKind = (Common.Event.Kind)myEventFilter.getSelectedItem();
+      mySelectedEventListener = new TransportEventListener.Builder(currentEventKind,
+        event -> {
+          // Add events to log
+          myEventLog.append(event.toString());
+        }, ApplicationManager.getApplication()::invokeLater)
+        .build();
+      myTransportEventPoller.registerListener(mySelectedEventListener);
     });
 
     init();
-    toggleControls(myAgentConnected);
+    toggleControls(false);
+    rebuildDevicesDropdown();
+  }
+
+  @Override
+  protected void dispose() {
+    super.dispose();
+    TransportEventPollerFactory.getInstance().stopPoller(myTransportEventPoller);
   }
 
   // Triggered byt init() call.
@@ -153,6 +196,64 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     return myRootPanel;
   }
 
+  /**
+   * Called from constructor to register event listeners with TransportEventPoller
+   */
+  private void initializeEventListeners() {
+    // Create listener for STREAM connected
+    TransportEventListener streamConnectedListener = new TransportEventListener.Builder(Common.Event.Kind.STREAM,
+      event -> {
+        Common.Stream stream = event.getStream().getStreamConnected().getStream();
+        myStreamIdMap.put(stream.getStreamId(), stream);
+        myProcessesMap.put(stream.getStreamId(), new ArrayList<>());
+        rebuildDevicesDropdown();
+      }, ApplicationManager.getApplication()::invokeLater)
+      .setFilter(event -> event.getStream().hasStreamConnected())
+      .build();
+    myTransportEventPoller.registerListener(streamConnectedListener);
+
+
+    // Create listener for STREAM disconnected
+    TransportEventListener streamDisconnectedListener = new TransportEventListener.Builder(Common.Event.Kind.STREAM,
+      event -> {
+        Common.Stream stream = event.getStream().getStreamConnected().getStream();
+        myStreamIdMap.remove(stream.getStreamId());
+        myProcessesMap.remove(stream.getStreamId());
+        rebuildDevicesDropdown();
+      }, ApplicationManager.getApplication()::invokeLater)
+      .setFilter(event -> !event.getStream().hasStreamConnected())
+      .build();
+    myTransportEventPoller.registerListener(streamDisconnectedListener);
+
+
+    // Create listener for PROCESS started
+    TransportEventListener processStartedListener = new TransportEventListener.Builder(Common.Event.Kind.PROCESS,
+      event -> {
+        // Group ID here is the process ID
+        Common.Process process = event.getProcess().getProcessStarted().getProcess();
+        myProcessesMap.get(process.getDeviceId()).add(process);
+        myProcessIdMap.put(event.getGroupId(), process);
+        rebuildDevicesDropdown();
+      }, ApplicationManager.getApplication()::invokeLater)
+      .setFilter(event -> event.getProcess().hasProcessStarted())
+      .build();
+    myTransportEventPoller.registerListener(processStartedListener);
+
+
+    // Create listener for PROCESS stopped
+    TransportEventListener processEndedListener = new TransportEventListener.Builder(Common.Event.Kind.PROCESS,
+      event -> {
+        // Group ID here is the process ID
+        Common.Process process = myProcessIdMap.remove(event.getGroupId());
+        if (myProcessesMap.get(process.getDeviceId()) != null)
+          myProcessesMap.get(process.getDeviceId()).remove(process);
+        rebuildDevicesDropdown();
+      }, ApplicationManager.getApplication()::invokeLater)
+      .setFilter(event -> !event.getProcess().hasProcessStarted())
+      .build();
+    myTransportEventPoller.registerListener(processEndedListener);
+  }
+
   private void toggleControls(boolean enabled) {
     myCommandComboBox.setEnabled(enabled);
     mySendCommandButton.setEnabled(enabled);
@@ -167,174 +268,80 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     }
   }
 
-  @Override
-  public void update(long elapsedNs) {
-    // Query for current devices and processes
-    Map<Common.Stream, List<Common.Process>> processesMap = new HashMap<>();
-    {
-      List<Common.Stream> streams = new LinkedList<>();
-      // Get all streams of all types.
-      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
-        .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-        .setKind(Common.Event.Kind.STREAM)
-        .build();
-      Transport.GetEventGroupsResponse response = myClient.getTransportStub().getEventGroups(request);
-      for (Transport.EventGroup group : response.getGroupsList()) {
-        boolean isStreamDead = group.getEvents(group.getEventsCount() - 1).getIsEnded();
-        if (isStreamDead) {
-          // Ignore dead streams.
-          continue;
-        }
-        Common.Event connectedEvent = getLastMatchingEvent(group, e -> (e.hasStream() && e.getStream().hasStreamConnected()));
-        if (connectedEvent == null) {
-          // Ignore stream event groups that do not have the connected event.
-          continue;
-        }
-        Common.Stream stream = connectedEvent.getStream().getStreamConnected().getStream();
-        // We only want streams of type device to get process information.
-        if (stream.getType() == Common.Stream.Type.DEVICE) {
-          streams.add(stream);
-        }
-      }
-
-      for (Common.Stream stream : streams) {
-        Transport.GetEventGroupsRequest processRequest = Transport.GetEventGroupsRequest.newBuilder()
-          .setStreamId(stream.getStreamId())
-          .setKind(Common.Event.Kind.PROCESS)
-          .build();
-        Transport.GetEventGroupsResponse processResponse = myClient.getTransportStub().getEventGroups(processRequest);
-        List<Common.Process> processList = new ArrayList<>();
-        // A group is a collection of events that happened to a single process.
-        for (Transport.EventGroup groupProcess : processResponse.getGroupsList()) {
-          boolean isProcessDead = groupProcess.getEvents(groupProcess.getEventsCount() - 1).getIsEnded();
-          if (isProcessDead) {
-            // Ignore dead processes.
-            continue;
-          }
-          Common.Event aliveEvent = getLastMatchingEvent(groupProcess, e -> (e.hasProcess() && e.getProcess().hasProcessStarted()));
-          if (aliveEvent == null) {
-            // Ignore process event groups that do not have the started event.
-            continue;
-          }
-          Common.Process process = aliveEvent.getProcess().getProcessStarted().getProcess();
-          processList.add(process);
-        }
-        processesMap.put(stream, processList);
-      }
-    }
-
-    // Populate the process selection dropdown.
-    if (!processesMap.equals(myProcessesMap)) {
-      myProcessesMap = processesMap;
-      refreshProcessDropdown(myProcessesMap);
-    }
-
-    // If a process is selected, enabled the UI once the agent is detected.
-    if (!mySelectedProcess.equals(Common.Process.getDefaultInstance())) {
-      if (myAgentConnected) {
-        Common.Event.Kind eventKind = (Common.Event.Kind)myEventFilter.getSelectedItem();
-        if (eventKind != null && !Common.Event.Kind.NONE.equals(eventKind)) {
-          Transport.GetEventGroupsRequest eventRequest = Transport.GetEventGroupsRequest.newBuilder()
-            .setKind(eventKind)
-            .setFromTimestamp(myLastEventRequestTimestampNs)
-            .setToTimestamp(Long.MAX_VALUE)
-            .build();
-          Transport.GetEventGroupsResponse eventResponse = myClient.getTransportStub().getEventGroups(eventRequest);
-          if (!eventResponse.equals(Transport.GetEventGroupsResponse.getDefaultInstance())) {
-            List<Common.Event> events = new ArrayList<>();
-            eventResponse.getGroupsList().forEach(group -> events.addAll(group.getEventsList()));
-            Collections.sort(events, Comparator.comparingLong(Common.Event::getTimestamp));
-            if (!events.isEmpty()) {
-              events.forEach(evt -> {
-                if (evt.getTimestamp() >= myLastEventRequestTimestampNs) {
-                  myEventLog.append(evt.toString());
-                }
-              });
-              myLastEventRequestTimestampNs = Math.max(myLastEventRequestTimestampNs, events.get(events.size() - 1).getTimestamp() + 1);
-            }
-          }
-        }
-      }
-      else {
-        // Get agent data for requested session.
-        Transport.GetEventGroupsRequest agentRequest = Transport.GetEventGroupsRequest.newBuilder()
-          .setKind(Common.Event.Kind.AGENT)
-          .setStreamId(mySelectedStream.getStreamId())
-          .setPid(mySelectedProcess.getPid())
-          .build();
-        Transport.GetEventGroupsResponse response = myClient.getTransportStub().getEventGroups(agentRequest);
-        for (Transport.EventGroup group : response.getGroupsList()) {
-          if (group.getEvents(group.getEventsCount() - 1).getAgentData().getStatus().equals(Common.AgentData.Status.ATTACHED)) {
-            myAgentConnected = true;
-            toggleControls(myAgentConnected);
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  private void refreshProcessDropdown(Map<Common.Stream, List<Common.Process>> processesMap) {
+  private void rebuildDevicesDropdown() {
     myProcessSelectionAction.clear();
+    Map<Long, List<Common.Process>> processesMap = myProcessesMap;
 
     // Rebuild the action tree.
     if (processesMap.isEmpty()) {
-      CommonAction noDeviceAction = new CommonAction("No devices detected", null);
+      CommonAction noDeviceAction = new CommonAction(NO_DEVICES_DETECTED, null);
       noDeviceAction.setEnabled(false);
       myProcessSelectionAction.addChildrenActions(noDeviceAction);
     }
     else {
-      for (Common.Stream stream : processesMap.keySet()) {
+      for (long streamId : processesMap.keySet()) {
+        Common.Stream stream = myStreamIdMap.get(streamId);
         CommonAction deviceAction = new CommonAction(buildDeviceName(stream.getDevice()), null);
-        List<Common.Process> processes = processesMap.get(stream);
-        if (processes.isEmpty()) {
-          CommonAction noProcessAction = new CommonAction("No debuggable processes detected", null);
-          noProcessAction.setEnabled(false);
-          deviceAction.addChildrenActions(noProcessAction);
-        }
-        else {
-          List<CommonAction> processActions = new ArrayList<>();
-          for (Common.Process process : processes) {
-            CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
-            processAction.setAction(() -> {
-              mySelectedStream = stream;
-              mySelectedProcess = process;
+        List<Common.Process> processes = processesMap.get(streamId);
 
-              // The device daemon takes care of the case if and when the agent is previously attached already.
-              Command attachCommand = Command.newBuilder()
-                .setStreamId(mySelectedStream.getStreamId())
-                .setPid(mySelectedProcess.getPid())
-                .setType(Command.CommandType.ATTACH_AGENT)
-                .setAttachAgent(
-                  Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
-                .build();
-              myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
-              myAgentConnected = false;
-              toggleControls(myAgentConnected);
-            });
-            processActions.add(processAction);
-          }
-
-          deviceAction.addChildrenActions(processActions);
-        }
+        rebuildProcessesDropdown(deviceAction, stream, processes);
         myProcessSelectionAction.addChildrenActions(deviceAction);
       }
     }
   }
 
-  /**
-   * Helper method to return the last even in an EventGroup that matches the input condition.
-   */
-  @Nullable
-  private static Common.Event getLastMatchingEvent(@NotNull Transport.EventGroup group, @NotNull Predicate<Common.Event> predicate) {
-    Common.Event matched = null;
-    for (Common.Event event : group.getEventsList()) {
-      if (predicate.test(event)) {
-        matched = event;
+  private void rebuildProcessesDropdown(CommonAction deviceAction, Common.Stream stream, List<Common.Process> processes) {
+    deviceAction.clear();
+    if (processes.isEmpty()) {
+      CommonAction noProcessAction = new CommonAction(NO_DEBUGGABLE_PROCESSES, null);
+      noProcessAction.setEnabled(false);
+      deviceAction.addChildrenActions(noProcessAction);
+    }
+    else {
+      List<CommonAction> processActions = new ArrayList<>();
+      for (Common.Process process : processes) {
+        CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
+        processAction.setAction(() -> {
+          mySelectedStream = stream;
+          mySelectedProcess = process;
+
+          // Re-register the AGENT listener every time a process is selected, to start over for the timeframe
+          registerAgentListener();
+
+          // The device daemon takes care of the case if and when the agent is previously attached already.
+          Command attachCommand = Command.newBuilder()
+            .setStreamId(mySelectedStream.getStreamId())
+            .setPid(mySelectedProcess.getPid())
+            .setType(Command.CommandType.ATTACH_AGENT)
+            .setAttachAgent(
+              Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch())))
+            .build();
+          myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+          toggleControls(false);
+        });
+        processActions.add(processAction);
       }
+
+      deviceAction.addChildrenActions(processActions);
+    }
+  }
+
+  private void registerAgentListener() {
+    if (myAgentStatusListener != null) {
+     myTransportEventPoller.unregisterListener(myAgentStatusListener);
     }
 
-    return matched;
+    // Create listener for agent status
+    myAgentStatusListener = new TransportEventListener.Builder(Common.Event.Kind.AGENT,
+      event -> {
+        // If a process is selected, enable the UI once the agent is detected.
+        toggleControls(true);
+      }, ApplicationManager.getApplication()::invokeLater)
+      .setStreamId(this::getSelectedStreamId)
+      .setProcessId(this::getSelectedProcessId)
+      .setFilter(event -> event.getAgentData().getStatus().equals(Common.AgentData.Status.ATTACHED))
+      .build();
+    myTransportEventPoller.registerListener(myAgentStatusListener);
   }
 
   @NotNull
