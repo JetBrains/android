@@ -83,8 +83,10 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
       // ADB will try to make a .android directory under the user's home directory.
       // Mount a tmpfs on the home directory so ADB will succeed while running in the sandbox
       // Start by checking if we are the (fake) root user:
-      if (System.getProperty("user.name", "notroot") != "root") {
-        throw IllegalStateException("Not running as fake root. Is \"requires-fakeroot\" a tag in the BUILD target?")
+      System.getProperty("user.name", "notroot").let {
+        if (it != "root") {
+          throw IllegalStateException("Not running as ${it} rather than root. Is \"requires-fakeroot\" a tag in the BUILD target?")
+        }
       }
 
       // Check if we're underneath the directory we're about to mount over:
