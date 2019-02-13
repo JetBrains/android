@@ -236,14 +236,17 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     return new AndroidLogcatReceiver(device, new LogcatListener() {
       @Override
       public void onLogLineReceived(@NotNull LogCatMessage line) {
+        Iterable<ListenerConnector> connectors;
         synchronized (myLock) {
-          myDeviceToListenerMultimap.get(device).forEach(listener -> listener.onLogLineReceived(line));
+          connectors = ImmutableList.copyOf(myDeviceToListenerMultimap.get(device));
           LogcatBuffer buffer = myLogBuffers.get(device);
 
           if (buffer != null) {
             buffer.addMessage(line);
           }
         }
+
+        connectors.forEach(connector -> connector.onLogLineReceived(line));
       }
     });
   }
@@ -261,7 +264,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   }
 
   private static boolean supportsEpochFormatModifier(@NotNull IShellEnabledDevice device)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+      throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     LogcatHelpReceiver receiver = new LogcatHelpReceiver();
     device.executeShellCommand("logcat --help", receiver, 10, TimeUnit.SECONDS);
 
@@ -357,9 +360,12 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   }
 
   private void notifyThatLogcatWasCleared(@NotNull IDevice device) {
+    Iterable<ListenerConnector> connectors;
     synchronized (myLock) {
-      myDeviceToListenerMultimap.get(device).forEach(LogcatListener::onCleared);
+      connectors = ImmutableList.copyOf(myDeviceToListenerMultimap.get(device));
     }
+
+    connectors.forEach(ListenerConnector::onCleared);
   }
 
   /**
