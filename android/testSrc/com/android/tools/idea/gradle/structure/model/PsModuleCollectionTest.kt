@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
@@ -62,7 +64,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject)
-    assertThat(project.findModuleByName("jav") ).isNull()
+    assertThat(project.findModuleByName("jav")).isNull()
 
     // Edit the settings file, but do not sync.
     val virtualFile = this.project.baseDir.findFileByRelativePath("settings.gradle")!!
@@ -78,6 +80,33 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(moduleWithSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
   }
 
+  fun testNonAndroidGradlePluginFirst() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    // Edit the settings file, but do not sync.
+    val virtualFile = this.project.baseDir.findFileByRelativePath("app/build.gradle")!!
+    myFixture.openFileInEditor(virtualFile)
+    myFixture.type("apply plugin: 'something' \n")
+    PsiDocumentManager.getInstance(this.project).commitAllDocuments()
+
+
+    val resolvedProject = myFixture.project
+    // Make sure we have correctly patched the build file.
+    assertThat(
+        GradleModelProvider
+            .get()
+            .getProjectModel(resolvedProject)
+            .getModuleBuildModel(File(resolvedProject.basePath, "app"))
+            ?.plugins()
+            ?.firstOrNull()
+            ?.name()
+            ?.getValue(STRING_TYPE)
+    ).isEqualTo("something")
+
+    val project = PsProjectImpl(resolvedProject)
+    assertThat(project.modules.map { it.gradlePath }).contains(":app")
+  }
+
   fun testNestedModules() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
@@ -87,7 +116,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(module).isNotNull()
     assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
     assertThat(module.variables.getVariableScopes().map { it.name })
-      .containsExactly("${project.name} (build script)", "${project.name} (project)", "nested1", "nested1-deep")
+        .containsExactly("${project.name} (build script)", "${project.name} (project)", "nested1", "nested1-deep")
   }
 }
 
