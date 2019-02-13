@@ -97,5 +97,6 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/idea/.idea/libraries:protobuf[test]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
     ],
 )
