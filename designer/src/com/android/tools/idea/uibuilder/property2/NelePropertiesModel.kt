@@ -87,7 +87,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   /**
    * If true the value in an editor should show the resolved value of a property.
    */
-  var showResolvedValues = true
+  var showResolvedValues = false
     set (value) {
       field = value
       firePropertyValueChangeIfNeeded()
