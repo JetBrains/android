@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellEnabledDevice;
 import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.execution.impl.ConsoleBuffer;
@@ -32,21 +39,29 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 /**
  * {@link AndroidLogcatService} is the class that manages logs in all connected devices and emulators.
@@ -79,6 +94,83 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
+  private static class ListenerConnector implements LogcatListener {
+    @GuardedBy("myListenerLock")
+    @Nullable private LogcatListener myListener; // Initially not null, set to null when disconnected.
+    @GuardedBy("myBacklogLock")
+    @Nullable private Queue<LogCatMessage> myBacklog; // myBacklog is either null or not empty.
+    // The two locks bellow should never be held simultaneously or for a prolonged period of time.
+    @NotNull private final Object myListenerLock = new Object();
+    @NotNull private final Object myBacklogLock = new Object();
+
+    ListenerConnector(@NotNull LogcatListener listener, @NotNull Collection<LogCatMessage> messageBacklog) {
+      myListener = listener;
+      myBacklog = messageBacklog.isEmpty() ? null : new ArrayDeque<>(messageBacklog);
+    }
+
+    @Override
+    public void onLogLineReceived(@NotNull LogCatMessage message) {
+      processBacklog(); // Make sure that the backlog is processed before the new message.
+      dispatchMessage(message);
+    }
+
+    @Override
+    public void onCleared() {
+      synchronized (myBacklogLock) {
+        myBacklog = null;
+      }
+      synchronized (myListenerLock) {
+        if (myListener != null) {
+          myListener.onCleared();
+        }
+      }
+    }
+
+    boolean isConnectedTo(@NotNull LogcatListener listener) {
+      synchronized (myListenerLock) {
+        return listener == myListener;
+      }
+    }
+
+    void disconnectListener() {
+      synchronized (myListenerLock) {
+        myListener = null;
+      }
+      synchronized (myBacklogLock) {
+        myBacklog = null;
+      }
+    }
+
+    void processBacklog() {
+      LogCatMessage message;
+      while ((message = getMessageFromBacklog()) != null) {
+        dispatchMessage(message);
+      }
+    }
+
+    private void dispatchMessage(@NotNull LogCatMessage message) {
+      synchronized (myListenerLock) {
+        if (myListener != null) {
+          myListener.onLogLineReceived(message);
+        }
+      }
+    }
+
+    @Nullable
+    private LogCatMessage getMessageFromBacklog() {
+      synchronized (myBacklogLock) {
+        if (myBacklog == null) {
+          return null;
+        }
+        LogCatMessage message = myBacklog.remove();
+        if (myBacklog.isEmpty()) {
+          myBacklog = null;
+        }
+        return message;
+      }
+    }
+  }
+
   public interface LogcatListener {
     default void onLogLineReceived(@NotNull LogCatMessage line) {
     }
@@ -106,7 +198,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private final Map<IDevice, ExecutorService> myExecutors;
 
   @GuardedBy("myLock")
-  private final Multimap<IDevice, LogcatListener> myDeviceToListenerMultimap;
+  private final Multimap<IDevice, ListenerConnector> myDeviceToListenerMultimap;
 
   @NotNull
   public static AndroidLogcatService getInstance() {
@@ -281,16 +373,20 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    */
   public void addListener(@NotNull IDevice device, @NotNull LogcatListener listener, boolean addOldLogs) {
     synchronized (myLock) {
-      if (addOldLogs && myLogBuffers.containsKey(device)) {
-        for (LogCatMessage line : myLogBuffers.get(device).getMessages()) {
-          listener.onLogLineReceived(line);
-        }
-      }
+      List<LogCatMessage> oldMessages =
+          addOldLogs && myLogBuffers.containsKey(device) ? myLogBuffers.get(device).getMessages() : ImmutableList.of();
 
-      myDeviceToListenerMultimap.put(device, listener);
+      ListenerConnector listenerConnector = new ListenerConnector(listener, oldMessages);
+      myDeviceToListenerMultimap.put(device, listenerConnector);
 
       if (device.isOnline()) {
         startReceiving(device);
+      }
+
+      if (!oldMessages.isEmpty()) {
+        ExecutorService executor = myExecutors.get(device);
+        assert executor != null;
+        executor.submit(() -> listenerConnector.processBacklog());
       }
     }
   }
@@ -304,15 +400,22 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   public void removeListener(@NotNull IDevice device, @NotNull LogcatListener listener) {
     synchronized (myLock) {
-      Collection<LogcatListener> listeners = myDeviceToListenerMultimap.get(device);
+      Collection<ListenerConnector> connectors = myDeviceToListenerMultimap.get(device);
 
-      if (listeners.isEmpty()) {
+      if (connectors.isEmpty()) {
         return;
       }
 
-      listeners.remove(listener);
+      for (Iterator<ListenerConnector> iter = connectors.iterator(); iter.hasNext();) {
+        ListenerConnector connector = iter.next();
+        if (connector.isConnectedTo(listener)) {
+          connector.disconnectListener();
+          iter.remove();
+          break;
+        }
+      }
 
-      if (listeners.isEmpty()) {
+      if (connectors.isEmpty()) {
         stopReceiving(device);
       }
     }
