@@ -21,6 +21,8 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.TestDataPaths
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -74,6 +76,38 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             .map { it.dataBindingEvent.pollMetadata.dataBindingEnabled }
             .last())
           .isEqualTo(mode != DataBindingMode.NONE)
+      }
+      finally {
+        tracker.close()
+        UsageTracker.cleanAfterTesting()
+      }
+    }
+  }
+
+  @Test
+  fun testDataBindingPollingMetadataTracking() {
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      try {
+        UsageTracker.setWriterForTest(tracker)
+        val buildState = GradleBuildState.getInstance(projectRule.project)
+        buildState.buildFinished(BuildStatus.SUCCESS)
+        val dataBindingPollMetadata = tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .map { it.dataBindingEvent.pollMetadata }
+          .lastOrNull()
+
+        if (mode == DataBindingMode.NONE) {
+          assertThat(dataBindingPollMetadata).isNull()
+        }
+        else {
+          dataBindingPollMetadata!!
+          assertThat(dataBindingPollMetadata.layoutXmlCount).isEqualTo(3)
+          assertThat(dataBindingPollMetadata.importCount).isEqualTo(0)
+          assertThat(dataBindingPollMetadata.variableCount).isEqualTo(7)
+          assertThat(dataBindingPollMetadata.expressionCount).isEqualTo(5)
+        }
       }
       finally {
         tracker.close()
