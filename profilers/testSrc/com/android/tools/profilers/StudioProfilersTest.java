@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS;
+import static com.android.tools.profilers.StudioProfilers.AGENT_STATUS_MAX_RETRY_COUNT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -33,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -281,6 +285,30 @@ public final class StudioProfilersTest {
 
     assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
     assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds + 5));
+  }
+
+  @Test
+  public void testAgentUnattachableAfterMaxRetries() {
+    Assume.assumeFalse(myNewEventPipeline);
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), myIdeProfilerServices, myTimer);
+    AgentData attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.UNSPECIFIED).build();
+    myTransportService.setAgentStatus(attachedResponse);
+    myTransportService.addDevice(FAKE_DEVICE);
+    myTransportService.addProcess(FAKE_DEVICE, FAKE_PROCESS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setProcess(FAKE_DEVICE, FAKE_PROCESS);
+
+    for (int i = 0; i < AGENT_STATUS_MAX_RETRY_COUNT; i++) {
+      assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNSPECIFIED);
+      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    }
+    assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.UNATTACHABLE);
+
+    // Ensures that if the agent becomes attached at a later point, the status will be correct.
+    attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
+    myTransportService.setAgentStatus(attachedResponse);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getAgentData().getStatus()).isEqualTo(AgentData.Status.ATTACHED);
   }
 
   @Test

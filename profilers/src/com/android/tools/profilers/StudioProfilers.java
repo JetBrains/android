@@ -84,6 +84,8 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
+  @VisibleForTesting static final int AGENT_STATUS_MAX_RETRY_COUNT = 10;
+
   /**
    * The number of updates per second our simulated object models receive.
    */
@@ -151,6 +153,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * Whether the profiler should auto-select a process to profile.
    */
   private boolean myAutoProfilingEnabled;
+
+  /**
+   * The number of update count the profilers have waited for an agent statc to become ATTACHED.
+   * If the agent status remains UNSPECIFIED after {@link AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to be without agent.
+   */
+  private int myAgentStatusRetryCount = 0;
 
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -426,6 +434,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // fire the corresponding change and tracking events.
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         AgentData agentData = getAgentData(mySelectedSession);
+        // Consider the agent to be unattachable if it remains unspecified for long enough.
+        if (agentData.getStatus() == AgentData.Status.UNSPECIFIED && ++myAgentStatusRetryCount >= AGENT_STATUS_MAX_RETRY_COUNT) {
+          agentData = AgentData.newBuilder().setStatus(AgentData.Status.UNATTACHABLE).build();
+        }
+
         if (!myAgentData.equals(agentData)) {
           if (myAgentData.getStatus() != AgentData.Status.ATTACHED &&
               agentData.getStatus() == AgentData.Status.ATTACHED) {
@@ -559,6 +572,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     mySelectedSession = newSession;
     myAgentData = getAgentData(mySelectedSession);
+    myAgentStatusRetryCount = 0;
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
       myTimeline.setIsPaused(true);
