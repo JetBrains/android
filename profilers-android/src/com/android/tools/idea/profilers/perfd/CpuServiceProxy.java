@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A proxy CpuService on host that intercepts grpc requests from perfd-host to device perfd.
+ * A proxy CpuService on host that intercepts grpc requests from transport-database to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  *
  * In this class, 'profiling' means method-level tracing using either instrumentation or profiling.

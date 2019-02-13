@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.perfdHost" />
+    <orderEntry type="module" module-name="intellij.android.transportDatabase" />
     <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
