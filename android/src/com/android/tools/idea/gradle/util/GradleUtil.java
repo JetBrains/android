@@ -300,7 +300,7 @@ public final class GradleUtil {
 
   /**
    * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts.
+   * in the UI) artifacts. The returned list does not contain any duplicates.
    */
   @NotNull
   public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
@@ -314,7 +314,7 @@ public final class GradleUtil {
       dependencies = testArtifact.getLevel2Dependencies();
       libraries.addAll(dependencies.getModuleDependencies());
     }
-    return libraries;
+    return libraries.stream().distinct().collect(Collectors.toList());
   }
 
   @Nullable
