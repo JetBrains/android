@@ -106,7 +106,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private Map<Common.Device, List<Common.Process>> myProcesses;
 
   /**
-   * A map of device to stream ids. This is needed to map devices to their perfd-host streams.
+   * A map of device to stream ids. This is needed to map devices to their transport-database streams.
    */
   private Map<Common.Device, Long> myStreamIds;
 

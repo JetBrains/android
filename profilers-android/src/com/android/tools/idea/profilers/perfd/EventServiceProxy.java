@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 
 /**
- * A proxy EventService on host that intercepts grpc requests from perfd-host to device perfd.
+ * A proxy EventService on host that intercepts grpc requests from transport-database to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  */
 public class EventServiceProxy extends TransportProxyService {

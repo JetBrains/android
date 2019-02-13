@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Transport.EventGroup
 
 /**
  * Abstract class that manages test commands for the events framework. Commands are expected to behave in
- * the same way perfd/perfd-host will. If a command is expected to generate an event, that event can be
+ * the same way perfd/transport-database will. If a command is expected to generate an event, that event can be
  * added to the events list. If a command is expected to update the state of a previously generated event
  * the command should find the proper event group and add the new event to that group accordingly.
  */

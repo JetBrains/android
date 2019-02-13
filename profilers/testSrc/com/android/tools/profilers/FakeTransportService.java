@@ -356,7 +356,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
       responseObserver.onError(new RuntimeException("Server error"));
       return;
     }
-    // This logic mirrors that logic of perfd-host. We do proper filtering of all events here so our test, behave as close to runtime as
+    // This logic mirrors that logic of transport-database. We do proper filtering of all events here so our test, behave as close to runtime as
     // possible.
     HashMap<Long, Transport.EventGroup.Builder> eventGroups = new HashMap<>();
     for (long streamId : myStreamEvents.keySet()) {
