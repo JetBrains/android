@@ -18,6 +18,7 @@ package com.android.tools.datastore.poller;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,7 +53,6 @@ import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInfo;
 import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -124,7 +124,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    when(myDataStoreService.getCpuClient(any())).thenReturn(CpuServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStoreService.getCpuClient(anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
   }
 

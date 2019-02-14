@@ -134,8 +134,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   public void testConnectServices() {
     ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
     myDataStore.connect(STREAM, channel);
-    TransportServiceGrpc.TransportServiceBlockingStub stub =
-      myDataStore.getTransportClient(StreamId.of(DEVICE.getDeviceId()));
+    TransportServiceGrpc.TransportServiceBlockingStub stub = myDataStore.getTransportClient(DEVICE.getDeviceId());
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
   }
@@ -148,7 +147,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       TransportServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
-    myDataStore.disconnect(StreamId.of(DEVICE.getDeviceId()));
+    myDataStore.disconnect(DEVICE.getDeviceId());
     myExpectedException.expect(StatusRuntimeException.class);
     stub.getVersion(VersionRequest.getDefaultInstance());
   }

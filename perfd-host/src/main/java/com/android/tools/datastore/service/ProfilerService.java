@@ -16,7 +16,6 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.ProfilerTable;
@@ -62,7 +61,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(StreamId.of(request.getDeviceId()));
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getDeviceId());
     if (client == null) {
       responseObserver.onNext(BeginSessionResponse.getDefaultInstance());
     }
@@ -85,8 +84,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   @Override
   public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
     getLogger().info("Session (ID " + request.getSessionId() + ") ends.");
-    StreamId streamId = StreamId.of(request.getDeviceId());
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(streamId);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getDeviceId());
     if (client == null) {
       myTable.updateSessionEndTime(request.getSessionId(), request.getEndTimestamp());
       Common.Session session = myTable.getSessionById(request.getSessionId());
