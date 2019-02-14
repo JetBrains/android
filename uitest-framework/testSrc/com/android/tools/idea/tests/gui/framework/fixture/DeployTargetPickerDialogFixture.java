@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AnimatedIcon;
+import java.awt.Dialog;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -34,17 +43,10 @@ import org.fest.swing.util.TextMatcher;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
-import static com.google.common.truth.Truth.assertThat;
-
-/** Fixture for {@link com.android.tools.idea.run.editor.DeployTargetPickerDialog}. */
+/**
+ * @deprecated Use {@link com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture DeviceSelectorFixture}
+ */
+@Deprecated
 public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTargetPickerDialogFixture, JDialog>
   implements ContainerFixture<JDialog> {
 

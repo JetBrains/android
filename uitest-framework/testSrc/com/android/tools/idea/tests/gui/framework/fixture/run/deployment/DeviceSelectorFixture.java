@@ -110,6 +110,7 @@ public final class DeviceSelectorFixture {
   }
 
   private void selectDeviceWithDialog(@NotNull String deviceName) {
+    // noinspection deprecation
     DeployTargetPickerDialogFixture.find(myRobot)
       .selectDevice(deviceName)
       .clickOk();
