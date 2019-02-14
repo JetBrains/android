@@ -75,6 +75,27 @@ class SessionItemTest {
   }
 
   @Test
+  fun testAvoidRedundantNavigationToMonitorStage() {
+    val profilers = StudioProfilers(
+      myGrpcChannel.client,
+      FakeIdeProfilerServices(),
+      FakeTimer()
+    )
+    Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
+
+    val sessionsManager = profilers.sessionsManager
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build()
+    sessionsManager.beginSession(device, process)
+    Truth.assertThat(profilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
+
+    val stage = profilers.stage
+    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    sessionItem.onSelect()
+    Truth.assertThat(profilers.stage).isEqualTo(stage)
+  }
+
+  @Test
   fun testNonFullSessionNavigation() {
     val profilers = StudioProfilers(
       myGrpcChannel.client,
