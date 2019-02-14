@@ -25,13 +25,14 @@ import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJE
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Before
 import org.junit.Test
-import java.io.File
+import java.io.IOException
 
 class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
-  lateinit var compositeRoot : File
-  lateinit var compositeSub : File
+  private lateinit var compositeRoot: VirtualFile
+  private lateinit var compositeSub: VirtualFile
 
   @Before
   override fun setUp() {
@@ -42,21 +43,23 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS)
 
     // Set up the composite project.
-    compositeRoot = File(myProjectBasePath, "CompositeBuild/")
-    assertTrue(compositeRoot.mkdirs())
-    createFileAndWriteContent(File(compositeRoot, "settings.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS)
-    createFileAndWriteContent(File(compositeRoot, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD)
-    createFileAndWriteContent(File(compositeRoot, "subApplied.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED)
-    compositeSub = File(compositeRoot, "app")
-    assertTrue(compositeSub.mkdirs())
-    createFileAndWriteContent(File(compositeSub, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD)
+    runWriteAction<Unit, IOException> {
+      compositeRoot = myProjectBasePath.createChildDirectory(this, "CompositeBuild")
+      assertTrue(compositeRoot.exists())
+      createFileAndWriteContent(compositeRoot.createChildData(this, "settings.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS)
+      createFileAndWriteContent(compositeRoot.createChildData(this, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD)
+      createFileAndWriteContent(compositeRoot.createChildData(this, "subApplied.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED)
+      compositeSub = compositeRoot.createChildDirectory(this, "app")
+      assertTrue(compositeSub.exists())
+      createFileAndWriteContent(compositeSub.createChildData(this, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD)
+    }
   }
 
   @Test
   fun testEnsureCompositeBuildProjectDoNotLeakProperties() {
     // Create both ProjectBuildModels
     val mainModel = ProjectBuildModel.get(myProject)
-    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.absolutePath)
+    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.path)
     assertNotNull(compositeModel)
 
     // Check both models contain properties from the applied file
@@ -73,26 +76,26 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     val mainProp = mainModel.projectBuildModel!!.ext().findProperty("mainProjectProperty")
     verifyPropertyModel(mainProp, "ext.mainProjectProperty", "false")
     val compositeProp = compositeModel.projectBuildModel!!.ext().findProperty("compositeProjectProperty")
-    verifyPropertyModel(compositeProp, "ext.compositeProjectProperty", "true", File(compositeRoot, "build.gradle").absolutePath)
+    verifyPropertyModel(compositeProp, "ext.compositeProjectProperty", "true", compositeRoot.findChild("build.gradle")!!.path)
     val wrongMainProp = mainModel.projectBuildModel!!.ext().findProperty("compositeProjectProperty")
     assertMissingProperty(wrongMainProp)
     val wrongCompositeProp = compositeModel.projectBuildModel!!.ext().findProperty("mainProjectProperty")
     assertMissingProperty(wrongCompositeProp)
 
     // Check applied property in composite subModule
-    val appName = compositeModel.getModuleBuildModel(compositeSub)!!.android().defaultConfig().applicationId()
-    verifyPropertyModel(appName, "android.defaultConfig.applicationId", "Super cool app", File(compositeSub, "build.gradle").absolutePath)
+    val appName = compositeModel.getModuleBuildModel(compositeSub.findChild("build.gradle")!!).android().defaultConfig().applicationId()
+    verifyPropertyModel(appName, "android.defaultConfig.applicationId", "Super cool app", compositeSub.findChild("build.gradle")!!.path)
 
     // Check included builds are correct in the main modules settings file
     val includedBuilds = mainModel.projectSettingsModel!!.includedBuilds()
     assertSize(1, includedBuilds)
-    assertEquals(compositeRoot.absolutePath, includedBuilds[0].path)
+    assertEquals(compositeRoot.path, includedBuilds[0].path)
   }
 
   @Test
   fun testEnsureProjectBuildModelsProduceAllBuildModels() {
     val mainModel = ProjectBuildModel.get(myProject)
-    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.absolutePath)
+    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.path)
 
     val mainBuildModels = mainModel.allIncludedBuildModels
     assertSize(2, mainBuildModels)
@@ -101,10 +104,8 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     assertSize(2, compositeBuildModels)
   }
 
-  private fun createFileAndWriteContent(file: File, content: TestFileName) {
-    assertTrue(file.parentFile.exists() || file.mkdirs())
-    assertTrue(file.exists() || file.createNewFile())
-
+  private fun createFileAndWriteContent(file: VirtualFile, content: TestFileName) {
+    assertTrue(file.exists())
     prepareAndInjectInformationForTest(content, file)
   }
 }

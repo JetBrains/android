@@ -15,44 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 
 /**
  * Represents a gradle.properties file.
  */
 public class GradlePropertiesModel extends GradleFileModelImpl {
   private static final Logger LOG = Logger.getInstance(GradlePropertiesModel.class);
-
-  @Nullable
-  public static GradlePropertiesModel parsePropertiesFile(@NotNull VirtualFile file,
-                                                          @NotNull Project project,
-                                                          @NotNull String moduleName,
-                                                          @NotNull BuildModelContext context) {
-    File propertiesFile = VfsUtilCore.virtualToIoFile(file);
-    try {
-      Properties properties = getProperties(propertiesFile);
-      GradlePropertiesFile gradlePropertiesFile = new GradlePropertiesFile(properties, file, project, moduleName, context);
-      return new GradlePropertiesModel(gradlePropertiesFile);
-    }
-    catch (IOException e) {
-      LOG.warn("Failed to process " + file.getPath(), e);
-      return null;
-    }
-  }
 
   public GradlePropertiesModel(@NotNull GradleDslFile gradleDslFile) {
     super(gradleDslFile);

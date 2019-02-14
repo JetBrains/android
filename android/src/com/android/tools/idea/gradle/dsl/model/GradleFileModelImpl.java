@@ -146,6 +146,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   @Override
   @NotNull
   public Map<String, List<BuildModelNotification>> getNotifications() {
-    return getAllInvolvedFiles().stream().collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
+    return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
+      .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
   }
 }
