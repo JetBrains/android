@@ -106,5 +106,14 @@ class ComponentAssistantTest {
     editor.selectEditorTab(EditorFixture.Tab.EDITOR)
     val contents = editor.currentFileContents
     assertTrue(contents.contains("tools:text=\"@tools:sample/first_names\""))
+    editor.selectEditorTab(EditorFixture.Tab.DESIGN)
+
+    // Verify that the element still displays as selected in the assistant panel
+    layout.findView("TextView", 1)
+      .click()
+      .openComponentAssistant()
+      .getTextViewAssistant()
+      .combo
+      .requireSelection("first_names")
   }
 }

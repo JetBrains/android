@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.tools.idea.common.property2.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupport
 
 /**
  * Indicates that this [EnumSupport] can be cached.

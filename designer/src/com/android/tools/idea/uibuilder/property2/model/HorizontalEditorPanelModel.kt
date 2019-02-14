@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property2.model
 
-import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import com.android.tools.idea.common.property2.api.PropertyItem
-import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.annotations.VisibleForTesting
 
 /**

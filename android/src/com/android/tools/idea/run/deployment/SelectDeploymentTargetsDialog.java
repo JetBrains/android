@@ -19,6 +19,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
+import java.util.Collection;
 import javax.swing.Action;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
@@ -29,14 +30,19 @@ import org.jetbrains.annotations.NotNull;
 
 final class SelectDeploymentTargetsDialog extends DialogWrapper {
   @NotNull
-  private final Project myProject;
+  private final SelectDeploymentTargetsDialogTable myTable;
 
   SelectDeploymentTargetsDialog(@NotNull Project project) {
     super(project);
-    myProject = project;
+    myTable = new SelectDeploymentTargetsDialogTable(project);
 
     init();
     setTitle("Select Deployment Targets");
+  }
+
+  @NotNull
+  Collection<Device> getSelectedDevices() {
+    return myTable.getSelectedDevices();
   }
 
   @NotNull
@@ -45,7 +51,7 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
     JComponent panel = new JPanel();
     GroupLayout layout = new GroupLayout(panel);
     Component label = new JLabel("Available devices");
-    Component scrollPane = new JBScrollPane(new SelectDeploymentTargetsDialogTable(myProject));
+    Component scrollPane = new JBScrollPane(myTable);
 
     Group horizontalGroup = layout.createParallelGroup()
       .addComponent(label)

@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.api.*
+import com.android.tools.property.panel.api.*
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 
 class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) {

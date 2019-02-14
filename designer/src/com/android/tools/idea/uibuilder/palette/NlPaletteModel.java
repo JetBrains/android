@@ -220,15 +220,7 @@ public class NlPaletteModel implements Disposable {
         // background thread so we can avoid holding the read lock for longer than we need to.
         application.executeOnPooledThread(() -> replaceProjectComponents(type, viewInfos));
       })
-      .onError(error -> {
-        if (error instanceof ProcessCanceledException) {
-          // Scheduling on the EDT guarantees that whatever write action preempted us will have completed when we try again.
-          application.invokeLater(() -> loadAdditionalComponents(type, viewClasses));
-        }
-        else {
-          getLogger().error(error);
-        }
-      });
+      .onError(error -> getLogger().error(error));
   }
 
   private void replaceProjectComponents(@NotNull LayoutEditorFileType type, Collection<CustomViewInfo> viewInfos) {

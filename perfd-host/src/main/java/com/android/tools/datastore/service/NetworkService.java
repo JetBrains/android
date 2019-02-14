@@ -16,7 +16,7 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.datastore.poller.NetworkDataPoller;
@@ -59,7 +59,7 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
   public void startMonitoringApp(NetworkProfiler.NetworkStartRequest request,
                                  StreamObserver<NetworkProfiler.NetworkStartResponse> responseObserver) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client =
-      myService.getNetworkClient(DeviceId.fromSession(request.getSession()));
+      myService.getNetworkClient(StreamId.fromSession(request.getSession()));
     if (client != null) {
       responseObserver.onNext(client.startMonitoringApp(request));
       responseObserver.onCompleted();
@@ -85,7 +85,7 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
     NetworkServiceGrpc.NetworkServiceBlockingStub service =
-      myService.getNetworkClient(DeviceId.fromSession(request.getSession()));
+      myService.getNetworkClient(StreamId.fromSession(request.getSession()));
     if (service == null) {
       responseObserver.onNext(NetworkProfiler.NetworkStopResponse.getDefaultInstance());
     }

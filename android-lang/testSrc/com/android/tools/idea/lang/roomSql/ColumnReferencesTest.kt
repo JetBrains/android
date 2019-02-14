@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
+import com.intellij.find.FindManager
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
 
@@ -659,6 +660,14 @@ class ColumnReferencesTest : RoomLightTestCase() {
             .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
+
+  fun testUsages_readAction() {
+    myFixture.addRoomEntity("com.example.Item", "desc" ofType "String")
+    // FindManager calls referenceSearch extensions in a pooled thread without the read lock, as opposed to the EDT that
+    // myFixture.findUsages uses. Make sure our Room extensions don't throw under these conditions.
+    FindManager.getInstance(project).findUsages(myFixture.findField("com.example.Item", "desc"))
+  }
+
 
   fun testQualifiedColumns() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")

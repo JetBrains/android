@@ -34,12 +34,12 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModel
-import com.android.tools.adtui.ptable2.PTableModelUpdateListener
-import com.android.tools.idea.common.property2.impl.model.util.TestTableLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.PTableModelUpdateListener
+import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
@@ -71,8 +71,8 @@ class DeclaredAttributesInspectorBuilderTest {
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).hasSize(2)
-    assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
-    assertThat(util.inspector.lines[1].type).isEqualTo(TestLineType.TABLE)
+    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
+    assertThat(util.inspector.lines[1].type).isEqualTo(FakeLineType.TABLE)
 
     assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
     assertThat(util.inspector.lines[0].expandable).isTrue()
@@ -95,8 +95,8 @@ class DeclaredAttributesInspectorBuilderTest {
     performAddNewRowAction(util)
 
     assertThat(util.inspector.lines).hasSize(2)
-    assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
-    assertThat(util.inspector.lines[1].type).isEqualTo(TestLineType.TABLE)
+    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
+    assertThat(util.inspector.lines[1].type).isEqualTo(FakeLineType.TABLE)
 
     assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
     assertThat(util.inspector.lines[0].expandable).isTrue()
@@ -192,7 +192,7 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    val tableLine = util.inspector.lines[1] as TestTableLineModel
+    val tableLine = util.inspector.lines[1] as FakeTableLineModel
     val model = tableLine.tableModel
     tableLine.selectedItem = model.items[2] // select ATTR_TEXT
     performDeleteRowAction(util)

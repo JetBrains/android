@@ -222,7 +222,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
-    assertEquals(actualChildren, Collections.singletonList(action.getOpenAvdManagerAction()));
+    assertEquals(actualChildren, Arrays.asList(action.getRunOnMultipleDevicesAction(), action.getOpenAvdManagerAction()));
   }
 
   @Test
@@ -252,6 +252,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(builder.build(null, myMap))
         .build(),
       Separator.getInstance(),
+      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -283,6 +284,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(builder.build(null, myMap))
         .build(),
       Separator.getInstance(),
+      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -328,6 +330,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(virtualDeviceBuilder.build(null, myMap))
         .build(),
       Separator.getInstance(),
+      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -361,6 +364,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setSnapshot(VirtualDevice.DEFAULT_SNAPSHOT)
         .build(),
       Separator.getInstance(),
+      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -393,6 +397,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(builder.build(null, myMap))
         .build(),
       Separator.getInstance(),
+      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);

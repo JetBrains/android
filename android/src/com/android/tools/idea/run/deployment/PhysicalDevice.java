@@ -28,7 +28,6 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
-import java.util.Collections;
 import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -115,10 +114,9 @@ final class PhysicalDevice extends Device {
     return device.getVersion();
   }
 
-  @NotNull
   @Override
-  DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
-    return new DeviceFutures(Collections.singletonList(getAndroidDevice()));
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+    futures.getDevices().add(getAndroidDevice());
   }
 
   @Override

@@ -23,7 +23,7 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
@@ -47,7 +47,7 @@ class LayoutInspectorBuilderTest {
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).hasSize(6)
-    assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
+    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Layout")
     checkLine(util, 1, ANDROID_URI, ATTR_LAYOUT_WIDTH)
     checkLine(util, 2, ANDROID_URI, ATTR_LAYOUT_HEIGHT)
@@ -57,7 +57,7 @@ class LayoutInspectorBuilderTest {
   }
 
   private fun checkLine(util: InspectorTestUtil, line: Int, namespace: String, attrName: String) {
-    assertThat(util.inspector.lines[line].type).isEqualTo(TestLineType.PROPERTY)
+    assertThat(util.inspector.lines[line].type).isEqualTo(FakeLineType.PROPERTY)
     assertThat(util.inspector.lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
     assertThat(util.inspector.lines[line].editorModel?.property?.name).isEqualTo(attrName)
   }

@@ -75,7 +75,7 @@ import org.jetbrains.annotations.Nullable;
 public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   // To have the sequence specified by design, we hardcode the sequence.
   private static final String[] ORDERED_ACTIVITY_NAMES = {
-    "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fullscreen Activity", "Master/Detail Flow",
+    "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fragment + ViewModel", "Fullscreen Activity", "Master/Detail Flow",
     "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
   };
 

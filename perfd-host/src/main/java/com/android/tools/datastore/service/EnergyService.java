@@ -17,7 +17,7 @@ package com.android.tools.datastore.service;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.EnergyTable;
@@ -76,11 +76,11 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @Override
   public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
                                  StreamObserver<EnergyProfiler.EnergyStartResponse> responseObserver) {
-    DeviceId deviceId = DeviceId.fromSession(request.getSession());
-    EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(deviceId);
-    CpuServiceGrpc.CpuServiceBlockingStub cpuClient = myService.getCpuClient(deviceId);
-    NetworkServiceGrpc.NetworkServiceBlockingStub networkClient = myService.getNetworkClient(deviceId);
-    TransportServiceGrpc.TransportServiceBlockingStub transportClient = myService.getTransportClient(deviceId);
+    StreamId streamId = StreamId.fromSession(request.getSession());
+    EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(streamId);
+    CpuServiceGrpc.CpuServiceBlockingStub cpuClient = myService.getCpuClient(streamId);
+    NetworkServiceGrpc.NetworkServiceBlockingStub networkClient = myService.getNetworkClient(streamId);
+    TransportServiceGrpc.TransportServiceBlockingStub transportClient = myService.getTransportClient(streamId);
 
     if (energyClient != null && transportClient != null) {
       responseObserver.onNext(energyClient.startMonitoringApp(request));
@@ -109,7 +109,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
     EnergyServiceGrpc.EnergyServiceBlockingStub client =
-      myService.getEnergyClient(DeviceId.fromSession(request.getSession()));
+      myService.getEnergyClient(StreamId.fromSession(request.getSession()));
     if (client == null) {
       responseObserver.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
     }

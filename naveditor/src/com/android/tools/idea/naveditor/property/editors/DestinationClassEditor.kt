@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.editors
 import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil

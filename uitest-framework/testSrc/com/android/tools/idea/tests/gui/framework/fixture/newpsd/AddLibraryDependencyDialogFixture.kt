@@ -30,6 +30,7 @@ import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.fixture.JTextComponentFixture
+import org.fest.swing.timing.Wait
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.JButton
 import javax.swing.JDialog
@@ -52,9 +53,17 @@ class AddLibraryDependencyDialogFixture private constructor(
   fun findArtifactsView(): JTableFixture =
     JTableFixture(robot(), robot().finder().find<TableView<*>>(container) { it.columnCount == 3 })
 
-  fun findVersionsView(): JTableFixture =
+  fun findVersionsView(waitUntilNotEmpty: Boolean = false): JTableFixture =
     JTableFixture(robot(), robot().finder().find<TableView<*>>(container) { it.columnCount == 1 })
       .also {
+        if (waitUntilNotEmpty) {
+          Wait
+            .seconds(10)
+            .expecting("Search completed")
+            .until {
+              it.rowCount() > 0
+            }
+        }
         it.replaceCellReader(object : BasicJTableCellReader() {
           override fun valueAt(table: JTable, row: Int, column: Int): String? =
             table

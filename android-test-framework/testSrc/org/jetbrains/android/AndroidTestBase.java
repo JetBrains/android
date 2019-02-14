@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,23 +28,23 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.nio.file.Paths;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
@@ -75,18 +75,16 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     VfsRootAccess.allowRootAccess(FileUtil.toCanonicalPath(getAndroidPluginHome()));
   }
 
-  public static String getAbsoluteTestDataPath() {
-    // The following code doesn't work right now that the Android
-    // plugin lives in a separate place:
-    //String androidHomePath = System.getProperty("android.home.path");
-    //if (androidHomePath == null) {
-    //  androidHomePath = new File(PathManager.getHomePath(), "android/android").getPath();
-    //}
-    //return PathUtil.getCanonicalPath(androidHomePath + "/testData");
+  public void refreshProjectFiles() {
+    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
+    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
+    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
+    // This refresh must be synchronous and recursive so it is completed before continuing the test and clean everything so indexes are
+    // properly updated. Apparently this solves outdated indexes and stubs problems
+    LocalFileSystem.getInstance().refresh(false /* synchronous */);
 
-    String path = Paths.get(getTestDataPath()).toAbsolutePath().toString();
-    assertTrue(new File(path).isAbsolute());
-    return path;
+    // Run VFS listeners.
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   public static String getTestDataPath() {
@@ -220,7 +218,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       }
       String indent = "  ";
       sb.append(indent);
-      sb.append(text.substring(lineStart, lineEnd));
+      sb.append(text, lineStart, lineEnd);
       sb.append('\n');
       sb.append(indent);
       for (int i = lineStart; i < lineEnd; i++) {

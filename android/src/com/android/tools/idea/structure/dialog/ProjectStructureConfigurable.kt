@@ -259,6 +259,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
     myOpenTimeMs = System.currentTimeMillis()
     logUsageOpen()
+    needsSync = false
     myShowing = true
     try {
       showDialog(Runnable {
@@ -271,6 +272,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       myShowing = false
     }
     if (needsSync) {
+      // NOTE: If the user applied the changes in the dialog and then cancelled the dialog, sync still needs to happen here since
+      //       we do not perform a sync when applying changes on "apply".
       GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PSD_CHANGES)
     }
   }

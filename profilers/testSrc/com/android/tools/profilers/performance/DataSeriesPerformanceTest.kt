@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
-import com.android.tools.datastore.DeviceId
+import com.android.tools.datastore.StreamId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark
@@ -86,8 +86,8 @@ class DataSeriesPerformanceTest {
     service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().absolutePath,
                                Consumer<Runnable> { ticker.run(it) }, FakeLogService())
     val channel = InProcessChannelBuilder.forName("DataSeriesPerformanceTest").build()
-    service.connect(channel)
-    service.setConnectedClients(DeviceId.of(-1), channel)
+    // Stream id does not matter here as the tests are not communicating with the channel.
+    service.connect(Common.Stream.newBuilder().setStreamId(-1).build(), channel)
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
       val performantDatabase = namespace.myCharacteristic == DataStoreDatabase.Characteristic.PERFORMANT

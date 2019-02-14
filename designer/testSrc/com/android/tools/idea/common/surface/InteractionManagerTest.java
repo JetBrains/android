@@ -15,6 +15,27 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.clickMouse;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createDropTargetContext;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createManager;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createTransferable;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.dragDrop;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.dragMouse;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.pressMouse;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.releaseMouse;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
@@ -34,24 +55,25 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
-
-import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 /**
  * TODO: remove layout-specific stuff, add generic tests.
@@ -238,6 +260,21 @@ public class InteractionManagerTest extends LayoutTestCase {
     Disposer.dispose(surface);
   }
 
+  public void testDblClickComponentWithInvalidXmlTagInPreview() {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    NlDesignSurface surface = (NlDesignSurface)manager.getSurface();
+    when(surface.isPreviewSurface()).thenReturn(true);
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    deleteXmlTag(textView.getNlComponent());
+    clickMouse(manager, MouseEvent.BUTTON1, 2,
+               Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+               Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
+    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+  }
+
   public void testLinearLayoutCursorHoverComponent() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
@@ -274,7 +311,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testLinearLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    Mockito.when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
+    when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
@@ -341,7 +378,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testConstraintLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    Mockito.when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
+    when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
@@ -361,7 +398,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     Point moved = new Point(0, 0);
-    Mockito.when(surface.getScrollPosition()).thenReturn(moved);
+    when(surface.getScrollPosition()).thenReturn(moved);
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
@@ -373,7 +410,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testInterceptPanModifiedKeyReleased() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    Mockito.when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+    when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
     assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0), 0, 0));
     Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRABBING);
@@ -425,7 +462,7 @@ public class InteractionManagerTest extends LayoutTestCase {
 
   private MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask) {
     Component sourceMock = Mockito.mock(Component.class);
-    Mockito.when(sourceMock.getLocationOnScreen()).thenReturn(new Point(0, 0));
+    when(sourceMock.getLocationOnScreen()).thenReturn(new Point(0, 0));
     return new MouseEvent(
       sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false);
   }
@@ -443,7 +480,7 @@ public class InteractionManagerTest extends LayoutTestCase {
           .wrapContentHeight())).build();
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
-    Mockito.when(surface.getScale()).thenReturn(1.0);
+    when(surface.getScale()).thenReturn(1.0);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return createManager(surface);
   }
@@ -462,5 +499,11 @@ public class InteractionManagerTest extends LayoutTestCase {
       }
       return true;
     }
+  }
+
+  private void deleteXmlTag(@NotNull NlComponent component) {
+    XmlTag tag = component.getBackend().getTagPointer().getElement();
+    WriteCommandAction.writeCommandAction(getProject()).run(() -> tag.delete());
+    UIUtil.dispatchAllInvocationEvents();
   }
 }

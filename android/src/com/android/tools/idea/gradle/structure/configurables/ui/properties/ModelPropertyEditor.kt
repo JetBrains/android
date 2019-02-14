@@ -93,8 +93,8 @@ interface EditorExtensionAction<T : Any, ModelPropertyCoreT : ModelPropertyCore<
   val title: String
   val tooltip: String
   val icon: Icon
-  val availableInNonPropertyContext: Boolean
   val isMainAction: Boolean
+  fun isAvailableFor(property: ModelPropertyCoreT, isPropertyContext: Boolean): Boolean
   fun invoke(
     property: ModelPropertyCoreT,
     editor: ModelPropertyEditor<T>,

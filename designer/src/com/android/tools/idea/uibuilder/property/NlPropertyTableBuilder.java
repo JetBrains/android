@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

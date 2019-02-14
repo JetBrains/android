@@ -158,8 +158,7 @@ public abstract class Device {
     return ((ConnectedAndroidDevice)device).getDevice();
   }
 
-  @NotNull
-  abstract DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot);
+  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot);
 
   @NotNull
   @Override

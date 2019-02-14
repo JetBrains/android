@@ -16,11 +16,9 @@
 package com.android.tools.idea.editors.layoutInspector.ptable
 
 import com.android.layoutinspector.model.ViewProperty
-import com.android.tools.adtui.ptable.PTableItem
+import com.android.tools.property.ptable.PTableItem
 import com.android.tools.idea.editors.layoutInspector.DefaultNoEditHandler
 import com.android.tools.idea.editors.layoutInspector.EditHandler
-
-import java.util.Collections
 
 class LITableItem(private val myProp: ViewProperty, parent: PTableItem, private val myEditHandler: EditHandler) : PTableItem(),
   Comparable<PTableItem> {

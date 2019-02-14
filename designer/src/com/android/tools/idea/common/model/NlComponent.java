@@ -140,7 +140,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public void setTag(@NotNull XmlTag tag) {
-    myBackend.setTag(tag);
+    myBackend.setTagElement(tag);
   }
 
   @Nullable
@@ -734,19 +734,25 @@ public class NlComponent implements NlAttributesHolder {
     if (parent != null) {
       parent.removeChild(this);
     }
+    XmlTag tag = getBackend().getTag();
+    XmlTag receiverTag = receiver.getBackend().getTag();
+    XmlTag beforeTag = before != null ? before.getBackend().getTag() : null;
+    if (receiverTag == null || tag == null) {
+      return; // Abort: the XML has been edited before this change was made, and the tags are no longer available.
+    }
+    if (receiverTag == tag) {
+      return; // Abort: cannot add XmlTag to itself
+    }
     receiver.addChild(this, before);
-    if (receiver.getTag() != getTag()) {
-      transferNamespaces(receiver);
-      XmlTag prev = getTag();
-      if (before != null) {
-        setTag((XmlTag)receiver.getTag().addBefore(getTag(), before.getTag()));
-      }
-      else {
-        setTag(receiver.getTag().addSubTag(getTag(), false));
-      }
-      if (type.isMove()) {
-        prev.delete();
-      }
+    transferNamespaces(receiver);
+    if (beforeTag != null) {
+      setTag((XmlTag)receiverTag.addBefore(tag, beforeTag));
+    }
+    else {
+      setTag(receiverTag.addSubTag(tag, false));
+    }
+    if (type.isMove()) {
+      tag.delete();
     }
   }
 

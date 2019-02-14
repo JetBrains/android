@@ -24,8 +24,10 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
+import com.intellij.util.ImageLoader;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -137,7 +139,8 @@ public class ImageUtils {
     }
 
     try {
-      Image retina = RetinaImage.createFrom(image);
+      Image retina = RetinaImage.createFrom(image, JBUI.sysScale(), null);
+
 
       if (!(retina instanceof BufferedImage)) {
         // Don't try this again

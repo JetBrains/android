@@ -37,7 +37,6 @@ import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.SdkConstants.VIEW
 import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.SdkConstants.VIEW_MERGE
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
@@ -58,10 +57,10 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Computable
 import com.intellij.pom.Navigatable
 import com.intellij.util.PsiNavigateUtil
 
@@ -350,27 +349,10 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 val NlComponent.viewHandler: ViewHandler?
-  get() {
-    return ApplicationManager.getApplication().runReadAction(Computable{
-      if (!tag.isValid) {
-        null
-      }
-      else {
-        ViewHandlerManager.get(tag.project).getHandler(this)
-      }
-    })
-  }
+  get() = ViewHandlerManager.get(model.project).getHandler(this)
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
-  get() {
-    @Suppress("SENSELESS_COMPARISON")
-    // tag can be null for a mock component. To avoid the need of creating a fully functionnal mock XmlTag
-    // that passes all tests, we check the nullity.
-    if (tag == null || !tag.isValid) {
-      return null
-    }
-    return ViewHandlerManager.get(tag.project).findLayoutHandler(this, false)
-  }
+  get() = ViewHandlerManager.get(model.project).findLayoutHandler(this, false)
 
 /**
  * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
@@ -379,14 +361,11 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
  * and [DragHandler.commit].
 
  * @param editor     The editor showing the component
- * *
  * @param fqcn       The fully qualified name of the widget to insert, such as `android.widget.LinearLayout`
- * *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
- * *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
- * *                   you can omit the package.)
- * *
+ *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
+ *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
+ *                   you can omit the package.)
  * @param before     The sibling to insert immediately before, or null to append
- * *
  * @param insertType The type of insertion
  */
 fun NlComponent.createChild(editor: ViewEditor,
@@ -395,14 +374,19 @@ fun NlComponent.createChild(editor: ViewEditor,
                             insertType: InsertType
 ): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
-  val tag = tag.createChildTag(tagName, null, null, false)
-
-  return model.createComponent(editor.scene.designSurface, tag, this, before, insertType)
+  return createChild(tagName, false, null, null, editor.scene.designSurface, before, insertType)
 }
 
 /**
- * Create a new child component based on tag name, namespace and body text.
- * Temporary API to help remove XmlTag dependencies.
+ * See [createChild]
+ *
+ * @param tagName                 The new tag name of the child. Not the fully qualified name such as 'android.widget.LinearLayout' but
+ *                                rather 'LinearLayout'.
+ * @param enforceNamespacesDeep   If you pass some xml tags to {@code bodyText} parameter, this flag sets namespace prefixes for them.
+ * @param namespace               Namespaces of the tag name.
+ * @param surface                 The surface showing the component
+ * @param before                  The sibling to insert immediately before, or null to append
+ * @param insertType              The type of insertion
  */
 fun NlComponent.createChild(tagName: String,
                             enforceNamespacesDeep: Boolean = false,
@@ -417,11 +401,8 @@ fun NlComponent.createChild(tagName: String,
 }
 
 fun NlComponent.navigateTo(): Boolean {
-  if (!tag.isValid) {
-    return false
-  }
-
-  PsiNavigateUtil.navigate(tag)
+  val element = backend.tag ?: return false
+  PsiNavigateUtil.navigate(element)
   return true
 }
 
@@ -436,7 +417,7 @@ fun NlComponent.clearAttributes() {
  * @param needsFocusEditor true for focusing the editor after navigation. false otherwise.
  */
 fun NlComponent.tryNavigateTo(needsFocusEditor: Boolean): Boolean {
-  val element = tag.navigationElement
+  val element = backend.tag?.navigationElement ?: return false
   if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
     (element as Navigatable).navigate(needsFocusEditor)
     return true

@@ -10,5 +10,9 @@ iml_module(
     ],
     iml_files = ["intellij.android.profilers.atrace.iml"],
     visibility = ["//visibility:public"],
-    deps = ["//tools/idea/.idea/libraries:KotlinJavaRuntime"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/idea/.idea/libraries:kotlin-reflect",
+    ],
 )

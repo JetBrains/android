@@ -15,29 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlTag;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Arrays;
+import java.util.List;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ConstantConditions")
 public class NlDropInsertionPickerTest {
@@ -45,6 +53,9 @@ public class NlDropInsertionPickerTest {
   private static final int NODE_SIZE = 10;
   private static final int COMPONENT_NUMBER = 10;
   private static final int LAST_COMPONENT_Y_POSITION = COMPONENT_NUMBER * NODE_SIZE - NODE_SIZE / 2;
+
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   @Mock
   private NlModel myModel;
@@ -81,7 +92,7 @@ public class NlDropInsertionPickerTest {
     ImmutableList.Builder<DummyTreePath> builder = ImmutableList.builder();
     buildDummyTreePathArray(builder, root, null, 0, 0);
     ImmutableList<DummyTreePath> pathsList = builder.build();
-    return pathsList.toArray(new DummyTreePath[pathsList.size()]);
+    return pathsList.toArray(new DummyTreePath[0]);
   }
 
   /**
@@ -122,13 +133,14 @@ public class NlDropInsertionPickerTest {
     ourRoot = buildDummyComponentHierarchy();
     myTreePaths = buildDummyTreePathArray(ourRoot);
     when(myModel.getComponents()).thenReturn(ImmutableList.of(ourRoot));
+    when(myModel.getProject()).thenReturn(myRule.getProject());
 
     myPicker = getDefaultPicker();
     myDragged = ImmutableList.of(new DummyComponent(-1, myModel, false));
   }
 
   @Test
-  public void testDummyTree() throws Exception {
+  public void testDummyTree() {
     DummyTree tree = new DummyTree();
     assertEquals(myTreePaths[0], tree.getClosestPathForLocation(0, 0));
     assertEquals(ourRoot, tree.getClosestPathForLocation(0, 0).getLastPathComponent());
@@ -142,7 +154,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertAtRoot() throws Exception {
+  public void testInsertAtRoot() {
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(0, 0), myDragged);
     assertEquals(ourRoot, result.receiver);
     assertEquals(ourRoot.getChild(0), result.nextComponent);
@@ -151,7 +163,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertLast() throws Exception {
+  public void testInsertLast() {
 
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(30, LAST_COMPONENT_Y_POSITION), myDragged);
     assertEquals(ourRoot.getChild(3), result.receiver);
@@ -161,7 +173,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertParentFromLast() throws Exception {
+  public void testInsertParentFromLast() {
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(5, LAST_COMPONENT_Y_POSITION), myDragged);
     assertEquals(ourRoot, result.receiver);
     assertNull(result.nextComponent);
@@ -170,7 +182,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertInViewGroup() throws Exception {
+  public void testInsertInViewGroup() {
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(15, 35), myDragged);
     assertEquals(ourRoot.getChild(2), result.receiver);
     assertEquals(ourRoot.getChild(2).getChild(0), result.nextComponent);
@@ -179,7 +191,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertInEmptyViewGroup() throws Exception {
+  public void testInsertInEmptyViewGroup() {
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(15, 85), myDragged);
     assertEquals(ourRoot.getChild(3).getChild(1), result.receiver);
     assertNull(result.nextComponent);
@@ -188,7 +200,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertBetween() throws Exception {
+  public void testInsertBetween() {
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(15, 15), myDragged);
     assertEquals(ourRoot, result.receiver);
     assertEquals(ourRoot.getChild(1), result.nextComponent);
@@ -197,7 +209,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertInParentIfLastIsViewGroup() throws Exception {
+  public void testInsertInParentIfLastIsViewGroup() {
     DummyComponentGroup root =
       new DummyComponentGroup(0, myModel, false).setChildren(
         new DummyComponent(1, myModel, true),
@@ -215,7 +227,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertRowIsAfterChildren() throws Exception {
+  public void testInsertRowIsAfterChildren() {
     NlComponent receiver = ourRoot.getChild(2);
     when(myModel.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
     when(myModel.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
@@ -228,7 +240,7 @@ public class NlDropInsertionPickerTest {
   }
 
   @Test
-  public void testInsertRowIsAfterGrandChildren() throws Exception {
+  public void testInsertRowIsAfterGrandChildren() {
     DummyComponentGroup root =
       new DummyComponentGroup(0, myModel, false).setChildren(
         new DummyComponentGroup(1, myModel, false).setChildren(
@@ -265,7 +277,7 @@ public class NlDropInsertionPickerTest {
    */
   private class DummyTree extends JTree {
 
-    public DummyTree() {
+    private DummyTree() {
       super(new NlComponentTreeModel(myModel));
       expandAllNodes(0, getRowCount());
     }
@@ -329,12 +341,15 @@ public class NlDropInsertionPickerTest {
     private final int myId;
     @Nullable private DummyComponentGroup myDummyParent = null;
 
-    public DummyComponent(int id, @NotNull NlModel model, boolean hasSibling) {
+    private DummyComponent(int id, @NotNull NlModel model, boolean hasSibling) {
+      //noinspection unchecked
       super(model, EmptyXmlTag.INSTANCE, mock(SmartPsiElementPointer.class));
       mySibling = hasSibling;
       myId = id;
     }
 
+    @SuppressWarnings("deprecation")
+    @Deprecated
     @NotNull
     @Override
     public XmlTag getTag() {
@@ -379,7 +394,7 @@ public class NlDropInsertionPickerTest {
     private static final DummyComponent[] EMPTY_COMPONENTS = new DummyComponent[0];
     @NotNull private DummyComponent[] myChildren = EMPTY_COMPONENTS;
 
-    public DummyComponentGroup(int i, @NotNull NlModel model, boolean hasSibling) {
+    private DummyComponentGroup(int i, @NotNull NlModel model, boolean hasSibling) {
       super(i, model, hasSibling);
     }
 
@@ -422,7 +437,7 @@ public class NlDropInsertionPickerTest {
      * @param xPosition Mock x coordinate of the node in the tree.
      *                  0 is the root, and we increment by 10 for each deeper level
      */
-    public DummyTreePath(@NotNull NlComponent lastComponent, TreePath parent, int xPosition) {
+    private DummyTreePath(@NotNull NlComponent lastComponent, TreePath parent, int xPosition) {
       super(parent, lastComponent);
       myPosition = xPosition;
     }

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Feedback Loop</string>
+    <string name="xcontinue">Submit</string>
+    <string name="start">Start</string>
+    <string name="close">Close</string>
+    <string name="finish">Done</string>
+</resources>

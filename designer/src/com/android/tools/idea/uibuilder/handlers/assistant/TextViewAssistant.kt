@@ -66,7 +66,8 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
         .sortedBy { it.toString() }
         .toList()
 
-      val existingToolsText = context.component.getAttribute(TOOLS_URI, ATTR_TEXT).orEmpty()
+      // Retrieve the existing reference to populate the selected item. Remove the index operators if present.
+      val existingToolsText = context.component.getAttribute(TOOLS_URI, ATTR_TEXT).orEmpty().substringBefore('[')
 
       val model = DefaultCommonComboBoxModel("", elements)
       val combo = CommonComboBox<ResourceUrl?, CommonComboBoxModel<ResourceUrl?>>(model).apply {
