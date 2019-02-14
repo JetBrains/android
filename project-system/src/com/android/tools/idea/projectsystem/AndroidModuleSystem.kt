@@ -135,10 +135,6 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    */
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
-  /**
-   * Determines whether or not the underlying build system supports instant run.
-   */
-  fun getInstantRunSupport(): CapabilityStatus
 }
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */

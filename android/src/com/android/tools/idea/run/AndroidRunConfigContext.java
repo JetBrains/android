@@ -25,12 +25,6 @@ public class AndroidRunConfigContext {
   // state common to all launch configuration types
   private DeviceFutures myTargetDevices;
 
-  // instant run specific context
-  private boolean isSameExecutorAsPreviousSession;
-
-  private boolean myForceColdswap;
-  private boolean myCouldHaveInvokedHotswap;
-
   @Nullable
   public DeviceFutures getTargetDevices() {
     return myTargetDevices;
@@ -38,26 +32,5 @@ public class AndroidRunConfigContext {
 
   public void setTargetDevices(@NotNull DeviceFutures targetDevices) {
     myTargetDevices = targetDevices;
-  }
-
-  public boolean isSameExecutorAsPreviousSession() {
-    return isSameExecutorAsPreviousSession;
-  }
-
-  public void setSameExecutorAsPreviousSession(boolean sameExecutorAsPreviousSession) {
-    isSameExecutorAsPreviousSession = sameExecutorAsPreviousSession;
-  }
-
-  public void setForceColdSwap(boolean forceColdswap, boolean couldHaveInvokedHotswap) {
-    myForceColdswap = forceColdswap;
-    myCouldHaveInvokedHotswap = couldHaveInvokedHotswap;
-  }
-
-  public boolean isForceColdswap() {
-    return myForceColdswap;
-  }
-
-  public boolean couldHaveInvokedHotswap() {
-    return myCouldHaveInvokedHotswap;
   }
 }

@@ -16,12 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
@@ -30,8 +25,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
@@ -49,14 +42,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
 public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor,
-                                                                                                                       HyperlinkListener,
                                                                                                                        ActionListener {
   private JPanel myPanel;
   protected JBTabbedPane myTabbedPane;
@@ -267,48 +257,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myOldVersionLabel = new HyperlinkLabel();
 
     setSyncLinkMessage("");
-    myOldVersionLabel.addHyperlinkListener(this);
   }
 
   private void setSyncLinkMessage(@NotNull String syncMessage) {
     myOldVersionLabel.setHyperlinkText("Instant Run requires a newer version of the Gradle plugin. ", "Update Project", " " + syncMessage);
     myOldVersionLabel.repaint();
-  }
-
-  @Override
-  public void hyperlinkUpdate(HyperlinkEvent e) {
-    Project project = getModuleSelector().getModule().getProject();
-    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-
-    if (projectSystem.upgradeProjectToSupportInstantRun()) {
-      setSyncLinkMessage("(Syncing)");
-      Futures.addCallback(projectSystem.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false),
-                          new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
-                            @Override
-                            public void onSuccess(ProjectSystemSyncManager.SyncResult result) {
-                              if (!result.isSuccessful()) {
-                                setSyncLinkMessage("(Sync Failed)");
-                              }
-                              syncFinished();
-                            }
-
-                            @Override
-                            public void onFailure(@NotNull Throwable t) {
-                              syncFinished();
-                            }
-                          }, EdtExecutor.INSTANCE);
-    }
-    else {
-      showFailureMessage();
-    }
-  }
-
-  private void showFailureMessage() {
-    setSyncLinkMessage("Error updating to new Gradle version");
-  }
-
-  private void syncFinished() {
-    updateLinkState();
   }
 
   private void updateLinkState() {
@@ -319,7 +272,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     AndroidModuleModel model = AndroidModuleModel.get(module);
-    if (model == null || InstantRunGradleUtils.modelSupportsInstantRun(model)) {
+    if (model == null) {
       myOldVersionLabel.setVisible(false);
       return;
     }
