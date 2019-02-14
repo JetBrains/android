@@ -119,7 +119,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
       responseObserver.onCompleted()
     }
   }
-  
+
   private class FakeCpuService : CpuServiceGrpc.CpuServiceImplBase() {
     var dataList = ArrayList<Cpu.CpuUsageData>()
 
@@ -210,13 +210,14 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
   @Before
   fun setUp() {
-    `when`(dataStoreService.getTransportClient(ArgumentMatchers.any())).thenReturn(
+    `when`(dataStoreService.getTransportClient(ArgumentMatchers.anyLong())).thenReturn(
       TransportServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getProfilerClient(ArgumentMatchers.any())).thenReturn(
+    `when`(dataStoreService.getProfilerClient(ArgumentMatchers.anyLong())).thenReturn(
       ProfilerServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getCpuClient(ArgumentMatchers.any())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getNetworkClient(ArgumentMatchers.any())).thenReturn(NetworkServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getEnergyClient(ArgumentMatchers.any())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
+    `when`(dataStoreService.getCpuClient(ArgumentMatchers.anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
+    `when`(dataStoreService.getNetworkClient(ArgumentMatchers.anyLong())).thenReturn(
+      NetworkServiceGrpc.newBlockingStub(grpcService.channel))
+    `when`(dataStoreService.getEnergyClient(ArgumentMatchers.anyLong())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
 
     energyService.startMonitoringApp(
       EnergyProfiler.EnergyStartRequest.newBuilder().setSession(SESSION).build(),

@@ -15,13 +15,12 @@
  */
 package com.android.tools.datastore.poller;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
@@ -79,7 +78,7 @@ public class TransportServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    when(myDataStore.getTransportClient(any())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getTransportClient(anyLong())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
     myTransportService.connectToChannel(STREAM, myService.getChannel());
   }
 
@@ -191,7 +190,7 @@ public class TransportServiceTest extends DataStorePollerTest {
     validateResponse(observer2, response2);
 
     // Disconnect the client
-    when(myDataStore.getTransportClient(any())).thenReturn(null);
+    when(myDataStore.getTransportClient(anyLong())).thenReturn(null);
 
     // Validate that we get back the expected bytes
     observer1 = mock(StreamObserver.class);

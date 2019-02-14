@@ -19,7 +19,6 @@ import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
@@ -113,7 +112,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
    */
   public void connectToChannel(Stream stream, Channel channel) {
     long streamId = stream.getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub stub = myService.getTransportClient(StreamId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub stub = myService.getTransportClient(streamId);
     assert (stub != null);
     streamConnected(stream);
     UnifiedEventsDataPoller unifiedPoller = new UnifiedEventsDataPoller(stream.getStreamId(), myTable, stub, myService);
@@ -166,7 +165,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
-    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(request.getStreamId()));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(request.getStreamId());
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
     }
@@ -179,7 +178,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
   @Override
   public void getVersion(VersionRequest request, StreamObserver<VersionResponse> observer) {
-    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(request.getStreamId()));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(request.getStreamId());
     if (client != null) {
       observer.onNext(client.getVersion(request));
     }
@@ -211,7 +210,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     // TODO: Currently the cache is on demand, we want to look into caching all available files.
     BytesResponse response = myTable.getBytes(request);
     long streamId = request.getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(streamId);
 
     if (response == null && client != null) {
       response = client.getBytes(request);
@@ -228,7 +227,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @Override
   public void configureStartupAgent(ConfigureStartupAgentRequest request,
                                     StreamObserver<ConfigureStartupAgentResponse> observer) {
-    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(request.getStreamId()));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(request.getStreamId());
     if (client != null) {
       observer.onNext(client.configureStartupAgent(request));
     }
@@ -243,7 +242,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
     // TODO (b/114751407): Send stream id 0 to all streams.
     long streamId = request.getCommand().getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(streamId);
     if (client != null) {
       responseObserver.onNext(client.execute(request));
       responseObserver.onCompleted();

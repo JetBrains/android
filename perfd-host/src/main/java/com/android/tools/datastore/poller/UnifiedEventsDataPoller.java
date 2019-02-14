@@ -16,7 +16,6 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.profiler.proto.Common.Event;
@@ -54,7 +53,7 @@ public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataSto
 
   @Override
   public void onDataStoreError(Throwable t) {
-    myDataStoreService.disconnect(StreamId.of(myStreamId));
+    myDataStoreService.disconnect(myStreamId);
   }
 
   public void stop() {

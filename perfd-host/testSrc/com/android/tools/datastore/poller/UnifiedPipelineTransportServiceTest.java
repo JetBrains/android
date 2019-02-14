@@ -16,7 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
@@ -75,7 +74,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    when(myDataStore.getTransportClient(any())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getTransportClient(anyLong())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
     myChannel = myService.getChannel();
     myTransportService.connectToChannel(STREAM, myChannel);
   }

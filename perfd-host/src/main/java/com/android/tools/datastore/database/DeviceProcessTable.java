@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.datastore.StreamId;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
@@ -139,14 +138,14 @@ public class DeviceProcessTable extends DataStoreTable<DeviceProcessTable.Statem
   /**
    * Note - StreamId is analogous to device's id in the legacy pipeline.
    */
-  public void insertOrUpdateProcess(@NotNull StreamId deviceId, @NotNull Common.Process process) {
+  public void insertOrUpdateProcess(@NotNull long deviceId, @NotNull Common.Process process) {
     try {
-      ResultSet results = executeQuery(Statements.SELECT_PROCESS_BY_ID, deviceId.get(), process.getPid());
+      ResultSet results = executeQuery(Statements.SELECT_PROCESS_BY_ID, deviceId, process.getPid());
       if (results.next()) {
-        execute(Statements.UPDATE_PROCESS_STATE, process.getStateValue(), deviceId.get(), process.getPid());
+        execute(Statements.UPDATE_PROCESS_STATE, process.getStateValue(), deviceId, process.getPid());
       }
       else {
-        execute(Statements.INSERT_PROCESS, deviceId.get(), process.getPid(), process.getName(), process.getStateValue(),
+        execute(Statements.INSERT_PROCESS, deviceId, process.getPid(), process.getName(), process.getStateValue(),
                 process.getStartTimestampNs(), process.getAbiCpuArch());
       }
     }
@@ -160,14 +159,13 @@ public class DeviceProcessTable extends DataStoreTable<DeviceProcessTable.Statem
    * If for some reason the agent freezes and we stop receiving a valid heartbeat momentarily, this will not downgrade the HasAgent status
    * in the process entry.
    */
-  public void updateAgentStatus(@NotNull StreamId devicdId,
+  public void updateAgentStatus(@NotNull long devicId,
                                 @NotNull Common.Process process,
                                 @NotNull Common.AgentData agentData) {
     try {
-      ResultSet results = executeQuery(Statements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
+      ResultSet results = executeQuery(Statements.FIND_AGENT_STATUS, devicId, process.getPid());
       if (results.next()) {
-        execute(Statements.UPDATE_AGENT_STATUS, agentData.getStatus().ordinal(),
-                devicdId.get(), process.getPid());
+        execute(Statements.UPDATE_AGENT_STATUS, agentData.getStatus().ordinal(), devicId, process.getPid());
       }
     }
     catch (SQLException ex) {

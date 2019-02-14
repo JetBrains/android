@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -78,7 +78,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    when(myDataStore.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getProfilerClient(anyLong())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
   }
 
   @After
