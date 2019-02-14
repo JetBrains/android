@@ -356,7 +356,6 @@ filegroup(
         "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:ObjectSizeInstrumentationAgent_deploy.jar",
-        "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:jnibleakhelper",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
