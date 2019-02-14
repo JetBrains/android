@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import android.view.View;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -34,7 +33,6 @@ import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -73,33 +71,30 @@ public class NlEditorTest {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
-      .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
-    DesignSurface surface = (DesignSurface)layout.getSurface().target();
-    Dimension screenViewSize = surface.getCurrentSceneView().getSize();
-    // Drag components to [0, 0] and [width, height] to prevent them from overlapping each other and interfering with clicking.
-    layout
-      .dragComponentToSurface("Buttons", "CheckBox", 0, 0)
-      .dragComponentToSurface("Buttons", "Button", screenViewSize.width, screenViewSize.height)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true)
+      .dragComponentToSurface("Buttons", "Button")
+      .dragComponentToSurface("Buttons", "CheckBox")
       .waitForRenderToFinish();
 
-    // Find and click the checkBox
-    NlComponentFixture checkBox = layout.findView("CheckBox", 0);
-    checkBox.click();
+    // Find and click the first text view
+    NlComponentFixture textView = layout.findView("CheckBox", 0);
+    textView.click();
 
     // It should be selected now
-    assertEquals(3, layout.getAllComponents().size()); // 3 = root layout + the 2 widgets added
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
+    assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
 
     ideFrame.invokeMenuPath("Edit", "Cut");
     assertThat(layout.getSelection()).isEmpty();
-    assertEquals(2, layout.getAllComponents().size());
+    assertEquals(3, layout.getAllComponents().size());
 
     layout.findView("Button", 0).click();
     ideFrame.invokeMenuPath("Edit", "Paste");
     layout.findView("CheckBox", 0).click();
     ideFrame.invokeMenuPath("Edit", "Copy");
     ideFrame.invokeMenuPath("Edit", "Paste");
-    assertEquals(4, layout.getAllComponents().size());
+    assertEquals(5, layout.getAllComponents().size());
   }
 
   @Test
