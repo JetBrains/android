@@ -389,6 +389,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return deployTarget;
   }
 
+  @Nullable
+  public ApplicationIdProvider getApplicationIdProvider() {
+    final Module module = getConfigurationModule().getModule();
+    if (module == null) {
+      return null;
+    }
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+
+    return getApplicationIdProvider(facet);
+  }
+
   @NotNull
   public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
     if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {

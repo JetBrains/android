@@ -347,7 +347,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     }
 
     AndroidExecutionTarget androidTarget = (AndroidExecutionTarget)activeTarget;
-    return getDevices().contains(androidTarget.getIDevice()) && androidTarget.isApplicationRunning();
+    return getDevices().contains(androidTarget.getIDevice()) && androidTarget.isApplicationRunning(myApplicationId);
   }
 
   @Override

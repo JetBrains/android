@@ -17,10 +17,11 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.ExecutionTarget;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AndroidExecutionTarget extends ExecutionTarget {
-  public abstract boolean isApplicationRunning();
+  public abstract boolean isApplicationRunning(@NotNull String packageName);
 
   @Nullable
   public abstract IDevice getIDevice();
