@@ -160,8 +160,4 @@ class DefaultModuleSystem(val module: Module) :
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
     return CapabilityNotSupported()
   }
-
-  override fun getInstantRunSupport(): CapabilityStatus {
-    return CapabilityNotSupported()
-  }
 }

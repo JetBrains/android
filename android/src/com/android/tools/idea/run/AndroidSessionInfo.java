@@ -42,22 +42,19 @@ public class AndroidSessionInfo {
   @NotNull private final String myExecutorActionName;
   private final int myRunConfigId;
   @NotNull private final ExecutionTarget myExecutionTarget;
-  private final boolean myInstantRun;
 
   public AndroidSessionInfo(@NotNull ProcessHandler processHandler,
                             @NotNull RunContentDescriptor descriptor,
                             int runConfigId,
                             @NotNull String executorId,
                             @NotNull String executorActionName,
-                            @NotNull ExecutionTarget executionTarget,
-                            boolean instantRunEnabled) {
+                            @NotNull ExecutionTarget executionTarget) {
     myProcessHandler = processHandler;
     myDescriptor = descriptor;
     myRunConfigId = runConfigId;
     myExecutorId = executorId;
     myExecutorActionName = executorActionName;
     myExecutionTarget = executionTarget;
-    myInstantRun = instantRunEnabled;
   }
 
   @NotNull
@@ -83,10 +80,6 @@ public class AndroidSessionInfo {
   @NotNull
   public ExecutionTarget getExecutionTarget() {
     return myExecutionTarget;
-  }
-
-  public boolean isInstantRun() {
-    return myInstantRun;
   }
 
   @NotNull

@@ -22,7 +22,6 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -112,7 +111,6 @@ public class RunOnEmulatorTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void runOnEmulator() throws Exception {
-    InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();

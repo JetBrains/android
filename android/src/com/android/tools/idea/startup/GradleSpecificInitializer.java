@@ -37,7 +37,6 @@ import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.deploy.DeployActionsInitializer;
-import com.android.tools.idea.fd.actions.HotswapAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
@@ -108,7 +107,7 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
-    setUpInstantRunActions();
+    DeployActionsInitializer.installActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
@@ -178,25 +177,6 @@ public class GradleSpecificInitializer implements Runnable {
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
-  }
-
-  private static void setUpInstantRunActions() {
-    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
-    // in code as well (instead of xml).
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
-    if (runnerActions instanceof DefaultActionGroup) {
-      DefaultActionGroup ag =  ((DefaultActionGroup)runnerActions);
-      PluginId androidPluginId = PluginId.findId("org.jetbrains.android");
-      if (StudioFlags.JVMTI_REFRESH.get()) {
-        DeployActionsInitializer.installActions();
-      }
-      else {
-        HotswapAction hotswapAction = new HotswapAction();
-        ag.add(hotswapAction, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-        actionManager.registerAction(HotswapAction.ID, hotswapAction, androidPluginId);
-      }
-    }
   }
 
   private static void setUpWelcomeScreenActions() {

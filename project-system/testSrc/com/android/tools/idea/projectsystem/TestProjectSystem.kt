@@ -126,10 +126,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
         return CapabilityNotSupported()
       }
 
-      override fun getInstantRunSupport(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
-
       override fun findClassFile(fqcn: String): VirtualFile? = null
 
       override fun getOrCreateSampleDataDirectory(): PathString? = null
@@ -176,10 +172,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   }
 
   override fun allowsFileCreation(): Boolean {
-    TODO("not implemented")
-  }
-
-  override fun upgradeProjectToSupportInstantRun(): Boolean {
     TODO("not implemented")
   }
 
