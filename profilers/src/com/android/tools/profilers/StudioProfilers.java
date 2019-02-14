@@ -155,10 +155,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private boolean myAutoProfilingEnabled;
 
   /**
-   * The number of update count the profilers have waited for an agent statc to become ATTACHED.
+   * The number of update count the profilers have waited for an agent status to become ATTACHED for a particular session id.
    * If the agent status remains UNSPECIFIED after {@link AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to be without agent.
    */
-  private int myAgentStatusRetryCount = 0;
+  public final Map<Long, Integer> mySessionIdToAgentStatusRetryMap = new HashMap<>();
 
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -435,9 +435,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         AgentData agentData = getAgentData(mySelectedSession);
         // Consider the agent to be unattachable if it remains unspecified for long enough.
-        if (agentData.getStatus() == AgentData.Status.UNSPECIFIED && ++myAgentStatusRetryCount >= AGENT_STATUS_MAX_RETRY_COUNT) {
+        int agentStatusRetryCount = mySessionIdToAgentStatusRetryMap.getOrDefault(mySelectedSession.getSessionId(), 0) + 1;
+        if (agentData.getStatus() == AgentData.Status.UNSPECIFIED && agentStatusRetryCount >= AGENT_STATUS_MAX_RETRY_COUNT) {
           agentData = AgentData.newBuilder().setStatus(AgentData.Status.UNATTACHABLE).build();
         }
+        mySessionIdToAgentStatusRetryMap.put(mySelectedSession.getSessionId(), agentStatusRetryCount);
 
         if (!myAgentData.equals(agentData)) {
           if (myAgentData.getStatus() != AgentData.Status.ATTACHED &&
@@ -572,7 +574,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     mySelectedSession = newSession;
     myAgentData = getAgentData(mySelectedSession);
-    myAgentStatusRetryCount = 0;
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
       myTimeline.setIsPaused(true);
