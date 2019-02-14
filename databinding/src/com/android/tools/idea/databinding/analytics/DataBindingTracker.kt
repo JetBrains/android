@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.databinding.analytics
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
 import com.intellij.ide.highlighter.XmlFileType
@@ -42,13 +42,19 @@ import com.intellij.psi.xml.XmlFile
 open class DataBindingTracker constructor(private val project: Project) : DataBindingTracker {
 
   override fun trackDataBindingEnabled() {
-    track(DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT,
-          DataBindingEvent.DataBindingPollMetadata.newBuilder().setDataBindingEnabled(isDataBindingEnabled()).build())
+    trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT,
+                      DataBindingEvent.DataBindingPollMetadata.newBuilder().setDataBindingEnabled(isDataBindingEnabled()).build())
   }
 
   override fun trackPolledMetaData() {
     if (isDataBindingEnabled()) {
       runInBackground(TrackPollingMetadataTask(project))
+    }
+  }
+
+  override fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
+    if (isDataBindingEnabled()) {
+      trackUserEvent(eventType, context)
     }
   }
 
@@ -58,10 +64,23 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
     .mapNotNull { it.androidFacet }
     .any { DataBindingUtil.isDataBindingEnabled(it) }
 
-  private fun track(eventType: DataBindingEvent.EventType,
-                    pollMetaData: DataBindingEvent.DataBindingPollMetadata) {
-    val studioEventBuilder = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DATA_BINDING).setDataBindingEvent(
-      DataBindingEvent.newBuilder().setType(eventType).setPollMetadata(pollMetaData))
+  private fun trackUserEvent(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
+    val studioEventBuilder = createStudioEventBuilder()
+      .setDataBindingEvent(
+        DataBindingEvent.newBuilder()
+          .setType(eventType)
+          .setContext(context))
+
+    UsageTracker.log(studioEventBuilder.withProjectId(project))
+  }
+
+  private fun trackPollingEvent(eventType: DataBindingEvent.EventType,
+                                pollMetaData: DataBindingEvent.DataBindingPollMetadata?) {
+    val studioEventBuilder = createStudioEventBuilder()
+      .setDataBindingEvent(
+        DataBindingEvent.newBuilder()
+          .setType(eventType)
+          .setPollMetadata(pollMetaData))
 
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
@@ -93,13 +112,13 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
             }
           }
         }
-        track(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
-              DataBindingEvent.DataBindingPollMetadata.newBuilder()
-                .setLayoutXmlCount(layoutCount)
-                .setImportCount(importCount)
-                .setVariableCount(variableCount)
-                .setExpressionCount(expressionCount)
-                .build())
+        trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
+                          DataBindingEvent.DataBindingPollMetadata.newBuilder()
+                            .setLayoutXmlCount(layoutCount)
+                            .setImportCount(importCount)
+                            .setVariableCount(variableCount)
+                            .setExpressionCount(expressionCount)
+                            .build())
       }
     }
   }
@@ -111,5 +130,7 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
   protected open fun runInBackground(runnable: Runnable) {
     ApplicationManager.getApplication().executeOnPooledThread(runnable)
   }
-}
 
+  private fun createStudioEventBuilder() = AndroidStudioEvent.newBuilder()
+    .setKind(AndroidStudioEvent.EventKind.DATA_BINDING)
+}

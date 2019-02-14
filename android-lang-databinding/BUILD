@@ -33,6 +33,8 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/idea:intellij.java.impl[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
