@@ -89,10 +89,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
   }
 
-  override fun upgradeProjectToSupportInstantRun(): Boolean {
-    return updateProjectToInstantRunTools(project)
-  }
-
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler)
   }

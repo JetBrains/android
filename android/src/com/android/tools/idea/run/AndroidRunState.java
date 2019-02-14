@@ -16,11 +16,6 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.stats.RunStats;
-import com.android.tools.ir.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.intellij.execution.DefaultExecutionResult;
@@ -81,18 +76,6 @@ public class AndroidRunState implements RunProfileState {
     }
 
     stats.setPackage(applicationId);
-    // TODO: this class is independent of gradle, except for this hack
-    AndroidModuleModel model = AndroidModuleModel.get(myModule);
-    if (InstantRunSettings.isInstantRunEnabled() &&
-        InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED) {
-      assert model != null;
-      InstantRunBuildInfo info = InstantRunGradleUtils.getBuildInfo(model);
-      if (info != null && !info.isCompatibleFormat()) {
-        throw new ExecutionException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
-                                     "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +
-                                     "the latest version)");
-      }
-    }
 
     LaunchTasksProvider launchTasksProvider = myLaunchTasksProviderFactory.get();
 

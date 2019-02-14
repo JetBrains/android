@@ -41,9 +41,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.fd.FlightRecorder;
-import com.android.tools.idea.fd.InstantRunBuildProgressListener;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
@@ -208,7 +205,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       StringBuilder output = new StringBuilder();
 
       Throwable buildError = null;
-      InstantRunBuildProgressListener instantRunProgressListener = null;
       ExternalSystemTaskId id = myRequest.getTaskId();
       ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
       CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
@@ -302,11 +298,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         operation.withCancellationToken(cancellationTokenSource.token());
 
-        if (InstantRunSettings.isInstantRunEnabled() && InstantRunSettings.isRecorderEnabled()) {
-          instantRunProgressListener = new InstantRunBuildProgressListener();
-          operation.addProgressListener(instantRunProgressListener);
-        }
-
         if (isRunBuildAction) {
           model.set(((BuildActionExecuter)operation).run());
         }
@@ -350,9 +341,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         myBuildStopper.remove(id);
         String gradleOutput = output.toString();
-        if (instantRunProgressListener != null) {
-          FlightRecorder.get(myProject).saveBuildOutput(gradleOutput, instantRunProgressListener);
-        }
         Application application = ApplicationManager.getApplication();
         if (GuiTestingService.getInstance().isGuiTestingMode()) {
           String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);

@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService;
-import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.AndroidProcessChooserDialog;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
@@ -41,7 +40,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
-    if (RestartActivityAction.isDebuggerPaused(e.getProject())) {
+    if (isDebuggerPaused(e.getProject())) {
       e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
       e.getPresentation().setEnabled(false);
     }
@@ -67,5 +66,14 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
         Logger.getInstance(AndroidRunLayoutInspectorAction.class).warn("Not launching layout inspector - no client selected");
       }
     }
+  }
+
+  public static boolean isDebuggerPaused(@Nullable Project project) {
+    if (project == null) {
+      return false;
+    }
+
+    XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
+    return session != null && !session.isStopped() && session.isPaused();
   }
 }

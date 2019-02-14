@@ -74,10 +74,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override val projectSystem = this
 
-  override fun upgradeProjectToSupportInstantRun(): Boolean {
-    return false
-  }
-
   override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
 
   override fun getPsiElementFinders(): List<PsiElementFinder> {

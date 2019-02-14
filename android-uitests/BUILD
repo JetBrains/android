@@ -681,27 +681,6 @@ java_test(
 
 # sanity test
 java_test(
-    name = "ChangeManifestTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]) + [
-        "//tools/adt/idea/resources-aar:framework_res",
-    ],
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantrun.ChangeManifestTest",
-    ],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  # b/122276901
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# sanity test
-java_test(
     name = "CreateNewMobileProjectTest",
     data = COMMON_DATA + [
         "//tools/adt/idea/resources-aar:framework_res",

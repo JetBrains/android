@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -65,8 +64,8 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
       RunProfile runProfile = env.getRunProfile();
       int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
       AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, descriptor, uniqueId, env.getExecutor().getId(),
-                                                              env.getExecutor().getActionName(), env.getExecutionTarget(),
-                                                              InstantRunUtils.isInstantRunEnabled(env));
+                                                              env.getExecutor().getActionName(), env.getExecutionTarget()
+      );
       processHandler.putUserData(AndroidSessionInfo.KEY, sessionInfo);
     }
 
