@@ -61,7 +61,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -244,20 +243,6 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
         return console;
       }
     };
-  }
-
-  @Override
-  public int getUserIdFromAmParameters() {
-    return MultiUserUtils.getUserIdFromAmParameters(ACTIVITY_EXTRA_FLAGS);
-  }
-
-  @Override
-  public boolean supportsInstantRun() {
-    Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      return true;
-    }
-    return DynamicAppUtils.isInstantRunSupported(module) && !DEPLOY_AS_INSTANT;
   }
 
   @Override

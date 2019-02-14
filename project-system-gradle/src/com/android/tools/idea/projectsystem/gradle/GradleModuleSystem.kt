@@ -122,10 +122,6 @@ class GradleModuleSystem(
     return supportsPngGeneration(module)
   }
 
-  override fun getInstantRunSupport(): CapabilityStatus {
-    return getInstantRunCapabilityStatus(module)
-  }
-
   private fun createGradleCoordinate(mavenGroupId: String, mavenArtifactId: String, version: GradleVersion) =
     GradleCoordinate(mavenGroupId, mavenArtifactId, version.toString())
 

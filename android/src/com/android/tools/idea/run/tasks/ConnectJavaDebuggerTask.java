@@ -19,7 +19,6 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatPreferences;
@@ -154,8 +153,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
                                                       currentLaunchInfo.executor.getActionName(),
-                                                      currentLaunchInfo.env.getExecutionTarget(),
-                                                      InstantRunUtils.isInstantRunEnabled(currentLaunchInfo.env));
+                                                      currentLaunchInfo.env.getExecutionTarget()
+    );
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT, client);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());

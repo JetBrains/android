@@ -59,15 +59,6 @@ interface AndroidProjectSystem {
   fun getModuleSystem(module: Module): AndroidModuleSystem
 
   /**
-   * Attempts to upgrade the project to support instant run. If the project already supported
-   * instant run, this will report failure without modifying the project.
-   * <p>
-   * Returns true iff the upgrade was successful. Callers must sync the
-   * project via [ProjectSystemSyncManager] after calling this method if it returns true.
-   */
-  fun upgradeProjectToSupportInstantRun(): Boolean
-
-  /**
    * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
    * text files describing the steps for building a single android application or library.
    *

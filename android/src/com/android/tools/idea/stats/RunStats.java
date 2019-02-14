@@ -130,10 +130,6 @@ public class RunStats {
     myEvent.setProjectId(AnonymizerUtil.anonymizeUtf8(packageName)).setRawProjectId(packageName);
   }
 
-  public void setInstantRunEnabled(boolean enabled) {
-    myEvent.getRunEventBuilder().setInstantRunEnabled(enabled);
-  }
-
   public void setExecutor(String executorId) {
     myEvent.getRunEventBuilder().setExecutor(executorId);
   }
