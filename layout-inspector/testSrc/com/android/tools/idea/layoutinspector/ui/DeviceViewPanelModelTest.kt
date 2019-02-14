@@ -78,10 +78,8 @@ class DeviceViewPanelModelTest {
     }
 
     val panelModel = DeviceViewPanelModel(model)
-    panelModel.rotateX(xOff)
-    panelModel.rotateY(yOff)
+    panelModel.rotate(xOff, yOff)
     panelModel.refresh()
-
 
     val actualTransforms = panelModel.hitRects.map { it.second }
     assertEquals(expectedTransforms, actualTransforms)
