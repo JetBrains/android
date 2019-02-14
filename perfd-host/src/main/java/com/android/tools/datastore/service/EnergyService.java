@@ -17,7 +17,6 @@ package com.android.tools.datastore.service;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.EnergyTable;
@@ -76,7 +75,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @Override
   public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
                                  StreamObserver<EnergyProfiler.EnergyStartResponse> responseObserver) {
-    StreamId streamId = StreamId.fromSession(request.getSession());
+    long streamId = request.getSession().getStreamId();
     EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(streamId);
     CpuServiceGrpc.CpuServiceBlockingStub cpuClient = myService.getCpuClient(streamId);
     NetworkServiceGrpc.NetworkServiceBlockingStub networkClient = myService.getNetworkClient(streamId);
@@ -108,8 +107,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    EnergyServiceGrpc.EnergyServiceBlockingStub client =
-      myService.getEnergyClient(StreamId.fromSession(request.getSession()));
+    EnergyServiceGrpc.EnergyServiceBlockingStub client = myService.getEnergyClient(request.getSession().getStreamId());
     if (client == null) {
       responseObserver.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
     }

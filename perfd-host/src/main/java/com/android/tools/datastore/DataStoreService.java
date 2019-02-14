@@ -127,7 +127,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   @NotNull
   private NativeSymbolizer myNativeSymbolizer = new NopSymbolizer();
   private final ServerInterceptor myInterceptor;
-  private final Map<StreamId, DataStoreClient> myConnectedClients = new HashMap<>();
+  /**
+   * Mapping a stream id to its DataStoreClient.
+   */
+  private final Map<Long, DataStoreClient> myConnectedClients = new HashMap<>();
 
   private final Timer myReportTimer;
 
@@ -232,7 +235,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    */
   public void connect(@NotNull Common.Stream stream, @NotNull ManagedChannel channel) {
     assert stream.getStreamId() != 0;
-    StreamId streamId = StreamId.of(stream.getStreamId());
+    long streamId = stream.getStreamId();
     if (!myConnectedClients.containsKey(streamId)) {
       myConnectedClients.put(streamId, new DataStoreClient(channel));
       myTransportService.connectToChannel(stream, channel);
@@ -257,7 +260,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull StreamId streamId) {
+  public void disconnect(@NotNull long streamId) {
     if (myConnectedClients.containsKey(streamId)) {
       DataStoreClient client = myConnectedClients.remove(streamId);
       client.shutdownNow();
@@ -282,31 +285,31 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myServices;
   }
 
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull StreamId streamId) {
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getCpuClient() : null;
   }
 
-  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(@NotNull StreamId streamId) {
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEnergyClient() : null;
   }
 
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull StreamId streamId) {
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEventClient() : null;
   }
 
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(@NotNull StreamId streamId) {
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getNetworkClient() : null;
   }
 
-  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(@NotNull StreamId streamId) {
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getMemoryClient() : null;
   }
 
-  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull StreamId streamId) {
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getProfilerClient() : null;
   }
 
-  public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient(@NotNull StreamId streamId) {
+  public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getTransportClient() : null;
   }
 

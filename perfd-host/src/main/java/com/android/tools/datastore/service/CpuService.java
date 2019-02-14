@@ -16,7 +16,6 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
@@ -126,14 +125,13 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> observer) {
     // Start monitoring request needs to happen before we begin the poller to inform the device that we are going to be requesting
     // data for a specific process id.
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(StreamId.fromSession(request.getSession()));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession().getStreamId());
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
       long sessionId = request.getSession().getSessionId();
       myRunners
-        .put(sessionId,
-             new CpuDataPoller(request.getSession(), myCpuTable, myService.getCpuClient(StreamId.fromSession(request.getSession())), myLogService));
+        .put(sessionId, new CpuDataPoller(request.getSession(), myCpuTable, client, myLogService));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {
@@ -152,7 +150,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(StreamId.fromSession(request.getSession()));
+    CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(request.getSession().getStreamId());
     if (service == null) {
       observer.onNext(CpuStopResponse.getDefaultInstance());
     }
@@ -165,7 +163,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void startProfilingApp(CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfilingAppStartResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(StreamId.fromSession(request.getSession()));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession().getStreamId());
     if (client != null) {
       observer.onNext(client.startProfilingApp(request));
     }
@@ -178,7 +176,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void stopProfilingApp(CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfilingAppStopResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(StreamId.fromSession(request.getSession()));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession().getStreamId());
     CpuProfilingAppStopResponse response = CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
@@ -202,7 +200,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     else {
       // When Profiler opens CpuProfilerStage directly (e.g when startup profiling was started),
       // we're expecting to hit this, because we haven't inserted any data in the DB yet.
-      CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(StreamId.fromSession(request.getSession()));
+      CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession().getStreamId());
       if (client != null) {
         observer.onNext(client.checkAppProfilingState(request));
       }
@@ -216,7 +214,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void startStartupProfiling(StartupProfilingRequest request,
                                     StreamObserver<StartupProfilingResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(StreamId.of(request.getDeviceId()));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getDeviceId());
     if (client != null) {
       observer.onNext(client.startStartupProfiling(request));
     }
@@ -246,7 +244,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getCpuCoreConfig(CpuCoreConfigRequest request, StreamObserver<CpuCoreConfigResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(StreamId.of(request.getDeviceId()));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getDeviceId());
     if (client != null) {
       observer.onNext(client.getCpuCoreConfig(request));
     }

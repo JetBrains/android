@@ -15,6 +15,10 @@
  */
 package com.android.tools.datastore.poller;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
@@ -23,18 +27,13 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.stub.StreamObserver;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class EventDataPollerTest extends DataStorePollerTest {
 
@@ -97,7 +96,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    when(myDataStoreService.getEventClient(any())).thenReturn(EventServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStoreService.getEventClient(anyLong())).thenReturn(EventServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
     getPollTicker().run();
   }
@@ -119,7 +118,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testAppStoppedRequestHandled() {
-    when(myDataStoreService.getEventClient(any())).thenReturn(null);
+    when(myDataStoreService.getEventClient(anyLong())).thenReturn(null);
     EventProfiler.EventStopRequest stopRequest =
       EventProfiler.EventStopRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
     StreamObserver<EventProfiler.EventStopResponse> stopObserver = mock(StreamObserver.class);
@@ -210,7 +209,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
       .addData(SIMPLE_ACTIVITY_DATA.toBuilder().addStateChanges(
         EventProfiler.ActivityStateData
           .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.STARTED).setTimestamp(START_TIME + ONE_SECOND).build())
-                                   .setFragmentData(EventProfiler.FragmentData.getDefaultInstance()).build())
+                 .setFragmentData(EventProfiler.FragmentData.getDefaultInstance()).build())
       .build();
 
     StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);

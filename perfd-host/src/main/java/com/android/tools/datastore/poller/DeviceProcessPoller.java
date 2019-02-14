@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
@@ -47,7 +46,7 @@ public class DeviceProcessPoller extends PollRunner {
 
   @NotNull private final DeviceProcessTable myTable;
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myPollingService;
-  @NotNull private final Map<StreamId, DeviceData> myDevices = new HashMap<>();
+  @NotNull private final Map<Long, DeviceData> myDevices = new HashMap<>();
 
   public DeviceProcessPoller(@NotNull DeviceProcessTable table,
                              @NotNull TransportServiceGrpc.TransportServiceBlockingStub pollingService) {
@@ -62,35 +61,35 @@ public class DeviceProcessPoller extends PollRunner {
       GetDevicesRequest devicesRequest = GetDevicesRequest.newBuilder().build();
       GetDevicesResponse deviceResponse = myPollingService.getDevices(devicesRequest);
       for (Common.Device device : deviceResponse.getDeviceList()) {
-        StreamId streamId = StreamId.of(device.getDeviceId());
+        long deviceId = device.getDeviceId();
 
         myTable.insertOrUpdateDevice(device);
-        DeviceData deviceData = myDevices.computeIfAbsent(streamId, s -> new DeviceData(device));
+        DeviceData deviceData = myDevices.computeIfAbsent(deviceId, s -> new DeviceData(device));
 
-        GetProcessesRequest processesRequest = GetProcessesRequest.newBuilder().setDeviceId(streamId.get()).build();
+        GetProcessesRequest processesRequest = GetProcessesRequest.newBuilder().setDeviceId(deviceId).build();
         GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
 
         // Gather the list of last known active processes.
         Set<Common.Process> liveProcesses = new HashSet<>();
 
         for (Common.Process process : processesResponse.getProcessList()) {
-          assert process.getDeviceId() == streamId.get();
-          myTable.insertOrUpdateProcess(streamId, process);
+          assert process.getDeviceId() == deviceId;
+          myTable.insertOrUpdateProcess(deviceId, process);
           liveProcesses.add(process);
 
           AgentStatusRequest agentStatusRequest =
-            AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(streamId.get()).build();
+            AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId).build();
           AgentData cachedData = myTable.getAgentStatus(agentStatusRequest);
           if (cachedData.getStatus() == AgentData.Status.UNSPECIFIED) {
             AgentData agentData = myPollingService.getAgentStatus(agentStatusRequest);
-            myTable.updateAgentStatus(streamId, process, agentData);
+            myTable.updateAgentStatus(deviceId, process, agentData);
           }
 
           deviceData.processes.add(process);
         }
 
         Set<Common.Process> deadProcesses = Sets.difference(deviceData.processes, liveProcesses);
-        killProcesses(streamId, deadProcesses);
+        killProcesses(deviceId, deadProcesses);
       }
     }
     catch (StatusRuntimeException ex) {
@@ -102,7 +101,7 @@ public class DeviceProcessPoller extends PollRunner {
   }
 
   private void disconnect() {
-    for (Map.Entry<StreamId, DeviceData> entry : myDevices.entrySet()) {
+    for (Map.Entry<Long, DeviceData> entry : myDevices.entrySet()) {
       disconnectDevice(entry.getValue().device);
       killProcesses(entry.getKey(), entry.getValue().processes);
     }
@@ -114,15 +113,15 @@ public class DeviceProcessPoller extends PollRunner {
     myTable.insertOrUpdateDevice(disconnectedDevice);
   }
 
-  private void killProcesses(StreamId streamId, Set<Common.Process> processes) {
+  private void killProcesses(long deviceId, Set<Common.Process> processes) {
     for (Common.Process process : processes) {
       Common.Process updatedProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
-      myTable.insertOrUpdateProcess(streamId, updatedProcess);
+      myTable.insertOrUpdateProcess(deviceId, updatedProcess);
 
       // The process is already dead, just mark it as agent non-attachable.
       AgentData agentData =
-        myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(streamId.get()).setPid(process.getPid()).build());
-      myTable.updateAgentStatus(streamId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
+        myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(deviceId).setPid(process.getPid()).build());
+      myTable.updateAgentStatus(deviceId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
     }
   }
 }

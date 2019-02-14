@@ -16,7 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -86,7 +86,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    when(myDataStoreService.getNetworkClient(any())).thenReturn(NetworkServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStoreService.getNetworkClient(anyLong())).thenReturn(NetworkServiceGrpc.newBlockingStub(myService.getChannel()));
     myNetworkService
       .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setSession(SESSION).build(), mock(StreamObserver.class));
   }
