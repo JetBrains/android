@@ -187,9 +187,6 @@ public class LayoutEditorMemoryUseTest {
     // Third file on editor tab
     fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
       getLayoutPreview(true).waitForRenderToFinish();
-
-    fixture.getEditor().closeFile(layoutFilePaths[0]);
-    fixture.getEditor().closeFile(layoutFilePaths[1]);
   }
 
   private static class LeakedInstancesTracker {
