@@ -249,6 +249,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  public void debugApp(@NotNull String appName, @NotNull String deviceName) {
+    new DeviceSelectorFixture(robot()).debugApp(this, appName, deviceName);
+  }
+
+  /**
+   * @deprecated Use {@link #debugApp(String, String)}
+   */
+  @Deprecated
   public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) {
     selectApp(appName);
     findDebugApplicationButton().click();

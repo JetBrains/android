@@ -109,6 +109,20 @@ public final class DeviceSelectorFixture {
     ide.findRunApplicationButton().click();
   }
 
+  public void debugApp(@NotNull IdeFrameFixture ide, @NotNull String appName, @NotNull String deviceName) {
+    ide.selectApp(appName);
+
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      ide.findDebugApplicationButton().click();
+      selectDeviceWithDialog(deviceName);
+
+      return;
+    }
+
+    selectDevice(deviceName);
+    ide.findDebugApplicationButton().click();
+  }
+
   private void selectDeviceWithDialog(@NotNull String deviceName) {
     // noinspection deprecation
     DeployTargetPickerDialogFixture.find(myRobot)

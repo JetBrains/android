@@ -16,6 +16,8 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -25,16 +27,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaDebuggerTest extends DebuggerTestBase {
@@ -74,9 +73,7 @@ public class JavaDebuggerTest extends DebuggerTestBase {
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/native-lib.c", "return (*env)->NewStringUTF(env, message);");
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
 
-    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
-        .selectDevice(emulator.getDefaultAvdName())
-        .clickOk();
+    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
@@ -97,7 +94,7 @@ public class JavaDebuggerTest extends DebuggerTestBase {
   }
 
   private static void waitForJavaDebuggerSessionStart(@NotNull DebugToolWindowFixture debugToolWindowFixture) {
-    final Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching app.*", Pattern.DOTALL);
+    final Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching 'app'.*", Pattern.DOTALL);
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 10);
 
