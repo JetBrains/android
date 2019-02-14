@@ -595,7 +595,7 @@ class NlComponentMixin(component: NlComponent)
     if (childHandler != null) {
       var ok = childHandler.onCreate(editor, component.parent, component, insertType)
       if (component.parent != null) {
-        ok = ok and NlDependencyManager.addDependencies((listOf(component)), component.model.facet).dependenciesPresent
+        ok = ok and NlDependencyManager.get().addDependencies((listOf(component)), component.model.facet)
       }
       if (!ok) {
         component.parent?.removeChild(component)

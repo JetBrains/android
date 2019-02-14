@@ -22,7 +22,6 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -76,7 +75,7 @@ final class GroupDragHandler extends DragHandler {
     NlWriteCommandActionUtil.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
-      NlDependencyManager.INSTANCE.addDependencies(myItems, editor.getModel().getFacet());
+      editor.getDependencyManager().addDependencies(myItems, editor.getModel().getFacet());
       editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
     });
   }

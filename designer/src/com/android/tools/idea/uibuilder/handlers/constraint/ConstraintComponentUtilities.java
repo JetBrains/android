@@ -800,7 +800,7 @@ public final class ConstraintComponentUtilities {
     GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
                                      GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                      GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
-    GradleVersion v = NlDependencyManager.INSTANCE.getModuleDependencyVersion(artifact, editor.getModel().getFacet());
+    GradleVersion v = editor.getDependencyManager().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,
                                (version.length > 1) ? version[1] : -1, 0, 0));

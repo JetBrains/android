@@ -55,9 +55,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -83,7 +80,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import kotlin.Unit;
-import kotlin.jvm.functions.Function0;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -961,7 +957,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private boolean checkIfUserWantsToAddDependencies(List<NlComponent> toAdd) {
     // May bring up a dialog such that the user can confirm the addition of the new dependencies:
-    return NlDependencyManager.INSTANCE.checkIfUserWantsToAddDependencies(toAdd, getFacet());
+    return NlDependencyManager.Companion.get().checkIfUserWantsToAddDependencies(toAdd, getFacet());
   }
 
   /**
@@ -994,28 +990,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    // Add the components in a separate thread as it might end up running network operations to add missing dependencies.
-    ProgressManager.getInstance().run(new Task.Backgroundable(myFacet.getModule().getProject(), "Adding Components...") {
-
-      private boolean myHasMissingDependencies;
-
-      private Function0<Unit> callback =
-        () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        myHasMissingDependencies =
-          NlDependencyManager.INSTANCE.addDependencies(toAdd, getFacet(), callback).getHadMissingDependencies();
-      }
-
-      @Override
-      public void onSuccess() {
-        if (!myHasMissingDependencies) {
-          // Only add the components if there were no missing dependencies.
-          callback.invoke();
-        }
-      }
-    });
+    NlDependencyManager.Companion.get().addDependencies(
+      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask)
+    );
   }
 
   @Nullable

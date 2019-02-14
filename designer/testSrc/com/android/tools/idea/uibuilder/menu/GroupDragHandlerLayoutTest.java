@@ -161,6 +161,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     Mockito.when(editor.canInsertChildren(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.anyInt())).thenReturn(true);
     Mockito.when(editor.getModel()).thenReturn(model);
+    Mockito.when(editor.getDependencyManager()).thenReturn(NlDependencyManager.Companion.get());
 
     return editor;
   }
