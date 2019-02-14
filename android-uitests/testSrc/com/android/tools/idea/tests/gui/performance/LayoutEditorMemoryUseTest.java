@@ -142,7 +142,7 @@ public class LayoutEditorMemoryUseTest {
   }
 
   @Test
-  @Ignore // run manually for now, until infrastructure is set up. Set -Dneable.bleak=true
+  @RunIn(TestGroup.PERFORMANCE)
   public void navigateAndEditWithBLeak() throws Exception {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     BleakKt.runWithBleak(() -> runScenario(fixture));
