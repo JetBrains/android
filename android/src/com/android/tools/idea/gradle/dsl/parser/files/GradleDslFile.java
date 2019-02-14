@@ -206,7 +206,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
   @NotNull
   public List<BuildModelNotification> getPublicNotifications() {
-    return myBuildModelContext.getPublicNotifications();
+    return myBuildModelContext.getPublicNotifications(this);
   }
 
   public void saveAllChanges() {

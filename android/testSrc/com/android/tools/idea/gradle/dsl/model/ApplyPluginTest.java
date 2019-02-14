@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.psi.PsiElement;
 import java.util.List;
 import org.junit.Test;
@@ -355,7 +354,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     assertEquals("com.android.application", first.value());
     assertEquals("plugin", first.getPropertyName());
     assertEquals("plugin: 'com.android.application'", first.getDslText());
-    assertEquals(VfsUtil.findFileByIoFile(myBuildFile, false), first.getFile());
+    assertEquals(myBuildFile, first.getFile());
   }
 
   private static void verifyAppliedPluginsAndText(GradleBuildModel buildModel, String buildText) {

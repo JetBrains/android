@@ -18,16 +18,20 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +50,7 @@ public final class BuildModelContext {
   @NotNull
   private final GradleDslFileCache myFileCache;
   @NotNull
-  private final ClassToInstanceMap<BuildModelNotification> myNotifications = MutableClassToInstanceMap.create();
+  private final Map<GradleDslFile, ClassToInstanceMap<BuildModelNotification>> myNotifications = new HashMap<>();
   @NotNull
   private final DependencyManager myDependencyManager;
   @Nullable
@@ -84,17 +88,21 @@ public final class BuildModelContext {
   }
 
   @NotNull
-  public List<BuildModelNotification> getPublicNotifications() {
-    return new ArrayList<>(myNotifications.values());
+  public List<BuildModelNotification> getPublicNotifications(@NotNull GradleDslFile file) {
+    return new ArrayList<>(myNotifications.getOrDefault(file, MutableClassToInstanceMap.create()).values());
   }
 
   @NotNull
-  public <T extends BuildModelNotification> T getNotificationForType(@NotNull NotificationTypeReference<T> type) {
-    if (myNotifications.containsKey(type.getClazz())) {
-      return myNotifications.getInstance(type.getClazz());
-    } else {
+  public <T extends BuildModelNotification> T getNotificationForType(@NotNull GradleDslFile file,
+                                                                     @NotNull NotificationTypeReference<T> type) {
+    ClassToInstanceMap<BuildModelNotification> notificationMap =
+      myNotifications.computeIfAbsent(file, (f) -> MutableClassToInstanceMap.create());
+    if (notificationMap.containsKey(type.getClazz())) {
+      return notificationMap.getInstance(type.getClazz());
+    }
+    else {
       T notification = type.getConstructor().produce();
-      myNotifications.putInstance(type.getClazz(), notification);
+      notificationMap.putInstance(type.getClazz(), notification);
       return notification;
     }
   }
@@ -126,6 +134,11 @@ public final class BuildModelContext {
   @NotNull
   public GradleSettingsFile getOrCreateSettingsFile(@NotNull VirtualFile settingsFile) {
     return myFileCache.getOrCreateSettingsFile(settingsFile, this);
+  }
+
+  @Nullable
+  public GradlePropertiesFile getOrCreatePropertiesFile(@NotNull VirtualFile file, @NotNull String moduleName) {
+    return myFileCache.getOrCreatePropertiesFile(file, moduleName, this);
   }
 
   // This should normally not be used. Please use getOrCreateBuildFile

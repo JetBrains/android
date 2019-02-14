@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +46,8 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     myModuleRootDir = moduleFilePath.getParentFile();
     myBuildFile = new File(myModuleRootDir, FN_BUILD_GRADLE);
     createIfNotExists(myBuildFile);
+    // Ensure that the tests and see the file in the virtual file system.
+    LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(myBuildFile));
   }
 
   public void testGetGradleBuildFileFromRootDir() {
