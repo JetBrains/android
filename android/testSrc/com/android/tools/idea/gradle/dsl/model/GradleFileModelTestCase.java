@@ -33,13 +33,15 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.copyFileOrDir;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.saveText;
+import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
@@ -61,13 +63,13 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -103,14 +105,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected Module mySubModule;
 
-  protected File mySettingsFile;
-  protected File myBuildFile;
-  protected File myPropertiesFile;
-  protected File mySubModuleBuildFile;
-  protected File mySubModulePropertiesFile;
+  protected VirtualFile mySettingsFile;
+  protected VirtualFile myBuildFile;
+  protected VirtualFile myPropertiesFile;
+  protected VirtualFile mySubModuleBuildFile;
+  protected VirtualFile mySubModulePropertiesFile;
 
-  protected File myModuleDirPath;
-  protected File myProjectBasePath;
+  protected VirtualFile myModuleDirPath;
+  protected VirtualFile myProjectBasePath;
 
   @Parameters(name = "{1}")
   public static Collection languageExtensions() {
@@ -131,34 +133,46 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return myLanguageName.equals(GROOVY_LANGUAGE);
   }
 
+  protected static <R, E extends Exception> void runWriteAction(@NotNull ThrowableComputable<R, E> runnable) throws E {
+    ApplicationManager.getApplication().runWriteAction(runnable);
+  }
+
+  private static void saveFileUnderWrite(@NotNull VirtualFile file, @NotNull String text) throws IOException {
+    runWriteAction(() -> {
+      saveText(file, text);
+      return null;
+    });
+  }
+
   @Before
   @Override
   public void setUp() throws Exception {
     super.setUp();
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
-    String basePath = myProject.getBasePath();
-    assertNotNull(basePath);
-    myProjectBasePath = new File(basePath);
-    assertAbout(file()).that(myProjectBasePath).isDirectory();
-    mySettingsFile = new File(myProjectBasePath, FN_SETTINGS_GRADLE);
-    assertTrue(ensureCanCreateFile(mySettingsFile));
+    runWriteAction((ThrowableComputable<Void, Exception>)() -> {
+      String basePath = myProject.getBasePath();
+      assertNotNull(basePath);
+      myProjectBasePath = VfsUtil.findFile(new File(basePath).toPath(), true);
+      assertTrue(myProjectBasePath.isDirectory());
+      mySettingsFile = myProjectBasePath.createChildData(this, FN_SETTINGS_GRADLE);
+      assertTrue(mySettingsFile.isWritable());
 
-    File moduleFilePath = new File(myModule.getModuleFilePath());
-    myModuleDirPath = moduleFilePath.getParentFile();
-    assertAbout(file()).that(myModuleDirPath).isDirectory();
-    myBuildFile = new File(myModuleDirPath, FN_BUILD_GRADLE);
-    assertTrue(ensureCanCreateFile(myBuildFile));
-    myPropertiesFile = new File(myModuleDirPath, FN_GRADLE_PROPERTIES);
-    assertTrue(ensureCanCreateFile(myPropertiesFile));
+      myModuleDirPath = myModule.getModuleFile().getParent();
+      assertTrue(myModuleDirPath.isDirectory());
+      myBuildFile = myModuleDirPath.createChildData(this, FN_BUILD_GRADLE);
+      assertTrue(myBuildFile.isWritable());
+      myPropertiesFile = myModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
+      assertTrue(myPropertiesFile.isWritable());
 
-    File subModuleFilePath = new File(mySubModule.getModuleFilePath());
-    File subModuleDirPath = subModuleFilePath.getParentFile();
-    assertAbout(file()).that(subModuleDirPath).isDirectory();
-    mySubModuleBuildFile = new File(subModuleDirPath, FN_BUILD_GRADLE);
-    assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
-    mySubModulePropertiesFile = new File(subModuleDirPath, FN_GRADLE_PROPERTIES);
-    assertTrue(ensureCanCreateFile(mySubModulePropertiesFile));
+      VirtualFile subModuleDirPath = VfsUtil.findFile(new File(mySubModule.getModuleFilePath()).getParentFile().toPath(), true);
+      assertTrue(subModuleDirPath.isDirectory());
+      mySubModuleBuildFile = subModuleDirPath.createChildData(this, FN_BUILD_GRADLE);
+      assertTrue(mySubModuleBuildFile.isWritable());
+      mySubModulePropertiesFile = subModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
+      assertTrue(mySubModulePropertiesFile.isWritable());
+      return null;
+    });
 
     myTestDataPath = AndroidTestBase.getTestDataPath() + "/parser";
   }
@@ -192,18 +206,18 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return mainModule;
   }
 
-  protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull File destination) throws IOException {
+  protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
+    throws IOException {
     final File testFile = testFileName.toFile(myTestDataPath, myTestDataExtension);
     assumeTrue(testFile.exists());
-    copyFileOrDir(testFile, destination);
+    VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
+
+    saveFileUnderWrite(destination, loadText(virtualTestFile));
     injectTestInformation(destination);
-    ApplicationManager.getApplication().runWriteAction(() ->
-      ProjectUtil.guessProjectDir(myProject).getFileSystem().refresh(false)
-    );
   }
 
   protected void writeToSettingsFile(@NotNull String text) throws IOException {
-    writeToFile(mySettingsFile, text);
+    saveFileUnderWrite(mySettingsFile, text);
   }
 
   protected void writeToSettingsFile(@NotNull TestFileName fileName) throws IOException {
@@ -211,7 +225,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {
-    writeToFile(myBuildFile, text);
+    saveFileUnderWrite(myBuildFile, text);
   }
 
   protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
@@ -267,40 +281,46 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
 
   protected void writeToNewProjectFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
-    File newFile = new File(myProjectBasePath, newFileName);
-    prepareAndInjectInformationForTest(testFileName, newFile);
+    runWriteAction(() -> {
+      VirtualFile newFile = myProjectBasePath.createChildData(this, newFileName);
+      prepareAndInjectInformationForTest(testFileName, newFile);
+      return null;
+    });
   }
 
   protected void writeToNewSubModuleFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
-    File newFile = new File(mySubModuleBuildFile.getParent(), newFileName);
-    prepareAndInjectInformationForTest(testFileName, newFile);
+    runWriteAction(() -> {
+      VirtualFile newFile = mySubModuleBuildFile.getParent().createChildData(this, newFileName);
+      prepareAndInjectInformationForTest(testFileName, newFile);
+      return null;
+    });
   }
 
   @NotNull
   protected String loadBuildFile() throws IOException {
-    return loadFile(myBuildFile);
+    return loadText(myBuildFile);
   }
 
   protected void writeToPropertiesFile(@NotNull String text) throws IOException {
-    writeToFile(myPropertiesFile, text);
+    saveFileUnderWrite(myPropertiesFile, text);
   }
 
   protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
-    writeToFile(mySubModuleBuildFile, text);
+    saveFileUnderWrite(mySubModuleBuildFile, text);
   }
 
   protected void writeToSubModuleBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, mySubModuleBuildFile);
   }
 
-  private static void injectTestInformation(@NotNull File file) throws IOException {
-    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+  private static void injectTestInformation(@NotNull VirtualFile file) throws IOException {
+    String content = loadText(file);
     content = content.replace("<SUB_MODULE_NAME>", SUB_MODULE_NAME);
-    Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
+    saveFileUnderWrite(file, content);
   }
 
   protected void writeToSubModulePropertiesFile(@NotNull String text) throws IOException {
-    writeToFile(mySubModulePropertiesFile, text);
+    saveFileUnderWrite(mySubModulePropertiesFile, text);
   }
 
   @NotNull
@@ -341,11 +361,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
-  protected void verifyFileContents(@NotNull File file, @NotNull String contents) throws IOException {
-    assertEquals(loadFile(file).replaceAll("[ \\t]+", "").trim(), contents.replaceAll("[ \\t]+", "").trim());
+  protected void verifyFileContents(@NotNull VirtualFile file, @NotNull String contents) throws IOException {
+    assertEquals(loadText(file).replaceAll("[ \\t]+", "").trim(), contents.replaceAll("[ \\t]+", "").trim());
   }
 
-  protected void verifyFileContents(@NotNull File file, @NotNull TestFileName expected) throws IOException {
+  protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
     verifyFileContents(file, loadFile(expected.toFile(myTestDataPath, myTestDataExtension)));
   }
 
@@ -644,8 +664,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(fullName, model.getFullyQualifiedName());
   }
 
-  public static void verifyFilePathsAreEqual(@NotNull File expected, @NotNull VirtualFile actual) {
-    assertEquals(toSystemIndependentName(expected.getAbsolutePath()), actual.getPath());
+  public static void verifyFilePathsAreEqual(@NotNull VirtualFile expected, @NotNull VirtualFile actual) {
+    assertEquals(toSystemIndependentName(expected.getPath()), actual.getPath());
   }
 
   public static void verifyPlugins(@NotNull List<String> names, @NotNull List<PluginModel> models) {
