@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +60,7 @@ public class CreateNewAppModuleWithDefaultsTest {
            .clickNextToStep("Add an Activity to Mobile")
            .chooseActivity("Add No Activity")
            .clickFinish()
-           .waitForGradleProjectSyncToFinish();
+           .waitForGradleProjectSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("application_module")).isDirectory();
   }
 }
