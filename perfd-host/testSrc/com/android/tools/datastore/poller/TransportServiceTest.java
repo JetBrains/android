@@ -52,19 +52,14 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
 public class TransportServiceTest extends DataStorePollerTest {
-  private static final long DEVICE_ID = 1234;
-  private static final String DEVICE_SERIAL = "SomeSerialId";
-  private static final String BOOT_ID = "SOME BOOT ID";
-  private static final Common.Device DEVICE = Common.Device
-    .newBuilder().setDeviceId(DEVICE_ID).setBootId(BOOT_ID).setSerial(DEVICE_SERIAL).build();
   private static final Common.Process INITIAL_PROCESS = Common.Process
-    .newBuilder().setDeviceId(DEVICE_ID).setPid(1234).setName("INITIAL").build();
+    .newBuilder().setDeviceId(DEVICE.getDeviceId()).setPid(1234).setName("INITIAL").build();
   private static final Common.Process FINAL_PROCESS = Common.Process
-    .newBuilder().setDeviceId(DEVICE_ID).setPid(4321).setName("FINAL").build();
+    .newBuilder().setDeviceId(DEVICE.getDeviceId()).setPid(4321).setName("FINAL").build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run, new FakeLogService());
+  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run);
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";
@@ -84,8 +79,8 @@ public class TransportServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    myTransportService.startMonitoring(myService.getChannel());
     when(myDataStore.getTransportClient(any())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
+    myTransportService.connectToChannel(STREAM, myService.getChannel());
   }
 
   @After
@@ -221,7 +216,7 @@ public class TransportServiceTest extends DataStorePollerTest {
     getPollTicker().run();
     StreamObserver<AgentData> observer = mock(StreamObserver.class);
     myTransportService
-      .getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
+      .getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).setPid(INITIAL_PROCESS.getPid()).build(), observer);
     AgentData response = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
     validateResponse(observer, response);
   }
@@ -229,9 +224,9 @@ public class TransportServiceTest extends DataStorePollerTest {
   @Test
   public void configureStartupAgent() {
     StreamObserver<ConfigureStartupAgentResponse> observer = mock(StreamObserver.class);
-    myTransportService
-      .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder().setStreamId(DEVICE_ID).setAgentLibFileName("TEST").build(),
-                             observer);
+    myTransportService.configureStartupAgent(
+      ConfigureStartupAgentRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).setAgentLibFileName("TEST").build(),
+      observer);
     ConfigureStartupAgentResponse response = ConfigureStartupAgentResponse.newBuilder().setAgentArgs("TEST").build();
     validateResponse(observer, response);
   }

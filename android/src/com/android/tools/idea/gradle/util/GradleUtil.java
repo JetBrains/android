@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -108,10 +109,12 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -932,21 +935,14 @@ public final class GradleUtil {
    * permissions are defined in the manifest.
    */
   public static boolean isAaptGeneratedSourcesFolder(@NotNull File folder, @NotNull File buildFolder) {
-    try {
-      File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
+    File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
 
-      // Folder used in 3.1 and below. Additional level added below for androidTest.
-      File generatedSourceR = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FD_RES_CLASS);
-      // Naming convention used in 3.2 and above, if R.java files are generated at all.
-      File rClassSources = new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES);
+    // Folder used in 3.1 and below. Additional level added below for androidTest.
+    File generatedSourceR = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FD_RES_CLASS);
+    // Naming convention used in 3.2 and above, if R.java files are generated at all.
+    File rClassSources = new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES);
 
-      return filesEqual(folder.getParentFile(), generatedSourceR) ||
-             filesEqual(folder.getParentFile().getParentFile(), generatedSourceR) ||
-             filesEqual(folder.getParentFile().getParentFile().getParentFile(), rClassSources);
-    }
-    catch (NullPointerException e) {
-      return false;
-    }
+    return FileUtil.isAncestor(generatedSourceR, folder, false) || FileUtil.isAncestor(rClassSources, folder, false);
   }
 
   /**
@@ -962,6 +958,37 @@ public final class GradleUtil {
         .collect(Collectors.toList());
     } else {
       return artifact.getGeneratedSourceFolders();
+    }
+  }
+
+  /**
+   * Given a project, return what types of build files are used.
+   *
+   * @param   project Project to analyse
+   * @return  A set containing values from {{@link{DOT_GRADLE}, {@link{DOT_KTS}}
+   */
+  public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
+    HashSet<String> result = new HashSet<>();
+    addBuildFileType(result, getGradleBuildFile(getBaseDirPath(project)));
+    for(Module module : ModuleManager.getInstance(project).getModules()) {
+      addBuildFileType(result, getGradleBuildFile(module));
+    }
+    return result;
+  }
+
+  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
+    if (buildFile != null) {
+      String buildFileExtension = buildFile.getExtension();
+      if (buildFileExtension == null) {
+        return;
+      }
+      buildFileExtension = "." + buildFileExtension;
+      if (buildFileExtension.equalsIgnoreCase(DOT_GRADLE)) {
+        result.add(DOT_GRADLE);
+      }
+      else if (buildFileExtension.equalsIgnoreCase(DOT_KTS)) {
+        result.add(DOT_KTS);
+      }
     }
   }
 }

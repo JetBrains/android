@@ -30,7 +30,7 @@ class InspectorView(val id: String,
   var image: Image? = null
   var imageGenerationTime: Long? = null
 
-  val properties: MutableMap<ResourceItem, PropertyTrace?> = _properties.keysToMap { null }.toMutableMap()
+  val properties: MutableMap<ResourceItem, PropertyTrace?> = _properties.associateBy({ it }, { null }).toMutableMap()
 
   val children: MutableList<InspectorView> = mutableListOf()
 }

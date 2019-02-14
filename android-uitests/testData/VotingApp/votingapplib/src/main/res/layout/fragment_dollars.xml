@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <src.adux.votingapplib.widgets.CircleTextView
+        android:id="@+id/reset"
+        android:text="R"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentRight="true"
+        android:gravity="center"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/upper"
+        >
+
+
+        <TextView
+            android:id="@+id/dots_title"
+            style="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:lineSpacingMultiplier="1.1"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp"
+            android:paddingTop="24dp"
+            android:text="Tap to toggle color"
+            android:textColor="#5E5D5D"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/dots_subtitle"
+            style="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:lineSpacingMultiplier="1.1"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp"
+            android:paddingTop="5dp"
+            android:text="Tap boxes below to switch colors"
+            android:textColor="#5E5D5D"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout_toggle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <src.nex3z.togglebuttongroup.SingleSelectToggleGroup
+                android:id="@+id/dots_color"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                app:tbgChildSpacing="10dp"
+                app:tbgCheckedButton="@id/choice_b"
+                app:tbgRowSpacing="12dp">
+
+                <src.nex3z.togglebuttongroup.button.CircularToggle
+                    android:id="@+id/choice_a"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="22sp"
+                    android:text="$1"/>
+
+                <src.nex3z.togglebuttongroup.button.CircularToggle
+                    android:id="@+id/choice_b"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="22sp"
+                    android:text="$10"/>
+
+            </src.nex3z.togglebuttongroup.SingleSelectToggleGroup>
+
+
+            <!--<View-->
+                <!--android:layout_width="1px"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:layout_gravity="center"-->
+                <!--android:layout_marginLeft="20px"-->
+                <!--android:background="#DDDDDD"-->
+                <!--&gt;</View>-->
+
+            <!--<project.aamir.sheikh.circletextview.CircleTextView-->
+                <!--android:id="@+id/Reset"-->
+                <!--android:text="Reset"-->
+                <!--android:layout_width="50dp"-->
+                <!--android:layout_height="50dp"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:gravity="center"-->
+                <!--/>-->
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="#dadada"></View>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_above="@+id/button_continue"
+        android:id="@+id/linearLayout_list"
+        android:layout_below="@+id/upper">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/my_recycler_view"
+            android:scrollbars="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
+
+    <!--</ScrollView>-->
+
+
+    <Button
+        android:id="@+id/button_continue"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:background="#2979D6"
+        android:text="@string/xcontinue"
+        android:layout_alignParentBottom="true"
+        android:textColor="#FFF"
+        android:textSize="20sp" />
+
+</RelativeLayout>

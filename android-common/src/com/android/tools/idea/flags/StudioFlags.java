@@ -311,6 +311,13 @@ public final class StudioFlags {
     "Use JVMTI to support application refresh. This implies incremental deployment",
     true);
 
+  public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
+    RUNDEBUG,
+    "deltainstall",
+    "Delta install",
+    "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
+    true);
+
   public static final Flag<Boolean> UNIFIED_DEPLOYMENT = Flag.create(
     RUNDEBUG,
     "unified.deploy",
@@ -488,6 +495,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS = Flag.create(
     UAB, "enable.ia.run.configs", "Enable new instant app run configuration options",
     "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow.",
+    true
+  );
+
+  private static final FlagGroup PROJECT_UPGRADE = new FlagGroup(FLAGS, "project.upgrade", "Project Upgrade");
+  public static final Flag<Boolean> BALLOON_UPGRADE_NOTIFICATION = Flag.create(
+    PROJECT_UPGRADE, "balloon.upgrade.notification", "Enable Balloon Notification for Project Upgrade",
+    "If enabled, the notification of project upgrade will show as balloon in the right-bottom side.",
     true
   );
 

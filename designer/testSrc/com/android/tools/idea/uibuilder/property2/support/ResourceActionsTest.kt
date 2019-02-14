@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.property2.api.HelpSupport
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType

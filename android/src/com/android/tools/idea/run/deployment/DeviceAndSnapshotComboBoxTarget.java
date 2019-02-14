@@ -22,13 +22,20 @@ import com.android.tools.idea.run.editor.DeployTargetState;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<DeployTargetState> {
+  @NotNull
+  private final Collection<Device> myDevices;
+
+  DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
+    myDevices = devices;
+  }
+
   @Override
   public boolean hasCustomRunProfileState(@NotNull Executor executor) {
     return false;
@@ -49,16 +56,10 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<DeployTarget
                                   @NotNull DeviceCount count,
                                   boolean debug,
                                   int id) {
-    ActionManager manager = ActionManager.getInstance();
-    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
-
+    DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
-    Device device = action.getSelectedDevice(project);
+    myDevices.forEach(device -> device.addTo(futures, project, null));
 
-    if (device == null) {
-      return new DeviceFutures(Collections.emptyList());
-    }
-
-    return device.newDeviceFutures(project, action.getSelectedSnapshot());
+    return futures;
   }
 }

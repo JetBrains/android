@@ -16,10 +16,9 @@
 package com.android.tools.idea.editors.layoutInspector.ptable
 
 import com.android.layoutinspector.model.ViewProperty
-import com.android.tools.adtui.ptable.PTableGroupItem
-import com.android.tools.adtui.ptable.PTableItem
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableItem
 import com.android.tools.idea.editors.layoutInspector.EditHandler
-import java.util.stream.Collectors
 
 class LITableGroupItem(private val myName: String, properties: List<ViewProperty>, editHandler: EditHandler) : PTableGroupItem() {
   private val myChildren: List<PTableItem>

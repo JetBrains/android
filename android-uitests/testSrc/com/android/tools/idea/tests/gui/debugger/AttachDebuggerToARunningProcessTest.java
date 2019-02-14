@@ -69,9 +69,7 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
       guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/AttachDebuggerToProcess");
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 
-    ideFrame.runApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.runApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();

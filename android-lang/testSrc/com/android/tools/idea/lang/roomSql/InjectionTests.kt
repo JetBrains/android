@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,37 @@
  */
 package com.android.tools.idea.lang.roomSql
 
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiLanguageInjectionHost.Shred
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil.enumerate
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidFacetProjectDescriptor
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 
 private fun JavaCodeInsightTestFixture.checkNoInjection(text: String) {
-  assertFalse(InjectedLanguageUtil.hasInjections(findElementByText(text, PsiLanguageInjectionHost::class.java)!!))
+  val host = findElementByText(text, PsiLanguageInjectionHost::class.java)
+  assertThat(host).named("host element from text '$text'").isNotNull()
+  assertThat(InjectedLanguageManager.getInstance(project).getInjectedPsiFiles(host!!)).named("injections").isNull()
 }
 
 private fun JavaCodeInsightTestFixture.checkInjection(text: String, block: (PsiFile, List<Shred>) -> Unit) {
-  val host = findElementByText(text, PsiLanguageInjectionHost::class.java)!!
+  val manager = InjectedLanguageManager.getInstance(project)
+  val host = findElementByText(text, PsiLanguageInjectionHost::class.java)
+  assertThat(host).named("host element from text '$text'").isNotNull()
   var injectionsCount = 0
 
-  assertTrue(InjectedLanguageUtil.hasInjections(host))
+  assertThat(manager.getInjectedPsiFiles(host!!)).named("injections").isNotEmpty()
 
-  enumerate(host) { injectedPsi, places ->
-    assertEquals("More than one injection", 0, injectionsCount++)
+  manager.enumerate(host) { injectedPsi, places ->
+    assertWithMessage("Found more than one injection").that(injectionsCount++).isEqualTo(0)
     block.invoke(injectedPsi, places)
   }
 
-  assertTrue(injectionsCount > 0)
+  assertThat(injectionsCount).named("number of injections").isGreaterThan(0)
 }
 
 class RoomQueryInjectionTest : RoomLightTestCase() {
@@ -80,8 +82,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from User", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from User")
     }
   }
 
@@ -100,8 +102,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from User", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from User")
     }
   }
 
@@ -123,9 +125,9 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, places ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from User where id = :id", psi.text)
-      assertEquals(2, places.size)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from User where id = :id")
+      assertThat(places.size).isEqualTo(2)
     }
   }
 
@@ -148,8 +150,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
     )
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("select * from UserTable", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("select * from UserTable")
     }
   }
 }
@@ -177,8 +179,8 @@ class OtherApisInjectionTest : RoomLightTestCase() {
 
 
     myFixture.checkInjection("delete from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
-      assertEquals("delete from User", psi.text)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
+      assertThat(psi.text).isEqualTo("delete from User")
     }
   }
 
@@ -220,7 +222,7 @@ class OtherApisInjectionTest : RoomLightTestCase() {
     }
 
     myFixture.checkInjection("* from") { psi, _ ->
-      assertSame(RoomSqlLanguage.INSTANCE, psi.language)
+      assertThat(psi.language).isSameAs(RoomSqlLanguage.INSTANCE)
     }
 
     myFixture.checkNoInjection("tableName")

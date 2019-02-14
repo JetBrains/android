@@ -72,21 +72,23 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
     val element = queryParameters.elementToSearch
 
-    // Return early if possible: this method is called by various inspections on all kinds of PSI elements, in most cases we don't have to
-    // do anything which means we don't block a FJ thread by building a Room schema.
-    when (element) {
-      is PsiClass -> {
-        if (!element.definesSqlTable()) return
+    val (word, referenceTarget) = runReadAction {
+      // Return early if possible: this method is called by various inspections on all kinds of PSI elements, in most cases we don't have to
+      // do anything which means we don't block a FJ thread by building a Room schema.
+      when (element) {
+        is PsiClass -> {
+          if (!element.definesSqlTable()) return@runReadAction null
+        }
+        is PsiField -> {
+          val psiClass = element.containingClass ?: return@runReadAction null
+          // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
+          if (psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable()) return@runReadAction null
+        }
+        else -> return@runReadAction null
       }
-      is PsiField -> {
-        val psiClass = element.containingClass ?: return
-        // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
-        if (psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable()) return
-      }
-      else -> return
-    }
 
-    val (word, referenceTarget) = runReadAction { getNameDefinition(element)?.let(this::chooseWordAndElement) } ?: return
+      getNameDefinition(element)?.let(this::chooseWordAndElement)
+    } ?: return
 
     // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
     // consumer. The "proper" way is to get the optimizer and schedule an index search for references to a given element that include a

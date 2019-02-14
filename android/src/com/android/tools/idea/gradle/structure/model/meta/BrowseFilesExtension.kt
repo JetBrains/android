@@ -35,8 +35,9 @@ class BrowseFilesExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>(
   override val title: String = "Choose File"
   override val tooltip: String = "Choose File"
   override val icon: Icon = AllIcons.General.OpenDisk
-  override val availableInNonPropertyContext: Boolean = true
   override val isMainAction: Boolean = false
+
+  override fun isAvailableFor(property: PropertyCoreT, isPropertyContext: Boolean): Boolean = true
 
   override fun invoke(
     property: PropertyCoreT,

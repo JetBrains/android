@@ -49,6 +49,7 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
     ],
 )
 
@@ -90,6 +91,7 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_shard_count = 8,
     test_srcs = ["testSrc"],
@@ -104,7 +106,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -140,5 +142,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/vendor/intellij/cidr:intellij.c[module, test]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
     ],
 )

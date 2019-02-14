@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.idea.common.property2.api.HelpSupport
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import icons.StudioIcons
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
@@ -43,6 +44,8 @@ import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
+
+const val PICK_A_RESOURCE = "Pick a Resource"
 
 /**
  * Resource actions in Nele.
@@ -65,7 +68,7 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
   }
 }
 
-object OpenResourceManagerAction : AnAction("Open Resource Manager") {
+object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESOURCE, StudioIcons.Common.PROPERTY_UNBOUND) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
@@ -82,7 +85,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager") {
   private fun selectFromResourceDialog(property: NelePropertyItem): String? {
     val module = property.model.facet.module
     val propertyName = property.name
-    val tag = property.components.firstOrNull()?.backend?.getTag() ?: return null
+    val tag = property.components.firstOrNull()?.backend?.tag ?: return null
     val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
     val defaultResourceType = getDefaultResourceType(propertyName)
     val isImageViewDrawable = hasImageTag.isPresent &&
@@ -95,6 +98,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager") {
       .setDefaultType(defaultResourceType)
       .setFilterColorStateLists(isImageViewDrawable)
       .build()
+    dialog.title = PICK_A_RESOURCE
     return if (dialog.showAndGet()) dialog.resourceName else null
   }
 

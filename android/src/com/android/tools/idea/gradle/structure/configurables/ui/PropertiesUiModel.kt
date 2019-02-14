@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.properties.ListP
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.MapPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
@@ -140,13 +141,14 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return SimplePropertyEditor(
+  return simplePropertyEditor(
     boundProperty,
     boundContext,
     variablesScope,
     boundContext.createDefaultEditorExtensions(project, module),
-    cellEditor,
-    logValueEdited)
+    isPropertyContext = true,
+    cellEditor = cellEditor,
+    logValueEdited = logValueEdited)
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -162,18 +164,19 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return ListPropertyEditor(
-    boundProperty, boundContext,
-    { propertyCore, _, variables ->
-      SimplePropertyEditor(
-        propertyCore,
-        boundContext,
-        variables,
-        boundContext.createDefaultEditorExtensions(project, module),
-        cellEditor,
-        logValueEdited)
-    },
-    variablesScope,
-    logValueEdited)
+      boundProperty, boundContext,
+      { propertyCore, _, variables ->
+        simplePropertyEditor(
+            propertyCore,
+            boundContext,
+            variables,
+            boundContext.createDefaultEditorExtensions(project, module),
+            isPropertyContext = true,
+            cellEditor = cellEditor,
+            logValueEdited = logValueEdited)
+      },
+      variablesScope,
+      logValueEdited)
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -189,16 +192,18 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return MapPropertyEditor(
-    boundProperty, boundContext,
-    { propertyCore, _, variables ->
-      SimplePropertyEditor(
-        propertyCore,
-        boundContext,
-        variables,
-        boundContext.createDefaultEditorExtensions(project, module),
-        logValueEdited = logValueEdited
-      )
-    },
-    variablesScope,
-    logValueEdited)
+      boundProperty, boundContext,
+      { propertyCore, _, variables ->
+        simplePropertyEditor(
+            propertyCore,
+            boundContext,
+            variables,
+            boundContext.createDefaultEditorExtensions(project, module),
+            isPropertyContext = true,
+            cellEditor = cellEditor,
+            logValueEdited = logValueEdited
+        )
+      },
+      variablesScope,
+      logValueEdited)
 }

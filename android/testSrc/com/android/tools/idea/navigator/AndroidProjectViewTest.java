@@ -376,7 +376,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     Files.createParentDirs(resourceFile);
     Files.write("sample text", resourceFile, StandardCharsets.UTF_8);
 
-    LocalFileSystem.getInstance().refresh(false/* synchronously */);
+    refreshProjectFiles();
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
@@ -414,7 +414,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
         writeToFile(new File(rClassesFolder, join("com", "application", "R.java")),
                     "package com.application; public final class R {}");
       }
-      LocalFileSystem.getInstance().refresh(false/* synchronously */);
+      refreshProjectFiles();
 
       myPane = createPane();
       TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());

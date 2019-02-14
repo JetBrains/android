@@ -16,9 +16,11 @@
 package com.android.tools.datastore.poller;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
@@ -29,6 +31,7 @@ import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.Command;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
@@ -57,11 +60,9 @@ import org.mockito.Mockito;
  * {@link ProfilerService#startPolling(Stream, Channel)} instead of the old {@link ProfilerService#startMonitoring(Channel)} API.
  */
 public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
-  private static final long STREAM_ID = 1234;
-
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run, new FakeLogService());
+  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run);
 
   private FakeTransportService myFakeService = new FakeTransportService();
   private Channel myChannel;
@@ -74,10 +75,9 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
+    when(myDataStore.getTransportClient(any())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
     myChannel = myService.getChannel();
-    // Stream id is analogous to device id.
-    Stream stream = Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(STREAM_ID).build();
-    myTransportService.startPolling(stream, myChannel);
+    myTransportService.connectToChannel(STREAM, myChannel);
   }
 
   @After
@@ -88,21 +88,19 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   @Test
   public void testGetTimes() {
     StreamObserver<TimeResponse> observer = mock(StreamObserver.class);
-    myTransportService.getCurrentTime(TimeRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
+    myTransportService.getCurrentTime(TimeRequest.newBuilder().setStreamId(TEST_DEVICE_ID).build(), observer);
     validateResponse(observer, TimeResponse.getDefaultInstance());
   }
 
   @Test
   public void testGetVersion() {
     StreamObserver<VersionResponse> observer = mock(StreamObserver.class);
-    myTransportService.getVersion(VersionRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
+    myTransportService.getVersion(VersionRequest.newBuilder().setStreamId(TEST_DEVICE_ID).build(), observer);
     validateResponse(observer, VersionResponse.getDefaultInstance());
   }
 
   @Test
   public void streamConnectAndDisconnect() {
-    // Force the poller to tick.
-    getPollTicker().run();
     // Get events from poller to validate we have a connection.
     StreamObserver<GetEventGroupsResponse> observer = mock(StreamObserver.class);
     myTransportService.getEventGroups(
@@ -112,19 +110,16 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
         .build(),
       observer);
     EventGroup expectedGroup = EventGroup.newBuilder()
-      .setGroupId(STREAM_ID)
+      .setGroupId(TEST_DEVICE_ID)
       .addEvents(
         Event.newBuilder()
-          .setGroupId(STREAM_ID)
+          .setGroupId(TEST_DEVICE_ID)
           .setKind(Event.Kind.STREAM)
           .setStream(
             Common.StreamData.newBuilder()
               .setStreamConnected(
                 Common.StreamData.StreamConnected.newBuilder()
-                  .setStream(
-                    Common.Stream.newBuilder()
-                      .setStreamId(STREAM_ID)
-                      .setType(Stream.Type.DEVICE)))))
+                  .setStream(STREAM))))
       .build();
 
     ArgumentCaptor<GetEventGroupsResponse> response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
@@ -135,7 +130,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
     validateEventNoTimestamp(expectedGroup.getEvents(0), actualGroup.getEvents(0));
 
     // Disconnect service.
-    myTransportService.stopMonitoring(myChannel);
+    myTransportService.disconnectFromChannel(myChannel);
     Mockito.reset(observer);
     response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
     myTransportService.getEventGroups(
@@ -147,7 +142,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
     verify(observer, times(1)).onNext(response.capture());
     expectedGroup = expectedGroup.toBuilder().addEvents(
       Event.newBuilder()
-        .setGroupId(STREAM_ID)
+        .setGroupId(TEST_DEVICE_ID)
         .setKind(Event.Kind.STREAM)
         .setIsEnded(true)
         .setTimestamp(100))
@@ -163,7 +158,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   @Test
   public void executeRedirectsProperly() {
     StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
-    Command sentCommand = Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1).build();
+    Command sentCommand = Command.newBuilder().setStreamId(TEST_DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1).build();
     myTransportService.execute(
       ExecuteRequest.newBuilder().setCommand(sentCommand).build(),
       observer);
@@ -171,7 +166,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
     // Test executing a command on an invalid stream.
     myTransportService.execute(
       ExecuteRequest.newBuilder()
-        .setCommand(Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1)).build(),
+        .setCommand(Command.newBuilder().setStreamId(TEST_DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1)).build(),
       observer);
     assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
   }
@@ -198,6 +193,19 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
     @Override
     public void getVersion(VersionRequest request, StreamObserver<VersionResponse> responseObserver) {
       responseObserver.onNext(VersionResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
+
+
+    @Override
+    public void getDevices(Transport.GetDevicesRequest request, StreamObserver<Transport.GetDevicesResponse> responseObserver) {
+      responseObserver.onNext(Transport.GetDevicesResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getProcesses(Transport.GetProcessesRequest request, StreamObserver<Transport.GetProcessesResponse> responseObserver) {
+      responseObserver.onNext(Transport.GetProcessesResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 

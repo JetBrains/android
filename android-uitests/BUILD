@@ -1,6 +1,13 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+filegroup(
+    name = "aspect_rules",
+    srcs = ["default_aspect_rules.txt"],
+)
+
 COMMON_DATA = [
+    "//tools/adt/idea/android-uitests:aspect_rules",
+    "//tools/base/aspects_agent:aspects_agent",
     "//tools/adt/idea/android:test_deps.zip",
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
@@ -62,7 +69,7 @@ iml_module(
     deps = [
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -84,6 +91,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module, test]",
@@ -1395,7 +1403,11 @@ java_test(
     data = COMMON_DATA + glob([
         "testData/NoAppCompatLibApp/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest"],
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest",
+        "-Daspects.agent.jar=$(location //tools/base/aspects_agent:aspects_agent)",
+        "-Daspects.agent.rules=$(location //tools/adt/idea/android-uitests:aspect_rules)",
+    ],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumValue
 import com.google.common.truth.Truth
 
 object EnumValueUtil {

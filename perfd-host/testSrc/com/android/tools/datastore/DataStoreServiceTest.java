@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
+import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EnergyService;
@@ -132,9 +133,9 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   @Test
   public void testConnectServices() {
     ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
-    myDataStore.connect(channel);
+    myDataStore.connect(STREAM, channel);
     TransportServiceGrpc.TransportServiceBlockingStub stub =
-      myDataStore.getTransportClient(DeviceId.of(DEVICE.getDeviceId()));
+      myDataStore.getTransportClient(StreamId.of(DEVICE.getDeviceId()));
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
   }
@@ -142,12 +143,12 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   @Test
   public void testDisconnectServices() {
     ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
-    myDataStore.connect(channel);
+    myDataStore.connect(STREAM, channel);
     TransportServiceGrpc.TransportServiceBlockingStub stub =
       TransportServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
-    myDataStore.disconnect(DeviceId.of(DEVICE.getDeviceId()));
+    myDataStore.disconnect(StreamId.of(DEVICE.getDeviceId()));
     myExpectedException.expect(StatusRuntimeException.class);
     stub.getVersion(VersionRequest.getDefaultInstance());
   }
@@ -287,6 +288,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     @NotNull private final Map<BackingNamespace, Connection> myReceivedBackingStores = new HashMap<>();
 
     @NotNull private final UnifiedEventsTable myTable = new UnifiedEventsTable();
+    @NotNull private final DeviceProcessTable myLegacyTable = new DeviceProcessTable();
 
     private Connection myConnection;
 
@@ -308,12 +310,13 @@ public class DataStoreServiceTest extends DataStorePollerTest {
         .containsValue(connection);
       myReceivedBackingStores.put(namespace, connection);
       myTable.initialize(connection);
+      myLegacyTable.initialize(connection);
       myConnection = connection;
     }
 
     @Override
     public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> responseObserver) {
-      responseObserver.onNext(myTable.getAgentStatus(request));
+      responseObserver.onNext(myLegacyTable.getAgentStatus(request));
       responseObserver.onCompleted();
     }
 

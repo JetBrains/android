@@ -116,7 +116,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
     if (!path.exists()) {
       // Development mode
-      path = new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android");
+      path = new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android-installer");
     }
     return path.getAbsolutePath();
   }

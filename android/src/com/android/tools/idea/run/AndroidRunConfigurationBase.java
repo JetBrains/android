@@ -301,7 +301,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     // prepare instant run session based on chosen deploy target.
-    if (supportsInstantRun() && instantRunEnabled && existingSessionInfo != null) {
+    if (instantRunEnabled && supportsInstantRun() && existingSessionInfo != null) {
       PrepareSessionResult result = prepareInstantRunSession(existingSessionInfo, executor, facet, project, deviceFutures, forceColdswap);
       // returns null if we prompt user and they choose to abort the Run
       if (result == null) {
@@ -318,10 +318,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     InstantRunContext instantRunContext = null;
-    if (supportsInstantRun() && instantRunEnabled) {
+    if (instantRunEnabled && supportsInstantRun()) {
       instantRunContext = ensureGradleSupport(executor, env, module, facet, project, existingSessionInfo, deviceFutures);
     }
-    else {
+    else if (!StudioFlags.JVMTI_REFRESH.get()) {
       logInstantRunOffReason(instantRunEnabled);
     }
 
@@ -612,7 +612,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     else {
-      deployTarget = currentTargetProvider.getDeployTarget();
+      deployTarget = currentTargetProvider.getDeployTarget(facet);
     }
 
     return deployTarget;

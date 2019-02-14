@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginRight="15dp"
+                tools:ignore="UnusedAttribute">
+
+        <src.adux.votingapplib.widgets.CircleTextView
+            android:id="@+id/listview_circle"
+            android:layout_marginBottom="10dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:gravity="center"
+
+          />
+
+        <TextView
+            android:id="@+id/listview_text"
+            android:layout_toRightOf="@+id/listview_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:paddingStart="15dp"
+            android:paddingRight="5dp"
+            android:paddingEnd="5dp"
+            android:singleLine="true"
+            android:text="friend name"
+            android:textSize="24sp"
+            tools:ignore="HardcodedText,NewApi"/>
+
+        <src.adux.votingapplib.widgets.CircleTextView
+            android:id="@+id/reset"
+            android:text="R"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_toLeftOf="@id/divider"
+            android:gravity="center"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="8dp"
+            android:alpha="0.5"
+            />
+
+        <View android:layout_width="1dp"
+            android:id="@+id/divider"
+            android:layout_height="50dp"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="10dp"
+            android:layout_marginRight="20dp"
+            android:layout_toLeftOf="@+id/plus"/>
+
+        <src.adux.votingapplib.widgets.CircleTextView
+            android:id="@+id/minus"
+            android:text="-"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:gravity="center"
+            android:layout_marginTop="8dp"/>
+
+        <src.adux.votingapplib.widgets.CircleTextView
+            android:id="@+id/plus"
+            android:text="+"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_toLeftOf="@+id/minus"
+            android:layout_marginRight="10dp"
+            android:gravity="center"
+            android:layout_marginTop="8dp"/>
+</RelativeLayout>

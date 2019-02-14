@@ -23,8 +23,10 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
-    <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>

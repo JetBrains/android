@@ -54,6 +54,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -232,7 +233,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ActionButtonFixture findAttachDebuggerToAndroidProcessButton() {
-    return findActionButtonByText("Attach debugger to Android process");
+    GenericTypeMatcher<ActionButton> matcher = Matchers.byText(ActionButton.class, "Attach Debugger to Android Process").andIsShowing();
+    return ActionButtonFixture.findByMatcher(matcher, robot(), target());
   }
 
   @NotNull
@@ -247,12 +249,28 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  public void debugApp(@NotNull String appName, @NotNull String deviceName) {
+    new DeviceSelectorFixture(robot()).debugApp(this, appName, deviceName);
+  }
+
+  /**
+   * @deprecated Use {@link #debugApp(String, String)}
+   */
+  @Deprecated
   public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) {
     selectApp(appName);
     findDebugApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
+  public void runApp(@NotNull String appName, @NotNull String deviceName) {
+    new DeviceSelectorFixture(robot()).runApp(this, appName, deviceName);
+  }
+
+  /**
+   * @deprecated Use {@link #runApp(String, String)}
+   */
+  @Deprecated
   public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
     selectApp(appName);
     findRunApplicationButton().waitUntilEnabledAndShowing().click();
@@ -715,6 +733,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture closeProjectPanel() {
     new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "1: Project"))).deselect();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture closeBuildPanel() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Build"))).deselect();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture openResourceManager() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).select();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture closeResourceManager() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).deselect();
     return this;
   }
 }

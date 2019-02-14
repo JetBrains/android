@@ -30,11 +30,24 @@ public abstract class PluginVersionUpgradeStep {
   }
 
   /**
+   * Checks if the Android plugin used in a project needs to be upgraded.
+   *
+   * @param project    the current project.
+   * @param pluginInfo information about the Android plugin used in the project.
+   * @return {@code true} if an upgrade is needed; {@code false} otherwise.
+   *
+   * @see #checkAndPerformUpgrade
+   */
+  public abstract boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo);
+
+  /**
    * Checks if the Android plugin used in a project needs to be upgraded, and if so, performs the upgrade.
    *
    * @param project    the current project.
    * @param pluginInfo information about the Android plugin used in the project.
    * @return {@code true} if an upgrade was needed and was successfully performed; {@code false} otherwise.
+   *
+   * @see #checkUpgradable
    */
   public abstract boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo);
 }

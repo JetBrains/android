@@ -54,7 +54,7 @@ open class NlComponentBackendXml private constructor(
     myTagPointer = pointer
   }
 
-  override fun setTag(tag: XmlTag) {
+  override fun setTagElement(tag: XmlTag) {
     // HACK: see getTag
     val application = ApplicationManager.getApplication()
     if (application.isReadAccessAllowed) {
@@ -91,11 +91,12 @@ open class NlComponentBackendXml private constructor(
     return tag ?: this.myTag
   }
 
-  override fun getTag(): XmlTag? {
-    ApplicationManager.getApplication().assertReadAccessAllowed()
-    val tag = myTagPointer.element
-    return if (tag != null && tag.isValid) tag else null
-  }
+  override val tag: XmlTag?
+    get() {
+      ApplicationManager.getApplication().assertReadAccessAllowed()
+      val tag = myTagPointer.element
+      return if (tag != null && tag.isValid) tag else null
+    }
 
   override fun getTagPointer(): SmartPsiElementPointer<XmlTag> {
     return myTagPointer
@@ -103,7 +104,7 @@ open class NlComponentBackendXml private constructor(
 
   override fun setTagName(name: String) {
     myTagName = name
-    getTag()?.name = name
+    tag?.name = name
   }
 
   override fun getTagName(): String {

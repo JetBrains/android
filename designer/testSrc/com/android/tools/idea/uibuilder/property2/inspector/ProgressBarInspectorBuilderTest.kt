@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
@@ -57,7 +57,7 @@ class ProgressBarInspectorBuilderTest {
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(util.inspector.lines).hasSize(7)
-    assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
+    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
     assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
@@ -76,7 +76,7 @@ class ProgressBarInspectorBuilderTest {
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(util.inspector.lines).hasSize(9)
-    assertThat(util.inspector.lines[0].type).isEqualTo(TestLineType.TITLE)
+    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
     assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)

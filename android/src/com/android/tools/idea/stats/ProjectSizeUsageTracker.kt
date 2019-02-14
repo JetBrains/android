@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -45,8 +46,10 @@ class ProjectSizeUsageTracker(val project: Project) : ProjectComponent {
           if (!result.isSuccessful && result != ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS) {
             return
           }
-          ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
           connection.disconnect()
+          if (AnalyticsSettings.optedIn) {
+            ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
+          }
         }
       })
   }

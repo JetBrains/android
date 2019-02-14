@@ -20,7 +20,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
@@ -57,7 +57,7 @@ iml_module(
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
@@ -107,7 +107,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:Gradle",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
@@ -150,7 +150,7 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/idea/jps/model-api:intellij.platform.jps.model[module]",
         "//tools/idea/jps/model-serialization:intellij.platform.jps.model.serialization[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
@@ -179,6 +179,7 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_shard_count = 5,
     test_srcs = [

@@ -976,12 +976,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
    */
-  public void addComponents(@NotNull List<NlComponent> toAdd,
+  public void addComponents(@NotNull List<NlComponent> componentToAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface,
                             @Nullable Runnable attributeUpdatingTask) {
+    // Fix for b/124381110
+    // The components may be added by addComponentInWriteCommand after this method returns.
+    // Make a copy of the components such that the caller can change the list without causing problems.
+    ImmutableList<NlComponent> toAdd = ImmutableList.copyOf(componentToAdd);
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }

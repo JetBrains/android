@@ -5,7 +5,7 @@
       android:icon="@drawable/ic_launcher">
     <receiver
         android:name="com.sample.service.serviceClass"
-        android:permission="">
+        android:permission="TODO">
       <intent-filter >
         <action android:name="com.sample.service.serviceClass" >
         </action>

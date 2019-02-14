@@ -15,13 +15,31 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -29,56 +47,85 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.Consumer;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public final class NlComponentTest extends AndroidTestCase {
+public final class NlComponentTest extends LayoutTestCase {
   private NlModel myModel;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    myModel = mock(NlModel.class);
+    myModel = createModelWithEmptyLayout();
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myModel = null;
+    super.tearDown();
+  }
+
+  @NotNull
+  private NlModel createModelWithEmptyLayout() {
+    return model("linear.xml",
+                 component(LINEAR_LAYOUT)
+                   .withBounds(0, 0, 1000, 1000)
+                   .id("@id/linear")
+                   .matchParentWidth()
+                   .matchParentHeight()).build();
+  }
+
+  @NotNull
+  private NlModel createModel() {
+    return model("linear.xml",
+                 component(LINEAR_LAYOUT)
+                   .withBounds(0, 0, 1000, 1000)
+                   .id("@id/linear")
+                   .matchParentWidth()
+                   .matchParentHeight()
+                   .children(
+                     component(TEXT_VIEW)
+                       .withBounds(0, 0, 200, 200)
+                       .id("@id/textView1")
+                       .wrapContentHeight()
+                       .wrapContentWidth(),
+                     component(FRAME_LAYOUT)
+                       .withBounds(0, 200, 200, 200)
+                       .id("@id/frameLayout1")
+                       .wrapContentHeight()
+                       .wrapContentWidth()
+                   )).build();
+  }
+
+  @NotNull
+  private NlComponent createComponent(@NotNull String tagName, @NotNull String id) {
+    String text = String.format("<%1s id=\"@+id/%2s\" layout_width=\"wrap_content\" layout_height=\"wrap_content\"/>", tagName, id);
+    return createComponent(createTagFromXml(text));
+  }
+
+  @NotNull
   private NlComponent createComponent(@NotNull XmlTag tag) {
-    NlComponent result = new NlComponent(myModel, tag, createTagPointer(tag));
+    NlComponent result = new NlComponent(myModel, tag);
     NlComponentHelper.INSTANCE.registerComponent(result);
     return result;
   }
 
-  static XmlTag createTag(String tagName) {
-    XmlTag tag = mock(XmlTag.class);
-    when(tag.getName()).thenReturn(tagName);
-
-    return tag;
-  }
-
-  static SmartPsiElementPointer<XmlTag> createTagPointer(XmlTag tag) {
-    SmartPsiElementPointer<XmlTag> tagPointer = mock(SmartPsiElementPointer.class);
-    when(tagPointer.getElement()).thenReturn(tag);
-    return tagPointer;
+  @NotNull
+  private XmlTag createTagFromXml(String xml) {
+    return XmlElementFactory.getInstance(getProject()).createTagFromText(xml);
   }
 
   public void testNeedsDefaultId() {
-    assertFalse(NlComponentHelperKt.needsDefaultId(createComponent(createTag("SwitchPreference"))));
+    assertFalse(NlComponentHelperKt.needsDefaultId(createComponent("SwitchPreference", "preference")));
   }
 
   public void testBasic() {
-    NlComponent linearLayout = createComponent(createTag("LinearLayout"));
-    NlComponent textView = createComponent(createTag("TextView"));
-    NlComponent button = createComponent(createTag("Button"));
+    NlComponent linearLayout = myModel.find("linear");
+    NlComponent textView = createComponent(TEXT_VIEW, "textView2");
+    NlComponent button = createComponent(BUTTON, "button2");
 
     assertThat(linearLayout.getChildren()).isEmpty();
 
@@ -86,13 +133,13 @@ public final class NlComponentTest extends AndroidTestCase {
     linearLayout.addChild(button);
 
     assertEquals(Arrays.asList(textView, button), linearLayout.getChildren());
-    assertEquals("LinearLayout", linearLayout.getTag().getName());
-    assertEquals("Button", button.getTag().getName());
+    assertEquals("LinearLayout", linearLayout.getBackend().getTag().getName());
+    assertEquals("Button", button.getBackend().getTag().getName());
 
-    assertSame(linearLayout, linearLayout.findViewByTag(linearLayout.getTag()));
-    assertSame(button, linearLayout.findViewByTag(button.getTag()));
-    assertSame(textView, linearLayout.findViewByTag(textView.getTag()));
-    assertEquals(Collections.singletonList(textView), linearLayout.findViewsByTag(textView.getTag()));
+    assertSame(linearLayout, linearLayout.findViewByTag(linearLayout.getBackend().getTag()));
+    assertSame(button, linearLayout.findViewByTag(button.getBackend().getTag()));
+    assertSame(textView, linearLayout.findViewByTag(textView.getBackend().getTag()));
+    assertEquals(Collections.singletonList(textView), linearLayout.findViewsByTag(textView.getBackend().getTag()));
 
     NlComponentHelperKt.setBounds(linearLayout, 0, 0, 1000, 800);
     NlComponentHelperKt.setBounds(textView, 0, 0, 200, 100);
@@ -105,18 +152,9 @@ public final class NlComponentTest extends AndroidTestCase {
   }
 
   public void testEnsureNamespaceWithInvalidXmlTag() {
-    @Language("XML")
-    String layout = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<LinearLayout" +
-                    " xmlns:android=\"" + ANDROID_URI + "\"" +
-                    " android:layout_width=\"wrap_content\"" +
-                    " android:layout_height=\"wrap_content\">" +
-                    " <TextView/>"  +
-                    "</LinearLayout>";
+    myModel = createModel();
 
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", layout);
-    NlComponent textView = MockNlComponent.create(xmlFile.getRootTag().getSubTags()[0]);
-
+    NlComponent textView = myModel.find("textView1");
     deleteXmlTag(textView);
     String prefix = textView.ensureNamespace("app", AUTO_URI);
     assertNull(prefix);
@@ -128,17 +166,9 @@ public final class NlComponentTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  private XmlTag createTagFromXml(String xml) {
-    return XmlElementFactory.getInstance(myModule.getProject()).createTagFromText(xml);
-  }
-
   public void testAttributeTransactions() {
-    XmlTag linearLayoutXmlTag = createTagFromXml(
-      "<LinearLayout" +
-      " xmlns:android=\"" + ANDROID_URI + "\"" +
-      " xmlns:tools=\"" + TOOLS_URI + "\"" +
-      " android:layout_width=\"wrap_content\"" +
-      " android:layout_height=\"wrap_content\" />");
+    myModel = createModelWithEmptyLayout();
+
     XmlTag textViewXmlTag = createTagFromXml(
       "<TextView" +
       " xmlns:android=\"" + ANDROID_URI + "\"" +
@@ -147,7 +177,7 @@ public final class NlComponentTest extends AndroidTestCase {
       " android:layout_width=\"wrap_content\"" +
       " android:layout_height=\"wrap_content\" />");
 
-    NlComponent linearLayout = createComponent(linearLayoutXmlTag);
+    NlComponent linearLayout = myModel.find("linear");
     NlComponent textView = createComponent(textViewXmlTag);
 
     linearLayout.addChild(textView);
@@ -212,12 +242,6 @@ public final class NlComponentTest extends AndroidTestCase {
   }
 
   public void testAttributeTransactionsConflicts() {
-    XmlTag linearLayoutXmlTag = createTagFromXml(
-      "<LinearLayout" +
-      " xmlns:android=\"" + ANDROID_URI + "\"" +
-      " xmlns:tools=\"" + TOOLS_URI + "\"" +
-      " android:layout_width=\"wrap_content\"" +
-      " android:layout_height=\"wrap_content\" />");
     XmlTag textViewXmlTag = createTagFromXml(
       "<TextView" +
       " xmlns:android=\"" + ANDROID_URI + "\"" +
@@ -225,9 +249,8 @@ public final class NlComponentTest extends AndroidTestCase {
       " android:text=\"Initial\"" +
       " android:layout_width=\"wrap_content\"" +
       " android:layout_height=\"wrap_content\" />");
-    linearLayoutXmlTag.addSubTag(textViewXmlTag, true);
 
-    NlComponent linearLayout = createComponent(linearLayoutXmlTag);
+    NlComponent linearLayout = myModel.find("linear");
     NlComponent textView = createComponent(textViewXmlTag);
 
     linearLayout.addChild(textView);
@@ -282,13 +305,14 @@ public final class NlComponentTest extends AndroidTestCase {
                       "         android:ems=\"10\"\n" +
                       "         android:inputType=\"textEmailAddress\"\n" +
                       "         />";
-    assertEquals(expected, component.getTag().getText());
+    assertEquals(expected, component.getBackend().getTag().getText());
   }
 
   public void testIdFromMixin() {
     XmlTag tag = mock(XmlTag.class);
     when(tag.isValid()).thenReturn(true);
     when(tag.getName()).thenReturn("");
+    //noinspection unchecked
     NlComponent component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
 
     NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
@@ -297,6 +321,7 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals("mixinId", component.getId());
 
     when(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).thenReturn("@id/componentId");
+    //noinspection unchecked
     component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
     component.setMixin(mixin);
     assertEquals("componentId", component.getId());
@@ -320,6 +345,13 @@ public final class NlComponentTest extends AndroidTestCase {
                       "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
                       "</RelativeLayout>\n" +
                       "</layout>\n";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+    DesignSurface surface = ModelBuilder.createSurface(NlDesignSurface.class);
+    Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
+    when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
+    myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
+    myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
+    NlComponent relativeLayout = myModel.getComponents().get(0).getChild(0);
 
     XmlTag textViewXmlTag = createTagFromXml(
       "<TextView" +
@@ -330,12 +362,6 @@ public final class NlComponentTest extends AndroidTestCase {
       " android:layout_width=\"wrap_content\"" +
       " android:layout_height=\"wrap_content\" />");
     NlComponent textView = createComponent(textViewXmlTag);
-
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    XmlTag relativeLayoutTag = xmlFile.getRootTag().getSubTags()[0];
-    NlComponent relativeLayout = createComponent(relativeLayoutTag);
-    when(myModel.getFile()).thenReturn(xmlFile);
-    when(myModel.getProject()).thenReturn(getProject());
     NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> textView.addTags(relativeLayout, null, InsertType.PASTE));
     UIUtil.dispatchAllInvocationEvents();
 
@@ -364,5 +390,15 @@ public final class NlComponentTest extends AndroidTestCase {
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
     assertEquals(expected, xmlFile.getText());
+  }
+
+  public void testAddTagsWithInvalidXmlTag() {
+    myModel = createModel();
+    NlComponent frameLayout = myModel.find("frameLayout1");
+    deleteXmlTag(frameLayout);
+
+    NlComponent newTextView = createComponent(TEXT_VIEW, "textView2");
+    NlWriteCommandActionUtil.run(frameLayout, "addTextView", () -> newTextView.addTags(frameLayout, null, InsertType.PASTE));
+    assertThat(frameLayout.getChildren()).isEmpty();
   }
 }

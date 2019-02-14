@@ -411,6 +411,7 @@
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncModelsManager"/>
+    <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidIoManager"/>
     <projectService serviceImplementation="org.jetbrains.android.uipreview.UserDeviceManager"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
@@ -1000,6 +1001,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgradeChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter"
                     serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterImpl"/>
@@ -1056,6 +1058,8 @@
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler" />
+    <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
+                    serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
 
     <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"

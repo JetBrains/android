@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableCellRenderer;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableCellRenderer;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;

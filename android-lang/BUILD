@@ -30,7 +30,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea:intellij.java.analysis.impl[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
@@ -61,6 +61,7 @@ iml_module(
         "//tools/idea/plugins/IntelliLang:intellij.xml.langInjection",
         "//tools/idea/uast/uast-java:intellij.java.uast",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
+        "//tools/vendor/intellij/cidr:intellij.c",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
@@ -72,6 +73,7 @@ iml_module(
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     # do not sort: must match IML order
     deps = [

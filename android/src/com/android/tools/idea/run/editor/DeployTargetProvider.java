@@ -113,6 +113,11 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
 
   public abstract DeployTarget<S> getDeployTarget();
 
+  @NotNull
+  public DeployTarget<S> getDeployTarget(@NotNull AndroidFacet facet) {
+    return getDeployTarget();
+  }
+
   public static class Renderer extends ColoredListCellRenderer<DeployTargetProvider> {
     @Override
     protected void customizeCellRenderer(@NotNull JList list, DeployTargetProvider value, int index, boolean selected, boolean hasFocus) {

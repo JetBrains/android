@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.PropertiesModel
-import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
@@ -73,6 +75,24 @@ class NelePropertiesModelTest: LayoutTestCase() {
   fun testPropertiesGeneratedEventAfterSelectionChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
+    val listener = TimingPropertiesModelListener()
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    model.surface = nlModel.surface
+    waitUntilEventsProcessed(model)
+    model.addListener(listener)
+    val textView = nlModel.find(TEXT_VIEW)!!
+
+    // test
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    model.firePropertyValueChangeIfNeeded()
+    waitUntilEventsProcessed(model)
+    assertThat(listener.wasValuePropertyGeneratedCalledBeforeValueChanged).isTrue()
+  }
+
+  fun testPropertiesGeneratedEventBeforeValueChangedEventAfterSelectionChange() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
@@ -93,7 +113,9 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilEventsProcessed(model)
     model.addListener(listener)
 
@@ -108,7 +130,9 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilEventsProcessed(model)
     model.addListener(listener)
 
@@ -163,9 +187,10 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, null, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
-    model.addListener(listener)
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilEventsProcessed(model)
     assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
+    model.addListener(listener)
 
     // Value changed should not be reported if the default values are unchanged
     manager.fireRenderCompleted()
@@ -182,22 +207,28 @@ class NelePropertiesModelTest: LayoutTestCase() {
   fun testListenersAreConcurrentModificationSafe() {
     // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+
     val listener = RecursiveValueChangedListener()
     model.addListener(listener)
     model.firePropertiesGenerated()
-    model.firePropertyValueChange()
+    model.firePropertyValueChangeIfNeeded()
     assertThat(listener.called).isEqualTo(2)
   }
 
   private fun createNlModel(tag: String): SyncNlModel {
     val builder = model(
       "linear.xml",
-      component(SdkConstants.LINEAR_LAYOUT)
+      component(LINEAR_LAYOUT)
         .withBounds(0, 0, 1000, 1500)
         .id("@id/linear")
         .matchParentWidth()
         .matchParentHeight()
-        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
+        .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
         .children(
           component(tag)
             .withBounds(100, 100, 100, 100)
@@ -229,6 +260,34 @@ class NelePropertiesModelTest: LayoutTestCase() {
       model.addListener(RecursiveValueChangedListener())
       called++
     }
+  }
+
+  private class TimingPropertiesModelListener : PropertiesModelListener<NelePropertyItem> {
+    var generatedCalled = 0L
+    var valuesChangedCalled = 0L
+
+    override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+      if (generatedCalled == 0L) {
+        generatedCalled = System.currentTimeMillis()
+      }
+    }
+
+    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      if (valuesChangedCalled == 0L) {
+        valuesChangedCalled = System.currentTimeMillis()
+      }
+    }
+
+    val wasValuePropertyGeneratedCalledBeforeValueChanged: Boolean
+      get() {
+        if (generatedCalled == 0L) {
+          return false
+        }
+        if (valuesChangedCalled == 0L) {
+          return true
+        }
+        return generatedCalled < valuesChangedCalled
+      }
   }
 
   companion object {

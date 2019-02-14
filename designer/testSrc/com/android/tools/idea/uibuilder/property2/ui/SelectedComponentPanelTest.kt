@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
+import com.android.tools.property.panel.impl.model.GenericInspectorLineModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil

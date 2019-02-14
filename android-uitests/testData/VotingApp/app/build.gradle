@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        applicationId "com.src.adux.votingapp"
+        minSdkVersion 26
+        targetSdkVersion 26
+        versionCode 7
+        versionName "7"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.google.firebase:firebase-crash:+'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:+'
+    compile 'com.android.support:appcompat-v7:+'
+    compile 'uk.co.chrisjenx:calligraphy:+'
+    compile 'org.greenrobot:eventbus:+'
+    compile 'com.squareup.okhttp3:okhttp:+'
+    compile project(':votingapplib')
+}
+
+
+// apply plugin: 'com.google.gms.google-services'

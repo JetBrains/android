@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.InspectorBuilder
-import com.android.tools.idea.common.property2.api.InspectorLineModel
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorLineModel
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project

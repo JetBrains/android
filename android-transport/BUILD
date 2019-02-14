@@ -7,6 +7,18 @@ iml_module(
     iml_files = ["intellij.android.transport.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea/xml/relaxng:intellij.relaxng",
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/json:intellij.json",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
@@ -19,5 +31,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )

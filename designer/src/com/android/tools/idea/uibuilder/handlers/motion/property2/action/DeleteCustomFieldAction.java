@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.idea.common.property2.api.FilteredPTableModel;
-import com.android.tools.idea.common.property2.api.TableLineModel;
+import com.android.tools.property.panel.api.FilteredPTableModel;
+import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.intellij.openapi.actionSystem.AnAction;

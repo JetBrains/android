@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.tools.idea.common.property2.api.ControlType
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.PropertiesTable
-import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.BooleanPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ColorFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorPanel
-import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ColorFieldPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
+import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
+import com.android.tools.property.panel.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
@@ -49,7 +49,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
 
   val editorProvider = FakeEditorProviderImpl(model)
 
-  val inspector = TestInspectorPanel()
+  val inspector = FakeInspectorPanel()
 
   init {
     model.setPropertiesInTest(properties)

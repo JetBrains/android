@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBLabel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -32,4 +35,6 @@ public class AddArgumentDialogUI {
   JTextField myDefaultValueTextField;
   JBLabel myNullableLabel;
   JComboBox<AddArgumentDialog.Type> myTypeComboBox;
+  JLabel myArrayLabel;
+  JCheckBox myArrayCheckBox;
 }

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
- * Licensed under the Apache License, GradleVersion 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -175,17 +175,20 @@ public class GradleUtilTest {
 
   @Test
   public void isAaptGeneratedSourceFolder() {
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
 
     // 3.1 and below:
     checkIfRecognizedAsAapt("generated/source/r/debug");
+    checkIfRecognizedAsAapt("generated/source/r/flavorOneFlavorTwo/debug");
     checkIfRecognizedAsAapt("generated/source/r/androidTest/debug");
+    checkIfRecognizedAsAapt("generated/source/r/androidTest/flavorOneFlavorTwo/debug");
 
     // 3.2:
     checkIfRecognizedAsAapt("generated/not_namespaced_r_class_sources/debug/processDebugResources/r");
+    checkIfRecognizedAsAapt("generated/not_namespaced_r_class_sources/flavorOneFlavorTwoDebug/processDebugResources/r");
     checkIfRecognizedAsAapt("generated/not_namespaced_r_class_sources/debug/generateDebugRFile/out"); // Library projects.
     checkIfRecognizedAsAapt("generated/not_namespaced_r_class_sources/debugAndroidTest/processDebugAndroidTestResources/r");
-
+    checkIfRecognizedAsAapt("generated/not_namespaced_r_class_sources/flavorOneFlavorTwoDebugAndroidTest/processFlavorOneFlavorTwoDebugAndroidTestResources/r");
   }
 
   private void checkIfRecognizedAsAapt(@NotNull String path) {

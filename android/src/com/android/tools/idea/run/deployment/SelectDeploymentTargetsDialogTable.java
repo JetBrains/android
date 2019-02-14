@@ -17,7 +17,10 @@ package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
@@ -78,5 +81,15 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
 
     IntStream.range(0, getRowCount())
       .forEach(viewRowIndex -> model.setSelected(isRowSelected(viewRowIndex), convertRowIndexToModel(viewRowIndex)));
+  }
+
+  @NotNull
+  Collection<Device> getSelectedDevices() {
+    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
+
+    return Arrays.stream(getSelectedRows())
+      .map(this::convertRowIndexToModel)
+      .mapToObj(model::getDeviceAt)
+      .collect(Collectors.toList());
   }
 }

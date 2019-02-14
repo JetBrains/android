@@ -132,6 +132,7 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/idea/.idea/libraries:HdrHistogram",
         "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//tools/idea/.idea/libraries:kotlin-reflect",
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
@@ -183,6 +184,7 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
@@ -209,7 +211,8 @@ iml_module(
     deps = [
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/idea/.idea/libraries:kotlin-reflect[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/spellchecker:intellij.spellchecker[module, test]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
@@ -312,7 +315,7 @@ filegroup(
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
-            "//tools/base/deploy/installer:android",
+            "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
     }) + ["//tools/base/deploy/deployer:java_version"],
@@ -352,6 +355,7 @@ filegroup(
         ":profiler-artifacts",
         "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
+        "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:ObjectSizeInstrumentationAgent_deploy.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",

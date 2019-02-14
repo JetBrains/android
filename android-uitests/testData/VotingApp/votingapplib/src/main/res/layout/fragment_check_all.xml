@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              >
+
+    <ScrollView
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+        android:layout_weight="2">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView style="?android:textAppearanceMedium"
+                android:paddingTop="32dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:id="@+id/textview_q"
+                android:lineSpacingMultiplier="1.2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Check all"
+                android:textColor="#2979D6"
+                android:textSize="20sp" />
+
+            <TextView style="?android:textAppearanceMedium"
+                android:paddingTop="5dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="32dp"
+                android:paddingBottom="24dp"
+                      android:id="@+id/textview_q_title"
+                      android:lineSpacingMultiplier="1.1"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:text="Title"
+                      android:textColor="#5E5D5D"
+                      android:layout_marginBottom="10dp"
+                android:textSize="24sp" />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="24dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginBottom="24dp"
+                android:id="@+id/linearLayout_checkboxes">
+
+                <src.nex3z.togglebuttongroup.MultiSelectToggleGroup
+                    android:id="@+id/group_choices"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tbgCheckedButton="@+id/choice_a"
+                    app:tbgChildSpacing="10dp"
+                    app:tbgRowSpacing="12dp"
+                    >
+                </src.nex3z.togglebuttongroup.MultiSelectToggleGroup>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+
+    <include layout="@layout/footer"
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"></include>
+
+</LinearLayout>

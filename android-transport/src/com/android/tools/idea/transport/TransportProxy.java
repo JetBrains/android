@@ -16,6 +16,7 @@
 package com.android.tools.idea.transport;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.profiler.proto.Common;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -35,10 +36,11 @@ public final class TransportProxy {
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
 
-  public TransportProxy(@NotNull IDevice device, @NotNull ManagedChannel transportChannel) {
-    myDevice = device;
+  public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device tranportDevice, @NotNull ManagedChannel transportChannel) {
+    myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
+    myProxyServices.add(new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel));
   }
 
   public void registerProxyService(TransportProxyService proxyService) {
