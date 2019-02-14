@@ -16,7 +16,6 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.datastore.poller.EventDataPoller;
@@ -118,8 +117,7 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
-    EventServiceGrpc.EventServiceBlockingStub client =
-      myService.getEventClient(StreamId.fromSession(request.getSession()));
+    EventServiceGrpc.EventServiceBlockingStub client = myService.getEventClient(request.getSession().getStreamId());
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
@@ -144,7 +142,7 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    EventServiceGrpc.EventServiceBlockingStub client = myService.getEventClient(StreamId.fromSession(request.getSession()));
+    EventServiceGrpc.EventServiceBlockingStub client = myService.getEventClient(request.getSession().getStreamId());
     if (client == null) {
       observer.onNext(EventProfiler.EventStopResponse.getDefaultInstance());
     }

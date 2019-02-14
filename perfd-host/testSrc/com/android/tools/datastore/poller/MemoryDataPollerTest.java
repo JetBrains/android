@@ -15,6 +15,10 @@
  */
 package com.android.tools.datastore.poller;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
@@ -22,25 +26,49 @@ import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.*;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestName;
-
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
 public class MemoryDataPollerTest extends DataStorePollerTest {
 
@@ -90,8 +118,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Before
   public void setUp() throws Exception {
     when(myDataStore.getNativeSymbolizer()).thenReturn(new NopSymbolizer());
-    when(myDataStore.getMemoryClient(any())).thenReturn(MemoryServiceGrpc.newBlockingStub(myService.getChannel()));
-    when(myDataStore.getTransportClient(any())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getMemoryClient(anyLong())).thenReturn(MemoryServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getTransportClient(anyLong())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
     getPollTicker().run();
   }
@@ -112,7 +140,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   public void testAppStoppedRequestHandled() {
     myMemoryService
       .stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), mock(StreamObserver.class));
-    when(myDataStore.getMemoryClient(any())).thenReturn(null);
+    when(myDataStore.getMemoryClient(anyLong())).thenReturn(null);
     StreamObserver<TriggerHeapDumpResponse> heapDump = mock(StreamObserver.class);
     myMemoryService.triggerHeapDump(TriggerHeapDumpRequest.getDefaultInstance(), heapDump);
     validateResponse(heapDump, TriggerHeapDumpResponse.getDefaultInstance());
@@ -433,26 +461,26 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testImportLegacyAllocationRecords() {
     LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
-                                                                               .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
-                                                                               .addEvents(LegacyAllocationEvent.newBuilder().setSize(1).setThreadId(2).setClassId(3).setStackId(4).build())
-                                                                               .addEvents(LegacyAllocationEvent.newBuilder().setSize(5).setThreadId(6).setClassId(7).setStackId(8).build())
-                                                                               .build();
+      .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
+      .addEvents(LegacyAllocationEvent.newBuilder().setSize(1).setThreadId(2).setClassId(3).setStackId(4).build())
+      .addEvents(LegacyAllocationEvent.newBuilder().setSize(5).setThreadId(6).setClassId(7).setStackId(8).build())
+      .build();
     AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
-                                                                    .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(1).build())
-                                                                    .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(2).build())
-                                                                    .addAllocationStacks(AllocationStack.newBuilder().setStackId(3).build())
-                                                                    .addAllocationStacks(AllocationStack.newBuilder().setStackId(4).build())
-                                                                    .build();
+      .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(1).build())
+      .addAllocatedClasses(AllocatedClass.newBuilder().setClassId(2).build())
+      .addAllocationStacks(AllocationStack.newBuilder().setStackId(3).build())
+      .addAllocationStacks(AllocationStack.newBuilder().setStackId(4).build())
+      .build();
 
     AllocationsInfo info = AllocationsInfo.newBuilder().setLegacy(true).setStartTime(1).build();
     ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
-                                                                           .setSession(TEST_SESSION)
-                                                                           .setInfo(info)
-                                                                           .setAllocations(allocations)
-                                                                           .setContexts(contexts)
-                                                                           .build();
+      .setSession(TEST_SESSION)
+      .setInfo(info)
+      .setAllocations(allocations)
+      .setContexts(contexts)
+      .build();
     ImportLegacyAllocationsResponse expected = ImportLegacyAllocationsResponse.newBuilder()
-                                                                              .setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build();
+      .setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build();
     StreamObserver<ImportLegacyAllocationsResponse> importObserver = mock(StreamObserver.class);
     myMemoryService.importLegacyAllocations(request, importObserver);
     validateResponse(importObserver, expected);
@@ -465,8 +493,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<AllocationContextsResponse> contextObserver = mock(StreamObserver.class);
     myMemoryService.getLegacyAllocationContexts(
       LegacyAllocationContextsRequest.newBuilder()
-                                     .setSession(TEST_SESSION).addAllClassIds(Arrays.asList(1, 2)).addAllStackIds(Arrays.asList(3, 4))
-                                     .build(), contextObserver);
+        .setSession(TEST_SESSION).addAllClassIds(Arrays.asList(1, 2)).addAllStackIds(Arrays.asList(3, 4))
+        .build(), contextObserver);
     validateResponse(contextObserver, contexts);
   }
 
