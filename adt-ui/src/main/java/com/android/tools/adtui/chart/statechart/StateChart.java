@@ -431,6 +431,7 @@ public final class StateChart<T> extends AnimatedComponent {
           else {
             myMousePoint = event.getPoint();
             myRowPoint = myMousePoint;
+            myRowIndex = 0;
           }
           myMouseEventSource = event.getSource();
 
