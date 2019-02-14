@@ -25,12 +25,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BuildAndRunCMakeProjectTest {
@@ -67,15 +66,13 @@ public class BuildAndRunCMakeProjectTest {
 
     ideFrame.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
 
-    ideFrame.runApp(RUN_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.runApp(RUN_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
 
     RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
-    Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching app.*", Pattern.DOTALL);
+    Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching 'app'.*", Pattern.DOTALL);
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
     ContentFixture contentFixture = runToolWindowFixture.findContent(RUN_CONFIG_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 10);
