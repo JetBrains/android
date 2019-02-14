@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.transport",
     srcs = ["src"],
     iml_files = ["intellij.android.transport.iml"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
