@@ -145,7 +145,7 @@ public class GroovyDslParser implements GradleDslParser {
     try {
       return GroovyDslUtil.createLiteral(myDslFile, literal);
     } catch (IncorrectOperationException e) {
-      myDslFile.getContext().getNotificationForType(INVALID_EXPRESSION).addError(e);
+      myDslFile.getContext().getNotificationForType(myDslFile, INVALID_EXPRESSION).addError(e);
       return null;
     }
   }

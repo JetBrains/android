@@ -68,7 +68,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val firstNotification = parentNotifications[0]!!
       assertFalse(firstNotification.isCorrectionAvailable)
       assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
-      val expected = "Found the following unknown element types while parsing: GrMultiplicativeExpressionImpl, GrAdditiveExpressionImpl"
+      val expected = "Found the following unknown element types while parsing: GrMultiplicativeExpressionImpl"
       assertThat(firstNotification.toString(), equalTo(expected))
     }
 
@@ -78,7 +78,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val firstNotification = subModuleNotifications[0]!!
       assertFalse(firstNotification.isCorrectionAvailable)
       assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
-      val expected = "Found the following unknown element types while parsing: GrMultiplicativeExpressionImpl, GrAdditiveExpressionImpl"
+      val expected = "Found the following unknown element types while parsing: GrAdditiveExpressionImpl"
       assertThat(firstNotification.toString(), equalTo(expected))
     }
   }
@@ -108,7 +108,6 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("greeting")
     propertyModel.setValue(ReferenceTo("hello"))
 
-    val notifications = buildModel.notifications[myBuildFile.path]!!
-    assertSize(0, notifications)
+    assertNull(buildModel.notifications[myBuildFile.path])
   }
 }

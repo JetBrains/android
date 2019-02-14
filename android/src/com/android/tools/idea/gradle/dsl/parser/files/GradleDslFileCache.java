@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.intellij.internal.psiView.stubtree.StubViewerPsiBasedTree.LOG;
+
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Cache to store a mapping between file paths and their respective {@link GradleDslFileCache} objects, its main purpose it to
@@ -95,6 +98,31 @@ public class GradleDslFileCache {
       throw new IllegalStateException("Found wrong type for settings file in cache!");
     }
     return (GradleSettingsFile)dslFile;
+  }
+
+  @Nullable
+  public GradlePropertiesFile getOrCreatePropertiesFile(@NotNull VirtualFile file, @NotNull String moduleName, @NotNull BuildModelContext context) {
+    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+    if (dslFile == null) {
+      try {
+        Properties properties = getProperties(file);
+        dslFile = new GradlePropertiesFile(properties, file, myProject, moduleName, context);
+        myParsedBuildFiles.put(file.getUrl(), dslFile);
+      } catch (IOException e) {
+        LOG.warn("Failed to process properties file " + file.getPath(), e);
+        return null;
+      }
+    }
+    else if (!(dslFile instanceof GradlePropertiesFile)) {
+      throw new IllegalStateException("Found wrong type for properties file in cache!");
+    }
+    return (GradlePropertiesFile)dslFile;
+  }
+
+  private static Properties getProperties(@NotNull VirtualFile file) throws IOException {
+    Properties properties = new Properties();
+    properties.load(new InputStreamReader(file.getInputStream(), Charsets.UTF_8));
+    return properties;
   }
 
   @NotNull
