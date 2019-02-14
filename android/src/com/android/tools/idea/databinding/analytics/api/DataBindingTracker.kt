@@ -44,4 +44,9 @@ interface DataBindingTracker {
    * See [DataBindingEvent.DataBindingPollingMetadata] for full list of metrics.
    */
   fun trackPolledMetaData()
+
+  /**
+   * Tracks data binding completion events in layout xml.
+   */
+  fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext)
 }
