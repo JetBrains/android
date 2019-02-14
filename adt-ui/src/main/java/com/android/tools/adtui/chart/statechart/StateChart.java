@@ -431,6 +431,8 @@ public final class StateChart<T> extends AnimatedComponent {
           else {
             myMousePoint = event.getPoint();
             myRowPoint = myMousePoint;
+            // If the StateChart is not in a JList, then there is only one row. So we set the row to the first (and only) row to let the
+            // render happen.
             myRowIndex = 0;
           }
           myMouseEventSource = event.getSource();
