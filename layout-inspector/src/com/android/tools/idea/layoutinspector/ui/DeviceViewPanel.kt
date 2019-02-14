@@ -30,7 +30,6 @@ import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.profilers.ProfilerService
 import com.android.tools.layoutinspector.proto.LayoutInspector.*
 import com.android.tools.profiler.proto.Common
@@ -43,20 +42,9 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
-import java.awt.AlphaComposite
-import java.awt.BasicStroke
 import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.RenderingHints
-import java.awt.Shape
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.geom.AffineTransform
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedList
@@ -68,14 +56,17 @@ import javax.swing.JPanel
 /**
  * Panel that shows the device screen in the layout inspector.
  */
-class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider, Updatable {
+class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider, Updatable {
   enum class ViewMode(val icon: Icon) {
     FIXED(StudioIcons.LayoutEditor.Extras.ROOT_INLINE),
     X_ONLY(StudioIcons.DeviceConfiguration.SCREEN_WIDTH),
-    XY(StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE)
+    XY(StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE);
+
+    val next: ViewMode
+      get() = enumValues<ViewMode>()[(this.ordinal + 1).rem(enumValues<ViewMode>().size)]
   }
 
-  var viewState = ViewMode.XY
+  var viewMode = ViewMode.XY
 
   override var scale: Double = .5
 
@@ -83,10 +74,9 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
 
   private var drawBorders = true
 
-  private var model = DeviceViewPanelModel(layoutInspector.layoutInspectorModel)
   private val updater = Updater(FpsTimer(10))
 
-  var myClient = ProfilerService.getInstance(layoutInspector.project)!!.profilerClient
+  var client = ProfilerService.getInstance(layoutInspector.project)!!.profilerClient
 
   private val showBordersCheckBox = object : CheckboxAction("Show borders") {
     override fun isSelected(e: AnActionEvent): Boolean {
@@ -108,87 +98,35 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
   private var myCaptureStarted = false
   private var myLastEventRequestTimestampNs = java.lang.Long.MIN_VALUE
 
-  private val HQ_RENDERING_HINTS = mapOf(
-    RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-    RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
-  )
-
-  private var inspectorModel = layoutInspector.layoutInspectorModel
+  val contentPanel = DeviceViewContentPanel(layoutInspector, scale, viewMode)
+  private val scrollPane = JBScrollPane(contentPanel)
 
   init {
     updater.register(this)
 
     layoutInspector.modelChangeListeners.add(::modelChanged)
-    inspectorModel.selectionListeners.add(::selectionChanged)
 
     add(createToolbar(), BorderLayout.NORTH)
-
-    val panel = object : JPanel() {
-      override fun paint(g: Graphics) {
-        super.paint(g)
-        val g2d = g as? Graphics2D ?: return
-        g2d.setRenderingHints(HQ_RENDERING_HINTS)
-        g2d.translate(size.width / 2.0, size.height / 2.0)
-        g2d.scale(scale, scale)
-        model.hitRects.forEach { (rect, transform, view) ->
-          drawView(g2d, view, rect, transform)
-        }
-      }
-    }
-    val listener = object : MouseAdapter() {
-      private var x = 0
-      private var y = 0
-
-      override fun mousePressed(e: MouseEvent) {
-        x = e.x
-        y = e.y
-      }
-
-      override fun mouseDragged(e: MouseEvent) {
-        if (viewState != ViewMode.FIXED) {
-          model.rotateX((e.x - x) * 0.001)
-          x = e.x
-        }
-        if (viewState == ViewMode.XY) {
-          model.rotateY((e.y - y) * 0.001)
-          y = e.y
-        }
-
-        refresh()
-      }
-    }
-    panel.addMouseListener(listener)
-    panel.addMouseMotionListener(listener)
-
-    val borderPanel = JPanel(BorderLayout())
-    borderPanel.add(panel, BorderLayout.CENTER)
-    add(borderPanel, BorderLayout.CENTER)
-
-    val mouseListener = object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        inspectorModel.selection = model.findTopRect((e.x - panel.size.width / 2.0) / scale, (e.y - panel.size.height / 2.0) / scale)
-        repaint()
-      }
-    }
-    panel.addMouseListener(mouseListener)
-    panel.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) {
-        refresh()
-      }
-    })
-    refresh()
+    add(scrollPane, BorderLayout.CENTER)
   }
 
   override fun zoom(type: ZoomType): Boolean {
+    val position = scrollPane.viewport.viewPosition.apply { translate(scrollPane.viewport.width / 2, scrollPane.viewport.height / 2) }
+    position.x = (position.x / scale).toInt()
+    position.y = (position.y / scale).toInt()
     when (type) {
       ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> scale = 0.5
       ZoomType.ACTUAL -> scale = 1.0
       ZoomType.IN -> scale += 0.1
       ZoomType.OUT -> scale -= 0.1
     }
-    refresh()
+    contentPanel.scale = scale
+    scrollPane.viewport.revalidate()
+
+    position.x = (position.x * scale).toInt()
+    position.y = (position.y * scale).toInt()
+    position.translate(-scrollPane.viewport.width / 2, -scrollPane.viewport.height / 2)
+    scrollPane.viewport.viewPosition = position
     return true
   }
 
@@ -197,42 +135,6 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
   override fun canZoomOut() = true
 
   override fun canZoomToFit() = true
-
-  private fun drawView(g: Graphics,
-                       view: InspectorView,
-                       rect: Shape,
-                       transform: AffineTransform) {
-    val g2 = g.create() as Graphics2D
-    g2.setRenderingHints(HQ_RENDERING_HINTS)
-    if (drawBorders) {
-      if (view == inspectorModel.selection) {
-        g2.color = Color.RED
-        g2.stroke = BasicStroke(3f)
-      }
-      else {
-        g2.color = Color.BLUE
-        g2.stroke = BasicStroke(1f)
-      }
-      g2.draw(rect)
-    }
-
-    g2.transform = g2.transform.apply { concatenate(transform) }
-
-    val bufferedImage = view.image
-    if (bufferedImage != null) {
-      val composite = g2.composite
-      if (inspectorModel.selection != null && view != inspectorModel.selection) {
-        g2.composite = AlphaComposite.SrcOver.derive(0.6f)
-      }
-      g2.drawImage(bufferedImage, view.x, view.y, null)
-      g2.composite = composite
-    }
-    if (drawBorders && view == inspectorModel.selection) {
-      g2.color = Color.BLACK
-      g2.font = g2.font.deriveFont(20f)
-      g2.drawString(view.type, view.x + 5, view.y + 25)
-    }
-  }
 
   override fun getData(dataId: String): Any? {
     if (ZOOMABLE_KEY.`is`(dataId)) {
@@ -256,19 +158,12 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
     val rightGroup = DefaultActionGroup()
     rightGroup.add(object : AnAction("reset") {
       override fun actionPerformed(e: AnActionEvent) {
-        when (viewState) {
-          ViewMode.XY -> {
-            model.resetRotation()
-            viewState = ViewMode.FIXED
-          }
-          ViewMode.FIXED -> viewState = ViewMode.X_ONLY
-          ViewMode.X_ONLY -> viewState = ViewMode.XY
-        }
-        refresh()
+        viewMode = viewMode.next
+        contentPanel.viewMode = viewMode
       }
 
       override fun update(e: AnActionEvent) {
-        e.presentation.icon = viewState.icon
+        e.presentation.icon = viewMode.icon
       }
     })
     rightGroup.add(ZoomOutAction)
@@ -282,18 +177,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
   }
 
   private fun modelChanged(old: InspectorModel, new: InspectorModel) {
-    old.selectionListeners.remove(this::selectionChanged)
-    new.selectionListeners.add(this::selectionChanged)
-    model = DeviceViewPanelModel(new)
-    repaint()
-  }
-
-  private fun selectionChanged(old: InspectorView?, new: InspectorView?) {
-    repaint()
-  }
-
-  private fun refresh() {
-    model.refresh()
+    scrollPane.viewport.revalidate()
     repaint()
   }
 
@@ -307,7 +191,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
         .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
         .setKind(Common.Event.Kind.STREAM)
         .build()
-      val response = myClient.transportClient.getEventGroups(request)
+      val response = client.transportClient.getEventGroups(request)
       for (group in response.groupsList) {
         val isStreamDead = group.getEvents(group.eventsCount - 1).isEnded
         if (isStreamDead) {
@@ -329,7 +213,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
           .setStreamId(stream.streamId)
           .setKind(Common.Event.Kind.PROCESS)
           .build()
-        val processResponse = myClient.transportClient.getEventGroups(processRequest)
+        val processResponse = client.transportClient.getEventGroups(processRequest)
         val processList = ArrayList<Common.Process>()
         // A group is a collection of events that happened to a single process.
         for (groupProcess in processResponse.groupsList) {
@@ -359,7 +243,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
             .setFromTimestamp(myLastEventRequestTimestampNs)
             .setToTimestamp(java.lang.Long.MAX_VALUE)
             .build()
-          val eventResponse = myClient.transportClient.getEventGroups(eventRequest)
+          val eventResponse = client.transportClient.getEventGroups(eventRequest)
           if (eventResponse != Transport.GetEventGroupsResponse.getDefaultInstance()) {
             val events = ArrayList<Common.Event>()
             eventResponse.groupsList.forEach { group -> events.addAll(group.eventsList) }
@@ -373,11 +257,13 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
                     .setId(evt.layoutInspectorEvent.payloadId.toString())
                     .build()
 
-                  val bytes = myClient.transportClient.getBytes(bytesRequest).contents.toByteArray()
+                  val bytes = client.transportClient.getBytes(bytesRequest).contents.toByteArray()
                   if (bytes.isNotEmpty()) {
                     SkiaParser().getViewTree(bytes)?.let {
-                      model.model.root = it
-                      refresh()
+                      layoutInspector.layoutInspectorModel.root = it
+                      // model.refresh()
+                      scrollPane.viewport.revalidate()
+                      repaint()
                     }
                   }
                   System.out.println(evt.layoutInspectorEvent.payloadId)
@@ -394,7 +280,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
             .setStreamId(mySelectedStream!!.streamId)
             .setPid(mySelectedProcess!!.pid)
             .build()
-          val response = myClient.transportClient.getEventGroups(agentRequest)
+          val response = client.transportClient.getEventGroups(agentRequest)
           for (group in response.groupsList) {
             if (group.getEvents(group.eventsCount - 1).agentData.status == Common.AgentData.Status.ATTACHED) {
               myAgentConnected = true
@@ -406,7 +292,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
                   .setStreamId(stream.streamId)
                   .setPid(mySelectedProcess!!.pid)
                   .build()
-                myClient.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+                client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
               }
               break
             }
@@ -471,7 +357,7 @@ class DeviceViewPanel(layoutInspector: LayoutInspector) : JPanel(BorderLayout())
                   .setAttachAgent(
                     Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch())))
                   .build()
-                myClient.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+                client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
                 myAgentConnected = false
               }
             }

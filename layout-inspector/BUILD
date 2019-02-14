@@ -6,6 +6,8 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.layout-inspector.iml"],
     resources = ["resources"],
+    test_data = ["//tools/adt/idea/layout-inspector/testData"],
+    test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -34,5 +36,9 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
+        "//tools/vendor/intellij/cidr:intellij.c[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module]",
     ],
 )
