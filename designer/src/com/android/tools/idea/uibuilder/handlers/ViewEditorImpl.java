@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -70,6 +71,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @VisibleForTesting
   private Collection<ViewInfo> myRootViews;
+  private NlDependencyManager myDependencyManager;
 
   public ViewEditorImpl(@NotNull SceneView sceneView) {
     this(sceneView.getModel(), sceneView.getScene());
@@ -84,6 +86,7 @@ public class ViewEditorImpl extends ViewEditor {
     myModel = model;
     myScene = scene;
     mySceneManager = scene != null ? scene.getSceneManager() : null;
+    myDependencyManager = NlDependencyManager.Companion.get();
   }
 
   @Nullable
@@ -272,6 +275,12 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
     getModel().addComponents(children, parent, getChild(parent, index), insertType, this.myScene.getDesignSurface());
+  }
+
+  @NotNull
+  @Override
+  public NlDependencyManager getDependencyManager() {
+    return myDependencyManager;
   }
 
   @Nullable
