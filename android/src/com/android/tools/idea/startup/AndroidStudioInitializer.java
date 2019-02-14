@@ -29,7 +29,6 @@ import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -212,16 +211,16 @@ public class AndroidStudioInitializer implements Runnable {
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
-    RunConfigurationProducer.EP_NAME.getPoint(null).unregisterExtension((className, adapter) -> {
+    RunConfigurationProducer.EP_NAME.getPoint(null).unregisterExtensions((className, adapter) -> {
       Class<?> clazz = adapter.getImplementationClass();
       // In AndroidStudio these ConfigurationProducers are replaced
       return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, clazz) || ReflectionUtil.isAssignable(AndroidJUnitConfigurationProducer.class, clazz);
-    });
+    }, /* stopAfterFirstMatch = */ false);
 
-    ConfigurationType.CONFIGURATION_TYPE_EP.getPoint(null).unregisterExtension((className, adapter) -> {
+    ConfigurationType.CONFIGURATION_TYPE_EP.getPoint(null).unregisterExtensions((className, adapter) -> {
       // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
       return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, adapter.getImplementationClass());
-    });
+    }, /* stopAfterFirstMatch = */ false);
 
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
     hideAction("excludeFromSuite");
