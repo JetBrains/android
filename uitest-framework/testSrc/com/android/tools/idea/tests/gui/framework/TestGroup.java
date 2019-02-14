@@ -23,6 +23,7 @@ public enum TestGroup {
   FAST_BAZEL,
   FAT_BAZEL,
   UNRELIABLE,
+  PERFORMANCE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
   DEFAULT,
 }
