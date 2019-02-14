@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
@@ -35,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -84,7 +86,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
-    myWorkBench.setLoadingText("Waiting for build to finish...");
+    myWorkBench.setLoadingText("Loading...");
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
@@ -126,33 +128,36 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       return;
     }
 
-    NlModel model = ReadAction.compute(() -> {
-      XmlFile file = getFile();
-
+    CompletableFuture.supplyAsync(() -> {
+      XmlFile file = ReadAction.compute(() -> getFile());
       AndroidFacet facet = AndroidFacet.getInstance(file);
       assert facet != null;
       return NlModel.create(myEditor, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
-    });
-    CompletableFuture<?> complete = mySurface.goingToSetModel(model);
-    complete.whenComplete((unused, exception) -> {
-      if (exception == null) {
-        SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
-          if (result.isSuccessful()) {
-            initNeleModelOnEventDispatchThread(model);
-          }
-          else {
-            buildError();
-            SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
-          }
-        });
-      }
-      else {
-        myWorkBench.loadingStopped("Failed to initialize editor");
-        Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
-      }
-    });
+    }, AppExecutorUtil.getAppExecutorService())
+      .whenComplete((model, exception) -> {
+        // We are running on the AppExecutorService so wait for goingToSetModel async operation to complete
+        mySurface.goingToSetModel(model).join();
+
+        if (exception == null) {
+          myWorkBench.setLoadingText("Waiting for build to finish...");
+          SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
+            if (result.isSuccessful()) {
+              initNeleModelOnEventDispatchThread(model);
+            }
+            else {
+              buildError();
+              SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
+            }
+          });
+        }
+        else {
+          myWorkBench.loadingStopped("Failed to initialize editor");
+          Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
+        }
+      });
   }
 
+  @UiThread
   private void initNeleModelOnEventDispatchThread(@NotNull NlModel model) {
     if (Disposer.isDisposed(model)) {
       return;
