@@ -31,7 +31,7 @@ class ColorFieldPropertyEditorModelTest {
     val action = Mockito.mock(AnAction::class.java)
     val actionButton = object: ActionIconButton {
       override val actionButtonFocusable = true
-      override fun getActionIcon(focused: Boolean) = StudioIcons.LayoutEditor.Properties.FAVORITES
+      override val actionIcon = StudioIcons.LayoutEditor.Properties.FAVORITES
       override val action = action
     }
     val property = FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, "#330066", null, actionButton)
@@ -43,7 +43,7 @@ class ColorFieldPropertyEditorModelTest {
   fun testDelegates() {
     val (model, action) = createModel()
     assertThat(model.editable).isTrue()
-    assertThat(model.getLeftButtonIcon(true)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES)
+    assertThat(model.leftButtonIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES)
     assertThat(model.buttonAction).isSameAs(action)
   }
 }

@@ -135,8 +135,7 @@ class NelePropertyItemTest {
     assertThat(property.components[0].tagName).isEqualTo(TEXT_VIEW)
     assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
-    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
-    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
+    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
   }
 
   @RunsInEdt
@@ -152,8 +151,7 @@ class NelePropertyItemTest {
     assertThat(property.resolvedValue).isEqualTo("Hardcoded string")
     assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
-    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
-    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
+    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
   @RunsInEdt
@@ -177,8 +175,7 @@ class NelePropertyItemTest {
     assertThat(design.components[0].tagName).isEqualTo(TEXT_VIEW)
     assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
-    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
-    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
+    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
     assertThat(design.designProperty).isEqualTo(design)
   }
 
@@ -193,11 +190,9 @@ class NelePropertyItemTest {
     assertThat(property.value).isNull()
     assertThat(property.isReference).isFalse()
     val colorButton = property.colorButton!!
-    assertThat(colorButton.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
-    assertThat(colorButton.getActionIcon(true)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(colorButton.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
     val browseButton = property.browseButton!!
-    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
-    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
+    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
   @RunsInEdt
@@ -212,11 +207,9 @@ class NelePropertyItemTest {
     assertThat(property.isReference).isFalse()
     val colorIcon = ColorIcon(16, Color(0x990033))
     val colorButton = property.colorButton!!
-    assertThat(colorButton.getActionIcon(false)).isEqualTo(colorIcon)
-    assertThat(colorButton.getActionIcon(true)).isEqualTo(colorIcon)
+    assertThat(colorButton.actionIcon).isEqualTo(colorIcon)
     val browseButton = property.browseButton!!
-    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
-    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND_FOCUS)
+    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
   @RunsInEdt
@@ -232,11 +225,9 @@ class NelePropertyItemTest {
     assertThat(property.isReference).isTrue()
     val colorIcon = TwoColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
     val colorButton = property.colorButton!!
-    assertThat(colorButton.getActionIcon(false)).isEqualTo(colorIcon)
-    assertThat(colorButton.getActionIcon(true)).isEqualTo(colorIcon)
+    assertThat(colorButton.actionIcon).isEqualTo(colorIcon)
     val browseButton = property.browseButton!!
-    assertThat(browseButton.getActionIcon(false)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
-    assertThat(browseButton.getActionIcon(true)).isEqualTo(StudioIcons.Common.PROPERTY_BOUND_FOCUS)
+    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
   }
 
   @RunsInEdt
@@ -485,13 +476,13 @@ class NelePropertyItemTest {
   fun testColorIconOfBackgroundAttribute() {
     val util = SupportTestUtil(projectRule, createImageView())
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
-    assertThat(background.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
 
     background.value = "@drawable/non-existent-drawable"
-    assertThat(background.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+    assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
 
     background.value = "@color/non-existent-color"
-    assertThat(background.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
   }
 
   @RunsInEdt
@@ -500,13 +491,13 @@ class NelePropertyItemTest {
     val util = SupportTestUtil(projectRule, createImageView())
     val src = util.makeProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
     src.value = null
-    assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+    assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
 
     src.value = "@color/non-existent-color"
-    assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
 
     src.value = "@drawable/non-existent-drawable"
-    assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+    assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
   }
 
   @RunsInEdt
