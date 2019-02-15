@@ -19,7 +19,6 @@ public enum TestGroup {
   THEME,
   QA,
   QA_UNRELIABLE,
-  SANITY,
   SANITY_BAZEL,
   SANITY_NO_UI,
   FAST_BAZEL,
