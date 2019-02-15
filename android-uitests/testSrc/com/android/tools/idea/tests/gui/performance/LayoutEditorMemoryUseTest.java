@@ -63,11 +63,7 @@ import java.util.Set;
 public class LayoutEditorMemoryUseTest {
 
   private static final int MAX_LOOP_COUNT = 5;
-  private static final Set<String> ourIgnoredClasses = ImmutableSet.of(
-    // Known leak: b/73826291. Each time RenderTask is created, its myAssetRepository object is leaked.
-    // The lifetime of the leak is equal to the lifetime of the Module (project close should dispose it).
-    "com.android.tools.idea.res.AssetRepositoryImpl"
-  );
+  private static final Set<String> ourIgnoredClasses = ImmutableSet.of();
 
   private static final Logger LOG = Logger.getInstance(LayoutEditorMemoryUseTest.class);
   private static final boolean CAPTURE_HEAP_DUMPS = false;
