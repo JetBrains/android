@@ -961,7 +961,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private boolean checkIfUserWantsToAddDependencies(List<NlComponent> toAdd) {
     // May bring up a dialog such that the user can confirm the addition of the new dependencies:
-    return NlDependencyManager.Companion.get().checkIfUserWantsToAddDependencies(toAdd, getFacet());
+    return NlDependencyManager.INSTANCE.checkIfUserWantsToAddDependencies(toAdd, getFacet());
   }
 
   /**
@@ -1005,7 +1005,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         myHasMissingDependencies =
-          NlDependencyManager.Companion.get().addDependencies(toAdd, getFacet(), callback).getHadMissingDependencies();
+          NlDependencyManager.INSTANCE.addDependencies(toAdd, getFacet(), callback).getHadMissingDependencies();
       }
 
       @Override
