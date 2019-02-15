@@ -25,7 +25,7 @@ import java.nio.channels.FileChannel
 import java.nio.charset.Charset
 import java.util.function.LongUnaryOperator
 
-class HProfEventBasedParser(fileChannel: FileChannel) {
+class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
   companion object {
     private val LOG = Logger.getInstance(HProfEventBasedParser::class.java)
   }
@@ -42,6 +42,10 @@ class HProfEventBasedParser(fileChannel: FileChannel) {
   init {
     buffer = HProfReadBufferSlidingWindow(fileChannel, this)
     initialParse()
+  }
+
+  override fun close() {
+    buffer.close()
   }
 
   fun setIdRemappingFunction(remapFunction: LongUnaryOperator) {
