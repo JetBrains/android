@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.Blocking;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -136,6 +137,7 @@ public class ConfigurationManager implements Disposable {
    * Gets the {@link Configuration} associated with the given file
    * @return the {@link Configuration} for the given file
    */
+  @Blocking
   @NotNull
   public Configuration getConfiguration(@NotNull VirtualFile file) {
     Configuration configuration = myCache.get(file);
@@ -154,7 +156,10 @@ public class ConfigurationManager implements Disposable {
 
   /**
    * Creates and returns a new {@link Configuration} associated with this manager.
+   * This method might block while finding the correct {@link Device} for the {@link Configuration}. Finding
+   * devices requires accessing (and maybe updating) the repository of existing ones.
    */
+  @Blocking
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
@@ -213,6 +218,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   /** Returns the list of available devices for the current platform and any custom user devices, if any */
+  @Blocking
   @NotNull
   public ImmutableList<Device> getDevices() {
     return new ImmutableList.Builder<Device>()
@@ -221,6 +227,7 @@ public class ConfigurationManager implements Disposable {
       .build();
   }
 
+  @Blocking
   @NotNull
   public Collection<Device> updateAndGetPlatformDevices() {
     if (mySdkDevices.isEmpty()) {
