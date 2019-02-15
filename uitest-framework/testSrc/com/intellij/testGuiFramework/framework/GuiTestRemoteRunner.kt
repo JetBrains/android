@@ -15,6 +15,7 @@
  */
 package com.intellij.testGuiFramework.framework
 
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Ref
 import com.intellij.testGuiFramework.impl.GuiTestStarter
@@ -25,7 +26,6 @@ import com.intellij.testGuiFramework.remote.transport.*
 import org.apache.log4j.Level
 import org.junit.AssumptionViolatedException
 import org.junit.internal.runners.model.EachTestNotifier
-import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.BlockJUnit4ClassRunner
 import org.junit.runners.model.FrameworkMethod
@@ -62,6 +62,18 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
     if (criticalError.get()) { eachNotifier.fireTestIgnored(); return }
 
     val server = JUnitServerHolder.getServer(notifier)
+
+    // Running tests with BLeak requires passing additional JVM options to the client, primarily to increase
+    // the max heap size. The client must be restarted for this to take effect, if it's already running.
+    val usesBleak = description.getAnnotation(UseBleak::class.java) != null
+    val bleakCurrentlyEnabled = System.getProperty("enable.bleak") == "true"
+    if (usesBleak != bleakCurrentlyEnabled) {
+      System.setProperty("enable.bleak", usesBleak.toString())
+      if (server.isRunning()) {
+        server.closeIdeAndStop()
+      }
+      server.launchIdeAndStart()
+    }
 
     try {
       if (!server.isRunning()) {
