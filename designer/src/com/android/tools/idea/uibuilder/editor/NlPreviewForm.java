@@ -16,36 +16,33 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.SdkConstants;
-import com.android.annotations.concurrency.UiThread;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
-import com.android.tools.adtui.workbench.AutoHide;
-import com.android.tools.adtui.workbench.Side;
-import com.android.tools.adtui.workbench.Split;
-import com.android.tools.adtui.workbench.ToolWindowDefinition;
-import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.editor.ActionsToolbar;
-import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.type.AdaptativeIconFileType;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -59,18 +56,16 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.awt.BorderLayout;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
 
@@ -95,6 +90,11 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private NlModel myModel;
 
   /**
+   * Contains the file that is currently being loaded (it might take a while to get a preview rendered).
+   * Once the file is loaded, myPendingFile will be null.
+   */
+  private Pending myPendingFile;
+  /**
    * Contains the editor that is currently being loaded.
    * Once the file is loaded, myPendingEditor will be null.
    */
@@ -103,10 +103,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private TextEditor myEditor;
   private CaretModel myCaretModel;
   private SceneMode mySceneMode;
-  /**
-   * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
-   */
-  @NotNull private CompletableFuture<Void> myPendingModelLoad = CompletableFuture.completedFuture(null);
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
@@ -120,7 +116,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myRenderingQueue.setRestartTimerOnAdd(true);
 
     myWorkBench = new WorkBench<>(myProject, "Preview", null);
-    myWorkBench.setLoadingText("Loading...");
+    myWorkBench.setLoadingText("Waiting for build to finish...");
     myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
 
     Disposer.register(this, myWorkBench);
@@ -250,6 +246,45 @@ public class NlPreviewForm implements Disposable, CaretListener {
     this.myUseInteractiveSelector = useInteractiveSelector;
   }
 
+  private class Pending implements RenderListener, Runnable {
+    public final XmlFile file;
+    public final NlModel model;
+    public final ScreenView screenView;
+    public boolean valid = true;
+
+    public Pending(XmlFile file, NlModel model) {
+      this.file = file;
+      this.model = model;
+      screenView = (ScreenView)mySurface.getCurrentSceneView();
+      if (screenView != null) {
+        screenView.getSceneManager().addRenderListener(this);
+        screenView.getSceneManager().requestRender();
+      }
+    }
+
+    @Override
+    public void onRenderCompleted() {
+      if (screenView != null) {
+        screenView.getSceneManager().removeRenderListener(this);
+      }
+      if (valid) {
+        valid = false;
+        ApplicationManager.getApplication().invokeLater(this, model.getProject().getDisposed());
+      }
+    }
+
+    public void invalidate() {
+      valid = false;
+    }
+
+    @Override
+    public void run() {
+      // This method applies the given pending update to the UI thread; this must be done from a read thread
+      ApplicationManager.getApplication().assertIsDispatchThread();
+      setActiveModel(model);
+    }
+  }
+
   /**
    * Specifies the next editor the preview should be shown for.
    * The update of the preview may be delayed.
@@ -264,7 +299,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myPendingEditor = editor;
     myFile = editor.getFile();
 
-    myPendingModelLoad.cancel(true);
+    if (myPendingFile != null) {
+      myPendingFile.invalidate();
+      // Set the model to null so the progressbar is displayed
+      // TODO: find another way to decide that the progress indicator should be shown, so that the design surface model can be non-null
+      // mySurface.setModel(null);
+    }
 
     if (isActive) {
       initPreviewForm();
@@ -295,7 +335,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   private void initPreviewFormAfterInitialBuild() {
-    myWorkBench.setLoadingText("Waiting for build to finish...");
     SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
       if (result.isSuccessful()) {
         initPreviewFormAfterBuildOnEventDispatchThread();
@@ -380,39 +419,29 @@ public class NlPreviewForm implements Disposable, CaretListener {
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
-  @UiThread
   private void initNeleModelWhenSmart() {
     XmlFile xmlFile = getFile();
     AndroidFacet facet = xmlFile != null ? AndroidFacet.getInstance(xmlFile) : null;
-    myPendingModelLoad.cancel(true);
     if (!isActive || facet == null || xmlFile.getVirtualFile() == null) {
+      myPendingFile = null;
       setActiveModel(null);
     }
     else {
       if (myModel != null) {
         Disposer.dispose(myModel);
       }
+      myModel = NlModel.create(null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar());
 
-      // Asynchronously load the model and refresh the preview once it's ready
-      myPendingModelLoad = CompletableFuture
-        .supplyAsync(() -> NlModel.create(null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar()),
-                     AppExecutorUtil.getAppExecutorService())
-        .thenAccept(model -> {
-          // Set the default density to XXXHDPI for adaptive icon preview
-          if (model.getType() == AdaptativeIconFileType.INSTANCE) {
-            Device device = model.getConfiguration().getDevice();
-            if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
-              NlModelHelperKt.overrideConfigurationDensity(model, Density.XXXHIGH);
-            }
-          }
+      mySurface.setModel(myModel);
+      myPendingFile = new Pending(xmlFile, myModel);
 
-          // This will trigger a render of the model
-          mySurface.setModel(model).thenRunAsync(() -> {
-            if (!facet.isDisposed()) {
-              setActiveModel(model);
-            }
-          }, EdtExecutor.INSTANCE);
-        });
+      // Set the default density to XXXHDPI for adaptive icon preview
+      if (myModel.getType() == AdaptativeIconFileType.INSTANCE) {
+        Device device = myModel.getConfiguration().getDevice();
+        if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
+          NlModelHelperKt.overrideConfigurationDensity(myModel, Density.XXXHIGH);
+        }
+      }
     }
   }
 
@@ -432,10 +461,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
   public void setActiveModel(@Nullable NlModel model) {
-    myPendingModelLoad.cancel(true);
+    myPendingFile = null;
     if (myModel != model) {
       disposeModel();
-      myModel = model;
     }
     if (model == null) {
       setEditor(null);
@@ -533,7 +561,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     mySurface.deactivate();
     isActive = false;
     if (myContentPanel != null) {
-      myPendingModelLoad.cancel(true);
+      myPendingFile = null;
       setActiveModel(null);
     }
   }
