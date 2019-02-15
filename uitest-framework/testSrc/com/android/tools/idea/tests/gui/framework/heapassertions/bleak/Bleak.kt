@@ -43,7 +43,10 @@ import java.util.IdentityHashMap
 // Whitelist for known issues: don't report leak roots for which this method returns true
 private fun Signature.isWhitelisted(): Boolean =
   first() == "com.intellij.testGuiFramework.remote.client.JUnitClientImpl\$ClientSendThread#objectOutputStream" ||
+  first() == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
+  first() == "android.graphics.NinePatch_Delegate#sChunkCache" ||
   anyTypeContains("org.fest.swing") ||
+  size == 4 && first() == "java.lang.Thread#contextClassLoader" && entry(1) == "com.intellij.util.lang.UrlClassLoader#classes" && label(2) == "elementData" ||
   size == 3 && first() == "com.intellij.util.lang.UrlClassLoader#classes" && label(1) == "elementData" ||
   entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields"
 
