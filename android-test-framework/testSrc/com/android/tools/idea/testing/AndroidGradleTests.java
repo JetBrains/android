@@ -84,7 +84,8 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
                                    buildEnvironment.getExperimentalPluginVersion());
 
-      contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", getKotlinVersionForTests());
+      String kotlinVersion = getKotlinVersionForTests().split("-")[0];
+      contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
