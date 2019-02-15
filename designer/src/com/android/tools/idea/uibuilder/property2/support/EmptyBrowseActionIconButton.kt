@@ -28,13 +28,14 @@ object EmptyBrowseActionIconButton : ActionIconButton {
   override val actionButtonFocusable: Boolean
     get() = false
 
-  override fun getActionIcon(focused: Boolean): Icon {
-    if (emptyIcon == null) {
-      val icon = StudioIcons.Common.PROPERTY_BOUND
-      emptyIcon = ImageIcon(BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB))
+  override val actionIcon: Icon
+    get() {
+      if (emptyIcon == null) {
+        val icon = StudioIcons.Common.PROPERTY_BOUND
+        emptyIcon = ImageIcon(BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB))
+      }
+      return emptyIcon!!
     }
-    return emptyIcon!!
-  }
 
   override val action: AnAction?
     get() = null

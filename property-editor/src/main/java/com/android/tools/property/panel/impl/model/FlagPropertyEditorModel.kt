@@ -85,9 +85,8 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
       return !(initialSelectedItems.none { isMatch(it) } || initialItemsBelowSeparator.none { isMatch(it) })
     }
 
-  override fun getLeftButtonIcon(focused: Boolean): Icon? {
-    return StudioIcons.LayoutEditor.Properties.FLAG
-  }
+  override val leftButtonIcon: Icon? =
+    StudioIcons.LayoutEditor.Properties.FLAG
 
   /** Returns true if a named flag is currently set */
   fun isSelected(item: String): Boolean {

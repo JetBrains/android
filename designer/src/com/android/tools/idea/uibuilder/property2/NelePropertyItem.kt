@@ -435,15 +435,9 @@ open class NelePropertyItem(
     override val actionButtonFocusable
       get() = true
 
-    override fun getActionIcon(focused: Boolean): Icon {
-      val reference = isReferenceValue(rawValue)
-      return when {
-        reference && !focused -> StudioIcons.Common.PROPERTY_BOUND
-        reference && focused -> StudioIcons.Common.PROPERTY_BOUND_FOCUS
-        !reference && !focused -> StudioIcons.Common.PROPERTY_UNBOUND
-        else -> StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
-      }
-    }
+    override val actionIcon: Icon
+      get() = if (isReferenceValue(rawValue)) StudioIcons.Common.PROPERTY_BOUND else StudioIcons.Common.PROPERTY_UNBOUND
+
 
     override val action: AnAction?
       get() = OpenResourceManagerAction
@@ -465,10 +459,11 @@ open class NelePropertyItem(
     override val actionButtonFocusable
       get() = true
 
-    override fun getActionIcon(focused: Boolean): Icon {
-      val value = rawValue ?: defaultValue
-      return resolveValueAsIcon(value) ?: getActionIconFromUnfinishedValue(value)
-    }
+    override val actionIcon: Icon
+      get() {
+        val value = rawValue ?: defaultValue
+        return resolveValueAsIcon(value) ?: getActionIconFromUnfinishedValue(value)
+      }
 
     private fun getActionIconFromUnfinishedValue(value: String?): Icon =
       if (isColor(value)) StudioIcons.LayoutEditor.Extras.PIPETTE else StudioIcons.LayoutEditor.Properties.IMAGE_PICKER
