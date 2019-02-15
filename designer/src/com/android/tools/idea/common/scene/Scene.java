@@ -33,6 +33,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
@@ -134,6 +135,21 @@ public class Scene implements SelectionListener, Disposable {
     myFindListener = new SceneHitListener(selectionModel);
     mySnapListener = new SceneHitListener(selectionModel);
     selectionModel.addListener(this);
+
+    myHoverListener.setTargetFilter(target -> {
+      if (target instanceof AnchorTarget) {
+        AnchorTarget anchorTarget = (AnchorTarget) target;
+        if (myHitTarget == null) {
+          // Not interacting with any Target, avoid to hover to edge AnchorTarget.
+          return !anchorTarget.isEdge();
+        }
+        else if (myHitTarget instanceof AnchorTarget) {
+          // Interacting with AnchorTarget, only hovers on connectible AnchorTargets.
+          return ((AnchorTarget) myHitTarget).isConnectible(anchorTarget);
+        }
+      }
+      return true;
+    });
 
     myIsLiveRenderingEnabled = renderSettings.getUseLiveRendering();
 
@@ -626,6 +642,12 @@ public class Scene implements SelectionListener, Disposable {
       return;
     }
     myNewSelectedComponentsOnDown.clear();
+    myHitListener.setTargetFilter(it -> {
+      if (it instanceof AnchorTarget) {
+        return !((AnchorTarget)it).isEdge();
+      }
+      return true;
+    });
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -638,6 +660,7 @@ public class Scene implements SelectionListener, Disposable {
       myNewSelectedComponentsOnDown.add(myHitComponent);
       select(myNewSelectedComponentsOnDown);
     }
+    myHitListener.setTargetFilter(null);
   }
 
   public void mouseDrag(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
@@ -667,7 +690,7 @@ public class Scene implements SelectionListener, Disposable {
         }
       }
 
-      myHitListener.skipTarget(myHitTarget);
+      myHitListener.setTargetFilter(target -> myHitTarget != target);
       myHitListener.find(transform, myRoot, x, y);
       SceneComponent targetComponent = myHitTarget.getComponent();
       if ((lassoTarget == null || lassoTarget.getIntersectingComponents().isEmpty())
@@ -680,7 +703,7 @@ public class Scene implements SelectionListener, Disposable {
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
-      myHitListener.skipTarget(null);
+      myHitListener.setTargetFilter(null);
     }
     mouseHover(transform, x, y);
     checkRequestLayoutStatus();
@@ -736,6 +759,7 @@ public class Scene implements SelectionListener, Disposable {
     if (!sameSelection() && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
+    myHitTarget = null;
     checkRequestLayoutStatus();
   }
 
@@ -750,6 +774,7 @@ public class Scene implements SelectionListener, Disposable {
 
     myFilterType = FilterType.NONE;
     myNewSelectedComponentsOnRelease.clear();
+    myHitTarget = null;
     checkRequestLayoutStatus();
   }
 
