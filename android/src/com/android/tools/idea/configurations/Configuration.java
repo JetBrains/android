@@ -31,6 +31,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.MASK_F
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_PROJECT_STATE;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.Blocking;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
@@ -440,6 +441,7 @@ public class Configuration implements Disposable, ModificationTracker {
    *
    * @return the chosen device
    */
+  @Blocking
   @Nullable
   public Device getDevice() {
     if (myDevice == null) {
@@ -482,6 +484,7 @@ public class Configuration implements Disposable, ModificationTracker {
     return currentConfig;
   }
 
+  @Blocking
   @Nullable
   private Device computeBestDevice() {
     for (Device device : myManager.getRecentDevices()) {
