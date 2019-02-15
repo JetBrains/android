@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.ListExpandableItemsHandler;
 import com.intellij.ui.components.JBList;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A list control that supports expansion of labels that could be truncated and
@@ -37,6 +38,11 @@ import java.util.Collections;
  * edge of the list control.
  */
 public abstract class ListWithMargin<E> extends JBList<E> {
+
+  public ListWithMargin() {
+    super();
+    setBackground(StudioColorsKt.getSecondaryPanelBackground());
+  }
 
   /**
    * Returns the width of the margin to the right of the label in a list cell.

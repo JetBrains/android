@@ -15,17 +15,12 @@
  */
 package com.android.tools.adtui.common
 
-import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.LayoutManager
 import javax.swing.JPanel
-import javax.swing.LookAndFeel
-import javax.swing.UIManager
-import javax.swing.plaf.basic.BasicPanelUI
 
 /*
  * Base Panels that use the [primaryPanelBackground] and [secondaryPanelBackground]
- * and apply the same background to their children
  */
 
 /**
@@ -35,13 +30,9 @@ import javax.swing.plaf.basic.BasicPanelUI
  */
 open class AdtPrimaryPanel(layout: LayoutManager? = FlowLayout()) : JPanel(layout) {
 
-  override fun addImpl(comp: Component?, constraints: Any?, index: Int) {
-    super.addImpl(comp, constraints, index)
-    comp?.background = background
-  }
-
-  override fun updateUI() {
-    setUI(AdtPrimaryPanelUI)
+  init {
+    background = primaryPanelBackground
+    isOpaque = true
   }
 }
 
@@ -52,66 +43,8 @@ open class AdtPrimaryPanel(layout: LayoutManager? = FlowLayout()) : JPanel(layou
  */
 open class AdtSecondaryPanel(layout: LayoutManager? = FlowLayout()) : JPanel(layout) {
 
-  override fun addImpl(comp: Component?, constraints: Any?, index: Int) {
-    super.addImpl(comp, constraints, index)
-    comp?.background = background
-  }
-
-  override fun updateUI() {
-    setUI(AdtSecondaryPanelUI)
-  }
-}
-
-/**
- * Flag to know if [initAdtDefaults] has been called
- */
-private var defaultInstalled = false
-
-/**
- * Add defaults color used by the AdtPanel to the UIManager
- */
-private fun initAdtDefaults() {
-  if (!defaultInstalled) {
-    UIManager.put("AdtPanel.primary.background", primaryPanelBackground)
-    UIManager.put("AdtPanel.secondary.background", secondaryPanelBackground)
-    defaultInstalled = true
-  }
-}
-
-/**
- * UI for [AdtPrimaryPanel]
- */
-private object AdtPrimaryPanelUI : BasicPanelUI() {
-
   init {
-    initAdtDefaults()
-  }
-
-  override fun installDefaults(p: JPanel?) {
-    LookAndFeel.installColorsAndFont(p,
-        "AdtPanel.primary.background",
-        "Panel.foreground",
-        "Panel.font")
-    LookAndFeel.installBorder(p, "Panel.border")
-    LookAndFeel.installProperty(p, "opaque", true)
-  }
-}
-
-/**
- *  UI for [AdtSecondaryPanel]
- */
-private object AdtSecondaryPanelUI : BasicPanelUI() {
-
-  init {
-    initAdtDefaults()
-  }
-
-  override fun installDefaults(p: JPanel?) {
-    LookAndFeel.installColorsAndFont(p,
-        "AdtPanel.secondary.background",
-        "Panel.foreground",
-        "Panel.font")
-    LookAndFeel.installBorder(p, "Panel.border")
-    LookAndFeel.installProperty(p, "opaque", true)
+    background = secondaryPanelBackground
+    isOpaque = true
   }
 }
