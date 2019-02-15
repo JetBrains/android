@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.configurations;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class OrientationMenuActionTest extends AndroidTestCase {
   private static final String FILE_ARROW = " \u2192 ";
@@ -56,7 +53,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void testAction() {
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
-    action.createCustomComponent(presentation); // To force updateActions to be called...
+    action.createCustomComponent(presentation, ActionPlaces.UNKNOWN); // To force updateActions to be called...
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
@@ -75,7 +72,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
-    action.createCustomComponent(presentation); // To force updateActions to be called...
+    action.createCustomComponent(presentation, ActionPlaces.UNKNOWN); // To force updateActions to be called...
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
@@ -98,7 +95,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
-    action.createCustomComponent(presentation); // To force updateActions to be called...
+    action.createCustomComponent(presentation, ActionPlaces.UNKNOWN); // To force updateActions to be called...
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,

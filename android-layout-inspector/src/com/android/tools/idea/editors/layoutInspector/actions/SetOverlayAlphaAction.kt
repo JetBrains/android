@@ -39,7 +39,7 @@ class SetOverlayAlphaAction(private val myPreview: ViewNodeActiveDisplay) :
     e.presentation.isEnabledAndVisible = myPreview.hasOverlay()
   }
 
-  override fun createCustomComponent(presentation: Presentation): JComponent {
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     val alphaSlider = JSlider(JSlider.HORIZONTAL, 0, 100, (myPreview.overlayAlpha * 100).toInt())
     alphaSlider.addChangeListener(this)
 
