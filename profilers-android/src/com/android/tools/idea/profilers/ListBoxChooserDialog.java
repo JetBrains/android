@@ -16,12 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.adtui.TabularLayout;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -111,7 +107,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
       panel.add(new JLabel(myMessage), new TabularLayout.Constraint(0, 0));
     }
     updateActivePresentation();
-    panel.add(new OptionsSelectorComboBox().createCustomComponent(myActivePresentation), new TabularLayout.Constraint(2, 0));
+    panel.add(new OptionsSelectorComboBox().createCustomComponent(myActivePresentation, ActionPlaces.UNKNOWN), new TabularLayout.Constraint(2, 0));
     return panel;
   }
 
@@ -120,10 +116,11 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
    * to {@link AnAction} elements.
    */
   private class OptionsSelectorComboBox extends ComboBoxAction {
-    NonOpaquePanel myPanel = new NonOpaquePanel(new BorderLayout());
+    NonOpaquePanel myPanel = new NonOpaquePanel(new BorderLayout()); //FIXME: shared component between toolbars!
 
+    @NotNull
     @Override
-    public JComponent createCustomComponent(final Presentation presentation) {
+    public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
       ComboBoxButton button = new ComboBoxButton(presentation) {
         @Override
         public Dimension getPreferredSize() {
