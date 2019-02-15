@@ -29,6 +29,7 @@ message AndroidProject {
     optional string name = 9; // required
     optional string compile_target = 10; // required
     repeated File boot_classpath = 11;
+    optional string default_variant = 12;
 }
 
 message AaptOptions {
