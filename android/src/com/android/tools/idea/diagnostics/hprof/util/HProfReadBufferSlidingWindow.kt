@@ -34,6 +34,15 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
     buffer = channel.map(FileChannel.MapMode.READ_ONLY, bufferOffset, Math.min(bufferSize, size))
   }
 
+  override fun close() {
+    try {
+      (buffer as? DirectBuffer)?.cleaner()?.clean()
+    }
+    catch (ex: Exception) {
+      // ignore
+    }
+  }
+
   override fun position(newPosition: Long) {
     if (newPosition >= bufferOffset && newPosition <= bufferOffset + bufferSize) {
       buffer.position((newPosition - bufferOffset).toInt())
