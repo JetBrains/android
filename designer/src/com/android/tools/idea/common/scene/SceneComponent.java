@@ -580,13 +580,6 @@ public class SceneComponent {
     myNotchProvider = notchProvider;
   }
 
-  public void setExpandTargetArea(boolean expandArea) {
-    for (Target target : getTargets()) {
-      target.setExpandSize(expandArea);
-    }
-    myScene.needsRebuildList();
-  }
-
   @VisibleForTesting
   ResizeBaseTarget getResizeTarget(ResizeBaseTarget.Type type) {
     ImmutableList<Target> targets = getTargets();

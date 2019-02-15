@@ -31,7 +31,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
 /**
  * Target offers the anchors in RelativeLayout.
  */
-class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type) {
+class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type, isParent) {
 
   /**
    * If this Anchor is dragging.
@@ -73,6 +73,9 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
   }
 
   override fun isEnabled(): Boolean {
+    if (!super.isEnabled()) {
+      return false
+    }
     if (myComponent.scene.selection.size > 1) {
       return false
     }
@@ -98,6 +101,21 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     } else {
       DrawAnchor.Mode.NORMAL
     }
+  }
+
+  override fun isConnectible(dest: AnchorTarget): Boolean {
+    if (dest !is RelativeAnchorTarget) {
+      return false
+    }
+    val sameDirection = when (myType) {
+      Type.LEFT, Type.RIGHT -> dest.type == Type.LEFT || dest.type == Type.RIGHT
+      Type.TOP, Type.BOTTOM -> dest.type == Type.TOP || dest.type == Type.BOTTOM
+      Type.BASELINE -> dest.type == Type.BASELINE
+    }
+    if (!sameDirection) {
+      return false
+    }
+    return if (dest.isEdge) component.parent === dest.component else component.parent === dest.component.parent
   }
 
   /**
@@ -129,8 +147,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (isParent) {
       return
     }
-    myComponent.parent?.setExpandTargetArea(true)
-
     isDragging = false
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
@@ -152,7 +168,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
 
     val parent = myComponent.parent
     if (parent != null) {
-      parent.setExpandTargetArea(false)
       val transactions = myComponent.authoritativeNlComponent.startAttributeTransaction()
       if (this in closestTargets) {
         handleConstraintDeletion(transactions)
