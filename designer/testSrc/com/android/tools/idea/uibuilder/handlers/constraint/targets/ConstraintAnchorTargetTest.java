@@ -15,16 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
+import java.awt.Point;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 public class ConstraintAnchorTargetTest extends SceneTest {
 
@@ -44,7 +53,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
   public void testRenderDuringDragging() {
     myInteraction.select("button2", true);
     myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
-    myInteraction.mouseDrag(100, 100);
+    myInteraction.mouseDrag(90, 90);
 
     // The connection between mouse and AnchorTarget should be inside DisplayList.
     Optional<DrawCommand> command =
@@ -61,6 +70,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                                           "    android:id=\"@id/button2\"/>");
   }
 
+
   public void testBaselineTargetPosition() {
     SceneComponent button2 = myScene.getSceneComponent("button2");
     AnchorTarget baselineTarget = AnchorTarget.findAnchorTarget(button2, AnchorTarget.Type.BASELINE);
@@ -68,6 +78,236 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     // Unit of SceneComponent is Integer and unit of Target is double. They may have up to 0.5d differences.
     assertEquals(button2.getCenterX(), baselineTarget.getCenterX(), 0.5);
     assertEquals(button2.getDrawY() + button2.getBaseline(), baselineTarget.getCenterY(), 0.5);
+  }
+
+  public void testEdgeAnchorSize() {
+    SceneComponent inner = myScene.getSceneComponent("inner");
+    SceneView sceneView = myScene.getSceneManager().getSceneView();
+
+    int swingX1 = Coordinates.getSwingXDip(sceneView, inner.getDrawX());
+    int swingY1 = Coordinates.getSwingXDip(sceneView, inner.getDrawY());
+    int swingX2 = Coordinates.getSwingXDip(sceneView, inner.getDrawX() + inner.getDrawWidth());
+    int swingY2 = Coordinates.getSwingXDip(sceneView, inner.getDrawY() + inner.getDrawHeight());
+
+    // edge anchor can only be hit when dragging normal anchor.
+    // Simulate dragging left anchor of textView to test sizes of horizontal edge anchors.
+    myInteraction.select("textView", true);
+    myInteraction.mouseDown("textView", AnchorTarget.Type.LEFT);
+    myInteraction.mouseDrag(110, 110);
+
+    {
+      AnchorTarget left = createEdgeAnchorTarget(inner, AnchorTarget.Type.LEFT);
+      Point[] leftHitPoints = {
+        new Point(swingX1, swingY1 + 1),
+        new Point(swingX1, swingY2 - 1),
+      };
+      Point[] leftNonHitPoint = {
+        new Point(swingX1, swingY1 - 1),
+        new Point(swingX1, swingY2 + 1),
+      };
+      testAnchorSize(left, leftHitPoints, leftNonHitPoint);
+    }
+
+    {
+      AnchorTarget right = createEdgeAnchorTarget(inner, AnchorTarget.Type.RIGHT);
+      Point[] rightHitPoints = {
+        new Point(swingX2, swingY1 + 1),
+        new Point(swingX2, swingY2 - 1),
+      };
+      Point[] rightNonHitPoint = {
+        new Point(swingX2, swingY1 - 1),
+        new Point(swingX2, swingY2 + 1),
+      };
+      testAnchorSize(right, rightHitPoints, rightNonHitPoint);
+    }
+
+    // Now simulate dragging top anchor of textView to test sizes of vertical edge anchors.
+    myInteraction.mouseRelease(110, 110);
+    myInteraction.mouseDown("textView", AnchorTarget.Type.TOP);
+    myInteraction.mouseDrag(110, 110);
+
+    {
+      AnchorTarget top = createEdgeAnchorTarget(inner, AnchorTarget.Type.TOP);
+      Point[] topHitPoints = {
+        new Point(swingX1 + 1, swingY1),
+        new Point(swingX2 - 1, swingY1),
+      };
+      Point[] topNonHitPoint = {
+        new Point(swingX1 - 1, swingY1),
+        new Point(swingX2 + 1, swingY1),
+      };
+      testAnchorSize(top, topHitPoints, topNonHitPoint);
+    }
+
+    {
+      AnchorTarget bottom = createEdgeAnchorTarget(inner, AnchorTarget.Type.BOTTOM);
+      Point[] bottomHitPoints = {
+        new Point(swingX1 + 1, swingY2),
+        new Point(swingX2 - 1, swingY2),
+      };
+      Point[] bottomNonHitPoint = {
+        new Point(swingX1 - 1, swingY2),
+        new Point(swingX2 + 1, swingY2),
+      };
+      testAnchorSize(bottom, bottomHitPoints, bottomNonHitPoint);
+    }
+  }
+
+  private AnchorTarget createEdgeAnchorTarget(@NotNull SceneComponent component, AnchorTarget.Type type) {
+    ConstraintAnchorTarget target = new ConstraintAnchorTarget(type, true);
+    target.setComponent(component);
+    target.layout(SceneContext.get(mySceneManager.getSceneView()),
+                  component.getDrawX(),
+                  component.getDrawY(),
+                  component.getDrawX() + component.getDrawWidth(),
+                  component.getDrawY() + component.getDrawHeight());
+    return target;
+  }
+
+  private void testAnchorSize(AnchorTarget anchorTarget, Point[] hitPoints, Point[] nonHitPoints) {
+    ScenePicker picker = new ScenePicker();
+    ScenePicker.HitElementListener hitListener = Mockito.mock(ScenePicker.HitElementListener.class);
+    picker.setSelectListener(hitListener);
+
+    anchorTarget.addHit(SceneContext.get(myScene.getSceneManager().getSceneView()), picker);
+
+    for (Point p : nonHitPoints) {
+      picker.find(p.x, p.y);
+      Mockito.verify(hitListener, Mockito.times(0)).over(anchorTarget, 0d);
+    }
+
+    int hitCount = 0;
+    for (Point p : hitPoints) {
+      hitCount++;
+      picker.find(p.x, p.y);
+      Mockito.verify(hitListener, Mockito.times(hitCount)).over(anchorTarget, 0d);
+    }
+  }
+
+  public void testHoverOnAnchor() {
+    myInteraction.select("inner", true);
+    SceneComponent inner = myScene.getSceneComponent("inner");
+
+    AnchorTarget leftAnchor = inner.getTargets().stream()
+      .filter(t -> (t instanceof AnchorTarget))
+      .map(t -> ((AnchorTarget) t))
+      .filter(t -> t.getType() == AnchorTarget.Type.LEFT && !t.isEdge())
+      .toArray(AnchorTarget[]::new)[0];
+
+    // Try to hover on Anchor
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY());
+    assertTrue(leftAnchor.isMouseHovered());
+
+    // Move mouse out to SceneView. Should not have any hovered Target.
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -1, -1);
+    myScene.getSceneComponents().stream()
+      .flatMap(component -> component.getTargets().stream())
+      .forEach(target -> assertFalse(target.isMouseHovered()));
+  }
+
+  public void testCannotHoverEdgeAnchor() {
+    myInteraction.select("inner", true);
+    SceneComponent inner = myScene.getSceneComponent("inner");
+
+    AnchorTarget leftEdgeAnchor = inner.getTargets().stream()
+      .filter(t -> (t instanceof AnchorTarget))
+      .map(t -> ((AnchorTarget) t))
+      .filter(t -> t.getType() == AnchorTarget.Type.LEFT && t.isEdge())
+      .toArray(AnchorTarget[]::new)[0];
+
+    // Try to hover on edge
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5);
+    assertFalse(leftEdgeAnchor.isMouseHovered());
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5);
+    assertFalse(leftEdgeAnchor.isMouseHovered());
+  }
+
+  public void testDisableIllegalDestinationAnchor() {
+    SceneComponent root = myScene.getSceneComponent("root");
+    SceneComponent button1 = myScene.getSceneComponent("button1");
+    SceneComponent button2 = myScene.getSceneComponent("button2");
+    SceneComponent inner = myScene.getSceneComponent("inner");
+    SceneComponent textView = myScene.getSceneComponent("textView");
+
+    DisplayList displayList = new DisplayList();
+
+
+    // Step1: testing dragging anchor of textView
+    myInteraction.select("textView", true);
+    myInteraction.mouseDown("textView", AnchorTarget.Type.LEFT);
+    myInteraction.mouseDrag(90, 90);
+
+    // root, button1, and button2 don't render anything.
+    renderAnchorTargetsToDisplayList(root, displayList);
+    renderAnchorTargetsToDisplayList(button1, displayList);
+    renderAnchorTargetsToDisplayList(button2, displayList);
+    assertEmpty(displayList.getCommands());
+
+    // we don't render edge Anchors.
+    renderAnchorTargetsToDisplayList(inner, displayList);
+    assertEmpty(displayList.getCommands());
+    myInteraction.mouseRelease(90, 90);
+
+    // Step2: test dragging anchor of button1
+    myInteraction.select("button1", true);
+    myInteraction.mouseDown("button1", AnchorTarget.Type.LEFT);
+    myInteraction.mouseDrag(90, 90);
+
+    // TextView render nothing because button1 cannot create constraint with it.
+    renderAnchorTargetsToDisplayList(textView, displayList);
+    assertEmpty(displayList.getCommands());
+
+    // we don't render edge Anchors.
+    renderAnchorTargetsToDisplayList(root, displayList);
+    assertEmpty(displayList.getCommands());
+
+    // button2 render 2 Anchors: left and right
+    renderAnchorTargetsToDisplayList(button2, displayList);
+    assertSize(2, displayList.getCommands());
+    displayList.clear();
+
+    // inner constraint layout render 2 circle anchors because it is sibling of button1. button1 can create constraint with it.
+    renderAnchorTargetsToDisplayList(inner, displayList);
+    assertSize(2, displayList.getCommands());
+    displayList.clear();
+    myInteraction.mouseRelease(90, 90);
+
+    // Step3: test dragging baseline Anchor of button1
+    myInteraction.select("button1", true);
+    // toggle baseline.
+    myInteraction.performViewAction(button1, target -> target instanceof BaseLineToggleViewAction);
+    myInteraction.mouseDown("button1", AnchorTarget.Type.BASELINE);
+    myInteraction.mouseDrag(90, 90);
+
+    // textView doesn't render any Anchor.
+    renderAnchorTargetsToDisplayList(textView, displayList);
+    assertEmpty(displayList.getCommands());
+
+    // button2 render one Anchor, which is Baseline Anchor
+    renderAnchorTargetsToDisplayList(button2, displayList);
+    assertSize(1, displayList.getCommands());
+
+    myInteraction.mouseRelease(90, 90);
+  }
+
+  private void renderAnchorTargetsToDisplayList(@NotNull SceneComponent component, @NotNull DisplayList displayList) {
+    SceneContext context = SceneContext.get(mySceneManager.getSceneView());
+    component.getTargets()
+      .stream()
+      .filter(it -> it instanceof AnchorTarget)
+      .forEach(it -> it.render(displayList, context));
+  }
+
+  public void testCannotDragEdgeConstraint() {
+    myInteraction.select("textView", true);
+    myInteraction.mouseDown("inner", AnchorTarget.Type.TOP);
+    myInteraction.mouseDrag(90, 90);
+
+    SceneComponent inner = myScene.getSceneComponent("inner");
+    AnchorTarget topTarget = AnchorTarget.findAnchorTarget(inner, AnchorTarget.Type.TOP);
+
+    assertNotNull(topTarget);
+    assertNotSame(topTarget, myScene.getInteractingTarget());
   }
 
   @Override
@@ -80,6 +320,23 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                   .withBounds(10, 10, 10, 10),
                 component(BUTTON)
                   .id("@id/button2")
-                  .withBounds(10, 30, 10, 10)));
+                  .withBounds(10, 30, 10, 10),
+                 component(CONSTRAINT_LAYOUT.defaultName())
+                  .id("@+id/inner")
+                  .withBounds(200, 200, 200, 200)
+                  .width("100dp")
+                  .height("100dp")
+                  .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
+                  .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp")
+                  .children(
+                    component(TEXT_VIEW)
+                      .id("@+id/textView")
+                      .withBounds(300, 300, 100, 50)
+                      .width("50dp")
+                      .height("25dp")
+                      .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "50dp")
+                      .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "50dp")
+      ))
+    );
   }
 }
