@@ -61,31 +61,30 @@ public class ZoomLabelAction extends AnAction implements CustomComponentAction {
 
   @NotNull
   @Override
-  public JComponent createCustomComponent(@NotNull Presentation presentation) {
+  public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
     JBLabel label = new JBLabel() {
-      private PropertyChangeListener myPresentationSyncer;
-      private Presentation myPresentation = presentation;
+      PropertyChangeListener sync;
 
       @Override
       public void addNotify() {
         super.addNotify();
-        if (myPresentationSyncer == null) {
-          myPresentationSyncer = new PresentationSyncer();
-          myPresentation.addPropertyChangeListener(myPresentationSyncer);
+        if (sync == null) {
+          sync = new PresentationSync();
+          presentation.addPropertyChangeListener(sync);
         }
-        setText(myPresentation.getText());
+        setText(presentation.getText());
       }
 
       @Override
       public void removeNotify() {
-        if (myPresentationSyncer != null) {
-          myPresentation.removePropertyChangeListener(myPresentationSyncer);
-          myPresentationSyncer = null;
+        if (sync != null) {
+          presentation.removePropertyChangeListener(sync);
+          sync = null;
         }
         super.removeNotify();
       }
 
-      class PresentationSyncer implements PropertyChangeListener {
+      class PresentationSync implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
           String propertyName = evt.getPropertyName();
