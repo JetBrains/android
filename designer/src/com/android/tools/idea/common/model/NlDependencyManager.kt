@@ -32,11 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * This class acts as an abstraction layer between Layout Editor component and the build system to manage
  * dependencies required by the provided [NlComponent]
  */
-class NlDependencyManager {
-
-  companion object {
-    fun get() = NlDependencyManager()
-  }
+object NlDependencyManager {
 
   data class AddDependenciesResult(val hadMissingDependencies: Boolean, val dependenciesPresent: Boolean)
 
