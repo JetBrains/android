@@ -129,5 +129,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
+    <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
   </component>
 </module>
