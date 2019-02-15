@@ -32,6 +32,7 @@ open class LegacyAndroidProject(private val androidProject: AndroidProject, priv
   override fun getName(): String = androidProject.name
   override fun getProjectType(): Int = androidProject.projectType.oldValue
   override fun getVariantNames(): Collection<String> = androidProject.variantNames
+  override fun getDefaultVariant(): String?  = androidProject.defaultVariant
   override fun getCompileTarget(): String = androidProject.compileTarget
   override fun getBootClasspath(): Collection<String> = androidProject.bootClasspath.map(File::getAbsolutePath)
   override fun getAaptOptions(): OldAaptOptions = LegacyAaptOptions(androidProject.aaptOptions)
@@ -67,6 +68,7 @@ open class LegacyAndroidProject(private val androidProject: AndroidProject, priv
                                     "name=$name," +
                                     "projectType=$projectType," +
                                     "variantNames=$variantNames," +
+                                    "defaultVariant=$defaultVariant," +
                                     "compileTarget=$compileTarget," +
                                     "bootClasspath=$bootClasspath," +
                                     "aaptOptions=$aaptOptions," +
