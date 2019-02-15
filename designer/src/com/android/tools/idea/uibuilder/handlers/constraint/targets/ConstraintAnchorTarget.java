@@ -33,6 +33,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -65,7 +66,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ConstraintAnchorTarget extends AnchorTarget {
 
-  private final boolean myVisibility;
   private final Type myType;
 
   private boolean myInDrag = false;
@@ -79,10 +79,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public ConstraintAnchorTarget(@NotNull Type type, boolean visible) {
-    super(type);
+  public ConstraintAnchorTarget(@NotNull Type type, boolean isEdge) {
+    super(type, isEdge);
     myType = type;
-    myVisibility = visible;
   }
 
   //endregion
@@ -165,7 +164,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   @SuppressWarnings("UseJBColor")
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!myVisibility) {
+    if (myIsEdge) {
       return;
     }
 
@@ -186,6 +185,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @Override
   public boolean isEnabled() {
+    if (!super.isEnabled()) {
+      return false;
+    }
     if (myComponent.getScene().getSelection().size() > 1) {
       return false;
     }
@@ -213,6 +215,26 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         return true;
       default:
         return false;
+    }
+  }
+
+  @Override
+  public boolean isConnectible(@NotNull AnchorTarget dest) {
+    if (!(dest instanceof ConstraintAnchorTarget)) {
+      return false;
+    }
+    ConstraintAnchorTarget constraintAnchorDest = (ConstraintAnchorTarget) dest;
+    if (isVerticalAnchor() && !constraintAnchorDest.isVerticalAnchor()) {
+      return false;
+    }
+    if (isHorizontalAnchor() && !constraintAnchorDest.isHorizontalAnchor()) {
+      return false;
+    }
+    if (constraintAnchorDest.isEdge()) {
+      return myComponent.getParent() == constraintAnchorDest.myComponent;
+    }
+    else {
+      return myComponent.getParent() == constraintAnchorDest.myComponent.getParent();
     }
   }
 
@@ -552,9 +574,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
                             component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
     mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
                             component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF));
-    if (myComponent.getParent() != null) {
-      myComponent.getParent().setExpandTargetArea(true);
-    }
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (myType) {
       case LEFT:
@@ -661,9 +680,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     super.mouseRelease(x, y, closestTargets);
 
     try {
-      if (myComponent.getParent() != null) {
-        myComponent.getParent().setExpandTargetArea(false);
-      }
       ConstraintAnchorTarget closestTarget = null;
       for (Target target : closestTargets) {
         if (target instanceof ConstraintAnchorTarget && target != this) {
@@ -703,34 +719,23 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         }
       }
       else {
-
-
-        SceneComponent parent = myComponent.getParent();
         Collection<SceneComponent> components = myComponent.getScene().getSceneComponents();
         Rectangle rectangle = new Rectangle();
         ArrayList<NlComponent> list = new ArrayList<>();
         list.add(myComponent.getAuthoritativeNlComponent());
         list.add(myComponent.getAuthoritativeNlComponent());
         ArrayList<SceneComponent> allItems = new ArrayList<>();
-        int slop = 10;
         for (SceneComponent component : components) {
           rectangle.width = component.getDrawWidth();
           rectangle.height = component.getDrawHeight();
           rectangle.x = component.getDrawX();
           rectangle.y = component.getDrawY();
-          if (rectangle.contains(x, y)) {
-            String id = component.getAuthoritativeNlComponent().getId();
-            if (component.equals(myComponent)) {
-              continue;
-            }
-            if (component.equals(parent)) {
-              continue;
-            }
+          if (rectangle.contains(x, y) && SceneComponentHelperKt.isSibling(myComponent, component)) {
             allItems.add(component);
           }
         }
         if (!allItems.isEmpty()) {
-          JBPopupMenu menu = new JBPopupMenu("Connect to:");
+          JBPopupMenu menu = new JBPopupMenu("Connect to:"); // FIXME: fuck this.
           for (SceneComponent component : allItems) {
             list.set(1, component.getAuthoritativeNlComponent());
             switch (myType) {

@@ -35,7 +35,7 @@ public class BarrierAnchorTarget extends ConstraintAnchorTarget {
   }
 
   public BarrierAnchorTarget(@NotNull Type type, int dir) {
-    super(type, false);
+    super(type, true);
     myDirection = dir;
   }
 

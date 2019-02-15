@@ -54,7 +54,8 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   @NotNull protected final Type myType;
   @AndroidDpCoordinate protected int myLastX = -1;
   @AndroidDpCoordinate protected int myLastY = -1;
-  private boolean myExpandArea = false;
+
+  protected final boolean myIsEdge;
 
   protected final TargetSnapper mySnapper = new TargetSnapper();
 
@@ -101,8 +102,9 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public AnchorTarget(@NotNull Type type) {
+  public AnchorTarget(@NotNull Type type, boolean isEdge) {
     myType = type;
+    myIsEdge = isEdge;
   }
 
   //endregion
@@ -128,16 +130,15 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     return myType;
   }
 
+  public boolean isEdge() {
+    return myIsEdge;
+  }
+
   protected abstract boolean isConnected();
 
   @Override
   public boolean canChangeSelection() {
     return false;
-  }
-
-  @Override
-  public void setExpandSize(boolean expand) {
-    myExpandArea = expand;
   }
 
   @Override
@@ -287,15 +288,17 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     int swingX = transform.getSwingXDip(myPositionX);
     int swingY = transform.getSwingYDip(myPositionY);
 
-    if (myExpandArea) {
+    if (myIsEdge) {
       switch (myType) {
         case LEFT:
         case RIGHT:
-          picker.addRect(this, 0, swingX - ANCHOR_SIZE, swingY - EXPANDED_SIZE, swingX + ANCHOR_SIZE, swingY + EXPANDED_SIZE);
+          int swingHeight = transform.getSwingDimensionDip(myComponent.getDrawHeight());
+          picker.addRect(this, 0, swingX - ANCHOR_SIZE, swingY - swingHeight / 2, swingX + ANCHOR_SIZE, swingY + swingHeight / 2);
           break;
         case TOP:
         case BOTTOM:
-          picker.addRect(this, 0, swingX - EXPANDED_SIZE, swingY - ANCHOR_SIZE, swingX + EXPANDED_SIZE, swingY + ANCHOR_SIZE);
+          int swingWidth = transform.getSwingDimensionDip(myComponent.getDrawWidth());
+          picker.addRect(this, 0, swingX - swingWidth / 2, swingY - ANCHOR_SIZE, swingX + swingWidth / 2, swingY + ANCHOR_SIZE);
           break;
         case BASELINE:
           // should not happen here since baseline anchor should never expand.
@@ -314,7 +317,18 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     }
   }
 
-  abstract protected boolean isEnabled();
+  protected boolean isEnabled() {
+    Target interactingTarget = myComponent.getScene().getInteractingTarget();
+    if (interactingTarget instanceof AnchorTarget) {
+      return ((AnchorTarget) interactingTarget).isConnectible(this);
+    }
+    return true;
+  }
+
+  /**
+   * Function to determine if the given Target is connectible.
+   */
+  abstract public boolean isConnectible(@NotNull AnchorTarget dest);
 
   @NotNull
   protected abstract DrawAnchor.Mode getDrawMode();
