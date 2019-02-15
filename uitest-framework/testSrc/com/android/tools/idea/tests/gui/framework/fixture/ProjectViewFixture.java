@@ -99,6 +99,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
+    myToolWindow.getComponent().requestFocusInWindow();
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
     if (SystemInfo.isMac) {
       myRobot.click(projectDropDown.getParent());
