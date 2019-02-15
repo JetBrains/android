@@ -238,6 +238,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
       myTree.clickPath(totalPath.toString(), button);
       return myIdeFrameFixture;
     }
+
+    public IdeFrameFixture deletePath(@NotNull final String... pathSegments) {
+      return clickPath(MouseButton.RIGHT_BUTTON, pathSegments)
+        .openFromMenu(DeleteDialogFixture::find, "Delete...")
+        .unsafeDelete();
+    }
   }
 
   public static class NodeFixture {
