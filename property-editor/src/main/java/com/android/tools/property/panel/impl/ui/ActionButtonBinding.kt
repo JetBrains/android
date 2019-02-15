@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
@@ -103,6 +104,10 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   }
 
   private inner class ButtonWithCustomTooltip : IconWithFocusBorder() {
+
+    init {
+      background = secondaryPanelBackground
+    }
 
     override fun getToolTipText(event: MouseEvent): String? {
       // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
