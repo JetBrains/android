@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import java.util.regex.Pattern;
+import javax.swing.JComboBox;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ApiLevelComboBoxFixture extends JComboBoxFixture {
 
@@ -29,6 +29,16 @@ public class ApiLevelComboBoxFixture extends JComboBoxFixture {
   }
 
   public void selectApiLevel(@NotNull String apiLevel) {
-    selectItem(Pattern.compile("API " + apiLevel + ":.*"));
+    GuiTask.execute(() -> {
+      for (int i = 0; i < target().getItemCount(); i++) {
+        Object value = target().getItemAt(i);
+        if (String.valueOf(value).startsWith("API " + apiLevel + ":")) {
+          // The comboBox fixture is un-reliable selecting the right API. Select by value instead.
+          target().setSelectedItem(value);
+          return;
+        }
+      }
+      throw new LocationUnavailableException("Unable to find SDK " + apiLevel + " in drop-down");
+    });
   }
 }
