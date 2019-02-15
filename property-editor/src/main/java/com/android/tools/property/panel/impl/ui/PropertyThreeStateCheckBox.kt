@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -48,6 +49,7 @@ private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBool
 
   init {
     state = toThreeStateValue(propertyModel.value)
+    background = secondaryPanelBackground
     HelpSupportBinding.registerHelpKeyActions(this, { propertyModel.property })
 
     addFocusListener(EditorFocusListener(this, propertyModel))

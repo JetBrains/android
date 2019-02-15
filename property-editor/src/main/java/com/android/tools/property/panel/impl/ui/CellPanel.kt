@@ -15,11 +15,16 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.JPanel
 
 open class CellPanel: JPanel(BorderLayout()) {
+
+  init {
+    background = secondaryPanelBackground
+  }
 
   override fun setBackground(color: Color?) {
     super.setBackground(color)

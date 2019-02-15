@@ -15,11 +15,11 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
-
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -69,6 +69,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     registerActionKey({ model.enterKeyPressed() }, KeyStrokes.ENTER, "enter")
     registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.ESCAPE, "escape")
+    background = secondaryPanelBackground
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
@@ -76,6 +77,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
     textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
+    textField.background = secondaryPanelBackground
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)
