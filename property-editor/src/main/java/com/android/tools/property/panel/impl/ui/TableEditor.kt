@@ -15,12 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellEditorProvider
-import com.android.tools.property.ptable2.PTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.PropertyItem
@@ -29,6 +24,12 @@ import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.TableRowEditListener
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableCellEditorProvider
+import com.android.tools.property.ptable2.PTableCellRendererProvider
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
 import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.JBUI
@@ -51,6 +52,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
   val component = table.component as JTable
 
   init {
+    component.background = secondaryPanelBackground
     component.rowHeight = computeRowHeight()
     lineModel.addValueChangedListener(object : TableRowEditListener {
       override fun valueChanged() {
