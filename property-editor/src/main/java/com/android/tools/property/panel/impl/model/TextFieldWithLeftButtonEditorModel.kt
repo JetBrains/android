@@ -30,9 +30,7 @@ open class TextFieldWithLeftButtonEditorModel(property: PropertyItem,
   /**
    * The icon displayed on the left button if any.
    */
-  open fun getLeftButtonIcon(focused: Boolean): Icon? {
-    return null
-  }
+  open val leftButtonIcon: Icon? = null
 
   /**
    * The action performed when the user clicks the left button.
