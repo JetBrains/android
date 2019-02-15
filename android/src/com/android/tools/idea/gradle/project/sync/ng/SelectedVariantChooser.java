@@ -45,8 +45,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * It works as follows:
  * <ol>
- * <li>For Android app modules, the "debug" variant is selected. If the module doesn't have a variant named "debug", it sorts all the
- * variant names alphabetically and picks the first one.</li>
+ * <li>For Android app modules, the default variant from the model is selected.
+ * The logic for this is implemented in the Android Gradle Plugin and in
+ * {@link com.android.ide.common.gradle.model.IdeAndroidProject IdeAndroidProject} for backwards compatibility.</li>
  * <li>For Android library modules, it chooses the variant needed by dependent modules. For example, if variant "debug" in module "app"
  * depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a root
  * (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.</li>
@@ -133,10 +134,9 @@ public class SelectedVariantChooser implements Serializable {
                                                    boolean shouldGenerateSources) {
     String variant = selectedVariants.getSelectedVariant(moduleId);
     Collection<String> variantNames = androidModule.getAndroidProject().getVariantNames();
-    // Selected variant is null means that this is the very first sync, choose debug or the first one.
-    // Also, make sure the variant in SelectedVariants exists - this can be false if the variants in build files are modified from the last sync.
+    // If this is the first sync (variant == null), or the previously selected variant no longer exists then choose the default variant.
     if (variant == null || !variantNames.contains(variant)) {
-      variant = getDefaultOrFirstItem(variantNames, "debug");
+      variant = androidModule.getAndroidProject().getDefaultVariant();
     }
     return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller, shouldGenerateSources) : null;
   }
