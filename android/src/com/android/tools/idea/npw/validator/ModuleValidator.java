@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.validator;
 
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.adtui.validation.Validator;
@@ -28,8 +29,8 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 
+import static com.google.common.base.CharMatcher.anyOf;
 import static com.google.common.base.CharMatcher.inRange;
-import static com.google.common.base.CharMatcher.is;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -39,7 +40,7 @@ public final class ModuleValidator implements Validator<String> {
   private @Nullable Project myProject; // May be null for new projects
   private @NotNull PathValidator myPathValidator;
   private @NotNull StringProperty myProjectPath;
-  private final CharMatcher ILLEGAL_CHARACTER_MATCHER = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(is('_')).negate();
+  private final CharMatcher ILLEGAL_CHAR_MATCHER = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_:")).negate();
 
   public ModuleValidator(@NotNull Project project) {
     this(new StringValueProperty(project.getBasePath()));
@@ -62,12 +63,14 @@ public final class ModuleValidator implements Validator<String> {
       return new Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", name));
     }
 
-    int illegalCharIdx = ILLEGAL_CHARACTER_MATCHER.indexIn(name);
+    int illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(name);
     if (illegalCharIdx >= 0) {
       return new Result(Severity.ERROR, message("android.wizard.validate.module.illegal.character", name.charAt(illegalCharIdx), name));
     }
 
-    return myPathValidator.validate(new File(myProjectPath.get(), name));
+    // Note: Module name may have ":", needs to be converted to a path
+    File moduleRoot = NewModuleModel.getModuleRoot(myProjectPath.get(), name);
+    return myPathValidator.validate(moduleRoot);
   }
 
   @NotNull

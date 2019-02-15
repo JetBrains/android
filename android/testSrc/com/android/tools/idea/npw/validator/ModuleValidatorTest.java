@@ -47,13 +47,13 @@ public final class ModuleValidatorTest {
     assertValidModuleName("app");
     assertValidModuleName("lib");
     assertValidModuleName("lib_LIB0");
+    assertValidModuleName(":libs:lib1"); // Module in sub folder
   }
 
   @Test
   public void testInvalidModuleName() {
     assertInvalidModuleName("");
     assertInvalidModuleName("..");
-    assertInvalidModuleName("123:456");
     assertInvalidModuleName("123!456");
     assertInvalidModuleName("a\\b");
     assertInvalidModuleName("a/b");
