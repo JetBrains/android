@@ -18,7 +18,7 @@ package com.android.tools.idea.diagnostics.hprof.util
 import java.nio.ByteBuffer
 import java.security.InvalidParameterException
 
-abstract class HProfReadBuffer {
+abstract class HProfReadBuffer : AutoCloseable {
   var idSize: Int = 0
     set(value) {
       if (idSize != 0)
