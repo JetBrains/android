@@ -51,6 +51,7 @@ class HProfEventBasedParserTest {
   @After
   fun tearDown() {
     channel.close()
+    parser.close()
     tmpFolder.delete()
   }
 
