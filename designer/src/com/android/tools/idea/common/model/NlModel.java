@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
 
+import com.android.annotations.concurrency.Blocking;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceResolver;
@@ -112,6 +113,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
 
+  @Blocking
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
@@ -121,6 +123,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return new NlModel(parent, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
   }
 
+  @Blocking
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
