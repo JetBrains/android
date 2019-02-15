@@ -203,6 +203,14 @@ public final class NewModuleModel extends WizardModel {
     getRenderTemplateValues().setValue(renderTemplateValues);
   }
 
+  @NotNull
+  public static File getModuleRoot(@NotNull String projectLocation, @NotNull String moduleName) {
+    // Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
+    // the Module Path (called Project Path in gradle world) in "settings.gradle"
+    moduleName = moduleName.replace(':', File.separatorChar);
+    return new File(projectLocation, moduleName);
+  }
+
   @Override
   protected void handleFinished() {
     myMultiTemplateRenderer.requestRender(new ModuleTemplateRenderer());
@@ -275,7 +283,7 @@ public final class NewModuleModel extends WizardModel {
     private boolean renderModule(boolean dryRun, @NotNull Map<String, Object> templateState, @NotNull Project project,
                                  @NotNull String moduleName) {
       File projectRoot = new File(project.getBasePath());
-      File moduleRoot = new File(projectRoot, moduleName);
+      File moduleRoot = getModuleRoot(project.getBasePath(), moduleName);
       Template template = Template.createFromPath(myTemplateFile.getValue());
       List<File> filesToOpen = new ArrayList<>();
 

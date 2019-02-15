@@ -252,6 +252,11 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
+    if (moduleName.startsWith(":")) {
+      // The templates already add an initial ":"
+      moduleName = moduleName.substring(1);
+    }
+
     myTemplateValues.put(ATTR_PROJECT_LOCATION, projectPath);
     myTemplateValues.put(ATTR_MODULE_NAME, moduleName);
     myTemplateValues.put(ATTR_PACKAGE_NAME, packageName);

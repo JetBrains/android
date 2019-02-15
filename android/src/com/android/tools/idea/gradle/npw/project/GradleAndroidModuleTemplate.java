@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.npw.project;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
@@ -119,7 +120,8 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
    * aidl and manifest.
    */
   public static NamedModuleTemplate createDefaultTemplateAt(@NotNull String projectPath, @NotNull String moduleName) {
-    File moduleRoot = new File(projectPath, moduleName); // TODO: Does not take in account ":", will be fixed in next CL
+    // Note: Module name may have ":", needs to be converted to a path
+    File moduleRoot = NewModuleModel.getModuleRoot(projectPath, moduleName);
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
     GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
