@@ -41,6 +41,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
@@ -238,64 +239,80 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     mySelectedStream?.let { stream ->
       if (mySelectedProcess != Common.Process.getDefaultInstance()) {
         if (myAgentConnected) {
-          val eventRequest = Transport.GetEventGroupsRequest.newBuilder()
-            .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
-            .setFromTimestamp(myLastEventRequestTimestampNs)
-            .setToTimestamp(java.lang.Long.MAX_VALUE)
-            .build()
-          val eventResponse = client.transportClient.getEventGroups(eventRequest)
-          if (eventResponse != Transport.GetEventGroupsResponse.getDefaultInstance()) {
-            val events = ArrayList<Common.Event>()
-            eventResponse.groupsList.forEach { group -> events.addAll(group.eventsList) }
-            events.sortBy { it.timestamp }
-            events.forEach { evt ->
-              if (evt.timestamp >= myLastEventRequestTimestampNs) {
-                System.out.println(evt.timestamp)
-                if (evt.groupId == Common.Event.EventGroupIds.SKIA_PICTURE_VALUE.toLong()) {
-                  val bytesRequest = Transport.BytesRequest.newBuilder()
-                    .setStreamId(stream.streamId)
-                    .setId(evt.layoutInspectorEvent.payloadId.toString())
-                    .build()
-
-                  val bytes = client.transportClient.getBytes(bytesRequest).contents.toByteArray()
-                  if (bytes.isNotEmpty()) {
-                    SkiaParser().getViewTree(bytes)?.let {
-                      layoutInspector.layoutInspectorModel.root = it
-                      // model.refresh()
-                      scrollPane.viewport.revalidate()
-                      repaint()
-                    }
-                  }
-                  System.out.println(evt.layoutInspectorEvent.payloadId)
-                }
-              }
-            }
-            myLastEventRequestTimestampNs = Math.max(myLastEventRequestTimestampNs, events[events.size - 1].timestamp + 1)
-          }
+          updatePicture(stream)
         }
         else {
-          // Get agent data for requested session.
-          val agentRequest = Transport.GetEventGroupsRequest.newBuilder()
-            .setKind(Common.Event.Kind.AGENT)
-            .setStreamId(mySelectedStream!!.streamId)
+          tryToStartCapture(stream)
+        }
+      }
+    }
+  }
+
+  private fun tryToStartCapture(stream: Common.Stream) {
+    // Get agent data for requested session.
+    val agentRequest = Transport.GetEventGroupsRequest.newBuilder()
+      .setKind(Common.Event.Kind.AGENT)
+      .setStreamId(mySelectedStream!!.streamId)
+      .setPid(mySelectedProcess!!.pid)
+      .build()
+    val response = client.transportClient.getEventGroups(agentRequest)
+    for (group in response.groupsList) {
+      if (group.getEvents(group.eventsCount - 1).agentData.status == Common.AgentData.Status.ATTACHED) {
+        myAgentConnected = true
+        if (!myCaptureStarted) {
+          myCaptureStarted = true
+          val command = Transport.Command.newBuilder()
+            .setType(LAYOUT_INSPECTOR)
+            .setLayoutInspector(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START))
+            .setStreamId(stream.streamId)
             .setPid(mySelectedProcess!!.pid)
             .build()
-          val response = client.transportClient.getEventGroups(agentRequest)
-          for (group in response.groupsList) {
-            if (group.getEvents(group.eventsCount - 1).agentData.status == Common.AgentData.Status.ATTACHED) {
-              myAgentConnected = true
-              if (!myCaptureStarted) {
-                myCaptureStarted = true
-                val command = Transport.Command.newBuilder()
-                  .setType(LAYOUT_INSPECTOR)
-                  .setLayoutInspector(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START))
-                  .setStreamId(stream.streamId)
-                  .setPid(mySelectedProcess!!.pid)
-                  .build()
-                client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-              }
-              break
-            }
+          client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+          // TODO: verify that capture started successfully
+        }
+        break
+      }
+    }
+  }
+
+  private fun updatePicture(stream: Common.Stream) {
+    val eventRequest = Transport.GetEventGroupsRequest.newBuilder()
+      .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
+      .setFromTimestamp(myLastEventRequestTimestampNs)
+      .setToTimestamp(java.lang.Long.MAX_VALUE)
+      .build()
+    val eventResponse = client.transportClient.getEventGroups(eventRequest)
+    if (eventResponse != Transport.GetEventGroupsResponse.getDefaultInstance()) {
+      val events = ArrayList<Common.Event>()
+      eventResponse.groupsList.forEach { group -> events.addAll(group.eventsList) }
+      events.sortBy { it.timestamp }
+      events.forEach { evt ->
+        if (evt.timestamp >= myLastEventRequestTimestampNs) {
+          System.out.println(evt.timestamp)
+          if (evt.groupId == Common.Event.EventGroupIds.SKIA_PICTURE_VALUE.toLong()) {
+            getPayload(stream, evt)
+          }
+        }
+      }
+      myLastEventRequestTimestampNs = Math.max(myLastEventRequestTimestampNs, events[events.size - 1].timestamp + 1)
+    }
+  }
+
+  private fun getPayload(stream: Common.Stream, evt: Common.Event) {
+    val application = ApplicationManager.getApplication()
+    application.executeOnPooledThread {
+      val bytesRequest = Transport.BytesRequest.newBuilder()
+        .setStreamId(stream.streamId)
+        .setId(evt.layoutInspectorEvent.payloadId.toString())
+        .build()
+
+      val bytes = client.transportClient.getBytes(bytesRequest).contents.toByteArray()
+      if (bytes.isNotEmpty()) {
+        SkiaParser().getViewTree(bytes)?.let {
+          layoutInspector.layoutInspectorModel.root = it
+          application.invokeLater {
+            scrollPane.viewport.revalidate()
+            repaint()
           }
         }
       }
