@@ -30,6 +30,14 @@ import com.intellij.psi.xml.XmlToken
 
 class DataBindingFoldingBuilder : FoldingBuilderEx() {
 
+  private val escapeFolds = mapOf(
+    "&lt;" to "<",
+    "&gt;" to ">",
+    "&amp;" to "&",
+    "&quot;" to "\"",
+    "&apos;" to "'"
+  )
+
   override fun getPlaceholderText(node: ASTNode): String? {
     return null
   }
@@ -38,11 +46,11 @@ class DataBindingFoldingBuilder : FoldingBuilderEx() {
     val descriptors = ArrayList<FoldingDescriptor>()
 
     PsiTreeUtil.findChildrenOfType(root, XmlToken::class.java)
-      .filter { it.text == "&lt;" && (isDbExpression(it) || isVariableType(it)) }
+      .filter { escapeFolds.containsKey(it.text) && (isDbExpression(it) || isVariableType(it)) }
       .forEach {
         descriptors.add(object : FoldingDescriptor(it.node, it.textRange, null) {
           override fun getPlaceholderText(): String? {
-            return "<"
+            return escapeFolds[it.text]
           }
         })
       }
