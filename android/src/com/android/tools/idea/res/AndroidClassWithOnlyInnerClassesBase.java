@@ -17,19 +17,17 @@ package com.android.tools.idea.res;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import java.util.Collection;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Base class for light classes that only contain inner classes, like {@code R} or {@code Manifest}.
@@ -54,7 +52,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
           LOG.debug("Recomputing inner classes of " + this.getClass());
         }
         PsiClass[] innerClasses = doGetInnerClasses();
-        return CachedValueProvider.Result.create(innerClasses, getInnerClassesDependencies());
+        return CachedValueProvider.Result.create(innerClasses, ArrayUtil.mergeArrays(getInnerClassesDependencies(), innerClasses));
       });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(myManager.getProject());
