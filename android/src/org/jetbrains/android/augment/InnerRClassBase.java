@@ -8,24 +8,20 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.intellij.psi.util.PsiModificationTracker;
 import java.util.function.BiPredicate;
-import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for light implementations of inner classes of the R class, e.g. {@code R.string}.
@@ -122,7 +118,8 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
+          PsiField[] fields = doGetFields();
+          return CachedValueProvider.Result.create(fields, ArrayUtil.mergeArrays(getFieldsDependencies(), fields));
         });
     }
     return myFieldsCache.getValue();

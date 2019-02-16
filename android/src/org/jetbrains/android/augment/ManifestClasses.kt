@@ -21,12 +21,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil.getShortName
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiType
+import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -98,19 +93,20 @@ sealed class ManifestInnerClass(
       CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, PsiModificationTracker.MODIFICATION_COUNT)
     }
     else {
+      val fields = doGetFields().map { (name, value) ->
+        AndroidLightField(
+          name,
+          this,
+          javaLangString,
+          AndroidLightField.FieldModifier.FINAL,
+          value
+        ).apply {
+          initializer = factory.createExpressionFromText("\"$value\"", this)
+        }
+      }
       CachedValueProvider.Result.create<Array<PsiField>>(
-        doGetFields().map { (name, value) ->
-          AndroidLightField(
-            name,
-            this,
-            javaLangString,
-            AndroidLightField.FieldModifier.FINAL,
-            value
-          ).apply {
-            initializer = factory.createExpressionFromText("\"$value\"", this)
-          }
-        }.toTypedArray(),
-        listOf(manifest.xmlElement?.containingFile ?: PsiModificationTracker.MODIFICATION_COUNT)
+        fields.toTypedArray(),
+        listOf(manifest.xmlElement?.containingFile ?: PsiModificationTracker.MODIFICATION_COUNT) + fields
       )
     }
   }
