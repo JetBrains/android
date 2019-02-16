@@ -54,7 +54,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X, "src")
+    projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
   }
