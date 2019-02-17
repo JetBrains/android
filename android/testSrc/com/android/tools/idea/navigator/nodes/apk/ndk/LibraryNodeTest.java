@@ -81,10 +81,10 @@ public class LibraryNodeTest extends IdeaTestCase {
     File ndkFolderPath = virtualToIoFile(ndkFolder);
     when(myIdeSdks.getAndroidNdkPath()).thenReturn(ndkFolderPath);
 
-    VirtualFile platformsFolder = createFolder(ndkFolder, "platforms");
+    VirtualFile sysrootFolder = createFolder(ndkFolder, "sysroot");
 
     List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));
-    sourceFolderPaths.add(toSystemDependentName(platformsFolder.getPath()));
+    sourceFolderPaths.add(toSystemDependentName(sysrootFolder.getPath()));
 
     NativeLibrary library = new NativeLibrary("test") {
       @Override
@@ -108,7 +108,50 @@ public class LibraryNodeTest extends IdeaTestCase {
     assertThat(ndkChildren).hasSize(1);
 
     VirtualFile folder = getFolderFrom(ndkChildren.get(0));
-    assertEquals(platformsFolder.getPath(), folder.getPath());
+    assertEquals(sysrootFolder.getPath(), folder.getPath());
+
+    folder = getFolderFrom(children.get(2));
+    String path = virtualToIoFile(folder).getPath();
+
+    String firstSourceFolder = sourceFolderPaths.get(0);
+    // Verify that the root node is the root folder for the source paths.
+    // PsiDirectoryNode will take care of populate its children.
+    assertThat(firstSourceFolder).contains(path);
+  }
+
+  public void testGetChildrenWithSideBySideNdk() throws IOException {
+    VirtualFile ndkBaseFolder = createFolderInProjectRoot(getProject(), "ndk");
+    when(myIdeSdks.getAndroidNdkPath()).thenReturn(null); // No singleton NDK only SxS
+
+    VirtualFile ndkVersionFolder = createFolder(ndkBaseFolder, "19.0.5232133");
+    VirtualFile sysrootFolder = createFolder(ndkVersionFolder, "sysroot");
+
+    List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));
+    sourceFolderPaths.add(toSystemDependentName(sysrootFolder.getPath()));
+
+    NativeLibrary library = new NativeLibrary("test") {
+      @Override
+      @NotNull
+      public List<String> getSourceFolderPaths() {
+        return sourceFolderPaths;
+      }
+    };
+
+    LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
+    List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
+    assertThat(children).hasSize(3);
+
+    assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
+
+    AbstractTreeNode node = children.get(1);
+    assertThat(node).isInstanceOf(NdkSourceNode.class);
+
+    NdkSourceNode ndkSourceNode = (NdkSourceNode)node;
+    List<? extends AbstractTreeNode> ndkChildren = new ArrayList<>(ndkSourceNode.getChildren());
+    assertThat(ndkChildren).hasSize(1);
+
+    VirtualFile folder = getFolderFrom(ndkChildren.get(0));
+    assertEquals(sysrootFolder.getPath(), folder.getPath());
 
     folder = getFolderFrom(children.get(2));
     String path = virtualToIoFile(folder).getPath();

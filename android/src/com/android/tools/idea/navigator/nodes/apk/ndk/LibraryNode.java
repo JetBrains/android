@@ -17,6 +17,8 @@ package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.paths.PathTree;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.NdkIncludeResolver;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
@@ -26,6 +28,8 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +41,6 @@ import java.util.Objects;
 
 import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
 import static com.android.tools.idea.navigator.nodes.apk.ndk.PathTrees.getSourceFolderNodes;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
@@ -76,19 +79,27 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
     ViewSettings settings = getSettings();
     children.add(new LibraryFileNode(myProject, myLibrary, settings));
 
-    File ndkPath = IdeSdks.getInstance().getAndroidNdkPath();
-    String ndkPathValue = ndkPath != null ? ndkPath.getPath() : null;
-
+    // TODO(jomof): This class is called NdkIncludeResolver but it is resolving a source folder here. This class and associated classes should be renamed to *SourceResolver
+    NdkIncludeResolver resolver = new NdkIncludeResolver(IdeSdks.getInstance().getAndroidNdkPath());
     List<String> paths = myLibrary.getSourceFolderPaths();
-    List<String> srcPaths = new ArrayList<>();
-    List<String> ndkPaths = new ArrayList<>();
+
     if (!paths.isEmpty()) {
       // Organize source folders in a tree.
+      List<String> srcPaths = new ArrayList<>();
+      List<String> ndkPaths = new ArrayList<>();
       PathTree srcPathTree = new PathTree();
-      PathTree ndkPathTree = new PathTree();
+      Map<File, PathTree> ndkPathTreeMap = new HashMap<>();
 
       for (String path : paths) {
-        if (ndkPath != null && isAncestor(ndkPathValue, path, false /* Not strict */)) {
+        SimpleIncludeValue resolution = resolver.resolve(new File(path));
+        if (resolution != null) {
+          File ndkPath = resolution.getPackageFamilyBaseFolder();
+          PathTree ndkPathTree = ndkPathTreeMap.get(ndkPath);
+          if (ndkPathTree == null) {
+            ndkPathTree = new PathTree();
+            ndkPathTreeMap.put(ndkPath, ndkPathTree);
+          }
+
           ndkPaths.add(path);
           ndkPathTree.addPath(path, separatorChar);
           continue;
@@ -97,8 +108,8 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
         srcPathTree.addPath(path, separatorChar);
       }
 
-      if (!ndkPathTree.getChildren().isEmpty()) {
-        assert ndkPath != null;
+      for(File ndkPath : ndkPathTreeMap.keySet()) {
+        PathTree ndkPathTree = ndkPathTreeMap.get(ndkPath);
         children.add(new NdkSourceNode(myProject, ndkPath, ndkPathTree, new SourceCodeFilter(ndkPaths), settings));
       }
       children.addAll(getSourceFolderNodes(srcPathTree, new SourceCodeFilter(srcPaths), myProject, settings));
