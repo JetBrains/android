@@ -73,6 +73,10 @@ class AddLibraryDependencyDialog(private val context: PsContext, module: PsModul
   }
 
   override fun doValidate(): ValidationInfo? {
+    val selectedLibrary = libraryDependenciesForm!!.selectedLibrary
+    // Do not validate search query if a specifi library has been already selected.
+    if (selectedLibrary != ParsedValue.NotSet) return scopesPanel.validateInput()
+
     val searchErrors = libraryDependenciesForm!!.searchErrors
     if (!searchErrors.isEmpty()) {
       return ValidationInfo(buildString {
@@ -83,11 +87,7 @@ class AddLibraryDependencyDialog(private val context: PsContext, module: PsModul
       }, libraryDependenciesForm!!.preferredFocusedComponent)
     }
 
-    val selectedLibrary = libraryDependenciesForm!!.selectedLibrary
-    return if (selectedLibrary == ParsedValue.NotSet) {
-      ValidationInfo("Please specify the library to add as dependency", libraryDependenciesForm!!.preferredFocusedComponent)
-    }
-    else scopesPanel.validateInput()
+    return ValidationInfo("Please specify the library to add as dependency", libraryDependenciesForm!!.preferredFocusedComponent)
   }
 
   override fun createDependencyScopesPanel(module: PsModule): AbstractDependencyScopesPanel =
