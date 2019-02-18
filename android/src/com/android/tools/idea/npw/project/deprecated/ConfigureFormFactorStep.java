@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw.project.deprecated;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_NUM_ENABLED_FORM_FACTORS;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.SdkConstants;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
@@ -53,20 +59,23 @@ import com.google.common.collect.Maps;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.AsyncProcessIcon;
+import java.awt.FlowLayout;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
@@ -156,10 +165,9 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       });
 
       // Some changes on the Project/Module Model trigger changes on the Render Model
-      myListeners.listenAll(getModel().projectLocation(), moduleModel.moduleName()).withAndFire(() -> {
-        File moduleRoot = new File(getModel().projectLocation().get(), moduleModel.moduleName().get());
-        renderModel.getTemplate().set(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot));
-      });
+      myListeners.listenAll(getModel().projectLocation(), moduleModel.moduleName()).withAndFire(
+        () -> renderModel.getTemplate().set(createDefaultTemplateAt(getModel().projectLocation().get(), moduleModel.moduleName().get()))
+      );
     }
 
     allSteps.add(new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests));

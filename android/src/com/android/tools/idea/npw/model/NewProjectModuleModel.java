@@ -180,18 +180,18 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull
   private RenderTemplateModel createMainRenderModel(String projectLocation) {
-    File moduleRoot = new File(projectLocation, myNewModuleModel.moduleName().get());
+    String moduleName = myNewModuleModel.moduleName().get();
     RenderTemplateModel newRenderTemplateModel;
     if (myProjectModel.enableCppSupport().get()) {
       newRenderTemplateModel = createCompanionRenderModel(projectLocation, myNewModuleModel);
     }
     else if (myExtraRenderTemplateModel.getTemplateHandle() == null) {
-      newRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, createDefaultTemplateAt(moduleRoot), "");
+      newRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, createDefaultTemplateAt(projectLocation, moduleName), "");
       newRenderTemplateModel.setTemplateHandle(renderTemplateHandle().getValueOrNull());
     }
     else { // Extra Render is visible. Use it.
       newRenderTemplateModel = myExtraRenderTemplateModel;
-      myExtraRenderTemplateModel.getTemplate().set(createDefaultTemplateAt(moduleRoot));
+      myExtraRenderTemplateModel.getTemplate().set(createDefaultTemplateAt(projectLocation, moduleName));
     }
     newRenderTemplateModel.androidSdkInfo().setValue(androidSdkInfo().getValue());
     return newRenderTemplateModel;
@@ -220,8 +220,7 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull
   private static RenderTemplateModel createCompanionRenderModel(@NotNull String projectLocation, @NotNull NewModuleModel moduleModel) {
     // Note: The companion Render is always a "Empty Activity"
-    File mobileModuleRoot = new File(projectLocation, moduleModel.moduleName().get());
-    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(mobileModuleRoot);
+    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectLocation, moduleModel.moduleName().get());
     File renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY);
     TemplateHandle renderTemplateHandle = new TemplateHandle(renderTemplateFile);
 
