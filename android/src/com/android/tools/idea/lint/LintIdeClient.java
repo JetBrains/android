@@ -39,8 +39,8 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -545,7 +545,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   @Nullable
-  public BuildToolInfo getBuildTools(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public Revision getBuildToolsRevision(@NonNull com.android.tools.lint.detector.api.Project project) {
     if (project.isGradleProject()) {
       Module module = getModule();
       if (module != null) {
@@ -560,7 +560,7 @@ public class LintIdeClient extends LintClient implements Disposable {
                 Revision revision = Revision.parseRevision(buildToolsVersion);
                 BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
                 if (buildToolInfo != null) {
-                  return buildToolInfo;
+                  return buildToolInfo.getRevision();
                 }
               } catch (NumberFormatException ignore) {
                 // Fall through and use the latest
@@ -571,7 +571,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
     }
 
-    return super.getBuildTools(project);
+    return super.getBuildToolsRevision(project);
   }
 
   @Nullable
