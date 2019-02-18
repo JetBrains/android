@@ -16,6 +16,7 @@ See the links below for implementation details and make sure to read
 * [Notch](designer/src/com/android/tools/idea/uibuilder/scene/target/README.md.html)
 * [Observables](observable/src/com/android/tools/idea/observable/README.md)
 * [Progress system](android/docs/progress.md)
+* [Logging](android/docs/logging.md)
 * [Property inspector](designer/src/com/android/tools/idea/common/property2/README.md.html)
 * [Relative layout](designer/src/com/android/tools/idea/uibuilder/handlers/relative/targets/README.md.html)
 * [Resources system](android/src/com/android/tools/idea/res/README.md)
