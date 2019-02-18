@@ -57,6 +57,7 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
 
   @NotNull private final StringProperty myApplicationName;
+  @NotNull private final StringProperty myProjectLocation;
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final StringProperty myProjectPackageName;
   @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
@@ -81,6 +82,7 @@ public final class NewModuleModel extends WizardModel {
 
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
+    myProjectLocation = new StringValueProperty(project.getBasePath());
     myIsLibrary.addListener(sender -> updateApplicationName());
     myIsInstantApp.addListener(sender -> updateApplicationName());
 
@@ -94,6 +96,7 @@ public final class NewModuleModel extends WizardModel {
     myCreateInExistingProject = false;
     myEnableCppSupport = projectModel.enableCppSupport();
     myApplicationName = projectModel.applicationName();
+    myProjectLocation = projectModel.projectLocation();
     myTemplateFile.setValue(templateFile);
     myMultiTemplateRenderer = projectModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.incrementRenders();
@@ -118,6 +121,11 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public StringProperty applicationName() {
     return myApplicationName;
+  }
+
+  @NotNull
+  public StringProperty projectLocation() {
+    return myProjectLocation;
   }
 
   @NotNull
@@ -190,7 +198,7 @@ public final class NewModuleModel extends WizardModel {
     Map<String, Object> renderTemplateValues = Maps.newHashMap();
     new TemplateValueInjector(renderTemplateValues)
       .setBuildVersion(renderModel.androidSdkInfo().getValue(), project)
-      .setModuleRoots(renderModel.getTemplate().get().getPaths(), packageName().get());
+      .setModuleRoots(renderModel.getTemplate().get().getPaths(), project.getBasePath(), moduleName().get(), packageName().get());
 
     getRenderTemplateValues().setValue(renderTemplateValues);
   }

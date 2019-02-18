@@ -82,6 +82,7 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -1625,13 +1626,17 @@ public class TemplateTest extends AndroidGradleTestCase {
     try {
       moduleState.populateDirectoryParameters();
       String moduleName = moduleState.getString(ATTR_MODULE_NAME);
-      File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
-      File moduleRoot = new File(projectRoot, moduleName);
+      String projectPath = moduleState.getString(ATTR_PROJECT_LOCATION);
+      File projectRoot = new File(projectPath);
+      AndroidModuleTemplate paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).getPaths();
       if (FileUtilRt.createDirectory(projectRoot)) {
         if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
-          iconGenerator.generateIconsToDisk(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
+          iconGenerator.generateIconsToDisk(paths);
         }
         projectState.updateParameters();
+
+        File moduleRoot = paths.getModuleRoot();
+        assert moduleRoot != null;
 
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();
