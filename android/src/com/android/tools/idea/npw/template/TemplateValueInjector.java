@@ -213,7 +213,8 @@ public final class TemplateValueInjector {
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  public TemplateValueInjector setModuleRoots(@NotNull AndroidModuleTemplate paths, @NotNull String packageName) {
+  public TemplateValueInjector setModuleRoots(@NotNull AndroidModuleTemplate paths, @NotNull String projectPath,
+                                              @NotNull String moduleName, @NotNull String packageName) {
     File moduleRoot = paths.getModuleRoot();
 
     assert moduleRoot != null;
@@ -251,11 +252,8 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
-    myTemplateValues.put(ATTR_PROJECT_LOCATION, moduleRoot.getParent());
-
-    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
-    // name as its containing project.
-    myTemplateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
+    myTemplateValues.put(ATTR_PROJECT_LOCATION, projectPath);
+    myTemplateValues.put(ATTR_MODULE_NAME, moduleName);
     myTemplateValues.put(ATTR_PACKAGE_NAME, packageName);
 
     return this;

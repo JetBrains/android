@@ -110,7 +110,7 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
   }
 
   public static NamedModuleTemplate createDummyTemplate() {
-    return createDefaultTemplateAt(new File(""));
+    return createDefaultTemplateAt("", "");
   }
 
   /**
@@ -118,7 +118,8 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
    * Assumes the 'main' flavor and default android locations for the source, test, res,
    * aidl and manifest.
    */
-  public static NamedModuleTemplate createDefaultTemplateAt(@NotNull File moduleRoot) {
+  public static NamedModuleTemplate createDefaultTemplateAt(@NotNull String projectPath, @NotNull String moduleName) {
+    File moduleRoot = new File(projectPath, moduleName); // TODO: Does not take in account ":", will be fixed in next CL
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
     GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();

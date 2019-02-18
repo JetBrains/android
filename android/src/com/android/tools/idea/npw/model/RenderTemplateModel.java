@@ -71,6 +71,8 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final ObjectProperty<NamedModuleTemplate> myTemplates;
   @NotNull private final ObjectProperty<Language> myLanguageSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
+  @NotNull private final StringProperty myProjectLocation;
+  @NotNull private final StringProperty myModuleName;
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
@@ -97,6 +99,8 @@ public final class RenderTemplateModel extends WizardModel {
     myProject = new OptionalValueProperty<>(project);
     myFacet = facet;
     myInstantApp = new BoolValueProperty(false);
+    myProjectLocation = new StringValueProperty(project.getBasePath());
+    myModuleName = new StringValueProperty(facet.getModule().getName());
     myPackageName = new StringValueProperty(initialPackageSuggestion);
     myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
@@ -114,6 +118,8 @@ public final class RenderTemplateModel extends WizardModel {
     myProject = moduleModel.getProject();
     myFacet = null;
     myInstantApp = moduleModel.instantApp();
+    myProjectLocation = moduleModel.projectLocation();
+    myModuleName = moduleModel.moduleName();
     myPackageName = moduleModel.packageName();
     myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
@@ -230,7 +236,7 @@ public final class RenderTemplateModel extends WizardModel {
       }
 
       TemplateValueInjector templateInjector = new TemplateValueInjector(myTemplateValues)
-        .setModuleRoots(paths, packageName().get());
+        .setModuleRoots(paths, myProjectLocation.get(), myModuleName.get(), packageName().get());
 
       if (myFacet == null) {
         // If we don't have an AndroidFacet, we must have the Android Sdk info
