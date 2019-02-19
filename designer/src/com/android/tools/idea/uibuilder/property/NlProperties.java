@@ -109,7 +109,7 @@ public class NlProperties {
     int minApi = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
 
     for (NlComponent component : components) {
-      XmlTag tag = component.getTag();
+      XmlTag tag = component.getTagDeprecated();
       if (!tag.isValid()) {
         return ImmutableTable.of();
       }

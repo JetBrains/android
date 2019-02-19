@@ -580,14 +580,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       // Todo we should log
       String cl_name = DependencyManagementUtil.mapAndroidxName(component.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT);
-      if (!component.getTag().getName().equals(cl_name)) {
+      if (!component.getTagDeprecated().getName().equals(cl_name)) {
         NlComponent parent = component.getParent();
         if (parent != null) {
           component = parent;
         }
       }
-      if (!component.getTag().getName().equals(cl_name)) {
-        Messages.showErrorDialog(editor.getScene().getDesignSurface(), "You can only convert ConstraintLayout not "+component.getTag().getName(), getLabel());
+      if (!component.getTagDeprecated().getName().equals(cl_name)) {
+        Messages.showErrorDialog(editor.getScene().getDesignSurface(), "You can only convert ConstraintLayout not "+component.getTagDeprecated().getName(), getLabel());
         return;
       }
       if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", getLabel(),null) ==

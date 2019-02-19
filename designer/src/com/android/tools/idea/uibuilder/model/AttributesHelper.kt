@@ -28,7 +28,7 @@ import org.jetbrains.android.dom.AttributeProcessingUtil
  * `orientation` will be removed for a `RelativeLayout`
  */
 fun getObsoleteAttributes(component: NlComponent): Set<QualifiedName> {
-  val tag = component.tag
+  val tag = component.tagDeprecated
   val facet = component.model.facet
   val domElement = DomManager.getDomManager(tag.project).getDomElement(tag) as? AndroidDomElement ?: return emptySet()
   val validAttributes = mutableListOf<QualifiedName>() // Pair of namespace and name

@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,22 +74,22 @@ public class ComponentFixture {
   public ScrollFixture scroll() { return new ScrollFixture(myScreenFixture, this); }
 
   public ComponentFixture expectWidth(@NotNull String width) {
-    assertEquals("Wrong width", width, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_WIDTH));
+    assertEquals("Wrong width", width, AndroidPsiUtils.getAttributeSafely(myComponent.getTagDeprecated(), ANDROID_URI, ATTR_LAYOUT_WIDTH));
     return this;
   }
 
   public ComponentFixture expectHeight(@NotNull String height) {
-    assertEquals("Wrong height", height, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_HEIGHT));
+    assertEquals("Wrong height", height, AndroidPsiUtils.getAttributeSafely(myComponent.getTagDeprecated(), ANDROID_URI, ATTR_LAYOUT_HEIGHT));
     return this;
   }
 
   public ComponentFixture expectAttribute(@NotNull String name, @NotNull String value) {
-    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, name));
+    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTagDeprecated(), ANDROID_URI, name));
     return this;
   }
 
   public ComponentFixture expectAttribute(@NotNull String namespace, @NotNull String name, @NotNull String value) {
-    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), namespace, name));
+    assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTagDeprecated(), namespace, name));
     return this;
   }
 
@@ -105,20 +104,20 @@ public class ComponentFixture {
       assertXmlWithoutFormatting(xml);
     }
     else {
-      assertEquals(xml, myComponent.getTag().getText());
+      assertEquals(xml, myComponent.getTagDeprecated().getText());
     }
     return this;
   }
 
   private void assertXmlWithoutFormatting(@NotNull @Language("XML") String xml) {
-    final String message = "XML is not expected:\nExpect:\n" + xml + "\n\n" + "Actual:\n" + myComponent.getTag().getText();
+    final String message = "XML is not expected:\nExpect:\n" + xml + "\n\n" + "Actual:\n" + myComponent.getTagDeprecated().getText();
 
     XmlTag expectedTag = XmlTagUtil.createTag(myComponent.getModel().getProject(), xml);
-    assertEquals(message, expectedTag.getName(), myComponent.getTag().getName());
+    assertEquals(message, expectedTag.getName(), myComponent.getTagDeprecated().getName());
 
-    if (myComponent.getTag().hasNamespaceDeclarations()) {
+    if (myComponent.getTagDeprecated().hasNamespaceDeclarations()) {
       // Need to compare namespaces
-      Map<String, String> nameSpaceDeclarations = myComponent.getTag().getLocalNamespaceDeclarations();
+      Map<String, String> nameSpaceDeclarations = myComponent.getTagDeprecated().getLocalNamespaceDeclarations();
       for (Map.Entry<String, String> expected : expectedTag.getLocalNamespaceDeclarations().entrySet()) {
         String value = nameSpaceDeclarations.get(expected.getKey());
         assertEquals(message, value, expected.getValue());
@@ -130,7 +129,7 @@ public class ComponentFixture {
       .map(attribute -> attribute.getNamespacePrefix() + ":" + attribute.getName() + "=" + attribute.getValue())
       .collect(Collectors.toSet());
 
-    Arrays.stream(myComponent.getTag().getAttributes())
+    Arrays.stream(myComponent.getTagDeprecated().getAttributes())
       .filter(it -> !it.isNamespaceDeclaration())
       .forEach(attribute -> {
         String namespacePrefix = attribute.getNamespacePrefix();
