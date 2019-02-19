@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -36,7 +37,20 @@ public class AndroidJavaResourceExternalAnnotator extends AndroidResourceExterna
 
   @Nullable
   @Override
+  public FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
+    // Run even when hasErrors is true.
+    return collectInformation(file, editor);
+  }
+
+  @Nullable
+  @Override
   public FileAnnotationInfo collectInformation(@NotNull PsiFile file) {
+    // External annotators can also be run in batch mode for analysis, but we do nothing if there's no Editor.
+    return null;
+  }
+
+  @Nullable
+  private static FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor) {
     if (!StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
       return null;
     }
@@ -52,7 +66,7 @@ public class AndroidJavaResourceExternalAnnotator extends AndroidResourceExterna
             if (facet == null) {
               return;
             }
-            annotationInfoRef.setIfNull(new FileAnnotationInfo(facet, element.getContainingFile()));
+            annotationInfoRef.setIfNull(new FileAnnotationInfo(facet, element.getContainingFile(), editor));
             AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(element);
             ResourceNamespace namespace =
               referenceType == AndroidPsiUtils.ResourceReferenceType.FRAMEWORK ? ResourceNamespace.ANDROID : ResourceNamespace.RES_AUTO;
