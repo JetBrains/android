@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
@@ -37,9 +39,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link PluginVersionUpgrade}.
  */
 public class PluginVersionUpgradeTest extends IdeaTestCase {
-  @Mock PluginVersionUpgradeStep myUpgradeStep1;
-  @Mock PluginVersionUpgradeStep myUpgradeStep2;
-  @Mock PluginVersionUpgradeStep myUpgradeStep3;
+  @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep1;
+  @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep2;
+  @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep3;
 
   private PluginVersionUpgrade myVersionUpgrade;
 
@@ -48,16 +50,18 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    myVersionUpgrade = new PluginVersionUpgrade(getProject(), myUpgradeStep1, myUpgradeStep2, myUpgradeStep3);
+    RecommendedPluginVersionUpgradeStep[] recommended = {myUpgradeStep1, myUpgradeStep2, myUpgradeStep3};
+
+    myVersionUpgrade = new PluginVersionUpgrade(getProject(), new ForcedPluginVersionUpgradeStep[0], recommended);
   }
 
   public void testCheckAndPerformUpgradeWithoutAndroidModule() {
     assertFalse(myVersionUpgrade.checkAndPerformUpgrade());
 
     Project project = getProject();
-    verify(myUpgradeStep1, never()).checkAndPerformUpgrade(eq(project), any());
-    verify(myUpgradeStep2, never()).checkAndPerformUpgrade(eq(project), any());
-    verify(myUpgradeStep3, never()).checkAndPerformUpgrade(eq(project), any());
+    verify(myUpgradeStep1, never()).performUpgradeAndSync(eq(project), any());
+    verify(myUpgradeStep2, never()).performUpgradeAndSync(eq(project), any());
+    verify(myUpgradeStep3, never()).performUpgradeAndSync(eq(project), any());
   }
 
   public void testCheckAndPerformUpgradeWhenUpgradeIsPerformed() {
@@ -67,15 +71,20 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, ORIGINAL, null, null);
     Project project = getProject();
-    when(myUpgradeStep1.checkAndPerformUpgrade(project, pluginInfo)).thenReturn(false);
-    when(myUpgradeStep2.checkAndPerformUpgrade(project, pluginInfo)).thenReturn(true);
+    when(myUpgradeStep1.checkUpgradable(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep1.performUpgradeAndSync(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep2.checkUpgradable(project, pluginInfo)).thenReturn(true);
+    when(myUpgradeStep2.performUpgradeAndSync(project, pluginInfo)).thenReturn(true);
 
     assertTrue(myVersionUpgrade.checkAndPerformUpgrade());
 
-    verify(myUpgradeStep1, times(1)).checkAndPerformUpgrade(project, pluginInfo);
-    verify(myUpgradeStep2, times(1)).checkAndPerformUpgrade(project, pluginInfo);
+    verify(myUpgradeStep1, times(1)).checkUpgradable(project, pluginInfo);
+    verify(myUpgradeStep1, never()).performUpgradeAndSync(project, pluginInfo);
+    verify(myUpgradeStep2, times(1)).checkUpgradable(project, pluginInfo);
+    verify(myUpgradeStep2, times(1)).performUpgradeAndSync(project, pluginInfo);
     // because myUpgradeStep2 upgraded the project, myUpgradeStep3 should not be invoked.
-    verify(myUpgradeStep3, never()).checkAndPerformUpgrade(project, pluginInfo);
+    verify(myUpgradeStep3, never()).checkUpgradable(project, pluginInfo);
+    verify(myUpgradeStep3, never()).performUpgradeAndSync(project, pluginInfo);
   }
 
   public void testCheckAndPerformUpgradeWhenUpgradeIsNotPerformed() {
@@ -84,15 +93,18 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, ORIGINAL, null, null);
     Project project = getProject();
-    when(myUpgradeStep1.checkAndPerformUpgrade(project, pluginInfo)).thenReturn(false);
-    when(myUpgradeStep2.checkAndPerformUpgrade(project, pluginInfo)).thenReturn(false);
-    when(myUpgradeStep3.checkAndPerformUpgrade(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep1.checkUpgradable(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep1.performUpgradeAndSync(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep2.checkUpgradable(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep2.performUpgradeAndSync(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep3.checkUpgradable(project, pluginInfo)).thenReturn(false);
+    when(myUpgradeStep3.performUpgradeAndSync(project, pluginInfo)).thenReturn(false);
 
     assertFalse(myVersionUpgrade.checkAndPerformUpgrade());
 
-    verify(myUpgradeStep1, times(1)).checkAndPerformUpgrade(project, pluginInfo);
-    verify(myUpgradeStep2, times(1)).checkAndPerformUpgrade(project, pluginInfo);
-    verify(myUpgradeStep3, times(1)).checkAndPerformUpgrade(project, pluginInfo);
+    verify(myUpgradeStep1, times(1)).checkUpgradable(project, pluginInfo);
+    verify(myUpgradeStep2, times(1)).checkUpgradable(project, pluginInfo);
+    verify(myUpgradeStep3, times(1)).checkUpgradable(project, pluginInfo);
   }
 
   private static void simulateAndroidModule(@NotNull Module module, int pluginGeneration) {

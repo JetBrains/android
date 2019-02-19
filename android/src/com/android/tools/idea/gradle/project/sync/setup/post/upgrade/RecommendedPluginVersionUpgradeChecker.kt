@@ -29,12 +29,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 val NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
-class PluginVersionUpgradeChecker(private val reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder()) : StartupActivity {
+class RecommendedPluginVersionUpgradeChecker(private val reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder())
+  : StartupActivity {
 
   override fun runActivity(project: Project) {
     checkUpgrade(project, reminder)
@@ -76,7 +76,7 @@ class PluginVersionUpgradeChecker(private val reminder: TimeBasedUpgradeReminder
 
 private fun checkAndShowNotification(project: Project, reminder: TimeBasedUpgradeReminder) {
   val upgrade = PluginVersionUpgrade.getInstance(project)
-  if (upgrade.isUpgradable && reminder.shouldAskForUpgrade(project)) {
+  if (upgrade.isRecommendedUpgradable && reminder.shouldAskForUpgrade(project)) {
     val existing = NotificationsManager
       .getNotificationsManager()
       .getNotificationsOfType<ProjectUpgradeNotification>(ProjectUpgradeNotification::class.java, project)
@@ -84,7 +84,7 @@ private fun checkAndShowNotification(project: Project, reminder: TimeBasedUpgrad
     if (existing.isEmpty()) {
       val listener = NotificationListener { notification, _ ->
         notification.expire()
-        upgrade.checkAndPerformUpgrade()
+        upgrade.performRecommendedUpgrade()
       }
 
       val notification = ProjectUpgradeNotification(listener)

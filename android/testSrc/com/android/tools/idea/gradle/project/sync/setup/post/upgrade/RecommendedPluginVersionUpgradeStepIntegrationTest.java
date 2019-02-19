@@ -66,7 +66,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     // Simulate that a day has not passed since the user clicked "Remind me tomorrow".
     when(myUpgradeReminder.shouldRecommendUpgrade(project)).thenReturn(false);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(project, myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(project, myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -79,7 +79,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse(pluginVersion));
     when(myPluginGeneration.getLatestKnownVersion()).thenReturn(pluginVersion);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -92,7 +92,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.3.0"));
     when(myPluginGeneration.getLatestKnownVersion()).thenReturn("2.2.0");
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -107,7 +107,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     when(myPluginGeneration.getLatestKnownVersion()).thenReturn("2.3.0-dev");
 
     // For this combination of plugin versions, the IDE should not ask for upgrade.
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -128,7 +128,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     // Simulate user declined upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(false);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyPluginVersionWasNotUpdated();
   }
@@ -150,7 +150,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     // Simulate updating plugin version failed.
     simulatePluginVersionUpdate(latestPluginVersion, false /* update failed */);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
   }
 
   public void testCheckAndPerformUpgradeWhenVersionSucceeds() {
@@ -167,7 +167,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     // Simulate updating plugin version succeeded.
     simulatePluginVersionUpdate(latestPluginVersion, true /* update successful */);
 
-    assertTrue(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertTrue(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
   }
 
   public void testCheckAndPerformUpgradeFailsWhenWeCannotDetectVersion() {
@@ -181,7 +181,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
   }
 
   private void simulateUpgradeReminderIsDue() {
