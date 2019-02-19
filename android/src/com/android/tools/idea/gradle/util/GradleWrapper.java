@@ -176,10 +176,6 @@ public final class GradleWrapper {
     if (property != null && (property.equals(distributionUrl) || property.equals(getDistributionUrl(gradleVersion, true)))) {
       return false;
     }
-    if (property != null && property.startsWith("file:")) {
-      // Assume local distributions are maintained by user (eg. UI Tests), so don't overwrite
-      return false;
-    }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
     savePropertiesToFile(properties, myPropertiesFilePath, null);
     return true;
