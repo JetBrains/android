@@ -29,7 +29,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconRenderer;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.lang.annotation.Annotation;
@@ -89,10 +88,6 @@ public class AndroidColorAnnotator implements Annotator {
       }
       annotateXml(element, holder, value);
     } else if (element instanceof PsiReferenceExpression) {
-      if (StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
-        // Gutter icon annotator for Java files is run as an external annotator when this flag is enabled.
-        return;
-      }
       ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(element);
       if (referenceType != ResourceReferenceType.NONE) {
         // (isResourceReference will return true for both "R.drawable.foo" and the foo literal leaf in the
