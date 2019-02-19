@@ -24,6 +24,9 @@ import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -43,32 +46,43 @@ import org.jetbrains.annotations.Nullable;
  * Base class for external annotators that place resource icons in the gutter of the editor.
  */
 public abstract class AndroidResourceExternalAnnotatorBase
-  extends ExternalAnnotator<AndroidResourceExternalAnnotatorBase.FileAnnotationInfo,
-  Map<PsiElement, GutterIconRenderer>> {
+  extends ExternalAnnotator<AndroidResourceExternalAnnotatorBase.FileAnnotationInfo, Map<PsiElement, GutterIconRenderer>> {
+
+  private static final Logger LOG = Logger.getInstance(AndroidResourceExternalAnnotatorBase.class);
 
   @Nullable
   @Override
   public Map<PsiElement, GutterIconRenderer> doAnnotate(@NotNull FileAnnotationInfo fileAnnotationsInfo) {
+    AndroidFacet facet = fileAnnotationsInfo.getFacet();
+    Editor editor = fileAnnotationsInfo.getEditor();
+    long timestamp = fileAnnotationsInfo.getTimestamp();
+    Document document = editor.getDocument();
+
     Map<PsiElement, GutterIconRenderer> rendererMap = new HashMap<>();
-    Configuration configuration =
-      AndroidAnnotatorUtil.pickConfiguration(fileAnnotationsInfo.getFile(), fileAnnotationsInfo.getFacet());
+    Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(fileAnnotationsInfo.getFile(), facet);
     if (configuration == null) {
       return null;
     }
     ResourceResolver resolver = configuration.getResourceResolver();
     for (FileAnnotationInfo.AnnotatableElement element : fileAnnotationsInfo.getElements()) {
       ProgressManager.checkCanceled();
+      if (editor.isDisposed() || document.getModificationStamp() > timestamp) {
+        return null;
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Rendering icon for %s in %s.", element.getReference(), fileAnnotationsInfo.getFile()));
+      }
+
       ResourceType type = element.getReference().getResourceType();
       GutterIconRenderer gutterIconRenderer;
       if (type == ResourceType.COLOR) {
-        gutterIconRenderer =
-          getColorGutterIconRenderer(resolver, element.getReference(), fileAnnotationsInfo.getFacet(), element.getPsiElement());
+        gutterIconRenderer = getColorGutterIconRenderer(resolver, element.getReference(), facet, element.getPsiElement());
       }
       else {
         assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
         gutterIconRenderer =
-          getDrawableGutterIconRenderer(resolver, element.getReference(), fileAnnotationsInfo.getFacet().getModule().getProject(),
-                                        fileAnnotationsInfo.getFacet(), configuration);
+          getDrawableGutterIconRenderer(resolver, element.getReference(), facet.getModule().getProject(), facet, configuration);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -120,13 +134,17 @@ public abstract class AndroidResourceExternalAnnotatorBase
   }
 
   protected static class FileAnnotationInfo {
-    private final AndroidFacet myFacet;
-    private final PsiFile myFile;
-    private final List<AnnotatableElement> myElements;
+    @NotNull private final AndroidFacet myFacet;
+    @NotNull private final PsiFile myFile;
+    @NotNull private final Editor myEditor;
+    private final long myTimestamp;
+    @NotNull private final List<AnnotatableElement> myElements;
 
-    FileAnnotationInfo(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
+    FileAnnotationInfo(@NotNull AndroidFacet facet, @NotNull PsiFile file, @NotNull Editor editor) {
       myFacet = facet;
       myFile = file;
+      myEditor = editor;
+      myTimestamp = myEditor.getDocument().getModificationStamp();
       myElements = new ArrayList<>();
     }
 
@@ -143,6 +161,15 @@ public abstract class AndroidResourceExternalAnnotatorBase
     @NotNull
     public List<AnnotatableElement> getElements() {
       return myElements;
+    }
+
+    @NotNull
+    public Editor getEditor() {
+      return myEditor;
+    }
+
+    public long getTimestamp() {
+      return myTimestamp;
     }
 
     static class AnnotatableElement {

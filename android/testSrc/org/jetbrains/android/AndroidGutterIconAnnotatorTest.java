@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.GutterIconRenderer.NavigationTargetProvider;
 import com.android.tools.idea.rendering.TestRenderingUtils;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -57,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
   /** Tests {@link AndroidColorAnnotator} which runs fully during highlighting. */
-  public static class OldAnnotators extends AndroidGutterIconAnnotatorTest {
+  public static class OldAnnotatorsTest extends AndroidGutterIconAnnotatorTest {
     @Override
     protected void setUp() throws Exception {
       super.setUp();
@@ -76,7 +77,7 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   }
 
   /** Tests {@link AndroidJavaResourceExternalAnnotator} which runs in the background. */
-  public static class ExternalAnnotators extends AndroidGutterIconAnnotatorTest {
+  public static class ExternalAnnotatorsTest extends AndroidGutterIconAnnotatorTest {
     @Override
     protected void setUp() throws Exception {
       super.setUp();
@@ -135,6 +136,14 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     // Selector color resource reference in java file
     HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.selector", PsiReferenceExpression.class);
     checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
+  }
+
+  public void testJavaFileWithErrors() {
+    myFixture.openFileInEditor(getPsiFile("src/p1/p2/ColorTest.java").getVirtualFile());
+    AndroidTestUtils.moveCaret(myFixture, "R.color.selector|;");
+    myFixture.type("not valid code anymore!!!");
+    HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.color1", PsiReferenceExpression.class);
+    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
   }
 
   public void testColorInValues1() {
