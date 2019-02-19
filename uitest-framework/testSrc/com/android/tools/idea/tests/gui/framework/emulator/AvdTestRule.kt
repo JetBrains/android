@@ -85,7 +85,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
       // Start by checking if we are the (fake) root user:
       System.getProperty("user.name", "notroot").let {
         if (it != "root") {
-          throw IllegalStateException("Not running as ${it} rather than root. Is \"requires-fakeroot\" a tag in the BUILD target?")
+          throw IllegalStateException("Running as ${it} rather than root. Is \"requires-fakeroot\" a tag in the BUILD target?")
         }
       }
 
