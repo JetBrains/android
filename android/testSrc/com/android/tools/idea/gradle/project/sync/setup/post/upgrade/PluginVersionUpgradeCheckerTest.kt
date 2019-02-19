@@ -38,7 +38,8 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
     Mockito.`when`<Boolean>(projectInfo.isBuildWithGradle).thenReturn(true)
     Mockito.`when`<Boolean>(upgradeReminder.shouldAskForUpgrade(Mockito.any())).thenReturn(true)
 
-    // PluginVersionUpgradeChecker is a StartActivity, which may be executed during setup. We clean all possible notifications before test.
+    // RecommendedPluginVersionUpgradeChecker is a StartActivity, which may be executed during setup.
+    // We clean all possible notifications before test.
     cleanNotification()
   }
 
@@ -61,7 +62,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
 
     replaceUpgradeService(upgradable = false)
 
-    val checker = PluginVersionUpgradeChecker(upgradeReminder)
+    val checker = RecommendedPluginVersionUpgradeChecker(upgradeReminder)
     checker.runActivity(myProject)
 
     val notifications = NotificationsManager
@@ -76,7 +77,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
 
     replaceUpgradeService(upgradable = true)
 
-    val checker = PluginVersionUpgradeChecker(upgradeReminder)
+    val checker = RecommendedPluginVersionUpgradeChecker(upgradeReminder)
     checker.runActivity(myProject)
 
     val notifications = NotificationsManager
@@ -89,7 +90,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
   private fun replaceUpgradeService(upgradable: Boolean) {
     val upgrade = Mockito.mock(PluginVersionUpgrade::class.java)
     @Suppress("UsePropertyAccessSyntax")
-    Mockito.`when`<Boolean>(upgrade.isUpgradable()).thenReturn(upgradable)
+    Mockito.`when`<Boolean>(upgrade.isRecommendedUpgradable()).thenReturn(upgradable)
 
     val ideComponents = IdeComponents(myProject)
     ideComponents.replaceProjectService(PluginVersionUpgrade::class.java, upgrade)
