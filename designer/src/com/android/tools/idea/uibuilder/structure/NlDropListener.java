@@ -260,7 +260,7 @@ public class NlDropListener extends DropTargetAdapter {
     }
 
     NlWriteCommandActionUtil.run(myDragReceiver, "", () -> {
-      XmlTag tag = myDragReceiver.getTag();
+      XmlTag tag = myDragReceiver.getTagDeprecated();
       tag.setName(DependencyManagementUtil.mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(tag), CONSTRAINT_LAYOUT));
 
       myDragReceiver.setTag(tag);

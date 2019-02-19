@@ -387,9 +387,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
    */
   @NotNull
   private static String buildTreePathTo(NlComponent current) {
-    StringBuilder builder = new StringBuilder(current.getTag().getName());
+    StringBuilder builder = new StringBuilder(current.getTagDeprecated().getName());
     while ((current = current.getParent()) != null) {
-      builder.insert(0, current.getTag().getName() + "/");
+      builder.insert(0, current.getTagDeprecated().getName() + "/");
       current = current.getParent();
     }
     return builder.toString();

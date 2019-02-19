@@ -97,11 +97,11 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       return true
     }
 
-    val tag = SmartPointerManager.createPointer(component.nlComponent.tag)
+    val tag = SmartPointerManager.createPointer(component.nlComponent.tagDeprecated)
     var positions = tagPositionMap[tag]
     if (positions == null) {
       reload(component.nlComponent.model.file, true)
-      positions = tagPositionMap[SmartPointerManager.createPointer(component.nlComponent.tag)]
+      positions = tagPositionMap[SmartPointerManager.createPointer(component.nlComponent.tagDeprecated)]
     }
     if (positions == null) {
       positions = tryToFindNewNestedGraphPosition(component)

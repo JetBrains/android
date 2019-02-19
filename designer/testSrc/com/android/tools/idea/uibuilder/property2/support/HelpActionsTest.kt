@@ -83,7 +83,7 @@ class HelpActionsTest {
     val manager = projectRule.mockProjectService(DocumentationManager::class.java)
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT)
     @Suppress("DEPRECATION")
-    val tag = util.components[0].tag
+    val tag = util.components[0].tagDeprecated
     util.loadProperties()
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, util.properties[ANDROID_URI, ATTR_TEXT])
     val event = AnActionEvent.createFromDataContext("", null, context)

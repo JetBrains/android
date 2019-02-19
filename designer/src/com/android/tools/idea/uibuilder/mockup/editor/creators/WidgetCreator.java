@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.viewgroupattributes.ViewGroupAttributesManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -280,7 +279,7 @@ public abstract class WidgetCreator {
    */
   private void ensureNewComponentCreated() {
     if (myComponent == null) {
-      final XmlTag parentTag = myMockup.getComponent().getTag();
+      final XmlTag parentTag = myMockup.getComponent().getTagDeprecated();
       final XmlTag childTag = parentTag.createChildTag(getAndroidViewTag(), null, null, false);
       myComponent = myModel.createComponent(childTag);
     }

@@ -88,7 +88,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
         return delta;
       }
       // Unlikely
-      return component1.getTag().getTextOffset() - component2.getTag().getTextOffset();
+      return component1.getTagDeprecated().getTextOffset() - component2.getTagDeprecated().getTextOffset();
     });
 
     assertTrue("Only " + components.size() + " found, not enough for occurrence #" + occurrence, components.size() > occurrence);

@@ -341,7 +341,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
           val resourceResolver = parent.model.configuration.resourceResolver
           if (resourceResolver != null) {
             ApplicationManager.getApplication().runReadAction(Computable<ResourceValue> {
-              resourceResolver.resolve(url, parent.tag)
+              resourceResolver.resolve(url, parent.tagDeprecated)
             }) ?: return ValidationInfo("Resource does not exist")
           }
         }

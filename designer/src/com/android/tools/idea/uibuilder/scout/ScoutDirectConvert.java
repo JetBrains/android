@@ -95,10 +95,10 @@ public class ScoutDirectConvert {
   }
 
   public static boolean directProcess(NlComponent layout) {
-    if (!layout.getTag().getName().equals(RELATIVE_LAYOUT)) {
+    if (!layout.getTagDeprecated().getName().equals(RELATIVE_LAYOUT)) {
       return false;
     }
-    layout.getTag().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT));
+    layout.getTagDeprecated().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT));
     convert(layout);
     return true;
   }

@@ -81,7 +81,7 @@ class VisibleDestinationsEditorTest: NavTestCase() {
     `when`(property.components).thenReturn(listOf(action))
     `when`(property.value).thenReturn("foo")
     `when`(property.resolveValue(any())).thenReturn("foo")
-    `when`(property.tag).thenReturn(action.tag)
+    `when`(property.tag).thenReturn(action.tagDeprecated)
 
     val comboBox = EnumEditor.CustomComboBox()
     val editor = VisibleDestinationsEditor(NlEditingListener.DEFAULT_LISTENER, comboBox)

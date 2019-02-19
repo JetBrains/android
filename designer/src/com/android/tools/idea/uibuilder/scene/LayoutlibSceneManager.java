@@ -1098,7 +1098,7 @@ public class LayoutlibSceneManager extends SceneManager {
     Map<TagSnapshot, NlComponent> snapshotToComponent =
       model.flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
     Map<XmlTag, NlComponent> tagToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTag, Function.identity()));
+      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity()));
 
     // Update the bounds. This is based on the ViewInfo instances.
     for (ViewInfo view : rootViews) {

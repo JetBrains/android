@@ -55,7 +55,7 @@ fun createNlModelFromTagName(androidFacet: AndroidFacet,
                              configurationManager,
                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
   val rootComponent = createComponent(file.content.toString(), model)
-  model.syncWithPsi(rootComponent.tag, listOf(StubTagSnapshotTreeNode(rootComponent)))
+  model.syncWithPsi(rootComponent.tagDeprecated, listOf(StubTagSnapshotTreeNode(rootComponent)))
   return model
 }
 

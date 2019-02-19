@@ -239,16 +239,16 @@ public class ModelBuilder {
       assertThat(NlComponentHelperKt.getW(component)).isNotEqualTo(-1);
     }
     assertThat(component.getSnapshot()).isNotNull();
-    assertThat(component.getTag()).isNotNull();
-    assertThat(component.getTagName()).isEqualTo(component.getTag().getName());
+    assertThat(component.getTagDeprecated()).isNotNull();
+    assertThat(component.getTagName()).isEqualTo(component.getTagDeprecated().getName());
 
     assertThat(component.getBackend().isValid()).isTrue();
-    assertThat(component.getTag().getContainingFile()).isEqualTo(component.getModel().getFile());
+    assertThat(component.getTagDeprecated().getContainingFile()).isEqualTo(component.getModel().getFile());
 
     for (NlComponent child : component.getChildren()) {
       assertThat(child).isNotSameAs(component);
       assertThat(child.getParent()).isSameAs(component);
-      assertThat(child.getTag().getParent()).isSameAs(component.getTag());
+      assertThat(child.getTagDeprecated().getParent()).isSameAs(component.getTagDeprecated());
 
       // Check recursively
       checkStructure(child);

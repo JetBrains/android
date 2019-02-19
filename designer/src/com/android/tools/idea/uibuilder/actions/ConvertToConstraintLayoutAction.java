@@ -298,10 +298,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       }
 
       NlModel model = myLayout.getModel();
-      XmlTag layoutTag = myLayout.getTag();
-      XmlTag rootTag = myRoot.getTag();
+      XmlTag layoutTag = myLayout.getTagDeprecated();
+      XmlTag rootTag = myRoot.getTagDeprecated();
       //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
-      PsiElement tag = myLayout.getTag().setName(
+      PsiElement tag = myLayout.getTagDeprecated().setName(
         DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
@@ -412,7 +412,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       List<TextRange> ranges = Lists.newArrayList();
       for (NlComponent component : myToBeFlattened) {
-        XmlTag tag = component.getTag();
+        XmlTag tag = component.getTagDeprecated();
         PsiElement openStart = null;
         PsiElement openEnd = null;
         PsiElement closeStart = null;
@@ -527,7 +527,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       // If it defines an ID, see if the ID is used anywhere
       if (!myIncludeIds) {
-        XmlAttribute attribute = component.getTag().getAttribute(ATTR_ID, ANDROID_URI);
+        XmlAttribute attribute = component.getTagDeprecated().getAttribute(ATTR_ID, ANDROID_URI);
         if (attribute != null) {
           XmlAttributeValue valueElement = attribute.getValueElement();
           if (valueElement != null && valueElement.isValid()) {

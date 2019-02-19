@@ -326,7 +326,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       myComponent.setAttribute(TOOLS_URI, ATTR_LISTITEM, myOriginalListItemValue);
       myComponent.setAttribute(TOOLS_URI, "spanCount", myOriginalSpanCountValue);
       myComponent.setAttribute(TOOLS_URI, ATTR_LAYOUT_MANAGER, myOriginalLayoutManager);
-      CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTag().getContainingFile().getVirtualFile());
+      CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTagDeprecated().getContainingFile().getVirtualFile());
     }));
   }
 
