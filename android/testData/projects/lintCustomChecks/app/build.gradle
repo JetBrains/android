@@ -1,20 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion rootProject.latestCompileSdk
-    buildToolsVersion = rootProject.buildToolsVersion
+    compileSdkVersion 24
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 24
-    }
-
-    lintOptions {
-        textReport true
-        textOutput file("lint-results.txt")
-        check 'UnitTestLintCheck'
-        check 'UnitTestLintCheck2'
-        check 'UnitTestLintCheck3'
-        absolutePaths false
     }
 }
 
@@ -24,5 +14,5 @@ repositories {
 
 dependencies {
     implementation project(':library')
-    implementation 'com.example.google:library-remote:1.0'
+    lintChecks project(':lint')
 }
