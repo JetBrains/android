@@ -10,6 +10,7 @@ iml_module(
         "resources",
     ],
     iml_files = ["intellij.android.lang.iml"],
+    lint_baseline = "lint_baseline.xml",
     tags = ["no_test_mac_psq"],
     test_runtime_deps = ["//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions"],
     visibility = ["//visibility:public"],
