@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
@@ -30,7 +31,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
-import org.fest.swing.timing.Pause.pause
 import org.intellij.lang.annotations.Language
 import java.io.IOException
 import org.junit.Rule
@@ -47,6 +47,10 @@ class QrScanningCujTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
+
+  @Rule
+  @JvmField
+  val screenshotsRule = ScreenshotsDuringTest()
 
   @Test
   @RunIn(TestGroup.UNRELIABLE)
