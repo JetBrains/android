@@ -188,10 +188,7 @@ public final class TranslationsEditorTest {
 
     table.pressAndReleaseKey(TableCell.row(4).column(KEY_COLUMN), KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
-    DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
-      .safe(false)
-      .clickOk()
-      .waitUntilNotShowing();
+    DeleteDialogFixture.find(myGuiTest.ideFrame()).unsafeDelete();
 
     translationsEditor.finishLoading();
     assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), table.columnAt(KEY_COLUMN));
@@ -213,10 +210,7 @@ public final class TranslationsEditorTest {
 
     table.pressAndReleaseKey(TableCell.row(4).column(KEY_COLUMN), KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
 
-    DeleteDialogFixture.find(myGuiTest.robot(), "Delete")
-      .clickOk()
-      .waitForUnsafeDialog()
-      .deleteAnyway();
+    DeleteDialogFixture.find(myGuiTest.ideFrame()).safeDelete().deleteAnyway();
 
     translationsEditor.finishLoading();
     assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), table.columnAt(KEY_COLUMN));
