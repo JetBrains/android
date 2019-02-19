@@ -60,6 +60,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
@@ -85,7 +86,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -497,7 +497,13 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       BufferedImage image = imageAndSize.image;
       Dimension size = imageAndSize.dimension;
       setDragImage(image);
-      setDragImageOffset(new Point(-image.getWidth() / 2, -image.getHeight() / 2));
+      if (SystemInfo.isWindows) {
+        // Windows uses opposite conventions for computing offset
+        setDragImageOffset(new Point(image.getWidth() / 2, image.getHeight() / 2));
+      }
+      else {
+        setDragImageOffset(new Point(-image.getWidth() / 2, -image.getHeight() / 2));
+      }
       DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), size.width, size.height);
       Transferable transferable = new ItemTransferable(new DnDTransferItem(dndComponent));
 
