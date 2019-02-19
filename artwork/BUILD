@@ -10,7 +10,11 @@ iml_module(
     ],
     bundle_data = [":device-art-resources"],
     iml_files = ["intellij.android.artwork.iml"],
-    resources = ["resources"],
+    # do not sort: must match IML order
+    resources = [
+        "resources",
+        "compatibilityResources",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = ["//tools/idea/platform/util:intellij.platform.util[module]"],
