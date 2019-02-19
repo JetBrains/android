@@ -54,7 +54,6 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.PreferGradleMake;
@@ -337,8 +336,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
     // the android run config context
-    AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
-    DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
+    DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
     List<AndroidDevice> targetDevices = deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
     List<String> cmdLineArgs;
     try {
@@ -349,8 +347,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
 
-    BeforeRunBuilder builder =
-      createBuilder(env, modules, configuration, runConfigContext, targetDevices, task.getGoal());
+    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDevices, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
 
@@ -477,10 +474,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,
-                                                @NotNull Module[] modules,
+  private static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
                                                 @NotNull RunConfiguration configuration,
-                                                @Nullable AndroidRunConfigContext runConfigContext,
                                                 @NotNull List<AndroidDevice> targetDevices,
                                                 @Nullable String userGoal) {
     if (modules.length == 0) {

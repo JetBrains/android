@@ -10,6 +10,7 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -232,17 +233,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
 
-    final Project project = env.getProject();
-    final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID(), env.getExecutionTarget());
-
     stats.setDebuggable(LaunchUtils.canDebugApp(facet));
     stats.setExecutor(executor.getId());
     stats.setApplyChanges(false);
 
     updateExtraRunStats(stats);
 
-    boolean couldHaveHotswapped = false;
-    DeviceFutures deviceFutures = null;
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
     boolean userSelectedDeployTarget = requiresUserSelection(executor, isDebugging, facet);
     stats.setUserSelectedTarget(userSelectedDeployTarget);
@@ -258,18 +254,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
+    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
     if (deviceFutures == null) {
       // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
       return null;
     }
-    for (AndroidDevice device : deviceFutures.getDevices()) {
-      if (device instanceof LaunchableAndroidDevice) {
-        stats.setLaunchedDevices(true);
-      }
-    }
 
-    if (deviceFutures == null || deviceFutures.get().isEmpty()) {
+    // Record stat if we launched a device.
+    stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> device instanceof LaunchableAndroidDevice));
+
+    if (deviceFutures.get().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
@@ -280,14 +274,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
-    ProcessHandler processHandler = null;
-    if (existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(executor.getId())) {
-      processHandler = existingSessionInfo.getProcessHandler();
-    }
-
     // Store the chosen target on the execution environment so before-run tasks can access it.
-    env.putCopyableUserData(AndroidRunConfigContext.KEY,
-                            createAndroidRunConfigContext(deviceFutures));
+    env.putCopyableUserData(DeviceFutures.KEY, deviceFutures);
+
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
 
@@ -300,31 +289,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    LaunchTasksProviderFactory providerFactory =
-      createLaunchTasksProviderFactory(env, facet, deviceFutures,
-                                       applicationIdProvider, launchOptions.build());
+    LaunchTasksProviderFactory providerFactory = new LaunchTasksProviderFactory() {
+      @NotNull
+      @Override
+      public LaunchTasksProvider get() {
+        return new AndroidLaunchTasksProvider(AndroidRunConfigurationBase.this, env, facet, applicationIdProvider,
+                                              getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices()),
+                                              launchOptions.build());
+      }
+    };
 
-    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
-                               processHandler);
-  }
-
-  @NotNull
-  private LaunchTasksProviderFactory createLaunchTasksProviderFactory(@NotNull ExecutionEnvironment env,
-                                                                      @NotNull AndroidFacet facet,
-                                                                      @NotNull DeviceFutures deviceFutures,
-                                                                      @NotNull ApplicationIdProvider applicationIdProvider,
-                                                                      @NotNull LaunchOptions launchOptions) {
-    return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider,
-                                                 getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices()),
-                                                 launchOptions
-    );
-  }
-
-  @NotNull
-  private AndroidRunConfigContext createAndroidRunConfigContext(@NotNull DeviceFutures deviceFutures) {
-    AndroidRunConfigContext runConfigContext = new AndroidRunConfigContext();
-    runConfigContext.setTargetDevices(deviceFutures);
-    return runConfigContext;
+    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
