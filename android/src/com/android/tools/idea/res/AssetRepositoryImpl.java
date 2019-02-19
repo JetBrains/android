@@ -191,10 +191,13 @@ public class AssetRepositoryImpl extends AssetRepository {
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
-    Stream<VirtualFile> sampleDataDirs = Stream.of(ResourceContent.getSampleDataBaseDir())
-       .filter(Objects::nonNull)
-       .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
-       .filter(Objects::nonNull);
+    Stream<VirtualFile> sampleDataDirs = Stream.of(
+      ResourceContent.getSampleDataBaseDir(),
+      ResourceContent.getSampleDataUserDir(facet)
+    )
+      .filter(Objects::nonNull)
+      .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
+      .filter(Objects::nonNull);
 
     return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs)
       .flatMap(stream -> stream);
