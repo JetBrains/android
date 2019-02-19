@@ -1,7 +1,14 @@
-apply from: "../commonHeader.gradle"
-buildscript { apply from: "../commonBuildScript.gradle" }
+buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+    }
+}
 
-
-subprojects {
-    apply from: "../../commonLocalRepo.gradle"
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
 }
