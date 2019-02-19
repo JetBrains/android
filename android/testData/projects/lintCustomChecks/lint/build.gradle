@@ -8,8 +8,8 @@ jar {
 }
 
 dependencies {
-    compileOnly "com.android.tools.lint:lint-api:$baseVersion"
-    compileOnly "com.android.tools.lint:lint-checks:$baseVersion"
+    compileOnly "com.android.tools.lint:lint-api:+"
+    compileOnly "com.android.tools.lint:lint-checks:+"
 }
 
 

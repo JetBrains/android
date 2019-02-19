@@ -40,11 +40,7 @@ public class MyDetector extends Detector implements SourceCodeScanner {
                             Category.CORRECTNESS,
                             8,
                             Severity.ERROR,
-                            new Implementation(MyDetector.class, Scope.JAVA_FILE_SCOPE))
-                    .
-                    // Make sure other integration tests don't pick this up.
-                    // The unit test will turn it on with android.lintOptions.check <id>
-                    setEnabledByDefault(false);
+                            new Implementation(MyDetector.class, Scope.JAVA_FILE_SCOPE));
 
     public MyDetector() {}
 
