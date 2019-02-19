@@ -528,7 +528,7 @@ class NlComponentMixin(component: NlComponent)
   override fun getDependencies(): Set<String> {
     val artifacts = mutableSetOf<String>()
     val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
-    val artifactId = handler.getGradleCoordinateId(component.tag.name)
+    val artifactId = handler.getGradleCoordinateId(component.tagDeprecated.name)
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
     }
@@ -567,7 +567,7 @@ class NlComponentMixin(component: NlComponent)
     if (surface == null) {
       return false
     }
-    val realTag = component.tag
+    val realTag = component.tagDeprecated
     if (component.parent != null) {
       // Required attribute for all views; drop handlers can adjust as necessary
       if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {

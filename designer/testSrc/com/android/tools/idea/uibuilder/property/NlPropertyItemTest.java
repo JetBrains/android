@@ -300,7 +300,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     when(fakeModel.getProject()).thenReturn(fakeProject);
     NlComponent fakeComponent = mock(NlComponent.class);
     when(fakeComponent.getModel()).thenReturn(fakeModel);
-    when(fakeComponent.getTag()).thenThrow(new RuntimeException("setValue should bail out"));
+    when(fakeComponent.getTagDeprecated()).thenThrow(new RuntimeException("setValue should bail out"));
     NlPropertyItem fake = NlPropertyItem.create(
       new XmlName(ATTR_TEXT, ANDROID_URI), text.getDefinition(), ImmutableList.of(fakeComponent), myPropertiesManager);
     fake.setValue("stuff");

@@ -49,7 +49,7 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
     if (components.isEmpty()) {
       return false;
     }
-    String tagName = components.get(0).getTag().getName();
+    String tagName = components.get(0).getTagDeprecated().getName();
     if (properties.keySet().stream().noneMatch(name -> myPropertyNameUiNameMap.containsKey(name))) {
       return false;
     }

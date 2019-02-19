@@ -63,7 +63,7 @@ class MorphComponentAction(component: NlComponent)
   private fun editTagNameAndAttributes(newTagName: String) {
     DumbService.getInstance(myProject).runWhenSmart {
       NlWriteCommandActionUtil.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}") {
-        myNlComponent.tag.name = newTagName
+        myNlComponent.tagDeprecated.name = newTagName
         TransactionGuard.getInstance().submitTransactionAndWait {
           myNlComponent.removeObsoleteAttributes()
           myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)

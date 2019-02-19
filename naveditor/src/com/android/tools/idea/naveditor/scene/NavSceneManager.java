@@ -606,7 +606,7 @@ public class NavSceneManager extends SceneManager {
     XmlTag newRoot = AndroidPsiUtils.getRootTagSafely(model.getFile());
     if (newModel != null) {
       newRoot = AndroidPsiUtils.getRootTagSafely(newModel.getFile());
-      roots = buildTree(newModel.getComponents().stream().map(NlComponent::getTag).toArray(XmlTag[]::new));
+      roots = buildTree(newModel.getComponents().stream().map(NlComponent::getTagDeprecated).toArray(XmlTag[]::new));
     }
     if (newRoot != null) {
       // TODO error handling (if newRoot is null)

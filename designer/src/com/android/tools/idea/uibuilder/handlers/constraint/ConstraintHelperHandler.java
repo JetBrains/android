@@ -75,7 +75,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
             NlComponent component = toDrag;
             if (insertType.isMove() && toDrag.getParent() != receiver) {
               insert = InsertType.CREATE;
-              XmlTag tag = receiver.getTag().createChildTag(TAG, null, null, false);
+              XmlTag tag = receiver.getTagDeprecated().createChildTag(TAG, null, null, false);
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
               component = model.createComponent(tag);
             }
@@ -177,7 +177,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         if (p != null) {
           p.removeChild(element);
         }
-        element.getTag().delete();
+        element.getTagDeprecated().delete();
       }
     }
     else {

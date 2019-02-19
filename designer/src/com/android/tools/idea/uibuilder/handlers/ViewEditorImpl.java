@@ -160,7 +160,7 @@ public class ViewEditorImpl extends ViewEditor {
     }
     Map<XmlTag, NlComponent> tagToComponent = Maps.newHashMapWithExpectedSize(parent.getChildCount());
     for (NlComponent child : parent.getChildren()) {
-      tagToComponent.put(child.getTag(), child);
+      tagToComponent.put(child.getTagDeprecated(), child);
     }
 
     NlModel model = myModel;
@@ -175,7 +175,7 @@ public class ViewEditorImpl extends ViewEditor {
     }
 
     // Measure unweighted bounds
-    XmlTag parentTag = parent.getTag();
+    XmlTag parentTag = parent.getTagDeprecated();
     return task.measureChildren(parentTag, filter)
       .whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE)
       .thenApply(map -> {

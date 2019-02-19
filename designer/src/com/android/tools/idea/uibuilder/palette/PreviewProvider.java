@@ -153,7 +153,7 @@ public class PreviewProvider implements Disposable {
     }
 
     // Some components require a parent to render correctly.
-    xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTag().getText());
+    xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTagDeprecated().getText());
 
     RenderResult result = renderImage(myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
     if (result == null || !result.hasImage()) {
