@@ -1,0 +1,28 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion rootProject.latestCompileSdk
+    buildToolsVersion = rootProject.buildToolsVersion
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+    }
+
+    lintOptions {
+        textReport true
+        textOutput file("lint-results.txt")
+        check 'UnitTestLintCheck'
+        check 'UnitTestLintCheck2'
+        check 'UnitTestLintCheck3'
+        absolutePaths false
+    }
+}
+
+repositories {
+    maven { url '../localRepo' }
+}
+
+dependencies {
+    implementation project(':library')
+    implementation 'com.example.google:library-remote:1.0'
+}

@@ -1,0 +1,2 @@
+include ':app', ':library', ':library-publish-only', 'library-local-only',
+        ':lint', ':lintpublish', ':library-remote', ':lintpublish-remote'
