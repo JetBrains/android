@@ -26,42 +26,42 @@ import javax.swing.*;
 
 public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
 
-  public DeleteDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull SafeDeleteDialog dialogWrapper) {
-    super(robot, target, dialogWrapper);
+  private final IdeFrameFixture ideFrame;
+  private final JCheckBoxFixture safeDeleteCheckbox;
+
+  public DeleteDialogFixture(@NotNull IdeFrameFixture ideFrame, @NotNull JDialog target, @NotNull SafeDeleteDialog dialogWrapper) {
+    super(ideFrame.robot(), target, dialogWrapper);
+    this.ideFrame = ideFrame;
+    safeDeleteCheckbox = new JCheckBoxFixture(robot(), robot().finder().find(Matchers.byText(JCheckBox.class, "Safe delete (with usage search)")));
   }
 
   @NotNull
-  public static DeleteDialogFixture find(@NotNull Robot robot, @NotNull String title) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, title).and(
+  public static DeleteDialogFixture find(@NotNull IdeFrameFixture ideFrame) {
+    Robot robot = ideFrame.robot();
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Delete").and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, SafeDeleteDialog.class) != null;
         }
       }));
-    return new DeleteDialogFixture(robot, dialog, getDialogWrapperFrom(dialog, SafeDeleteDialog.class));
-  }
-
-  public DeleteDialogFixture clickOk() {
-    GuiTests.findAndClickOkButton(this);
-    return this;
-  }
-
-  public UnsafeUsagesDialogFixture waitForUnsafeDialog() {
-    GuiTests.waitForBackgroundTasks(robot());
-    return UnsafeUsagesDialogFixture.find(robot());
+    return new DeleteDialogFixture(ideFrame, dialog, getDialogWrapperFrom(dialog, SafeDeleteDialog.class));
   }
 
   @NotNull
-  public DeleteDialogFixture safe(boolean selected) {
-    JCheckBoxFixture checkbox =
-      new JCheckBoxFixture(robot(), robot().finder().find(Matchers.byText(JCheckBox.class, "Safe delete (with usage search)")));
-    if (selected) {
-      checkbox.select();
-    }
-    else {
-      checkbox.deselect();
-    }
-    return this;
+  public UnsafeUsagesDialogFixture safeDelete() {
+    safeDeleteCheckbox.select();
+    GuiTests.findAndClickOkButton(this);
+    GuiTests.waitForBackgroundTasks(robot());
+    return UnsafeUsagesDialogFixture.find(ideFrame);
   }
+
+  @NotNull
+  public IdeFrameFixture unsafeDelete() {
+    safeDeleteCheckbox.deselect();
+    GuiTests.findAndClickOkButton(this);
+    waitUntilNotShowing();
+    return ideFrame;
+  }
+
 }
