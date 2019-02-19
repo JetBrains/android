@@ -25,16 +25,17 @@ import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.GutterIconRenderer.NavigationTargetProvider;
 import com.android.tools.idea.rendering.TestRenderingUtils;
 import com.android.tools.idea.util.FileExtensions;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.google.common.collect.Iterables;
+import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl;
+import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -43,9 +44,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +59,6 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
     myFixture.copyFileToProject("annotator/ColorTest.java", "src/p1/p2/ColorTest.java");
-    myFixture.copyFileToProject("annotator/EmptyActivity.java", "src/p1/p2/EmptyActivity.java");
     myFixture.copyFileToProject("annotator/ic_tick.xml", "res/drawable/ic_tick.xml");
     myFixture.copyFileToProject("annotator/layer_list.xml", "res/drawable/layer_list.xml");
     myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
@@ -69,97 +66,71 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
   }
 
-  public void testNoResourceReferences() {
-    // Testing a java file with no references and no gutter icons
-    List<HighlightInfo> highlightInfo = findAllHighlightInfo("src/p1/p2/EmptyActivity.java");
-    List<HighlightInfo> gutterIconInfo =
-      highlightInfo.stream().filter(info -> info.getGutterIconRenderer() != null).collect(Collectors.toList());
-    assertThat(gutterIconInfo).isEmpty();
-  }
-
-  public void testColorReferenceInJava1() {
-    // Color resource reference in java file
-    HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.color1", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
-  }
-
-  public void testColorReferenceInJava2() {
-    // Color resource reference in java file
-    HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.color2", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
-  }
-
-  public void testSelectorReferenceInJava() {
-    // Selector color resource reference in java file
-    HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.selector", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
-  }
-
   public void testColorInValues1() {
     // Color definition in a values file
-    HighlightInfo highlightInfo = findHighlightInfo("res/values/colors1.xml", "3F51B5", XmlTag.class);
-    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    Annotation annotation = findAnnotation("res/values/colors1.xml", "3F51B5", XmlTag.class);
+    checkAnnotationColor(annotation, new Color(63, 81, 181));
   }
 
   public void testColorInValues2() {
     // Color definition in a values file
-    HighlightInfo highlightInfo = findHighlightInfo("res/values/colors2.xml", "303F9F", XmlTag.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    Annotation annotation = findAnnotation("res/values/colors2.xml", "303F9F", XmlTag.class);
+    checkAnnotationColor(annotation, new Color(0x303F9F));
   }
 
   public void testColorStateListInValues() {
     // Color definition in a color state list file
-    HighlightInfo highlightInfo = findHighlightInfo("res/color/selector.xml", "ffff0000", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(255, 0, 0));
-    highlightInfo = findHighlightInfo("res/color/selector.xml", "#ff00ff00", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
+    Annotation annotation = findAnnotation("res/color/selector.xml", "ffff0000", XmlAttributeValue.class);
+    checkAnnotationColor(annotation, new Color(255, 0, 0));
+    annotation = findAnnotation("res/color/selector.xml", "#ff00ff00", XmlAttributeValue.class);
+    checkAnnotationColor(annotation, new Color(0, 255, 0));
   }
 
   public void testColorReferenceInXml1() {
     // Reference to a color from a layout file
-    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color1", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@color/color1", XmlAttributeValue.class);
+    checkAnnotationColor(annotation, new Color(63, 81, 181));
   }
 
   public void testColorReferenceInXml2() {
     // Reference to a color from a layout file
-    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color2", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@color/color2", XmlAttributeValue.class);
+    checkAnnotationColor(annotation, new Color(0x303F9F));
   }
 
   public void testColorReferenceInXml3() {
     // Reference to a selector color from a layout file
-    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/selector", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@color/selector", XmlAttributeValue.class);
+    checkAnnotationColor(annotation, new Color(0, 255, 0));
   }
 
   public void testIconReferenceInXml() throws IOException {
     // Reference to an icon from a layout file
-    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/drawable1", XmlAttributeValue.class);
-    checkHighlightInfoImage(highlightInfo, "annotator/drawable1_thumbnail.png");
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@drawable/drawable1", XmlAttributeValue.class);
+    checkAnnotationImage(annotation, "annotator/drawable1_thumbnail.png");
   }
 
   public void testVectorReferenceInXml() throws IOException {
     // Reference to a vector drawable from a layout file.
-    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/ic_tick", XmlAttributeValue.class);
-    checkHighlightInfoImage(highlightInfo, "annotator/ic_tick_thumbnail.png");
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@drawable/ic_tick", XmlAttributeValue.class);
+    checkAnnotationImage(annotation, "annotator/ic_tick_thumbnail.png");
   }
 
   public void testLayerList() throws Exception {
     // Reference to a layer-list drawable from a layout file.
-    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/layer_list", XmlAttributeValue.class);
-    checkHighlightInfoImage(highlightInfo, "annotator/ic_layer_list_thumbnail.png");
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@drawable/layer_list", XmlAttributeValue.class);
+    checkAnnotationImage(annotation, "annotator/ic_layer_list_thumbnail.png");
   }
 
   public void testFrameworkDrawable() throws Exception {
     String layoutPath = "res/layout/color_test.xml";
-    HighlightInfo highlightInfo = findHighlightInfo(layoutPath, "@android:drawable/ic_lock_lock", XmlAttributeValue.class);
+    Annotation annotation = findAnnotation(layoutPath, "@android:drawable/ic_lock_lock", XmlAttributeValue.class);
 
     // The path of the drawable in framework resources.
     PathString expectedPath = new PathString(getFrameworkResourcesPath() + "/drawable-ldpi/ic_lock_lock_alpha.png");
     VirtualFile expectedFile = FileExtensions.toVirtualFile(expectedPath);
-    assertThat(getNavigationTarget(highlightInfo)).isEqualTo(expectedFile);
-    checkHighlightInfoImage(highlightInfo, expectedFile);
+    assertThat(getNavigationTarget(annotation)).isEqualTo(expectedFile);
+    checkAnnotationImage(annotation, expectedFile);
   }
 
   @NotNull
@@ -170,26 +141,22 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   }
 
   @Nullable
-  private static VirtualFile getNavigationTarget(@NotNull HighlightInfo highlightInfo) {
-    assertThat(highlightInfo.getGutterIconRenderer()).isNotNull();
-    assertThat(highlightInfo.getGutterIconRenderer()).isInstanceOf(GutterIconRenderer.class);
-    AnAction action = ((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction();
+  private static VirtualFile getNavigationTarget(@NotNull Annotation annotation) {
+    AnAction action = annotation.getGutterIconRenderer().getClickAction();
     assertThat(action).isInstanceOf(NavigationTargetProvider.class);
     return ((NavigationTargetProvider)action).getNavigationTarget();
   }
 
-  private void checkHighlightInfoImage(@NotNull HighlightInfo highlightInfo, @NotNull String expectedImage) throws IOException {
+  private void checkAnnotationImage(@NotNull Annotation annotation, @NotNull String expectedImage) throws IOException {
     File expected = new File(expectedImage);
     if (!expected.isAbsolute()) {
       expected = new File(getTestDataPath(), expectedImage);
     }
-    checkHighlightInfoImage(highlightInfo, VfsUtil.findFileByIoFile(expected, false));
+    checkAnnotationImage(annotation, VfsUtil.findFileByIoFile(expected, false));
   }
 
-  private void checkHighlightInfoImage(@NotNull HighlightInfo highlightInfo, @NotNull VirtualFile expectedImage) throws IOException {
-    assertThat(highlightInfo.getGutterIconRenderer()).isNotNull();
-    assertThat(highlightInfo.getGutterIconRenderer()).isInstanceOf(GutterIconRenderer.class);
-    GutterIconRenderer renderer = (GutterIconRenderer)highlightInfo.getGutterIconRenderer();
+  private void checkAnnotationImage(@NotNull Annotation annotation, @NotNull VirtualFile expectedImage) throws IOException {
+    GutterIconRenderer renderer = annotation.getGutterIconRenderer();
     assertThat(renderer).isNotNull();
     Icon icon = renderer.getIcon();
     BufferedImage image = TestRenderingUtils.getImageFromIcon(icon);
@@ -199,10 +166,8 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 
-  private static void checkHighlightInfoColor(@NotNull HighlightInfo highlightInfo, @NotNull Color expectedColor) {
-    assertThat(highlightInfo.getGutterIconRenderer()).isNotNull();
-    assertThat(highlightInfo.getGutterIconRenderer()).isInstanceOf(GutterIconRenderer.class);
-    GutterIconRenderer renderer = (GutterIconRenderer)highlightInfo.getGutterIconRenderer();
+  private static void checkAnnotationColor(@NotNull Annotation annotation, @NotNull Color expectedColor) {
+    GutterIconRenderer renderer = annotation.getGutterIconRenderer();
     assertThat(renderer).isNotNull();
     Icon icon = renderer.getIcon();
     assertThat(icon).isInstanceOf(ColorIcon.class);
@@ -212,12 +177,11 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   }
 
   @NotNull
-  private HighlightInfo findHighlightInfo(@NotNull String path, @NotNull String target, @NotNull Class<? extends PsiElement> elementClass) {
+  private Annotation findAnnotation(@NotNull String path, @NotNull String target, @NotNull Class<? extends PsiElement> elementClass) {
     int caretOffset = target.indexOf('|');
     if (caretOffset >= 0) {
       target = target.substring(0, caretOffset) + target.substring(caretOffset + 1);
-    }
-    else {
+    } else {
       caretOffset = 0;
     }
     PsiFile psiFile = getPsiFile(path);
@@ -228,23 +192,10 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     PsiElement element = PsiTreeUtil.findElementOfClassAtOffset(psiFile, dot, elementClass, false);
     assertThat(element).isNotNull();
 
-    PsiFile file = getPsiFile(path);
-    myFixture.openFileInEditor(file.getVirtualFile());
-    Document document = myFixture.getEditor().getDocument();
-    int expectedOffset = document.getLineNumber(dot);
-    List<HighlightInfo> infos = myFixture.doHighlighting();
-    String finalTarget = target;
-    return infos.stream()
-      .filter(info -> info.getGutterIconRenderer() != null)
-      .filter(info -> document.getLineNumber(info.startOffset) == expectedOffset)
-      .findFirst()
-      .orElseThrow(() -> new NoSuchElementException("HighlightInfo does not exist for " + finalTarget));
-  }
-
-  private List<HighlightInfo> findAllHighlightInfo(@NotNull String path) {
-    PsiFile file = getPsiFile(path);
-    myFixture.openFileInEditor(file.getVirtualFile());
-    return myFixture.doHighlighting();
+    AnnotationHolderImpl holder = new AnnotationHolderImpl(new AnnotationSession(psiFile));
+    AndroidColorAnnotator annotator = new AndroidColorAnnotator();
+    annotator.annotate(element, holder);
+    return Iterables.getOnlyElement(holder);
   }
 
   @NotNull
