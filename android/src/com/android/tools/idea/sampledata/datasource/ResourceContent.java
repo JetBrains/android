@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sampledata.datasource;
 
+import com.android.ide.common.util.PathString;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -22,6 +24,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,6 +74,15 @@ public class ResourceContent implements Function<OutputStream, Exception> {
 
     LOG.warn("Unable to sampleData in paths:\n" + notFoundPaths.toString());
     return null;
+  }
+
+  /**
+   * Returns the Sample Data directory created by the user in the provided facet's module.
+   */
+  @Nullable
+  public static File getSampleDataUserDir(AndroidFacet facet) {
+    PathString sampleDataDirectory = ProjectSystemUtil.getModuleSystem(facet.getModule()).getSampleDataDirectory();
+    return sampleDataDirectory != null ? sampleDataDirectory.toFile() : null;
   }
 
   /**
