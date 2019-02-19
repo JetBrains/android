@@ -22,7 +22,6 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -51,7 +50,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.module.Module;
@@ -71,8 +69,6 @@ import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.MouseInfo;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
@@ -81,7 +77,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * Static methods to be used by Android annotators.
@@ -90,7 +85,6 @@ public class AndroidAnnotatorUtil {
   static final int MAX_ICON_SIZE = 5000;
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
   private static final int ICON_SIZE = 8;
-  private static final Logger LOGGER = Logger.getInstance(AndroidColorAnnotator.class);
 
   /**
    * Returns a bitmap to be used as an icon to annotate an Android resource reference in an XML file.
@@ -135,7 +129,7 @@ public class AndroidAnnotatorUtil {
           // Take a look and see if we have a bitmap we can fall back to.
           LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
-            resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
+              resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
             FolderConfiguration configuration = item.getConfiguration();
             DensityQualifier densityQualifier = configuration.getDensityQualifier();
@@ -177,8 +171,9 @@ public class AndroidAnnotatorUtil {
       ResourceValue resValue = resourceResolver.findResValue(source, resourceValue.isFramework());
       return resValue == null ? null : ResourceHelper.resolveDrawable(resourceResolver, resValue, project);
     }
-    catch (IOException | XmlPullParserException e) {
-      LOGGER.warn(String.format("Could not read/render icon image %1$s", file), e);
+    catch (Throwable ignore) {
+      // Not logging for now; afraid to risk unexpected crashes in upcoming preview. TODO: Re-enable.
+      //Logger.getInstance(AndroidColorAnnotator.class).warn(String.format("Could not read/render icon image %1$s", file), e);
       return null;
     }
   }
