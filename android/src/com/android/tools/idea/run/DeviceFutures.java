@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.util.Key;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 /** A collection of devices (some of them may still be starting up) for use in a device-oriented run configuration launch. */
 public final class DeviceFutures {
+  public static final Key<DeviceFutures> KEY = Key.create("android.run.devicefutures");
+
   @NotNull
   private final List<AndroidDevice> myDevices;
 
