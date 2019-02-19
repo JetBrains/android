@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.SdkConstants;
 import com.android.ide.common.util.PathString;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
@@ -53,7 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link AndroidColorAnnotator} and {@link AndroidJavaResourceExternalAnnotator}.
+ * Tests for {@link AndroidColorAnnotator}, {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
  */
 public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
@@ -108,8 +109,15 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
+    myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
 
     copyRJavaToGeneratedSources();
+  }
+
+  public void testDrawableInManifest() throws IOException {
+    // Drawable icon in AndroidManifest.xml file.
+    HighlightInfo highlightInfo = findHighlightInfo(SdkConstants.FN_ANDROID_MANIFEST_XML, "@drawable/drawable1", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/drawable1_thumbnail.png");
   }
 
   public void testNoResourceReferences() {

@@ -19,9 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
@@ -36,45 +34,29 @@ public class AndroidJavaResourceExternalAnnotator extends AndroidResourceExterna
 
   @Nullable
   @Override
-  public FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
-    // Run even when hasErrors is true.
-    return collectInformation(file, editor);
-  }
-
-  @Nullable
-  @Override
-  public FileAnnotationInfo collectInformation(@NotNull PsiFile file) {
-    // External annotators can also be run in batch mode for analysis, but we do nothing if there's no Editor.
-    return null;
-  }
-
-  @Nullable
-  private static FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor) {
-    if (!StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
+  protected FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor) {
+    AndroidFacet facet = AndroidFacet.getInstance(file);
+    if (facet == null) {
       return null;
     }
-    Ref<FileAnnotationInfo> annotationInfoRef = new Ref<>();
+    FileAnnotationInfo annotationInfo = new FileAnnotationInfo(facet, file, editor);
     file.accept(new JavaRecursiveElementWalkingVisitor() {
       @Override
       public void visitReferenceElement(PsiJavaCodeReferenceElement element) {
         ResourceType type = AndroidPsiUtils.getResourceType(element);
         if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
-          AndroidFacet facet = AndroidFacet.getInstance(element);
-          if (facet == null) {
-            return;
-          }
-          if (annotationInfoRef.isNull()) {
-            annotationInfoRef.set(new FileAnnotationInfo(facet, element.getContainingFile(), editor));
-          }
           AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(element);
           ResourceNamespace namespace =
             referenceType == AndroidPsiUtils.ResourceReferenceType.FRAMEWORK ? ResourceNamespace.ANDROID : ResourceNamespace.RES_AUTO;
           String name = AndroidPsiUtils.getResourceName(element);
           ResourceReference reference = new ResourceReference(namespace, type, name);
-          annotationInfoRef.get().getElements().add(new FileAnnotationInfo.AnnotatableElement(reference, element));
+          annotationInfo.getElements().add(new FileAnnotationInfo.AnnotatableElement(reference, element));
         }
       }
     });
-    return annotationInfoRef.get();
+    if (annotationInfo.getElements().isEmpty()) {
+      return null;
+    }
+    return annotationInfo;
   }
 }
