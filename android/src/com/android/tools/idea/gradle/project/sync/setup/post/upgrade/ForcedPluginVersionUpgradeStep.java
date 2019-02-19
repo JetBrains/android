@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,9 +37,17 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
-public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeStep {
+public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep {
+  public static final ExtensionPointName<ForcedPluginVersionUpgradeStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.forcedPluginVersionUpgradeStep");
+
+  @NotNull
+  public static ForcedPluginVersionUpgradeStep[] getExtensions() {
+    return EXTENSION_POINT_NAME.getExtensions();
+  }
 
   @Override
+  @Slow
   public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
     GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
@@ -46,7 +56,8 @@ public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeS
   }
 
   @Override
-  public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+  @Slow
+  public boolean performUpgradeAndSync(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (!checkUpgradable(project, pluginInfo)) {
       return false;
     }
