@@ -1,0 +1,26 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.latestCompileSdk
+    buildToolsVersion = rootProject.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+
+    }
+
+    lintOptions {
+        textReport true
+        textOutput file("library-lint-results.txt")
+        check 'UnitTestLintCheck'
+        check 'UnitTestLintCheck2'
+        absolutePaths false
+    }
+}
+
+dependencies {
+    lintChecks project(':lint')
+    lintPublish project(':lintpublish')
+}
+
