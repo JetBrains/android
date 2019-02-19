@@ -138,7 +138,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
     myInteraction.performViewAction(noIdComponent, BASELINE_ACTION_SELECTOR);
     myInteraction.mouseDown(noIdComponent, AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
-    assertThat(noIdComponent.getNlComponent().getTag().getText())
+    assertThat(noIdComponent.getNlComponent().getTagDeprecated().getText())
       .isEqualTo("<TextView\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +

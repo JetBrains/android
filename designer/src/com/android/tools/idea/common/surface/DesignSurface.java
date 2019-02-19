@@ -301,7 +301,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
                              w = NlComponentHelperKt.getW(component);
                              h = NlComponentHelperKt.getW(component);
                            }
-                           return new DnDTransferComponent(component.getTagName(), component.getTag().getText(), w, h);
+                           return new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), w, h);
                          })
                          .collect(
         ImmutableCollectors.toImmutableList());
@@ -1180,7 +1180,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
           NlComponent primary = selectionModel.getPrimary();
           if (primary != null) {
-            return primary.getTag();
+            return primary.getTagDeprecated();
           }
         }
       }
@@ -1190,7 +1190,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           List<NlComponent> selection = selectionModel.getSelection();
           List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
           for (NlComponent component : selection) {
-            list.add(component.getTag());
+            list.add(component.getTagDeprecated());
           }
           return list.toArray(XmlTag.EMPTY);
         }

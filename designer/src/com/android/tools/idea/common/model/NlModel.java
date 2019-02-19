@@ -255,7 +255,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         checkUnique(getFile().getRootTag(), uniqueTags);
         uniqueTags.clear();
         if (myRootComponent != null) {
-          checkUnique(myRootComponent.getTag(), uniqueTags);
+          checkUnique(myRootComponent.getTagDeprecated(), uniqueTags);
           checkUnique(myRootComponent, unique);
           checkStructure(myRootComponent);
         }
@@ -300,14 +300,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (component.getSnapshot() == null) {
         assert false;
       }
-      if (component.getTag() == null) {
+      if (component.getTagDeprecated() == null) {
         assert false;
       }
-      if (!component.getTagName().equals(component.getTag().getName())) {
+      if (!component.getTagName().equals(component.getTagDeprecated().getName())) {
         assert false;
       }
 
-      if (!component.getTag().isValid()) {
+      if (!component.getTagDeprecated().isValid()) {
         assert false;
       }
 
@@ -330,7 +330,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         if (child.getParent() != component) {
           assert false;
         }
-        if (child.getTag().getParent() != component.getTag()) {
+        if (child.getTagDeprecated().getParent() != component.getTagDeprecated()) {
           assert false;
         }
 
@@ -579,7 +579,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           NlComponent component = oldIds.get(id);
           if (component != null) {
             recordComponentMapping(tag, component);
-            remaining.remove(component.getTag());
+            remaining.remove(component.getTagDeprecated());
             missingIterator.remove();
           }
         }
@@ -621,7 +621,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             NlComponent component = mySnapshotToComponent.get(first);
             if (component != null) {
               recordComponentMapping(tag, component);
-              remaining.remove(component.getTag());
+              remaining.remove(component.getTagDeprecated());
               snapshotIds.remove(tag, first);
               missingIterator.remove();
             }
@@ -664,7 +664,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     private void gatherTagsAndSnapshots(@NotNull NlComponent component) {
-      XmlTag tag = component.getTag();
+      XmlTag tag = component.getTagDeprecated();
 
       recordComponentMapping(tag, component);
       mySnapshotToComponent.put(component.getSnapshot(), component);
@@ -838,7 +838,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             p.removeChild(component);
           }
 
-          XmlTag tag = component.getTag();
+          XmlTag tag = component.getTagDeprecated();
           if (tag.isValid()) {
             PsiElement parentTag = tag.getParent();
             tag.delete();
@@ -874,10 +874,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                      @NotNull InsertType insertType) {
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
-      XmlTag parentTag = parent.getTag();
+      XmlTag parentTag = parent.getTagDeprecated();
       if (before != null) {
         // noinspection AssignmentToMethodParameter
-        tag = (XmlTag)parentTag.addBefore(tag, before.getTag());
+        tag = (XmlTag)parentTag.addBefore(tag, before.getTagDeprecated());
       }
       else {
         // noinspection AssignmentToMethodParameter

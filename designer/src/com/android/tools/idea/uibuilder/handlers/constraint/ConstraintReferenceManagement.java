@@ -59,7 +59,7 @@ class ConstraintReferenceManagement {
     component.ensureId();
     ApplicationManager.getApplication().runWriteAction(
       () -> {
-        XmlTag parentTag = constraints.getTag();
+        XmlTag parentTag = constraints.getTagDeprecated();
         XmlTag childTag = parentTag
           .createChildTag(useAndroidx ? CLASS_CONSTRAINT_LAYOUT_REFERENCE.newName() : CLASS_CONSTRAINT_LAYOUT_REFERENCE.oldName(), null,
                           null, false);
