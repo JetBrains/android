@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -75,8 +74,6 @@ public class LauncherIconGenerator extends IconGenerator {
   private static final Rectangle IMAGE_SIZE_VIEW_PORT_WEB_PX = new Rectangle(0, 0, 512, 512);
   private static final Rectangle IMAGE_SIZE_FULL_BLEED_WEB_PX = new Rectangle(0, 0, 768, 768);
 
-  private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
-  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(DEFAULT_FOREGROUND_COLOR);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
   private final BoolProperty myGenerateRoundIcon = new BoolValueProperty(true);
@@ -98,23 +95,6 @@ public class LauncherIconGenerator extends IconGenerator {
    */
   public LauncherIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
     super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
-  }
-
-  /**
-   * Whether to use the foreground color. When using images as the source asset for our icons,
-   * you shouldn't apply the foreground color, which would paint over it and obscure the image.
-   */
-  @NotNull
-  public BoolProperty useForegroundColor() {
-    return myUseForegroundColor;
-  }
-
-  /**
-   * A color for rendering the foreground icon.
-   */
-  @NotNull
-  public ObjectProperty<Color> foregroundColor() {
-    return myForegroundColor;
   }
 
   /**
@@ -199,13 +179,16 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   public LauncherIconOptions createOptions(boolean forPreview) {
     LauncherIconOptions options = new LauncherIconOptions(forPreview);
-    options.useForegroundColor = myUseForegroundColor.get();
-    options.foregroundColor = myForegroundColor.get().getRGB();
     // Set foreground image.
     BaseAsset foregroundAsset = sourceAsset().getValueOrNull();
     if (foregroundAsset != null) {
+      options.useForegroundColor = foregroundAsset.isColorable();
+      Color color = foregroundAsset.isColorable() ? foregroundAsset.color().getValueOrNull() : null;
+      if (color != null) {
+        options.foregroundColor = color.getRGB();
+      }
       double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
-      if (foregroundAsset instanceof VectorAsset) {
+      if (foregroundAsset instanceof ImageAsset && ((ImageAsset)foregroundAsset).isClipart()) {
         scaleFactor *= 0.58;  // Scale correction for clip art to more or less fit into the safe zone.
       }
       else if (foregroundAsset instanceof TextAsset) {
@@ -218,7 +201,7 @@ public class LauncherIconGenerator extends IconGenerator {
         scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
       }
       options.foregroundImage =
-          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, getGraphicGeneratorContext());
+          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, color, getGraphicGeneratorContext());
     }
     // Set background image.
     ImageAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();

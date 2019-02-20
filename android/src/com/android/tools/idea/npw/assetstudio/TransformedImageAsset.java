@@ -57,10 +57,10 @@ public final class TransformedImageAsset {
   /**
    * Initializes a new transformed image asset.
    *
-   * @param asset the source image asset
+   * @param asset the source image asset, also supplies opacity factor, and trimming flag
    * @param targetSize the size of the transformed image
    * @param scaleFactor the scale factor to be applied to the image
-   * @param tint the tint to apply to the image
+   * @param tint the tint to apply to the image, or null to preserve original colors
    * @param context the trim rectangle calculator
    */
   public TransformedImageAsset(@NotNull BaseAsset asset,
