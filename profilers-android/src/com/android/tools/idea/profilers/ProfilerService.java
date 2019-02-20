@@ -20,8 +20,6 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.transport.IntellijLogService;
 import com.android.tools.idea.transport.TransportDeviceManager;
-import com.android.tools.nativeSymbolizer.NativeSymbolizer;
-import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.profilers.ProfilerClient;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -77,20 +75,14 @@ public class ProfilerService implements Disposable {
   private final DataStoreService myDataStoreService;
   @NotNull
   private final MessageBus myMessageBus;
-  @NotNull
-  private final NativeSymbolizer myNativeSymbolizer;
 
   private ProfilerService(@NotNull Project project) {
     String datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator;
-
-    myNativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
-    Disposer.register(this, () -> myNativeSymbolizer.stop());
 
     String datastoreName = DATASTORE_NAME_PREFIX + project.getLocationHash();
     myDataStoreService = new DataStoreService(datastoreName, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
                                               new IntellijLogService());
     Disposer.register(this, () -> myDataStoreService.shutdown());
-    myDataStoreService.setNativeSymbolizer(myNativeSymbolizer);
 
     myMessageBus = project.getMessageBus();
     myManager = new TransportDeviceManager(myDataStoreService, myMessageBus);
@@ -126,10 +118,5 @@ public class ProfilerService implements Disposable {
   @NotNull
   public MessageBus getMessageBus() {
     return myMessageBus;
-  }
-
-  @NotNull
-  public NativeSymbolizer getNativeSymbolizer() {
-    return myNativeSymbolizer;
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.stacktrace;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.profilers.ProfilerService;
 import com.android.tools.idea.profilers.TraceSignatureConverter;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -55,6 +56,8 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   @NotNull
   private final Project myProject;
   @NotNull
+  private final NativeSymbolizer myNativeSymbolizer;
+  @NotNull
   private final Map<String, String> myApkSrcDirMap;
 
   /**
@@ -63,9 +66,10 @@ public final class IntellijCodeNavigator extends CodeNavigator {
    */
   @NotNull private Supplier<String> myCpuAbiArchSupplier;
 
-  public IntellijCodeNavigator(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
+  public IntellijCodeNavigator(@NotNull Project project, @NotNull NativeSymbolizer nativeSymbolizer, @NotNull FeatureTracker featureTracker) {
     super(featureTracker);
     myProject = project;
+    myNativeSymbolizer = nativeSymbolizer;
     myApkSrcDirMap = getApkSourceDirMap();
     myCpuAbiArchSupplier = () -> null;
   }
@@ -220,8 +224,7 @@ public final class IntellijCodeNavigator extends CodeNavigator {
     }
     Symbol symbol;
     try {
-      // TODO(b/118482250): Do not run symbolize on UI thread.
-      symbol = service.getNativeSymbolizer().symbolize(arch, location.getFileName(), location.getNativeVAddress());
+      symbol = myNativeSymbolizer.symbolize(arch, location.getFileName(), location.getNativeVAddress());
     }
     catch (IOException e) {
       return null;

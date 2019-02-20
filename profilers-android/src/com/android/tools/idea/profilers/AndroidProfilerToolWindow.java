@@ -285,8 +285,9 @@ public class AndroidProfilerToolWindow implements Disposable {
       ProfilerClient client = service.getProfilerClient();
       myProfilers = new StudioProfilers(client, ideProfilerServices);
       IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
-      // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected process.
-      navigator.setCpuAbiArchSupplier(() -> myProfilers.getProcess() == null ? null : myProfilers.getProcess().getAbiCpuArch());
+      // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
+      Common.SessionMetaData selectedSessionMetadata = myProfilers.getSessionsManager().getSelectedSessionMetaData();
+      navigator.setCpuAbiArchSupplier(() -> selectedSessionMetadata == null ? null : myProfilers.getProcess().getAbiCpuArch());
 
       myProfilers.addDependency(this)
         .onChange(ProfilerAspect.MODE, this::modeChanged)

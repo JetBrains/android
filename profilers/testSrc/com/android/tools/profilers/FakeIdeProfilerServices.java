@@ -22,10 +22,8 @@ import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
@@ -33,6 +31,8 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -45,6 +45,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final String FAKE_ATRACE_NAME = "Atrace";
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
+  private final NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
@@ -195,6 +196,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
+  }
+
+  @NotNull
+  @Override
+  public NativeFrameSymbolizer getNativeFrameSymbolizer() {
+    return myFakeSymbolizer;
   }
 
   @NotNull
