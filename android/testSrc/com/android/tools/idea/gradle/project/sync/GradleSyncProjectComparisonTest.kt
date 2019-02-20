@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.testutils.TestUtils.runningFromBazel
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
@@ -80,6 +82,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     @Ignore("b/124508973")
     override fun testPsdDependency() = Unit
+
+    @Ignore("b/124508973")
+    override fun testPsdDependencyUpgradeLibraryModule() = Unit
   }
 
   private val snapshotSuffixes = listOfNotNull(
@@ -97,6 +102,13 @@ abstract class GradleSyncProjectComparisonTest(
     patch?.invoke(projectRootPath)
     val project = this.project
     importProject(project.name, getBaseDirPath(project), null)
+    return buildDump {
+      dump(project)
+    }
+  }
+
+  private fun syncAndDumpProject(): String {
+    requestSyncAndWait()
     return buildDump {
       dump(project)
     }
@@ -172,6 +184,71 @@ abstract class GradleSyncProjectComparisonTest(
       AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
     }
     assertIsEqualToSnapshot(text)
+    val secondSync = syncAndDumpProject()
+    // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
+    assertIsEqualToSnapshot(secondSync, ".second_sync")
+  }
+
+  open fun testPsdDependencyDeleteModule() {
+    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+      val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+      val testRepositoryPath =
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+      val repositories = """
+      maven {
+        name "test"
+        url "file:$testRepositoryPath"
+      }
+      $localRepositories
+      """
+      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+    }
+    assertIsEqualToSnapshot(text, ".before_delete")
+    PsProjectImpl(project).let { projectModel ->
+      projectModel.removeModule(":moduleB")
+      projectModel.applyChanges()
+    }
+    val textAfterDeleting = syncAndDumpProject()
+    // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
+    assertIsEqualToSnapshot(textAfterDeleting, ".after_moduleb_deleted")
+  }
+
+  open fun testPsdDependencyUpgradeLibraryModule() {
+    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+      val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+      val testRepositoryPath =
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+      val repositories = """
+      maven {
+        name "test"
+        url "file:$testRepositoryPath"
+      }
+      $localRepositories
+      """
+      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+    }
+    assertIsEqualToSnapshot(text, ".before_lib_upgrade")
+    PsProjectImpl(project).let { projectModel ->
+      projectModel
+          .findModuleByGradlePath(":modulePlus")!!
+          .dependencies
+          .findLibraryDependencies("com.example.libs", "lib1")
+          .single().version = "1.0".asParsed()
+      projectModel
+          .findModuleByGradlePath(":mainModule")!!
+          .dependencies
+          .findLibraryDependencies("com.example.libs", "lib1")
+          .forEach { it.version = "0.9.1".asParsed() }
+      projectModel
+          .findModuleByGradlePath(":mainModule")!!
+          .dependencies
+          .findLibraryDependencies("com.example.jlib", "lib3")
+          .single().version = "0.9.1".asParsed()
+      projectModel.applyChanges()
+    }
+    val textAfterDeleting = syncAndDumpProject()
+    // TODO(b/124677413): Remove irrelvant changes from the snapshot when the bug is fixed.
+    assertIsEqualToSnapshot(textAfterDeleting, ".after_lib_upgrade")
   }
 
   private fun createEmptyGradleSettingsFile() {
