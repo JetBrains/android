@@ -514,9 +514,6 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     switch (myIconType) {
       case LAUNCHER_LEGACY:
         LauncherLegacyIconGenerator launcherIconGenerator = (LauncherLegacyIconGenerator)myIconGenerator;
-        myGeneralBindings.bind(launcherIconGenerator.useForegroundColor(),
-                               BooleanExpression.create(() -> myAssetType.get() != AssetType.IMAGE, myAssetType));
-        myGeneralBindings.bindTwoWay(launcherIconGenerator.foregroundColor(), myForegroundColor);
         myGeneralBindings.bindTwoWay(launcherIconGenerator.backgroundColor(), myBackgroundColor);
         myGeneralBindings.bindTwoWay(launcherIconGenerator.cropped(), myCropped);
         myGeneralBindings.bindTwoWay(launcherIconGenerator.shape(), myShape);

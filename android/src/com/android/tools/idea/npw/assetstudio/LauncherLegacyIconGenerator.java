@@ -57,8 +57,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   private static final Map<Pair<Shape, Density>, Rectangle> TARGET_RECTS = buildTargetRectangles();
 
-  private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
-  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(DEFAULT_FOREGROUND_COLOR);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final ObjectProperty<Shape> myShape = new ObjectValueProperty<>(DEFAULT_ICON_SHAPE);
   private final BoolProperty myCropped = new BoolValueProperty();
@@ -72,23 +70,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
    */
   public LauncherLegacyIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
     super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
-  }
-
-  /**
-   * Whether to use the foreground color. When using images as the source asset for our icons,
-   * you shouldn't apply the foreground color, which would paint over it and obscure the image.
-   */
-  @NotNull
-  public BoolProperty useForegroundColor() {
-    return myUseForegroundColor;
-  }
-
-  /**
-   * A color for rendering the foreground icon.
-   */
-  @NotNull
-  public ObjectProperty<Color> foregroundColor() {
-    return myForegroundColor;
   }
 
   /**
@@ -130,18 +111,19 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     LauncherLegacyOptions options = new LauncherLegacyOptions(forPreview);
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
-      Color color = myUseForegroundColor.get() ? myForegroundColor.get() : null;
       double paddingFactor = asset.paddingPercent().get() / 100.;
       double scaleFactor = 1. / (1 + paddingFactor * 2);
-      options.image =
-          new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor, color, getGraphicGeneratorContext());
+      options.useForegroundColor = asset.isColorable();
+      Color color = asset.isColorable() ? asset.color().getValueOrNull() : null;
+      if (color != null) {
+        options.foregroundColor = color.getRGB();
+      }
+      options.image = new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor, color, getGraphicGeneratorContext());
     }
 
     options.shape = myShape.get();
     options.crop = myCropped.get();
     options.style = Style.SIMPLE;
-    options.useForegroundColor = myUseForegroundColor.get();
-    options.foregroundColor = myForegroundColor.get().getRGB();
     options.backgroundColor = myBackgroundColor.get().getRGB();
     options.generateWebIcon = true;
     options.isDogEar = myDogEared.get();

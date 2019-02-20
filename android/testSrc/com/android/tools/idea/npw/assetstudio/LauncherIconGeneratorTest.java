@@ -18,10 +18,9 @@ package com.android.tools.idea.npw.assetstudio;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +33,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -120,19 +118,20 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
 
   @NotNull
   private ImageAsset createImageAsset(@NotNull String filename) {
-    ImageAsset asset = new ImageAsset();
-    filename = FileUtil.join(getTestDataPath(), getTestName(true), filename);
-    asset.imagePath().setNullableValue(new File(filename));
-    return asset;
+    return createImageAsset(filename, false);
   }
 
   @NotNull
-  private BaseAsset createClipartAsset(@NotNull String filename) {
-    VectorAsset asset = new VectorAsset();
+  private ImageAsset createClipartAsset(@NotNull String filename) {
+    return createImageAsset(filename, true);
+  }
+
+  @NotNull
+  private ImageAsset createImageAsset(@NotNull String filename, boolean isClipart) {
+    ImageAsset asset = new ImageAsset();
     filename = FileUtil.join(getTestDataPath(), getTestName(true), filename);
-    asset.path().set(new File(filename));
-    asset.outputWidth().set(432);
-    asset.outputHeight().set(432);
+    asset.imagePath().setValue(new File(filename));
+    asset.setClipart(isClipart);
     return asset;
   }
 
@@ -150,7 +149,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       }
       if (filename.endsWith(".xml")) {
         assertEquals("File " + filename + " does not match",
-                     Files.toString(goldenFile, StandardCharsets.UTF_8), ((GeneratedXmlResource)icon).getXmlText());
+                     Files.toString(goldenFile, UTF_8), ((GeneratedXmlResource)icon).getXmlText());
       } else {
         BufferedImage goldenImage = ImageIO.read(goldenFile);
         assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
@@ -175,7 +174,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     myWarnings.add("Golden file " + file.getAbsolutePath() + " didn't exist, created by the test.");
     Files.createParentDirs(file);
     if (icon instanceof GeneratedXmlResource) {
-      try (BufferedWriter writer = Files.newWriter(file, StandardCharsets.UTF_8)) {
+      try (BufferedWriter writer = Files.newWriter(file, UTF_8)) {
         writer.write(((GeneratedXmlResource)icon).getXmlText());
       }
     } else {
@@ -201,38 +200,38 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "res/mipmap-mdpi/ic_launcher.png",
         "res/mipmap-mdpi/ic_launcher_round.png",
         "ic_launcher-web.png"};
-    myIconGenerator.sourceAsset().setNullableValue(createImageAsset("foreground.xml"));
-    myIconGenerator.backgroundImageAsset().setNullableValue(createImageAsset("background.xml"));
+    myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.xml"));
+    myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.xml"));
     checkGeneratedIcons(expectedFilenames);
   }
 
   public void testImageBackgroundAndForeground() throws Exception {
     String[] expectedFilenames = {
-      "res/mipmap-anydpi-v26/ic_launcher.xml",
-      "res/mipmap-anydpi-v26/ic_launcher_round.xml",
-      "res/mipmap-xxxhdpi/ic_launcher.png",
-      "res/mipmap-xxxhdpi/ic_launcher_background.png",
-      "res/mipmap-xxxhdpi/ic_launcher_foreground.png",
-      "res/mipmap-xxxhdpi/ic_launcher_round.png",
-      "res/mipmap-xxhdpi/ic_launcher.png",
-      "res/mipmap-xxhdpi/ic_launcher_background.png",
-      "res/mipmap-xxhdpi/ic_launcher_foreground.png",
-      "res/mipmap-xxhdpi/ic_launcher_round.png",
-      "res/mipmap-xhdpi/ic_launcher.png",
-      "res/mipmap-xhdpi/ic_launcher_background.png",
-      "res/mipmap-xhdpi/ic_launcher_foreground.png",
-      "res/mipmap-xhdpi/ic_launcher_round.png",
-      "res/mipmap-hdpi/ic_launcher.png",
-      "res/mipmap-hdpi/ic_launcher_background.png",
-      "res/mipmap-hdpi/ic_launcher_foreground.png",
-      "res/mipmap-hdpi/ic_launcher_round.png",
-      "res/mipmap-mdpi/ic_launcher.png",
-      "res/mipmap-mdpi/ic_launcher_background.png",
-      "res/mipmap-mdpi/ic_launcher_foreground.png",
-      "res/mipmap-mdpi/ic_launcher_round.png",
-      "ic_launcher-web.png"};
-    myIconGenerator.sourceAsset().setNullableValue(createImageAsset("foreground.png"));
-    myIconGenerator.backgroundImageAsset().setNullableValue(createImageAsset("background.png"));
+        "res/mipmap-anydpi-v26/ic_launcher.xml",
+        "res/mipmap-anydpi-v26/ic_launcher_round.xml",
+        "res/mipmap-xxxhdpi/ic_launcher.png",
+        "res/mipmap-xxxhdpi/ic_launcher_background.png",
+        "res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+        "res/mipmap-xxxhdpi/ic_launcher_round.png",
+        "res/mipmap-xxhdpi/ic_launcher.png",
+        "res/mipmap-xxhdpi/ic_launcher_background.png",
+        "res/mipmap-xxhdpi/ic_launcher_foreground.png",
+        "res/mipmap-xxhdpi/ic_launcher_round.png",
+        "res/mipmap-xhdpi/ic_launcher.png",
+        "res/mipmap-xhdpi/ic_launcher_background.png",
+        "res/mipmap-xhdpi/ic_launcher_foreground.png",
+        "res/mipmap-xhdpi/ic_launcher_round.png",
+        "res/mipmap-hdpi/ic_launcher.png",
+        "res/mipmap-hdpi/ic_launcher_background.png",
+        "res/mipmap-hdpi/ic_launcher_foreground.png",
+        "res/mipmap-hdpi/ic_launcher_round.png",
+        "res/mipmap-mdpi/ic_launcher.png",
+        "res/mipmap-mdpi/ic_launcher_background.png",
+        "res/mipmap-mdpi/ic_launcher_foreground.png",
+        "res/mipmap-mdpi/ic_launcher_round.png",
+        "ic_launcher-web.png"};
+    myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.png"));
+    myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.png"));
     checkGeneratedIcons(expectedFilenames);
   }
 
@@ -240,19 +239,17 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     String[] expectedFilenames = {
         "res/mipmap-anydpi-v26/ic_launcher.xml",
         "res/mipmap-anydpi-v26/ic_launcher_round.xml",
+        "res/drawable/ic_launcher_foreground.xml",
         "res/mipmap-xxxhdpi/ic_launcher.png",
-        "res/mipmap-xxxhdpi/ic_launcher_foreground.png",
         "res/mipmap-xxhdpi/ic_launcher.png",
-        "res/mipmap-xxhdpi/ic_launcher_foreground.png",
         "res/mipmap-xhdpi/ic_launcher.png",
-        "res/mipmap-xhdpi/ic_launcher_foreground.png",
         "res/mipmap-hdpi/ic_launcher.png",
-        "res/mipmap-hdpi/ic_launcher_foreground.png",
         "res/mipmap-mdpi/ic_launcher.png",
-        "res/mipmap-mdpi/ic_launcher_foreground.png",
         "res/values/ic_launcher_background.xml",
         "ic_launcher-web.png"};
-    myIconGenerator.sourceAsset().setNullableValue(createClipartAsset("ic_android_black_24dp.xml"));
+    ImageAsset asset = createClipartAsset("ic_android_black_24dp.xml");
+    asset.color().setValue(new Color(0xA4C639)); // Android green.
+    myIconGenerator.sourceAsset().setValue(asset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
     //noinspection UseJBColor
     myIconGenerator.backgroundColor().set(new Color(0x26A69A));
