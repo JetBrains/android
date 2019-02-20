@@ -10,8 +10,6 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
@@ -25,7 +23,6 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
@@ -289,17 +286,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    LaunchTasksProviderFactory providerFactory = new LaunchTasksProviderFactory() {
-      @NotNull
-      @Override
-      public LaunchTasksProvider get() {
-        return new AndroidLaunchTasksProvider(AndroidRunConfigurationBase.this, env, facet, applicationIdProvider,
-                                              getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices()),
-                                              launchOptions.build());
-      }
-    };
+    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices());
+    AndroidLaunchTasksProvider launchTasksProvider =
+      new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
-    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory);
+    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, launchTasksProvider);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
