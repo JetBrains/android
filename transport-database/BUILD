@@ -34,7 +34,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:sqlite",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/native-symbolizer[module]",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
         "//tools/idea/.idea/libraries:protobuf",

@@ -58,6 +58,9 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
                        pid = command.pid
                        startTimestampEpochMs = command.beginSession.requestTimeEpochMs
                        sessionName = command.beginSession.sessionName
+                       processAbi = command.beginSession.processAbi
+                       jvmtiEnabled = attachAgentCalled
+                       liveAllocationEnabled = command.beginSession.jvmtiConfig.liveAllocationEnabled
                        type = Common.SessionData.SessionStarted.SessionType.FULL
                      }.build()
                    }.build()
