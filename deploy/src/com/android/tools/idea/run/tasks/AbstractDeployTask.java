@@ -59,7 +59,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
-  @NotNull private List<LaunchTaskDetail> mySubTaskDetails;
+  @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
 
   private static final String APPLY_CHANGES_LINK = "apply_changes";
   private static final String RERUN_LINK = "rerun";

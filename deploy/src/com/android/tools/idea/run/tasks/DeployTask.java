@@ -18,8 +18,10 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.InstallMetric;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -81,7 +83,18 @@ public class DeployTask extends AbstractDeployTask {
     if (StudioFlags.DELTA_INSTALL.get()) {
         installMode = Deployer.InstallMode.DELTA;
     }
-    deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+
+    List<InstallMetric> metrics = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+    for(InstallMetric metric : metrics) {
+      LaunchTaskDetail detail = LaunchTaskDetail.newBuilder()
+        .setId(getId() + "." + metric.getName())
+        .setStartTimestampMs(metric.getStartTimeMs())
+        .setEndTimestampMs(metric.getEndTimeMs())
+        .setStatus(metric.getStatus())
+        .setTid((int)metric.getThreadId())
+        .build();
+      mySubTaskDetails.add(detail);
+    }
   }
 
   @NotNull
