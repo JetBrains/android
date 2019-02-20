@@ -483,38 +483,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return myProfilerState;
   }
 
-  private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {
-    public static final String PROMPT_KEY = "android.show.prompt.kill.session";
-    private boolean myShow = PropertiesComponent.getInstance().getBoolean(PROMPT_KEY, false);
-
-    @Override
-    public boolean isToBeShown() {
-      return !myShow;
-    }
-
-    @Override
-    public void setToBeShown(boolean toBeShown, int exitCode) {
-      myShow = !toBeShown;
-      PropertiesComponent.getInstance().setValue(PROMPT_KEY, myShow);
-    }
-
-    @Override
-    public boolean canBeHidden() {
-      return true;
-    }
-
-    @Override
-    public boolean shouldSaveOptionsOnCancel() {
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getDoNotShowMessage() {
-      return "Do not ask again";
-    }
-  }
-
   private static class DefaultPostBuildModelProvider implements PostBuildModelProvider {
     @Nullable
     @Transient
