@@ -77,11 +77,19 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
   }
 
   /**
-   * A color to use when rendering this image. Not all asset types are affected by this color.
+   * A color to use when rendering this image if {@link #isColorable()} returns true.
    */
   @NotNull
   public OptionalValueProperty<Color> color() {
     return myColor;
+  }
+
+  /**
+   * Returns true is the color returned by {@link #color()} should be used when rendering this image.
+   * Subclasses may override.
+   */
+  public boolean isColorable() {
+    return true;
   }
 
   @NotNull

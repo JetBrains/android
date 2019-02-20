@@ -24,13 +24,12 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Unit tests for {@link LauncherLegacyIconGenerator} class.
+ * Unit tests for the {@link LauncherLegacyIconGenerator} class.
  */
 public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
   private void checkGraphic(@NotNull SourceType sourceType) throws IOException {
     LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(getProject(), 15, null);
     disposeOnTearDown(generator);
-    generator.useForegroundColor().set(false);
     generator.shape().set(IconGenerator.Shape.CIRCLE);
     generator.backgroundColor().set(new Color(0xFFFF00));
     List<String> expectedFolders = ImmutableList.of("", "mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
@@ -43,5 +42,9 @@ public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
 
   public void testSvgCircle() throws Exception {
     checkGraphic(SourceType.SVG);
+  }
+
+  public void testClipart() throws Exception {
+    checkGraphic(SourceType.CLIPART);
   }
 }
