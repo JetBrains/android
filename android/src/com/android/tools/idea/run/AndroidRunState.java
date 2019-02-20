@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -40,7 +39,7 @@ public class AndroidRunState implements RunProfileState {
   @NotNull private final ApplicationIdProvider myApplicationIdProvider;
   @NotNull private final ConsoleProvider myConsoleProvider;
   @NotNull private final DeviceFutures myDeviceFutures;
-  @NotNull private final LaunchTasksProviderFactory myLaunchTasksProviderFactory;
+  @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
   @Nullable private final ProcessHandler myPreviousSessionProcessHandler;
 
   public AndroidRunState(@NotNull ExecutionEnvironment env,
@@ -49,14 +48,14 @@ public class AndroidRunState implements RunProfileState {
                          @NotNull ApplicationIdProvider applicationIdProvider,
                          @NotNull ConsoleProvider consoleProvider,
                          @NotNull DeviceFutures deviceFutures,
-                         @NotNull LaunchTasksProviderFactory launchTasksProviderFactory) {
+                         @NotNull AndroidLaunchTasksProvider launchTasksProvider) {
     myEnv = env;
     myLaunchConfigName = launchConfigName;
     myModule = module;
     myApplicationIdProvider = applicationIdProvider;
     myConsoleProvider = consoleProvider;
     myDeviceFutures = deviceFutures;
-    myLaunchTasksProviderFactory = launchTasksProviderFactory;
+    myLaunchTasksProvider = launchTasksProvider;
 
     RunnerAndConfigurationSettings runnerAndSettings = env.getRunnerAndConfigurationSettings();
     assert runnerAndSettings != null;
@@ -84,9 +83,7 @@ public class AndroidRunState implements RunProfileState {
 
     stats.setPackage(applicationId);
 
-    LaunchTasksProvider launchTasksProvider = myLaunchTasksProviderFactory.get();
-
-    if (launchTasksProvider.createsNewProcess()) {
+    if (myLaunchTasksProvider.createsNewProcess()) {
       // In the case of cold swap, there is an existing process that is connected, but we are going to launch a new one.
       // Detach the previous process handler so that we don't end up with 2 run tabs for the same launch (the existing one
       // and the new one).
@@ -96,7 +93,7 @@ public class AndroidRunState implements RunProfileState {
 
       processHandler = new AndroidProcessHandler.Builder(myEnv.getProject())
         .setApplicationId(applicationId)
-        .monitorRemoteProcesses(launchTasksProvider.monitorRemoteProcess())
+        .monitorRemoteProcesses(myLaunchTasksProvider.monitorRemoteProcess())
         .build();
       console = attachConsole(processHandler, executor);
     } else {
@@ -112,7 +109,7 @@ public class AndroidRunState implements RunProfileState {
                                                  launchInfo,
                                                  processHandler,
                                                  myDeviceFutures,
-                                                 launchTasksProvider,
+                                                 myLaunchTasksProvider,
                                                  stats);
     ProgressManager.getInstance().run(task);
     return console == null ? null : new DefaultExecutionResult(console, processHandler);
