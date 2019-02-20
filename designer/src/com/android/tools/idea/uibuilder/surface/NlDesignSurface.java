@@ -343,7 +343,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public float getScreenScalingFactor() {
-    return (SystemInfo.isMac && UIUtil.isRetina()) ? 2f : 1f;
+    return JBUI.sysScale();
   }
 
   @NotNull
