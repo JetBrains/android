@@ -104,10 +104,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     ResourceFolderType resourceType = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file);
     if (resourceType != null) {
       if (ourSupportedResourceTypes == null) {
-        EnumSet<ResourceFolderType> almostAll = EnumSet.allOf(ResourceFolderType.class);
-        almostAll.remove(ResourceFolderType.INTERPOLATOR);
-        almostAll.remove(ResourceFolderType.VALUES);
-        ourSupportedResourceTypes = almostAll;
+        ourSupportedResourceTypes = EnumSet.complementOf(EnumSet.of(ResourceFolderType.INTERPOLATOR, ResourceFolderType.VALUES));
       }
       // Raw resource files should accept any tag values
       if (!ourSupportedResourceTypes.contains(resourceType) || ResourceFolderType.RAW == resourceType) {
