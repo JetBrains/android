@@ -23,9 +23,4 @@ public class ColorGradientDomFileDescription extends AbstractSingleRootFileDescr
   public ColorGradientDomFileDescription() {
     super(GradientColor.class, "gradient", ResourceFolderType.COLOR);
   }
-
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return false;
-  }
 }
