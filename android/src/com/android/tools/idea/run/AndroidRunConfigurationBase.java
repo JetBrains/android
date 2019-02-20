@@ -232,7 +232,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     stats.setDebuggable(LaunchUtils.canDebugApp(facet));
     stats.setExecutor(executor.getId());
-    stats.setApplyChanges(false);
 
     updateExtraRunStats(stats);
 
