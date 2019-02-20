@@ -61,9 +61,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
 
-  private static final String APPLY_CHANGES_LINK = "apply_changes";
-  private static final String RERUN_LINK = "rerun";
-
+  private static final String FAILURE_TITLE = "Changes were not applied.\n";
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
@@ -151,41 +149,51 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   public LaunchResult toLaunchResult(DeployerException e) {
-    String title = getDescription() + " failed.\n";
 
     LaunchResult result = new LaunchResult();
     result.setSuccess(false);
-    StringBuilder links = new StringBuilder();
-    // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
-    if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(e.getError())) {
-      links.append("<a href='" + APPLY_CHANGES_LINK + "'>Apply Changes</a>");
-      links.append(" | ");
+
+    StringBuilder bubbleError = new StringBuilder(FAILURE_TITLE);
+    bubbleError.append(e.getMessage());
+
+    DeployerException.Error error = e.getError();
+    if (error.getResolution() != DeployerException.ResolutionAction.NONE) {
+      bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
     }
-    links.append("<a href='" + RERUN_LINK + "'>Rerun</a>");
 
-    result.setError(title + e.getMessage() + "\n" + links.toString());
-
-    result.setConsoleError(title + e.getMessage() + "\n" + e.getDetails());
+    result.setError(bubbleError.toString());
+    result.setConsoleError(FAILURE_TITLE + e.getMessage() + "\n" + e.getDetails());
 
     result.setNotificationListener(new DeploymentErrorNotificationListener());
     result.setErrorId(e.getId());
     return result;
   }
 
-  private static class DeploymentErrorNotificationListener implements NotificationListener {
+  private class DeploymentErrorNotificationListener implements NotificationListener {
     @Override
     public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
       if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
         return;
       }
       ActionManager manager = ActionManager.getInstance();
+
+      DeployerException.ResolutionAction resolution = DeployerException.ResolutionAction.NONE;
+      try {
+        resolution = DeployerException.ResolutionAction.valueOf(event.getDescription());
+      } catch (IllegalArgumentException e) {
+        // Ignore it.
+      }
+
       String actionId = null;
-      switch (event.getDescription()) {
-        case APPLY_CHANGES_LINK: // TODO
+      switch (resolution) {
+        case APPLY_CHANGES: // TODO
           actionId = ApplyChangesAction.ID;
           break;
-        case RERUN_LINK:
+        case RUN_APP:
           actionId = IdeActions.ACTION_DEFAULT_RUNNER;
+          break;
+        case RETRY:
+          actionId = getId();
           break;
       }
       if (actionId == null) {

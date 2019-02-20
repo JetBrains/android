@@ -63,8 +63,8 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
     }
 
     if (!device.getVersion().isGreaterOrEqualThan(28)) {
-      throw new DeployerException(DeployerException.Error.OPERATION_NOT_SUPPORTED, "Cannot perform Apply Code Change while debugging for " +
-                                                                                   "API 27 or below. Please upgrade Android version.");
+      throw DeployerException.operationNotSupported(
+        "Cannot perform Apply Code Change while debugging for API 27 or below. Please upgrade Android version.");
     }
 
     ClassRedefiner debugRedefiner = new DebuggerRedefiner(project);
