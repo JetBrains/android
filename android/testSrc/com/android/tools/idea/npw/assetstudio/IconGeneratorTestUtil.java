@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 import static org.junit.Assert.fail;
 
@@ -24,20 +25,26 @@ import com.android.ide.common.util.PathString;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.StreamUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
  * Shared test infrastructure for bitmap generator.
  */
 public final class IconGeneratorTestUtil {
-  public enum SourceType { PNG, SVG }
+  public enum SourceType { CLIPART, PNG, SVG }
 
   static void checkGraphic(@NotNull IconGenerator generator,
                            @NotNull SourceType sourceType,
@@ -57,11 +64,19 @@ public final class IconGeneratorTestUtil {
                            int paddingPercent,
                            @NotNull List<String> expectedFolders,
                            @NotNull String golderFileFolderName) throws IOException {
+    ImageAsset imageAsset = new ImageAsset();
+    if (sourceType == SourceType.CLIPART) {
+      imageAsset.setClipart(true);
+      imageAsset.color().setValue(new Color(0xA4C639));  // Android green.
+    }
     File sourceFile = getSourceFile(sourceType);
+    imageAsset.imagePath().setValue(sourceFile);
+    imageAsset.paddingPercent().set(paddingPercent);
+
     try {
-      checkGraphic(generator, sourceFile, baseName, paddingPercent, expectedFolders, golderFileFolderName);
+      checkGraphic(generator, imageAsset, baseName, expectedFolders, golderFileFolderName);
     } finally {
-      if (sourceType == SourceType.PNG) {
+      if (sourceType != SourceType.SVG) {
         // Delete the temporary PNG file created by the test.
         //noinspection ResultOfMethodCallIgnored
         sourceFile.delete();
@@ -70,14 +85,10 @@ public final class IconGeneratorTestUtil {
   }
 
   private static void checkGraphic(@NotNull IconGenerator generator,
-                                   @NotNull File sourceFile,
+                                   @NotNull ImageAsset imageAsset,
                                    @NotNull String baseName,
-                                   int paddingPercent,
                                    @NotNull List<String> expectedFolders,
                                    @NotNull String golderFileFolderName) throws IOException {
-    ImageAsset imageAsset = new ImageAsset();
-    imageAsset.imagePath().setValue(sourceFile);
-    imageAsset.paddingPercent().set(paddingPercent);
     generator.sourceAsset().setValue(imageAsset);
     generator.outputName().set(baseName);
     IconGenerator.Options options = generator.createOptions(false);
@@ -92,7 +103,7 @@ public final class IconGeneratorTestUtil {
 
       String testDataDir = getTestDataPath();
       File goldenFile = Paths.get(testDataDir,"images", golderFileFolderName, relativePath.getNativePath()).toFile();
-      try (InputStream is = new FileInputStream(goldenFile)) {
+      try (InputStream is = new BufferedInputStream(new FileInputStream(goldenFile))) {
         if (generatedIcon instanceof GeneratedImageIcon) {
           BufferedImage image = ((GeneratedImageIcon)generatedIcon).getImage();
           BufferedImage goldenImage = ImageIO.read(is);
@@ -102,7 +113,7 @@ public final class IconGeneratorTestUtil {
         }
         else if (generatedIcon instanceof GeneratedXmlResource) {
           String text = ((GeneratedXmlResource)generatedIcon).getXmlText();
-          String goldenText = CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
+          String goldenText = CharStreams.toString(new InputStreamReader(is, UTF_8));
           assertThat(text.replace("\r\n", "\n")).isEqualTo(goldenText.replace("\r\n", "\n"));
         }
 
@@ -127,13 +138,22 @@ public final class IconGeneratorTestUtil {
   @NotNull
   private static File getSourceFile(@NotNull SourceType sourceType) throws IOException {
     switch (sourceType) {
-      case PNG:
+      case CLIPART:
+        VirtualFile inputFile = VfsUtil.findFileByURL(MaterialDesignIcons.getDefaultIcon());
+        File file = FileUtil.createTempFile("clipart", ".xml");
+        try (InputStream input = inputFile.getInputStream(); OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
+          StreamUtil.copyStreamContent(input, output);
+        }
+        return file;
+
+      case PNG: {
         VdIcon androidIcon = new VdIcon(MaterialDesignIcons.getDefaultIcon());
         BufferedImage sourceImage = androidIcon.renderIcon(512, 512);
         File pngFile = FileUtil.createTempFile("android", ".png");
         BufferedImage coloredImage = AssetUtil.filledImage(sourceImage, new Color(0xA4C639));
         ImageIO.write(coloredImage, "PNG", pngFile);
         return pngFile;
+      }
 
       case SVG:
         return new File(getTestDataPath(), "images/svg/android.svg");
@@ -154,12 +174,14 @@ public final class IconGeneratorTestUtil {
     assert !goldenFile.exists();
     //noinspection ResultOfMethodCallIgnored
     goldenFile.getParentFile().mkdirs();
-    Files.write(goldenText, goldenFile, StandardCharsets.UTF_8);
+    Files.write(goldenFile.toPath(), ImmutableList.of(goldenText), UTF_8);
   }
 
   @SuppressWarnings("SameParameterValue")
-  private static void assertImageSimilar(PathString imagePath, BufferedImage goldenImage, BufferedImage image, double maxPercentDifferent)
-      throws IOException {
+  private static void assertImageSimilar(@NotNull PathString imagePath,
+                                         @NotNull BufferedImage goldenImage,
+                                         @NotNull BufferedImage image,
+                                         double maxPercentDifferent) throws IOException {
     assertThat(Math.abs(goldenImage.getWidth() - image.getWidth()))
         .named("difference in " + imagePath + " width")
         .isLessThan(2);
@@ -222,13 +244,12 @@ public final class IconGeneratorTestUtil {
       }
     }
 
-    // 3 different colors, 256 color levels
+    // 3 different colors, 256 color levels.
     long total = imageHeight * imageWidth * 3L * 256L;
     float percentDifference = (float) (delta * 100 / (double) total);
 
     if (percentDifference > maxPercentDifferent) {
-      // Expected on the left
-      // Golden on the right
+      // Expected on the left, golden on the right.
       g.drawImage(goldenImage, 0, 0, null);
       g.drawImage(image, 2 * imageWidth, 0, null);
 
@@ -254,10 +275,10 @@ public final class IconGeneratorTestUtil {
 
   private static File getTempDir() {
     if (System.getProperty("os.name").equals("Mac OS X")) {
-      return new File("/tmp"); //$NON-NLS-1$
+      return new File("/tmp");
     }
 
-    return new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
+    return new File(System.getProperty("java.io.tmpdir"));
   }
 
   private IconGeneratorTestUtil() {}

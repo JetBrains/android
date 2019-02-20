@@ -284,7 +284,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   @NotNull private final BoolProperty myShowGrid;
   @NotNull private final BoolProperty myShowSafeZone;
   @NotNull private final AbstractProperty<Density> myPreviewDensity;
-  private BoolProperty myIgnoreForegroundColor;
   private AbstractProperty<Color> myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myForegroundTrimmed;
@@ -399,7 +398,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
                                                               myForegroundTextRadioButton);
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
     myForegroundImageAssetBrowser.getAsset().setRole("a foreground image file");
-    myForegroundColorPanel.setSelectedColor(myIconGenerator.foregroundColor().get());
+    myForegroundColorPanel.setSelectedColor(LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR);
 
     myBackgroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_BACKGROUND_ASSET_TYPE, BackgroundAssetType.values(),
                                                               myBackgroundImageRadioButton, myBackgroundColorRadioButton);
@@ -499,7 +498,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     StringProperty backgroundResizeValueString = new TextProperty(myBackgroundResizeValueLabel);
     myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
 
-    myIgnoreForegroundColor = new SelectedProperty(myForegroundImageRadioButton);
     myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
@@ -728,8 +726,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundImageAsset(), myBackgroundImageAsset);
 
-    myGeneralBindings.bind(myIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
-    myGeneralBindings.bindTwoWay(myForegroundColor, myIconGenerator.foregroundColor());
     myGeneralBindings.bindTwoWay(myBackgroundColor, myIconGenerator.backgroundColor());
     myGeneralBindings.bindTwoWay(myGenerateLegacyIcon, myIconGenerator.generateLegacyIcon());
     myGeneralBindings.bindTwoWay(myGenerateRoundIcon, myIconGenerator.generateRoundIcon());
