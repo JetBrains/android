@@ -79,13 +79,12 @@ public class ProjectStructure {
     Queue<Module> appModules = new ConcurrentLinkedQueue<>();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<Module> modules = Arrays.asList(moduleManager.getModules());
-    Queue<Module> leafModules = new ConcurrentLinkedQueue<>(modules);
+    Module[] modules = moduleManager.getModules();
+    Queue<Module> leafModules = new ConcurrentLinkedQueue<>(Arrays.asList(modules));
 
     ModuleFinder moduleFinder = new ModuleFinder(myProject);
 
-    JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
+    for (Module module : modules) {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
@@ -104,7 +103,6 @@ public class ProjectStructure {
             // Remove module not "buildable" from "leaf" modules.
             leafModules.remove(module);
           }
-          return true;
         }
         ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
         // Remove all dependencies, except 'app' or 'dynamic-feature' modules
@@ -114,8 +112,7 @@ public class ProjectStructure {
         // Remove non-Gradle modules from "leaf" modules.
         leafModules.remove(module);
       }
-      return true;
-    });
+    }
 
     synchronized (myLock) {
       myPluginVersionsInProject.copy(pluginVersionsInProject);
