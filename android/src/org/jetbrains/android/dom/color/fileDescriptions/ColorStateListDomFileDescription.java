@@ -26,9 +26,4 @@ public class ColorStateListDomFileDescription extends AbstractSingleRootFileDesc
   public ColorStateListDomFileDescription() {
     super(ColorSelector.class, "selector", ResourceFolderType.COLOR);
   }
-
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return false;
-  }
 }
