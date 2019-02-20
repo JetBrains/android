@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.sessions
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
@@ -25,6 +26,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilers.buildSessionName
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
@@ -134,6 +136,33 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
     assertThat(myObserver.profilingSessionChangedCount).isEqualTo(1)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testValidSessionMetadata() {
+    val streamId = 1L
+    val processId = 10
+    ideProfilerServices.enableLiveAllocationTracking(true)
+    val device = Common.Device.newBuilder().apply {
+      deviceId = streamId
+      state = Common.Device.State.ONLINE
+      featureLevel = AndroidVersion.VersionCodes.O
+    }.build()
+    val process = Common.Process.newBuilder().apply {
+      pid = processId
+      state = Common.Process.State.ALIVE
+      abiCpuArch = "arm64"
+    }.build()
+    beginSessionHelper(device, process)
+
+    val session = myManager.selectedSession
+    val sessionMetadata = myManager.selectedSessionMetaData
+    assertThat(sessionMetadata.sessionId).isEqualTo(session.sessionId)
+    assertThat(sessionMetadata.sessionName).isEqualTo(buildSessionName(device, process))
+    assertThat(sessionMetadata.type).isEqualTo(Common.SessionMetaData.SessionType.FULL)
+    assertThat(sessionMetadata.processAbi).isEqualTo("arm64")
+    assertThat(sessionMetadata.jvmtiEnabled).isTrue()
+    assertThat(sessionMetadata.liveAllocationEnabled).isTrue()
   }
 
   @Test
