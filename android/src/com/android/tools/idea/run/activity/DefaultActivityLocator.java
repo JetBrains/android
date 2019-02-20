@@ -77,12 +77,28 @@ public class DefaultActivityLocator extends ActivityLocator {
   /** Note: this requires indices to be ready, and may take a while to return if indexing is in progress. */
   @Nullable
   @VisibleForTesting
-  static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
+  static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device, boolean useCachedManifest) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
-    final MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
+
+    // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
+    // This workaround avoids calculating the MergedManifest on the UI thread.
+    final MergedManifestSnapshot mergedManifest = useCachedManifest ?
+                                                  MergedManifestManager.getCachedSnapshot(facet) :
+                                                  MergedManifestManager.getSnapshot(facet);
+
+    if (mergedManifest == null) {
+      return null;
+    }
 
     return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(
       () -> computeDefaultActivity(ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases()), device));
+  }
+
+  /** Note: this requires indices to be ready, and may take a while to return if indexing is in progress. */
+  @Nullable
+  @VisibleForTesting
+  private static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
+    return computeDefaultActivity(facet, device, ApplicationManager.getApplication().isDispatchThread());
   }
 
   @Nullable
