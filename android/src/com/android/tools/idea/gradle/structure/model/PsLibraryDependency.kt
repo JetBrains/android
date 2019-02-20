@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
@@ -29,6 +30,7 @@ interface PsLibraryDependency : PsBaseDependency {
 }
 
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
+  var version: ParsedValue<String>
   val versionProperty: ModelSimpleProperty<Unit, String>
 }
 
