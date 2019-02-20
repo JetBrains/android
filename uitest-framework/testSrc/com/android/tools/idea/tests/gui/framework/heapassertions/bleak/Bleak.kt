@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.io.PrintStream
 import java.util.IdentityHashMap
@@ -98,28 +99,31 @@ private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
     g2.propagateGrowing(finalGraph)
 
     log("Found ${finalGraph.leakRoots.size} leak roots")
-    for ((leakRoot, leakShare) in finalGraph.rankLeakRoots()) {
-      val signature = leakRoot.getPath().signature()
-      if (!signature.isWhitelisted()) {
-        log("Root with leakShare $leakShare:")
-        log(leakRoot.getPath().verboseSignature().joinToString(separator = "\n  ", prefix = "  "))
+    val errorMessage = buildString {
+      for ((leakRoot, leakShare) in finalGraph.rankLeakRoots().filterNot { it.first.getPath().signature().isWhitelisted() }) {
+        appendln("Root with leakShare $leakShare:")
+        appendln(leakRoot.getPath().verboseSignature().joinToString(separator = "\n  ", prefix = "  "))
         val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
         if (prevLeakRoot != null) {
           val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)
           prevChildrenObjects.putAll(prevLeakRoot.children.map { it.obj to it.obj })  // use map as a set
           leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }.take(20).forEach {
             try {
-              log("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
-            } catch (e: NullPointerException) {
-              log("    Added object: ${it.type.name} [NPE in toString]")
+              appendln("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
+            }
+            catch (e: NullPointerException) {
+              appendln("    Added object: ${it.type.name} [NPE in toString]")
             }
           }
         }
         else {
-          log("Warning: path and object have both changed between penultimate and final snapshots for this root")
+          appendln("Warning: path and object have both changed between penultimate and final snapshots for this root")
         }
-        log("--------------------------------")
+        appendln("--------------------------------")
       }
+    }
+    if (errorMessage.isNotEmpty()) {
+      throw MemoryLeakDetectedError(errorMessage)
     }
   }
 }
