@@ -37,6 +37,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.event.KeyEvent
+import java.util.concurrent.TimeUnit
 
 /**
  * UI test for "Adding new QR scanning feature to existing app" CUJ
@@ -46,7 +47,7 @@ class QrScanningCujTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest: GuiTestRule = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @Rule
   @JvmField
