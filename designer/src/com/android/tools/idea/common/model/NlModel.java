@@ -30,8 +30,8 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
@@ -80,7 +80,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -998,8 +997,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     );
   }
 
-  @Nullable
-  private Unit addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
+  private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
                                           @NotNull NlComponent receiver,
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
@@ -1016,7 +1014,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       notifyModified(ChangeType.ADD_COMPONENTS);
     });
-    return null;
   }
 
   @NotNull
