@@ -17,6 +17,7 @@ package com.android.tools.idea.run.activity;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.model.MergedManifestManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 
@@ -38,14 +39,14 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 
   public void testActivityAlias() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
@@ -54,7 +55,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_DEFAULT + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 
   // tests that when there are multiple launcher activities, then we pick the leanback launcher for a TV device
@@ -69,11 +70,11 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
     IDevice tv = mock(IDevice.class);
     when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(true);
-    assertEquals("com.example.unittest.TvLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, tv));
+    assertEquals("com.example.unittest.TvLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, tv, false));
 
     IDevice device = mock(IDevice.class);
     when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(false);
-    assertEquals("com.example.unittest.DefaultLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, device));
+    assertEquals("com.example.unittest.DefaultLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, device, false));
   }
 
   // tests that when there are multiple launcher activities, we exclude the ones with android:enabled="false"
@@ -81,7 +82,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LaunchActivity", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+    assertEquals("LaunchActivity", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
 
     // make sure that the dom based approach to getting values works as well
     final Manifest manifest = myFacet.getManifest();
@@ -91,6 +92,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   public void testLauncherActivityIntent() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertNull("No launchable activity registration is present in the manifest, but one was detected",
-               DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+               DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 }
