@@ -412,7 +412,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       .setModuleName(SYSTEM_NATIVE_MODULE)
       .setSymbolName("system_symbol_name()")
       .setFileName("/path/android.cc")
-      .setAddress(NATIVE_ADDRESSES_BASE)
+      // Set address as base - 1 to avoid conflicting with the addresses used in createBacktrace above.
+      .setAddress(NATIVE_ADDRESSES_BASE - 1)
       .setLineNumber(1)
       .setModuleOffset(NATIVE_ADDRESSES_BASE);
 

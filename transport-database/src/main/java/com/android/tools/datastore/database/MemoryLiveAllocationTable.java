@@ -15,15 +15,55 @@
  */
 package com.android.tools.datastore.database;
 
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.COUNT_ALLOC;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.COUNT_JNI_REF_RECORDS;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_ALLOC;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_CLASS;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_ENCODED_STACK;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_JNI_REF;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_METHOD;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_NATIVE_FRAME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_OR_REPLACE_ALLOCATION_SAMPLING_RATE_EVENT;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.INSERT_THREAD_INFO;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.PRUNE_ALLOC;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.PRUNE_JNI_REF_RECORDS;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_ALLOCATION_SAMPLING_RATE_EVENTS_BY_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_ALLOC_BY_ALLOC_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_ALLOC_BY_FREE_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_CLASS;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_ENCODED_STACK_INFO_BY_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_JNI_REF_CREATE_EVENTS;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_JNI_REF_DELETE_EVENTS;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_LATEST_ALLOC_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_LATEST_FREE_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_METHOD_INFO;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_NATIVE_FRAME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_SNAPSHOT;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.QUERY_THREAD_INFO_BY_TIME;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.UPDATE_ALLOC;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.UPDATE_JNI_REF;
+import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.values;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.LogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.EncodedAllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryMap;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeBacktrace;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ThreadInfo;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import gnu.trove.TLongHashSet;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,8 +72,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocationTable.MemoryStatements> {
   @NotNull private final LogService myLogService;
@@ -104,14 +143,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       "WHERE Session = ? AND AllocTime >= ? AND AllocTime <= ? AND FreeTime >= ? AND FreeTime <= ? " +
       "ORDER BY FreeTime"),
 
-    INSERT_NATIVE_FRAME("INSERT OR IGNORE INTO Memory_NativeFrames (Session, Address, Offset, Module, Symbolized) " +
-                        "VALUES (?, ?, ?, ?, 0)"),
-    UPDATE_NATIVE_FRAME("UPDATE Memory_NativeFrames SET NativeFrame = ?, Symbolized = 1 WHERE Session = ? AND Address = ?"),
-    QUERY_NATIVE_FRAME("SELECT NativeFrame FROM Memory_NativeFrames " +
-                       "WHERE (Session = ?) AND (Address = ?)"),
-    QUERY_NATIVE_FRAMES_TO_SYMBOLIZE("SELECT Address, Offset, Module FROM Memory_NativeFrames " +
-                                     "WHERE (Session = ?) AND Symbolized = 0 " +
-                                     "LIMIT ?"),
+    INSERT_NATIVE_FRAME("INSERT OR IGNORE INTO Memory_NativeFrames (Session, Address, Offset, Module) VALUES (?, ?, ?, ?)"),
+    QUERY_NATIVE_FRAME("SELECT Offset, Module FROM Memory_NativeFrames WHERE (Session = ?) AND (Address = ?)"),
 
     INSERT_OR_REPLACE_ALLOCATION_SAMPLING_RATE_EVENT(
       "INSERT OR REPLACE INTO Memory_AllocationSamplingRateEvent (Session, Timestamp, Data) VALUES (?, ?, ?)"),
@@ -162,8 +195,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       createTable("Memory_ThreadInfos", "Session INTEGER NOT NULL", "ThreadId INTEGER", "AllocTime INTEGER",
                   "ThreadName TEXT", "PRIMARY KEY(Session, ThreadId)");
       createTable("Memory_NativeFrames", "Session INTEGER NOT NULL", "Address INTEGER NOT NULL",
-                  "Symbolized INTEGER NOT NULL", "Offset INTEGER", "Module TEXT",
-                  "NativeFrame BLOB", "PRIMARY KEY(Session, Address)");
+                  "Offset INTEGER", "Module TEXT", "PRIMARY KEY(Session, Address)");
       createTable("Memory_JniGlobalReferences", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "RefValue INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "AllocThreadId INTEGER", "FreeThreadId INTEGER",
                   "AllocBacktrace BLOB", "FreeBacktrace BLOB", "PRIMARY KEY(Session, Tag, RefValue)");
@@ -176,7 +208,6 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       createIndex("Memory_StackInfos", 0, "Session", "AllocTime");
       createIndex("Memory_ThreadInfos", 0, "Session", "AllocTime");
       createIndex("Memory_NativeFrames", 0, "Session", "Address");
-      createIndex("Memory_NativeFrames", 1, "Session", "Symbolized");
       createIndex("Memory_JniGlobalReferences", 0, "Session", "AllocTime");
       createIndex("Memory_JniGlobalReferences", 1, "Session", "FreeTime");
     }
@@ -328,7 +359,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
           // Instead, they will be fetched on demand as needed by the UI.
           AllocationStack.SmallFrame frame =
             AllocationStack.SmallFrame.newBuilder().setMethodId(encodedStack.getMethodIds(i)).setLineNumber(encodedStack.getLineNumbers(i))
-                                      .build();
+              .build();
           frameBuilder.addFrames(frame);
         }
         stackBuilder.setSmallStack(frameBuilder);
@@ -383,15 +414,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame.getDefaultInstance();
         ResultSet result = executeQuery(QUERY_NATIVE_FRAME, session.getSessionId(), address);
         if (result.next()) {
-          byte[] frameBytes = result.getBytes(1);
-          if (frameBytes != null && frameBytes.length != 0) {
-            frame = NativeCallStack.NativeFrame.parseFrom(frameBytes);
-          }
+          frame = NativeCallStack.NativeFrame.newBuilder().setAddress(address).setModuleOffset(result.getLong(1))
+            .setModuleName(result.getString(2)).build();
         }
         resultBuilder.addFrames(frame);
       }
     }
-    catch (SQLException | InvalidProtocolBufferException ex) {
+    catch (SQLException ex) {
       onError(ex);
     }
     return resultBuilder.build();
@@ -535,44 +564,6 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       if (batch.getEventsCount() > 0) {
         pruneJniRefRecords(session);
       }
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-  }
-
-  public @NotNull
-  List<NativeCallStack.NativeFrame> queryNotsymbolizedNativeFrames(@NotNull Common.Session session, int maxCount) {
-    List<NativeCallStack.NativeFrame> records = new ArrayList<>();
-    try {
-      ResultSet result = executeQuery(QUERY_NATIVE_FRAMES_TO_SYMBOLIZE, session.getSessionId(), maxCount);
-      while (result.next()) {
-        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame
-          .newBuilder()
-          .setModuleName(result.getString("Module"))
-          .setModuleOffset(result.getLong("Offset"))
-          .setAddress(result.getLong("Address"))
-          .build();
-        records.add(frame);
-      }
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-    return records;
-  }
-
-  public void updateSymbolizedNativeFrames(@NotNull Common.Session session, @NotNull List<NativeCallStack.NativeFrame> frames) {
-    if (frames.isEmpty() || isClosed()) {
-      return;
-    }
-    try {
-      PreparedStatement updateFramesStatement = getStatementMap().get(UPDATE_NATIVE_FRAME);
-      for (NativeCallStack.NativeFrame frame : frames) {
-        applyParams(updateFramesStatement, frame.toByteArray(), session.getSessionId(), frame.getAddress());
-        updateFramesStatement.addBatch();
-      }
-      updateFramesStatement.executeBatch();
     }
     catch (SQLException ex) {
       onError(ex);
