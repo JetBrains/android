@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
@@ -113,36 +114,36 @@ abstract class GradleSyncProjectComparisonTest(
   // https://code.google.com/p/android/issues/detail?id=233038
   open fun testLoadPlainJavaProject() {
     val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
-    assertIsEqualToSnapshot(text, PURE_JAVA_PROJECT)
+    assertIsEqualToSnapshot(text)
   }
 
   // See https://code.google.com/p/android/issues/detail?id=226802
   fun testNestedModule() {
     val text = importSyncAndDumpProject(NESTED_MODULE)
-    assertIsEqualToSnapshot(text, NESTED_MODULE)
+    assertIsEqualToSnapshot(text)
   }
 
   // See https://code.google.com/p/android/issues/detail?id=224985
   open fun testNdkProjectSync() {
     val text = importSyncAndDumpProject(HELLO_JNI)
-    assertIsEqualToSnapshot(text, HELLO_JNI)
+    assertIsEqualToSnapshot(text)
   }
 
   // See https://code.google.com/p/android/issues/detail?id=76444
   fun testWithEmptyGradleSettingsFileInSingleModuleProject() {
     val text = importSyncAndDumpProject(BASIC) { createEmptyGradleSettingsFile() }
-    assertIsEqualToSnapshot(text, "$BASIC.empty_settings")
+    assertIsEqualToSnapshot(text)
   }
 
   fun testTransitiveDependencies() {
     // TODO(b/124505053): Remove almost identical snapshots when SDK naming is fixed.
     val text = importSyncAndDumpProject(TRANSITIVE_DEPENDENCIES)
-    assertIsEqualToSnapshot(text, TRANSITIVE_DEPENDENCIES)
+    assertIsEqualToSnapshot(text)
   }
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(SIMPLE_APPLICATION)
-    assertIsEqualToSnapshot(text, SIMPLE_APPLICATION)
+    assertIsEqualToSnapshot(text)
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74259
@@ -153,7 +154,7 @@ abstract class GradleSyncProjectComparisonTest(
       val centralBuildParentDirPath = centralBuildDirPath.parentFile
       delete(centralBuildParentDirPath)
     }
-    assertIsEqualToSnapshot(text, "$CENTRAL_BUILD_DIRECTORY.build_directory_in_root_module_deleted")
+    assertIsEqualToSnapshot(text)
   }
 
   open fun testPsdDependency() {
@@ -170,7 +171,7 @@ abstract class GradleSyncProjectComparisonTest(
       """
       AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
     }
-    assertIsEqualToSnapshot(text, PSD_DEPENDENCY)
+    assertIsEqualToSnapshot(text)
   }
 
   private fun createEmptyGradleSettingsFile() {
@@ -198,11 +199,12 @@ abstract class GradleSyncProjectComparisonTest(
       .map { File("${AndroidTestBase.getTestDataPath()}/syncedProjectSnapshots/${project.substringAfter("projects/")}$it.txt") }
 
 
-  private fun assertIsEqualToSnapshot(text: String, snapshotName: String) {
-    val expectedText = getExpectedTextFor(snapshotName)
+  private fun assertIsEqualToSnapshot(text: String, snapshotTestSuffix: String = "") {
+    val fullSnapshotName = FileUtil.sanitizeFileName(getTestName(true)) + snapshotTestSuffix
+    val expectedText = getExpectedTextFor(fullSnapshotName)
 
     if (System.getProperty("UPDATE_SYNC_TEST_SNAPSHOTS") != null) {
-      updateSnapshotFile(snapshotName, text)
+      updateSnapshotFile(fullSnapshotName, text)
     }
 
     if (runningFromBazel()) {
