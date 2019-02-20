@@ -84,7 +84,7 @@ class QrScanningCujTest {
       projectView
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-        .openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
         .setFilename("activity_main_qr_scan")
         .setRootElement("android.support.constraint.ConstraintLayout")
         .clickOk()
@@ -114,7 +114,7 @@ class QrScanningCujTest {
       .run {
         ResourceExplorerFixture.find(robot())
           .clickAddButton()
-        openFromMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
           .useLocalFile(GuiTests.getTestDataDir()!!.toString() + "/VotingApp/ic_qr_code.svg")
           .setName("ic_qr_code")
           .clickNext()
@@ -198,14 +198,14 @@ class QrScanningCujTest {
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "qrcodelib")
           .invokeMenuPath("Cut")
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "app", "src", "main", "java")
-          .openFromMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, arrayOf("Paste"))
+          .openFromContextualMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, arrayOf("Paste"))
           .clickOk()
       }
 
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-      .openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
       .setFilename("barcode_capture")
       .setRootElement("FrameLayout")
       .clickOk()

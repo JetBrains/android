@@ -51,13 +51,24 @@ class MenuFixture {
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
    */
   void invokeMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(path);
+    JMenuItem menuItem = findActionMenuItem(false, path);
+    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
+    myRobot.click(menuItem);
+  }
+
+  /**
+   * Invokes an action by menu path in a contextual menu
+   *
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
+   */
+  void invokeContextualMenuPath(@NotNull String... path) {
+    JMenuItem menuItem = findActionMenuItem(true, path);
     assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
     myRobot.click(menuItem);
   }
 
   @NotNull
-  private JMenuItem findActionMenuItem(@NotNull String... path) {
+  private JMenuItem findActionMenuItem(boolean isContextual, @NotNull String... path) {
     myRobot.waitForIdle(); // UI events can trigger modifications of the menu contents
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
@@ -65,7 +76,7 @@ class MenuFixture {
     // We keep the list of previously found pop-up menus, so we don't look for menu items in the same pop-up more than once.
     List<JPopupMenu> previouslyFoundPopups = Lists.newArrayList();
 
-    Container root = myContainer;
+    Container root = isContextual ? GuiTests.waitUntilShowing(myRobot, myContainer, Matchers.byType(JPopupMenu.class)) : myContainer;
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
       JMenuItem found = GuiTests.waitUntilShowing(myRobot, root, Matchers.byText(JMenuItem.class, segment));
@@ -74,7 +85,8 @@ class MenuFixture {
       }
       if (i < segmentCount - 1) {
         myRobot.click(found);
-        List<JPopupMenu> showingPopupMenus = findShowingPopupMenus(i + 1);
+        int expectedCount = isContextual ? i + 2 : i + 1;
+        List<JPopupMenu> showingPopupMenus = findShowingPopupMenus(expectedCount);
         showingPopupMenus.removeAll(previouslyFoundPopups);
         assertThat(showingPopupMenus).hasSize(1);
         root = showingPopupMenus.get(0);
@@ -110,7 +122,7 @@ class MenuFixture {
   public boolean isMenuPathEnabled(String... path) {
     boolean isEnabled;
     try {
-      isEnabled = findActionMenuItem(path).isEnabled();
+      isEnabled = findActionMenuItem(false, path).isEnabled();
     } catch (ComponentLookupException e) {
       isEnabled = false;
     }
