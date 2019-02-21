@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.project.deprecated;
 
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.module.FormFactorApiComboBox;
+import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.stats.DistributionService;
 import com.intellij.openapi.Disposable;
@@ -47,7 +47,7 @@ final class FormFactorSdkControls {
   private final Disposable myDisposable;
   private final FormFactor myFormFactor;
 
-  private FormFactorApiComboBox myMinSdkCombobox;
+  private AndroidApiLevelComboBox myMinSdkCombobox;
   private JBLabel myHelpMeChooseLabel;
   private HyperlinkLabel myHelpMeChooseLink;
   private JPanel myRootPanel;
