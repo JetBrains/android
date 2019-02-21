@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
 import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
+import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
@@ -169,6 +170,11 @@ abstract class GradleSyncProjectComparisonTest(
       val centralBuildParentDirPath = centralBuildDirPath.parentFile
       delete(centralBuildParentDirPath)
     }
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testSyncWithKotlinDsl() {
+    val text = importSyncAndDumpProject(KOTLIN_GRADLE_DSL)
     assertIsEqualToSnapshot(text)
   }
 
