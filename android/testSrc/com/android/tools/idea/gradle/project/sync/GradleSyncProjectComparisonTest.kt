@@ -30,11 +30,14 @@ import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
 import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
 import com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
 import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
@@ -211,6 +214,31 @@ abstract class GradleSyncProjectComparisonTest(
     val textAfterDeleting = syncAndDumpProject()
     // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
     assertIsEqualToSnapshot(textAfterDeleting, ".after_moduleb_deleted")
+  }
+
+  open fun testPsdSample() {
+    val text = importSyncAndDumpProject(PSD_SAMPLE)
+    assertIsEqualToSnapshot(text)
+  }
+
+  open fun testPsdSampleRenamingModule() {
+    val text = importSyncAndDumpProject(PSD_SAMPLE)
+    assertIsEqualToSnapshot(text)
+    WriteAction.run<Throwable> {
+      project.baseDir.findFileByRelativePath("nested1")!!.rename("test", "container1")
+    }
+    PsProjectImpl(project).let { projectModel ->
+      projectModel.removeModule(":nested1")
+      projectModel.removeModule(":nested1:deep")
+      with(projectModel.parsedModel.projectSettingsModel!!) {
+        addModulePath(":container1")
+        addModulePath(":container1:deep")
+      }
+      projectModel.applyChanges()
+    }
+    ApplicationManager.getApplication().saveAll()
+    val textAfterDeleting = syncAndDumpProject()
+    assertIsEqualToSnapshot(textAfterDeleting, ".after_rename")
   }
 
   open fun testPsdDependencyUpgradeLibraryModule() {
