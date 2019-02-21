@@ -100,16 +100,15 @@ public class GoogleApiIntegrationTest {
     projectStructureDialog.selectAdsDeveloperService()
       .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
-    ideFrame.waitForGradleProjectSyncToFinish();
     projectStructureDialog.selectAuthenticationDeveloperService()
       .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
-    ideFrame.waitForGradleProjectSyncToFinish();
     projectStructureDialog.selectNotificationsDeveloperService()
       .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
     projectStructureDialog.clickOk();
 
+    ideFrame.waitForGradleProjectSyncToFinish();
     gradleFileContents = editor.getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContainMatch(REG_EXP);
   }
