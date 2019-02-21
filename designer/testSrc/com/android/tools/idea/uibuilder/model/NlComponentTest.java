@@ -25,6 +25,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,11 +36,17 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -310,10 +317,12 @@ public final class NlComponentTest extends LayoutTestCase {
 
   public void testIdFromMixin() {
     XmlTag tag = mock(XmlTag.class);
+    SmartPsiElementPointer<XmlTag> mockPointer = mock(SmartPsiElementPointer.class);
     when(tag.isValid()).thenReturn(true);
     when(tag.getName()).thenReturn("");
+    when(mockPointer.getElement()).thenReturn(tag);
     //noinspection unchecked
-    NlComponent component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
+    NlComponent component = new NlComponent(mock(NlModel.class), tag, mockPointer);
 
     NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
     when(mixin.getAttribute(ANDROID_URI, ATTR_ID)).thenReturn("@id/mixinId");
@@ -322,7 +331,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
     when(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).thenReturn("@id/componentId");
     //noinspection unchecked
-    component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
+    component = new NlComponent(mock(NlModel.class), tag, mockPointer);
     component.setMixin(mixin);
     assertEquals("componentId", component.getId());
   }
@@ -390,6 +399,114 @@ public final class NlComponentTest extends LayoutTestCase {
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
     assertEquals(expected, xmlFile.getText());
+  }
+
+  public void testCreateChildInvalidTag() {
+    // Create component with valid xmlTag, but without backing VFS.
+    XmlTag mockTag = mock(XmlTag.class);
+    SmartPsiElementPointer<XmlTag> mockPointer = mock(SmartPsiElementPointer.class);
+    when(mockPointer.getElement()).thenReturn(mockTag);
+    when(mockTag.getName()).thenReturn("MockView");
+
+    NlComponent componentWithoutFile = new NlComponent(myModel, mockTag, mockPointer);
+
+    ViewEditor mockEditor = mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+
+    NlWriteCommandActionUtil.run(componentWithoutFile, "addTextView", () -> {
+      // should fail as backing component does not have valid VFS.
+      NlComponent child = NlComponentHelperKt.createChild(
+        componentWithoutFile, mockEditor, "", null, InsertType.CREATE);
+      assertNull(child);});
+
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  public void testCreateChildValidTag() {
+    // Create component with valid vfs.
+    String relativeLayoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                                "\n" +
+                                "    <RelativeLayout />\n" +
+                                "</layout>\n";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", relativeLayoutText);
+    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent relativeLayout = createComponent(rootTag);
+
+    ViewEditor mockEditor =  mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+
+    NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> {
+      assertNotNull(NlComponentHelperKt.createChild(relativeLayout, mockEditor, "TextView", null, InsertType.CREATE));
+    });
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  public void testCreateChildValidTagReadThread() {
+    // Create component with valid vfs.
+    String relativeLayoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                                "\n" +
+                                "    <RelativeLayout />\n" +
+                                "</layout>\n";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", relativeLayoutText);
+    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent relativeLayout = createComponent(rootTag);
+
+    ViewEditor mockEditor =  mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        assertNull(NlComponentHelperKt.createChild(relativeLayout, mockEditor, "TextView", null, InsertType.CREATE));
+      }
+    });
+
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  public void testCreateChildInvalidAccess() {
+    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                      "\n" +
+                      "    <RelativeLayout />\n" +
+                      "</layout>\n";
+    String textViewText = "<TextView" +
+                          " xmlns:android=\"" + ANDROID_URI + "\"" +
+                          " xmlns:tools=\"" + TOOLS_URI + "\"" +
+                          " android:text=\"Initial\"" +
+                          " tools:text=\"ToolText\"" +
+                          " android:layout_width=\"wrap_content\"" +
+                          " android:layout_height=\"wrap_content\" />";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent relativeLayout = createComponent(rootTag);
+
+    ViewEditor mockEditor =  mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+
+    assertNull(NlComponentHelperKt.createChild(relativeLayout, mockEditor, "", null, InsertType.CREATE));
+
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  private DesignSurface setupMockViewEditorWithMockSurface(ViewEditor mockEditor) {
+    Scene mockScene = mock(Scene.class);
+    DesignSurface mockSurface = mock(DesignSurface.class);
+    LayoutlibSceneManager mockSceneManager = mock(LayoutlibSceneManager.class);
+    ViewEditor viewEditor = new ViewEditorImpl(myModel);
+
+    when(mockEditor.getScene()).thenReturn(mockScene);
+    when(mockScene.getDesignSurface()).thenReturn(mockSurface);
+    when(mockSurface.getScene()).thenReturn(mockScene);
+
+    when(mockScene.getSceneManager()).thenReturn(mockSceneManager);
+    when(mockSceneManager.getViewEditor()).thenReturn(viewEditor);
+    return mockSurface;
   }
 
   public void testAddTagsWithInvalidXmlTag() {

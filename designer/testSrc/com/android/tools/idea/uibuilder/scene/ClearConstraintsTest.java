@@ -19,6 +19,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
@@ -52,7 +53,20 @@ public class ClearConstraintsTest  extends SceneTest {
                        .height("0dp")
                        .withAttribute("app:layout_constraintLeft_toLeftOf", "@+id/button1")
                        .withAttribute("app:layout_constraintRight_toRightOf", "@+id/button1")
-                       .withAttribute("app:layout_constraintTop_toBottomOf", "@+id/button1")
+                       .withAttribute("app:layout_constraintTop_toTopOf", "@+id/button1")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "parent"),
+                     component(RECYCLER_VIEW.newName())
+                       .id("@+id/recycler_view")
+                       .withBounds(140, 140, 1720, 1720)
+                       .width("860dp")
+                       .height("860dp")
+                       .withAttribute("android:layout_marginStart", "50dp")
+                       .withAttribute("android:layout_marginTop", "50dp")
+                       .withAttribute("android:layout_marginEnd", "50dp")
+                       .withAttribute("android:layout_marginBottom", "50dp")
+                       .withAttribute("app:layout_constraintStart_toStartOf", "parent")
+                       .withAttribute("app:layout_constraintEnd_toEndOf", "parent")
+                       .withAttribute("app:layout_constraintTop_toTopOf", "parent")
                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
                    ));
   }
@@ -73,5 +87,12 @@ public class ClearConstraintsTest  extends SceneTest {
                  "        android:layout_height=\"20dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"450dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"490dp\" />");
+    myScreen.get("@+id/recycler_view")
+      .expectXml("<" + RECYCLER_VIEW.newName() + "\n" +
+                 "        android:id=\"@+id/recycler_view\"\n" +
+                 "        android:layout_width=\"860dp\"\n" +
+                 "        android:layout_height=\"860dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"70dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"70dp\" />");
   }
 }

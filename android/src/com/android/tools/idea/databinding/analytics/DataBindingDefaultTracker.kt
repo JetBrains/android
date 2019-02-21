@@ -38,4 +38,9 @@ class DataBindingDefaultTracker private constructor(private val project: Project
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
+  override fun trackPolledMetaData() {
+  }
+
+  override fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
+  }
 }

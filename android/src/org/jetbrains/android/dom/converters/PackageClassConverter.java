@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -149,7 +149,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     if (manifestPackage == null && myUseManifestBasePackage) {
       Module module = context.getModule();
       if (module != null) {
-        manifestPackage = MergedManifest.get(module).getPackage();
+        manifestPackage = MergedManifestManager.getSnapshot(module).getPackage();
       }
     }
     return manifestPackage;

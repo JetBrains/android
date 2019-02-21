@@ -61,7 +61,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -247,20 +246,6 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   }
 
   @Override
-  public int getUserIdFromAmParameters() {
-    return MultiUserUtils.getUserIdFromAmParameters(ACTIVITY_EXTRA_FLAGS);
-  }
-
-  @Override
-  public boolean supportsInstantRun() {
-    Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      return true;
-    }
-    return DynamicAppUtils.isInstantRunSupported(module) && !DEPLOY_AS_INSTANT;
-  }
-
-  @Override
   protected boolean supportMultipleDevices() {
     return true;
   }
@@ -388,8 +373,17 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     }).collect(Collectors.toList());
 
     ExecutionTarget executionTarget = ExecutionTargetManager.getInstance(project).getActiveTarget();
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    String applicationId = null;
+    try {
+      applicationId = applicationIdProvider == null ? null : applicationIdProvider.getPackageName();
+    }
+    catch (ApkProvisionException ignored) {
+    }
     boolean isRunning =
-      executionTarget instanceof AndroidExecutionTarget && ((AndroidExecutionTarget)executionTarget).isApplicationRunning();
+      executionTarget instanceof AndroidExecutionTarget &&
+      applicationId != null &&
+      ((AndroidExecutionTarget)executionTarget).isApplicationRunning(applicationId);
 
     if (!configuration.isAllowRunningInParallel() &&
         !runningDescriptors.isEmpty() &&

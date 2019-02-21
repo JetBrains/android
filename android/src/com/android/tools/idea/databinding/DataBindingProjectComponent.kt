@@ -16,6 +16,11 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
+import com.android.tools.idea.gradle.project.build.BuildContext
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.google.common.collect.Maps
@@ -65,6 +70,17 @@ class DataBindingProjectComponent(val project: Project) : ModificationTracker {
 
       override fun syncFailed(project: Project, errorMessage: String) {
         dataBindingTracker.trackDataBindingEnabled()
+      }
+    })
+    GradleBuildState.subscribe(project, object : GradleBuildListener {
+      override fun buildStarted(context: BuildContext) {
+      }
+
+      override fun buildExecutorCreated(request: GradleBuildInvoker.Request) {
+      }
+
+      override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+        dataBindingTracker.trackPolledMetaData()
       }
     })
   }

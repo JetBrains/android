@@ -127,6 +127,16 @@ object AndroidAttributeFact {
       "titleEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "toolbarId" -> return NelePropertyType.ID
 
+      // RecyclerView additions
+      "fastScrollHorizontalThumbDrawable" -> return NelePropertyType.DRAWABLE
+      "fastScrollHorizontalTrackDrawable" -> return NelePropertyType.DRAWABLE
+      "fastScrollVerticalThumbDrawable" -> return NelePropertyType.DRAWABLE
+      "fastScrollVerticalTrackDrawable" -> return NelePropertyType.DRAWABLE
+      "layoutManager" -> return NelePropertyType.STRING // actually a class name
+      "reverseLayout" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "spanCount" -> return NelePropertyType.INTEGER
+      "stackFromEnd" -> return NelePropertyType.THREE_STATE_BOOLEAN
+
       // ConstraintLayout additions
       "barrierAllowsGoneWidgets" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "barrierDirection" -> return NelePropertyType.ENUM
@@ -187,6 +197,16 @@ object AndroidAttributeFact {
       // AppCompat additions:
       "srcCompat" -> return NelePropertyType.DRAWABLE
       "titleMargins" -> return NelePropertyType.DIMENSION
+
+      // tools attribute additions:
+      "actionBarNavMode" -> return NelePropertyType.ENUM
+      "context" -> return NelePropertyType.STRING
+      "itemCount" -> return NelePropertyType.INTEGER
+      "listfooter" -> return NelePropertyType.LAYOUT
+      "listitem" -> return NelePropertyType.LAYOUT
+      "listheader" -> return NelePropertyType.LAYOUT
+      "showIn" -> return NelePropertyType.LAYOUT
+      "targetApi" -> return NelePropertyType.STRING
 
       // Hand edited overrides for framework attributes:
       "alignmentMode" -> return NelePropertyType.ENUM

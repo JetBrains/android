@@ -240,9 +240,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @SuppressWarnings("UnnecessaryLocalVariable")
   public void testHierarchyUpdate() {
     // Extract xml
-    XmlTag tagLinearLayout = myLinearLayout.getTag();
-    XmlTag tagTextView = myTextView.getTag();
-    XmlTag tagAbsoluteLayout = myAbsoluteLayout.getTag();
+    XmlTag tagLinearLayout = myLinearLayout.getTagDeprecated();
+    XmlTag tagTextView = myTextView.getTagDeprecated();
+    XmlTag tagAbsoluteLayout = myAbsoluteLayout.getTagDeprecated();
 
     // Mix the component references
     myRelativeLayout.setChildren(null);

@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.BitmapElement;
 
 public class NinePatchDomFileDescription extends AbstractSingleRootFileDescription<BitmapElement> {
-  public static final String TAG_NAME = "nine-patch";
 
   public NinePatchDomFileDescription() {
-    super(BitmapElement.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(BitmapElement.class, "nine-patch", ResourceFolderType.DRAWABLE);
   }
 }

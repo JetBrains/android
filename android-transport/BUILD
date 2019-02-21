@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.transport",
     srcs = ["src"],
     iml_files = ["intellij.android.transport.iml"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -29,7 +30,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module]",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",

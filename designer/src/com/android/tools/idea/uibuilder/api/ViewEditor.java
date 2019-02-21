@@ -35,7 +35,6 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
@@ -86,18 +85,6 @@ public abstract class ViewEditor {
   @AndroidDpCoordinate
   public int pxToDp(@AndroidCoordinate int px) {
     return Coordinates.pxToDp(getScene().getDesignSurface(), px);
-  }
-
-  /**
-   * Converts a pixel to a dp (device independent pixel) for the current screen density,
-   * and returns it as a dimension string.
-   *
-   * @param px the pixel dimension
-   * @return the corresponding dp dimension string
-   */
-  @NotNull
-  public String pxToDpWithUnits(int px) {
-    return String.format(Locale.US, VALUE_N_DP, pxToDp(px));
   }
 
   /**

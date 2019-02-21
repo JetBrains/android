@@ -61,6 +61,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.pom.Navigatable
 import com.intellij.util.PsiNavigateUtil
 
@@ -396,6 +397,13 @@ fun NlComponent.createChild(tagName: String,
                             before: NlComponent? = null,
                             insertType: InsertType = InsertType.CREATE
 ): NlComponent? {
+  if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
+    Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
+      "Unable to create child NlComponent ${tagName}. createChild must be called within a write action.")
+    return null
+  }
+
+  val tag = backend.tag ?: return null
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
   return model.createComponent(surface, childTag, this, before, insertType)
 }
@@ -520,7 +528,7 @@ class NlComponentMixin(component: NlComponent)
   override fun getDependencies(): Set<String> {
     val artifacts = mutableSetOf<String>()
     val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
-    val artifactId = handler.getGradleCoordinateId(component.tag.name)
+    val artifactId = handler.getGradleCoordinateId(component.tagDeprecated.name)
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
     }
@@ -559,7 +567,7 @@ class NlComponentMixin(component: NlComponent)
     if (surface == null) {
       return false
     }
-    val realTag = component.tag
+    val realTag = component.tagDeprecated
     if (component.parent != null) {
       // Required attribute for all views; drop handlers can adjust as necessary
       if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {

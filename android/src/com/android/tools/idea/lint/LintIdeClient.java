@@ -39,7 +39,8 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -544,7 +545,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   @Nullable
-  public BuildToolInfo getBuildTools(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public Revision getBuildToolsRevision(@NonNull com.android.tools.lint.detector.api.Project project) {
     if (project.isGradleProject()) {
       Module module = getModule();
       if (module != null) {
@@ -559,7 +560,7 @@ public class LintIdeClient extends LintClient implements Disposable {
                 Revision revision = Revision.parseRevision(buildToolsVersion);
                 BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
                 if (buildToolInfo != null) {
-                  return buildToolInfo;
+                  return buildToolInfo.getRevision();
                 }
               } catch (NumberFormatException ignore) {
                 // Fall through and use the latest
@@ -570,7 +571,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
     }
 
-    return super.getBuildTools(project);
+    return super.getBuildToolsRevision(project);
   }
 
   @Nullable
@@ -637,7 +638,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        MergedManifest mergedManifest = MergedManifest.get(facet);
+        MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
         org.w3c.dom.Document document = mergedManifest.getDocument();
         if (document != null) {
           Element root = document.getDocumentElement();
@@ -669,7 +670,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     if (doc == null) {
       return null;
     }
-    MergedManifest mergedManifest = (MergedManifest) doc.getUserData(MERGED_MANIFEST_INFO);
+    MergedManifestSnapshot mergedManifest = (MergedManifestSnapshot) doc.getUserData(MERGED_MANIFEST_INFO);
     if (mergedManifest == null) {
       return null;
     }

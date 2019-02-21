@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -106,7 +106,7 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, false); // Android Modules are called Gradle Projects
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.getConfiguration().isLibraryProject());
 
-    String appTheme = MergedManifest.get(facet).getManifestTheme();
+    String appTheme = MergedManifestManager.getSnapshot(facet).getManifestTheme();
     myTemplateValues.put(ATTR_HAS_APPLICATION_THEME, appTheme != null);
 
     Module module = facet.getModule();
@@ -213,7 +213,8 @@ public final class TemplateValueInjector {
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  public TemplateValueInjector setModuleRoots(@NotNull AndroidModuleTemplate paths, @NotNull String packageName) {
+  public TemplateValueInjector setModuleRoots(@NotNull AndroidModuleTemplate paths, @NotNull String projectPath,
+                                              @NotNull String moduleName, @NotNull String packageName) {
     File moduleRoot = paths.getModuleRoot();
 
     assert moduleRoot != null;
@@ -251,11 +252,13 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
-    myTemplateValues.put(ATTR_PROJECT_LOCATION, moduleRoot.getParent());
+    if (moduleName.startsWith(":")) {
+      // The templates already add an initial ":"
+      moduleName = moduleName.substring(1);
+    }
 
-    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
-    // name as its containing project.
-    myTemplateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
+    myTemplateValues.put(ATTR_PROJECT_LOCATION, projectPath);
+    myTemplateValues.put(ATTR_MODULE_NAME, moduleName);
     myTemplateValues.put(ATTR_PACKAGE_NAME, packageName);
 
     return this;

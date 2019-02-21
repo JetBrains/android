@@ -36,8 +36,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.InstantRunBuilder;
-import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -56,7 +54,6 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.PreferGradleMake;
@@ -339,8 +336,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
     // the android run config context
-    AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
-    DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
+    DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
     List<AndroidDevice> targetDevices = deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
     List<String> cmdLineArgs;
     try {
@@ -351,8 +347,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
 
-    BeforeRunBuilder builder =
-      createBuilder(env, modules, configuration, runConfigContext, targetDevices, task.getGoal());
+    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDevices, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
 
@@ -479,10 +474,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,
-                                                @NotNull Module[] modules,
+  private static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
                                                 @NotNull RunConfiguration configuration,
-                                                @Nullable AndroidRunConfigContext runConfigContext,
                                                 @NotNull List<AndroidDevice> targetDevices,
                                                 @Nullable String userGoal) {
     if (modules.length == 0) {
@@ -508,19 +501,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
 
-    InstantRunContext irContext = env.getCopyableUserData(InstantRunContext.KEY);
-    if (targetDevices.isEmpty() || irContext == null) {
-      // Use the "select apks from bundle" task if using a "AndroidBundleRunConfiguration".
-      // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
-      if (useSelectApksFromBundleBuilder(modules, configuration, targetDevices)) {
-        return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
-                                        BuildMode.APK_FROM_BUNDLE);
-      }
-      return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
+    // Use the "select apks from bundle" task if using a "AndroidBundleRunConfiguration".
+    // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
+    if (useSelectApksFromBundleBuilder(modules, configuration, targetDevices)) {
+      return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
+                                      BuildMode.APK_FROM_BUNDLE);
     }
-
-    assert targetDevices.size() == 1 : "instant run context available, but deploying to > 1 device";
-    return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider);
+    return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
   }
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,

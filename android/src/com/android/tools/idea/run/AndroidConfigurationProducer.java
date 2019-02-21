@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
@@ -39,7 +40,10 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   }
 
   @Nullable
-  private static PsiClass getActivityClass(Location location, ConfigurationContext context) {
+  private static PsiClass getActivityClass(ConfigurationContext context) {
+    Location location = context.getLocation();
+    if (location == null)
+      return null;
     final Module module = context.getModule();
     if (module == null) return null;
     location = JavaExecutionUtil.stepIntoSingleClass(location);
@@ -62,16 +66,17 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
     return null;
   }
 
+  @Nullable
+  @Override
+  public ConfigurationFromContext createConfigurationFromContext(ConfigurationContext context) {
+    return getActivityClass(context) == null ? null : super.createConfigurationFromContext(context);
+  }
+
   @Override
   protected boolean setupConfigurationFromContext(AndroidRunConfiguration configuration,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    final Location location = context.getLocation();
-
-    if (location == null) {
-      return false;
-    }
-    final PsiClass activity = getActivityClass(location, context);
+    final PsiClass activity = getActivityClass(context);
 
     if (activity == null) {
       return false;
@@ -98,12 +103,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
 
   @Override
   public boolean isConfigurationFromContext(AndroidRunConfiguration configuration, ConfigurationContext context) {
-    final Location location = context.getLocation();
-    if (location == null) {
-      return false;
-    }
-
-    final PsiClass activity = getActivityClass(location, context);
+    final PsiClass activity = getActivityClass(context);
     if (activity == null) {
       return false;
     }

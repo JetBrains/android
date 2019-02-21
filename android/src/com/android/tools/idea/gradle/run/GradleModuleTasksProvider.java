@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.Projects;
-import com.android.tools.idea.fd.InstantRunTasksProvider;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -32,7 +31,7 @@ import java.nio.file.Path;
 
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
 
-public class GradleModuleTasksProvider implements InstantRunTasksProvider {
+public class GradleModuleTasksProvider {
   @NotNull private final Project myProject;
   @NotNull private final Module[] myModules;
 
@@ -57,12 +56,6 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
     final CompilerManager compilerManager = CompilerManager.getInstance(project);
     CompileScope scope = compilerManager.createModulesCompileScope(modules, true, true);
     return scope.getAffectedModules();
-  }
-
-  @Override
-  @NotNull
-  public ListMultimap<Path, String> getFullBuildTasks() {
-    return getTasksFor(BuildMode.ASSEMBLE, TestCompileType.NONE);
   }
 
   @NotNull

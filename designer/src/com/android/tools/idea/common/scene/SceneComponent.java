@@ -662,10 +662,16 @@ public class SceneComponent {
   /**
    * Clear our attributes (delegating the action to our view handler)
    */
-  public void clearAttributes() {
+  void clearAttributes() {
     NlComponent component = getAuthoritativeNlComponent();
-    ViewGroupHandler viewGroupHandler = NlComponentHelperKt.getViewGroupHandler(component);
-    viewGroupHandler.clearAttributes(component);
+    NlComponent parent = component.getParent();
+    if (parent != null) {
+      // Parent is ViewGroup. This cleans layout_xxx attributes.
+      ViewGroupHandler parentHandler = NlComponentHelperKt.getViewGroupHandler(parent);
+      if (parentHandler != null) {
+        parentHandler.clearAttributes(component);
+      }
+    }
   }
 
   protected void addTarget(@NotNull Target target) {

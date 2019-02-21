@@ -21,7 +21,6 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValues;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
-import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
 
 import java.io.File;
@@ -29,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_NDK;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_SIDE_BY_SIDE_NDK;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.ROOT_OF_RELATIVE_INCLUDE_PATHS;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -108,6 +108,20 @@ public class NdkIncludeResolverTest {
     assertThat(resolution.mySimplePackageName).isEqualTo("android-21");
     assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/platforms/android-21/arch-arm64/usr/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
+  }
+
+  @Test
+  public void testNdkSideBySidePlatformFolderResolves() {
+    List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
+      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      "-I" + PATH_TO_SIDE_BY_SIDE_NDK + "/platforms/android-21/arch-arm64/usr/include");
+    assertThat(resolutions).hasSize(1);
+    SimpleIncludeValue resolution = resolutions.get(0);
+    assertThat(resolution).isNotNull();
+    assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
+    assertThat(resolution.mySimplePackageName).isEqualTo("android-21");
+    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/platforms/android-21/arch-arm64/usr/include/");
+    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_SIDE_BY_SIDE_NDK);
   }
 
   @Test
@@ -213,7 +227,7 @@ public class NdkIncludeResolverTest {
   }
 
   @Test
-  public void testGroupBySimpleNameKind() throws Exception {
+  public void testGroupBySimpleNameKind() {
     for (List<String> includes : RealWorldExamples.getConcreteCompilerIncludeFlags(PATH_TO_NDK) ) {
       List<SimpleIncludeValue> dependencies = new ArrayList<>();
       IncludeSet set = new IncludeSet();

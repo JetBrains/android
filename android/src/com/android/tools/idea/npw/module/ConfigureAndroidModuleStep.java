@@ -50,10 +50,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -184,8 +184,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().moduleName().set(myModuleName.getText());
     Project project = moduleModel.getProject().getValue();
-    File moduleRoot = new File(project.getBasePath(), moduleModel.moduleName().get());
-    myRenderModel.getTemplate().set(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot));
+    myRenderModel.getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.moduleName().get()));
 
     if (myIsLibrary) {
       moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);

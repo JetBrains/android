@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.ColorDrawable;
 
 public class ColorDrawableDomFileDescription extends AbstractSingleRootFileDescription<ColorDrawable> {
-  public static final String TAG_NAME = "color";
 
   public ColorDrawableDomFileDescription() {
-    super(ColorDrawable.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(ColorDrawable.class, "color", ResourceFolderType.DRAWABLE);
   }
 }

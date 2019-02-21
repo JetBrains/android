@@ -137,12 +137,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
                        ApplicationManager.getApplication().isEAP() ? 10 : 1);
 
   /**
-   * Histogram of event timings, in milliseconds. Must be accessed from the EDT.
-   */
-  private static final Histogram myEventDurationsMs = new Histogram(1);
-  /** Maximum freeze duration to record. Longer freeze durations are truncated to keep the size of the histogram bounded. */
-  private static final long MAX_EVENT_DURATION_MS = 30 * 60 * 1000;
-  /**
    * Histogram of write lock wait times, in milliseconds. Must be accessed from the EDT.
    */
   private static final Histogram myWriteLockWaitTimesMs = new Histogram(1);
@@ -261,10 +255,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       sb.append(lines[i]).append("\n");
     }
     return sb.toString();
-  }
-
-  public static void recordEventTime(int interval, long durationMs) {
-    myEventDurationsMs.recordValueWithCount(Math.min(durationMs, MAX_EVENT_DURATION_MS), interval);
   }
 
   public static void recordWriteLockWaitTime(long durationMs) {
@@ -422,11 +412,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       @Override
       public void incrementAndSaveNonBundledPluginsExceptionCount() {
         AndroidStudioSystemHealthMonitor.incrementAndSaveNonBundledPluginsExceptionCount();
-      }
-
-      @Override
-      public void recordEventTime(int interval, long elapsed) {
-        AndroidStudioSystemHealthMonitor.recordEventTime(interval, elapsed);
       }
 
       @Override
@@ -755,12 +740,10 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
     }
 
-    // Move to the EDT since myEventDurationsMs structure can only be accessed from that thread.
+    // Move to the EDT since the histogram can only be accessed from that thread.
     ApplicationManager.getApplication().invokeLater(() -> {
       StudioPerformanceStats.Builder statsProto =
           StudioPerformanceStats.newBuilder()
-              .setEventServiceTimeSamplePeriod(IdeEventQueue.EVENT_TIMING_INTERVAL)
-              .setEventServiceTimeMs(HistogramUtil.toProto(myEventDurationsMs))
               .setWriteLockWaitTimeMs(HistogramUtil.toProto(myWriteLockWaitTimesMs));
       for (Map.Entry<GcPauseInfo.GcType, Histogram> gcEntry : myGcPauseInfo.entrySet()) {
         statsProto.addGcPauseInfo(GcPauseInfo.newBuilder()
@@ -771,7 +754,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
                            .setCategory(EventCategory.STUDIO_UI)
                            .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
                            .setStudioPerformanceStats(statsProto));
-      myEventDurationsMs.reset();
       myWriteLockWaitTimesMs.reset();
       myGcPauseInfo.clear();
     });

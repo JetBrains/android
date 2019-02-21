@@ -29,7 +29,7 @@ iml_module(
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module]",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",

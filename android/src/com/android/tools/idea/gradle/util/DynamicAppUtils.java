@@ -122,19 +122,6 @@ public class DynamicAppUtils {
   }
 
   /**
-   * Returns {@code true} if Instant Run is supported for this module.
-   *
-   * Note: We currently disable Instant Run as soon as the base split has any dynamic feature.
-   */
-  public static boolean isInstantRunSupported(@NotNull Module module) {
-    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
-    if (androidModule == null) {
-      return true;
-    }
-    return androidModule.getAndroidProject().getDynamicFeatures().isEmpty();
-  }
-
-  /**
    * Returns {@code true} if the base module is instant enabled
    */
   @NotNull

@@ -46,9 +46,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -470,7 +471,7 @@ public class RenderTask {
     // same session.
     params.setExtendedViewInfoMode(true);
 
-    MergedManifest manifestInfo = MergedManifest.get(module);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
 
     Configuration configuration = context.getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
@@ -499,7 +500,7 @@ public class RenderTask {
         String activity = configuration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          ActivityAttributes attributes = manifestInfo.getActivityAttributes(activity);
+          ActivityAttributesSnapshot attributes = manifestInfo.getActivityAttributes(activity);
           if (attributes != null) {
             if (attributes.getLabel() != null) {
               appLabel = attributes.getLabel();
@@ -1042,7 +1043,7 @@ public class RenderTask {
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
-    MergedManifest manifestInfo = MergedManifest.get(module);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
     } catch (Exception ignore) {

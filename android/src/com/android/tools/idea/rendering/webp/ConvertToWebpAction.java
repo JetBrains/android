@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering.webp;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
@@ -380,7 +380,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       // TODO: Prune out libraries here if we have the dependent app module too
       Set<String> names = Sets.newHashSet();
       for (AndroidFacet facet : facets) {
-        Document document = MergedManifest.get(facet).getDocument();
+        Document document = MergedManifestManager.getSnapshot(facet).getDocument();
         if (document != null && document.getDocumentElement() != null) {
           Element element = XmlUtils.getFirstSubTagByName(document.getDocumentElement(), TAG_APPLICATION);
           if (element != null) {

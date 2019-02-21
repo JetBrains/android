@@ -228,7 +228,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
       return 0
     }
     val distinctTags = model.components[0].flatten()
-      .collect(Collectors.toMap({ c: NlComponent -> Pair(c.tag.namespace, c.tag.name) }, { it }))
+      .collect(Collectors.toMap({ c: NlComponent -> Pair(c.tagDeprecated.namespace, c.tagDeprecated.name) }, { it }))
       .values
     val properties = HashSet<Pair<String?, String?>>()
     for (component in distinctTags) {

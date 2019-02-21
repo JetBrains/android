@@ -16,7 +16,7 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExpectedTypeInfo;
@@ -109,7 +109,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
-        String fqcn = MergedManifest.get(facet).getPackage();
+        String fqcn = MergedManifestManager.getSnapshot(facet).getPackage();
         String qualifiedCode = fqcn + "." + code;
         Project project = facet.getModule().getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(qualifiedCode, GlobalSearchScope.allScope(project));

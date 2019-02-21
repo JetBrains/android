@@ -159,6 +159,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       result.append(disposerDisposedObjectsReport)
     }
     finally {
+      parser.close()
       closeAndDeleteTemporaryFiles()
     }
     return result.toString()
