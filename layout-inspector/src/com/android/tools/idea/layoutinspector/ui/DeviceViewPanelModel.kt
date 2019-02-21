@@ -47,7 +47,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
   @VisibleForTesting
-  internal val hitRects = mutableListOf<Triple<Shape, AffineTransform, InspectorView>>()
+  internal var hitRects = listOf<Triple<Shape, AffineTransform, InspectorView>>()
 
   init {
     refresh()
@@ -68,7 +68,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   fun refresh() {
     rootDimension = Dimension(model.root.width, model.root.height)
-    hitRects.clear()
+    val newHitRects = mutableListOf<Triple<Shape, AffineTransform, InspectorView>>()
     val transform = AffineTransform()
     transform.translate(-model.root.width / 2.0, -model.root.height / 2.0)
 
@@ -78,18 +78,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     transform.translate(rootDimension.width / 2.0, rootDimension.height / 2.0)
     transform.rotate(angle)
     maxDepth = findMaxDepth(model.root)
-    rebuildOneRect(transform, magnitude, 0, angle, model.root)
+    rebuildOneRect(transform, magnitude, 0, angle, model.root, newHitRects)
+    hitRects = newHitRects.toList()
   }
 
   private fun findMaxDepth(view: InspectorView): Int {
-    return 1 + (view.children.map { findMaxDepth(it) }.max() ?: 0)
+    return 1 + (view.children.values.map { findMaxDepth(it) }.max() ?: 0)
   }
 
   private fun rebuildOneRect(transform: AffineTransform,
                              magnitude: Double,
                              depth: Int,
                              angle: Double,
-                             view: InspectorView) {
+                             view: InspectorView,
+                             newHitRects: MutableList<Triple<Shape, AffineTransform, InspectorView>>) {
     val viewTransform = AffineTransform(transform)
 
     val sign = if (xOff < 0) -1 else 1
@@ -99,8 +101,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
 
     val rect = viewTransform.createTransformedShape(Rectangle(view.x, view.y, view.width, view.height))
-    hitRects.add(Triple(rect, viewTransform, view))
-    view.children.forEach { rebuildOneRect(transform, magnitude, depth + 1, angle, it) }
+    newHitRects.add(Triple(rect, viewTransform, view))
+    view.children.values.forEach { rebuildOneRect(transform, magnitude, depth + 1, angle, it, newHitRects) }
   }
 
   fun resetRotation() {
