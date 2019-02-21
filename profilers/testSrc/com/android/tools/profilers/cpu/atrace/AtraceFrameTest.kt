@@ -35,7 +35,7 @@ class AtraceFrameTest {
   @Before
   fun setup() {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val reader = AtraceDecompressor(file)
+    val reader = AtraceProducer(file)
     val task = ImportTask(PrintlnImportFeedback())
     myModel = task.importBuffer(reader)
   }

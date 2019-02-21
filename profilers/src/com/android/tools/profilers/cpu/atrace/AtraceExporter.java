@@ -30,18 +30,18 @@ import java.util.zip.DeflaterOutputStream;
  */
 public final class AtraceExporter {
   /**
-   * This method reads data from an {@link AtraceDecompressor} and writes it out compressed to a {@link File}.
+   * This method reads data from an {@link AtraceProducer} and writes it out compressed to a {@link File}.
    * @param input Input stream to read data from.
    * @param output The file stream to write systrace compatible data to.
    * @throws IOException if the trace file failed to decompress or fails to write.
    */
   public static void export(@NotNull FileInputStream input, @NotNull OutputStream output) throws IOException {
-    AtraceDecompressor data = new AtraceDecompressor(input);
+    AtraceProducer data = new AtraceProducer(input);
     try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(output)) {
-      // The first line is added by the AtraceDecompressor, for the atrace-parser. Systrace will throw an error
+      // The first line is added by the AtraceProducer, for the atrace-parser. Systrace will throw an error
       // if this line is detected in the file parsing so we throw away the line.
       String line = data.getNextLine();
-      output.write(AtraceDecompressor.HEADER.toByteArray());
+      output.write(AtraceProducer.HEADER.toByteArray());
       while (!StringUtil.isEmpty(line = data.getNextLine())) {
         deflaterOutputStream.write(String.format("%s\n", line).getBytes());
       }
