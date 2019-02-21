@@ -103,7 +103,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color);
+        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, true);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -158,7 +158,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     if (color == null) {
       return null;
     }
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color);
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, false);
   }
 
   @Override
