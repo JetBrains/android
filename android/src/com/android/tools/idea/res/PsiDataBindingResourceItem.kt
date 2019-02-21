@@ -17,45 +17,31 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
+import com.android.tools.idea.databinding.DataBindingUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.xml.XmlTag
 
 /**
  * Represents a resource item that is related to data binding, extracted from a layout file.
  */
-data class PsiDataBindingResourceItem private constructor(
+data class PsiDataBindingResourceItem(
   val name: String,
   val type: DataBindingResourceType,
   val xmlTag: XmlTag,
-  val source: PsiResourceFile,
-  private val data: Map<String, String>
-) {
-  constructor(name: String,
-              type: DataBindingResourceType,
-              xmlTag: XmlTag,
-              source: PsiResourceFile) : this(
-    name = name,
-    type = type,
-    xmlTag = xmlTag,
-    source = source,
-    data = type.attributes.associate { attr ->
-      attr to StringUtil.unescapeXml(xmlTag.getAttributeValue(attr))
-    }
-  )
+  val source: PsiResourceFile) {
 
   /**
-   * Use [typeDeclaration] to get the type instead of this method.
+   * If you are planning to call this with [SdkConstants.ATTR_TYPE], use [typeDeclaration] instead.
    */
   fun getExtra(name: String): String? {
-    return data[name]
+    return type.attributes
+      .find { it == name }
+      ?.let { attr -> StringUtil.unescapeXml(xmlTag.getAttributeValue(attr)) }
   }
 
   /**
    * Same as sanitized output of [getExtra(SdkConstants.ATTR_TYPE)](getExtra).
    */
   val typeDeclaration: String?
-    get() {
-      val type = getExtra(SdkConstants.ATTR_TYPE)
-      return type?.replace('$', '.')
-    }
+    get() = getExtra(SdkConstants.ATTR_TYPE)?.replace('$', '.')
 }

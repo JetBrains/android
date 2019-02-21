@@ -763,7 +763,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (nameValue == null) {
         continue;
       }
-      String name = DataBindingUtil.convertToJavaFieldName(StringUtil.unescapeXml(nameValue));
+      String name = StringUtil.unescapeXml(nameValue);
       if (StringUtil.isNotEmpty(name)) {
         if (usedNames.add(name)) {
           PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag, resourceFile);
