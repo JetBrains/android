@@ -311,10 +311,12 @@ public class AndroidAnnotatorUtil {
     private final PsiElement myElement;
     private final Color myColor;
     private final Consumer<Color> mySetColorTask;
+    private final boolean myIncludeClickAction;
 
-    public ColorRenderer(@NotNull PsiElement element, @Nullable Color color) {
+    public ColorRenderer(@NotNull PsiElement element, @Nullable Color color, boolean includeClickAction) {
       myElement = element;
       myColor = color;
+      myIncludeClickAction = includeClickAction;
       mySetColorTask = createSetColorTask(myElement);
     }
 
@@ -340,7 +342,7 @@ public class AndroidAnnotatorUtil {
 
     @Override
     public AnAction getClickAction() {
-      if (myColor != null) { // Cannot set colors that were derived.
+      if (!myIncludeClickAction) { // Cannot set colors that were derived.
         return null;
       }
       return new AnAction() {
@@ -348,10 +350,6 @@ public class AndroidAnnotatorUtil {
         public void actionPerformed(AnActionEvent e) {
           Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
           if (editor != null) {
-            // Need ARGB support in platform color chooser; see
-            //  https://youtrack.jetbrains.com/issue/IDEA-123498
-            //Color color =
-            //  ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
             if (StudioFlags.NELE_NEW_COLOR_PICKER.get()) {
               openNewColorPicker(getCurrentColor());
             }
