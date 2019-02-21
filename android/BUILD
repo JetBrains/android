@@ -23,6 +23,7 @@ iml_module(
     ]),
     iml_files = ["intellij.android.core.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
