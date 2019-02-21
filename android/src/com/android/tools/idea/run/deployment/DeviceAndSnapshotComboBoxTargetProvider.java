@@ -127,12 +127,12 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @NotNull
   @Override
-  public DeployTarget getDeployTarget(@NotNull AndroidFacet facet) {
+  public DeployTarget getDeployTarget(@NotNull Project project) {
     assert !myProvidingMultipleTargets;
 
     ActionManager manager = ActionManager.getInstance();
     DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
-    Device device = action.getSelectedDevice(facet.getModule().getProject());
+    Device device = action.getSelectedDevice(project);
 
     return new DeviceAndSnapshotComboBoxTarget(device == null ? Collections.emptyList() : Collections.singletonList(device));
   }
