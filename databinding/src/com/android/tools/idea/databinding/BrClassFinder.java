@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class BrClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
@@ -56,18 +53,7 @@ public class BrClassFinder extends PsiElementFinder {
       return null;
     }
     PsiClass psiClass = myClassByPackageCache.getValue().get(qualifiedName);
-    if (psiClass == null) {
-      return null;
-    }
-    PsiFile containingFile = psiClass.getContainingFile();
-    if (containingFile == null) {
-      return null;
-    }
-    VirtualFile virtualFile = containingFile.getVirtualFile();
-    if (virtualFile == null) {
-      return null;
-    }
-    if (!scope.accept(virtualFile)) {
+    if (psiClass == null || psiClass.getProject() != scope.getProject()) {
       return null;
     }
     return psiClass;
