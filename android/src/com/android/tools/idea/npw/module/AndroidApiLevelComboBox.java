@@ -31,9 +31,9 @@ import java.util.List;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
 
 /**
- * A labeled combo box of SDK options for a given FormFactor.
+ * A labeled combo box of available SDK Android API Levels for a given FormFactor.
  */
-public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.VersionItem> {
+public final class AndroidApiLevelComboBox extends JComboBox<AndroidVersionsInfo.VersionItem> {
   // Keep a reference to the lambda to avoid creating a new object each time we reference it.
   private final ItemListener myItemListener = this::saveSelectedApi;
   private FormFactor myFormFactor;
