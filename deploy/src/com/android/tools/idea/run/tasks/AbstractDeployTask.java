@@ -19,6 +19,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
+import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.Installer;
@@ -95,7 +96,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
       try {
-        perform(device, deployer, applicationId, apkFiles);
+        Collection<DeployMetric> metrics = perform(device, deployer, applicationId, apkFiles);
+        addSubTaskDetails(metrics);
       }
       catch (DeployerException e) {
         return toLaunchResult(e);
@@ -108,7 +110,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return new LaunchResult();
   }
 
-  abstract protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
+  abstract protected Collection<DeployMetric> perform(
+    IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
   private String getLocalInstaller() {
     File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
@@ -128,16 +131,20 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return myProject;
   }
 
-  protected void addSubTaskDetails(@NotNull List<TaskRunner.Task<?>> tasks) {
-    for (TaskRunner.Task<?> task : tasks) {
-      if (!task.getName().isEmpty()) {
-        LaunchTaskDetail detail = LaunchTaskDetail.newBuilder()
-          .setId(getId() + "." + task.getName())
-          .setStartTimestampMs(task.getStartTimeMs())
-          .setEndTimestampMs(task.getEndTimeMs())
-          .setTid((int)task.getThreadId())
-          .build();
-        mySubTaskDetails.add(detail);
+  private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics) {
+    for (DeployMetric metric : metrics) {
+      if (!metric.getName().isEmpty()) {
+        LaunchTaskDetail.Builder detail = LaunchTaskDetail.newBuilder();
+
+        detail.setId(getId() + "." + metric.getName())
+          .setStartTimestampMs(metric.getStartTimeMs())
+          .setEndTimestampMs(metric.getEndTimeMs())
+          .setTid((int)metric.getThreadId());
+
+        if (metric.hasStatus()) {
+          detail.setStatus(metric.getStatus());
+        }
+        mySubTaskDetails.add(detail.build());
       }
     }
   }
