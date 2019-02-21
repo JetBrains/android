@@ -103,6 +103,7 @@ public class AndroidVersionsInfo {
   @NotNull
   public List<VersionItem> getKnownTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel) {
     List<VersionItem> versionItemList = new ArrayList<>();
+    minSdkLevel = Math.max(minSdkLevel, formFactor.getMinOfflineApiLevel());
 
     for (VersionItem target : myKnownTargetVersions) {
       if (isFormFactorAvailable(formFactor, minSdkLevel, target.getMinApiLevel())
@@ -190,6 +191,7 @@ public class AndroidVersionsInfo {
    * Get the list of versions, notably by populating the available values from local, remote, and statically-defined sources.
    */
   public void loadRemoteTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, @NotNull ItemsLoaded itemsLoadedCallback) {
+    minSdkLevel = Math.max(minSdkLevel, formFactor.getMinOfflineApiLevel());
     List<VersionItem> versionItemList = getKnownTargetVersions(formFactor, minSdkLevel);
     loadRemoteTargetVersions(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
   }
