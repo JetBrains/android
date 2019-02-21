@@ -270,8 +270,9 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     val moduleScope = projectRule.androidFacet.module.getModuleWithDependenciesAndLibrariesScope(false)
     val missingClasses = HashSet<String>()
     val generatedClasses = HashSet<String>()
+    val manifestPackage = projectRule.androidFacet.manifest!!.`package`.value!!.pkgToPath()
     for (classReader in classMap.values) {
-      if (!isGeneratedDataBindingClass(viewDataBindingClass, classReader)) {
+      if (!isGeneratedDataBindingClass(viewDataBindingClass, manifestPackage, classReader)) {
         continue
       }
       val className = classReader.className.pathToPkg()
@@ -290,6 +291,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
       .that(generatedClasses).containsExactly(
         "${parameters.mode.packageName}DataBindingComponent",
+        "com.android.example.appwithdatabinding.BR",
         "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
         "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
         "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding")
@@ -299,9 +301,13 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   }
 
   /**
-   * Returns `true` if this is a generated `Binding` class or `DataBindingComponent` class
+   * Returns `true` if the class associated with [classReader] is a generated `Binding` class,
+   * `BR` class, or `DataBindingComponent` class.
    */
-  private fun isGeneratedDataBindingClass(viewDataBindingClass: ClassReader, classReader: ClassReader): Boolean {
-    return viewDataBindingClass.className == classReader.superName || parameters.dataBindingComponentClassName == classReader.className
+  private fun isGeneratedDataBindingClass(viewDataBindingClass: ClassReader, manifestPackage: String, classReader: ClassReader): Boolean {
+    return viewDataBindingClass.className == classReader.superName
+           || parameters.dataBindingComponentClassName == classReader.className
+           // Exclude the framework's BR.java
+           || (classReader.className.endsWith("/BR") && classReader.className.contains(manifestPackage))
   }
 }

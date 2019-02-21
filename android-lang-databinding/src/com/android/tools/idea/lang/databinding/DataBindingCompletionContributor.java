@@ -27,6 +27,7 @@ import android.databinding.tool.reflection.ModelMethod;
 import com.android.annotations.NonNull;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor.ResolvesToModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
@@ -146,7 +147,9 @@ public class DataBindingCompletionContributor extends CompletionContributor {
       return;
     }
     for (PsiDataBindingResourceItem resourceItem : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
-      result.addElement(createTrackedLookupElement(resourceItem.getXmlTag(), resourceItem.getName()));
+      result.addElement(
+        createTrackedLookupElement(resourceItem.getXmlTag(),
+                                   DataBindingUtil.convertToJavaFieldName(resourceItem.getName())));
     }
   }
 

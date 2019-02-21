@@ -302,9 +302,10 @@ public class LightBindingClass extends AndroidLightClassBase {
       return;
     }
 
-    String capitalizedName = StringUtil.capitalize(item.getName());
+    String javaName = DataBindingUtil.convertToJavaFieldName(item.getName());
+    String capitalizedName = StringUtil.capitalize(javaName);
     LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
-    setter.addParameter(item.getName(), type);
+    setter.addParameter(javaName, type);
     if (myInfo.isMerged()) {
       setter.addModifier("abstract");
     }

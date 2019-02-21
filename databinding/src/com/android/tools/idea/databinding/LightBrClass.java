@@ -34,6 +34,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightField;
 import com.intellij.psi.impl.light.LightIdentifier;
@@ -42,8 +43,10 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.ArrayUtil;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.augment.AndroidLightClassBase;
@@ -89,7 +92,7 @@ public class LightBrClass extends AndroidLightClassBase {
                 variableNames.add(item.getName());
               }
             }
-            Set<String> bindables = collectVariableNamesFromBindables();
+            Set<String> bindables = collectVariableNamesFromUserBindables();
             if (bindables != null) {
               variableNames.addAll(bindables);
             }
@@ -112,17 +115,31 @@ public class LightBrClass extends AndroidLightClassBase {
     setModuleInfo(facet.getModule(), false);
   }
 
-  private Set<String> collectVariableNamesFromBindables() {
+  /**
+   * Search for all @Bindable annotated fields in user code only, excluding those found in
+   * generated code, since those were @Bindable fields were generated FROM variable names.
+   */
+  private Set<String> collectVariableNamesFromUserBindables() {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
     DataBindingMode mode = ModuleDataBinding.getInstance(myFacet).getDataBindingMode();
     PsiClass aClass = facade.findClass(mode.bindable, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
     if (aClass == null) {
       return null;
     }
-    //noinspection unchecked
-    final Collection<? extends PsiModifierListOwner> psiElements =
-      AnnotatedElementsSearch.searchElements(aClass, myFacet.getModule().getModuleScope(), PsiMethod.class, PsiField.class).findAll();
-    return BrUtil.collectIds(psiElements);
+
+    // Generated code with @Bindable annotations is identified as classes that inherit from
+    // ViewDataBinding. User code should never do this.
+    List<PsiModifierListOwner> userBindables = new ArrayList<>();
+    AnnotatedElementsSearch.searchElements(aClass, myFacet.getModule().getModuleScope(), PsiMethod.class, PsiField.class).forEach(
+      element -> {
+        // No null check required as we can be pretty confident that @Bindable fields exist within
+        // a class
+        //noinspection ConstantConditions
+        if (!PsiUtil.getTopLevelClass(element).getSuperClass().getQualifiedName().equals(mode.viewDataBinding)) {
+          userBindables.add(element);
+        }
+      });
+    return BrUtil.collectIds(userBindables);
   }
 
   private PsiField createPsiField(Project project, PsiElementFactory factory, String id) {

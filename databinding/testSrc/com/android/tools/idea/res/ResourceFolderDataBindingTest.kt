@@ -17,7 +17,6 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
-import com.android.testutils.TestUtils
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -117,23 +116,6 @@ class ResourceFolderDataBindingTest {
   }
 
   @Test
-  fun testAddVariable_snakeCase() {
-    setupTestWithDataBinding()
-    insertXml(
-      offset = getVariableTag("variable1").textOffset,
-      xml = """
-        <variable
-          name="added_variable"
-          type="Integer"
-        />
-        """.trimIndent())
-    assertVariables(
-      "variable1" to "String",
-      "addedVariable" to "Integer"
-    )
-  }
-
-  @Test
   fun testRenameVariable() {
     setupTestWithDataBinding()
     updateXml(
@@ -145,31 +127,13 @@ class ResourceFolderDataBindingTest {
   }
 
   @Test
-  fun testRenameVariable_snakeCase() {
-    setupTestWithDataBinding()
-    updateXml(
-      range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "variable_1")
-    assertVariables(
-      "variable1" to "String"
-    )
-
-    updateXml(
-      range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "variable_2")
-    assertVariables(
-      "variable2" to "String"
-    )
-  }
-
-  @Test
   fun testRenameVariable_prefix() {
     setupTestWithDataBinding()
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
       xml = "prefix_")
     assertVariables(
-      "prefixVariable1" to "String"
+      "prefix_variable1" to "String"
     )
   }
 
@@ -180,7 +144,7 @@ class ResourceFolderDataBindingTest {
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
       xml = "_suffix")
     assertVariables(
-      "variable1Suffix" to "String"
+      "variable1_suffix" to "String"
     )
   }
 
@@ -212,25 +176,6 @@ class ResourceFolderDataBindingTest {
   }
 
   @Test
-  fun testRemoveVariable_afterAddingAnother_snakeCase() {
-    setupTestWithDataBinding()
-    val variableTag = getVariableTag("variable1")
-    insertXml(
-      offset = variableTag.textRange.endOffset,
-      xml = """
-        <variable
-          name="added_variable"
-          type="Integer"
-        />
-        """.trimIndent()
-    )
-    deleteXml(variableTag.textRange)
-    assertVariables(
-      "addedVariable" to "Integer"
-    )
-  }
-
-  @Test
   fun testRemoveVariable_afterAddingIt() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -244,25 +189,6 @@ class ResourceFolderDataBindingTest {
         """.trimIndent()
     )
     deleteXml(getVariableTag("added").textRange)
-    assertVariables(
-      "variable1" to "String"
-    )
-  }
-
-  @Test
-  fun testRemoveVariable_afterAddingIt_snakeCase() {
-    setupTestWithDataBinding()
-    val variableTag = getVariableTag("variable1")
-    insertXml(
-      offset = variableTag.textRange.endOffset,
-      xml = """
-        <variable
-          name="added_variable"
-          type="Integer"
-        />
-        """.trimIndent()
-    )
-    deleteXml(getVariableTag("addedVariable").textRange)
     assertVariables(
       "variable1" to "String"
     )
