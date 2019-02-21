@@ -41,28 +41,34 @@ class NlDependencyManager {
     fun get() = NlDependencyManager()
   }
 
+  data class AddDependenciesResult(val hadMissingDependencies: Boolean, val dependenciesPresent: Boolean)
+
   /**
    * Makes sure the dependencies of the components being added are present and resolved in the module.
    * If they are not: ask the user if they can be added now.
-   * Return true if the dependencies are present now (they may have just been added).
+   *
+   * Returns an instance of [AddDependenciesResult] with hadMissingDependencies set to true if some dependencies were not yet present, and
+   * dependenciesPresent set to true if all dependencies were already present or if they were added (i.e. the user chose to install them).
    */
   @JvmOverloads
   fun addDependencies(
     components: Iterable<NlComponent>,
     facet: AndroidFacet,
     syncDoneCallback: (() -> Unit)? = null
-  ): Boolean {
+  ): AddDependenciesResult {
     val moduleSystem = facet.module.getModuleSystem()
     val missingDependencies = collectDependencies(components).filter { moduleSystem.getRegisteredDependency(it) == null }
     if (missingDependencies.isEmpty()) {
-      syncDoneCallback?.invoke()
-      return true
+      // We don't have any missing dependencies, therefore they're all present.
+      return AddDependenciesResult(hadMissingDependencies = false, dependenciesPresent = true)
     }
 
     if (facet.module.addDependencies(missingDependencies, false, requestSync = false).isNotEmpty()) {
-      return false
+      // User clicked "No" when asked to install the missing dependencies, so they won't be present.
+      return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = false)
     }
 
+    // When the user clicks "Yes" to install the missing dependencies, sync the project so they'll effectively be present.
     val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
       facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
 
@@ -70,7 +76,7 @@ class NlDependencyManager {
       syncResult.addCallback(success = { syncDoneCallback() }, failure = { syncDoneCallback() })
     }
 
-    return true
+    return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = true)
   }
 
   /**
@@ -80,7 +86,7 @@ class NlDependencyManager {
     components: Iterable<NlComponent>,
     facet: AndroidFacet,
     syncDoneCallback: Runnable
-  ): Boolean {
+  ): AddDependenciesResult {
     return addDependencies(components, facet, syncDoneCallback::run)
   }
 
