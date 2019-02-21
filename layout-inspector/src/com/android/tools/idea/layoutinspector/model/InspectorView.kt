@@ -28,19 +28,24 @@ import java.awt.image.SinglePixelPackedSampleModel
 /**
  * Representation of a single View in the layout inspector. Should (eventually) include all information available about that view, including
  * properties and an image of the view.
+ *
+ * Currently primarily created through JNI by the skia parser.
  */
 class InspectorView(
+  val id: String,
   val type: String,
   var x: Int,
   var y: Int,
   var width: Int,
   var height: Int
 ) {
-
   var image: Image? = null
   var imageGenerationTime: Long? = null
 
-  val children: MutableList<InspectorView> = mutableListOf()
+  /**
+   * Map of View IDs to views.
+   */
+  val children: MutableMap<String, InspectorView> = mutableMapOf()
 
   @Suppress("unused") // invoked via reflection
   fun setData(data: IntArray) {
@@ -58,6 +63,10 @@ class InspectorView(
 
   @Suppress("unused") // invoked via reflection
   fun addChild(child: InspectorView) {
-    children.add(child)
+    children[child.id] = child
+  }
+
+  fun flatten(): Collection<InspectorView> {
+    return children.values.flatMap { it.flatten() }.plus(this)
   }
 }

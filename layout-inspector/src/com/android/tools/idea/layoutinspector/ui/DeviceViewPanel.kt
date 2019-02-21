@@ -309,7 +309,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
       val bytes = client.transportClient.getBytes(bytesRequest).contents.toByteArray()
       if (bytes.isNotEmpty()) {
         SkiaParser().getViewTree(bytes)?.let {
-          layoutInspector.layoutInspectorModel.root = it
+          layoutInspector.layoutInspectorModel.update(it)
           application.invokeLater {
             scrollPane.viewport.revalidate()
             repaint()
