@@ -289,6 +289,7 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
         "//tools/vendor/intellij/cidr:intellij.c[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-plugin[test]",
     ],
 )
 

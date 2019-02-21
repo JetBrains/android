@@ -42,6 +42,9 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.config.CompilerSettings
+import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
 import java.io.File
 import java.lang.Math.max
 
@@ -258,6 +261,7 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
       is JavaFacetConfiguration -> dump(configuration)
       is AndroidFacetConfiguration -> dump(configuration)
       is NdkFacetConfiguration -> dump(configuration)
+      is KotlinFacetConfiguration -> dump(configuration)
       else -> prop("Configuration") { configuration.toString() }
     }
   }
@@ -321,6 +325,86 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
 
 private fun ProjectDumper.dump(ndkFacetConfiguration: NdkFacetConfiguration) {
   prop("SelectedBuildVariant") { ndkFacetConfiguration.SELECTED_BUILD_VARIANT.nullize() }
+}
+
+fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguration) {
+  with(kotlinFacetConfiguration.settings) {
+    prop("ApiLevel") { apiLevel?.toString() }
+    compilerArguments?.let { compilerArguments ->
+      head("CompilerArguments") { null }
+      dump(compilerArguments)
+    }
+    compilerSettings?.let { compilerSettings ->
+      head("CompilerSettings") { null }
+      dump(compilerSettings)
+    }
+    prop("CoroutineSupport") { coroutineSupport?.toString() }
+    prop("ExternalProjectId") { externalProjectId.nullize() }
+    implementedModuleNames.forEach { prop("- ImplementedModuleName") { it } }
+    prop("IsTestModule") { isTestModule.toString() }
+    prop("Kind") { kind.toString() }
+    prop("LanguageLevel") { languageLevel?.toString() }
+    mergedCompilerArguments?.let { mergedCompilerArguments ->
+      head("MergedCompilerArguments") { null }
+      dump(mergedCompilerArguments)
+    }
+    prop("Platform") { platform?.toString() }
+    prop("ProductionOutputPath") { productionOutputPath }
+    sourceSetNames.forEach { prop("- SourceSetName") { it } }
+    prop("TestOutputPath") { testOutputPath }
+    prop("UseProjectSettings") { useProjectSettings.toString() }
+    prop("Version") { version.toString() }
+  }
+}
+
+private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
+  nest {
+    prop("allowKotlinPackage") { compilerArguments.allowKotlinPackage.takeIf { it }?.toString() }
+    prop("allowResultReturnType") { compilerArguments.allowResultReturnType.takeIf { it }?.toString() }
+    prop("apiVersion") { compilerArguments.apiVersion }
+    prop("autoAdvanceApiVersion") { compilerArguments.autoAdvanceApiVersion.takeIf { it }?.toString() }
+    prop("autoAdvanceLanguageVersion") { compilerArguments.autoAdvanceLanguageVersion.takeIf { it }?.toString() }
+    compilerArguments.commonSources?.forEach { prop("- commonSources") { it } }
+    prop("coroutinesState") { compilerArguments.coroutinesState }
+    compilerArguments.disablePhases?.forEach { prop("- disablePhases") { it } }
+    prop("dumpPerf") { compilerArguments.dumpPerf }
+    prop("effectSystem") { compilerArguments.effectSystem.takeIf { it }?.toString() }
+    compilerArguments.experimental?.forEach { prop("- experimental") { it } }
+    prop("intellijPluginRoot") { compilerArguments.intellijPluginRoot }
+    prop("kotlinHome") { compilerArguments.kotlinHome }
+    prop("languageVersion") { compilerArguments.languageVersion }
+    prop("legacySmartCastAfterTry") { compilerArguments.legacySmartCastAfterTry.takeIf { it }?.toString() }
+    prop("listPhases") { compilerArguments.listPhases.takeIf { it }?.toString() }
+    prop("metadataVersion") { compilerArguments.metadataVersion }
+    prop("multiPlatform") { compilerArguments.multiPlatform.takeIf { it }?.toString() }
+    prop("newInference") { compilerArguments.newInference.takeIf { it }?.toString() }
+    prop("noCheckActual") { compilerArguments.noCheckActual.takeIf { it }?.toString() }
+    prop("noInline") { compilerArguments.noInline.takeIf { it }?.toString() }
+    compilerArguments.phasesToDump?.forEach { prop("- phasesToDump") { it } }
+    compilerArguments.phasesToDumpAfter?.forEach { prop("- phasesToDumpAfter") { it } }
+    compilerArguments.phasesToDumpBefore?.forEach { prop("- phasesToDumpBefore") { it } }
+    compilerArguments.pluginClasspaths?.forEach { prop("- pluginClasspaths") { it } }
+    compilerArguments.pluginOptions?.forEach { prop("- pluginOptions") { it } }
+    prop("profilePhases") { compilerArguments.profilePhases.takeIf { it }?.toString() }
+    prop("progressiveMode") { compilerArguments.progressiveMode.takeIf { it }?.toString() }
+    prop("properIeee754Comparisons") { compilerArguments.properIeee754Comparisons.takeIf { it }?.toString() }
+    prop("readDeserializedContracts") { compilerArguments.readDeserializedContracts.takeIf { it }?.toString() }
+    prop("reportOutputFiles") { compilerArguments.reportOutputFiles.takeIf { it }?.toString() }
+    prop("reportPerf") { compilerArguments.reportPerf.takeIf { it }?.toString() }
+    prop("skipMetadataVersionCheck") { compilerArguments.skipMetadataVersionCheck.takeIf { it }?.toString() }
+    compilerArguments.useExperimental?.forEach { prop("- useExperimental") { it } }
+    compilerArguments.verbosePhases?.forEach { prop("- verbosePhases") { it } }
+  }
+}
+
+private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
+  nest {
+    prop("additionalArguments") { compilerSettings.additionalArguments }
+    prop("copyJsLibraryFiles") { compilerSettings.copyJsLibraryFiles.takeIf { it }?.toString() }
+    prop("outputDirectoryForJsLibraryFiles") { compilerSettings.outputDirectoryForJsLibraryFiles }
+    prop("scriptTemplates") { compilerSettings.scriptTemplates.nullize() }
+    prop("scriptTemplatesClasspath") { compilerSettings.scriptTemplatesClasspath.nullize() }
+  }
 }
 
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
