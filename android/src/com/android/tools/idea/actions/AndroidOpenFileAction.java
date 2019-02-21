@@ -15,9 +15,26 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
+import static com.intellij.ide.actions.OpenFileAction.openFile;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
+import static com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject;
+import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.ide.impl.ProjectUtil.openOrImport;
+import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
+import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
+import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
+import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
+
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.util.FileExtensions;
+import com.android.utils.concurrency.CachedAsyncSupplier;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeBundle;
@@ -37,26 +54,14 @@ import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
 import com.intellij.util.IconUtil;
-import com.intellij.util.IncorrectOperationException;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.ide.actions.OpenFileAction.openFile;
-import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
-import static com.intellij.ide.impl.ProjectUtil.openOrImport;
-import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
-import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
-import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
-import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
-import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
 /**
  * Opens existing project or file in Android Studio.
@@ -200,47 +205,33 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    * after the one is computed.
    */
   private static class AsyncIcon implements Icon {
-    @NotNull Icon myIcon;
+    @NotNull private final Icon myPlaceholderIcon;
+    @NotNull private final CachedAsyncSupplier<Icon> myIconAsyncSupplier;
 
-    AsyncIcon(@NotNull Icon placeholderIcon) {
-      myIcon = placeholderIcon;
+    AsyncIcon(@NotNull Icon placeholderIcon, @NotNull CachedAsyncSupplier<Icon> iconAsyncSupplier) {
+      myPlaceholderIcon = placeholderIcon;
+      myIconAsyncSupplier = iconAsyncSupplier;
     }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
-      myIcon.paintIcon(c, g, x, y);
+      getIcon().paintIcon(c, g, x, y);
     }
 
     @Override
     public int getIconWidth() {
-      return myIcon.getIconWidth();
+      return getIcon().getIconWidth();
     }
 
     @Override
     public int getIconHeight() {
-      return myIcon.getIconHeight();
+      return getIcon().getIconHeight();
     }
 
-    /**
-     * Computes the real icon in the pooled thread and updates the icon once completed. If the
-     * parent disposable is disposed, the update task is canceled.
-     *
-     * @param parent a parent disposable to cancel the icon update when it becomes unneeded
-     * @param iconSupplier a supplier of the real icon. The computation happens in pooled thread
-     */
-    public void updateIconAsync(@NotNull Disposable parent, @NotNull Supplier<Icon> iconSupplier) {
-      if (Disposer.isDisposed(parent) || Disposer.isDisposing(parent)) {
-        return;
-      }
-      CompletableFuture<Void> future = CompletableFuture.runAsync(
-        () -> myIcon = iconSupplier.get(),
-        AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
-      try {
-        Disposer.register(parent, () -> future.cancel(/*mayInterruptIfRunning=*/true));
-      } catch (IncorrectOperationException e) {
-        // IncorrectOperationException could happen in race condition.
-        future.cancel(/*mayInterruptIfRunning=*/true);
-      }
+    @NonNull
+    private final Icon getIcon() {
+      Icon icon = myIconAsyncSupplier.getNow();
+      return icon != null ? icon : myPlaceholderIcon;
     }
   }
 
@@ -267,9 +258,11 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         // icon later asynchronously. Determining if a directory is an android project directory
         // is very expensive because we need to get a list of files of the directory. See b/37099520
         // for details.
-        AsyncIcon icon = new AsyncIcon(
-          dressIcon(key, IconUtil.getIcon(key, Iconable.ICON_FLAG_READ_STATUS, null)));
-        icon.updateIconAsync(this, () -> super.getIcon(key));
+        Icon placeholder = dressIcon(key, IconUtil.getIcon(key, Iconable.ICON_FLAG_READ_STATUS, null));
+        CachedAsyncSupplier<Icon> asyncIconSupplier = new CachedAsyncSupplier<>(
+            () -> Disposer.isDisposed(this) ? placeholder : super.getIcon(key),
+            AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+        AsyncIcon icon = new AsyncIcon(placeholder, asyncIconSupplier);
         return icon;
       });
     }
