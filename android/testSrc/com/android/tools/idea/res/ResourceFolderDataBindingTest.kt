@@ -17,8 +17,11 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
+import com.android.testutils.TestUtils
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.res.ResourceFolderRepositoryTest.overrideCacheService
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -30,53 +33,71 @@ import com.intellij.psi.search.PsiElementProcessor
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase.assertSize
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import java.io.File
 
-class ResourceFolderDataBindingTest : AndroidTestCase() {
-  private lateinit var myOldFileCacheService: ResourceFolderRepositoryFileCache
-  private lateinit var myRegistry: ResourceFolderRegistry
+@RunsInEdt
+class ResourceFolderDataBindingTest {
+  private var projectRule = AndroidProjectRule.withSdk().initAndroid(true)
+
+  // ProjectRule initialization must not happen on the EDT thread
+  @get:Rule
+  var chainRule: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
+  private val facet
+    get() = projectRule.module.androidFacet!!
+
+  private lateinit var oldFileCacheService: ResourceFolderRepositoryFileCache
+  private lateinit var registry: ResourceFolderRegistry
   private lateinit var psiFile: PsiFile
   private lateinit var resources: ResourceFolderRepository
-  private lateinit var facet: AndroidFacet
 
-  public override fun tearDown() {
-    try {
-      overrideCacheService(myOldFileCacheService)
-    }
-    finally {
-      super.tearDown()
-    }
-  }
+  @Before
+  fun setUp() {
+    fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").path
 
-  @Throws(Exception::class)
-  public override fun setUp() {
-    super.setUp()
     // Use a file cache that has per-test root directories instead of sharing the system directory.
-    val cache = ResourceFolderRepositoryFileCacheImpl(File(myFixture.tempDirPath))
-    myOldFileCacheService = overrideCacheService(cache)
+    val cache = ResourceFolderRepositoryFileCacheImpl(File(fixture.tempDirPath))
+    oldFileCacheService = overrideCacheService(cache)
   }
+
+  @After
+  fun tearDown() {
+    overrideCacheService(oldFileCacheService)
+  }
+
 
   private fun setupTestWithDataBinding() {
-    myRegistry = ResourceFolderRegistry.getInstance(project)
-    val file = myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
+    registry = ResourceFolderRegistry.getInstance(project)
+    val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
     resources = createRepository()
-    facet = resources.facet
     assertEquals(1, resources.dataBindingResourceFiles.size)
   }
 
   private fun setupWithLayoutFile(layoutContents: String) {
-    myRegistry = ResourceFolderRegistry.getInstance(project)
-    psiFile = myFixture.addFileToProject("res/layout/layout_with_data_binding.xml", layoutContents)
+    registry = ResourceFolderRegistry.getInstance(project)
+    psiFile = fixture.addFileToProject("res/layout/layout_with_data_binding.xml", layoutContents)
     resources = createRepository()
-    facet = resources.facet
     UIUtil.dispatchAllInvocationEvents()
   }
 
+  @Test
   fun testAddVariable() {
     setupTestWithDataBinding()
     insertXml(
@@ -93,6 +114,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testAddVariable_snakeCase() {
     setupTestWithDataBinding()
     insertXml(
@@ -109,6 +131,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRenameVariable() {
     setupTestWithDataBinding()
     updateXml(
@@ -119,6 +142,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRenameVariable_snakeCase() {
     setupTestWithDataBinding()
     updateXml(
@@ -136,6 +160,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRenameVariable_prefix() {
     setupTestWithDataBinding()
     insertXml(
@@ -146,6 +171,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRenameVariable_suffix() {
     setupTestWithDataBinding()
     insertXml(
@@ -156,6 +182,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRemoveVariable() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -163,6 +190,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     assertVariables()
   }
 
+  @Test
   fun testRemoveVariable_afterAddingAnother() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -181,6 +209,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRemoveVariable_afterAddingAnother_snakeCase() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -199,6 +228,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRemoveVariable_afterAddingIt() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -217,6 +247,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRemoveVariable_afterAddingIt_snakeCase() {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
@@ -235,6 +266,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testUpdateType() {
     setupTestWithDataBinding()
     updateXml(
@@ -246,6 +278,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testAddIdToView() {
     setupWithLayoutFile(
       """
@@ -272,6 +305,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testRemoveIdFromView() {
     setupWithLayoutFile(
       """
@@ -296,6 +330,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     assertViewsWithIds()
   }
 
+  @Test
   fun testChangeId() {
     setupWithLayoutFile(
       """
@@ -325,6 +360,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testChangeViewType() {
     setupWithLayoutFile(
       """
@@ -350,6 +386,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testAddViewWithId() {
     setupWithLayoutFile(
       """
@@ -387,6 +424,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testUnrelatedChange_attr() {
     setupWithLayoutFile(
       """
@@ -419,6 +457,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     assertEquals(startModificationCnt, endModificationCnt)
   }
 
+  @Test
   fun testUnrelatedChange_addView() {
     setupWithLayoutFile(
       """
@@ -487,6 +526,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     UIUtil.dispatchAllInvocationEvents()
   }
 
+  @Test
   fun testInitialParsing() {
     setupTestWithDataBinding()
     assertVariables(
@@ -508,11 +548,11 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
 
   private fun createRepository(): ResourceFolderRepository {
     val dir = getResourceDirectory()
-    return myRegistry.get(myFacet, dir)
+    return registry.get(facet, dir)
   }
 
   private fun getResourceDirectory(): VirtualFile {
-    val resourceDirectories = ResourceFolderManager.getInstance(myFacet).folders
+    val resourceDirectories = ResourceFolderManager.getInstance(facet).folders
     assertNotNull(resourceDirectories)
     assertSize(1, resourceDirectories)
     return resourceDirectories[0]
