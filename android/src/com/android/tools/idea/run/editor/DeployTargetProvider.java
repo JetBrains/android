@@ -114,7 +114,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
   public abstract DeployTarget<S> getDeployTarget();
 
   @NotNull
-  public DeployTarget<S> getDeployTarget(@NotNull AndroidFacet facet) {
+  public DeployTarget<S> getDeployTarget(@NotNull Project project) {
     return getDeployTarget();
   }
 
