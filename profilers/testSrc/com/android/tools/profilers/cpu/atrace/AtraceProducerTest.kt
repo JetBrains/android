@@ -22,13 +22,13 @@ import org.junit.Test
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
-class AtraceDecompressorTest {
+class AtraceProducerTest {
 
-  private lateinit var myDecompressor: AtraceDecompressor
+  private lateinit var myProducer: AtraceProducer
   @Before
   fun setup() {
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    myDecompressor = AtraceDecompressor(traceFile)
+    myProducer = AtraceProducer(traceFile)
   }
 
   @Test
@@ -36,13 +36,13 @@ class AtraceDecompressorTest {
     val rawTraceData = CpuProfilerTestUtils.getTraceFile("../long_line_trace_truncated.txt")
     val contents = InputStreamReader(FileInputStream(rawTraceData))
     val traceFile = CpuProfilerTestUtils.getTraceFile("long_line.ctrace")
-    myDecompressor = AtraceDecompressor(traceFile)
+    myProducer = AtraceProducer(traceFile)
     // "# Initial Data Required by Importer\n"
-    var slice = myDecompressor.next()
+    var slice = myProducer.next()
     val lines = contents.readLines()
     var i = 0
     do {
-      slice = myDecompressor.next()!!
+      slice = myProducer.next()!!
       assertThat(slice.toString().trim()).isEqualTo(lines[i++].trim())
       // Verify that all string lengths are less than or equal to 1024 characters
       // 1023 characters are expected + 1 for the \n. This is needed to prevent a bug in trebuchet
@@ -54,13 +54,13 @@ class AtraceDecompressorTest {
 
   @Test
   fun testDecompressedLineHasNewLineChar() {
-    var slice = myDecompressor.next()
+    var slice = myProducer.next()
     assertThat(slice.toString()).endsWith("\n")
   }
 
   @Test
   fun testCompressBounderyProperlySetsNewLine() {
-    for (line in myDecompressor.lines) {
+    for (line in myProducer.lines) {
       val tracerIndex = line.indexOf("# tracer: nop")
       assertThat(tracerIndex == -1 || tracerIndex == 0).isTrue()
     }
@@ -69,7 +69,7 @@ class AtraceDecompressorTest {
   @Test
   fun testDontLoseLastCompleteLineInDecompression() {
     var knownTimestampOccurences = 0
-    for (line in myDecompressor.lines) {
+    for (line in myProducer.lines) {
       if (line.indexOf(KNOWN_TIMESTAMP) >= 0) {
         knownTimestampOccurences++
       }
@@ -81,26 +81,26 @@ class AtraceDecompressorTest {
   fun testEndOfFileReturnsNull() {
     do {
       // Read each line until we hit the end of stream.
-      var line = myDecompressor.nextLine
+      var line = myProducer.nextLine
     }
     while (line != null)
     // Validate that next returns null to indicate end of stream.
-    assertThat(myDecompressor.next()).isNull()
+    assertThat(myProducer.next()).isNull()
   }
 
   @Test
   fun testCaptureLoadsWhenDataFitsExactBufferBounds() {
     val traceFile = CpuProfilerTestUtils.getTraceFile("exact_size_atrace.ctrace")
-    val decompressor = AtraceDecompressor(traceFile)
+    val producer = AtraceProducer(traceFile)
     do {
       // Read each line until we hit the end of stream.
-      var line = decompressor.nextLine
+      var line = producer.nextLine
     }
     while (line != null)
   }
 
-  // Adding a kotlin property fopr AtraceDecompressor to assist with iterating lines.
-  val AtraceDecompressor.lines: Iterator<String>
+  // Adding a kotlin property fopr AtraceProducer to assist with iterating lines.
+  val AtraceProducer.lines: Iterator<String>
     get() = object : Iterator<String> {
       var line = this@lines.nextLine
       override fun next(): String {

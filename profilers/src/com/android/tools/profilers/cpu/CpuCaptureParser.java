@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.atrace.AtraceDecompressor;
+import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
@@ -231,7 +231,7 @@ public class CpuCaptureParser {
     // If atrace flag is enabled, check the file header to see if it's an atrace file.
     if (myServices.getFeatureConfig().isAtraceEnabled()) {
       try {
-        if (AtraceDecompressor.verifyFileHasAtraceHeader(traceFile)) {
+        if (AtraceProducer.verifyFileHasAtraceHeader(traceFile)) {
           // Atrace files contain multiple processes. For imported Atrace files we don't have a
           // session that can tell us which process the user is interested in. So for all imported
           // trace files we ask the user to select a process. The list of processes the user can

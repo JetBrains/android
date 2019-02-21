@@ -129,7 +129,7 @@ public class AtraceParser implements TraceParser {
    */
   private void parseModelIfNeeded(@NotNull File file) throws IOException {
     if (myModel == null) {
-      AtraceDecompressor reader = new AtraceDecompressor(file);
+      AtraceProducer reader = new AtraceProducer(file);
       ImportTask task = new ImportTask(new PrintlnImportFeedback());
       myModel = task.importBuffer(reader);
       // We check if we have a parent timestamp. If not this could be from an imported trace.
