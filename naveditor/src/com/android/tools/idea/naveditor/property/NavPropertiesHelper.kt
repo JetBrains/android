@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 val NlProperty.isCustomProperty
   get() = this is NlPropertyItem &&
           definition?.libraryName?.startsWith(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.mavenGroupId) != true &&
+          definition?.libraryName?.startsWith(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT.mavenGroupId) != true &&
           namespace != SdkConstants.ANDROID_URI &&
           !(name == SdkConstants.ATTR_LAYOUT && namespace == SdkConstants.TOOLS_URI)
 

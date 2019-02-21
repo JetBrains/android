@@ -57,10 +57,14 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   FLEXBOX_LAYOUT("com.google.android", "flexbox", false),
 
   // Navigation
-  // TODO: Navigation isn't in androidx yet
-  // ANDROIDX_NAVIGATION_FRAGMENT("androidx.navigation", "navigation-fragment", false),
   NAVIGATION_FRAGMENT("android.arch.navigation", "navigation-fragment", false),
+  ANDROIDX_NAVIGATION_FRAGMENT("androidx.navigation", "navigation-fragment", false),
   NAVIGATION_UI("android.arch.navigation", "navigation-ui", false),
+  ANDROIDX_NAVIGATION_UI("androidx.navigation", "navigation-ui", false),
+  NAVIGATION_FRAGMENT_KTX("android.arch.navigation", "navigation-fragment-ktx", false),
+  ANDROIDX_NAVIGATION_FRAGMENT_KTX("androidx.navigation", "navigation-fragment-ktx", false),
+  NAVIGATION_UI_KTX("android.arch.navigation", "navigation-ui-ktx", false),
+  ANDROIDX_NAVIGATION_UI_KTX("androidx.navigation", "navigation-ui-ktx", false),
   // This is currently only used in tests
   NAVIGATION("androidx.navigation", "navigation-runtime", false),
 
