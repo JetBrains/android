@@ -31,10 +31,10 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
-import static com.android.tools.idea.npw.module.FormFactorApiComboBox.getPropertiesComponentMinSdkKey;
+import static com.android.tools.idea.npw.module.AndroidApiLevelComboBox.getPropertiesComponentMinSdkKey;
 import static org.junit.Assert.assertEquals;
 
-public class FormFactorApiComboBoxTest {
+public class AndroidApiLevelComboBoxTest {
   private Disposable myDisposable;
 
   @Before
@@ -67,7 +67,7 @@ public class FormFactorApiComboBoxTest {
       createMockVersionItem(String.valueOf(formFactor.defaultApi + 2))
     );
 
-    FormFactorApiComboBox apiComboBox = new FormFactorApiComboBox();
+    AndroidApiLevelComboBox apiComboBox = new AndroidApiLevelComboBox();
 
     apiComboBox.init(formFactor, items);
     assertEquals(1, apiComboBox.getSelectedIndex());
