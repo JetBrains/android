@@ -113,13 +113,13 @@ public class AndroidColorAnnotator implements Annotator {
       if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
         if (element instanceof XmlTag) {
           Annotation annotation = holder.createInfoAnnotation(element, null);
-          annotation.setGutterIconRenderer(new ColorRenderer(element, null));
+          annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
         } else {
           assert element instanceof XmlAttributeValue;
           Color color = ResourceHelper.parseColor(value);
           if (color != null) {
             Annotation annotation = holder.createInfoAnnotation(element, null);
-            annotation.setGutterIconRenderer(new ColorRenderer(element, null));
+            annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
           }
         }
       }
@@ -178,7 +178,7 @@ public class AndroidColorAnnotator implements Annotator {
       Color color = ResourceHelper.resolveColor(resourceResolver, value, project);
       if (color != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new ColorRenderer(element, color));
+        annotation.setGutterIconRenderer(new ColorRenderer(element, color, false));
       }
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
