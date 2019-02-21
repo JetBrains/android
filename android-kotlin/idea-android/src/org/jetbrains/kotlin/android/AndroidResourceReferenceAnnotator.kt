@@ -61,7 +61,7 @@ class AndroidResourceReferenceAnnotator : Annotator {
             val color = resourceResolver.resolveColor(resourceValue, element.project)
             if (color != null) {
                 val annotation = holder.createInfoAnnotation(element, null)
-                annotation.gutterIconRenderer = ColorRenderer(element, color)
+                annotation.gutterIconRenderer = ColorRenderer(element, color, false)
             }
         }
         else {
