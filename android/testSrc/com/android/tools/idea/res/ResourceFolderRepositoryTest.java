@@ -116,10 +116,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
   }
 
-  /**
-   * Package private to be able to re-use from {@link ResourceFolderDataBindingTest}.
-   */
-  static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
+  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
     MutablePicoContainer applicationContainer = (MutablePicoContainer)
       ApplicationManager.getApplication().getPicoContainer();
 

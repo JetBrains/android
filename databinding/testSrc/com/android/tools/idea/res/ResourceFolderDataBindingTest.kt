@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.testutils.TestUtils
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.ResourceFolderRepositoryTest.overrideCacheService
+import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -45,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.picocontainer.MutablePicoContainer
 import java.io.File
 
 @RunsInEdt
@@ -69,7 +71,7 @@ class ResourceFolderDataBindingTest {
 
   @Before
   fun setUp() {
-    fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").path
+    fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
 
     // Use a file cache that has per-test root directories instead of sharing the system directory.
     val cache = ResourceFolderRepositoryFileCacheImpl(File(fixture.tempDirPath))
@@ -626,6 +628,18 @@ class ResourceFolderDataBindingTest {
   }
 
   companion object {
-    private const val LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml"
+    private const val LAYOUT_WITH_DATA_BINDING = "res/layout_with_data_binding.xml"
+
+    private fun overrideCacheService(newCache: ResourceFolderRepositoryFileCache): ResourceFolderRepositoryFileCache {
+      val applicationContainer = ApplicationManager.getApplication().picoContainer as MutablePicoContainer
+
+      // Use a file cache that has per-test root directories instead of sharing the system directory.
+      // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
+      val oldCache = applicationContainer.getComponentInstance(
+        ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
+      applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache::class.java.name)
+      applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache::class.java.name, newCache)
+      return oldCache
+    }
   }
 }
