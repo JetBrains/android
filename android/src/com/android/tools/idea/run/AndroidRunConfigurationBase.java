@@ -348,7 +348,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     else {
-      deployTarget = currentTargetProvider.getDeployTarget(facet);
+      deployTarget = currentTargetProvider.getDeployTarget(getProject());
     }
 
     return deployTarget;
