@@ -921,7 +921,7 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
 
-    XmlTag tag = neleComponent.getTag();
+    XmlTag tag = neleComponent.getTagDeprecated();
     ViewInfo viewInfo = task.measureChild(tag, filter);
     if (viewInfo == null) {
       return null;

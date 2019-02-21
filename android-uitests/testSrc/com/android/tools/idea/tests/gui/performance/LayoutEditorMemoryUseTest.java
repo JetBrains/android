@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testFramework.LeakHunter;
@@ -30,7 +31,6 @@ import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,11 +63,7 @@ import java.util.Set;
 public class LayoutEditorMemoryUseTest {
 
   private static final int MAX_LOOP_COUNT = 5;
-  private static final Set<String> ourIgnoredClasses = ImmutableSet.of(
-    // Known leak: b/73826291. Each time RenderTask is created, its myAssetRepository object is leaked.
-    // The lifetime of the leak is equal to the lifetime of the Module (project close should dispose it).
-    "com.android.tools.idea.res.AssetRepositoryImpl"
-  );
+  private static final Set<String> ourIgnoredClasses = ImmutableSet.of();
 
   private static final Logger LOG = Logger.getInstance(LayoutEditorMemoryUseTest.class);
   private static final boolean CAPTURE_HEAP_DUMPS = false;
@@ -146,7 +142,8 @@ public class LayoutEditorMemoryUseTest {
   }
 
   @Test
-  @Ignore // run manually for now, until infrastructure is set up. Set -Dneable.bleak=true
+  @UseBleak
+  @RunIn(TestGroup.PERFORMANCE)
   public void navigateAndEditWithBLeak() throws Exception {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     BleakKt.runWithBleak(() -> runScenario(fixture));
@@ -187,9 +184,6 @@ public class LayoutEditorMemoryUseTest {
     // Third file on editor tab
     fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
       getLayoutPreview(true).waitForRenderToFinish();
-
-    fixture.getEditor().closeFile(layoutFilePaths[0]);
-    fixture.getEditor().closeFile(layoutFilePaths[1]);
   }
 
   private static class LeakedInstancesTracker {

@@ -143,7 +143,7 @@ public class NlModelTest extends LayoutTestCase {
     ModelBuilder modelBuilder = createDefaultModelBuilder(true);
     NlModel model = modelBuilder.build();
     NlComponent component1 = model.find("myText1");
-    XmlAttribute attribute = component1.getTag().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+    XmlAttribute attribute = component1.getTagDeprecated().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
     NlComponent component2 = model.findViewByPsi(attribute.getFirstChild());
     assertThat(component1).isSameAs(component2);
@@ -153,7 +153,7 @@ public class NlModelTest extends LayoutTestCase {
     ModelBuilder modelBuilder = createDefaultModelBuilder(true);
     NlModel model = modelBuilder.build();
     NlComponent component1 = model.find("myText1");
-    XmlAttribute attribute = component1.getTag().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+    XmlAttribute attribute = component1.getTagDeprecated().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
     ResourceReference reference = model.findAttributeByPsi(attribute.getFirstChild());
     assertThat(reference.getName()).isEqualTo(ATTR_LAYOUT_WIDTH);

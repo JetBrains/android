@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.Blocking;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -25,8 +26,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -34,7 +36,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -136,6 +137,7 @@ public class ConfigurationManager implements Disposable {
    * Gets the {@link Configuration} associated with the given file
    * @return the {@link Configuration} for the given file
    */
+  @Blocking
   @NotNull
   public Configuration getConfiguration(@NotNull VirtualFile file) {
     Configuration configuration = myCache.get(file);
@@ -154,7 +156,10 @@ public class ConfigurationManager implements Disposable {
 
   /**
    * Creates and returns a new {@link Configuration} associated with this manager.
+   * This method might block while finding the correct {@link Device} for the {@link Configuration}. Finding
+   * devices requires accessing (and maybe updating) the repository of existing ones.
    */
+  @Blocking
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
@@ -213,6 +218,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   /** Returns the list of available devices for the current platform and any custom user devices, if any */
+  @Blocking
   @NotNull
   public ImmutableList<Device> getDevices() {
     return new ImmutableList.Builder<Device>()
@@ -221,6 +227,7 @@ public class ConfigurationManager implements Disposable {
       .build();
   }
 
+  @Blocking
   @NotNull
   public Collection<Device> updateAndGetPlatformDevices() {
     if (mySdkDevices.isEmpty()) {
@@ -322,7 +329,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    MergedManifest manifest = MergedManifest.get(getModule());
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(getModule());
 
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
 
@@ -334,7 +341,7 @@ public class ConfigurationManager implements Disposable {
         activityFqcn = pkg + activity;
       }
 
-      ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
+      ActivityAttributesSnapshot attributes = manifest.getActivityAttributes(activityFqcn);
       if (attributes != null) {
         String theme = attributes.getTheme();
         // Check that the theme looks like a reference.

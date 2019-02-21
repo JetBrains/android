@@ -21,8 +21,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;

@@ -352,7 +352,7 @@ public class NlDropInsertionPickerTest {
     @Deprecated
     @NotNull
     @Override
-    public XmlTag getTag() {
+    public XmlTag getTagDeprecated() {
       return EmptyXmlTag.INSTANCE;
     }
 

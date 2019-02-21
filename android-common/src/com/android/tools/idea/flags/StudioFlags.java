@@ -304,13 +304,6 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
-  public static final Flag<Boolean> JVMTI_REFRESH = Flag.create(
-    RUNDEBUG,
-    "jvmti.refresh",
-    "Application refresh with JVMTI",
-    "Use JVMTI to support application refresh. This implies incremental deployment",
-    true);
-
   public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
     RUNDEBUG,
     "deltainstall",
@@ -318,19 +311,12 @@ public final class StudioFlags {
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
 
-  public static final Flag<Boolean> UNIFIED_DEPLOYMENT = Flag.create(
-    RUNDEBUG,
-    "unified.deploy",
-    "Use the 'apply changes' deployment pipeline",
-    "Both split and non-split apks are installed the same way",
-    true);
-
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.visible",
     "Show the Select Device/Snapshot combo box",
     "Show the Select Device/Snapshot combo box next to the Select Run/Debug Configuration one in the toolbar",
-    JVMTI_REFRESH.get());
+    true);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
@@ -466,6 +452,13 @@ public final class StudioFlags {
     "When disabled AndroidDomExtender does nothing, simulating a situation where DOM extensions have not been " +
     "computed yet.",
     true);
+
+  public static final Flag<Boolean> GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED = Flag.create(
+    EDITOR,
+    "gutter.annotator.background.enabled",
+    "Enable gutter icon annotator to be run in background.",
+    "Enable gutter icon annotator to be run after all other annotators and in the background.",
+    false);
 
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(

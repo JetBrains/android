@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.IncorrectOperationException
 
 /**
  * Backend impl for interaction with psi elements within NlComponents.
@@ -49,6 +50,23 @@ interface NlComponentBackend {
 
   // TODO: remove
   fun getTagName(): String
+
+  /**
+   * Returns the value of an attribute. May block if not run inside a read action.
+   * If read access is not allowed, it'll schedule operations on the read-accessible thread.
+   * @return attribute of the string value.
+   */
+  fun getAttribute(attribute: String, namespace: String?): String?
+
+  /**
+   * Precondition : Must be called within undo-transparent action. See [NlWriteCommandActionUtil]
+   * Attempts to set the value of an attribute. May block if not run inside a write action.
+   *
+   * @return true if attribute is set. False otherwise.
+   * @throws IncorrectOperationException if not called within undo-transparent action
+   */
+  @Throws(IncorrectOperationException::class)
+  fun setAttribute(attribute: String, namespace: String?, value: String?): Boolean
 
   // TODO: return list later.
   fun getAffectedFile(): VirtualFile?

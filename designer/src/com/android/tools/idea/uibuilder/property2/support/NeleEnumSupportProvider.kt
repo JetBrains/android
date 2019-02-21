@@ -85,6 +85,10 @@ class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<
     EnumSupport.simple("match_parent", "wrap_content")
   }
 
+  private val actionBarNavModeEnumSupport: EnumSupport by lazy {
+    EnumSupport.simple("standard", "list", "tabs")
+  }
+
   private fun provideEnumSupportFromViewHandler(name: String, components: List<NlComponent>): EnumSupport? {
     val isLayoutProperty = name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val attrComponents = if (isLayoutProperty) getParentComponents(components) else components
@@ -132,6 +136,7 @@ class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<
       name == ATTR_STYLE && property.namespace.isEmpty() -> return StyleEnumSupport(property)
       isIdType(property) -> IdEnumSupport(property)
       else -> when (name) {
+        ATTR_ACTION_BAR_NAV_MODE -> actionBarNavModeEnumSupport
         ATTR_FONT_FAMILY -> getFontEnumSupport(property)
         ATTR_TYPEFACE -> typefaceEnumSupport
         ATTR_TEXT_SIZE -> textSizeEnumSupport

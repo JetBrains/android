@@ -38,6 +38,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -191,7 +192,7 @@ final class ManifestInfo {
         if (!libManifests.isEmpty()) {
           Module moduleContainingManifest = getAndroidModuleForManifest(vFile);
           if (moduleContainingManifest != null && !module.equals(moduleContainingManifest)) {
-            MergedManifest manifest = MergedManifest.get(moduleContainingManifest);
+            MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(moduleContainingManifest);
 
             Document document = manifest.getDocument();
             if (document != null) { // normally the case, but can fail on merge fail
@@ -287,7 +288,7 @@ final class ManifestInfo {
       myLastSyncTimestamp = new AtomicLong(-1L);
       myFacet.getModule().getMessageBus().connect(myFacet).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
         if (result != ProjectSystemSyncManager.SyncResult.CANCELLED) {
-          myLastSyncTimestamp.set(System.currentTimeMillis());
+          myLastSyncTimestamp.set(Clock.getTime());
         }
       });
     }

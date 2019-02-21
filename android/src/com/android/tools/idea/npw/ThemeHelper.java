@@ -27,7 +27,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
@@ -53,7 +53,7 @@ public class ThemeHelper {
 
   @Nullable
   public String getAppThemeName() {
-    String manifestTheme = MergedManifest.get(myModule).getManifestTheme();
+    String manifestTheme = MergedManifestManager.getSnapshot(myModule).getManifestTheme();
     if (manifestTheme != null) {
       manifestTheme = trimStart(manifestTheme, SdkConstants.STYLE_RESOURCE_PREFIX);
       return manifestTheme;

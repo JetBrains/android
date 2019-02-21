@@ -127,7 +127,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     fun generate(): Table<String, String, NelePropertyItem> {
       var combinedProperties: Table<String, String, NelePropertyItem>? = null
       for (component in components) {
-        val tag = component.tag
+        val tag = component.tagDeprecated
         if (!component.backend.isValid()) {
           return emptyTable
         }
@@ -217,7 +217,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     }
 
     private fun findPsiClassOfComponent(component: NlComponent): PsiClass? {
-      val psiClass = PsiTreeUtil.getParentOfType(component.tag, PsiClass::class.java)
+      val psiClass = PsiTreeUtil.getParentOfType(component.tagDeprecated, PsiClass::class.java)
       val viewClassName = component.viewInfo?.className
       if (viewClassName != null && viewClassName != psiClass?.qualifiedName) {
         return psiFacade.findClass(viewClassName, GlobalSearchScope.allScope(project))

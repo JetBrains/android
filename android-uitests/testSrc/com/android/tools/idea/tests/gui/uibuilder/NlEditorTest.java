@@ -180,7 +180,7 @@ public class NlEditorTest {
       assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
       fixture.getOkButton().click();
       layout.waitForRenderToFinish();
-      assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+      assertThat(textView.getComponent().getTagDeprecated().getName()).isEqualTo("Button");
 
       // Test enter text manually
       NlComponentFixture button = layout.findView("Button", 0);
@@ -194,7 +194,7 @@ public class NlEditorTest {
       assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
       fixture.getOkButton().click();
       layout.waitForRenderToFinish();
-      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+      assertThat(button.getComponent().getTagDeprecated().getName()).isEqualTo("TextView");
     }
     finally {
       StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
@@ -230,7 +230,7 @@ public class NlEditorTest {
       // Check if change is correctly applied:
       //    - Root name change from AbsoluteLayout to LinearLayout
       //    - Attributes specific to AbsoluteLayout are removed
-      assertThat(root.getComponent().getTag().getName()).isEqualTo("LinearLayout");
+      assertThat(root.getComponent().getTagDeprecated().getName()).isEqualTo("LinearLayout");
       String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                         "    android:layout_width=\"match_parent\"\n" +
                         "    android:layout_height=\"match_parent\"\n" +
@@ -286,7 +286,7 @@ public class NlEditorTest {
                         "    </LinearLayout>\n" +
                         "</LinearLayout>";
       String text = ApplicationManager.getApplication()
-        .runReadAction((Computable<String>)() -> root.getComponent().getTag().getText());
+        .runReadAction((Computable<String>)() -> root.getComponent().getTagDeprecated().getText());
       assertThat(text).isEqualTo(expected);
     }
     finally {

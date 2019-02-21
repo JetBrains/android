@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.analytics.api
 
+import com.google.wireless.android.sdk.stats.DataBindingEvent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 
@@ -37,4 +38,15 @@ interface DataBindingTracker {
    * Tracks whether the user has enabled data binding in gradle file. Currently it's tracked at sync time.
    */
   fun trackDataBindingEnabled()
+
+  /**
+   * Tracks metrics that we actively poll for. Stats such as # of DB layout xmls, imports, variables, etc.
+   * See [DataBindingEvent.DataBindingPollingMetadata] for full list of metrics.
+   */
+  fun trackPolledMetaData()
+
+  /**
+   * Tracks data binding completion events in layout xml.
+   */
+  fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext)
 }

@@ -19,7 +19,9 @@ import com.android.SdkConstants;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestModel;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.TestMergedManifestSnapshotBuilder;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.ImmutableList;
@@ -269,7 +271,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
 
   /** Test that getRecords() returns the same records for an intent-filter and its children elements and attributes */
   public void testGetRecordsForIntentFilter() throws Exception {
-    MergedManifest mergedManifest =
+    MergedManifestSnapshot mergedManifest =
       getMergedManifest(
         "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
         "    package='com.example.app1'>\n" +
@@ -291,13 +293,14 @@ public class ManifestUtilsTest extends AndroidTestCase {
     XmlNode.NodeKey nodeKey = XmlNode.NodeKey.fromXml(intentFilterElement, new ManifestModel());
     Set<XmlNode.NodeKey> nodeKeySet = new HashSet<>(Collections.singletonList(nodeKey));
 
-    MergedManifest mockMergedManifest = spy(mergedManifest);
     Actions mockActions = mock(Actions.class);
     ImmutableList<Actions.NodeRecord> mockRecordList = ImmutableList.of(mock(Actions.NodeRecord.class));
-
-    when(mockMergedManifest.getActions()).thenReturn(mockActions);
     when(mockActions.getNodeKeys()).thenReturn(nodeKeySet);
     when(mockActions.getNodeRecords(nodeKey)).thenReturn(mockRecordList);
+
+    MergedManifestSnapshot mockMergedManifest = TestMergedManifestSnapshotBuilder.builder(myModule)
+      .setActions(mockActions)
+      .build();
 
     assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterElement));
 
@@ -314,7 +317,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
    */
   public void testGetNodeKeyForUnexpectedElement() throws Exception {
 
-    MergedManifest mergedManifest =
+    MergedManifestSnapshot mergedManifest =
       getMergedManifest(
         "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
         "    package='com.example.app1'>\n" +
@@ -337,7 +340,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
   }
 
 
-  private MergedManifest getMergedManifest(String manifestContents) throws Exception {
+  private MergedManifestSnapshot getMergedManifest(String manifestContents) throws Exception {
     String path = "AndroidManifest.xml";
 
     final VirtualFile manifest = myFixture.findFileInTempDir(path);
@@ -358,9 +361,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
 
     myFixture.addFileToProject(path, manifestContents);
 
-    MergedManifest info = MergedManifest.get(myModule);
-    info.clear();
-    return info;
+    return MergedManifestManager.getSnapshot(myModule, true);
   }
 
 }

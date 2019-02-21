@@ -1463,7 +1463,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
     return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
-           || CONSTRAINT_LAYOUT.isEquals(component.getTag().getName()); // used during layout conversion
+           || CONSTRAINT_LAYOUT.isEquals(component.getTagDeprecated().getName()); // used during layout conversion
   }
 
   // ordered the same as Direction enum

@@ -65,7 +65,7 @@ class PsDeclaredLibraryJavaDependency(
 
   override fun toText(): String = spec.toString()
 
-  var version by PsDeclaredLibraryJavaDependency.Descriptor.version
+  override var version by PsDeclaredLibraryJavaDependency.Descriptor.version
 
   override val versionProperty: ModelSimpleProperty<Unit, String>
     get() = object : ModelSimpleProperty<Unit, String> {

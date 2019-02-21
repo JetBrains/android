@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.fd.InstantRunSettings.isInstantRunEnabled;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.modelSupportsInstantRun;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.variantSupportsInstantRun;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
@@ -187,9 +184,6 @@ public class ProjectStructureUsageTracker {
       // @formatter:off
       gradleBuild.setAppId(appId).setAndroidPluginVersion(androidProject.getModelVersion())
                                  .setGradleVersion(gradleVersion.toString())
-                                 .setUserEnabledIr(isInstantRunEnabled())
-                                 .setModelSupportsIr(modelSupportsInstantRun(model))
-                                 .setVariantSupportsIr(variantSupportsInstantRun(model))
                                  .addAllLibraries(gradleLibraries)
                                  .addModules(gradleModule)
                                  .addAllAndroidModules(gradleAndroidModules)

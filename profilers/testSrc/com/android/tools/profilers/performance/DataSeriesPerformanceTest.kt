@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
-import com.android.tools.datastore.StreamId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark

@@ -40,6 +40,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
     ],
 )
 

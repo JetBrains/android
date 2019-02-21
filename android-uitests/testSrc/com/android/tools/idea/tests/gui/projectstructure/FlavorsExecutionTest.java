@@ -22,7 +22,6 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -127,8 +126,6 @@ public class FlavorsExecutionTest {
   @Test
   public void runBuildFlavors() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleFlavoredApplication");
-
-    InstantRunSettings.setShowStatusNotifications(false);
 
     ideFrameFixture
       .getBuildVariantsWindow()

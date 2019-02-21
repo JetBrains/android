@@ -40,9 +40,28 @@ import java.util.Arrays
  */
 class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   @Language("JAVA")
-  private val recyclerView =
+  private val recyclerViewOld =
       """
       package android.support.v7.widget;
+
+      import android.widget.ViewGroup;
+
+      public class RecyclerView extends ViewGroup {
+        public abstract static class LayoutManager {
+        }
+      }
+
+      public class GridLayoutManager extends RecyclerView.LayoutManager {
+      }
+
+      public class LinearLayoutManager extends RecyclerView.LayoutManager {
+      }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val recyclerViewNew =
+    """
+      package androidx.recyclerview.widget;
 
       import android.widget.ViewGroup;
 
@@ -381,7 +400,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testLayoutManagerAttribute() {
     // RecyclerView has a "layoutManager" attribute that should give completions that extend
     // the RecyclerView.LayoutManager class.
-    myFixture.addClass(recyclerView)
+    myFixture.addClass(recyclerViewOld)
     myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
     doTestCompletionVariants("recycler_view.xml",
                              "android.support.v7.widget.GridLayoutManager",
@@ -390,10 +409,26 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testLayoutManagerAttributeHighlighting() {
     // Check the highlighting of the "layoutManager" attribute values for a RecyclerView.
-    myFixture.addClass(recyclerView)
+    myFixture.addClass(recyclerViewOld)
     myFixture.addClass(myLayoutManager)
     myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
     doTestHighlighting("recycler_view_1.xml")
+  }
+
+  fun testToolsAttributesForOldRecyclerView() {
+    myFixture.addClass(recyclerViewOld)
+    doTestCompletionVariants("recycler_view_2.xml",
+                             "tools:targetApi",
+                             "tools:itemCount",
+                             "tools:listitem")
+  }
+
+  fun testToolsAttributesForNewRecyclerView() {
+    myFixture.addClass(recyclerViewNew)
+    doTestCompletionVariants("recycler_view_3.xml",
+                             "tools:targetApi",
+                             "tools:itemCount",
+                             "tools:listitem")
   }
 
   fun testCustomTagCompletion() {

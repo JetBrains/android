@@ -131,11 +131,6 @@
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
     </action>
 
-    <!-- Instant Run Actions, also see androidstudio.xml for Studio specific action registrations -->
-    <action id="Android.RestartActivity" class="com.android.tools.idea.fd.actions.RestartActivityAction">
-      <add-to-group group-id="DebugMainMenu" anchor="before" relative-to-action="StepOver"/>
-    </action>
-
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
@@ -312,10 +307,6 @@
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
                        order="first, before gradle"/>
-    <!-- InstantRunPositionManager overrides and actually replaces PositionManagerImpl,
-         so we need to set order to prevent overriding other position managers as well -->
-    <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory" order="first"/>
-    <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
@@ -383,8 +374,6 @@
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
-    <applicationConfigurable groupId="build" id="instant.run"
-                         provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
     <applicationConfigurable groupId="tools" id="device.file.explorer"
@@ -399,7 +388,6 @@
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
-    <applicationService serviceImplementation="com.android.tools.idea.fd.InstantRunConfiguration"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
                     serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
@@ -951,6 +939,7 @@
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidProguardOptionsConverterProvider"/>
     <annotator language="XML" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <annotator language="JAVA" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
+    <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
     <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
@@ -1016,10 +1005,7 @@
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
-    <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunManager" />
-    <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
-    <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
     <projectService serviceImplementation="com.android.tools.idea.run.DeploymentService" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
@@ -1404,9 +1390,6 @@
   </extensions>
 
   <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
-    </component>
     <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
     </component>

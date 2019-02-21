@@ -22,13 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class RawDomFileDescription extends AndroidResourceDomFileDescription<XmlRawResourceElement> {
 
-  /**
-   * Placeholder tag name required by {@code AndroidResourceDomFileDescription} constructor.
-   */
-  private static final String RAW_TAG_NAME = "raw";
-
   public RawDomFileDescription() {
-    super(XmlRawResourceElement.class, RAW_TAG_NAME, ResourceFolderType.RAW);
+    super(XmlRawResourceElement.class, "raw", ResourceFolderType.RAW);
   }
 
   public static boolean isRawFile(@NotNull final XmlFile file) {

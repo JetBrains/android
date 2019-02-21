@@ -117,6 +117,11 @@ public final class ImageAsset extends BaseAsset {
     return isClipart;
   }
 
+  @Override
+  public boolean isColorable() {
+    return isClipart;
+  }
+
   /**
    * Returns the path to the image asset.
    */

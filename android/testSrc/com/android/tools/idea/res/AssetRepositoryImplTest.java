@@ -113,12 +113,14 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     File nonAssetFileInApp = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/assets/app_asset.txt"));
     File nonAssetFileInLib = new File(getProjectFolderPath(), toSystemDependentName("lib/src/main/res/assets/lib_asset.txt"));
     File nonExistingFile = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/drawable/non_existing.png"));
+    File sampleDataPng = new File(getProjectFolderPath(), toSystemDependentName("app/sampledata/test/sample.png"));
 
     assertTrue(imageFileInApp.isFile());
     assertTrue(imageFileInLib.isFile());
     assertTrue(nonAssetFileInApp.isFile());
     assertTrue(nonAssetFileInLib.isFile());
     assertFalse(nonExistingFile.isFile());
+    assertTrue(sampleDataPng.isFile());
 
     // check can find app.png in app module
     try (InputStream stream = myAppRepo.openNonAsset(0, imageFileInApp.getAbsolutePath(), 0)) {
@@ -153,6 +155,11 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     // check cannot find nonExistingFile in both module
     try (InputStream stream = myAppRepo.openNonAsset(0, nonExistingFile.getAbsolutePath(), 0)) {
       assertNull(stream);
+    }
+
+    // check can find sample data in app module
+    try (InputStream stream = myAppRepo.openNonAsset(0, sampleDataPng.getAbsolutePath(), 0)) {
+      assertNotNull(stream);
     }
   }
 

@@ -200,6 +200,15 @@ object TypeResolver {
 
       SdkConstants.ATTR_MENU -> NelePropertyType.MENU
 
+      // tools
+      // TODO: Figure out a way to map this using ToolsAttributeUtil
+      SdkConstants.ATTR_ITEM_COUNT -> NelePropertyType.INTEGER
+      SdkConstants.ATTR_ACTION_BAR_NAV_MODE -> NelePropertyType.ENUM
+
+      SdkConstants.ATTR_LISTFOOTER,
+      SdkConstants.ATTR_LISTHEADER,
+      SdkConstants.ATTR_LISTITEM -> NelePropertyType.LAYOUT
+
       else -> null
     }
 

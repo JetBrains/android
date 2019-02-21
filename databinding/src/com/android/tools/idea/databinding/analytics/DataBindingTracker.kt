@@ -20,31 +20,117 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
+import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.psi.xml.XmlFile
 
 /**
  * Class for logging data binding related metrics.
  */
-class DataBindingTracker private constructor(private val project: Project) : DataBindingTracker {
+@VisibleForTesting // This class uses inheritance to override threading behavior for tests only
+open class DataBindingTracker constructor(private val project: Project) : DataBindingTracker {
 
   override fun trackDataBindingEnabled() {
-    // TODO(b/123721754): Track whether data binding is enabled on a per module basis.
-    // Currently, one module is data binding enabled = entire project is data binding enabled.
-    val isEnabled = ModuleManager.getInstance(project).modules
-      .mapNotNull { it.androidFacet }
-      .any { DataBindingUtil.isDataBindingEnabled(it) }
-    track(DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT,
-          DataBindingEvent.DataBindingPollMetadata.newBuilder().setDataBindingEnabled(isEnabled).build())
+    trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT,
+                      DataBindingEvent.DataBindingPollMetadata.newBuilder().setDataBindingEnabled(isDataBindingEnabled()).build())
   }
 
-  private fun track(eventType: DataBindingEvent.EventType,
-                    pollMetaData: DataBindingEvent.DataBindingPollMetadata) {
-    val studioEventBuilder = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DATA_BINDING).setDataBindingEvent(
-      DataBindingEvent.newBuilder().setType(eventType).setPollMetadata(pollMetaData))
+  override fun trackPolledMetaData() {
+    if (isDataBindingEnabled()) {
+      runInBackground(TrackPollingMetadataTask(project))
+    }
+  }
+
+  override fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
+    if (isDataBindingEnabled()) {
+      trackUserEvent(eventType, context)
+    }
+  }
+
+  // TODO(b/123721754): Track whether data binding is enabled on a per module basis.
+  // Currently, one module is data binding enabled = entire project is data binding enabled.
+  private fun isDataBindingEnabled() = ModuleManager.getInstance(project).modules
+    .mapNotNull { it.androidFacet }
+    .any { DataBindingUtil.isDataBindingEnabled(it) }
+
+  private fun trackUserEvent(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
+    val studioEventBuilder = createStudioEventBuilder()
+      .setDataBindingEvent(
+        DataBindingEvent.newBuilder()
+          .setType(eventType)
+          .setContext(context))
 
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
+
+  private fun trackPollingEvent(eventType: DataBindingEvent.EventType,
+                                pollMetaData: DataBindingEvent.DataBindingPollMetadata?) {
+    val studioEventBuilder = createStudioEventBuilder()
+      .setDataBindingEvent(
+        DataBindingEvent.newBuilder()
+          .setType(eventType)
+          .setPollMetadata(pollMetaData))
+
+    UsageTracker.log(studioEventBuilder.withProjectId(project))
+  }
+
+  /**
+   * This task must be run inside of a read action. Collects basic data binding usage metrics.
+   */
+  private inner class TrackPollingMetadataTask(val project: Project) : Runnable {
+    override fun run() {
+      DumbService.getInstance(project).runReadActionInSmartMode {
+        val files = FileTypeIndex.getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
+        var layoutCount = 0
+        var variableCount = 0
+        var importCount = 0
+        var expressionCount = 0
+        for (file in files) {
+          val psiFile = PsiManager.getInstance(project).findFile(file)
+          if (psiFile is XmlFile) {
+            val rootTag = psiFile.rootTag
+
+            // A layout xml file is a data binding layout if the root tag is "layout" with a child tag "data"
+            val dataTag = rootTag?.findFirstSubTag("data")
+            if (dataTag != null) {
+              layoutCount++
+              variableCount += dataTag.findSubTags("variable").size
+              importCount += dataTag.findSubTags("import").size
+              expressionCount += PsiTreeUtil.findChildrenOfType(psiFile, XmlAttributeValue::class.java)
+                .count { DataBindingUtil.isBindingExpression(it.value) }
+            }
+          }
+        }
+        trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
+                          DataBindingEvent.DataBindingPollMetadata.newBuilder()
+                            .setLayoutXmlCount(layoutCount)
+                            .setImportCount(importCount)
+                            .setVariableCount(variableCount)
+                            .setExpressionCount(expressionCount)
+                            .build())
+      }
+    }
+  }
+
+  /**
+   * Execute the target runnable on a background thread. Tests will override this to run
+   * immediately.
+   */
+  protected open fun runInBackground(runnable: Runnable) {
+    ApplicationManager.getApplication().executeOnPooledThread(runnable)
+  }
+
+  private fun createStudioEventBuilder() = AndroidStudioEvent.newBuilder()
+    .setKind(AndroidStudioEvent.EventKind.DATA_BINDING)
 }

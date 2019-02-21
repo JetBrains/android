@@ -26,7 +26,6 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.HashMultimap;
@@ -118,7 +117,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   private String getLibraryRevision(GoogleMavenArtifactId artifactId, boolean preview, Predicate<GradleVersion> filter) {
     return myRepositoryUrlManager
-      .getLibraryRevision(artifactId.getMavenGroupId(), artifactId.getMavenArtifactId(), filter, preview, SDK_DIR, myFileOp);
+      .getLibraryRevision(artifactId.getMavenGroupId(), artifactId.getMavenArtifactId(), filter, preview, myFileOp);
   }
 
   public void testgetLibraryRevision() throws Exception {
@@ -131,7 +130,6 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                          "actionbarsherlock",
                                                          null,
                                                          false,
-                                                         SDK_DIR,
                                                          myFileOp));
   }
 
@@ -228,7 +226,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
       .put("com.google.android.gms:play-services", GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:+"));
     dependencies
       .put("com.google.android.gms:play-services", GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.2.+"));
-    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "23.", mySdk, myFileOp);
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "23.", myFileOp);
     result.sort(Comparator.comparing(GradleCoordinate::toString));
     assertEquals("com.android.support:appcompat-v7:19.1.0", result.get(0).toString());
     assertEquals("com.google.android.gms:play-services:11.1.0", result.get(1).toString());
@@ -239,7 +237,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   public void testResolveDynamicSdkDepsAlpha1() {
     Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
     dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:22.+"));
-    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "22.", mySdk, myFileOp);
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "22.", myFileOp);
     assertEquals("com.android.support:appcompat-v7:22.0.0-alpha1", result.get(0).toString());
   }
 
@@ -251,7 +249,6 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                                   return version.getMajor() == 200; // future version
                                                                 },
                                                                 false,
-                                                                TestUtils.getSdk(),
                                                                 FileOpUtils.create());
     assertNull(revision);
   }
@@ -264,7 +261,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     dependencies.put("com.android.support:support-v4", GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+"));
     dependencies.put("com.android.support.constraint:constraint-layout",
                      GradleCoordinate.parseCoordinateString("com.android.support.constraint:constraint-layout:0.+"));
-    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", myFileOp);
     result.sort(Comparator.comparing(GradleCoordinate::toString));
     assertEquals("com.android.support.constraint:constraint-layout:1.0.2", result.get(0).toString());
     assertEquals("com.android.support:appcompat-v7:20.0.0", result.get(1).toString());
@@ -279,7 +276,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     dependencies.put("com.google.android.support:wearable",
                      GradleCoordinate.parseCoordinateString("com.google.android.support:wearable:2.0.0-alpha2"));
     dependencies.put("com.android.support:support-v4", GradleCoordinate.parseCoordinateString("com.android.support:support-v4:19.0.1"));
-    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", myFileOp);
     result.sort(Comparator.comparing(GradleCoordinate::toString));
     assertEquals("com.android.support:appcompat-v7:19.0.1", result.get(0).toString());
     assertEquals("com.android.support:support-v4:19.0.1", result.get(1).toString());

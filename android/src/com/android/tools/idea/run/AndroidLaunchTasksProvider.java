@@ -18,8 +18,6 @@ package com.android.tools.idea.run;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
-import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -53,7 +51,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
   private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
-  private final InstantRunBuildAnalyzer myInstantRunBuildAnalyzer;
   private final ApplicationIdProvider myApplicationIdProvider;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
@@ -62,7 +59,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   public AndroidLaunchTasksProvider(@NotNull AndroidRunConfigurationBase runConfig,
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull AndroidFacet facet,
-                                    @Nullable InstantRunBuildAnalyzer instantRunBuildAnalyzer,
                                     @NotNull ApplicationIdProvider applicationIdProvider,
                                     @NotNull ApkProvider apkProvider,
                                     @NotNull LaunchOptions launchOptions) {
@@ -70,7 +66,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     myEnv = env;
     myProject = facet.getModule().getProject();
     myFacet = facet;
-    myInstantRunBuildAnalyzer = instantRunBuildAnalyzer;
     myApplicationIdProvider = applicationIdProvider;
     myApkProvider = apkProvider;
     myLaunchOptions = launchOptions;
@@ -106,10 +101,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       }
 
       boolean launchApp = true;
-      if (StudioFlags.JVMTI_REFRESH.get()) {
-        if (shouldApplyChanges() || shouldApplyCodeChanges()) {
-          launchApp = false;
-        }
+      if (shouldApplyChanges() || shouldApplyCodeChanges()) {
+        launchApp = false;
       }
 
       if (launchApp && !shouldDeployAsInstant()) {
@@ -138,20 +131,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
 
-    if (myInstantRunBuildAnalyzer != null) {
-      launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
-    }
-
     return launchTasks;
   }
 
   @NotNull
   @VisibleForTesting
   List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
-
-    if (myInstantRunBuildAnalyzer != null) {
-      return myInstantRunBuildAnalyzer.getDeployTasks(device, myLaunchOptions);
-    }
 
     // regular APK deploy flow
     if (!myLaunchOptions.isDeploy()) {
@@ -171,32 +156,21 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
     }
     else {
-      // Use new deployment if it is enabled and supported.
-      if (StudioFlags.UNIFIED_DEPLOYMENT.get() || StudioFlags.JVMTI_REFRESH.get()) {
+      // Add packages to the deployment, filtering out any dynamic features that are disabled.
+      ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
+      for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
+        packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
+      }
 
-        // Add packages to the deployment, filtering out any dynamic features that are disabled.
-        ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
-        for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
-          packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
-        }
-
-        // Set the appropriate action based on which deployment we're doing.
-        if (shouldApplyChanges()) {
-          tasks.add(new ApplyChangesTask(myProject, packages.build()));
-        }
-        else if (shouldApplyCodeChanges()) {
-          tasks.add(new ApplyCodeChangesTask(myProject, packages.build()));
-        }
-        else {
-          tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));
-        }
-      } else {
-        InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
-        // Add tasks for each apk (or split-apk) returned by the apk provider
-        tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
-                                       apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
-                                       apkInfo -> new SplitApkDeployTask(myProject,
-                                                                         new DynamicAppDeployTaskContext(apkInfo, disabledFeatures))));
+      // Set the appropriate action based on which deployment we're doing.
+      if (shouldApplyChanges()) {
+        tasks.add(new ApplyChangesTask(myProject, packages.build()));
+      }
+      else if (shouldApplyCodeChanges()) {
+        tasks.add(new ApplyCodeChangesTask(myProject, packages.build()));
+      }
+      else {
+        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));
       }
     }
     return ImmutableList.copyOf(tasks);

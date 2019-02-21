@@ -657,7 +657,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
     loadProject(HELLO_JNI);
     // Verify artifacts is not empty.
-    assertThat(getArtifacts()).isNotEmpty();
+    assertThat(getNativeArtifacts()).isNotEmpty();
 
     // Write empty CMakeLists file so that no artifacts can be built.
     File cmakeFile = new File(getProjectFolderPath(), join("app", "src", "main", "cpp", "CMakeLists.txt"));
@@ -665,7 +665,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     requestSyncAndWait();
 
     // Verify Ndk model doesn't contain any artifact.
-    assertThat(getArtifacts()).isEmpty();
+    assertThat(getNativeArtifacts()).isEmpty();
   }
 
   public void testWithPreSyncCheckFailure() throws Exception {
@@ -698,7 +698,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   @NotNull
-  private List<NativeArtifact> getArtifacts() {
+  private List<NativeArtifact> getNativeArtifacts() {
     return NdkModuleModel.get(getModule("app")).getVariants().stream()
       .map(it -> it.getArtifacts())
       .flatMap(Collection::stream)

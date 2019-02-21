@@ -22,10 +22,14 @@ import com.android.SdkConstants.NEW_ID_PREFIX
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.property.MockNlComponent
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem
@@ -36,6 +40,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.text.nullize
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.attrs.AttributeDefinition
@@ -44,17 +49,27 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.mockito.Mockito
 import java.util.stream.Collectors
 
-open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: List<NlComponent>) {
+open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: MutableList<NlComponent>) {
   val model = NelePropertiesModel(fixture.testRootDisposable, facet)
-  val nlModel = components[0].model
+  val nlModel = components.first().model
   private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
   constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture,
               vararg tags: String, parentTag: String = "", fileName: String = "", activityName: String = ""):
-    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, fileName, *tags))
+    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, fileName, *tags).toMutableList())
+
+  constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture, component: ComponentDescriptor):
+    this(facet, fixture, createComponent(facet, fixture, component).toMutableList())
 
   constructor(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = ""):
     this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag, fileName = fileName)
+
+  constructor(projectRule: AndroidProjectRule, component: ComponentDescriptor):
+    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
+
+  init {
+    model.surface = (nlModel as? SyncNlModel)?.surface
+  }
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
     val definition = findDefinition(namespace, name)
@@ -63,12 +78,12 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
         return NelePropertyItem(namespace, name, type, null, "", "", model, null, components)
       definition.formats.contains(AttributeFormat.FLAGS) ->
         return NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, null, components)
-      else -> return makeProperty(namespace, definition)
+      else -> return makeProperty(namespace, definition, type)
     }
   }
 
-  fun makeProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
-    return NelePropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", "", model, null, components)
+  fun makeProperty(namespace: String, definition: AttributeDefinition, type: NelePropertyType): NelePropertyItem {
+    return NelePropertyItem(namespace, definition.name, type, definition, "", "", model, null, components)
   }
 
   fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
@@ -150,11 +165,17 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       }
       val component = findChildById(root, id)!!
       completeModel(facet, file, component.model, root)
-      return SupportTestUtil(facet, fixture, listOf(component))
+      return SupportTestUtil(facet, fixture, mutableListOf(component))
     }
 
     private fun findChildById(component: NlComponent, id: String): NlComponent? {
       return component.children.find { it.id == id }
+    }
+
+    private fun createComponent(facet: AndroidFacet, fixture: CodeInsightTestFixture, descriptor: ComponentDescriptor): List<NlComponent> {
+      val model = NlModelBuilderUtil.model(facet, fixture as JavaCodeInsightTestFixture, "layout.xml", descriptor).build()
+      val root = model.getRoot()
+      return if (root.childCount > 0) root.children else model.components
     }
 
     private fun createComponents(facet: AndroidFacet,

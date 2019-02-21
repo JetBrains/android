@@ -305,7 +305,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
         roots.add(leakRoot to leakShare)
       }
     }
-    return roots.sortedBy { it.second }
+    return roots.sortedByDescending { it.second }
   }
 
   private fun rankLeakRootsByRetainedSize(): List<Pair<Node, Double>> {
@@ -324,7 +324,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
         roots.add(leakRoot to retainedSize)
       }
     }
-    return roots.sortedBy { it.second }
+    return roots.sortedByDescending { it.second }
   }
 
   fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {

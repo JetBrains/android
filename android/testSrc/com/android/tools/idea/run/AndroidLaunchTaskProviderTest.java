@@ -93,7 +93,6 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
-      null,
       appIdProvider,
       apkProvider,
       launchOptions);
@@ -108,21 +107,6 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
 
     // Assert
     launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
-    //Update this test to no longer test implementation 
-    if (!StudioFlags.UNIFIED_DEPLOYMENT.get()) {
-      SplitApkDeployTask deployTask = (SplitApkDeployTask)launchTasks.stream()
-        .filter(x -> x instanceof SplitApkDeployTask)
-        .findFirst()
-        .orElse(null);
-      assertThat(deployTask).isNotNull();
-      assertThat(deployTask.getContext()).isInstanceOf(DynamicAppDeployTaskContext.class);
-
-      DynamicAppDeployTaskContext context = (DynamicAppDeployTaskContext)deployTask.getContext();
-      assertThat(context.getApplicationId()).isEqualTo("google.simpleapplication");
-      assertThat(context.getArtifacts().size()).isEqualTo(2);
-      assertThat(context.getArtifacts().get(0).getName()).isEqualTo("app-debug.apk");
-      assertThat(context.getArtifacts().get(1).getName()).isEqualTo("feature1-debug.apk");
-    }
   }
 
   private static class MyConsolePrinter implements ConsolePrinter {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_FUSING;
@@ -33,7 +34,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMP
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -45,6 +45,7 @@ import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -140,11 +141,11 @@ public class DynamicFeatureModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    File moduleRoot = new File(myProject.getBasePath(), moduleName().get());
+    AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
+      .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
       .setBuildVersion(androidSdkInfo().getValue(), myProject)
       .setBaseFeature(baseApplication().getValue());
 
@@ -166,7 +167,8 @@ public class DynamicFeatureModel extends WizardModel {
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.ON_DEMAND_ONLY);
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST, myDeviceFeatures);
 
-
+    File moduleRoot = modulePaths.getModuleRoot();
+    assert moduleRoot != null;
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);
     }

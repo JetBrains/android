@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
@@ -30,7 +31,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
-import org.fest.swing.timing.Pause.pause
 import org.intellij.lang.annotations.Language
 import java.io.IOException
 import org.junit.Rule
@@ -47,6 +47,10 @@ class QrScanningCujTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
+
+  @Rule
+  @JvmField
+  val screenshotsRule = ScreenshotsDuringTest()
 
   @Test
   @RunIn(TestGroup.UNRELIABLE)
@@ -80,7 +84,7 @@ class QrScanningCujTest {
       projectView
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-        .openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
         .setFilename("activity_main_qr_scan")
         .setRootElement("android.support.constraint.ConstraintLayout")
         .clickOk()
@@ -110,7 +114,7 @@ class QrScanningCujTest {
       .run {
         ResourceExplorerFixture.find(robot())
           .clickAddButton()
-        openFromMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
           .useLocalFile(GuiTests.getTestDataDir()!!.toString() + "/VotingApp/ic_qr_code.svg")
           .setName("ic_qr_code")
           .clickNext()
@@ -194,14 +198,14 @@ class QrScanningCujTest {
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "qrcodelib")
           .invokeMenuPath("Cut")
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "app", "src", "main", "java")
-          .openFromMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, arrayOf("Paste"))
+          .openFromContextualMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, arrayOf("Paste"))
           .clickOk()
       }
 
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-      .openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
       .setFilename("barcode_capture")
       .setRootElement("FrameLayout")
       .clickOk()

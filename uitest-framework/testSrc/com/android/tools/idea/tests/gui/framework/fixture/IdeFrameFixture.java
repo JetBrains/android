@@ -318,6 +318,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
+   *  Selects the item at {@code menuPath} in a contextual menu
+   *  and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   */
+  public <T> T openFromContextualMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
+    getMenuFixture().invokeContextualMenuPath(menuPath);
+    return fixtureFunction.apply(this);
+  }
+
+  /**
    * Invokes an action by menu path
    *
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}

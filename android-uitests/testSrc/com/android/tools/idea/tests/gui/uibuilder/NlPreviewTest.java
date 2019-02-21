@@ -310,11 +310,8 @@ public class NlPreviewTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout", "activity_my.xml")
-      .invokeMenuPath("Delete...");
-    DeleteDialogFixture.find(guiTest.robot(), "Delete")
-      .safe(false)
-      .clickOk()
-      .waitUntilNotShowing();
+      .openFromMenu(DeleteDialogFixture::find, "Delete...")
+      .unsafeDelete();
   }
 
   @Test

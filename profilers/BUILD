@@ -39,7 +39,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
-        "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module, test]",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
@@ -56,7 +56,7 @@ kotlin_test(
     deps = [
         ":intellij.android.profilers",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
-        "//tools/adt/idea/perfd-host:intellij.android.perfdHost",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:tools.testutils",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",

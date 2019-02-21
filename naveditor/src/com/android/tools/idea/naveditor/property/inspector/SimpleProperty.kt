@@ -48,7 +48,7 @@ open class SimpleProperty(private val _name: String, private val _components: Li
 
   override fun getModel() = components[0].model
 
-  override fun getTag() = if (components.size > 1) null else components[0].tag
+  override fun getTag() = if (components.size > 1) null else components[0].tagDeprecated
 
   override fun getTagName() = tag?.localName
 

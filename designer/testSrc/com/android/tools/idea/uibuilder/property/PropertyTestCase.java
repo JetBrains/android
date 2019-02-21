@@ -417,9 +417,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
 
   @Nullable
   protected XmlAttributeDescriptor getDescriptor(@NotNull NlComponent component, @NotNull String attributeName) {
-    XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(component.getTag());
+    XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(component.getTagDeprecated());
     assertThat(elementDescriptor).isNotNull();
-    XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(component.getTag());
+    XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(component.getTagDeprecated());
     for (XmlAttributeDescriptor descriptor : descriptors) {
       if (descriptor.getName().equals(attributeName)) {
         return descriptor;
@@ -448,7 +448,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   private static XmlName getXmlName(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
     String namespace = null;
     if (descriptor instanceof NamespaceAwareXmlAttributeDescriptor) {
-      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag());
+      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTagDeprecated());
     }
     return new XmlName(descriptor.getName(), namespace);
   }

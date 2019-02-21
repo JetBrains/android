@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.stats.RunStats;
-import com.android.tools.ir.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
+import com.android.tools.idea.stats.RunStats;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -44,7 +38,7 @@ public class AndroidRunState implements RunProfileState {
   @NotNull private final ApplicationIdProvider myApplicationIdProvider;
   @NotNull private final ConsoleProvider myConsoleProvider;
   @NotNull private final DeviceFutures myDeviceFutures;
-  @NotNull private final LaunchTasksProviderFactory myLaunchTasksProviderFactory;
+  @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
   @Nullable private final ProcessHandler myPreviousSessionProcessHandler;
 
   public AndroidRunState(@NotNull ExecutionEnvironment env,
@@ -53,16 +47,21 @@ public class AndroidRunState implements RunProfileState {
                          @NotNull ApplicationIdProvider applicationIdProvider,
                          @NotNull ConsoleProvider consoleProvider,
                          @NotNull DeviceFutures deviceFutures,
-                         @NotNull LaunchTasksProviderFactory launchTasksProviderFactory,
-                         @Nullable ProcessHandler processHandler) {
+                         @NotNull AndroidLaunchTasksProvider launchTasksProvider) {
     myEnv = env;
     myLaunchConfigName = launchConfigName;
     myModule = module;
     myApplicationIdProvider = applicationIdProvider;
     myConsoleProvider = consoleProvider;
     myDeviceFutures = deviceFutures;
-    myLaunchTasksProviderFactory = launchTasksProviderFactory;
-    myPreviousSessionProcessHandler = processHandler;
+    myLaunchTasksProvider = launchTasksProvider;
+
+    AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(
+      env.getProject(), null, ((AndroidRunConfigurationBase)env.getRunProfile()).getUniqueID(), env.getExecutionTarget());
+    myPreviousSessionProcessHandler =
+      (existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(env.getExecutor().getId()))
+      ? existingSessionInfo.getProcessHandler()
+      : null;
   }
 
   @Nullable
@@ -81,22 +80,8 @@ public class AndroidRunState implements RunProfileState {
     }
 
     stats.setPackage(applicationId);
-    // TODO: this class is independent of gradle, except for this hack
-    AndroidModuleModel model = AndroidModuleModel.get(myModule);
-    if (InstantRunSettings.isInstantRunEnabled() &&
-        InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED) {
-      assert model != null;
-      InstantRunBuildInfo info = InstantRunGradleUtils.getBuildInfo(model);
-      if (info != null && !info.isCompatibleFormat()) {
-        throw new ExecutionException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
-                                     "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +
-                                     "the latest version)");
-      }
-    }
 
-    LaunchTasksProvider launchTasksProvider = myLaunchTasksProviderFactory.get();
-
-    if (launchTasksProvider.createsNewProcess()) {
+    if (myLaunchTasksProvider.createsNewProcess()) {
       // In the case of cold swap, there is an existing process that is connected, but we are going to launch a new one.
       // Detach the previous process handler so that we don't end up with 2 run tabs for the same launch (the existing one
       // and the new one).
@@ -106,7 +91,7 @@ public class AndroidRunState implements RunProfileState {
 
       processHandler = new AndroidProcessHandler.Builder(myEnv.getProject())
         .setApplicationId(applicationId)
-        .monitorRemoteProcesses(launchTasksProvider.monitorRemoteProcess())
+        .monitorRemoteProcesses(myLaunchTasksProvider.monitorRemoteProcess())
         .build();
       console = attachConsole(processHandler, executor);
     } else {
@@ -122,7 +107,7 @@ public class AndroidRunState implements RunProfileState {
                                                  launchInfo,
                                                  processHandler,
                                                  myDeviceFutures,
-                                                 launchTasksProvider,
+                                                 myLaunchTasksProvider,
                                                  stats);
     ProgressManager.getInstance().run(task);
     return console == null ? null : new DefaultExecutionResult(console, processHandler);

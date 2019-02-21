@@ -23,7 +23,6 @@ import static com.android.SdkConstants.XMLNS;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
@@ -122,12 +121,47 @@ public class NlComponent implements NlAttributesHolder {
     return myMixin;
   }
 
+  /**
+   * If possible, please minimize usage of getTag() going forward. Operations done on XmlTag directly will bypass cache set up by the
+   * component.
+   * <p>
+   * If attributes need to be updated please use:
+   * {@link #setAttribute(String, String, String)} or
+   * {@link #getAttribute(String, String)}.
+   * <p>
+   * For tag names please use:
+   * {@link #getTagName()}
+   * <p>
+   * For iterating through the PSI element please use:
+   * {@link #getChildren()}
+   * {@link #getParent()}
+   * {@link #getNextSibling()}
+   * {@link #getRoot()} or {@link #getDocumentRoot()}
+   * <p>
+   * For other miscellaneous PSI operation see:
+   * {@link #getBackend()}
+   * {@link NlComponentBackend#getAffectedFile()}
+   * {@link NlComponentBackend#reformatAndRearrange()}
+   *
+   * @return a valid tag, or null if the tag is invalid
+   */
+  @Nullable
+  public XmlTag getTag() {
+    return myBackend.getTag();
+  }
+
+  /**
+   * @deprecated Use {@link #getTag()} instead.
+   */
   @NotNull
   @Deprecated
-  public XmlTag getTag() {
+  public XmlTag getTagDeprecated() {
     return myBackend.getTagDeprecated();
   }
 
+  /**
+   * @deprecated Use {@link #getTag()} instead.
+   */
   @NotNull
   @Deprecated
   public SmartPsiElementPointer<XmlTag> getTagPointer() {
@@ -249,7 +283,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable
   public NlComponent findViewByTag(@NotNull XmlTag tag) {
-    if (getTag() == tag) {
+    if (getTagDeprecated() == tag) {
       return this;
     }
 
@@ -268,7 +302,7 @@ public class NlComponent implements NlAttributesHolder {
       child.findViewsByTag(tag, builder);
     }
 
-    if (getTag() == tag) {
+    if (getTagDeprecated() == tag) {
       builder.add(this);
     }
   }
@@ -281,7 +315,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public boolean isRoot() {
-    return !(getTag().getParent() instanceof XmlTag);
+    return !(getTagDeprecated().getParent() instanceof XmlTag);
   }
 
   public NlComponent getRoot() {
@@ -357,7 +391,7 @@ public class NlComponent implements NlAttributesHolder {
       myDelegate.setAttribute(this, namespace, attribute, value);
       return;
     }
-    XmlTag tag = getTag();
+    XmlTag tag = getTagDeprecated();
     if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
       return;
@@ -372,7 +406,7 @@ public class NlComponent implements NlAttributesHolder {
       return;
     }
     // Handle validity
-    tag.setAttribute(attribute, namespace, value);
+    myBackend.setAttribute(attribute, namespace, value);
     if (mySnapshot != null) {
       mySnapshot.setAttribute(attribute, namespace, prefix, value);
     }
@@ -417,20 +451,13 @@ public class NlComponent implements NlAttributesHolder {
     return getAttributeImpl(namespace, attribute);
   }
 
+  @Nullable
   public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
-    else {
-      XmlTag tag = getTag();
-      if (AndroidPsiUtils.isValid(tag)) {
-        return AndroidPsiUtils.getAttributeSafely(tag, namespace, attribute);
-      }
-      else {
-        // Newly created components for example
-        return null;
-      }
-    }
+
+    return myBackend.getAttribute(attribute, namespace);
   }
 
   @Nullable
@@ -464,7 +491,7 @@ public class NlComponent implements NlAttributesHolder {
       return mySnapshot.attributes;
     }
 
-    XmlTag tag = getTag();
+    XmlTag tag = getTagDeprecated();
     if (tag.isValid()) {
       Application application = ApplicationManager.getApplication();
 
@@ -782,7 +809,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   private void transferNamespaces(@NotNull NlComponent receiver) {
     XmlTag rootTag = getDocumentRoot();
-    XmlTag tag = receiver.getTag();
+    XmlTag tag = receiver.getTagDeprecated();
     while (tag != null && tag != rootTag) {
       if (!tag.getLocalNamespaceDeclarations().isEmpty()) {
         // This is done to cleanup after a manual change of the Xml file.
@@ -791,7 +818,7 @@ public class NlComponent implements NlAttributesHolder {
       }
 
       receiver = receiver.getParent();
-      tag = receiver != null ? receiver.getTag() : null;
+      tag = receiver != null ? receiver.getTagDeprecated() : null;
     }
     transferLocalNamespaces();
   }
@@ -816,7 +843,7 @@ public class NlComponent implements NlAttributesHolder {
     }
     Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
 
-    for (Map.Entry<String, String> entry : getTag().getLocalNamespaceDeclarations().entrySet()) {
+    for (Map.Entry<String, String> entry : getTagDeprecated().getLocalNamespaceDeclarations().entrySet()) {
       String namespace = entry.getValue();
       String prefix = entry.getKey();
       String currentPrefix = namespaceToPrefix.get(namespace);
@@ -839,7 +866,7 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     if (!oldPrefixToPrefix.isEmpty()) {
-      updatePrefixes(getTag(), oldPrefixToPrefix);
+      updatePrefixes(getTagDeprecated(), oldPrefixToPrefix);
     }
 
     removeNamespaceAttributes();
@@ -884,7 +911,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   private void removeNamespaceAttributes() {
-    for (XmlAttribute attribute : getTag().getAttributes()) {
+    for (XmlAttribute attribute : getTagDeprecated().getAttributes()) {
       if (attribute.getName().startsWith(XMLNS_PREFIX)) {
         attribute.delete();
       }

@@ -17,12 +17,15 @@ package com.android.tools.idea.actions;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.util.FileExtensions;
+import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -31,12 +34,23 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
-import java.util.EnumSet;
+import com.intellij.util.IconUtil;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
+import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +69,7 @@ import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileType
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
 /**
- * Opens existing project or file in Android Stduio
+ * Opens existing project or file in Android Studio.
  * This action replaces the default File -> Open action.
  */
 public class AndroidOpenFileAction extends DumbAwareAction {
@@ -76,24 +90,36 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
-    FileChooserDescriptor descriptor = showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
-    descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
+    Disposable disposable = Disposer.newDisposable();
+    try {
+      Project project = e.getProject();
+      boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
+      OpenProjectFileChooserDescriptorWithAsyncIcon descriptor =
+        showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
+      descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
+      Disposer.register(disposable, descriptor);
 
-    VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
-    chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
-      ValidationIssue issue = validateFiles(files, descriptor);
-      if (issue.result.getSeverity() != Validator.Severity.OK) {
-        boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
-        String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
-        Messages.showInfoMessage(project, issue.result.getMessage(), title);
-        if (isError) {
-          return;
+      VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
+
+      // The chooseFiles method shows a FileChooserDialog and it doesn't return control until
+      // a user closes the dialog.
+      // Note: this method is invoked from the main thread but chooseFiles uses a nested message
+      // loop to avoid the IDE from freeze.
+      chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
+        ValidationIssue issue = validateFiles(files, descriptor);
+        if (issue.result.getSeverity() != Validator.Severity.OK) {
+          boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
+          String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
+          Messages.showInfoMessage(project, issue.result.getMessage(), title);
+          if (isError) {
+            return;
+          }
         }
-      }
-      doOpenFile(e, files);
-    });
+        doOpenFile(e, files);
+      });
+    } finally {
+      Disposer.dispose(disposable);
+    }
   }
 
   /**
@@ -213,18 +239,101 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     }
   }
 
-  private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
-    public ProjectOnlyFileChooserDescriptor() {
+  /**
+   * AsyncIcon displays a {@code placeholderIcon} at the beginning and swaps it with the real icon
+   * after the one is computed.
+   */
+  private static class AsyncIcon implements Icon {
+    @NotNull Icon myIcon;
+
+    AsyncIcon(@NotNull Icon placeholderIcon) {
+      myIcon = placeholderIcon;
+    }
+
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+      myIcon.paintIcon(c, g, x, y);
+    }
+
+    @Override
+    public int getIconWidth() {
+      return myIcon.getIconWidth();
+    }
+
+    @Override
+    public int getIconHeight() {
+      return myIcon.getIconHeight();
+    }
+
+    /**
+     * Computes the real icon in the pooled thread and updates the icon once completed. If the
+     * parent disposable is disposed, the update task is canceled.
+     *
+     * @param parent a parent disposable to cancel the icon update when it becomes unneeded
+     * @param iconSupplier a supplier of the real icon. The computation happens in pooled thread
+     */
+    public void updateIconAsync(@NotNull Disposable parent, @NotNull Supplier<Icon> iconSupplier) {
+      if (Disposer.isDisposed(parent) || Disposer.isDisposing(parent)) {
+        return;
+      }
+      CompletableFuture<Void> future = CompletableFuture.runAsync(
+        () -> myIcon = iconSupplier.get(),
+        AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+      try {
+        Disposer.register(parent, () -> future.cancel(/*mayInterruptIfRunning=*/true));
+      } catch (IncorrectOperationException e) {
+        // IncorrectOperationException could happen in race condition.
+        future.cancel(/*mayInterruptIfRunning=*/true);
+      }
+    }
+  }
+
+  /**
+   * OpenProjectFileChooserDescriptorWithAsyncIcon is a customized open project file chooser with an
+   * icon cache and async icon loading. The icon is chosen by a file type (extension, file, or
+   * directory) by {@link IconUtil#getIcon(VirtualFile, int, Project)} then asynchronously be updated
+   * to {@link OpenProjectFileChooserDescriptor#getIcon(VirtualFile)}.
+   * <p>This class is a workaround solution for the issue b/37099520. Once the issue is addressed in
+   * the upstream (IntelliJ open API), this class can be removed.
+   */
+  private static class OpenProjectFileChooserDescriptorWithAsyncIcon extends OpenProjectFileChooserDescriptor
+    implements Disposable {
+    private final Map<VirtualFile, Icon> myIconCache = Maps.newConcurrentMap();
+
+    public OpenProjectFileChooserDescriptorWithAsyncIcon() {
       super(true);
+    }
+
+    @Override
+    public Icon getIcon(VirtualFile file) {
+      return myIconCache.computeIfAbsent(file, key -> {
+        // Use file type based icon (file or directory) first and may update it to android project
+        // icon later asynchronously. Determining if a directory is an android project directory
+        // is very expensive because we need to get a list of files of the directory. See b/37099520
+        // for details.
+        AsyncIcon icon = new AsyncIcon(
+          dressIcon(key, IconUtil.getIcon(key, Iconable.ICON_FLAG_READ_STATUS, null)));
+        icon.updateIconAsync(this, () -> super.getIcon(key));
+        return icon;
+      });
+    }
+
+    @Override
+    public void dispose() {
+      myIconCache.clear();
+    }
+  }
+
+  private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
+    public ProjectOnlyFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.project"));
     }
   }
 
-  private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
+  private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
     private final FileChooserDescriptor myStandardDescriptor = createSingleFileNoJarsDescriptor().withHideIgnored(false);
 
     public ProjectOrFileChooserDescriptor() {
-      super(true);
       setTitle(IdeBundle.message("title.open.file.or.project"));
     }
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,9 +39,12 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
   private FormFactor myFormFactor;
 
   public void init(@NotNull FormFactor formFactor, @NotNull List<AndroidVersionsInfo.VersionItem> items) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
     myFormFactor = formFactor;
     setName(myFormFactor.id + ".minSdk"); // Name used for testing
 
+    Object selectedItem = getSelectedItem();
     removeItemListener(myItemListener);
     removeAllItems();
 
@@ -48,7 +52,11 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
       addItem(item);
     }
 
-    loadSavedApi();
+    // Try to keep the old selection. If not possible (or no previous selection), use the last saved selection.
+    setSelectedItem(selectedItem);
+    if (getSelectedItem() == null) {
+      loadSavedApi();
+    }
     addItemListener(myItemListener);
   }
 
@@ -60,8 +68,8 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
     String savedApiLevel = PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(myFormFactor),
                                                                       Integer.toString(myFormFactor.defaultApi));
 
-    // If the savedApiLevel is not available, just pick the first target in the list
-    int index = getItemCount() > 0 ? 0 : -1;
+    // If the savedApiLevel is not available, just pick the last target in the list (-1 if the list is empty)
+    int index = getItemCount() - 1;
     for (int i = 0; i < getItemCount(); i++) {
       AndroidVersionsInfo.VersionItem item = getItemAt(i);
       if (Objects.equal(item.getMinApiLevelStr(), savedApiLevel)) {

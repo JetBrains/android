@@ -28,6 +28,7 @@ import java.util.Set;
 
 public class ResolverTests {
   static final String PATH_TO_NDK = "/path/to/ndk-bundle";
+  static final String PATH_TO_SIDE_BY_SIDE_NDK = "/path/to/ndk/19.0.5232133";
   static final File ROOT_OF_RELATIVE_INCLUDE_PATHS = new File("/a/b/c/d/e/f/g/h/i");
 
   /**

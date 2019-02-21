@@ -91,6 +91,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -643,7 +644,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   private static Collection<SourceProvider> getSourceProvidersForArtifacts(@NotNull Iterable<SourceProviderContainer> containers,
                                                                            @NotNull String... artifactNames) {
-    Set<SourceProvider> providers = new HashSet<>();
+    Set<SourceProvider> providers = new LinkedHashSet<>();
     for (SourceProviderContainer container : containers) {
       for (String artifactName : artifactNames) {
         if (artifactName.equals(container.getArtifactName())) {
