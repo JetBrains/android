@@ -40,7 +40,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/idea/.idea/libraries:truth",
+        "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
