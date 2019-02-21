@@ -58,6 +58,7 @@ import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.mockito.ArgumentMatchers
@@ -621,6 +622,24 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.activate()
     initialSchema.rebuildTask?.get()
     assertNotEquals(initialSchema, NavigationSchema.get(myModule))
+  }
+
+  fun testGetDependencies() {
+    testDependencies(false, "android.arch.navigation")
+    testDependencies(true, "androidx.navigation")
+  }
+
+  private fun testDependencies(androidX: Boolean, groupId: String) {
+    WriteCommandAction.runWriteCommandAction(project) { project.setAndroidxProperties(androidX.toString()) }
+
+    val dependencies = NavDesignSurface.getDependencies(myModule)
+    val artifactIds = arrayOf("navigation-fragment", "navigation-ui")
+    assertEquals(dependencies.count(), artifactIds.count())
+
+    for (i in 0 until dependencies.count()) {
+      assertEquals(groupId, dependencies[i].groupId)
+      assertEquals(artifactIds[i], dependencies[i].artifactId)
+    }
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
