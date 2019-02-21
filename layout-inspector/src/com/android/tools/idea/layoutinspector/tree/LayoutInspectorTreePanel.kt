@@ -42,9 +42,11 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   override fun setToolContext(toolContext: LayoutInspector?) {
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
     layoutInspector?.modelChangeListeners?.remove(this::modelChanged)
     layoutInspector = toolContext
     layoutInspector?.modelChangeListeners?.add(this::modelChanged)
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, new ->
       if (new != null) {
         tree.model = DefaultTreeModel(MyTreeNode(new, null))
@@ -60,13 +62,19 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   override fun dispose() {
   }
 
-  fun modelChanged(old: InspectorModel, new: InspectorModel) {
+  private fun modelModified(old: InspectorView?, new: InspectorView?) {
+    layoutInspector?.let { inspector ->
+      tree.model = DefaultTreeModel(MyTreeNode(inspector.layoutInspectorModel.root, null))
+    }
+  }
+
+  private fun modelChanged(old: InspectorModel, new: InspectorModel) {
     tree.model = DefaultTreeModel(MyTreeNode(new.root, null))
     old.selectionListeners.remove(this::selectionChanged)
     new.selectionListeners.add(this::selectionChanged)
   }
 
-  fun selectionChanged(old: InspectorView?, new: InspectorView?) {
+  private fun selectionChanged(old: InspectorView?, new: InspectorView?) {
     if (new == null) {
       tree.clearSelection()
       return
@@ -75,7 +83,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   private class MyTreeNode(val root: InspectorView, val _parent: MyTreeNode?) : TreeNode {
-    val _children = root.children.map { MyTreeNode(it, this) }
+    val _children = root.children.values.map { MyTreeNode(it, this) }
 
     override fun children(): Enumeration<*> {
       return _children.toEnumeration()
@@ -93,7 +101,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
 
     override fun getAllowsChildren() = true
 
-    override fun toString() = root.type
+    override fun toString() = "${root.id}: ${root.type}"
 
     fun findPath(target: InspectorView) : TreePath? {
       val nodes = mutableListOf<MyTreeNode>()
