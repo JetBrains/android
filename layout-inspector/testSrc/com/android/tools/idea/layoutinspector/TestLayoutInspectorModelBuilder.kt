@@ -32,10 +32,10 @@ class InspectorViewDescriptor(private val id: String,
   constructor(id: String, type: String, rect: Rectangle) : this(id, type, rect.x, rect.y, rect.width, rect.height)
 
   fun view(id: String,
-           x: Int,
-           y: Int,
-           width: Int,
-           height: Int,
+           x: Int = 0,
+           y: Int = 0,
+           width: Int = 0,
+           height: Int = 0,
            type: String = "android.view.View",
            body: InspectorViewDescriptor.() -> Unit = {}) =
     children.add(InspectorViewDescriptor(id, type, x, y, width, height).apply(body))
@@ -44,8 +44,8 @@ class InspectorViewDescriptor(private val id: String,
     view(id, rect.x, rect.y, rect.width, rect.height, type, body)
 
   fun build(): InspectorView {
-    val result = InspectorView(type, x, y, width, height)
-    children.mapTo(result.children) { it.build() }
+    val result = InspectorView(id, type, x, y, width, height)
+    result.children.putAll(children.map { descriptor -> descriptor.build().let { it.id to it } })
     return result
   }
 }
@@ -54,10 +54,10 @@ class InspectorModelDescriptor {
   lateinit var root: InspectorViewDescriptor
 
   fun view(id: String,
-           x: Int,
-           y: Int,
-           width: Int,
-           height: Int,
+           x: Int = 0,
+           y: Int = 0,
+           width: Int = 0,
+           height: Int = 0,
            type: String = "android.view.View",
            body: InspectorViewDescriptor.() -> Unit = {}) {
     root = InspectorViewDescriptor(id, type, x, y, width, height).apply(body)
