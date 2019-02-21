@@ -1144,8 +1144,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         return;
       }
 
+      Rectangle bounds = myScrollPane.getViewport().getViewRect();
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
+          g2d.setClip(bounds);
           layer.paint(g2d);
         }
       }
