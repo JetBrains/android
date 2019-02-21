@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.stats.RunStats;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -57,13 +56,12 @@ public class AndroidRunState implements RunProfileState {
     myDeviceFutures = deviceFutures;
     myLaunchTasksProvider = launchTasksProvider;
 
-    RunnerAndConfigurationSettings runnerAndSettings = env.getRunnerAndConfigurationSettings();
-    assert runnerAndSettings != null;
-    final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(
-      env.getProject(), null, runnerAndSettings.getConfiguration().getUniqueID(), env.getExecutionTarget());
-    myPreviousSessionProcessHandler = existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(env.getExecutor().getId()) ?
-                                      existingSessionInfo.getProcessHandler() :
-                                      null;
+    AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(
+      env.getProject(), null, ((AndroidRunConfigurationBase)env.getRunProfile()).getUniqueID(), env.getExecutionTarget());
+    myPreviousSessionProcessHandler =
+      (existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(env.getExecutor().getId()))
+      ? existingSessionInfo.getProcessHandler()
+      : null;
   }
 
   @Nullable
