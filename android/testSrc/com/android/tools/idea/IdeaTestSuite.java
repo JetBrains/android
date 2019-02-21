@@ -19,6 +19,7 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
+import com.intellij.idea.IdeaTestApplication;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -76,5 +77,9 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
     // Run Kotlin in-process for easier control over its JVM args.
     System.setProperty("kotlin.compiler.execution.strategy", "in-process");
+
+    // Force load kotlin plugin to enable tests that use kotlin-plugin classes which are not on the class path of the test runner JVM
+    // and should be loaded by the IDE.
+    IdeaTestApplication.getInstance();
   }
 }
