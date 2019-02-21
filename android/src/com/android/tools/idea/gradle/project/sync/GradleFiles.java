@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -316,7 +318,7 @@ public class GradleFiles {
 
     storeExternalBuildFiles(externalBuildFiles);
 
-    String[] fileNames = {FN_SETTINGS_GRADLE, FN_GRADLE_PROPERTIES};
+    String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
     File rootFolderPath = getBaseDirPath(myProject);
     VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
     if (rootFolder != null) {
@@ -369,6 +371,12 @@ public class GradleFiles {
     if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
       VirtualFile file = psiFile.getVirtualFile();
       if (file != null && (FN_GRADLE_PROPERTIES.equals(file.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(file.getName()))) {
+        return true;
+      }
+    }
+    if (psiFile.getFileType().getName().equals("Kotlin")) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null && FN_BUILD_GRADLE_KTS.equals(file.getName()) || FN_SETTINGS_GRADLE_KTS.equals(file.getName())) {
         return true;
       }
     }
