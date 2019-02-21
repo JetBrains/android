@@ -489,7 +489,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> BALLOON_UPGRADE_NOTIFICATION = Flag.create(
     PROJECT_UPGRADE, "balloon.upgrade.notification", "Enable Balloon Notification for Project Upgrade",
     "If enabled, the notification of project upgrade will show as balloon in the right-bottom side.",
-    false
+    true
   );
 
   private static final FlagGroup TESTING = new FlagGroup(FLAGS, "testing", "Testing support");
