@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep;
-import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.base.Preconditions;
@@ -38,10 +36,9 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import icons.AndroidIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * AndroidModuleBuilder integrates the AndroidStudio new project and new module wizards into the IDEA new project and new module wizards.
@@ -165,12 +162,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
       builder.addStep(new ConfigureAndroidSdkStep());
     }
     if (type == WizardType.PROJECT) {
-      if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-        builder.addStep(new ChooseAndroidProjectStep(new NewProjectModel()));
-      }
-      else {
-        builder.addStep(new ConfigureAndroidProjectStep(new NewProjectModel()));
-      }
+      builder.addStep(new ChooseAndroidProjectStep(new NewProjectModel()));
     }
     else {
       ChooseModuleTypeStep chooseModuleTypeStep =

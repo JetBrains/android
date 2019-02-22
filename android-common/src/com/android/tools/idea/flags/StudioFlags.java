@@ -62,12 +62,6 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  // TODO: Remove in b/109788793
-  public static final Flag<Boolean> NPW_DYNAMIC_APPS = Flag.create(
-    NPW, "dynamic.apps", "New Dynamic App Project flow",
-    "Use new Dynamic App flow when creating a New Mobile Project",
-    true);
-
   public static final Flag<Boolean> NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY = Flag.create(
     NPW, "dynamic.apps.conditional.delivery", "Support for conditional delivery for dynamic feature modules",
     "Support for conditional delivery for dynamic feature modules",

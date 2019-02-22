@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
 
 class NewProjectDescriptor {
   private String myActivity = "MainActivity";
@@ -86,42 +83,18 @@ class NewProjectDescriptor {
    */
   @NotNull
   protected IdeFrameFixture create(@NotNull GuiTestRule guiTest) {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterName(myName)
-        .setSourceLanguage("Java")
-        .enterPackageName(myPkg)
-        .selectMinimumSdkApi(myMinSdk)
-        .setUseAndroidX(true)
-        .wizard()
-        .clickFinish();
-    }
-    else {
-        guiTest
-          .welcomeFrame()
-          .createNewProject()
-          .getConfigureAndroidProjectStep()
-          .setKotlinSupport(false)
-          .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
-          .enterApplicationName(myName)
-          .enterCompanyDomain(myDomain)
-          .enterPackageName(myPkg)
-          .wizard()
-          .clickNext()
-          .getConfigureFormFactorStep()
-          .selectMinimumSdkApi(MOBILE, myMinSdk)
-          .wizard()
-          .clickNext()
-          .clickNext() // Skip "Add Activity" step
-          .getChooseOptionsForNewFileStep()
-          .enterActivityName(myActivity)
-          .wizard()
-          .clickFinish();
-    }
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(myName)
+      .setSourceLanguage("Java")
+      .enterPackageName(myPkg)
+      .selectMinimumSdkApi(myMinSdk)
+      .setUseAndroidX(true)
+      .wizard()
+      .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     return guiTest.ideFrame();

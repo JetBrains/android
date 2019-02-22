@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
@@ -60,32 +58,16 @@ public class CreateLoginActivityTest {
   @Test
   public void activityTemplate() {
     // Create a new project with Login Activity.
-    if (NPW_DYNAMIC_APPS.get()) {
-      guiTest.welcomeFrame().createNewProject()
-             .getChooseAndroidProjectStep()
-             .chooseActivity("Login Activity")
-             .wizard()
-             .clickNext()
-             .getConfigureNewAndroidProjectStep()
-             .enterName("LoginActApp")
-             .enterPackageName("dev.tools")
-             .wizard()
-             .clickFinish();
-    }
-    else {
-      guiTest.welcomeFrame().createNewProject()
-             .getConfigureAndroidProjectStep()
-             .setCppSupport(false)
-             .enterApplicationName("LoginActApp")
-             .enterCompanyDomain("android.devtools")
-             .enterPackageName("dev.tools")
-             .wizard()
-             .clickNext()
-             .clickNext() // Skip "Select minimum SDK Api" step.
-             .chooseActivity("Login Activity")
-             .clickNext() // Use default activity name.
-             .clickFinish();
-    }
+    guiTest.welcomeFrame().createNewProject()
+           .getChooseAndroidProjectStep()
+           .chooseActivity("Login Activity")
+           .wizard()
+           .clickNext()
+           .getConfigureNewAndroidProjectStep()
+           .enterName("LoginActApp")
+           .enterPackageName("dev.tools")
+           .wizard()
+           .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
