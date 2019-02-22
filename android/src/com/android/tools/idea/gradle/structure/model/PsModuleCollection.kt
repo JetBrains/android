@@ -21,16 +21,19 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
+import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
 
-enum class ModuleKind { ANDROID, JAVA }
+enum class ModuleKind { ANDROID, JAVA, FAKE }
 data class ModuleKey(val kind: ModuleKind, val gradlePath: String)
 
-class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, ModuleKey, PsProjectImpl>(parent) {
+class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModule, ModuleKey, PsProjectImpl>(parent) {
   private val onModuleChangedHandlers = mutableListOf<Pair<Disposable, (PsModule) -> Unit>>()
 
   init {
@@ -69,6 +72,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
   override fun create(key: ModuleKey): PsModule = when (key.kind) {
     ModuleKind.ANDROID -> PsAndroidModule(parent, key.gradlePath)
     ModuleKind.JAVA -> PsJavaModule(parent, key.gradlePath)
+    ModuleKind.FAKE -> throw IllegalArgumentException()
   }.also { module ->
     onModuleChangedHandlers.forEach { (disposable, handler) -> module.onChange(disposable, handler) }
   }
@@ -76,36 +80,48 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
   override fun update(key: ModuleKey, model: PsModule) {
     val projectParsedModel = parent.parsedModel
     val moduleName =
-      ModuleManager
-        .getInstance(parent.ideProject)  // Use ideProject to find the name of the module.
-        .modules
-        .firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == key.gradlePath }
-        ?.name
-      ?: key.gradlePath.substring(1).replace(':', '-')
+        parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name
+        ?: key.gradlePath.substring(1).replace(':', '-')
 
     val moduleResolvedModel =
-      parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]
+        parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]
 
     val moduleParsedModel =
-      projectParsedModel
-        .takeIf { it.modules.contains(key.gradlePath) }
-        ?.getModuleByGradlePath(key.gradlePath)
+        moduleResolvedModel
+            ?.buildFile
+            ?.let { buildFilePath -> LocalFileSystem.getInstance().findFileByIoFile(File(buildFilePath)) }
+            ?.let { virtualFile -> projectParsedModel.getModuleBuildModel(virtualFile) }
+        ?: projectParsedModel
+            .takeIf { it.modules.contains(key.gradlePath) }?.getModuleByGradlePath(key.gradlePath)
 
     // Module type cannot be changed within the PSD.
     return when (key.kind) {
       ModuleKind.ANDROID ->
         (model as PsAndroidModule)
-          .init(moduleName,
-                findParentModuleFor(key.gradlePath),
-                (moduleResolvedModel as? PsResolvedModuleModel.PsAndroidModuleResolvedModel)?.model,
-                moduleParsedModel)
+            .init(moduleName,
+                  findParentModuleFor(key.gradlePath),
+                  (moduleResolvedModel as? PsResolvedModuleModel.PsAndroidModuleResolvedModel)?.model,
+                  moduleParsedModel)
       ModuleKind.JAVA ->
         (model as PsJavaModule)
-          .init(moduleName,
-                findParentModuleFor(key.gradlePath),
-                (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.model,
-                moduleParsedModel)
+            .init(moduleName,
+                  findParentModuleFor(key.gradlePath),
+                  (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.model,
+                  moduleParsedModel)
+      ModuleKind.FAKE -> throw IllegalArgumentException()
     }
+  }
+
+  override fun instantiateNew(key: ModuleKey) = throw UnsupportedOperationException()
+
+  override fun removeExisting(key: ModuleKey) {
+    for (module in parent.modules) {
+      val dynamicFeatures = (module as? PsAndroidModule)?.parsedModel?.android()?.dynamicFeatures() ?: continue
+      val dynamicFeatureItem = dynamicFeatures.getListValue(key.gradlePath) ?: continue
+      dynamicFeatureItem.delete()
+      module.isModified = true
+    }
+    parent.parsedModel.projectSettingsModel?.removeModulePath(key.gradlePath)
   }
 
   private fun findParentModuleFor(gradlePath: String): PsModule? {
@@ -113,7 +129,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
     while (remainingPath.contains(SdkConstants.GRADLE_PATH_SEPARATOR)) {
       remainingPath = remainingPath.substringBeforeLast(':', "")
       entries.entries.find { it.key.gradlePath == remainingPath }
-        ?.let { return it.value }
+          ?.let { return it.value }
     }
     return null
   }
@@ -125,10 +141,27 @@ class PsModuleCollection(parent: PsProjectImpl) : PsCollectionBase<PsModule, Mod
   }
 }
 
+private fun Project.getModuleByGradlePath(gradlePath: String) =
+    ModuleManager
+        .getInstance(this)  // Use ideProject to find the name of the module.
+        .modules
+        .firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == gradlePath }
+
 private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleBuildModel? =
-  projectBuildModel?.virtualFile?.parent
-    ?.findFileByRelativePath(
-      gradlePath.trimStart(':').replace(':', '/'))?.path?.let { getModuleBuildModel(File(it)) }
+    when {
+      projectSettingsModel == null && gradlePath == ":" -> projectBuildModel
+      else -> {
+        projectSettingsModel?.let { projectSettingsModel ->
+          projectSettingsModel
+              .buildFile(gradlePath)
+              ?.let { relativeFile ->
+                (projectSettingsModel.moduleDirectory(":") ?: return@getModuleByGradlePath null).resolve(relativeFile)
+              }
+              ?.let { absoluteFile -> LocalFileSystem.getInstance().findFileByIoFile(absoluteFile) }
+              ?.let { virtualFile -> this.getModuleBuildModel(virtualFile) }
+        }
+      }
+    }
 
 private val ProjectBuildModel.modules: Set<String>
   get() = projectSettingsModel.let { it?.modulePaths()?.toSet() ?: setOf(":") }

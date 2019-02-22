@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -31,7 +32,7 @@ import javax.swing.Icon
 class PsJavaModule(
   parent: PsProject,
   override val gradlePath: String
-  ) : PsModule(parent) {
+  ) : PsModule(parent, ModuleKind.JAVA) {
   override val descriptor by JavaModuleDescriptors
   var resolvedModel: JavaModuleModel? = null ; private set
   override var rootDir: File? = null ; private set

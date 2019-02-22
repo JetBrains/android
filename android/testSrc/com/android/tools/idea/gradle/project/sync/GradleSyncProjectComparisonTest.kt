@@ -230,9 +230,6 @@ abstract class GradleSyncProjectComparisonTest(
   open fun testPsdSampleRenamingModule() {
     val text = importSyncAndDumpProject(PSD_SAMPLE)
     assertIsEqualToSnapshot(text)
-    WriteAction.run<Throwable> {
-      project.baseDir.findFileByRelativePath("nested1")!!.rename("test", "container1")
-    }
     PsProjectImpl(project).let { projectModel ->
       projectModel.removeModule(":nested1")
       projectModel.removeModule(":nested1:deep")
@@ -241,6 +238,9 @@ abstract class GradleSyncProjectComparisonTest(
         addModulePath(":container1:deep")
       }
       projectModel.applyChanges()
+    }
+    WriteAction.run<Throwable> {
+      project.baseDir.findFileByRelativePath("nested1")!!.rename("test", "container1")
     }
     ApplicationManager.getApplication().saveAll()
     val textAfterDeleting = syncAndDumpProject()

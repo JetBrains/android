@@ -88,15 +88,9 @@ class PsProjectImpl(
   }
 
   override fun removeModule(gradlePath: String) {
-    for (module in moduleCollection) {
-      val dynamicFeatures = (module as? PsAndroidModule)?.parsedModel?.android()?.dynamicFeatures() ?: continue
-      val dynamicFeatureItem = dynamicFeatures.getListValue(gradlePath) ?: continue
-      dynamicFeatureItem.delete()
-      module.isModified = true
+    findModuleByGradlePath(gradlePath)?.let { module ->
+      moduleCollection.remove(ModuleKey(module.moduleKind, gradlePath))
     }
-    parsedModel.projectSettingsModel?.removeModulePath(gradlePath)
-    isModified = true
-    moduleCollection.refresh()
   }
 
   override fun applyChanges() {
