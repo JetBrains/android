@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateStrategy;
 import com.intellij.openapi.updateSettings.impl.UpdatesInfo;
-import com.intellij.openapi.updateSettings.impl.UserUpdateSettings;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.BuildNumber;
 import com.intellij.openapi.util.JDOMUtil;
 import org.intellij.lang.annotations.Language;
@@ -45,7 +45,7 @@ public final class AndroidStudioUpdateStrategyTest extends AndroidTestCase {
       "  </product>" +
       "</products>";
 
-    UserUpdateSettings settings = mock(UserUpdateSettings.class);
+    UpdateSettings settings = mock(UpdateSettings.class);
     when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
 
     assertThat(new UpdateStrategy(BuildNumber.fromString("AI-182.4505.22.34.5070326"), new UpdatesInfo(JDOMUtil.load(updatesXml)), settings)
