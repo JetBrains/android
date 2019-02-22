@@ -922,6 +922,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongThread" displayName="Wrong Thread" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongThreadInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongThreadInterprocedural" displayName="Wrong Thread (Interprocedural)" bundle="messages.AndroidBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongThreadInterproceduralInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongViewCast" displayName="Mismatched view type" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongViewCastInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintXmlEscapeNeeded" displayName="Missing XML Escape" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintXmlEscapeNeededInspection"/>
 
     <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
 
