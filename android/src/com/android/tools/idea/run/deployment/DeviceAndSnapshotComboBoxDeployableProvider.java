@@ -22,6 +22,7 @@ import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
 
     @NotNull
     @Override
-    public AndroidVersion getVersion() {
+    public Future<AndroidVersion> getVersion() {
       return myDevice.getAndroidVersion();
     }
 

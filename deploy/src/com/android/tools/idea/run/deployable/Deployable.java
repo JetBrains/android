@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import java.util.List;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 public interface Deployable {
@@ -27,7 +28,7 @@ public interface Deployable {
    * Returns the API level of the device.
    */
   @NotNull
-  AndroidVersion getVersion();
+  Future<AndroidVersion> getVersion();
 
   /**
    * Returns whether the current project's application is already running on this {@link Deployable}.

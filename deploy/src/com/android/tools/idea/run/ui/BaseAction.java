@@ -17,6 +17,7 @@ package com.android.tools.idea.run.ui;
 
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
@@ -39,6 +40,7 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -157,12 +159,18 @@ public abstract class BaseAction extends AnAction {
     Deployable deployable;
     try {
       deployable = deployableProvider.getDeployable();
+      if (deployable == null) {
+        return false;
+      }
+      Future<AndroidVersion> versionFuture = deployable.getVersion();
+      if (!versionFuture.isDone()) {
+        // Don't stall the EDT - if the Future isn't ready, just return false.
+        return false;
+      }
+      return versionFuture.get().getApiLevel() >= MIN_API_VERSION && deployable.isApplicationRunningOnDeployable();
     }
     catch (Exception e) {
       return false;
     }
-    return deployable != null &&
-           deployable.getVersion().getApiLevel() >= MIN_API_VERSION &&
-           deployable.isApplicationRunningOnDeployable();
   }
 }
