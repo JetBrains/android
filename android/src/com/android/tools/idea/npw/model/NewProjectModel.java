@@ -351,9 +351,6 @@ public class NewProjectModel extends WizardModel {
       String msg =
         "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
       Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
-      // TODO: Is this available on the New Wizard?
-      //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
-      //myHost.shakeWindow();
     }
 
     myMultiTemplateRenderer.requestRender(new ProjectTemplateRenderer());

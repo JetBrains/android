@@ -50,33 +50,16 @@ public class NewKotlinModuleTest {
   }
 
   private void createNewBasicProject(boolean hasKotlinSupport) {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterName(APP_NAME)
-        .enterPackageName("android.com")
-        .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
-        .wizard()
-        .clickFinish();
-    }
-    else {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .getConfigureAndroidProjectStep()
-        .enterPackageName("android.com")
-        .enterApplicationName(APP_NAME)
-        .setCppSupport(false)
-        .setKotlinSupport(hasKotlinSupport) // Default "App name", "company domain" and "package name"
-        .wizard()
-        .clickNext()
-        .clickNext() // Skip "Select minimum SDK Api" step
-        .clickNext() // Skip "Add Activity" step
-        .clickFinish();
-    }
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(APP_NAME)
+      .enterPackageName("android.com")
+      .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
+      .wizard()
+      .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
