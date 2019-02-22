@@ -204,12 +204,12 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request, false /* openProject */), listener);
+    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request), listener);
   }
 
   @NotNull
-  private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest, boolean openProject) {
-    GradleSyncStats.Trigger trigger = openProject ? TRIGGER_PROJECT_REOPEN : TRIGGER_PROJECT_NEW;
+  private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest) {
+    GradleSyncStats.Trigger trigger = TRIGGER_PROJECT_NEW;
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.generateSourcesOnSuccess = importProjectRequest.generateSourcesOnSuccess;
     request.useCachedGradleModels = false;
