@@ -97,26 +97,15 @@ public class NewCppProjectTestUtil {
   protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      newProjectWizard
-        .getChooseAndroidProjectStep()
-        .chooseActivity("Native C++")
-        .wizard()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterPackageName("com.example.myapplication")
-        .wizard()
-        .clickNext();
-    }
-    else {
-      newProjectWizard.getConfigureAndroidProjectStep()
-                      .enterPackageName("com.example.myapplication")
-                      .setCppSupport(true); // Default "App name", "company domain" and "package name"
-      newProjectWizard.clickNext();
-      newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
-      newProjectWizard.clickNext(); // Skip "Add Activity" step
-      newProjectWizard.clickNext(); // Use default activity names
-    }
+    newProjectWizard
+      .getChooseAndroidProjectStep()
+      .chooseActivity("Native C++")
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterPackageName("com.example.myapplication")
+      .wizard()
+      .clickNext();
 
     newProjectWizard.getConfigureCppStepFixture()
                     .selectToolchain(toolChain);
