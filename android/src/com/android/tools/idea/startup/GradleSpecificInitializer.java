@@ -50,7 +50,6 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.lang.xml.XMLLanguage;
@@ -187,6 +186,7 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
+    replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
@@ -196,18 +196,6 @@ public class GradleSpecificInitializer implements Runnable {
     AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
-    }
-
-    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
-    if (configureIdeaAction instanceof DefaultActionGroup) {
-      DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
-      AnAction[] children = settingsGroup.getChildren(null);
-      if (children.length == 1) {
-        AnAction child = children[0];
-        if (child instanceof TemplateProjectSettingsGroup) {
-          settingsGroup.replaceAction(child, new AndroidTemplateProjectSettingsGroup());
-        }
-      }
     }
   }
 
