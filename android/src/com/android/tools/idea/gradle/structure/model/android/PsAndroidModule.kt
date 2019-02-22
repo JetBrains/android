@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -38,7 +39,7 @@ import javax.swing.Icon
 class PsAndroidModule(
   parent: PsProject,
   override val gradlePath: String
-) : PsModule(parent) {
+) : PsModule(parent, ModuleKind.ANDROID) {
   override val descriptor by AndroidModuleDescriptors
   var resolvedModel: AndroidModuleModel? = null; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
