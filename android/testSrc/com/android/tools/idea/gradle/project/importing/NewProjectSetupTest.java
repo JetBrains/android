@@ -54,7 +54,7 @@ public class NewProjectSetupTest extends IdeaTestCase {
   }
 
   public void testPrepareProjectForImportWithLanguageLevel() {
-    myNewProjectSetup.prepareProjectForImport(getProject(), JDK_1_8, true);
+    myNewProjectSetup.prepareProjectForImport(getProject(), JDK_1_8);
 
     verifyLanguageLevel(JDK_1_8);
     verifyCompilerOutputUrl();
@@ -62,7 +62,7 @@ public class NewProjectSetupTest extends IdeaTestCase {
   }
 
   public void testPrepareProjectForImportWithoutLanguageLevel() {
-    myNewProjectSetup.prepareProjectForImport(getProject(), null, true);
+    myNewProjectSetup.prepareProjectForImport(getProject(), null);
 
     verifyLanguageLevel(JDK_1_6);
     verifyCompilerOutputUrl();
