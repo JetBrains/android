@@ -15,11 +15,20 @@
  */
 package org.jetbrains.kotlin.android.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
+
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncAndroidModels;
 import com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncJavaModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
+import com.android.tools.idea.gradle.util.ContentEntries;
+import com.android.tools.idea.io.FilePaths;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.FacetType;
@@ -28,19 +37,38 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.roots.impl.ModuleLibraryOrderEntryImpl;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import kotlin.KotlinVersion;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.JpsElement;
+import org.jetbrains.jps.model.java.JavaSourceRootProperties;
+import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor;
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
-import org.jetbrains.kotlin.config.*;
+import org.jetbrains.kotlin.config.CoroutineSupport;
+import org.jetbrains.kotlin.config.KotlinFacetSettings;
+import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.gradle.model.AllOpen;
 import org.jetbrains.kotlin.gradle.model.CompilerArguments;
 import org.jetbrains.kotlin.gradle.model.KotlinAndroidExtension;
@@ -53,17 +81,13 @@ import org.jetbrains.kotlin.idea.facet.FacetUtilsKt;
 import org.jetbrains.kotlin.idea.facet.KotlinFacet;
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration;
 import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.kotlin.platform.IdePlatform;
-import org.jetbrains.kotlin.platform.IdePlatformKind;
 import org.jetbrains.kotlin.platform.impl.CommonIdePlatformKind;
 import org.jetbrains.kotlin.platform.impl.JsIdePlatformKind;
 import org.jetbrains.kotlin.platform.impl.JvmIdePlatformKind;
 import org.jetbrains.kotlin.utils.PathUtil;
-
-import java.io.File;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -81,7 +105,8 @@ public class KotlinSyncModels {
     @NotNull
     @Override
     public Set<Class<?>> getModelTypes() {
-      return Sets.newHashSet(KotlinAndroidExtension.class, KotlinProject.class, AllOpen.class, NoArg.class, SamWithReceiver.class);
+      return Sets.newHashSet(KotlinAndroidExtension.class, KotlinProject.class, AllOpen.class, NoArg.class, SamWithReceiver.class,
+                             KaptGradleModel.class);
     }
 
     @Override
@@ -108,7 +133,7 @@ public class KotlinSyncModels {
     @NotNull
     @Override
     public Set<Class<?>> getModelTypes() {
-      return Sets.newHashSet(KotlinProject.class, AllOpen.class, NoArg.class, SamWithReceiver.class);
+      return Sets.newHashSet(KotlinProject.class, AllOpen.class, NoArg.class, SamWithReceiver.class, KaptGradleModel.class);
     }
 
     @Override
@@ -120,7 +145,116 @@ public class KotlinSyncModels {
 
     @Override
     public void addModelsToCache(@NotNull Module module, @NotNull CachedModuleModels cache) {
-      // Nothing to do. The state of KotlinProject is stored in KotlinFacet.
+      // Only the KaptGradleModel needs adding to the cache, all the other information is stored in the facet.
+      // Note: We don't need to do this for Android modules since this information is already present in the AndroidModuleModel.
+      GradleModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
+      if (moduleModels != null) {
+        KaptGradleModel kaptGradleModel = moduleModels.findModel(KaptGradleModel.class);
+        if (kaptGradleModel != null) {
+          cache.addModel(new IdeKaptGradleModel(kaptGradleModel));
+        }
+      }
+    }
+  }
+
+  public static class IdeKaptGradleModel implements KaptGradleModel {
+    @NotNull private File myBuildDirectory;
+    private boolean myIsEnabled;
+    @NotNull List<KaptSourceSetModel> mySourceSets;
+
+    public IdeKaptGradleModel(@NotNull KaptGradleModel kaptGradleModel) {
+      myBuildDirectory = kaptGradleModel.getBuildDirectory();
+      myIsEnabled = kaptGradleModel.isEnabled();
+      mySourceSets = new ArrayList<>();
+      for (KaptSourceSetModel sourceSetModel : kaptGradleModel.getSourceSets()) {
+        mySourceSets.add(new IdeKaptSourceSet(sourceSetModel));
+      }
+    }
+
+    @NotNull
+    @Override
+    public File getBuildDirectory() {
+      return myBuildDirectory;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return myIsEnabled;
+    }
+
+    @NotNull
+    @Override
+    public List<KaptSourceSetModel> getSourceSets() {
+      return mySourceSets;
+    }
+  }
+
+  public static class IdeKaptSourceSet implements KaptSourceSetModel {
+    @NotNull private String myGeneratedClassesDir;
+    @Nullable private File myGeneratedClassesDirFile;
+    @NotNull private String myGeneratedKotlinSourcesDir;
+    @Nullable private File myGeneratedKotlinSourcesDirFile;
+    @NotNull private String myGeneratedSourcesDir;
+    @Nullable private File myGeneratedSourcesDirFile;
+    private boolean myIsTest;
+    @NotNull private String mySourceSetName;
+
+    public IdeKaptSourceSet(@NotNull KaptSourceSetModel model) {
+      myGeneratedClassesDir = model.getGeneratedClassesDir();
+      myGeneratedClassesDirFile = model.getGeneratedClassesDirFile();
+      myGeneratedKotlinSourcesDir = model.getGeneratedKotlinSourcesDir();
+      myGeneratedKotlinSourcesDirFile = model.getGeneratedKotlinSourcesDirFile();
+      myGeneratedSourcesDir = model.getGeneratedSourcesDir();
+      myGeneratedSourcesDirFile = model.getGeneratedSourcesDirFile();
+      myIsTest = model.isTest();
+      mySourceSetName = model.getSourceSetName();
+    }
+
+    @NotNull
+    @Override
+    public String getGeneratedClassesDir() {
+      return myGeneratedClassesDir;
+    }
+
+    @Nullable
+    @Override
+    public File getGeneratedClassesDirFile() {
+      return myGeneratedClassesDirFile;
+    }
+
+    @NotNull
+    @Override
+    public String getGeneratedKotlinSourcesDir() {
+      return myGeneratedKotlinSourcesDir;
+    }
+
+    @Nullable
+    @Override
+    public File getGeneratedKotlinSourcesDirFile() {
+      return myGeneratedKotlinSourcesDirFile;
+    }
+
+    @NotNull
+    @Override
+    public String getGeneratedSourcesDir() {
+      return myGeneratedSourcesDir;
+    }
+
+    @Nullable
+    @Override
+    public File getGeneratedSourcesDirFile() {
+      return myGeneratedSourcesDirFile;
+    }
+
+    @Override
+    public boolean isTest() {
+      return myIsTest;
+    }
+
+    @NotNull
+    @Override
+    public String getSourceSetName() {
+      return mySourceSetName;
     }
   }
 
@@ -135,13 +269,184 @@ public class KotlinSyncModels {
       // IdePlatform type.
       configureFacet(facet, kotlinProject, modelsProvider);
       configureCompilerArguments(facet, kotlinProject, isAndroid ? getSelectedVariantName(moduleModels) : null, modelsProvider);
+
       mirrorGradleImportHandlerConfiguration(moduleModels, facet, module);
       // We setup these for non Android modules in order to ensure any old plugin options are removed.
       KotlinAndroidExtension extension = isAndroid ? moduleModels.findModel(KotlinAndroidExtension.class) : null;
       setupKotlinAndroidExtensionAsFacetPluginOptions(facet, extension);
     }
+
+    // When loading from cache we don't have a KotlinProject we just have a KaptGradleModel, so this needs to be done even if KotlinProject
+    // is null.
+    KaptGradleModel kaptGradleModel = moduleModels.findModel(KaptGradleModel.class);
+    if (kaptGradleModel == null) {
+      // We might be loading from cache, in this instance we need to look for the IdeKaptGradleModel class.
+      // TODO: Find out how to change CachedGradleModels to prevent needing to do this.
+      kaptGradleModel = moduleModels.findModel(IdeKaptGradleModel.class);
+    }
+
+    if (kaptGradleModel != null) {
+      attemptToConfigureKapt(kaptGradleModel, module, modelsProvider, isAndroid);
+    }
   }
 
+  /**
+   * This method configures the given module with Kapt3 generated sources and class locations. In order to do this we use the
+   * KaptGradleModel from an injected model builder in {@link com.android.tools.idea.gradle.project.common.GradleInitScripts}.
+   * We make changes directly to the model via the {@link IdeModifiableModelsProvider}.
+   *
+   * @param kaptModel the Kapt3 model
+   * @param module    the module to set up
+   * @param provider  the provider to allow changes to the module structure
+   * @param isAndroid is this module and Android module
+   */
+  private static void attemptToConfigureKapt(@NotNull KaptGradleModel kaptModel,
+                                             @NotNull Module module,
+                                             @NotNull IdeModifiableModelsProvider provider,
+                                             boolean isAndroid) {
+    if (kaptModel.isEnabled()) {
+      for (KaptSourceSetModel sourceSet : kaptModel.getSourceSets()) {
+        if (isAndroid) {
+          populateAndroidModelWithKaptSourceSet(sourceSet, module, provider);
+        }
+        else {
+          populateModelWithKaptSourceSet(sourceSet, module, provider);
+        }
+      }
+    }
+  }
+
+  private static void populateModelWithKaptSourceSet(@NotNull KaptSourceSetModel sourceSet,
+                                                     @NotNull Module module,
+                                                     @NotNull IdeModifiableModelsProvider provider) {
+    File generatedKotlinSources = sourceSet.getGeneratedKotlinSourcesDirFile();
+    File generatedJavaSources = sourceSet.getGeneratedSourcesDirFile();
+    File generatedClasses = sourceSet.getGeneratedClassesDirFile();
+
+    if (generatedKotlinSources != null) {
+      addGeneratedFolderToContentEntry(module, provider, generatedKotlinSources, sourceSet.isTest());
+    }
+    if (generatedJavaSources != null) {
+      addGeneratedFolderToContentEntry(module, provider, generatedJavaSources, sourceSet.isTest());
+    }
+    if (generatedClasses != null) {
+      VirtualFile vGeneratedClasses = ExternalSystemUtil.refreshAndFindFileByIoFile(generatedClasses);
+      if (vGeneratedClasses == null) {
+        return;
+      }
+
+      Library library = getOrCreateLibraryForSourceSet(provider, module, sourceSet);
+      library.getModifiableModel().addRoot(vGeneratedClasses, OrderRootType.CLASSES);
+    }
+  }
+
+  @NotNull
+  private static Library getOrCreateLibraryForSourceSet(@NotNull IdeModifiableModelsProvider provider,
+                                                        @NotNull Module module,
+                                                        @NotNull KaptSourceSetModel sourceSet) {
+    ModifiableRootModel rootModel = provider.getModifiableRootModel(module);
+    LibraryTable moduleLibraryTable = rootModel.getModuleLibraryTable();
+    String kaptLibraryName = sourceSet.isTest() ? "testKaptGeneratedClasses" : "kaptGeneratedClasses";
+    Library library = moduleLibraryTable.getLibraryByName(kaptLibraryName);
+    if (library == null) {
+      library = moduleLibraryTable.createLibrary(kaptLibraryName);
+    }
+    if (sourceSet.isTest()) {
+      for (OrderEntry orderEntry : rootModel.getOrderEntries()) {
+        if (orderEntry.getPresentableName().equals(kaptLibraryName) && orderEntry instanceof ModuleLibraryOrderEntryImpl) {
+          ((ModuleLibraryOrderEntryImpl)orderEntry).setScope(DependencyScope.TEST);
+        }
+      }
+    }
+    return library;
+  }
+
+  /**
+   * This method adds the generated Kotlin sources location to the AndroidModuleModel for a given KaptSourceSet.
+   * If this source set represents the currently selected variant then we also add the Kotlin sources to the content entries so it
+   * is visible in the IDE.
+   *
+   * @param kaptSourceSet the source set to add
+   * @param module        the module
+   * @param provider      the provider
+   */
+  private static void populateAndroidModelWithKaptSourceSet(@NotNull KaptSourceSetModel kaptSourceSet,
+                                                            @NotNull Module module,
+                                                            @NotNull IdeModifiableModelsProvider provider) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel == null) {
+      return;
+    }
+
+    String sourceSetName = kaptSourceSet.getSourceSetName();
+    Variant variant = androidModel.findVariantByName(getBaseVariantName(sourceSetName));
+    if (variant == null) {
+      return;
+    }
+
+    File generatedKotlinSources = kaptSourceSet.getGeneratedKotlinSourcesDirFile();
+
+    // Only add the content entry for the selected variant.
+    if (generatedKotlinSources != null && variant.equals(androidModel.getSelectedVariant())) {
+      addGeneratedFolderToContentEntry(module, provider, generatedKotlinSources, kaptSourceSet.isTest());
+    }
+
+    BaseArtifact artifact;
+    if (sourceSetName.endsWith("UnitTest")) {
+      // Add the generated sources to the artifacts of the variant.
+      artifact = variant.getExtraJavaArtifacts().stream().filter(ja -> ja.getName().equals("_unit_test_")).findFirst().orElse(null);
+
+    }
+    else if (sourceSetName.endsWith("AndroidTest")) {
+      artifact = variant.getExtraAndroidArtifacts().stream().filter(aa -> aa.getName().equals("_android_test_")).findFirst().orElse(null);
+    }
+    else {
+      artifact = variant.getMainArtifact();
+    }
+
+    // Add the generated sources to the artifacts of the variant.
+    if (artifact instanceof IdeBaseArtifact) {
+      if (generatedKotlinSources != null) {
+        ((IdeBaseArtifact)artifact).addGeneratedSourceFolder(generatedKotlinSources);
+      }
+    }
+  }
+
+  /**
+   * Strips either UnitTest or AndroidTest from the source set name to get the variant that should be searched for.
+   *
+   * @param sourceSetName the source set whos name should be used
+   * @return the base variant name for the source set
+   */
+  @NotNull
+  private static String getBaseVariantName(@NotNull String sourceSetName) {
+    sourceSetName = StringUtils.removeEnd(sourceSetName, "UnitTest");
+    return StringUtils.removeEnd(sourceSetName, "AndroidTest");
+  }
+
+  /**
+   * Adds the given dirToAdd as a generated source root to the modules content entry.
+   *
+   * @param module   the module
+   * @param provider the provider required to modify the model
+   * @param dirToAdd the dir/file to add
+   * @param isTest   whether or not this dir/file contains test sources or not
+   */
+  private static void addGeneratedFolderToContentEntry(@NotNull Module module,
+                                                       @NotNull IdeModifiableModelsProvider provider,
+                                                       @NotNull File dirToAdd,
+                                                       boolean isTest) {
+    ContentEntry[] contentEntries = provider.getModifiableRootModel(module).getContentEntries();
+    ContentEntry parent = ContentEntries.findParentContentEntry(dirToAdd, Arrays.stream(contentEntries));
+    if (parent != null) {
+      SourceFolder folder = parent.addSourceFolder(FilePaths.pathToIdeaUrl(dirToAdd), isTest ? TEST_SOURCE : SOURCE);
+      JpsModuleSourceRoot sourceRoot = folder.getJpsElement();
+      JpsElement properties = sourceRoot.getProperties();
+      if (properties instanceof JavaSourceRootProperties) {
+        ((JavaSourceRootProperties)properties).setForGeneratedSources(true);
+      }
+    }
+  }
 
   @NotNull
   private static KotlinFacet createAndAddFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
@@ -175,7 +480,7 @@ public class KotlinSyncModels {
     String compilerVersion = kotlinProject.getKotlinVersion();
 
     // Obtain platform kind either from the plugin or from existing libraries
-    IdePlatform platformKind = convertToTargetPlatformKind(kotlinProject.getProjectType(), facet);
+    IdePlatform platformKind = convertToTargetPlatformKind(kotlinProject.getProjectType());
 
     // Obtain coroutines either by the model or gradle properties file
     String coroutines = kotlinProject.getExperimentalFeatures().getCoroutines();
@@ -211,7 +516,7 @@ public class KotlinSyncModels {
   }
 
   @Nullable
-  private static IdePlatform convertToTargetPlatformKind(@NotNull KotlinProject.ProjectType projectType, @NotNull KotlinFacet kotlinFacet) {
+  private static IdePlatform convertToTargetPlatformKind(@NotNull KotlinProject.ProjectType projectType) {
     if (projectType == KotlinProject.ProjectType.PLATFORM_COMMON) {
       return CommonIdePlatformKind.Platform.INSTANCE;
     }
@@ -270,13 +575,13 @@ public class KotlinSyncModels {
 
     if (extension != null) {
       newPluginOptions.add(String.format(ANDROID_PLUGIN_OPTION_FORMAT_STRING,
-                                         AndroidCommandLineProcessor.Companion.getEXPERIMENTAL_OPTION().getName(),
+                                         AndroidCommandLineProcessor.Companion.getEXPERIMENTAL_OPTION().getOptionName(),
                                          String.valueOf(extension.isExperimental())));
       // If the model exists we must have the kotlin-android-extensions plugin applied.
       newPluginOptions.add(String.format(ANDROID_PLUGIN_OPTION_FORMAT_STRING,
-                                         AndroidCommandLineProcessor.Companion.getENABLED_OPTION().getName(), "true"));
+                                         AndroidCommandLineProcessor.Companion.getENABLED_OPTION().getOptionName(), "true"));
       newPluginOptions.add(String.format(ANDROID_PLUGIN_OPTION_FORMAT_STRING,
-                                         AndroidCommandLineProcessor.Companion.getDEFAULT_CACHE_IMPL_OPTION().getName(),
+                                         AndroidCommandLineProcessor.Companion.getDEFAULT_CACHE_IMPL_OPTION().getOptionName(),
                                          extension.getDefaultCacheImplementation()));
     }
 

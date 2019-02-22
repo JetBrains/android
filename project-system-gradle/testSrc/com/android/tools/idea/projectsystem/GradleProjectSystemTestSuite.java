@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.projectsystem;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
+import com.intellij.idea.IdeaTestApplication;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -40,6 +43,13 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
+
+    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
+
+    // Force load kotlin plugin to enable tests that use kotlin-plugin classes which are not on the class path of the test runner JVM
+    // and should be loaded by the IDE.
+    IdeaTestApplication.getInstance();
   }
 }
 
