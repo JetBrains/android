@@ -16,11 +16,11 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
+import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
@@ -49,13 +49,11 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
   }
 
   /**
-   * Verify {@link AndroidTemplateProjectSettingsGroup} is used in Welcome dialog
+   * Verify {@link AndroidTemplateProjectStructureAction} is used in Welcome dialog
    */
-  public void testAndroidTemplateProjectSettingsGroupInWelcomeDialog() {
-    DefaultActionGroup settingsGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("WelcomeScreen.Configure.IDEA");
-    AnAction[] children = settingsGroup.getChildren(null);
-    assertThat(children).hasLength(1);
-    assertThat(children[0]).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
+  public void testAndroidTemplateProjectStructureActionInWelcomeDialog() {
+    AnAction configureProjectStructureAction = ActionManager.getInstance().getAction("WelcomeScreen.Configure.ProjectStructure");
+    assertThat(configureProjectStructureAction).isInstanceOf(AndroidTemplateProjectStructureAction.class);
   }
 
   public void testRefreshProjectsActionIsHidden() {
