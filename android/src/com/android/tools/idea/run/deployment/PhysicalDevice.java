@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,6 +30,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import java.util.Objects;
+import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,11 +109,11 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  AndroidVersion getAndroidVersion() {
+  Future<AndroidVersion> getAndroidVersion() {
     IDevice device = getDdmlibDevice();
     assert device != null;
 
-    return device.getVersion();
+    return DeploymentApplicationService.getInstance().getVersion(device);
   }
 
   @Override
