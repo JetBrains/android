@@ -35,6 +35,7 @@ import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
 import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
+import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -283,6 +284,12 @@ abstract class GradleSyncProjectComparisonTest(
     val textAfterDeleting = syncAndDumpProject()
     // TODO(b/124677413): Remove irrelvant changes from the snapshot when the bug is fixed.
     assertIsEqualToSnapshot(textAfterDeleting, ".after_lib_upgrade")
+  }
+
+  fun testTwoJarsWithTheSameName() {
+    val text = importSyncAndDumpProject(TWO_JARS)
+    // TODO(b/125680482): Update the snapshot when the bug is fixed.
+    assertIsEqualToSnapshot(text)
   }
 
   private fun createEmptyGradleSettingsFile() {
