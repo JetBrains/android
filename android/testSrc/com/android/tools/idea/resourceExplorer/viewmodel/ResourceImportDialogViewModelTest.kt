@@ -85,7 +85,7 @@ class ResourceImportDialogViewModelTest {
 
   class StubPathChooser : PathChooserDialog {
     var files = emptyList<VirtualFile>()
-    override fun choose(toSelect: VirtualFile?, callback: Consumer<List<VirtualFile>>) {
+    override fun choose(toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile>>) {
       callback.consume(files)
     }
   }
