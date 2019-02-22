@@ -194,6 +194,7 @@ class QrScanningCujTest {
         }
       }
 
+    // Move qrcodelib code to the app module
     ide.projectView
       .selectProjectPane().run {
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "qrcodelib")
@@ -203,6 +204,7 @@ class QrScanningCujTest {
           .clickOk()
       }
 
+    // Create a new layout file from contextual menu
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
@@ -283,10 +285,64 @@ class QrScanningCujTest {
 
       </FrameLayout>""".trimIndent()
 
+    // Copy text into layout file
     ide.editor
       .selectEditorTab(EditorFixture.Tab.EDITOR)
       .select("(<FrameLayout[\\s\\S]*</FrameLayout>)")
       .pasteText(layoutText)
 
+    // Edit AndroidManifest.xml
+    ide.editor
+      .open("app/src/main/AndroidManifest.xml")
+      .moveBetween("<uses-permission android:name=\"android.permission.INTERNET\"/>", "")
+      .enterText("\n    <uses-permission android:name=\"android.permission.CAMERA\" />")
+
+    // Edit MainActivity.java by pasting and typing text
+    ide.editor
+      .open("app/src/main/java/com/src/adux/votingapp/MainActivity.java")
+      .moveBetween("", "private void sendCode() {")
+      .pasteText("""
+        private void startScan() {
+            Log.d("Scanning","again");
+            final MaterialBarcodeScanner materialBarcodeScanner = new MaterialBarcodeScannerBuilder()
+                .withActivity(this)
+                .withEnableAutoFocus(true)
+                .withBleepEnabled(true)
+                .withBackfacingCamera()
+                .withCenterTracker()
+                .withText("Scanning QR code...")
+                .withResultListener(new MaterialBarcodeScanner.OnResultListener() {
+                    @Override
+                    public void onResult(Barcode barcode) throws IOException {
+                        Log.d("Scanning", barcode.rawValue);
+                        mQRcodeResult = barcode;
+                        type = false;
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Uri data = Uri.parse(mQRcodeResult.rawValue);
+                                    String link = data.getLastPathSegment();
+                                    mQRResult = link;
+                                    System.out.println("&&&&&&&& "+link);
+                                    //getJson(SERVER_URL + "/question?id=" + mQRcodeResult.rawValue);
+                                    getJson(SERVER_URL + "/question?id=" + link);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        thread.start();
+                        //}
+                    }
+                })
+                .build();
+            materialBarcodeScanner.startScan();
+        }
+
+      """.trimIndent())
+      .select("(Edit Text Code Screen \\*\\*\\*\\*\\*\\*\n" +
+              "                sendCode\\(\\);)")
+      .typeText("QR Code Screen ******\nstartScan();")
   }
 }
