@@ -82,27 +82,6 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
   }
 
-  // See:
-  // https://code.google.com/p/android/issues/detail?id=172347
-  // https://code.google.com/p/android/issues/detail?id=227437
-  public void testOpenProject() throws Exception {
-    Project newProject = getProject();
-    VirtualFile rootFolder = newProject.getBaseDir();
-
-    when(myProjectSetup.openProject(myProjectFolderPath.getPath())).thenReturn(newProject);
-
-    myProjectImporter.openProject(rootFolder);
-
-    // Verify project setup before syncing.
-    verifyProjectFilesCreation();
-    verifyProjectCreation(never());
-    verifyProjectPreparation(null, true);
-    verifyGradleVmOptionsCleanup(times(1));
-
-    verify(myProjectSetup, times(1)).openProject(myProjectFolderPath.getPath());
-    verifyProjectWasMarkedAsImported();
-  }
-
   public void testImportProjectWithDefaultSettings() throws Exception {
     Project newProject = getProject();
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
