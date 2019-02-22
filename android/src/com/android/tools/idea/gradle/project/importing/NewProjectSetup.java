@@ -75,8 +75,8 @@ public class NewProjectSetup {
     return newProject;
   }
 
-  void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel, boolean openProject) {
-    openProjectAndActivateProjectView(project, openProject);
+  void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel) {
+    openProjectAndActivateProjectView(project);
     CommandProcessor.getInstance().executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
       if (languageLevel != null) {
         LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(project);
@@ -98,13 +98,11 @@ public class NewProjectSetup {
     }), null, null);
   }
 
-  private void openProjectAndActivateProjectView(@NotNull Project project, boolean openProject) {
+  private void openProjectAndActivateProjectView(@NotNull Project project) {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
-    if (!openProject) {
-      ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
-    }
+    ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
 
     // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
     open(project);

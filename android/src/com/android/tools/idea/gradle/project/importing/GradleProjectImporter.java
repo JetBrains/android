@@ -198,7 +198,7 @@ public class GradleProjectImporter {
     projectInfo.setExtraInfo(request.extraInfo);
     projectInfo.setSkipStartupActivity(true);
 
-    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel, false /* openProject */);
+    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
