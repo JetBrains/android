@@ -45,7 +45,10 @@ class GradleResolver {
 }
 
 private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
-  val gradlePath = (module.findModel(GradleModuleModel::class.java) ?: return null).gradlePath
-  return module.findModel(AndroidModuleModel::class.java)?.let { PsResolvedModuleModel.PsAndroidModuleResolvedModel(gradlePath, it) }
-         ?: module.findModel(JavaModuleModel::class.java)?.let { PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, it) }
+  val gradleModuleModel = module.findModel(GradleModuleModel::class.java) ?: return null
+  val gradlePath = gradleModuleModel.gradlePath
+  return module.findModel(AndroidModuleModel::class.java)
+             ?.let { PsResolvedModuleModel.PsAndroidModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, it) }
+         ?: module.findModel(JavaModuleModel::class.java)
+             ?.let { PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, it) }
 }
