@@ -43,8 +43,12 @@ public class DynamicWizardPathTest extends AndroidTestBase {
 
   @Override
   public void tearDown() throws Exception {
-    myWizard.doCancelAction();
-    super.tearDown();
+    try {
+      myWizard.doCancelAction();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testAddStep() throws Exception {

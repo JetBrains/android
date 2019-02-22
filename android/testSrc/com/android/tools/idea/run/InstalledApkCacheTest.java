@@ -74,8 +74,12 @@ public class InstalledApkCacheTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    Disposer.dispose(myService);
-    super.tearDown();
+    try {
+      Disposer.dispose(myService);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testCacheHit() throws Exception {
