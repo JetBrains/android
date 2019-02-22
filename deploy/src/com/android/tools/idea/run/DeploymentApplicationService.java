@@ -17,14 +17,18 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.ApplicationIdResolver;
+import com.android.tools.idea.run.deployable.DeviceVersion;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import java.util.List;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 public class DeploymentApplicationService implements Disposable {
   private final ApplicationIdResolver myApplicationIdResolver;
+  private final DeviceVersion myDeviceVersion;
 
   @NotNull
   public static DeploymentApplicationService getInstance() {
@@ -33,15 +37,22 @@ public class DeploymentApplicationService implements Disposable {
 
   private DeploymentApplicationService() {
     myApplicationIdResolver = new ApplicationIdResolver();
+    myDeviceVersion = new DeviceVersion();
   }
 
   @Override
   public void dispose() {
+    myDeviceVersion.dispose();
     myApplicationIdResolver.dispose();
   }
 
   @NotNull
   public List<Client> findClient(@NotNull IDevice iDevice, @NotNull String applicationId) {
     return myApplicationIdResolver.resolve(iDevice, applicationId);
+  }
+
+  @NotNull
+  public Future<AndroidVersion> getVersion(@NotNull IDevice iDevice) {
+    return myDeviceVersion.get(iDevice);
   }
 }
