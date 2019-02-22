@@ -86,7 +86,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    myProjectImporter.importProject(myProjectName, myProjectFolderPath, syncListener);
+    myProjectImporter.importProject(myProjectName, myProjectFolderPath, GradleProjectImporter.Request.EMPTY_REQUEST, syncListener);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();

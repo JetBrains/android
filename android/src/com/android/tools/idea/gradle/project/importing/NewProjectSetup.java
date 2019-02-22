@@ -65,16 +65,6 @@ public class NewProjectSetup {
     return newProject;
   }
 
-  @NotNull
-  Project openProject(@NotNull String projectPath) throws IOException {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    Project newProject = projectManager.loadProject(projectPath);
-    if (newProject == null) {
-      throw new NullPointerException("Failed to open project at '" + projectPath + "'");
-    }
-    return newProject;
-  }
-
   void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel) {
     openProjectAndActivateProjectView(project);
     CommandProcessor.getInstance().executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
