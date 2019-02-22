@@ -27,6 +27,7 @@ import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.Common;
@@ -324,22 +325,24 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private static class DataStoreClient {
     @NotNull private final Channel myChannel;
     @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
-    @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
-    @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
-    @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
-    @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
-    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
-    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
+    @Nullable private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
+    @Nullable private CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
+    @Nullable private EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
+    @Nullable private EventServiceGrpc.EventServiceBlockingStub myEventClient;
+    @Nullable private MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
+    @Nullable private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
 
     public DataStoreClient(@NotNull Channel channel) {
       myChannel = channel;
       myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
-      myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
-      myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
-      myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
-      myEventClient = EventServiceGrpc.newBlockingStub(channel);
-      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
-      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+      if (!StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
+        myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
+        myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
+        myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
+        myEventClient = EventServiceGrpc.newBlockingStub(channel);
+        myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
+        myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+      }
     }
 
     @NotNull
@@ -352,32 +355,32 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
       return myTransportClient;
     }
 
-    @NotNull
+    @Nullable
     public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
       return myProfilerClient;
     }
 
-    @NotNull
+    @Nullable
     public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
       return myCpuClient;
     }
 
-    @NotNull
+    @Nullable
     public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
       return myEnergyClient;
     }
 
-    @NotNull
+    @Nullable
     public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
       return myEventClient;
     }
 
-    @NotNull
+    @Nullable
     public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
       return myMemoryClient;
     }
 
-    @NotNull
+    @Nullable
     public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
       return myNetworkClient;
     }
