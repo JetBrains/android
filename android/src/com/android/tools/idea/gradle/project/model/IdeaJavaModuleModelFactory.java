@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
+import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 
 import java.io.File;
 import java.util.*;
@@ -62,9 +63,19 @@ public class IdeaJavaModuleModelFactory {
                                !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
   }
 
+  @NotNull
+  private static ExtIdeaCompilerOutput getCompilerOutputCopy(@NotNull ExtIdeaCompilerOutput compilerOutput) {
+    IdeaCompilerOutputImpl clone = new IdeaCompilerOutputImpl();
+    clone.setMainClassesDir(compilerOutput.getMainClassesDir());
+    clone.setMainResourcesDir(compilerOutput.getMainResourcesDir());
+    clone.setTestClassesDir(compilerOutput.getTestClassesDir());
+    clone.setTestResourcesDir(compilerOutput.getTestResourcesDir());
+    return clone;
+  }
+
   @Nullable
   private static ExtIdeaCompilerOutput getCompilerOutput(@Nullable ModuleExtendedModel javaModel) {
-    return javaModel != null ? javaModel.getCompilerOutput() : null;
+    return javaModel != null ? getCompilerOutputCopy(javaModel.getCompilerOutput()) : null;
   }
 
   @NotNull
