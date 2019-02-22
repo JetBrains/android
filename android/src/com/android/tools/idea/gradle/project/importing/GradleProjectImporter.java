@@ -85,10 +85,6 @@ public class GradleProjectImporter {
     myProjectFolderFactory = projectFolderFactory;
   }
 
-  public void openProject(@NotNull VirtualFile selectedFile) {
-    openOrImportProject(selectedFile, true /* open project */);
-  }
-
   /**
    * Imports the given Gradle project.
    *
