@@ -37,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import java.io.BufferedReader;
@@ -276,7 +277,7 @@ public class AndroidTargetData {
   }
 
   @VisibleForTesting
-  static class MyPublicResourceCacheBuilder extends NanoXmlUtil.IXMLBuilderAdapter {
+  static class MyPublicResourceCacheBuilder implements NanoXmlBuilder {
     private final Map<String, Set<String>> myResult = new HashMap<>();
     private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<>(3000);
 
