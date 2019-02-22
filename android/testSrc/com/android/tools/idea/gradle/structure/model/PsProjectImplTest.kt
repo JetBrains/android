@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile
+import com.intellij.openapi.application.runWriteAction
 import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNull.nullValue
@@ -65,7 +66,7 @@ class PsProjectImplTest : DependencyTestCase() {
     assumeThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
 
     project.removeModule(gradlePath = ":nested2:deep")
-    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(false))
+    assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
 
     project.applyChanges()  // applyChanges() discards resolved models.
     assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
@@ -90,7 +91,7 @@ class PsProjectImplTest : DependencyTestCase() {
       equalTo(":dyn_feature"))
 
     project.removeModule(gradlePath = ":dyn_feature")
-    assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, equalTo(false))
+    assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, nullValue())
 
     assertThat(project.findModuleByGradlePath(":app")?.isModified, equalTo(true))
 
@@ -117,7 +118,10 @@ class PsProjectImplTest : DependencyTestCase() {
     assumeThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(true))
 
     project.removeModule(gradlePath = ":nested2")
-    assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(false))
+    runWriteAction {
+      project.ideProject.baseDir.findFileByRelativePath("/nested2/build.gradle")!!.delete("test")
+    }
+    assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, nullValue())
 
     project.applyChanges()  // applyChanges() discards resolved models.
     assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, nullValue())
