@@ -53,9 +53,13 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    super.tearDown();
-    myUsageTracker.close();
-    UsageTracker.cleanAfterTesting();
+    try {
+      if (myUsageTracker != null) myUsageTracker.close();
+      UsageTracker.cleanAfterTesting();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   // b/72260139

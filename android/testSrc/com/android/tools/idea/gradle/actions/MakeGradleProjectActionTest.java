@@ -52,7 +52,7 @@ public class MakeGradleProjectActionTest extends IdeaTestCase {
     myAction = new MakeGradleProjectAction();
   }
 
-  public void testDoPerform() throws Exception {
+  public void testDoPerform() {
     ImmutableList<Module> leafModules = ImmutableList.of(createModule("leaf1"), createModule("leaf2"));
     when(myProjectStructure.getLeafModules()).thenReturn(leafModules);
 
@@ -60,7 +60,7 @@ public class MakeGradleProjectActionTest extends IdeaTestCase {
     myAction.doPerform(new TestActionEvent(), getProject());
 
     // Verify that only "leaf" modules were built.
-    verify(myBuildInvoker).assemble(eq(leafModules.toArray(new Module[leafModules.size()])), eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(leafModules.toArray(Module.EMPTY_ARRAY)), eq(TestCompileType.ALL));
   }
 
   public void testDoPerformWithFailedSync() {
