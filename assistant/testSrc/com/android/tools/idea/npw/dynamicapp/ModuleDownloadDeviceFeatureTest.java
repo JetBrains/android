@@ -15,18 +15,37 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import javax.swing.JPanel;
-import org.jetbrains.android.AndroidTestCase;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-public class ModuleDownloadDeviceFeatureTest extends AndroidTestCase {
+@RunsInEdt
+public class ModuleDownloadDeviceFeatureTest {
 
+  private AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+  // AndroidProjectRule should not be initialized on the EDT
+  @Rule
+  public RuleChain myRuleChain = RuleChain.outerRule(myProjectRule).around(new EdtRule());
+
+  @Test
   public void testValidation() {
-    DeviceFeatureModel deviceFeatureModel = new DeviceFeatureModel();
-    ValidatorPanel validatorPanel = new ValidatorPanel(getProject(), new JPanel());
+    Project project = myProjectRule.getProject();
 
-    new ModuleDownloadDeviceFeature(getProject(), deviceFeatureModel, new BoolValueProperty(true), validatorPanel);
+    DeviceFeatureModel deviceFeatureModel = new DeviceFeatureModel();
+    ValidatorPanel validatorPanel = new ValidatorPanel(project, new JPanel());
+
+    new ModuleDownloadDeviceFeature(project, deviceFeatureModel, new BoolValueProperty(true), validatorPanel);
 
     assertTrue(validatorPanel.hasErrors().get());
     assertEquals("Device feature value must be set", validatorPanel.getValidationLabel().getText());
