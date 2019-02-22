@@ -633,7 +633,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             if (component != null) {
               recordComponentMapping(tag, component);
               remaining.remove(component.getTagDeprecated());
-              snapshotIds.remove(tag, first);
               missingIterator.remove();
             }
           }
