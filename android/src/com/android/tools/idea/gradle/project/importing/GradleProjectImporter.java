@@ -91,10 +91,10 @@ public class GradleProjectImporter {
    * @param selectedFile the selected build.gradle or the project's root directory.
    */
   public void importProject(@NotNull VirtualFile selectedFile) {
-    openOrImportProject(selectedFile, false /* import project */);
+    openOrImportProject(selectedFile);
   }
 
-  private void openOrImportProject(@NotNull VirtualFile selectedFile, boolean openProject) {
+  private void openOrImportProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
@@ -105,13 +105,13 @@ public class GradleProjectImporter {
     }
     try {
       String projectName = projectFolder.getName();
-      openOrImportProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder), openProject);
+      openOrImportProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
         rethrowUnchecked(e);
       }
-      showErrorDialog(e.getMessage(), openProject ? "Open Project" : "Project Import");
+      showErrorDialog(e.getMessage(), "Project Import");
       getLogger().error(e);
     }
   }
@@ -163,14 +163,13 @@ public class GradleProjectImporter {
                             @NotNull File projectFolderPath,
                             @NotNull Request request,
                             @Nullable GradleSyncListener listener) throws IOException {
-    openOrImportProject(projectName, projectFolderPath, request, listener, false /* import project */);
+    openOrImportProject(projectName, projectFolderPath, request, listener);
   }
 
   private void openOrImportProject(@NotNull String projectName,
                                    @NotNull File projectFolderPath,
                                    @NotNull Request request,
-                                   @Nullable GradleSyncListener listener,
-                                   boolean openProject) throws IOException {
+                                   @Nullable GradleSyncListener listener) throws IOException {
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
@@ -178,9 +177,7 @@ public class GradleProjectImporter {
     Project newProject = request.project;
 
     if (newProject == null) {
-      newProject = openProject
-                   ? myNewProjectSetup.openProject(projectFolderPath.getPath())
-                   : myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
+      newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
       GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
       gradleSettings.setGradleVmOptions("");
 
@@ -201,13 +198,13 @@ public class GradleProjectImporter {
     projectInfo.setExtraInfo(request.extraInfo);
     projectInfo.setSkipStartupActivity(true);
 
-    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel, openProject);
+    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel, false /* openProject */);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
 
-    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request, openProject), listener);
+    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request, false /* openProject */), listener);
   }
 
   @NotNull
