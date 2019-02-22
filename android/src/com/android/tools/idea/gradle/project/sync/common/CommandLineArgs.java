@@ -54,11 +54,11 @@ public class CommandLineArgs {
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
   @NotNull private final AndroidStudioGradleIdeSettings myIdeSettings;
-  private final boolean myApplyJavaLibraryPlugin;
+  private final boolean myIsNewSync;
 
-  public CommandLineArgs(boolean applyJavaLibraryPlugin) {
+  public CommandLineArgs(boolean isNewSync) {
     this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(),
-         AndroidStudioGradleIdeSettings.getInstance(), applyJavaLibraryPlugin);
+         AndroidStudioGradleIdeSettings.getInstance(), isNewSync);
   }
 
   @VisibleForTesting
@@ -66,12 +66,12 @@ public class CommandLineArgs {
                   @NotNull IdeInfo ideInfo,
                   @NotNull GradleInitScripts initScripts,
                   @NotNull AndroidStudioGradleIdeSettings ideSettings,
-                  boolean applyJavaLibraryPlugin) {
+                  boolean isNewSync) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
     myIdeSettings = ideSettings;
-    myApplyJavaLibraryPlugin = applyJavaLibraryPlugin;
+    myIsNewSync = isNewSync;
   }
 
   @NotNull
@@ -79,8 +79,9 @@ public class CommandLineArgs {
     List<String> args = new ArrayList<>();
 
     // TODO: figure out why this is making sync fail.
-    if (myApplyJavaLibraryPlugin) {
+    if (myIsNewSync) {
       myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+      myInitScripts.addApplyKaptModelBuilderInitScript(args);
     }
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
