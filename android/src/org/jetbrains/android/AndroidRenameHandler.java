@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.flags.StudioFlags;
@@ -19,12 +20,21 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlText;
+import com.intellij.psi.xml.XmlToken;
+import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -38,10 +48,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
@@ -146,7 +152,8 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (attributeValue == null) {
       return;
     }
-    RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, new ValueResourceElementWrapper(attributeValue), null, editor));
+    RenameDialog.showRenameDialog(dataContext,
+                                  new ResourceRenameDialog(project, new ValueResourceElementWrapper(attributeValue), null, editor));
   }
 
   private static void performResourceReferenceRenaming(@NotNull Project project,
@@ -165,7 +172,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
           element = new ResourceFieldElementWrapper((AndroidLightField)element);
         }
-        RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, element, null, editor));
+        RenameDialog.showRenameDialog(dataContext, new ResourceRenameDialog(project, element, null, editor));
       }
     }
   }
@@ -174,7 +181,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
                                                        @NotNull Editor editor,
                                                        @NotNull DataContext dataContext,
                                                        @NotNull PsiElement element) {
-    RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, element, null, editor));
+    RenameDialog.showRenameDialog(dataContext, new ResourceRenameDialog(project, element, null, editor));
   }
 
   @Nullable
@@ -207,7 +214,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   }
 
   @Override
-  public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
+  public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, @NotNull DataContext dataContext) {
     Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
     if (editor == null) {
       return;
@@ -298,5 +305,23 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         super.canRun();
       }
     });
+  }
+
+  private static class ResourceRenameDialog extends RenameDialog {
+    ResourceRenameDialog(@NotNull Project project,
+                         @NotNull PsiElement psiElement,
+                         @Nullable PsiElement nameSuggestionContext,
+                         @Nullable Editor editor) {
+      super(project, psiElement, nameSuggestionContext, editor);
+    }
+
+    @Override
+    protected void canRun() throws ConfigurationException {
+      String name = getNewName();
+      String errorText = ValueResourceNameValidator.getErrorText(name, null);
+      if (errorText != null ) {
+        throw new ConfigurationException(errorText);
+      }
+    }
   }
 }
