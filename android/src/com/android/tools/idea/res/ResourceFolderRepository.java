@@ -52,6 +52,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.TextResourceValue;
 import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.MergeConsumer;
 import com.android.ide.common.resources.MergedResourceWriter;
 import com.android.ide.common.resources.MergingException;
@@ -64,6 +65,7 @@ import com.android.ide.common.resources.ResourcePreprocessor;
 import com.android.ide.common.resources.ResourceSet;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -585,7 +587,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                       @NotNull VirtualFile directory,
                                       @NotNull ResourceFolderType folderType,
                                       String qualifiers,
-                                      FolderConfiguration folderConfiguration) {
+                                      @NotNull FolderConfiguration folderConfiguration) {
     List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
     assert resourceTypes.size() >= 1 : folderType;
     ResourceType type = resourceTypes.get(0);
@@ -603,14 +605,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
   }
 
-  private void scanFileResourceFileAsPsi(Map<ResourceType, ListMultimap<String, ResourceItem>> result,
-                                         ResourceFolderType folderType,
-                                         FolderConfiguration folderConfiguration,
-                                         ResourceType type,
+  private void scanFileResourceFileAsPsi(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> result,
+                                         @NotNull ResourceFolderType folderType,
+                                         @NotNull FolderConfiguration folderConfiguration,
+                                         @NotNull ResourceType type,
                                          boolean idGenerating,
-                                         PsiFile file) {
-    // XML or Image
-    PsiResourceItem item = PsiResourceItem.forFile(ResourceHelper.getResourceName(file), type, myNamespace, file, false);
+                                         @NotNull PsiFile file) {
+    // XML or image.
+    String resourceName = ResourceHelper.getResourceName(file);
+    if (FileResourceNameValidator.getErrorTextForNameWithoutExtension(resourceName, folderType) != null) {
+      return; // Not a valid file resource name.
+    }
+
+    PsiResourceItem item = PsiResourceItem.forFile(resourceName, type, myNamespace, file, false);
 
     if (idGenerating) {
       List<PsiResourceItem> items = new ArrayList<>();
@@ -921,7 +928,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         String value = attribute.getValue();
         if (value != null && value.startsWith(NEW_ID_PREFIX) && !ATTR_ID.equals(attribute.getLocalName())) {
           String id = value.substring(NEW_ID_PREFIX.length());
-          if (idMultimap != null && !idMultimap.containsKey(id) && !pendingResourceIds.containsKey(id)) {
+          if (isValidResourceName(id) && idMultimap != null && !idMultimap.containsKey(id) && !pendingResourceIds.containsKey(id)) {
             pendingResourceIds.put(id, tag);
           }
         }
@@ -943,14 +950,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         return;
       }
 
-      if (StringUtil.isEmpty(id)) {
-        return;
+      if (isValidResourceName(id)) {
+        pendingResourceIds.remove(id);
+        PsiResourceItem item = PsiResourceItem.forXmlTag(id, ResourceType.ID, myNamespace, tag, calledFromPsiListener);
+        items.add(item);
+        addToResult(result, item);
       }
-
-      pendingResourceIds.remove(id);
-      PsiResourceItem item = PsiResourceItem.forXmlTag(id, ResourceType.ID, myNamespace, tag, calledFromPsiListener);
-      items.add(item);
-      addToResult(result, item);
     }
   }
 
@@ -988,28 +993,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         List<PsiResourceItem> items = new ArrayList<>(subTags.length);
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
-          if (!StringUtil.isEmpty(name)) {
-            ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
-            if (type != null) {
-              PsiResourceItem item = PsiResourceItem.forXmlTag(name, type, myNamespace, tag, false);
-              addToResult(result, item);
-              items.add(item);
-              added = true;
+          ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+          if (type != null && isValidResourceName(name)) {
+            PsiResourceItem item = PsiResourceItem.forXmlTag(name, type, myNamespace, tag, false);
+            addToResult(result, item);
+            items.add(item);
+            added = true;
 
-              if (type == ResourceType.STYLEABLE) {
-                // For styleables we also need to create attr items for its children.
-                XmlTag[] attrs = tag.getSubTags();
-                if (attrs.length > 0) {
-                  for (XmlTag child : attrs) {
-                    String attrName = child.getAttributeValue(ATTR_NAME);
-                    if (!StringUtil.isEmpty(attrName) && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
-                        // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
-                        // it's just a reference to an existing attr.
-                        && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
-                      PsiResourceItem attrItem = PsiResourceItem.forXmlTag(attrName, ResourceType.ATTR, myNamespace, child, false);
-                      items.add(attrItem);
-                      addToResult(result, attrItem);
-                    }
+            if (type == ResourceType.STYLEABLE) {
+              // For styleables we also need to create attr items for its children.
+              XmlTag[] attrs = tag.getSubTags();
+              if (attrs.length > 0) {
+                for (XmlTag child : attrs) {
+                  String attrName = child.getAttributeValue(ATTR_NAME);
+                  if (isValidResourceName(attrName) && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
+                      // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
+                      // it's just a reference to an existing attr.
+                      && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
+                    PsiResourceItem attrItem = PsiResourceItem.forXmlTag(attrName, ResourceType.ATTR, myNamespace, child, false);
+                    items.add(attrItem);
+                    addToResult(result, attrItem);
                   }
                 }
               }
@@ -1023,6 +1026,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     return added;
+  }
+
+  @Contract(value = "null -> false")
+  private static boolean isValidResourceName(@Nullable String name) {
+    return !StringUtil.isEmpty(name) && ValueResourceNameValidator.getErrorText(name, null) == null;
   }
 
   private void scanValueFile(Map<ResourceType, ListMultimap<String, ResourceItem>> result,
@@ -1429,7 +1437,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   assert source instanceof PsiResourceFile;
                   PsiResourceFile psiResourceFile = (PsiResourceFile)source;
                   String name = tag.getAttributeValue(ATTR_NAME);
-                  if (!StringUtil.isEmpty(name)) {
+                  if (isValidResourceName(name)) {
                     ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
                     if (type == ResourceType.STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items
@@ -1836,7 +1844,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                 psiResourceFile.removeItem((PsiResourceItem)item);
                               }
 
-                              if (newValue.getValue().startsWith(NEW_ID_PREFIX) && !StringUtil.isEmpty(newName)) {
+                              if (newValue.getValue().startsWith(NEW_ID_PREFIX) && isValidResourceName(newName)) {
                                 PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
                                 map.put(newName, newItem);
                                 psiResourceFile.addItem(newItem);
@@ -1986,7 +1994,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 // but editing these is rare enough that we can just stick with the fallback full file scan for those
                 // scenarios.
                 if (isItemElement(xmlTag) && attributeName.equals(ATTR_NAME)) {
-                  // Edited the name of the item: replace it
+                  // Edited the name of the item: replace it.
                   ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(xmlTag);
                   if (type != null) {
                     String oldName = event.getOldChild().getText();
@@ -2006,7 +2014,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                         if (map != null) {
                           // Found the relevant item: delete it and create a new one in a new location
                           map.remove(oldName, item);
-                          if (!StringUtil.isEmpty(newName)) {
+                          if (isValidResourceName(newName)) {
                             PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, type, myNamespace, xmlTag, true);
                             map.put(newName, newItem);
                             ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
