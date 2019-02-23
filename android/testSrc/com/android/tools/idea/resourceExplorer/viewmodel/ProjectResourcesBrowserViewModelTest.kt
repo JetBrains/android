@@ -144,7 +144,7 @@ class ProjectResourcesBrowserViewModelTest {
 
     val file = projectRule.fixture.findFileInTempDir("res/drawable/vector_drawable.xml")!!
     val psiFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(file)!! }
-    runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("newName.xml") }
+    runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("new_name.xml") }
     Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
 
     val newValues = viewModel.getResourcesLists().get()[0].assets
@@ -154,7 +154,7 @@ class ProjectResourcesBrowserViewModelTest {
                        .map {
                          FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
                        })
-      .containsExactly("res/drawable/png.png", "res/drawable/newName.xml")
+      .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
   }
 
   private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
