@@ -274,6 +274,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setPreferredProcess(@Nullable String deviceName,
                                   @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
+    myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
     myPreferredDeviceName = deviceName;
     setPreferredProcessName(processName);
     myPreferredProcessFilter = processFilter;
@@ -640,6 +641,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       for (Common.Process process : processes) {
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
             (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
+          myIdeServices.getFeatureTracker().trackAutoProfilingSucceeded();
           return process;
         }
       }

@@ -15,13 +15,23 @@
  */
 package com.android.tools.idea.profilers;
 
+import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.Notification;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -40,16 +50,19 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import icons.StudioIcons;
 import icons.StudioIllustrations;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.function.Predicate;
-
-import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidProfilerToolWindow implements Disposable {
 
@@ -80,13 +93,17 @@ public class AndroidProfilerToolWindow implements Disposable {
   private final ToolWindow myWindow;
   @NotNull
   private final Project myProject;
+  @NotNull
+  private final IntellijProfilerServices myIdeProfilerServices;
 
   public AndroidProfilerToolWindow(@NotNull ToolWindow window, @NotNull Project project) {
     myWindow = window;
     myProject = project;
 
+    myIdeProfilerServices = new IntellijProfilerServices(myProject);
     myPanel = new JPanel(new BorderLayout());
     if (!tryInitializeProfilers()) {
+      myIdeProfilerServices.getFeatureTracker().trackProfilerInitializationFailed();
       myPanel.add(buildInitializationFailedUi());
     }
   }
@@ -106,7 +123,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     if (service == null) {
       return false;
     }
-    myProfilersWrapper = new StudioProfilersWrapper(myProject, myWindow, service);
+    myProfilersWrapper = new StudioProfilersWrapper(myProject, myWindow, service, myIdeProfilerServices);
     Disposer.register(this, myProfilersWrapper);
     myPanel.removeAll();
     myPanel.add(myProfilersWrapper.getProfilersView().getComponent());
@@ -150,7 +167,7 @@ public class AndroidProfilerToolWindow implements Disposable {
 
   /**
    * @return The {@link StudioProfilers} instance. Null if the profilers cannot be initialized, such as if it is already opened in another
-   *         project.
+   * project.
    */
   @Nullable
   StudioProfilers getProfilers() {
@@ -257,11 +274,13 @@ public class AndroidProfilerToolWindow implements Disposable {
     @NotNull private final StudioProfilers myProfilers;
     @NotNull private final StudioProfilersView myView;
 
-    StudioProfilersWrapper(@NotNull Project project, @NotNull ToolWindow window, @NotNull ProfilerService service) {
+    StudioProfilersWrapper(@NotNull Project project,
+                           @NotNull ToolWindow window,
+                           @NotNull ProfilerService service,
+                           @NotNull IntellijProfilerServices ideProfilerServices) {
       myProject = project;
       myWindow = window;
 
-      IdeProfilerServices ideProfilerServices = new IntellijProfilerServices(myProject);
       service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
       ProfilerClient client = service.getProfilerClient();
       myProfilers = new StudioProfilers(client, ideProfilerServices);
@@ -270,11 +289,11 @@ public class AndroidProfilerToolWindow implements Disposable {
       navigator.setCpuAbiArchSupplier(() -> myProfilers.getProcess() == null ? null : myProfilers.getProcess().getAbiCpuArch());
 
       myProfilers.addDependency(this)
-                 .onChange(ProfilerAspect.MODE, this::modeChanged)
-                 .onChange(ProfilerAspect.STAGE, this::stageChanged);
+        .onChange(ProfilerAspect.MODE, this::modeChanged)
+        .onChange(ProfilerAspect.STAGE, this::stageChanged);
       myProfilers.getSessionsManager().addDependency(this)
-                 .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
-                 .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+        .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+        .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
       // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
       // but then opens the profiling window manually.
@@ -289,7 +308,8 @@ public class AndroidProfilerToolWindow implements Disposable {
           .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
       }
 
-      IdeProfilerComponents profilerComponents = new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
+      IdeProfilerComponents profilerComponents =
+        new IntellijProfilerComponents(myProject, myProfilers.getIdeServices().getFeatureTracker());
       myView = new StudioProfilersView(myProfilers, profilerComponents);
       Disposer.register(this, myView);
 
@@ -417,7 +437,7 @@ public class AndroidProfilerToolWindow implements Disposable {
           // Only shown the balloon if we detect the window is hidden for the first time.
           myIsProfilingActiveBalloonShown = true;
           String messageHtml = "A profiler session is running in the background.<br>" +
-                                "To end the session, open the profiler and click the stop button in the Sessions pane.";
+                               "To end the session, open the profiler and click the stop button in the Sessions pane.";
           ToolWindowManager.getInstance(myProject).notifyByBalloon(AndroidProfilerToolWindowFactory.ID, MessageType.INFO, messageHtml);
         }
       }

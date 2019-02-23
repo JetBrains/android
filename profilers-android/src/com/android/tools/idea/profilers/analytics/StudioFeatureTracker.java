@@ -97,6 +97,26 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private AndroidProfilerEvent.Stage myCurrStage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
 
   @Override
+  public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
+    // TODO b/124793130 add actual tracking once log proto is ready
+  }
+
+  @Override
+  public void trackTransportDaemonFailed(@NotNull Common.Device transportDevice, Exception exception) {
+    // TODO b/124793130 add actual tracking once log proto is ready
+  }
+
+  @Override
+  public void trackTransportProxyCreationFailed(@NotNull Common.Device transportDevice, Exception exception) {
+    // TODO b/124793130 add actual tracking once log proto is ready
+  }
+
+  @Override
+  public void trackProfilerInitializationFailed() {
+    // TODO b/124793130 add actual tracking once log proto is ready
+  }
+
+  @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
     myCurrStage = STAGE_MAP.getOrDefault(stage, AndroidProfilerEvent.Stage.UNKNOWN_STAGE);
     track(AndroidProfilerEvent.Type.STAGE_ENTERED);
@@ -105,6 +125,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackRunWithProfiling() {
     track(AndroidProfilerEvent.Type.RUN_WITH_PROFILING);
+  }
+
+  @Override
+  public void trackAutoProfilingRequested() {
+    // TODO b/124793130 add actual tracking once log proto is ready
+  }
+
+  @Override
+  public void trackAutoProfilingSucceeded() {
+    // TODO b/124793130 add actual tracking once log proto is ready
   }
 
   @Override
@@ -131,6 +161,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
       myActiveProcess = process;
       newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice).track();
     }
+  }
+
+  @Override
+  public void trackSessionDropdownClicked() {
   }
 
   @Override

@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
@@ -23,7 +24,9 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.intellij.ide.util.PropertiesComponent;
@@ -71,7 +74,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
     // TODO move to non-project-dependent once service is fully migrated to be application-level
     MessageBusConnection busConnection = project.getMessageBus().connect();
-    busConnection.subscribe(TransportDeviceManager.TOPIC, new ProfilerDeviceManagerListener());
+    busConnection.subscribe(TransportDeviceManager.TOPIC, new ProfilerDeviceManagerListener(project));
   }
 
   @Override
@@ -131,6 +134,27 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   private static class ProfilerDeviceManagerListener implements TransportDeviceManager.TransportDeviceManagerListener {
     private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
+
+    @NotNull private final FeatureTracker myTracker;
+
+    public ProfilerDeviceManagerListener(@NotNull Project project) {
+      myTracker = new StudioFeatureTracker(project);
+    }
+
+    @Override
+    public void onPreTransportDaemonStart(@NotNull Common.Device device) {
+      myTracker.trackPreTransportDaemonStarts(device);
+    }
+
+    @Override
+    public void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception) {
+      myTracker.trackTransportDaemonFailed(device, exception);
+    }
+
+    @Override
+    public void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception) {
+      myTracker.trackTransportProxyCreationFailed(device, exception);
+    }
 
     @Override
     public void customizeProxyService(@NotNull TransportProxy proxy) {

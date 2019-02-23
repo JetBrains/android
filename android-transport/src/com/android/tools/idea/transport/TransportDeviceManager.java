@@ -232,40 +232,42 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     @NotNull private final DataStoreService myDataStore;
     @NotNull private final IDevice myDevice;
     @NotNull private final MessageBus myMessageBus;
-    private int myLocalPort;
     private volatile TransportProxy myTransportProxy;
     private final Map<String, DeviceContext> mySerialToDeviceContextMap;
 
     private TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore, @NotNull MessageBus messageBus,
-                           @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
+                            @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
       myDataStore = datastore;
       myMessageBus = messageBus;
       myDevice = device;
-      myLocalPort = 0;
       mySerialToDeviceContextMap = serialToDeviceContextMap;
     }
 
     @Override
     public void run() {
+      Common.Device transportDevice = Common.Device.getDefaultInstance();
       try {
         // Waits to make sure the device has completed boot sequence.
         if (!waitForBootComplete()) {
           throw new TimeoutException("Timed out waiting for device to be ready.");
         }
 
+        transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
+        myMessageBus.syncPublisher(TOPIC).onPreTransportDaemonStart(transportDevice);
         TransportFileManager fileManager = new TransportFileManager(myDevice, myMessageBus);
         fileManager.copyFilesToDevice();
-        startTransportThread();
+        startTransportDaemon(transportDevice);
         getLogger().info("Terminating Transport thread");
       }
       catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException | SyncException e) {
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
         throw new RuntimeException(e);
       }
       catch (AdbCommandRejectedException | IOException e) {
         // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
         // We don't want to crash in this case.
-        getLogger().warn("Error when trying to spawn Transport:");
-        getLogger().warn(e);
+        getLogger().warn("Error when trying to spawn Transport", e);
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
       }
     }
 
@@ -277,7 +279,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * @throws ShellCommandUnresponsiveException
      * @throws IOException
      */
-    private void startTransportThread()
+    private void startTransportDaemon(@NotNull Common.Device transportDevice)
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
       String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getAgentConfigPath();
       getLogger().info("[Transport]: Executing " + command);
@@ -310,11 +312,12 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
           }
 
           try {
-            createTransportProxy();
+            createTransportProxy(transportDevice);
             getLogger().info(String.format("TransportProxy successfully created for device: %s", myDevice));
           }
           catch (AdbCommandRejectedException | IOException | TimeoutException e) {
             getLogger().warn(String.format("TransportProxy failed for device: %s", myDevice), e);
+            myMessageBus.syncPublisher(TOPIC).onTransportProxyCreationFail(transportDevice, e);
           }
         }
 
@@ -341,68 +344,65 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * @throws AdbCommandRejectedException
      * @throws IOException
      */
-    private void createTransportProxy() throws TimeoutException, AdbCommandRejectedException, IOException {
+    private void createTransportProxy(@NotNull Common.Device transportDevice)
+      throws TimeoutException, AdbCommandRejectedException, IOException {
+      int localPort = NetUtils.findAvailableSocketPort();
+      if (localPort < 0) {
+        throw new RuntimeException("Unable to find available socket port");
+      }
+
+      if (isAtLeastO(myDevice)) {
+        myDevice.createForward(localPort, DEVICE_SOCKET_NAME, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+      }
+      else {
+        myDevice.createForward(localPort, DEVICE_PORT);
+      }
+      getLogger().info(String.format("Port forwarding created for port: %d", localPort));
+
+      /*
+        Creates the channel that is used to connect to the device transport daemon.
+
+        TODO: investigate why ant build fails to find the ManagedChannel-related classes
+        The temporary fix is to stash the currently set context class loader,
+        so ManagedChannelProvider can find an appropriate implementation.
+       */
+      ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+      Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
+      ManagedChannel transportChannel = NettyChannelBuilder
+        .forAddress("localhost", localPort)
+        .usePlaintext(true)
+        .maxMessageSize(MAX_MESSAGE_SIZE)
+        .build();
+      Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+
+      // Creates a proxy server that the datastore connects to.
+      String channelName = myDevice.getSerialNumber();
+      myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
+      myMessageBus.syncPublisher(TOPIC).customizeProxyService(myTransportProxy);
+      myTransportProxy.initializeProxyServer(channelName);
       try {
-        myLocalPort = NetUtils.findAvailableSocketPort();
-        if (myLocalPort < 0) {
-          throw new RuntimeException("Unable to find available socket port");
-        }
-
-        if (isAtLeastO(myDevice)) {
-          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-        }
-        else {
-          myDevice.createForward(myLocalPort, DEVICE_PORT);
-        }
-        getLogger().info(String.format("Port forwarding created for port: %d", myLocalPort));
-
-        /*
-          Creates the channel that is used to connect to the device transport daemon.
-
-          TODO: investigate why ant build fails to find the ManagedChannel-related classes
-          The temporary fix is to stash the currently set context class loader,
-          so ManagedChannelProvider can find an appropriate implementation.
-         */
-        ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
-        ManagedChannel transportChannel = NettyChannelBuilder
-          .forAddress("localhost", myLocalPort)
-          .usePlaintext(true)
-          .maxMessageSize(MAX_MESSAGE_SIZE)
-          .build();
-        Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
-
-        // Creates a proxy server that the datastore connects to.
-        String channelName = myDevice.getSerialNumber();
-        Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
-        myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
-        myMessageBus.syncPublisher(TOPIC).customizeProxyService(myTransportProxy);
-        myTransportProxy.initializeProxyServer(channelName);
         myTransportProxy.connect();
-
-        mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
-          assert context != null;
-          context.myLastKnownTransportProxy = myTransportProxy;
-          return context;
-        });
-
-        // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
-        // We should otherwise do it for performance reasons, so we should investigate why.
-        ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
-        myDataStore.connect(Common.Stream.newBuilder()
-                              .setStreamId(transportDevice.getDeviceId())
-                              .setType(Common.Stream.Type.DEVICE)
-                              .setDevice(transportDevice)
-                              .build(),
-                            proxyChannel);
       }
-      catch (TimeoutException | AdbCommandRejectedException | IOException e) {
-        // If some error happened after TransportProxy was created, make sure to disconnect it
-        if (myTransportProxy != null) {
-          myTransportProxy.disconnect();
-        }
-        throw e;
+      catch (IOException exception) {
+        myTransportProxy.disconnect();
+        throw exception;
       }
+
+      mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
+        assert context != null;
+        context.myLastKnownTransportProxy = myTransportProxy;
+        return context;
+      });
+
+      // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
+      // We should otherwise do it for performance reasons, so we should investigate why.
+      ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
+      myDataStore.connect(Common.Stream.newBuilder()
+                            .setStreamId(transportDevice.getDeviceId())
+                            .setType(Common.Stream.Type.DEVICE)
+                            .setDevice(transportDevice)
+                            .build(),
+                          proxyChannel);
     }
 
     /**
@@ -435,6 +435,24 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
   public interface TransportDeviceManagerListener {
     /**
+     * Callback for when before the device manager starts the daemon on the specified device.
+     */
+    void onPreTransportDaemonStart(@NotNull Common.Device device);
+
+    /**
+     * Callback for when the transport daemon fails to start.
+     */
+    void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception);
+
+    /**
+     * Callback for when the device manager fails to initialize the proxy layer that connects between the datastore and the daemon.
+     */
+    void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception);
+
+    /**
+     * void onTransportThreadStarts(@NotNull IDevice device, @NotNull Common.Device transportDevice);
+     * <p>
+     * /**
      * Allows for subscribers to customize the Transport pipeline's ServiceProxy before it is fully initialized.
      */
     void customizeProxyService(@NotNull TransportProxy proxy);
