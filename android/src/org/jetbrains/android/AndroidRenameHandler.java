@@ -46,17 +46,17 @@ import java.util.Collections;
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
-    final Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
+    Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
     if (editor == null) {
       return false;
     }
 
-    final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
+    PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
     if (file == null) {
       return false;
     }
 
-    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
+    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
     if (element instanceof SchemaPrefix) {
       return false; // Leave renaming of namespace prefixes to the default XML handler.
     }
@@ -69,21 +69,20 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return true;
     }
 
-    final Project project = CommonDataKeys.PROJECT.getData(dataContext);
+    Project project = CommonDataKeys.PROJECT.getData(dataContext);
 
     if (project == null) {
       return false;
     }
-    return element != null && isPackageAttributeInManifest(project, element);
+    return isPackageAttributeInManifest(project, element);
   }
 
   /**
    * Determine if this editor's caret is currently on a reference to an Android resource and if so return the root definition of that
-   * resource
+   * resource.
    */
   @Nullable
   private static PsiElement getResourceReferenceTarget(@NotNull Editor editor) {
-
     PsiReference reference = TargetElementUtil.findReference(editor, editor.getCaretModel().getOffset());
     if (!(reference instanceof AndroidResourceReference)) {
       return null;
@@ -105,16 +104,16 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   }
 
   @Override
-  public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext dataContext) {
+  public void invoke(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file, @NotNull DataContext dataContext) {
     if (file == null || editor == null) {
       return;
     }
-    final XmlTag tag = AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true);
+    XmlTag tag = AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true);
 
     if (tag != null) {
       // See if you've actually pointed at an XML value inside the value definition, e.g.
       //   <string name="my_alias">@string/my_string</string>
-      // If the caret is on my_string, you expect to rename my_string, not my_alias (the XmlTag)
+      // If the caret is on my_string, you expect to rename my_string, not my_alias (the XmlTag).
       ResourceUrl url = findResourceReferenceUnderCaret(editor, file);
       if (url != null && !url.isFramework()) {
         performResourceReferenceRenaming(project, editor, dataContext, file, url);
@@ -134,29 +133,32 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     }
   }
 
-  private static void performValueResourceRenaming(Project project, Editor editor, DataContext dataContext, XmlTag tag) {
-    final XmlAttribute nameAttribute = tag.getAttribute("name");
+  private static void performValueResourceRenaming(@NotNull Project project,
+                                                   @NotNull Editor editor,
+                                                   @NotNull DataContext dataContext,
+                                                   @NotNull XmlTag tag) {
+    XmlAttribute nameAttribute = tag.getAttribute("name");
     if (nameAttribute == null) {
       return;
     }
 
-    final XmlAttributeValue attributeValue = nameAttribute.getValueElement();
+    XmlAttributeValue attributeValue = nameAttribute.getValueElement();
     if (attributeValue == null) {
       return;
     }
     RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, new ValueResourceElementWrapper(attributeValue), null, editor));
   }
 
-  private static void performResourceReferenceRenaming(Project project,
-                                                       Editor editor,
-                                                       DataContext dataContext,
-                                                       PsiFile file,
-                                                       ResourceUrl url) {
+  private static void performResourceReferenceRenaming(@NotNull Project project,
+                                                       @NotNull Editor editor,
+                                                       @NotNull DataContext dataContext,
+                                                       @NotNull PsiFile file,
+                                                       @NotNull ResourceUrl url) {
     assert !url.isFramework();
 
-    final AndroidFacet facet = AndroidFacet.getInstance(file);
+    AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
-      // Treat the resource reference as if the user renamed the R field instead
+      // Treat the resource reference as if the user renamed the R field instead.
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false);
       if (resourceFields.length == 1) {
         PsiElement element = resourceFields[0];
@@ -181,7 +183,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return null;
     }
 
-    final AndroidFacet facet = AndroidFacet.getInstance(file);
+    AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return null;
     }
@@ -190,13 +192,13 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return null;
     }
 
-    final PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
+    PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
     if (element == null) {
       return null;
     }
 
     if (element instanceof XmlToken && ((XmlToken)element).getTokenType() == XmlTokenType.XML_DATA_CHARACTERS) {
-      final XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
+      XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
       if (text != null) {
         return ResourceUrl.parse(text.getText().trim());
       }
@@ -206,12 +208,12 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
 
   @Override
   public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
-    final Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
+    Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
     if (editor == null) {
       return;
     }
 
-    final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
+    PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
     if (file == null) {
       return;
     }
@@ -228,17 +230,17 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (element == null) {
       return false;
     }
-    final PsiFile psiFile = element.getContainingFile();
+    PsiFile psiFile = element.getContainingFile();
 
     if (!(psiFile instanceof XmlFile)) {
       return false;
     }
-    final AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+    AndroidFacet facet = AndroidFacet.getInstance(psiFile);
 
     if (facet == null) {
       return false;
     }
-    final VirtualFile vFile = psiFile.getVirtualFile();
+    VirtualFile vFile = psiFile.getVirtualFile();
 
     if (vFile == null || !vFile.equals(AndroidRootUtil.getPrimaryManifestFile(facet))) {
       return false;
@@ -246,17 +248,17 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (!(element instanceof XmlAttributeValue)) {
       return false;
     }
-    final PsiElement parent = element.getParent();
+    PsiElement parent = element.getParent();
 
     if (!(parent instanceof XmlAttribute)) {
       return false;
     }
-    final GenericAttributeValue attrValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)parent);
+    GenericAttributeValue attrValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)parent);
 
     if (attrValue == null) {
       return false;
     }
-    final DomElement parentDomElement = attrValue.getParent();
+    DomElement parentDomElement = attrValue.getParent();
     return parentDomElement instanceof Manifest && attrValue.equals(((Manifest)parentDomElement).getPackage());
   }
 
@@ -268,21 +270,21 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (!(element instanceof XmlAttributeValue)) {
       return;
     }
-    final Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
 
     if (module == null) {
       return;
     }
     RenameDialog.showRenameDialog(context, new RenameDialog(project, element, null, editor) {
-      @NotNull
       @Override
+      @NotNull
       protected String getLabelText() {
         return "Rename Android application package of module '" + module.getName() + "' to:";
       }
 
       @Override
       protected void canRun() throws ConfigurationException {
-        final String name = getNewName();
+        String name = getNewName();
 
         if (name.isEmpty()) {
           throw new ConfigurationException(AndroidBundle.message("specify.package.name.error"));
