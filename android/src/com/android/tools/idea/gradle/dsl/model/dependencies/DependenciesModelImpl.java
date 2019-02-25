@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -46,7 +45,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.gradle.internal.impldep.org.junit.Test;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -76,7 +74,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
-      dest.addAll(create(configurationName, element, configurationElement));
+      create(configurationName, element, configurationElement, dest);
     }
   };
 
@@ -421,17 +419,18 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull String configurationName,
-                                              @NotNull GradleDslElement element,
-                                              @Nullable GradleDslClosure configurationElement) {
+  static void create(@NotNull String configurationName,
+                     @NotNull GradleDslElement element,
+                     @Nullable GradleDslClosure configurationElement,
+                     List<? super ArtifactDependencyModel> results) {
     if (configurationElement == null) {
       configurationElement = element.getClosureElement();
     }
-    List<ArtifactDependencyModel> results = Lists.newArrayList();
+
     // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
     // parser bug) then don't create anything.
     if (!(element instanceof GradleDslExpression)) {
-      return ImmutableList.of();
+      return;
     }
     GradleDslExpression resolved = (GradleDslExpression)element;
     if (element instanceof GradleDslLiteral) {
@@ -472,6 +471,6 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         results.add(compactNotation);
       }
     }
-    return results;
+    return;
   }
 }
