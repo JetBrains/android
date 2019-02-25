@@ -9,3 +9,6 @@ com.android.ddmlib.Device.executeShellCommand=#assertIsNotEdt
 
 # Android Studio
 com.android.tools.idea.common.model.NlDependencyManager.addDependencies=#assertIsNotEdt
+
+# Annotations
+@com.android.annotations.concurrency.UiThread=#assertIsEdt
