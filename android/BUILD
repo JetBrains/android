@@ -298,7 +298,7 @@ filegroup(
             "//tools/base/profiler:studio-profiler-grpc-1.0-jarjar.jar",
             "//tools/base/profiler/app:perfa.jar",
             "//tools/base/profiler/app:perfa_okhttp.dex",
-            "//tools/base/profiler/native/perfa:android",
+            "//tools/base/transport/agent:android",
             "//tools/base/transport:android",
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
