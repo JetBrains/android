@@ -122,7 +122,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   public void addArtifact(@NotNull String configurationName,
                                        @NotNull ArtifactDependencySpec dependency,
                                        @NotNull List<ArtifactDependencySpec> excludes) {
-    ArtifactDependencyModelImpl.create(myDslElement, configurationName, dependency, excludes);
+    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, excludes);
   }
 
   @Override
@@ -157,7 +157,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   @Override
   public void addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
-    ModuleDependencyModelImpl.create(myDslElement, configurationName, path, config);
+    ModuleDependencyModelImpl.createNew(myDslElement, configurationName, path, config);
   }
 
   @NotNull
@@ -183,7 +183,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                                        @NotNull String dir,
                                        @Nullable List<String> includes,
                                        @Nullable List<String> excludes) {
-    FileTreeDependencyModelImpl.create(myDslElement, configurationName, dir, includes, excludes);
+    FileTreeDependencyModelImpl.createNew(myDslElement, configurationName, dir, includes, excludes);
   }
 
   @NotNull
@@ -198,7 +198,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   @Override
   public void addFile(@NotNull String configurationName, @NotNull String file) {
-    FileDependencyModelImpl.create(myDslElement, configurationName, file);
+    FileDependencyModelImpl.createNew(myDslElement, configurationName, file);
   }
 
   @Override

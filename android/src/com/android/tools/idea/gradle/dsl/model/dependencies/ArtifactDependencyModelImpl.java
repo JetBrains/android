@@ -193,10 +193,10 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     return results;
   }
 
-  static void create(@NotNull GradlePropertiesDslElement parent,
-                     @NotNull String configurationName,
-                     @NotNull ArtifactDependencySpec dependency,
-                     @NotNull List<ArtifactDependencySpec> excludes) {
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        @NotNull List<ArtifactDependencySpec> excludes) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setElementType(REGULAR);
