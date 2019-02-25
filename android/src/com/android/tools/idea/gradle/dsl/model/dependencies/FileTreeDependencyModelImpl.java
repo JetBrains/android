@@ -42,11 +42,11 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @NotNull private final GradleDslMethodCall myDslElement;
 
   @NotNull
-  static FileTreeDependencyModel create(@NotNull GradlePropertiesDslElement parent,
-                                        @NotNull String configurationName,
-                                        @NotNull String dir,
-                                        @Nullable List<String> includes,
-                                        @Nullable List<String> excludes) {
+  static FileTreeDependencyModel createNew(@NotNull GradlePropertiesDslElement parent,
+                                           @NotNull String configurationName,
+                                           @NotNull String dir,
+                                           @Nullable List<String> includes,
+                                           @Nullable List<String> excludes) {
     GradleDslMethodCall newElement = new GradleDslMethodCall(parent, GradleNameElement.create(configurationName), FILE_TREE);
     FileTreeDependencyModel fileTreeModel = create(parent, newElement, configurationName);
     // Since we just created the method call with the FILE_TREE name, create should never return null.

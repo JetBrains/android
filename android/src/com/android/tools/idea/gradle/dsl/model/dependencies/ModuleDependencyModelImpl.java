@@ -55,10 +55,10 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   }
 
   @NotNull
-  static ModuleDependencyModel create(@NotNull GradlePropertiesDslElement parent,
-                     @NotNull String configurationName,
-                     @NotNull String path,
-                     @Nullable String config) {
+  static ModuleDependencyModel createNew(@NotNull GradlePropertiesDslElement parent,
+                                         @NotNull String configurationName,
+                                         @NotNull String path,
+                                         @Nullable String config) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, PROJECT);
     GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, name);
