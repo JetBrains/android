@@ -74,7 +74,54 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
-      create(configurationName, element, configurationElement, dest);
+      if (configurationElement == null) {
+        configurationElement = element.getClosureElement();
+      }
+
+      // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
+      // parser bug) then don't create anything.
+      if (!(element instanceof GradleDslExpression)) {
+        return;
+      }
+      GradleDslExpression resolved = (GradleDslExpression)element;
+      if (element instanceof GradleDslLiteral) {
+        GradleDslElement foundElement = followElement((GradleDslLiteral)element);
+        if (foundElement instanceof GradleDslExpression) {
+          resolved = (GradleDslExpression)foundElement;
+        }
+      }
+
+      if (resolved instanceof GradleDslExpressionMap) {
+        ArtifactDependencyModelImpl.MapNotation mapNotation =
+          ArtifactDependencyModelImpl.MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
+        if (mapNotation != null) {
+          dest.add(mapNotation);
+        }
+      }
+      else if (resolved instanceof GradleDslMethodCall) {
+        String name = ((GradleDslMethodCall)resolved).getMethodName();
+        if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
+          for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
+            ourArtifactFetcher.fetch(configurationName, argument, configurationElement, dest);
+          }
+        }
+      }
+      else if (resolved instanceof GradleDslExpressionList) {
+        for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
+          ArtifactDependencyModelImpl.CompactNotation
+            compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(configurationName, expression, configurationElement);
+          if (compactNotation != null) {
+            dest.add(compactNotation);
+          }
+        }
+      }
+      else {
+        ArtifactDependencyModelImpl.CompactNotation compactNotation = ArtifactDependencyModelImpl.CompactNotation
+          .create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
+        if (compactNotation != null) {
+          dest.add(compactNotation);
+        }
+      }
     }
   };
 
@@ -416,61 +463,5 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       }
     }
     return null;
-  }
-
-  @NotNull
-  static void create(@NotNull String configurationName,
-                     @NotNull GradleDslElement element,
-                     @Nullable GradleDslClosure configurationElement,
-                     List<? super ArtifactDependencyModel> results) {
-    if (configurationElement == null) {
-      configurationElement = element.getClosureElement();
-    }
-
-    // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
-    // parser bug) then don't create anything.
-    if (!(element instanceof GradleDslExpression)) {
-      return;
-    }
-    GradleDslExpression resolved = (GradleDslExpression)element;
-    if (element instanceof GradleDslLiteral) {
-      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
-      if (foundElement instanceof GradleDslExpression) {
-        resolved = (GradleDslExpression)foundElement;
-      }
-    }
-
-    if (resolved instanceof GradleDslExpressionMap) {
-      ArtifactDependencyModelImpl.MapNotation mapNotation =
-        ArtifactDependencyModelImpl.MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
-      if (mapNotation != null) {
-        results.add(mapNotation);
-      }
-    }
-    else if (resolved instanceof GradleDslMethodCall) {
-      String name = ((GradleDslMethodCall)resolved).getMethodName();
-      if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
-        for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
-          ourArtifactFetcher.fetch(configurationName, argument, configurationElement, results);
-        }
-      }
-    }
-    else if (resolved instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
-        ArtifactDependencyModelImpl.CompactNotation
-          compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(configurationName, expression, configurationElement);
-        if (compactNotation != null) {
-          results.add(compactNotation);
-        }
-      }
-    }
-    else {
-      ArtifactDependencyModelImpl.CompactNotation compactNotation = ArtifactDependencyModelImpl.CompactNotation
-        .create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
-      if (compactNotation != null) {
-        results.add(compactNotation);
-      }
-    }
-    return;
   }
 }
