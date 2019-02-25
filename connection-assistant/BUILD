@@ -63,8 +63,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
-        "//tools/vendor/intellij/cidr:intellij.c",
         "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
@@ -74,7 +72,6 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     # do not sort: must match IML order
     deps = [
