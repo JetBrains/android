@@ -13,8 +13,5 @@ public final class WhatsNewAssistantIcons {
     return IconLoader.getIcon(path, WhatsNewAssistantIcons.class);
   }
 
-  /**
-   * 26x29
-   */
-  public static final Icon Whats_new_icon = load("/core/whats_new_icon.png");
+  /** 26x29 */ public static final Icon Whats_new_icon = load("/core/whats_new_icon.png");
 }
