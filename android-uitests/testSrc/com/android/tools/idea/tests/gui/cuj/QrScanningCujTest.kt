@@ -118,6 +118,8 @@ class QrScanningCujTest {
         openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
           .useLocalFile(GuiTests.getTestDataDir()!!.toString() + "/VotingApp/ic_qr_code.svg")
           .setName("ic_qr_code")
+          .enableOverrideDefaultSize()
+          .setSize(100, 100)
           .clickNext()
           .clickFinish()
       }
@@ -132,6 +134,7 @@ class QrScanningCujTest {
             .pressAndReleaseKeys(KeyEvent.VK_DOWN)
           clickOK()
         }
+        waitForRenderToFinish()
         findView("ImageView", 0)
           .createConstraintFromLeftToLeftOfLayout()
           .createConstraintFromRightToRightOfLayout()
