@@ -53,6 +53,7 @@ import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -329,6 +330,13 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     @Override
     public boolean isStatic() {
       return false;
+    }
+
+    @Override
+    public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
+      LeafPsiElement identifier = (LeafPsiElement)myElement.findElementAt(myTextRange.getStartOffset());
+      identifier.rawReplaceWithText(newElementName);
+      return identifier;
     }
   }
 

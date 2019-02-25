@@ -30,5 +30,10 @@
               android:layout="@layout/stub"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"/>
+    <TextView
+        android:text="@{vo.initialString()}"
+        android:id="@+id/uppercaseTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </RelativeLayout>
 </layout>
