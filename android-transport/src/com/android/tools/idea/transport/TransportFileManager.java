@@ -55,11 +55,11 @@ public final class TransportFileManager {
 
     @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
 
-    @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libperfa.so")
-      .setReleaseDir("plugins/android/resources/perfa")
-      .setDevDir("../../bazel-bin/tools/base/profiler/native/perfa/android")
+    @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
+      .setReleaseDir("plugins/android/resources/transport/agent")
+      .setDevDir("../../bazel-bin/tools/base/transport/agent/android")
       .setExecutable(true)
-      .setOnDeviceAbiFileNameFormat("libperfa_%s.so") // e.g. libperfa_arm64.so
+      .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();
 
     @NotNull static final DeployableFile SIMPLEPERF = new DeployableFile.Builder("simpleperf")

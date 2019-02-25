@@ -309,7 +309,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
                 .setPid(mySelectedProcess.getPid())
                 .setType(Transport.Command.CommandType.ATTACH_AGENT)
                 .setAttachAgent(
-                  Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch())))
+                  Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
                 .build();
               myClient.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
               myAgentConnected = false;
