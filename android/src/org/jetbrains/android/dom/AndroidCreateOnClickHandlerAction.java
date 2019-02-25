@@ -69,7 +69,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       return false;
     }
     final String methodName = attrValue.getValue();
-    return methodName != null && StringUtil.isJavaIdentifier(methodName);
+    return StringUtil.isJavaIdentifier(methodName);
   }
 
   @Nullable
@@ -87,7 +87,6 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
     final XmlAttributeValue attrValue = getXmlAttributeValue(file, editor);
     assert attrValue != null;
     final String methodName = attrValue.getValue();
-    assert methodName != null;
     final GenericAttributeValue domValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)attrValue.getParent());
     assert domValue != null;
     final OnClickConverter converter = (OnClickConverter)domValue.getConverter();
