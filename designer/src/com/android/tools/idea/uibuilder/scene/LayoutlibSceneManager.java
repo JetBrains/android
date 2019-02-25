@@ -41,7 +41,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
@@ -420,12 +419,10 @@ public class LayoutlibSceneManager extends SceneManager {
       }
       else {
         requestRender(getTriggerFromChangeType(model.getLastChangeType()))
-          .thenRunAsync(() ->
-            ApplicationManager.getApplication().invokeLater(() ->
-              // Selection change listener should run in UI thread but not layoublib rendering thread. This avoids race condition.
-              mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
-            )
-          , EdtExecutor.INSTANCE);
+          .thenRun(() -> {
+              mySelectionChangeListener
+                .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+          });
       }
     }
 
