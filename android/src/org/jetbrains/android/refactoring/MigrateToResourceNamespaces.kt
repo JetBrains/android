@@ -443,7 +443,7 @@ class MigrateToResourceNamespacesProcessor(
 
             when (xmlElement) {
               is XmlTag -> xmlElement.value.text = newStringValue
-              is XmlAttribute -> xmlElement.value = newStringValue
+              is XmlAttribute -> xmlElement.setValue(newStringValue)
               else -> error("Don't know how to handle $xmlElement")
             }
           }
@@ -458,7 +458,7 @@ class MigrateToResourceNamespacesProcessor(
             val tag = usageInfo.xmlAttribute.parent
             val prefix = findOrCreateNamespacePrefix(tag, inferredPackage)
             val newUrl = ResourceUrl.create(prefix, ResourceType.ATTR, usageInfo.name)
-            usageInfo.xmlAttribute.value = newUrl.qualifiedName
+            usageInfo.xmlAttribute.setValue(newUrl.qualifiedName)
           }
           is CodeUsageInfo -> {
             val reference = usageInfo.classReference
