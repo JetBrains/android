@@ -140,4 +140,41 @@ public class DataBindingRenameTest {
     assertEquals(text.replace("regularView", "nameAfterRename"), VfsUtilCore.loadText(file));
     assertEquals(layoutText.replace("regular_view", "name_after_rename"), VfsUtilCore.loadText(layoutFile));
   }
+
+  /**
+   * Checks renaming of method referenced from data binding expression.
+   */
+  @Test
+  @RunsInEdt
+  public void assertRenameMethod() throws IOException {
+    // Temporary fix until test model can detect dependencies properly.
+    GradleInvocationResult assembleDebug = myProjectRule.invokeTasks(myProjectRule.getProject(), "assembleDebug");
+    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful());
+
+    GradleSyncState syncState = GradleSyncState.getInstance(myProjectRule.getProject());
+    assertFalse(syncState.isSyncNeeded().toBoolean());
+    assertEquals(ModuleDataBinding.getInstance(myProjectRule.getAndroidFacet()).getDataBindingMode(),
+                 myDataBindingMode);
+
+    // Make sure that all file system events up to this point have been processed.
+    VirtualFileManager.getInstance().syncRefresh();
+    UIUtil.dispatchAllInvocationEvents();
+
+    VirtualFile file =
+      myProjectRule.getProject().getBaseDir()
+        .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/DummyVo.java");
+    myProjectRule.getFixture().configureFromExistingVirtualFile(file);
+    Editor editor = myProjectRule.getFixture().getEditor();
+    String text = editor.getDocument().getText();
+    int offset = text.indexOf("initialString");
+    assertTrue(offset > 0);
+    editor.getCaretModel().moveToOffset(offset);
+    VirtualFile layoutFile = myProjectRule.getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    String layoutText = VfsUtilCore.loadText(layoutFile);
+    // Rename initialString to renamedString in DummyVo.java.
+    checkAndRename("renamedString");
+    // Check results.
+    assertEquals(text.replace("initialString", "renamedString"), VfsUtilCore.loadText(file));
+    assertEquals(layoutText.replace("initialString", "renamedString"), VfsUtilCore.loadText(layoutFile));
+  }
 }
