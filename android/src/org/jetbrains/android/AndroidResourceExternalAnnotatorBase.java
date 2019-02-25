@@ -179,7 +179,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     private final long myTimestamp;
     @NotNull private final List<AnnotatableElement> myElements;
 
-    FileAnnotationInfo(@NotNull AndroidFacet facet, @NotNull PsiFile file, @NotNull Editor editor) {
+    public FileAnnotationInfo(@NotNull AndroidFacet facet, @NotNull PsiFile file, @NotNull Editor editor) {
       myFacet = facet;
       myFile = file;
       myEditor = editor;
@@ -211,12 +211,12 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return myTimestamp;
     }
 
-    static class AnnotatableElement {
+    public static class AnnotatableElement {
       @Nullable private final ResourceReference myReference;
       @NotNull private final PsiElement myPsiElement;
       @Nullable private final Color myColor;
 
-      AnnotatableElement(@NotNull ResourceReference reference, @NotNull PsiElement element) {
+      public AnnotatableElement(@NotNull ResourceReference reference, @NotNull PsiElement element) {
         myReference = reference;
         myPsiElement = element;
         myColor = null;
