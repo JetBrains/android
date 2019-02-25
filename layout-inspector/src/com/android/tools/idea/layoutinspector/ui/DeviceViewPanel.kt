@@ -372,7 +372,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
                   .setPid(mySelectedProcess!!.pid)
                   .setType(Transport.Command.CommandType.ATTACH_AGENT)
                   .setAttachAgent(
-                    Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch())))
+                    Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
                   .build()
                 client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
                 myAgentConnected = false
