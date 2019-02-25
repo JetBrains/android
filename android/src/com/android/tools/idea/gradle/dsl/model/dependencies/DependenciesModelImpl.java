@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.*;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 
 public class DependenciesModelImpl extends GradleDslBlockModel implements DependenciesModel {
   public DependenciesModelImpl(@NotNull DependenciesDslElement dslElement) {
@@ -37,7 +39,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   /**
    * @return all the dependencies (artifact, module, etc.)
-   * WIP: Do not use.
+   * WIP: Do not use:)
    */
   @NotNull
   @Override
@@ -45,7 +47,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     List<DependencyModel> dependencies = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
       String configurationName = element.getName();
-      dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
+      dependencies.addAll(create(configurationName, element, null));
       if (element instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
         if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
@@ -81,7 +83,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   public List<ArtifactDependencyModel> artifacts() {
     List<ArtifactDependencyModel> dependencies = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
-      dependencies.addAll(ArtifactDependencyModelImpl.create(element.getName(), element));
+      dependencies.addAll(create(element.getName(), element, null));
     }
     return dependencies;
   }
@@ -89,7 +91,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   private void addArtifacts(@NotNull String configurationName, @NotNull List<ArtifactDependencyModel> dependencies) {
     List<GradleDslElement> list = myDslElement.getPropertyElementsByName(configurationName);
     for (GradleDslElement element : list) {
-      dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
+      dependencies.addAll(create(configurationName, element, null));
     }
   }
 
@@ -347,5 +349,60 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       }
     }
     return null;
+  }
+
+  @NotNull
+  static List<ArtifactDependencyModel> create(@NotNull String configurationName,
+                                              @NotNull GradleDslElement element,
+                                              @Nullable GradleDslClosure configurationElement) {
+    if (configurationElement == null) {
+      configurationElement = element.getClosureElement();
+    }
+    List<ArtifactDependencyModel> results = Lists.newArrayList();
+    // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
+    // parser bug) then don't create anything.
+    if (!(element instanceof GradleDslExpression)) {
+      return ImmutableList.of();
+    }
+    GradleDslExpression resolved = (GradleDslExpression)element;
+    if (element instanceof GradleDslLiteral) {
+      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
+      if (foundElement instanceof GradleDslExpression) {
+        resolved = (GradleDslExpression)foundElement;
+      }
+    }
+
+    if (resolved instanceof GradleDslExpressionMap) {
+      ArtifactDependencyModelImpl.MapNotation mapNotation =
+        ArtifactDependencyModelImpl.MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
+      if (mapNotation != null) {
+        results.add(mapNotation);
+      }
+    }
+    else if (resolved instanceof GradleDslMethodCall) {
+      String name = ((GradleDslMethodCall)resolved).getMethodName();
+      if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
+        for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
+          results.addAll(create(configurationName, argument, configurationElement));
+        }
+      }
+    }
+    else if (resolved instanceof GradleDslExpressionList) {
+      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
+        ArtifactDependencyModelImpl.CompactNotation
+          compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(configurationName, expression, configurationElement);
+        if (compactNotation != null) {
+          results.add(compactNotation);
+        }
+      }
+    }
+    else {
+      ArtifactDependencyModelImpl.CompactNotation compactNotation = ArtifactDependencyModelImpl.CompactNotation
+        .create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
+      if (compactNotation != null) {
+        results.add(compactNotation);
+      }
+    }
+    return results;
   }
 }
