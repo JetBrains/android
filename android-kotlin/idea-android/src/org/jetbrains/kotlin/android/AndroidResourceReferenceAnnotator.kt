@@ -19,6 +19,7 @@ import com.android.resources.ResourceType.COLOR
 import com.android.resources.ResourceType.DRAWABLE
 import com.android.resources.ResourceType.MIPMAP
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.FRAMEWORK
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.GutterIconRenderer
 import com.android.tools.idea.res.resolveColor
 import com.intellij.lang.annotation.AnnotationHolder
@@ -36,6 +37,8 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 
 class AndroidResourceReferenceAnnotator : Annotator {
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+        // Gutter icon annotator is run by {@link org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator} when flag is set.
+        if (StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) return
         val reference = element as? KtReferenceExpression ?: return
         val androidFacet = AndroidFacet.getInstance(element) ?: return
         val referenceTarget = reference.getResourceReferenceTargetDescriptor() ?: return
