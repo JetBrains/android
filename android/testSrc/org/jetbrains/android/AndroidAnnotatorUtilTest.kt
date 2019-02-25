@@ -49,6 +49,6 @@ class AndroidAnnotatorUtilTest {
     val color = Color.BLUE
     task.consume(color)
 
-    Mockito.verify(xmlAttribute).value = colorToString(color)
+    Mockito.verify(xmlAttribute).setValue(colorToString(color))
   }
 }
