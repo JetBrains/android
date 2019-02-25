@@ -263,10 +263,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   private static String getAbiDependentLibPerfaName(IDevice device) {
     String abi = getBestAbiCpuArch(device,
-                                   "plugins/android/resources/perfa",
-                                   "../../bazel-bin/tools/base/profiler/native/perfa/android",
-                                   "libperfa.so");
-    return abi.isEmpty() ? "" : String.format("libperfa_%s.so", abi);
+                                   "plugins/android/resources/transport/agent",
+                                   "../../bazel-bin/tools/base/transport/agent/android",
+                                   "libjvmtiagent.so");
+    return abi.isEmpty() ? "" : String.format("libjvmtiagent_%s.so", abi);
   }
 
   @NotNull
