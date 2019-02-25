@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.concurrency.Blocking;
+import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
@@ -147,7 +147,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the resource repository or null if the module is not an Android module
    * @see #getAppResources()
    */
-  @Blocking
+  @Slow
   @Nullable
   public static LocalResourceRepository getAppResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -162,7 +162,7 @@ public final class ResourceRepositoryManager implements Disposable {
    *
    * @see #getAppResources()
    */
-  @Blocking
+  @Slow
   @NotNull
   public static LocalResourceRepository getAppResources(@NotNull AndroidFacet facet) {
     return getInstance(facet).getAppResources();
@@ -177,7 +177,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the resource repository or null if the module is not an Android module
    * @see #getProjectResources()
    */
-  @Blocking
+  @Slow
   @Nullable
   public static LocalResourceRepository getProjectResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -192,7 +192,7 @@ public final class ResourceRepositoryManager implements Disposable {
    *
    * @see #getProjectResources()
    */
-  @Blocking
+  @Slow
   @NotNull
   public static LocalResourceRepository getProjectResources(@NotNull AndroidFacet facet) {
     return getInstance(facet).getProjectResources();
@@ -207,7 +207,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the resource repository or null if the module is not an Android module
    * @see #getModuleResources()
    */
-  @Blocking
+  @Slow
   @Nullable
   public static LocalResourceRepository getModuleResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -222,7 +222,7 @@ public final class ResourceRepositoryManager implements Disposable {
    *
    * @see #getModuleResources()
    */
-  @Blocking
+  @Slow
   @NotNull
   public static LocalResourceRepository getModuleResources(@NotNull AndroidFacet facet) {
     return getInstance(facet).getModuleResources();
@@ -287,7 +287,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the computed repository
    * @see #getExistingAppResources()
    */
-  @Blocking
+  @Slow
   @NotNull
   public LocalResourceRepository getAppResources() {
     LocalResourceRepository appResources = getExistingAppResources();
@@ -334,7 +334,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the computed repository
    * @see #getExistingProjectResources()
    */
-  @Blocking
+  @Slow
   @NotNull
   public LocalResourceRepository getProjectResources() {
     LocalResourceRepository projectResources = getExistingProjectResources();
@@ -377,7 +377,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the computed repository
    * @see #getExistingModuleResources()
    */
-  @Blocking
+  @Slow
   @NotNull
   public LocalResourceRepository getModuleResources() {
     LocalResourceRepository moduleResources = getExistingModuleResources();
@@ -452,7 +452,7 @@ public final class ResourceRepositoryManager implements Disposable {
    *                    This makes creating the repository noticeably slower.
    * @return the framework repository or null if the SDK resources directory cannot be determined for the module.
    */
-  @Blocking
+  @Slow
   @Nullable
   public ResourceRepository getFrameworkResources(boolean needLocales) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
@@ -476,7 +476,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @param namespace the namespace to return resource repositories for
    * @return the repositories for the given namespace
    */
-  @Blocking
+  @Slow
   @NotNull
   public List<ResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
     AppResourceRepository appRepository = (AppResourceRepository)getAppResources();
@@ -636,7 +636,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
    * action lock.
    */
-  @Blocking
+  @Slow
   @NotNull
   public Collection<VirtualFile> getAllResourceDirs() {
     // TODO(b/76128326): manage the set of directories here.
@@ -660,7 +660,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
    * action lock.
    */
-  @Blocking
+  @Slow
   @NotNull
   public Collection<AarResourceRepository> getLibraryResources() {
     return getLibraryResourceMap().values();
