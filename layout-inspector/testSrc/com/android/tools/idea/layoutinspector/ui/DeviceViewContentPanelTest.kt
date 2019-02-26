@@ -20,9 +20,11 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
 import java.awt.Dimension
@@ -33,7 +35,15 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class DeviceViewContentPanelTest {
 
-  private val project = mock(Project::class.java)
+  @Before
+  fun setUp() {
+    InspectorClient.currentInstance = mock(InspectorClient::class.java)
+  }
+
+  @After
+  fun tearDown() {
+    InspectorClient.currentInstance = null
+  }
 
   @Test
   fun testSize() {
@@ -45,7 +55,7 @@ class DeviceViewContentPanelTest {
         view("v2", 60, 160, 10, 20)
       }
     }
-    val inspector = LayoutInspector(model, project)
+    val inspector = LayoutInspector(model)
     val panel = DeviceViewContentPanel(inspector, 0.3, DeviceViewPanel.ViewMode.X_ONLY)
     assertEquals(Dimension(188, 197), panel.preferredSize)
 
@@ -71,7 +81,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = UIUtil.createImage(200, 300, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val inspector = LayoutInspector(model, project)
+    val inspector = LayoutInspector(model)
     val panel = DeviceViewContentPanel(inspector, 1.0, DeviceViewPanel.ViewMode.X_ONLY)
     panel.setSize(200, 300)
 
@@ -104,7 +114,7 @@ class DeviceViewContentPanelTest {
       }
     }
 
-    val inspector = LayoutInspector(model, project)
+    val inspector = LayoutInspector(model)
     val panel = DeviceViewContentPanel(inspector, 1.0, DeviceViewPanel.ViewMode.X_ONLY)
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
