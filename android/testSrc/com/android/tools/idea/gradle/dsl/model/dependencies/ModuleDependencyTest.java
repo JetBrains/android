@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_M
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
@@ -239,6 +240,40 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, actual);
 
     assertEquals("helloWorld", actual.name());
+  }
+
+  @Test
+  public void testRemoveWhenMultiple() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(2);
+
+    ModuleDependencyModel dependency1 = dependencies.get(0);
+    assertThat(dependency1.path().toString()).isEqualTo(":androidlib1");
+
+    ModuleDependencyModel dependency2 = dependencies.get(1);
+    assertThat(dependency2.path().toString()).isEqualTo(":other");
+
+    buildModel.dependencies().remove(dependency2);
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(1);
+
+    ModuleDependencyModel actual = dependencies.get(0);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.configuration = "flavor1Release";
+    expected.path = ":androidlib1";
+    assertMatches(expected, actual);
+
+    assertEquals("androidlib1", actual.name());
   }
 
   @Test
