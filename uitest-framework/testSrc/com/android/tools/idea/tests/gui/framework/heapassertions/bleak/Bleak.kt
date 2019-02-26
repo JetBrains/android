@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.io.PrintStream
 import java.util.IdentityHashMap
@@ -47,14 +46,28 @@ private fun Signature.isWhitelisted(): Boolean =
   first() == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
   first() == "android.graphics.NinePatch_Delegate#sChunkCache" ||
   anyTypeContains("org.fest.swing") ||
+  entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields" ||
+  entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
+
+  // don't report that the total number of loaded classes has been increasing - this is generally expected.
   size == 4 && first() == "java.lang.Thread#contextClassLoader" && entry(1) == "com.intellij.util.lang.UrlClassLoader#classes" && label(2) == "elementData" ||
   size == 3 && first() == "com.intellij.util.lang.UrlClassLoader#classes" && label(1) == "elementData" ||
-  entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields"
+  // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
+  entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
+  entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
+
+  entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
+  entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
+  entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
+  entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
+  first() == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
+  first() == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315
 
 // "Troublesome" signatures are whitelisted as well, but are removed from the set of leak roots before leakShare is determined, rather
 // than after.
 fun Signature.isTroublesome(): Boolean =
-  size == 4 && lastLabel() in listOf("_set", "_values") && first() == "com.intellij.openapi.util.Disposer#ourTree"  // this accounts for both myObject2NodeMap and myRootObjects
+  size == 4 && lastLabel() in listOf("_set", "_values") && first() == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
+  entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers"
 
 private var currentLogPrinter: PrintStream? = null
 var currentLogFile: File? = null
