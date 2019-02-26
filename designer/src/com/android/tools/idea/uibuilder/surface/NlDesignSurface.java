@@ -343,7 +343,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public float getScreenScalingFactor() {
-    return JBUI.sysScale();
+    return JBUI.sysScale(this);
   }
 
   @NotNull
