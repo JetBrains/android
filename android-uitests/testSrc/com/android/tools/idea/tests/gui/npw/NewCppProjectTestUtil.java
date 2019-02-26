@@ -32,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
@@ -118,9 +117,7 @@ public class NewCppProjectTestUtil {
   }
 
   protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.runApp(APP_NAME)
-            .selectDevice(new StringTextMatcher("Google Nexus 5X"))
-            .clickOk();
+    ideFrame.runApp(APP_NAME, "Google Nexus 5X");
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(APP_NAME);
