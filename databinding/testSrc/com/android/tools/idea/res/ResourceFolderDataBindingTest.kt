@@ -529,7 +529,7 @@ class ResourceFolderDataBindingTest {
     assertEquals(expected.toSet(), viewsInInfo)
   }
 
-  private fun getInfo(): DataBindingInfo {
+  private fun getInfo(): DataBindingLayoutInfo {
     val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
     return resources.dataBindingResourceFiles["$appPackage.databinding.LayoutWithDataBindingBinding"]!!
   }

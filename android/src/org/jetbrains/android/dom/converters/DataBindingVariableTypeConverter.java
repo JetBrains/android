@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.DataBindingUtil.ClassReferenceVisitor;
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.utils.OffsetTrackingDecodedXmlValue;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -73,8 +73,8 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
       return null;
     }
 
-    DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
-    type = DataBindingUtil.getQualifiedType(type, dataBindingInfo, false);
+    DataBindingLayoutInfo dataBindingLayoutInfo = getDataBindingInfo(context);
+    type = DataBindingUtil.getQualifiedType(type, dataBindingLayoutInfo, false);
     if (type == null) {
       return null;
     }
