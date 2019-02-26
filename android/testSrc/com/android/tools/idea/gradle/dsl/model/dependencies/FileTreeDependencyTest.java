@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENC
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_ONLY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_FILE_TREE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_ONLY_POSSIBLE_IN_MAP_FORM;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_FROM_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED;
@@ -450,5 +451,28 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     fileTrees = dependenciesModel.fileTrees();
     // The model is no longer picked up since the "dir" entry is not present.
     assertThat(fileTrees).hasSize(0);
+  }
+
+  @Test
+  public void testRemoveWhenMultiple() throws IOException {
+    writeToBuildFile(FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependenciesModel.fileTrees();
+    assertThat(fileTrees).hasSize(3);
+    assertThat(fileTrees.get(0).dir().toString()).isEqualTo("xyz");
+    assertThat(fileTrees.get(1).dir().toString()).isEqualTo("libs");
+    assertThat(fileTrees.get(2).dir().toString()).isEqualTo("abc");
+
+    dependenciesModel.remove(fileTrees.get(1));
+    dependenciesModel.remove(fileTrees.get(0));
+
+    applyChangesAndReparse(buildModel);
+
+    dependenciesModel = buildModel.dependencies();
+    fileTrees = dependenciesModel.fileTrees();
+    assertThat(fileTrees).hasSize(1);
+    assertThat(fileTrees.get(0).dir().toString()).isEqualTo("abc");
   }
 }
