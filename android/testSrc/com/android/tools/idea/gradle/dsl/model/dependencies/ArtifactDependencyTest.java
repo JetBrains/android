@@ -245,7 +245,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(3);
+    assertThat(dependencies).hasSize(4);
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(dependencies.get(0));
@@ -257,6 +257,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.setClassifier("jdk15");
     expected.setExtension("jar");
     expected.assertMatches(dependencies.get(2));
+
+    expected = new ExpectedArtifactDependency("test", "else", "something", "1.0");
+    expected.assertMatches(dependencies.get(3));
   }
 
   @Test
