@@ -25,7 +25,6 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
   private val componentModel = InspectorPropertiesModel()
   private val componentView = InspectorPropertiesView(componentModel)
   private val properties = PropertiesPanel<InspectorPropertyItem>(this)
-  private var activeToolContext: LayoutInspector? = null
 
   init {
     properties.addView(componentView)
@@ -33,8 +32,7 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
   }
 
   override fun setToolContext(toolContext: LayoutInspector?) {
-    activeToolContext = toolContext
-    componentModel.inspectorModel = toolContext?.layoutInspectorModel
+    componentModel.layoutInspector = toolContext
   }
 
   override fun getComponent() = properties.component
