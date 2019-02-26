@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.atrace
+package com.android.tools.profilers.cpu.perfetto
 
-import com.android.testutils.TestUtils
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.atrace.PerfettoProducer
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.io.FileUtil
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
 import org.junit.Test
 
 class PerfettoProducerTest {
@@ -60,5 +55,25 @@ class PerfettoProducerTest {
       slice = parser.next()
     }
     assertThat(slice.toString()).containsMatch("prev_comm=(.*) prev_pid=(\\d+) prev_prio=(\\d+) prev_state=([^\\s]+) ==> next_comm=(.*) next_pid=(\\d+) next_prio=(\\d+)")
+  }
+
+  @Test
+  fun validateClockSyncMarkers() {
+    val parser = PerfettoProducer(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+
+    // Find first non comment line.
+    var slice = parser.next();
+    while (slice.toString().startsWith('#')) {
+      slice = parser.next();
+    }
+
+    // First line should be our parent timestamp.
+    // tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f"
+    assertThat(slice.toString()).containsMatch(".*: tracing_mark_write: trace_event_clock_sync: parent_ts=\\d+")
+
+    // Second line should be our real timestamp.
+    slice = parser.next()
+    //"tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
+    assertThat(slice.toString()).containsMatch(".*: tracing_mark_write: trace_event_clock_sync: realtime_ts=\\d+")
   }
 }
