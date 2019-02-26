@@ -35,7 +35,7 @@ class DependenciesTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     val deps = buildModel.dependencies().all()
-    assertSize(8, deps)
+    assertSize(13, deps)
     run {
       val dep = deps[0] as FileTreeDependencyModel
       assertThat(dep.configurationName(), equalTo("api"))
@@ -77,6 +77,33 @@ class DependenciesTest : GradleFileModelTestCase() {
       val dep = deps[7] as ModuleDependencyModel
       assertThat(dep.configurationName(), equalTo("debugImplementation"))
       assertThat(dep.name(), equalTo("javalib1"))
+    }
+    run {
+      val dep = deps[8] as ArtifactDependencyModel
+      assertThat(dep.configurationName(), equalTo("releaseImplementation"))
+      assertThat(dep.compactNotation(), equalTo("some:lib:1.0"))
+    }
+    run {
+      val dep = deps[9] as FileDependencyModel
+      assertThat(dep.configurationName(), equalTo("releaseImplementation"))
+      assertThat(dep.file().toString(), equalTo("lib5.jar"))
+    }
+    run {
+      val dep = deps[10] as ModuleDependencyModel
+      assertThat(dep.configurationName(), equalTo("releaseImplementation"))
+      assertThat(dep.name(), equalTo("lib3"))
+    }
+    run {
+      val dep = deps[11] as FileTreeDependencyModel
+      assertThat(dep.configurationName(), equalTo("releaseImplementation"))
+      assertThat(dep.dir().toString(), equalTo("libz"))
+      assertThat(dep.includes().toList()?.map { it.toString() }, equalTo(listOf("*.jar")))
+      assertThat(dep.excludes().toList(), nullValue())
+    }
+    run {
+      val dep = deps[12] as ArtifactDependencyModel
+      assertThat(dep.configurationName(), equalTo("releaseImplementation"))
+      assertThat(dep.compactNotation(), equalTo("org.springframework:spring-core:2.5"))
     }
   }
 
