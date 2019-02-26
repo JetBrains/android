@@ -221,6 +221,12 @@ class AtraceParserTest {
     assertThat(parser.isMissingData).isTrue()
   }
 
+  @Test
+  fun perfettoCaptureGetsProcessList() {
+    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    assertThat(parser.getProcessList("")).isNotEmpty()
+  }
+
   companion object {
     private val DELTA = .00000001
 
