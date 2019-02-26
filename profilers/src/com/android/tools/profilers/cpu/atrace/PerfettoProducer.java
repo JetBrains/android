@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import perfetto.protos.PerfettoTrace;
@@ -53,6 +54,14 @@ public class PerfettoProducer implements BufferProducer {
   private final Map<Integer, Integer> myTidToTgid = new HashMap<>();
   private final Map<Integer, String> myTidToName = new HashMap<>();
   private Iterator<String> myTimeSortedLines;
+
+  private static double NanosToSeconds(double nanos) {
+    return nanos / TimeUnit.SECONDS.toNanos(1);
+  }
+
+  private static double NanosToMillis(double nanos) {
+    return nanos / TimeUnit.MILLISECONDS.toNanos(1);
+  }
 
   private static PerfettoTrace.Trace loadTrace(File file) {
     try {
@@ -88,7 +97,9 @@ public class PerfettoProducer implements BufferProducer {
     // TODO (b/125865941) Handle tid recycling when mapping tids to names.
     // Loop all packets building thread names, and a map of thread ids to process ids.
     List<PerfettoTrace.TracePacket> ftracePacketsToProcess = new ArrayList<>();
-    trace.getPacketList().forEach((packet -> {
+    // The clock sync packet is set to the first packet encountered with a clock snapshot.
+    PerfettoTrace.TracePacket clockSyncPacket = null;
+    for (PerfettoTrace.TracePacket packet : trace.getPacketList()) {
       if (packet.hasFtraceEvents()) {
         ftracePacketsToProcess.add(packet);
         PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
@@ -114,24 +125,65 @@ public class PerfettoProducer implements BufferProducer {
           }
         }
       }
-    }));
-
+      else if (packet.hasClockSnapshot() && clockSyncPacket == null) {
+        // We only want the first clock sync packet.
+        clockSyncPacket = packet;
+      }
+    }
     // Build systrace lines for each packet.
     // Note: lines need to be sorted by time else assumptions in trebuchet break.
+    long nextLowestIndex = 0L;
     SortedMap<Long, String> timeSortedLines = new TreeMap<>();
-    timeSortedLines.put(0L, "# Initial Data Required by Importer");
-    timeSortedLines.put(1L, FTRACE_HEADER);
+    timeSortedLines.put(nextLowestIndex++, "# Initial Data Required by Importer");
+    timeSortedLines.put(nextLowestIndex++, FTRACE_HEADER);
+
+    // Each perfetto trace has many clock sync packets. We need the mono and real time clocks from the first packet to align timestamps with
+    // ftrace to timestamps from studio.
+    assert clockSyncPacket != null;
+    nextLowestIndex = addClockSyncLines(clockSyncPacket, timeSortedLines, nextLowestIndex);
+
+    // Generate all other lines.
     ftracePacketsToProcess.forEach(packet -> {
       PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
       for (PerfettoTrace.FtraceEvent event : bundle.getEventList()) {
         if (!IS_SUPPORTED_EVENT.apply(event)) {
           continue;
         }
-        String line = formatEventPrefix(event.getTimestamp(), bundle.getCpu(), event) + formatEvent(event);
+        String line = formatEventPrefix(event.getTimestamp(), bundle.getCpu(), event.getPid()) + formatEvent(event);
         timeSortedLines.put(event.getTimestamp(), line);
       }
     });
     myTimeSortedLines = timeSortedLines.values().iterator();
+  }
+
+  private long addClockSyncLines(@NotNull PerfettoTrace.TracePacket clockSyncPacket,
+                                 SortedMap<Long, String> timeSortedLines,
+                                 long nextLowestIndex) {
+    PerfettoTrace.ClockSnapshot snapshot = clockSyncPacket.getClockSnapshot();
+    PerfettoTrace.ClockSnapshot.Clock monotonicClock = null;
+    PerfettoTrace.ClockSnapshot.Clock realtimeClock = null;
+    PerfettoTrace.ClockSnapshot.Clock boottimeClock = null;
+    for (PerfettoTrace.ClockSnapshot.Clock clock : snapshot.getClocksList()) {
+      if (clock.getType() == PerfettoTrace.ClockSnapshot.Clock.Type.MONOTONIC) {
+        monotonicClock = clock;
+      }
+      else if (clock.getType() == PerfettoTrace.ClockSnapshot.Clock.Type.REALTIME) {
+        realtimeClock = clock;
+      }
+      else if (clock.getType() == PerfettoTrace.ClockSnapshot.Clock.Type.BOOTTIME) {
+        boottimeClock = clock;
+      }
+    }
+    assert monotonicClock != null && realtimeClock != null;
+    //<...>-29454 (-----) [002] ...1 1214209.724359: tracing_mark_write: trace_event_clock_sync: parent_ts=539454.250000
+    timeSortedLines.put(nextLowestIndex++, formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
+                                           String.format("tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f",
+                                                         NanosToSeconds(monotonicClock.getTimestamp())));
+    //<...>-29454 (-----) [002] ...1 1214209.724366: tracing_mark_write: trace_event_clock_sync: realtime_ts=1520548500187
+    timeSortedLines.put(nextLowestIndex++, formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
+                                           "tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
+                                           NanosToMillis(realtimeClock.getTimestamp()));
+    return nextLowestIndex;
   }
 
   @Nullable
@@ -159,15 +211,15 @@ public class PerfettoProducer implements BufferProducer {
    * [thread name]-[tid]     ([tgid]) [[cpu]] d..3 [time in seconds].
    * Note d..3 is hard coded as it is expected to be part of the line, however it is not used.
    */
-  private String formatEventPrefix(long timestampNs, int cpu, PerfettoTrace.FtraceEvent event) {
-    String name = myTidToName.getOrDefault(event.getPid(), "<...>");
+  private String formatEventPrefix(long timestampNs, int cpu, int pid) {
+    String name = myTidToName.getOrDefault(pid, "<...>");
     // Convert Ns to seconds as seconds is the expected atrace format.
-    String timeSeconds = String.format("%.6f", timestampNs / 1000000.0);
+    String timeSeconds = String.format("%.6f", NanosToSeconds(timestampNs));
     String tgid = "-----";
-    if (myTidToTgid.containsKey(event.getPid())) {
-      tgid = String.format("%5d", myTidToTgid.get(event.getPid()));
+    if (myTidToTgid.containsKey(pid)) {
+      tgid = String.format("%5d", myTidToTgid.get(pid));
     }
-    return String.format("%s-%d     (%s) [%3d] d..3 %s: ", name, event.getPid(), tgid, cpu, timeSeconds);
+    return String.format("%s-%d     (%s) [%3d] d..3 %s: ", name, pid, tgid, cpu, timeSeconds);
   }
 
   /**
@@ -203,7 +255,7 @@ public class PerfettoProducer implements BufferProducer {
                 sched.getSuccess(), sched.getTargetCpu());
     }
     else if (event.hasPrint()) {
-      return String.format("tracing_mark_write: %s", event.getPrint().getBuf().toString().replace("\n", ""));
+      return String.format("tracing_mark_write: %s", event.getPrint().getBuf().replace("\n", ""));
     }
     else {
       getLogger().assertTrue(IS_SUPPORTED_EVENT.apply(event), "Attempted to format a non-supported event.");
