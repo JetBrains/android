@@ -25,6 +25,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DialogBuilderFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -397,6 +399,7 @@ public final class TranslationsEditorTest {
     assertEquals(width, table.getPreferredColumnWidth(KEY_COLUMN));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/124375061
   @Test
   public void invalidDefaultValueXml() throws IOException {
     myGuiTest.importSimpleApplication();
@@ -416,6 +419,7 @@ public final class TranslationsEditorTest {
     assertEquals("Invalid XML", component.myTooltipText);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/124375061
   @Test
   public void invalidTranslationXml() throws IOException {
     myGuiTest.importSimpleApplication();
