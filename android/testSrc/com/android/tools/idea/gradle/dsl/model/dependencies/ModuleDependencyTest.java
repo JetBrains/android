@@ -116,6 +116,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -138,6 +139,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -158,6 +160,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    dependency = dependencies.get(0);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -183,6 +186,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ModuleDependencyModel actual = dependencies.get(0);
 
@@ -213,6 +217,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
