@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf
 
+import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.testutils.TestUtils
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
@@ -64,6 +65,7 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun preProcessingRawTraceReturnsValidTrace() {
+    assumeNotWindows()
     val processedTrace = sampleReporter.preProcessTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf_raw_trace.trace"))
     assertThat(processedTrace).isNotEqualTo(TracePreProcessor.FAILURE)
 
@@ -77,6 +79,7 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun unknownSymbolsSymbolizedWhenProvidingSymDir() {
+    assumeNotWindows()
     val symDir = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData")
     val reporter = SimpleperfSampleReporter(ideaHome.toString()) { hashSetOf(symDir) }
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
@@ -95,6 +98,7 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun unknownSymbolsNotSymbolizedWhenSymDirNotProvided() {
+    assumeNotWindows()
     val reporter = SimpleperfSampleReporter(ideaHome.toString()) { emptySet() }
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
@@ -112,6 +116,7 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun unknownSymbolsNotSymbolizedWhenProvidingInvalidSymDir() {
+    assumeNotWindows()
     val symDir = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/cputraces") // Dir without valid .so files
     val reporter = SimpleperfSampleReporter(ideaHome.toString()) { hashSetOf(symDir) }
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
