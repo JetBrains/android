@@ -635,7 +635,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     switch (type) {
       case IN: {
         double currentScale = myScale * getScreenScalingFactor();
-        int current = (int)(currentScale * 100);
+        int current = (int)(Math.round(currentScale * 100));
         double scale = (ZoomType.zoomIn(current) / 100.0) / getScreenScalingFactor();
         scaled = setScale(scale, x, y);
         break;
