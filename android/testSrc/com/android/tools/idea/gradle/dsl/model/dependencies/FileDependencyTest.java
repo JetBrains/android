@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PAR
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
@@ -186,5 +187,32 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+  }
+
+  @Test
+  public void testRemoveWhenMultiple() throws IOException {
+    writeToBuildFile(FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileDependencyModel> fileDependencies = dependencies.files();
+    assertThat(fileDependencies).hasSize(6);
+
+    assertEquals("lib2.jar", fileDependencies.get(1).file().toString());
+    assertEquals("lib3.jar", fileDependencies.get(2).file().toString());
+    assertEquals("lib6.jar", fileDependencies.get(5).file().toString());
+
+    dependencies.remove(fileDependencies.get(5));
+    dependencies.remove(fileDependencies.get(2));
+    dependencies.remove(fileDependencies.get(1));
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    fileDependencies = buildModel.dependencies().files();
+    assertThat(fileDependencies).hasSize(3);
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+    assertEquals("lib4.jar", fileDependencies.get(1).file().toString());
+    assertEquals("lib5.jar", fileDependencies.get(2).file().toString());
   }
 }
