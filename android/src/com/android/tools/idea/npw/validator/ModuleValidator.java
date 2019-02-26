@@ -40,7 +40,7 @@ public final class ModuleValidator implements Validator<String> {
   private @Nullable Project myProject; // May be null for new projects
   private @NotNull PathValidator myPathValidator;
   private @NotNull StringProperty myProjectPath;
-  private final CharMatcher ILLEGAL_CHAR_MATCHER = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_:")).negate();
+  private final CharMatcher ILLEGAL_CHAR_MATCHER = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-:")).negate();
 
   public ModuleValidator(@NotNull Project project) {
     this(new StringValueProperty(project.getBasePath()));
