@@ -41,6 +41,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.Function;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,18 +55,53 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     super(dslElement);
   }
 
+  private interface Collector<T extends DependencyModel> {
+    void add(T element);
+    void addAll(@NotNull Collection<? extends T> elements);
+    List<T> getResults();
+
+    void collect(@NotNull String configurationName,
+                 @NotNull GradleDslElement element,
+                 @Nullable GradleDslClosure configurationElement);
+
+  }
+
   /**
    * A strategy object to find and get specific DependencyModel objects from a GradleDslElement.
    */
   private interface Fetcher<T extends DependencyModel> {
-    default List<T> createList() {
-      return new ArrayList<>();
+    default Collector<T> createCollector(@NotNull Fetcher<T> rootFetcher) {
+      return new Collector<T>() {
+        private List<T> myResult = new ArrayList<>();
+        @Override
+        public void add(T element) {
+          myResult.add(element);
+        }
+
+        @Override
+        public void addAll(@NotNull Collection<? extends T> elements) {
+          myResult.addAll(elements);
+        }
+
+        @Override
+        public List<T> getResults() {
+          return myResult;
+        }
+
+        @Override
+        public void collect(@NotNull String configurationName,
+                            @NotNull GradleDslElement element,
+                            @Nullable GradleDslClosure configurationElement) {
+          rootFetcher.fetch(configurationName, element, configurationElement, this);
+        }
+
+      };
     }
 
     void fetch(@NotNull String configurationName,
                @NotNull GradleDslElement element,
                @Nullable GradleDslClosure configurationElement,
-               @NotNull List<? super T> dest);
+               @NotNull Collector<? super T> dest);
   }
 
   private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<ArtifactDependencyModel>() {
@@ -73,7 +109,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull List<? super ArtifactDependencyModel> dest) {
+                      @NotNull Collector<? super ArtifactDependencyModel> dest) {
       if (configurationElement == null) {
         configurationElement = element.getClosureElement();
       }
@@ -102,7 +138,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         String name = ((GradleDslMethodCall)resolved).getMethodName();
         if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
           for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
-            ourArtifactFetcher.fetch(configurationName, argument, configurationElement, dest);
+            dest.collect(configurationName, argument, configurationElement);
           }
         }
       }
@@ -130,7 +166,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull List<? super ModuleDependencyModel> dest) {
+                      @NotNull Collector<? super ModuleDependencyModel> dest) {
       if (element instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
         if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
@@ -148,7 +184,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull List<? super FileDependencyModel> dest) {
+                      @NotNull Collector<? super FileDependencyModel> dest) {
       if (element instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
         if (methodCall.getMethodName().equals(FileDependencyModelImpl.FILES)) {
@@ -163,7 +199,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull List<? super FileTreeDependencyModel> dest) {
+                      @NotNull Collector<? super FileTreeDependencyModel> dest) {
       if (element instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
         if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
@@ -181,7 +217,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull List<? super DependencyModel> dest) {
+                      @NotNull Collector<? super DependencyModel> dest) {
       ourArtifactFetcher.fetch(configurationName, element, configurationElement, dest);
       ourModuleFetcher.fetch(configurationName, element, configurationElement, dest);
       ourFileFetcher.fetch(configurationName, element, configurationElement, dest);
@@ -202,13 +238,13 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   @NotNull
   private <T extends DependencyModel> List<T> all(@Nullable String configurationName, @NotNull Fetcher<T> fetcher) {
-    List<T> dependencies = fetcher.createList();
+    Collector<T> dependencies = fetcher.createCollector(fetcher);
     for (GradleDslElement element : configurationName != null
                                     ? myDslElement.getPropertyElementsByName(configurationName)
                                     : myDslElement.getAllPropertyElements()) {
-      fetcher.fetch(element.getName(), element, null, dependencies);
+      dependencies.collect(element.getName(), element, null);
     }
-    return dependencies;
+    return dependencies.getResults();
   }
 
   @NotNull
