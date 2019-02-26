@@ -41,7 +41,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.Function;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,93 +55,18 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   /**
-   * A DependencyModel collector configured to fetch a specific type of depndencies from a GradleDslElement.
-   */
-  private interface Collector<T extends DependencyModel> {
-    void add(T element);
-
-    void addAll(@NotNull Collection<? extends T> elements);
-
-    List<T> getResults();
-
-    void collectFrom(@NotNull String configurationName, @NotNull GradleDslElement element);
-  }
-
-  /**
    * A strategy object to find and get specific DependencyModel objects from a GradleDslElement.
    */
   private interface Fetcher<T extends DependencyModel> {
-    default Collector<T> createCollector(@NotNull Fetcher<T> rootFetcher) {
-      return new DependencyModelCollector<>(rootFetcher);
+    default List<T> createCollector() {
+      return new ArrayList<>();
     }
 
     void fetch(@NotNull String configurationName,
                @NotNull GradleDslElement element,
                @NotNull GradleDslElement resolved,
                @Nullable GradleDslClosure configurationElement,
-               @NotNull Collector<? super T> dest);
-  }
-
-  private static class DependencyModelCollector<T extends DependencyModel> implements Collector<T> {
-    private final Fetcher<T> myRootFetcher;
-    private List<T> myResult;
-
-    public DependencyModelCollector(Fetcher<T> rootFetcher) {
-      myRootFetcher = rootFetcher;
-      myResult = new ArrayList<>();
-    }
-
-    @Override
-    public void add(T element) {
-      myResult.add(element);
-    }
-
-    @Override
-    public void addAll(@NotNull Collection<? extends T> elements) {
-      myResult.addAll(elements);
-    }
-
-    @Override
-    public List<T> getResults() {
-      return myResult;
-    }
-
-    @Override
-    public void collectFrom(@NotNull String configurationName, @NotNull GradleDslElement element) {
-      GradleDslClosure configurationElement = element.getClosureElement();
-
-      GradleDslElement resolved = resolveElement(element);
-      if (resolved instanceof GradleDslExpressionList) {
-        for (GradleDslExpression expression : ((GradleDslExpressionList)resolved).getExpressions()) {
-          GradleDslElement resolvedExpression = resolveElement(expression);
-          myRootFetcher.fetch(configurationName, expression, resolvedExpression, configurationElement, this);
-        }
-        return;
-      }
-      if (resolved instanceof GradleDslMethodCall) {
-        String name = ((GradleDslMethodCall)resolved).getMethodName();
-        if (name.equals(configurationName)) {
-          for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
-            GradleDslElement resolvedArgument = resolveElement(argument);
-            myRootFetcher.fetch(configurationName, argument, resolvedArgument, configurationElement, this);
-          }
-          return;
-        }
-      }
-      myRootFetcher.fetch(configurationName, element, resolved, configurationElement, this);
-    }
-
-    @NotNull
-    private GradleDslElement resolveElement(@NotNull GradleDslElement element) {
-      GradleDslElement resolved = element;
-      if (element instanceof GradleDslLiteral) {
-        GradleDslElement foundElement = followElement((GradleDslLiteral)element);
-        if (foundElement instanceof GradleDslExpression) {
-          resolved = (GradleDslExpression)foundElement;
-        }
-      }
-      return resolved;
-    }
+               @NotNull List<? super T> dest);
   }
 
   private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<ArtifactDependencyModel>() {
@@ -151,7 +75,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull Collector<? super ArtifactDependencyModel> dest) {
+                      @NotNull List<? super ArtifactDependencyModel> dest) {
       // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
       // parser bug) then don't create anything.
       if (!(element instanceof GradleDslExpression)) {
@@ -186,7 +110,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull Collector<? super ModuleDependencyModel> dest) {
+                      @NotNull List<? super ModuleDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
         if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
@@ -205,7 +129,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull Collector<? super FileDependencyModel> dest) {
+                      @NotNull List<? super FileDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
         if (methodCall.getMethodName().equals(FileDependencyModelImpl.FILES)) {
@@ -221,7 +145,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull Collector<? super FileTreeDependencyModel> dest) {
+                      @NotNull List<? super FileTreeDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
         if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
@@ -240,7 +164,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
-                      @NotNull Collector<? super DependencyModel> dest) {
+                      @NotNull List<? super DependencyModel> dest) {
       ourArtifactFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
       ourModuleFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
       ourFileFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
@@ -257,17 +181,6 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @Override
   public List<DependencyModel> all() {
     return all(null, ourAllFetcher);
-  }
-
-  @NotNull
-  private <T extends DependencyModel> List<T> all(@Nullable String configurationName, @NotNull Fetcher<T> fetcher) {
-    Collector<T> dependencies = fetcher.createCollector(fetcher);
-    for (GradleDslElement element : configurationName != null
-                                    ? myDslElement.getPropertyElementsByName(configurationName)
-                                    : myDslElement.getAllPropertyElements()) {
-      dependencies.collectFrom(element.getName(), element);
-    }
-    return dependencies.getResults();
   }
 
   @NotNull
@@ -412,6 +325,56 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     else {
       myDslElement.removeProperty(dependencyElement);
     }
+  }
+
+  @NotNull
+  private <T extends DependencyModel> List<T> all(@Nullable String configurationName, @NotNull Fetcher<T> fetcher) {
+    List<T> dependencies = fetcher.createCollector();
+    for (GradleDslElement element : configurationName != null
+                                    ? myDslElement.getPropertyElementsByName(configurationName)
+                                    : myDslElement.getAllPropertyElements()) {
+      collectFrom(element.getName(), element, fetcher, dependencies);
+    }
+    return dependencies;
+  }
+
+  private <T extends DependencyModel> void collectFrom(@NotNull String configurationName,
+                                                       @NotNull GradleDslElement element,
+                                                       @NotNull Fetcher<T> byFetcher,
+                                                       @NotNull List<T> dest) {
+    GradleDslClosure configurationElement = element.getClosureElement();
+
+    GradleDslElement resolved = resolveElement(element);
+    if (resolved instanceof GradleDslExpressionList) {
+      for (GradleDslExpression expression : ((GradleDslExpressionList)resolved).getExpressions()) {
+        GradleDslElement resolvedExpression = resolveElement(expression);
+        byFetcher.fetch(configurationName, expression, resolvedExpression, configurationElement, dest);
+      }
+      return;
+    }
+    if (resolved instanceof GradleDslMethodCall) {
+      String name = ((GradleDslMethodCall)resolved).getMethodName();
+      if (name.equals(configurationName)) {
+        for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
+          GradleDslElement resolvedArgument = resolveElement(argument);
+          byFetcher.fetch(configurationName, argument, resolvedArgument, configurationElement, dest);
+        }
+        return;
+      }
+    }
+    byFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
+  }
+
+  @NotNull
+  private GradleDslElement resolveElement(@NotNull GradleDslElement element) {
+    GradleDslElement resolved = element;
+    if (element instanceof GradleDslLiteral) {
+      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
+      if (foundElement instanceof GradleDslExpression) {
+        resolved = (GradleDslExpression)foundElement;
+      }
+    }
+    return resolved;
   }
 
   private static void performDependencyReplace(@NotNull PsiElement psiElement,
