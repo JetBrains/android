@@ -56,13 +56,16 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
-    assertThat(fileDependencies).hasSize(6);
+    assertThat(fileDependencies).hasSize(9);
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
     assertEquals("lib2.jar", fileDependencies.get(1).file().toString());
     assertEquals("lib3.jar", fileDependencies.get(2).file().toString());
     assertEquals("lib4.jar", fileDependencies.get(3).file().toString());
     assertEquals("lib5.jar", fileDependencies.get(4).file().toString());
     assertEquals("lib6.jar", fileDependencies.get(5).file().toString());
+    assertEquals("lib7.jar", fileDependencies.get(6).file().toString());
+    assertEquals("lib8.jar", fileDependencies.get(7).file().toString());
+    assertEquals("lib9.jar", fileDependencies.get(8).file().toString());
   }
 
   @Test
