@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.databinding.config.DataBindingConfiguration;
 import com.android.tools.idea.databinding.config.DataBindingConfiguration.CodeGenMode;
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -60,11 +60,11 @@ public final class DataBindingCodeGenService {
     boolean invalidated = false;
     for (AndroidFacet facet : component.getDataBindingEnabledFacets()) {
       LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
-      Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+      Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;
       }
-      for (DataBindingInfo info : dataBindingResourceFiles.values()) {
+      for (DataBindingLayoutInfo info : dataBindingResourceFiles.values()) {
         PsiClass psiClass = info.getPsiClass();
         if (psiClass != null) {
           PsiFile containingFile = psiClass.getContainingFile();
