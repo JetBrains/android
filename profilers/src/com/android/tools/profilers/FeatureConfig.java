@@ -32,6 +32,7 @@ public interface FeatureConfig {
   boolean isLiveAllocationsSamplingEnabled();
   boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();
+  boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isSessionImportEnabled();
   boolean isSimpleperfHostEnabled();
