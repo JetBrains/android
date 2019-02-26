@@ -1,3 +1,4 @@
 dependencies {
   compile project(':javalib1')
+  test project(':test1'), project(':test2')
 }

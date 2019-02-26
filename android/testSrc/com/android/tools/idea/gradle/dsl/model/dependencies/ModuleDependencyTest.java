@@ -45,12 +45,21 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
-    assertThat(dependencies).hasSize(1);
+    assertThat(dependencies).hasSize(3);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":javalib1";
     assertMatches(expected, dependencies.get(0));
+
+    ExpectedModuleDependency expected1 = new ExpectedModuleDependency();
+    expected1.configurationName = "test";
+    expected1.path = ":test1";
+    assertMatches(expected1, dependencies.get(1));
+    ExpectedModuleDependency expected2 = new ExpectedModuleDependency();
+    expected2.configurationName = "test";
+    expected2.path = ":test2";
+    assertMatches(expected2, dependencies.get(2));
   }
 
   @Test

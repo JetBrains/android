@@ -46,6 +46,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCES_COMPACT_APPLICATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCE_MAP;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES;
@@ -444,6 +445,23 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
     writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "spring-core", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "spring-aop", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  @Test
+  public void testParseDependenciesWithMapNotationUsingSingleConfigNoParentheses() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
