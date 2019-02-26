@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENC
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_ONLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_MIXED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN;
@@ -106,6 +107,25 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir().toString());
+  }
+
+  @Test
+  public void testParseFileTreeMixed() throws IOException {
+    writeToBuildFile(FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_MIXED);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(2);
+
+    FileTreeDependencyModel dependency = dependencies.get(0);
+    assertEquals("libs", dependency.dir().toString());
+
+    FileTreeDependencyModel fileTree = dependencies.get(1);
+    verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
+    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include" /* Does this name matter? */, ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.excludes(), "dependencies.compile.fileTree.exclude", ImmutableList.of("*.aar"));
+
   }
 
   @Test
