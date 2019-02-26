@@ -123,19 +123,32 @@ class AddDestinationMenuTest : NavTestCase() {
     addIncludeFile("include1")
 
     val parent = model.components[0]
-    val expected = mutableListOf(
-      Destination.PlaceholderDestination(parent),
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment")),
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1")),
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment2")),
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment3")),
-      Destination.IncludeDestination("include1.xml", parent),
-      Destination.IncludeDestination("include2.xml", parent),
-      Destination.IncludeDestination("include3.xml", parent),
-      Destination.IncludeDestination("navigation.xml", parent),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity2")),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile),
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile))
+
+    val placeHolder = Destination.PlaceholderDestination(parent)
+
+    val blankFragment =
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment"))
+    val fragment1 =
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1"))
+    val fragment2 =
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment2"))
+    val fragment3 =
+      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment3"))
+
+    val include1 = Destination.IncludeDestination("include1.xml", parent)
+    val include2 = Destination.IncludeDestination("include2.xml", parent)
+    val include3 = Destination.IncludeDestination("include3.xml", parent)
+    val includeNav = Destination.IncludeDestination("navigation.xml", parent)
+
+    val activity2 =
+      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity2"))
+    val activity3 = Destination.RegularDestination(
+      parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile)
+    val mainActivity = Destination.RegularDestination(
+      parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile)
+
+    val expected = mutableListOf(placeHolder, blankFragment, fragment1, fragment2, fragment3, include1, include2, include3, includeNav,
+                                 activity2, activity3, mainActivity)
 
     var destinations = AddDestinationMenu(surface).destinations
     assertEquals(destinations, expected)
@@ -144,7 +157,31 @@ class AddDestinationMenuTest : NavTestCase() {
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
 
-    expected.removeAt(5)
+    expected.remove(include1)
+    destinations = AddDestinationMenu(surface).destinations
+    assertEquals(destinations, expected)
+
+    root.fragment("fragment1", name = "mytest.navtest.fragment1")
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    expected.remove(fragment1)
+    destinations = AddDestinationMenu(surface).destinations
+    assertEquals(destinations, expected)
+
+    root.activity("activity2", name = "mytest.navtest.activity2")
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    expected.remove(activity2)
+    destinations = AddDestinationMenu(surface).destinations
+    assertEquals(destinations, expected)
+
+    root.activity("activity3", name = "mytest.navtest.activity3")
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+
+    expected.remove(activity3)
     destinations = AddDestinationMenu(surface).destinations
     assertEquals(destinations, expected)
   }
