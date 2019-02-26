@@ -203,6 +203,48 @@ class CpuCaptureParserTest {
   }
 
   @Test
+  fun parsingPerfettoFilesShouldCompleteIfFlagEnabled() {
+    val services = FakeIdeProfilerServices()
+    val parser = CpuCaptureParser(services)
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+
+    // First, try to parse the capture with the atrace flag disabled.
+    services.enableAtrace(false)
+    services.enablePerfetto(true)
+    var futureCapture = parser.parse(traceFile)!!
+    var capture = futureCapture.get()
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    assertThat(capture).isNull()
+
+    // Now try to parse the capture with the atrace flag enabled but perfetto disabled.
+    services.enableAtrace(true)
+    services.enablePerfetto(false)
+    futureCapture = parser.parse(traceFile)!!
+    capture = futureCapture.get()
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    assertThat(capture).isNull()
+
+    // Now enable the flag and try to parse it again, assume the user canceled the dialog.
+    services.setListBoxOptionsIndex(-1)
+    services.enableAtrace(true)
+    services.enablePerfetto(true)
+    futureCapture = parser.parse(traceFile)!!
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    capture = futureCapture.get()
+    assertThat(capture).isNull()
+
+    // Now set a process select callback to return a process
+    services.setListBoxOptionsIndex(0)
+    services.enableAtrace(true)
+    services.enablePerfetto(true)
+    futureCapture = parser.parse(traceFile)!!
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    capture = futureCapture.get()
+    assertThat(capture).isNotNull()
+    assertThat(capture.threads).hasSize(17)
+  }
+
+  @Test
   fun parsingWithAPackageNameWillBringThatProcessToTop() {
     val services = FakeIdeProfilerServices()
     val parser = CpuCaptureParser(services)
