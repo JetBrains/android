@@ -144,11 +144,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       }
       else if (resolved instanceof GradleDslExpressionList) {
         for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
-          ArtifactDependencyModelImpl.CompactNotation
-            compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(configurationName, expression, configurationElement);
-          if (compactNotation != null) {
-            dest.add(compactNotation);
-          }
+          dest.collect(configurationName, expression, configurationElement);
         }
       }
       else {
