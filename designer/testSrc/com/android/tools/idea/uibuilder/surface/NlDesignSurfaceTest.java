@@ -20,6 +20,8 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.resources.Density;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
@@ -29,6 +31,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.adtui.actions.ZoomType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -39,8 +42,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Point;
 import java.util.stream.Collectors;
 import javax.swing.JViewport;
@@ -438,11 +439,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   public void testZoom() {
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
-      _testZoomOnMacWithRetina();
-      return;
-    }
-
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -485,9 +481,14 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     mySurface.getScrollPane().setSize(2000, 2000);
     assertEquals(1.0, mySurface.getMinScale());
+
+    mySurface.setScale(1.099, 0, 0);
+    scale = mySurface.getScale();
+    mySurface.zoom(ZoomType.IN);
+    assertTrue(mySurface.getScale() > scale);
   }
 
-  private void _testZoomOnMacWithRetina() {
+  public void testZoomHiDPIScreen() {
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -499,7 +500,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
           .height("100dp")
       ))
       .build();
+    Configuration config = model.getConfiguration().clone();
+    config.getFullConfig().setDensityQualifier(new DensityQualifier(Density.XHIGH));
+    model.setConfiguration(config);
     mySurface.setModel(model);
+    assertEquals(2.f, mySurface.getSceneScalingFactor());
     mySurface.getScrollPane().setSize(1000, 1000);
     mySurface.zoomToFit();
     double origScale = mySurface.getScale();
@@ -530,6 +535,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     mySurface.getScrollPane().setSize(2000, 2000);
     assertEquals(1.0, mySurface.getMinScale());
+
+    mySurface.setScale(1.099, 0, 0);
+    scale = mySurface.getScale();
+    mySurface.zoom(ZoomType.IN);
+    assertTrue(mySurface.getScale() > scale);
   }
 
   private static void assertComponentWithId(@NotNull NlModel model, @NotNull String expectedId) {
