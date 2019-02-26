@@ -290,11 +290,11 @@ public class NlComponentFixture {
     }).click();
 
     Point sourceBaseline = getTopCenterPoint(mySceneComponent);
-    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) + 1);
+    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)));
     myDragAndDrop.drag(mySurface, sourceBaseline);
     Point destinationBaseline = destination.getTopCenterPoint(destination.mySceneComponent);
     destinationBaseline
-      .translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(destination.getComponent())) - 1);
+      .translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(destination.getComponent())));
     myDragAndDrop.drop(mySurface, destinationBaseline);
     waitForWrite(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, destination);
     waitForSceneComponentAnimation();

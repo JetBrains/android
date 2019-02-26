@@ -208,8 +208,8 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
       case BASELINE: {
         myPositionX = mw;
         myPositionY = t + myComponent.getBaseline();
+        return false;
       }
-      break;
     }
 
     // When width or height is too small, move the anchor outer to avoid anchors overlap each other.
