@@ -119,16 +119,25 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<FileTreeDependencyModel> dependencies = buildModel.dependencies().fileTrees();
-    assertThat(dependencies).hasSize(2);
+    assertThat(dependencies).hasSize(4);
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir().toString());
 
     FileTreeDependencyModel fileTree = dependencies.get(1);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include" /* Does this name matter? */,
+    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include",
                        ImmutableList.of("*.jar"));
     verifyListProperty(fileTree.excludes(), "dependencies.compile.fileTree.exclude", ImmutableList.of("*.aar"));
+
+    FileTreeDependencyModel dependency3 = dependencies.get(2);
+    assertEquals("libz", dependency3.dir().toString());
+
+    FileTreeDependencyModel fileTree4 = dependencies.get(3);
+    verifyPropertyModel(fileTree4.dir(), STRING_TYPE, "libz2", STRING, DERIVED, 0, "dir");
+    verifyListProperty(fileTree4.includes(), "dependencies.implementation.fileTree.include",
+                       ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree4.excludes(), "dependencies.implementation.fileTree.exclude", ImmutableList.of("*.aar"));
   }
 
   @Test
