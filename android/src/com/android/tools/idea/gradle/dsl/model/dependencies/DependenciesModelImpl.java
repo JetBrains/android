@@ -76,7 +76,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @Nullable GradleDslClosure configurationElement,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
-      dest.addAll(create(configurationName, element, null));
+      dest.addAll(create(configurationName, element, configurationElement));
     }
   };
 
@@ -452,7 +452,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       String name = ((GradleDslMethodCall)resolved).getMethodName();
       if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
         for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
-          results.addAll(create(configurationName, argument, configurationElement));
+          ourArtifactFetcher.fetch(configurationName, argument, configurationElement, results);
         }
       }
     }
