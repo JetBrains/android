@@ -17,17 +17,16 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.FilteredPTableModel
+import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
+import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.create
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.TableUIProvider
-import com.android.tools.property.ptable2.PTableItem
-import org.jetbrains.android.formatter.AttributeComparator
-
-private val androidSortOrder: Comparator<PTableItem> = AttributeComparator<PTableItem> { it.name }
 
 class InspectorTableBuilder(
+  private val title: String,
+  private val filter: (InspectorPropertyItem) -> Boolean,
   private val model: InspectorPropertiesModel,
   controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>,
   editorProvider: EditorProvider<InspectorPropertyItem>
@@ -37,11 +36,11 @@ class InspectorTableBuilder(
   private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    if (properties.isEmpty) {
+    val tableModel = create(model, filter, alphabeticalSortOrder, emptyList(), true, false)
+    if (tableModel.items.isEmpty()) {
       return
     }
-
-    val tableModel = FilteredPTableModel.create(model, { true }, androidSortOrder, emptyList(), true, false)
-    inspector.addTable(tableModel, true, uiProvider)
+    val titleModel = inspector.addExpandableTitle(title, true)
+    inspector.addTable(tableModel, true, uiProvider, titleModel)
   }
 }
