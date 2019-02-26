@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_P
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
@@ -155,6 +156,39 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     expected.path = ":newName";
     expected.configuration = "flavor1Release";
     assertMatches(expected, dependency);
+  }
+
+  @Test
+  public void testSetNamesOnItemsInExpressionList() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+    ModuleDependencyModel dependency1 = dependencies.get(0);
+    dependency1.setName("newName");
+
+    ModuleDependencyModel dependency2 = dependencies.get(1);
+    dependency2.setName("newName2");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(2);
+    dependency1 = dependencies.get(0);
+    dependency2 = dependencies.get(1);
+
+    ExpectedModuleDependency expected1 = new ExpectedModuleDependency();
+    expected1.configurationName = "compile";
+    expected1.path = ":newName";
+    expected1.configuration = "flavor1Release";
+
+    ExpectedModuleDependency expected2 = new ExpectedModuleDependency();
+    expected2.configurationName = "compile";
+    expected2.path = ":newName2";
+    assertMatches(expected1, dependency1);
+    assertMatches(expected2, dependency2);
   }
 
   @Test
