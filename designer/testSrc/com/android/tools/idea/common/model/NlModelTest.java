@@ -76,6 +76,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 /**
  * Model tests. This checks that when a model is updated, we correctly
@@ -422,6 +423,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
+  @Ignore("b/126334920")
   public void testAddComponentsWithDependencyCheck() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
@@ -471,6 +473,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
+  @Ignore("b/126334920")
   public void testAddComponentsNoDependencyCheckOnMove() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
