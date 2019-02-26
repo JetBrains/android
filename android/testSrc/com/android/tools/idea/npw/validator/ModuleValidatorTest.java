@@ -47,6 +47,7 @@ public final class ModuleValidatorTest {
     assertValidModuleName("app");
     assertValidModuleName("lib");
     assertValidModuleName("lib_LIB0");
+    assertValidModuleName("lib-LIB1");
     assertValidModuleName(":libs:lib1"); // Module in sub folder
   }
 
@@ -60,7 +61,6 @@ public final class ModuleValidatorTest {
     assertInvalidModuleName("a'b");
     assertInvalidModuleName("'");
     assertInvalidModuleName("'''");
-    assertInvalidModuleName("lib-");
   }
 
   @Test
