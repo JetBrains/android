@@ -309,7 +309,7 @@ filegroup(
 filegroup(
     name = "deploy-artifacts",
     srcs = select({
-        "//tools/base/bazel:windows": [
+        "//tools/base/bazel:remote_windows": [
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
