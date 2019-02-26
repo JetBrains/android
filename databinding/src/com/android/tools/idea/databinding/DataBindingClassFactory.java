@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class DataBindingClassFactory {
   @NotNull
-  public static PsiClass getOrCreatePsiClass(@NotNull DataBindingInfo info) {
+  public static PsiClass getOrCreatePsiClass(@NotNull DataBindingLayoutInfo info) {
     PsiClass psiClass = info.getPsiClass();
     if (psiClass == null) {
       //noinspection SynchronizationOnLocalVariableOrMethodParameter

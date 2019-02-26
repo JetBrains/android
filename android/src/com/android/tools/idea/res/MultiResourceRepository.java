@@ -79,7 +79,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private final ResourceTable myCachedMaps = new ResourceTable();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, DataBindingInfo> myDataBindingResourceFiles = new HashMap<>();
+  private Map<String, DataBindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -221,10 +221,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   @Nullable
-  public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
+  public DataBindingLayoutInfo getDataBindingLayoutInfo(String layoutName) {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
-        DataBindingInfo info = child.getDataBindingInfoForLayout(layoutName);
+        DataBindingLayoutInfo info = child.getDataBindingLayoutInfo(layoutName);
         if (info != null) {
           return info;
         }
@@ -235,15 +235,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   @NotNull
-  public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
+  public Map<String, DataBindingLayoutInfo> getDataBindingResourceFiles() {
     synchronized (ITEM_MAP_LOCK) {
       long modificationCount = getModificationCount();
       if (myDataBindingResourceFilesModificationCount == modificationCount) {
         return myDataBindingResourceFiles;
       }
-      Map<String, DataBindingInfo> selected = new HashMap<>();
+      Map<String, DataBindingLayoutInfo> selected = new HashMap<>();
       for (LocalResourceRepository child : myLocalResources) {
-        Map<String, DataBindingInfo> childFiles = child.getDataBindingResourceFiles();
+        Map<String, DataBindingLayoutInfo> childFiles = child.getDataBindingResourceFiles();
         if (childFiles != null) {
           selected.putAll(childFiles);
         }
