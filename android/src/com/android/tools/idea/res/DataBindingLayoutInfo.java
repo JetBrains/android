@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A data class that keeps data binding related information that was extracted from a layout file.
+ * An interface for data binding related information that can be extracted from a layout xml file.
  */
-public interface DataBindingInfo extends ModificationTracker {
+public interface DataBindingLayoutInfo extends ModificationTracker {
   AndroidFacet getFacet();
 
   String getClassName();
@@ -53,12 +53,17 @@ public interface DataBindingInfo extends ModificationTracker {
 
   void setPsiClass(PsiClass psiClass);
 
-  // true if this is a merged info, false if it refers to a layout file.
+  /**
+   * Whether this info is extracted from a singleton layout file or merged layout files.
+   */
   boolean isMerged();
 
-  // if this layout has variations in other configurations, it also has a merged info.
+  /**
+   * Additional info if a target layout file has additional configurations (e.g. for other
+   * resolutions or orientations).
+   */
   @Nullable
-  DataBindingInfo getMergedInfo();
+  DataBindingLayoutInfo getMergedInfo();
 
   @NotNull
   Map<String, PsiDataBindingResourceItem> getItems(@NotNull DataBindingResourceType type);

@@ -31,11 +31,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * Data Binding Info that merges Multiple DataBindingInfo classes from different configurations.
+ * Data Binding info merged from multiple DataBindingLayoutInfo instances from different configurations.
  */
-class MergedDataBindingInfo implements DataBindingInfo {
-  @NotNull private final List<LayoutDataBindingInfo> myInfoList;
-  @NotNull private final LayoutDataBindingInfo myBaseInfo;
+class MergedDataBindingLayoutInfo implements DataBindingLayoutInfo {
+  @NotNull private final List<DefaultDataBindingLayoutInfo> myInfoList;
+  @NotNull private final DefaultDataBindingLayoutInfo myBaseInfo;
 
   private PsiClass myPsiClass;
 
@@ -43,7 +43,7 @@ class MergedDataBindingInfo implements DataBindingInfo {
 
   @NotNull private final CachedValue<Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>> myResourceItemCache;
 
-  public MergedDataBindingInfo(@NotNull List<LayoutDataBindingInfo> infoList) {
+  public MergedDataBindingLayoutInfo(@NotNull List<DefaultDataBindingLayoutInfo> infoList) {
     myInfoList = infoList;
     myBaseInfo = selectBaseInfo();
     CachedValuesManager cacheManager = CachedValuesManager.getManager(myBaseInfo.getProject());
@@ -51,7 +51,7 @@ class MergedDataBindingInfo implements DataBindingInfo {
     myViewWithIdsCache = cacheManager.createCachedValue(() -> {
       Set<String> used = new HashSet<>();
       List<ViewWithId> result = new ArrayList<>();
-      for (DataBindingInfo info : myInfoList) {
+      for (DataBindingLayoutInfo info : myInfoList) {
         info.getViewsWithIds().forEach(viewWithId -> {
           if (used.add(viewWithId.name)) {
             result.add(viewWithId);
@@ -63,7 +63,7 @@ class MergedDataBindingInfo implements DataBindingInfo {
 
     myResourceItemCache = cacheManager.createCachedValue(() -> {
       Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> result = new EnumMap<>(DataBindingResourceType.class);
-      for (DataBindingInfo info : myInfoList) {
+      for (DataBindingLayoutInfo info : myInfoList) {
         for (DataBindingResourceType type : DataBindingResourceType.values()) {
           Set<String> used = new HashSet<>();
           Map<String, PsiDataBindingResourceItem> itemsByName = info.getItems(type);
@@ -80,9 +80,9 @@ class MergedDataBindingInfo implements DataBindingInfo {
   }
 
   @SuppressWarnings("ConstantConditions")
-  public LayoutDataBindingInfo selectBaseInfo() {
-    LayoutDataBindingInfo best = null;
-    for (LayoutDataBindingInfo info : myInfoList) {
+  public DefaultDataBindingLayoutInfo selectBaseInfo() {
+    DefaultDataBindingLayoutInfo best = null;
+    for (DefaultDataBindingLayoutInfo info : myInfoList) {
       if (best == null ||
           best.getConfigurationName().length() > info.getConfigurationName().length()) {
         best = info;
@@ -158,7 +158,7 @@ class MergedDataBindingInfo implements DataBindingInfo {
   @Override
   public long getModificationCount() {
     int total = myInfoList.size();
-    for (DataBindingInfo info : myInfoList) {
+    for (DataBindingLayoutInfo info : myInfoList) {
       total += info.getModificationCount();
     }
     return total;
@@ -171,7 +171,7 @@ class MergedDataBindingInfo implements DataBindingInfo {
 
   @Override
   @Nullable
-  public DataBindingInfo getMergedInfo() {
+  public DataBindingLayoutInfo getMergedInfo() {
     return null;
   }
 }

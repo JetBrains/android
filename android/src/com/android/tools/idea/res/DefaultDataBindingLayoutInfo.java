@@ -35,9 +35,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * A data class that keeps data binding related information that was extracted from a layout file.
+ * Data Binding info for a single, target layout XML file.
+ *
+ * See also: {@link MergedDataBindingLayoutInfo}
  */
-public class LayoutDataBindingInfo implements DataBindingInfo {
+public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
   @NotNull private final Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>> myItems =
       new EnumMap<>(DataBindingResourceType.class);
 
@@ -51,10 +53,10 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
   private boolean myClassNameSpecifiedByUser;
   private final AndroidFacet myFacet;
   @NotNull private final String myConfigurationName;
-  private MergedDataBindingInfo myMergedInfo;
+  private MergedDataBindingLayoutInfo myMergedInfo;
 
-  public LayoutDataBindingInfo(@NotNull AndroidFacet facet, @NotNull PsiResourceFile psiResourceFile, @NotNull String className,
-                               @NotNull String packageName, boolean classNameSpecifiedByUser) {
+  public DefaultDataBindingLayoutInfo(@NotNull AndroidFacet facet, @NotNull PsiResourceFile psiResourceFile, @NotNull String className,
+                                      @NotNull String packageName, boolean classNameSpecifiedByUser) {
     myFacet = facet;
     myNonConfigurationClassName = className;
     myClassName = className;
@@ -99,7 +101,7 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
     }
   }
 
-  public void setMergedInfo(MergedDataBindingInfo mergedInfo) {
+  public void setMergedInfo(MergedDataBindingLayoutInfo mergedInfo) {
     if (myMergedInfo == mergedInfo) {
       return;
     }
@@ -222,7 +224,7 @@ public class LayoutDataBindingInfo implements DataBindingInfo {
 
   @Nullable
   @Override
-  public DataBindingInfo getMergedInfo() {
+  public DataBindingLayoutInfo getMergedInfo() {
     return myMergedInfo;
   }
 
