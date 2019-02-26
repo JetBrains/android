@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,14 +75,14 @@ import org.jetbrains.annotations.Nullable;
 public class NlPreviewForm implements Disposable, CaretListener {
 
   public static final String PREVIEW_DESIGN_SURFACE = "NlPreviewFormDesignSurface";
-  public static final int DELAY_AFTER_TYPING_MS = 250;
 
   private final NlPreviewManager myManager;
   private final Project myProject;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final JPanel myRoot = new JPanel(new BorderLayout());
-  private final MergingUpdateQueue myRenderingQueue;
+  private final MergingUpdateQueue myRenderingQueue =
+    new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;
   private boolean myIgnoreListener;
   private RenderResult myRenderResult;
@@ -117,9 +117,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
     mySurface.setName(PREVIEW_DESIGN_SURFACE);
 
-    myRenderingQueue =
-      new MergingUpdateQueue("android.layout.preview.caret", DELAY_AFTER_TYPING_MS, true, null,
-                             this, null, Alarm.ThreadToUse.SWING_THREAD);
     myRenderingQueue.setRestartTimerOnAdd(true);
 
     myWorkBench = new WorkBench<>(myProject, "Preview", null);
