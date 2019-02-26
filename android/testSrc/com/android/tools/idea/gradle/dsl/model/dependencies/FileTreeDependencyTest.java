@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENC
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_FROM_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_INCLUDES_IN_METHOD_CALL_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_REFERENCE_DIR_IN_METHOD_CALL_NOTATION;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
@@ -40,6 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
@@ -123,9 +125,9 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel fileTree = dependencies.get(1);
     verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
-    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include" /* Does this name matter? */, ImmutableList.of("*.jar"));
+    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include" /* Does this name matter? */,
+                       ImmutableList.of("*.jar"));
     verifyListProperty(fileTree.excludes(), "dependencies.compile.fileTree.exclude", ImmutableList.of("*.aar"));
-
   }
 
   @Test
@@ -289,6 +291,41 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     DependenciesModel dependenciesModel = buildModel.dependencies();
     List<FileTreeDependencyModel> fileTrees = dependenciesModel.fileTrees();
     assertThat(fileTrees).hasSize(0);
+  }
+
+  @Test
+  public void testSetDirWhenMultiple() throws IOException {
+    writeToBuildFile(FILE_TREE_DEPENDENCY_SET_DIR_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependenciesModel.fileTrees();
+    assertThat(fileTrees).hasSize(2);
+
+    FileTreeDependencyModel fileTree = fileTrees.get(0);
+    assertEquals("libs", fileTree.dir().toString());
+    verifyPropertyModel(fileTree.dir(), STRING_TYPE, "libs", STRING, DERIVED, 0, "dir");
+    verifyPropertyModel(fileTree.includes(), STRING_TYPE, "*.jar", STRING, DERIVED, 0, "include" /* Is this name fine? */);
+
+    // Set the value to a new one
+    fileTree.dir().setValue("hello");
+    final GradlePropertyModel includesList = fileTree.includes().convertToEmptyList();
+    includesList.addListValue().setValue("*.aar");
+    includesList.addListValue().setValue("*.jar");
+
+    applyChangesAndReparse(buildModel);
+    assertThat(fileTrees).hasSize(2);
+
+    dependenciesModel = buildModel.dependencies();
+    fileTrees = dependenciesModel.fileTrees();
+    assertEquals("hello", fileTrees.get(0).dir().toString());
+    verifyPropertyModel(fileTree.dir(), STRING_TYPE, "hello", STRING, DERIVED, 0, "dir");
+    verifyListProperty(fileTree.includes(), "dependencies.compile.fileTree.include" /* is it the right name? */,
+                       ImmutableList.of("*.aar", "*.jar"));
+    assertMissingProperty(fileTree.excludes());
+
+    fileTrees = dependenciesModel.fileTrees();
+    assertEquals("abc", fileTrees.get(1).dir().toString());
   }
 
   @Test
