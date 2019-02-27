@@ -452,7 +452,7 @@ public final class StudioFlags {
     "gutter.annotator.background.enabled",
     "Enable gutter icon annotator to be run in background.",
     "Enable gutter icon annotator to be run after all other annotators and in the background.",
-    false);
+    true);
 
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
