@@ -61,12 +61,11 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveEl
 public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements
                                                                               ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
-  @NotNull private String myConfigurationName;
   protected boolean mySetThrough = false;
 
   public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement, @NotNull String configurationName) {
+    super(configurationName);
     myConfigurationElement = configurationElement;
-    myConfigurationName = configurationName;
   }
 
   @NotNull
@@ -127,12 +126,6 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   @Override
   public void disableSetThrough() {
     mySetThrough = false;
-  }
-
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
   }
 
   static void createNew(@NotNull GradlePropertiesDslElement parent,
