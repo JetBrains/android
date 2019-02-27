@@ -43,7 +43,6 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @NonNls private static final String PATH = "path";
   @NonNls private static final String CONFIGURATION = "configuration";
 
-  @NotNull private String myConfigurationName;
   @NotNull private GradleDslMethodCall myDslElement;
 
   @Nullable
@@ -73,7 +72,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
 
   private ModuleDependencyModelImpl(@NotNull String configurationName,
                                     @NotNull GradleDslMethodCall dslElement) {
-    myConfigurationName = configurationName;
+    super(configurationName);
     myDslElement = dslElement;
   }
 
@@ -81,12 +80,6 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @NotNull
   protected GradleDslMethodCall getDslElement() {
     return myDslElement;
-  }
-
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
   }
 
   @Override

@@ -38,7 +38,6 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";
 
-  @NotNull private String myConfigurationName;
   @NotNull private final GradleDslMethodCall myDslElement;
 
   @NotNull
@@ -77,7 +76,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
 
   private FileTreeDependencyModelImpl(@NotNull String configurationName,
                                       @NotNull GradleDslMethodCall dslElement) {
-    myConfigurationName = configurationName;
+    super(configurationName);
     myDslElement = dslElement;
   }
 
@@ -85,12 +84,6 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @NotNull
   protected GradleDslElement getDslElement() {
     return myDslElement;
-  }
-
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
   }
 
   @Override
