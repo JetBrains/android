@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.AndroidFindUsagesTest;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.AndroidDomInspection;
+import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
 
 /**

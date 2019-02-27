@@ -35,7 +35,7 @@ import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.Arrays;
 import java.util.List;
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;

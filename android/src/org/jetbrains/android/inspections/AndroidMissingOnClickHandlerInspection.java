@@ -21,7 +21,7 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.AndroidGotoRelatedProvider;
-import org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction;
+import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;

@@ -29,7 +29,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.actions.OverrideResourceAction;
+import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;

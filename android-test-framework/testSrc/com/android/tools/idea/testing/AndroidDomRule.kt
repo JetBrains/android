@@ -19,9 +19,9 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.android.inspections.AndroidDomInspection
-import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 
