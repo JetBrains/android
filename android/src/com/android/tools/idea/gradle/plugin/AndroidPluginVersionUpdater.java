@@ -29,6 +29,7 @@ import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.UNSURE;
 import static com.intellij.util.ThreeState.YES;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -76,6 +77,7 @@ public class AndroidPluginVersionUpdater {
     myTextSearch = textSearch;
   }
 
+  @Slow
   public boolean canDetectPluginVersionToUpdate(@NotNull GradleVersion pluginVersion) {
     final boolean[] foundPlugin = new boolean[1];
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
