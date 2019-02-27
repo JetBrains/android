@@ -320,9 +320,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
 
     myNameComponent.append(appInfo.packageId, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-
-    myNameComponent.append(" (version ", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    myNameComponent.append(" (Version Name: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
     myNameComponent.append(appInfo.versionName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    myNameComponent.append(", Version Code: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    myNameComponent.append(String.valueOf(appInfo.versionCode), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     myNameComponent.append(")", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
