@@ -43,13 +43,14 @@ public class BaselineConstraintHandlingTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Open the layout file which uses constraint layout and switch to design view
-   *   2. From the palette window, drag and drop couple of widgets to constraint layout. Say, a button and a text view
-   *   3. Now click on a widget in the design view, you should see a wide and thin rectangle.
-   *   4. Click on the thin rectangle of one widget and create a constraint with similar rectangle in another widget
-   *   5. Repeat steps 3 and 4 by aligning widgets in blue print mode (Verify 1)
+   *   - Open the layout file which uses constraint layout and switch to design view
+   *   - Left click the view to enable show baseline.
+   *   - From the palette window, drag and drop couple of widgets to constraint layout. Say, a button and a text view
+   *   - Now click on a widget in the design view, you should see a wide and thin rectangle.
+   *   - Click on the thin rectangle of one widget and create a constraint with similar rectangle in another widget
+   *   - Repeat steps 3 and 4 by aligning widgets in blue print mode (Verify 1)
    *   Verify:
-   *   1. Should be able to baseline the widgets in both design view and blueprint mode. Verify the same in xml view by checking
+   *   - Should be able to baseline the widgets in both design view and blueprint mode. Verify the same in xml view by checking
    *      for "layout_constraintBaseline_toBaselineOf"
    *   </pre>
    */
@@ -62,8 +63,14 @@ public class BaselineConstraintHandlingTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor
-      .waitForRenderToFinish(Wait.seconds(30))
+      .waitForRenderToFinish(Wait.seconds(120))
       .showOnlyDesignView()
+      .findView("TextView", 0)
+      .rightClick();
+    layoutEditor.invokeContextMenuAction("Show Baseline");
+
+    layoutEditor
+      .waitForRenderToFinish(Wait.seconds(120))
       .dragComponentToSurface("Buttons", "Button")
       .findView("Button", 0)
       .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
