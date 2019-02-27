@@ -45,10 +45,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.AndroidDomInspection;
-import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
+import org.jetbrains.android.dom.inspections.AndroidDomInspection;
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
