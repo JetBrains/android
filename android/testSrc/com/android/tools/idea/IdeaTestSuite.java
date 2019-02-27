@@ -77,9 +77,6 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
     // Run Kotlin in-process for easier control over its JVM args.
     System.setProperty("kotlin.compiler.execution.strategy", "in-process");
-
-    // Force load kotlin plugin to enable tests that use kotlin-plugin classes which are not on the class path of the test runner JVM
-    // and should be loaded by the IDE.
     IdeaTestApplication.getInstance();
   }
 }
