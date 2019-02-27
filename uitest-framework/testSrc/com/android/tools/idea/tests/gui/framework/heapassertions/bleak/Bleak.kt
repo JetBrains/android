@@ -86,6 +86,12 @@ fun runWithBleak(scenario: Runnable) {
 
 private val USE_INCREMENTAL_PROPAGATION = System.getProperty("bleak.incremental.propagation") == "true"
 
+private fun mostCommonClassesOf(objects: Collection<Any?>, maxResults: Int): List<Pair<Class<*>, Int>> {
+  val classCounts = mutableMapOf<Class<*>, Int>()
+  objects.forEach { if (it != null) classCounts.merge(it.javaClass, 1) { currentCount, _ -> currentCount + 1 } }
+  return classCounts.toList().sortedByDescending { it.second }.take(maxResults)
+}
+
 private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   scenario()  // warm up
   if (System.getProperty("enable.bleak") != "true") return  // if BLeak isn't enabled, the test will run normally.
@@ -119,8 +125,14 @@ private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
         val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
         if (prevLeakRoot != null) {
           val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)
+          val newChildrenObjects = IdentityHashMap<Any, Any>(leakRoot.degree)
           prevChildrenObjects.putAll(prevLeakRoot.children.map { it.obj to it.obj })  // use map as a set
-          leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }.take(20).forEach {
+          newChildrenObjects.putAll(leakRoot.children.map { it.obj to it.obj })  // use map as a set
+          val addedChildren = leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }
+
+          // print information about the newly added objects
+          appendln(" ${leakRoot.degree} children (+${leakRoot.degree - prevLeakRoot.degree}) [${newChildrenObjects.size} distinct (+${newChildrenObjects.size- prevChildrenObjects.size})]. New children: ${addedChildren.size}")
+          addedChildren.take(20).forEach {
             try {
               appendln("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
             }
@@ -128,6 +140,22 @@ private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
               appendln("    Added object: ${it.type.name} [NPE in toString]")
             }
           }
+          // if many objects are added, print summary information about their most common classes
+          if (addedChildren.size > 20) {
+            appendln("    ...")
+            appendln("  Most common classes of added objects: ")
+            mostCommonClassesOf(addedChildren.map{it.obj}, 5).forEach {
+              appendln("    ${it.second} ${it.first.name}")
+            }
+          }
+
+          // print information about objects retained by the added children:
+          val retained = finalGraph.dominatedNodes(addedChildren.toSet())
+          appendln("\n Retained by new children: ${retained.size} (${retained.fold(0) { acc, node -> acc + node.getApproximateSize() }} bytes)")
+          mostCommonClassesOf(retained.map{it.obj}, 50).forEach {
+            appendln("    ${it.second} ${it.first.name}")
+          }
+
         }
         else {
           appendln("Warning: path and object have both changed between penultimate and final snapshots for this root")
