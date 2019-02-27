@@ -130,11 +130,11 @@ public class AndroidCompletionContributor extends CompletionContributor {
       }
       return false;
     }
-    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.ANIM)) {
+    else if (AndroidResourceDomFileDescription.isFileInResourceFolderType(xmlFile, ResourceFolderType.ANIM)) {
       addAll(AndroidAnimationUtils.getPossibleRoots(), resultSet);
       return false;
     }
-    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.ANIMATOR)) {
+    else if (AndroidResourceDomFileDescription.isFileInResourceFolderType(xmlFile, ResourceFolderType.ANIMATOR)) {
       addAll(AndroidAnimatorUtil.getPossibleRoots(), resultSet);
       return false;
     }
@@ -158,7 +158,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_RESOURCES));
       return false;
     }
-    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.MIPMAP)) {
+    else if (AndroidResourceDomFileDescription.isFileInResourceFolderType(xmlFile, ResourceFolderType.MIPMAP)) {
       addAll(AndroidDrawableDomUtil.getPossibleRoots(facet, ResourceFolderType.MIPMAP), resultSet);
       return false;
     }

@@ -16,35 +16,34 @@
 
 package org.jetbrains.android.dom.xml;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription;
+import org.jetbrains.android.dom.motion.MotionDomFileDescription;
+import org.jetbrains.android.dom.motion.MotionScene;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class XmlResourceDomFileDescription extends AndroidResourceDomFileDescription<XmlResourceElement> {
+/**
+ * Describes all files in {@link ResourceFolderType.XML}, except for {@link MotionScene}.
+ *
+ * @see MotionDomFileDescription
+ */
+public class XmlResourceDomFileDescription extends CustomLogicResourceDomFileDescription<XmlResourceElement> {
   public XmlResourceDomFileDescription() {
-    super(XmlResourceElement.class, "PreferenceScreen", ResourceFolderType.XML);
+    super(XmlResourceElement.class, ResourceFolderType.XML, SdkConstants.TAG_PREFERENCE_SCREEN);
   }
 
+  /**
+   * If the root tag uses a custom namespace, leave it alone and don't provide any schema. See IDEA-105294.
+   */
   @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
-  }
-
-  public static boolean isXmlResourceFile(@NotNull final XmlFile file) {
-    return ReadAction.compute(() -> new XmlResourceDomFileDescription().isMyFile(file, null));
-  }
-
-  @Override
-  public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-    if (!super.isMyFile(file, module)) {
-      return false;
-    }
+  public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
     final XmlTag rootTag = file.getRootTag();
 
     if (rootTag == null || !rootTag.getNamespace().isEmpty()) {
@@ -56,5 +55,9 @@ public class XmlResourceDomFileDescription extends AndroidResourceDomFileDescrip
       }
     }
     return true;
+  }
+
+  public static boolean isXmlResourceFile(@NotNull final XmlFile file) {
+    return ReadAction.compute(() -> new XmlResourceDomFileDescription().isMyFile(file, null));
   }
 }

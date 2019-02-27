@@ -16,9 +16,9 @@
 package com.android.tools.idea.dom.xml;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 
-public class PathsDomFileDescription extends AbstractSingleRootFileDescription<Paths> {
+public class PathsDomFileDescription extends SingleRootResourceDomFileDescription<Paths> {
   public static final String TAG_NAME = "paths";
 
   public PathsDomFileDescription() {

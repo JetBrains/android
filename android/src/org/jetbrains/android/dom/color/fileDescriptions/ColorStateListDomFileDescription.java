@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.color.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.color.ColorSelector;
 
 /**
  * Framework code: ColorStateList#createFromXml
  */
-public class ColorStateListDomFileDescription extends AbstractSingleRootFileDescription<ColorSelector> {
+public class ColorStateListDomFileDescription extends SingleRootResourceDomFileDescription<ColorSelector> {
   public ColorStateListDomFileDescription() {
     super(ColorSelector.class, "selector", ResourceFolderType.COLOR);
   }
