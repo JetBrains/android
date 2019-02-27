@@ -306,7 +306,8 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
       }
     }
     else if (myType != Type.BASELINE) {
-      picker.addRect(this, 0, swingX - ANCHOR_SIZE, swingY - ANCHOR_SIZE, swingX + ANCHOR_SIZE, swingY + ANCHOR_SIZE);
+      // The height of Baseline Anchor is smaller.
+      picker.addRect(this, 0, swingX - ANCHOR_SIZE / 2, swingY - ANCHOR_SIZE / 2, swingX + ANCHOR_SIZE, swingY + ANCHOR_SIZE);
     }
     else {
       // baseline anchor
