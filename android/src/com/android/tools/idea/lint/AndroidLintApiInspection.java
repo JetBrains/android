@@ -18,7 +18,7 @@ package com.android.tools.idea.lint;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.actions.OverrideResourceAction;
+import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;

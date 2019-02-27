@@ -21,7 +21,7 @@ import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.actions.OverrideResourceAction;
+import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.icons.AllIcons;

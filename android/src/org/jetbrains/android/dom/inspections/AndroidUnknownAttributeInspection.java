@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.inspections;
+package org.jetbrains.android.dom.inspections;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;

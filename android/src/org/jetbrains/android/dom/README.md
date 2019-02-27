@@ -8,7 +8,7 @@ general introduction. If it helps, you can think of the lower-level XML API as s
 DOM as a higher level ORM-like API (`manifest.getActivities()`).
 
 In Android we use a mixture of static and dynamic DOM definitions:
-1. Some things are defined using classes and annotations, see for example [Manifest](manifest/Manifest.java) (note: to get correct
+1. Some files are defined using classes and annotations, see for example [Manifest](manifest/Manifest.java) (note: to get correct
    information you should most likely use the merged manifest, but that's outside of the scope of this doc).
 2. Other information is read from resources, using naming conventions to find a styleable that contains attrs relevant to a given XML tag.
    For example if we recognize a tag as corresponding to a View subclass in a layout file (e.g. "TextView"), we find the corresponding
@@ -18,7 +18,24 @@ In Android we use a mixture of static and dynamic DOM definitions:
 3. Sometimes the styleable is determined statically, but the attrs are read dynamically to stay up to date with the platform version used
    in the project. This is done using the [`@Styleable` annotation](Styleable.java).
 
-Detailed notes for specific file types below.
+Each file format is defined by a
+[DomFileDescription](../../../../../../../../idea/xml/dom-openapi/src/com/intellij/util/xml/DomFileDescription.java) subclass, which
+provides a way to tell apart XML files of different types. See [TransitionDomFileDescription](transition/TransitionDomFileDescription.java)
+for an example. For a case if you want to create a file format with single possible root, consider using
+[AbstractSingleRootFileDescription](AbstractSingleRootFileDescription.java) instead of extending `DomFileDescription` directly.
+
+File formats that are used by Android framework are loosely specified by documentation on developer.android.com, but this information is
+quite often isn't accurate, and thus framework inflaters should be used when implementing support for new formats / fixing issues with
+support for existing ones. Please make sure to add pointers to framework code, `DomFileDescription` subclasses javadoc is a good place to
+store them.
+
+See Javadoc on `AndroidDomTest` class (and check its subclasses) to get an idea how to test changes to files in this package.
+
+## Misc implementation details
+
+To disable spellchecking inside a tag's value, use
+[NoSpellchecking](../../../../../../../../idea/spellchecker/src/com/intellij/spellchecker/xml/NoSpellchecking.java) annotation. See
+`XmlSpellcheckingStrategy#isSuppressedFor` for the code that implements that.
 
 ## res/xml DOM
 
