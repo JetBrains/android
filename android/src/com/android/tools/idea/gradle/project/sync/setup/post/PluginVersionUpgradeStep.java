@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
@@ -38,6 +39,7 @@ public abstract class PluginVersionUpgradeStep {
    *
    * @see #checkAndPerformUpgrade
    */
+  @Slow
   public abstract boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo);
 
   /**
@@ -49,5 +51,6 @@ public abstract class PluginVersionUpgradeStep {
    *
    * @see #checkUpgradable
    */
+  @Slow
   public abstract boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo);
 }
