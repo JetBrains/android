@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,6 +44,7 @@ public class PluginVersionUpgrade {
     myUpgradeSteps = upgradeSteps;
   }
 
+  @Slow
   public boolean isUpgradable() {
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
     if (pluginInfo == null) {
@@ -56,6 +58,7 @@ public class PluginVersionUpgrade {
    *
    * @return {@code true} if an upgrade was needed and was successfully performed; {@code false} otherwise.
    */
+  @Slow
   public boolean checkAndPerformUpgrade() {
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
     if (pluginInfo == null) {

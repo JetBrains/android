@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -48,6 +49,7 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
   }
 
   @Override
+  @Slow
   public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (myUpgradeReminder.shouldRecommendUpgrade(project) && shouldRecommendUpgrade(pluginInfo)) {
       GradleVersion current = pluginInfo.getPluginVersion();
@@ -64,6 +66,7 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
   }
 
   @Override
+  @Slow
   public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (!checkUpgradable(project, pluginInfo)) {
       return false;
