@@ -166,9 +166,16 @@ object MavenClassRegistry {
         "com.android.support:appcompat-v7"
 
       "Data",
-      "WorkManager" -> "android.arch.work:work-runtime"
+      "ListenableWorker",
+      "OneTimeWorkRequest",
+      "PeriodicWorkRequest",
+      "Worker",
+      "WorkManager",
+      "WorkRequest" -> "android.arch.work:work-runtime"
 
       "RxWorker" -> "android.arch.work:work-rxjava2"
+
+      "CoroutineWorker" -> "android.arch.work.work-runtime-ktx"
 
       "CardView" -> "com.android.support:cardview-v7"
 
