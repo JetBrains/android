@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.CustomDrawable;
 
 /**
  * Represents "drawable" xml element in a drawable resource.
  */
-public class CustomDrawableDomFileDescription extends AbstractSingleRootFileDescription<CustomDrawable> {
+public class CustomDrawableDomFileDescription extends SingleRootResourceDomFileDescription<CustomDrawable> {
   public static final String TAG_NAME = "drawable";
 
   public CustomDrawableDomFileDescription() {

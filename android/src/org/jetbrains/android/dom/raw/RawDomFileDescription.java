@@ -17,21 +17,16 @@ package org.jetbrains.android.dom.raw;
 
 import com.android.resources.ResourceFolderType;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.ResourceFolderTypeDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-public class RawDomFileDescription extends AndroidResourceDomFileDescription<XmlRawResourceElement> {
+public class RawDomFileDescription extends ResourceFolderTypeDomFileDescription<XmlRawResourceElement> {
 
   public RawDomFileDescription() {
-    super(XmlRawResourceElement.class, "raw", ResourceFolderType.RAW);
+    super(XmlRawResourceElement.class, ResourceFolderType.RAW, "raw");
   }
 
   public static boolean isRawFile(@NotNull final XmlFile file) {
     return new RawDomFileDescription().isMyFile(file, null);
-  }
-
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
   }
 }

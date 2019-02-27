@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.transitionManager;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 
 /**
  * File description for transition managers
  * Parsing code in the framework: TransitionInflater#createTransitionManagerFromXml
  */
-public class TransitionManagerDomFileDescription extends AbstractSingleRootFileDescription<TransitionManager> {
+public class TransitionManagerDomFileDescription extends SingleRootResourceDomFileDescription<TransitionManager> {
   public TransitionManagerDomFileDescription() {
     super(TransitionManager.class, "transitionManager", ResourceFolderType.TRANSITION);
   }

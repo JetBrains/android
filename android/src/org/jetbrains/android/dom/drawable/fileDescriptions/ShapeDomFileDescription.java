@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.Shape;
 
-public class ShapeDomFileDescription extends AbstractSingleRootFileDescription<Shape> {
+public class ShapeDomFileDescription extends SingleRootResourceDomFileDescription<Shape> {
 
   public ShapeDomFileDescription() {
     super(Shape.class, "shape", ResourceFolderType.DRAWABLE);

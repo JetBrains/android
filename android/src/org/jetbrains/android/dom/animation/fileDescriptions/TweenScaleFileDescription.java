@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.Scale;
 
 /**
  * @see TweenSetFileDescription
  */
-public class TweenScaleFileDescription extends AbstractSingleRootFileDescription<Scale> {
+public class TweenScaleFileDescription extends SingleRootResourceDomFileDescription<Scale> {
   public TweenScaleFileDescription() {
     super(Scale.class, "scale", ResourceFolderType.ANIM);
   }
