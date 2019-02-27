@@ -16,19 +16,33 @@
 
 package org.jetbrains.android.dom.xml;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.dom.xml.PathsDomFileDescription;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiJavaParserFacade;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class AndroidXmlResourcesUtil {
   @NonNls public static final String SEARCHABLE_TAG_NAME = "searchable";
@@ -60,7 +74,16 @@ public class AndroidXmlResourcesUtil {
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
     List<String> result = new ArrayList<>();
-    result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getPreferencesClassMap(facet)));
+
+    String preferencesLibName = MigrateToAndroidxUtil.getNameInProject(CLASS_PREFERENCE_ANDROIDX, facet.getModule().getProject());
+    boolean hasAndroidXClass = JavaPsiFacade.getInstance(facet.getModule().getProject())
+                                 .findClass(preferencesLibName, facet.getModule().getModuleWithLibrariesScope()) != null;
+    if (hasAndroidXClass) {
+      result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getAndroidXPreferencesClassMap(facet)));
+    }
+    else {
+      result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getFrameworkPreferencesClassMap(facet)));
+    }
     result.addAll(ROOT_TAGS);
 
     return result;
@@ -69,5 +92,45 @@ public class AndroidXmlResourcesUtil {
   public static boolean isSupportedRootTag(@NotNull AndroidFacet facet, @NotNull String rootTagName) {
     return ROOT_TAGS.contains(rootTagName) ||
            LayoutViewClassUtils.findClassByTagName(facet, rootTagName, SdkConstants.CLASS_PREFERENCE) != null;
+  }
+
+  public static boolean isAndroidXPreferenceFile(@NotNull XmlTag tag, @NotNull AndroidFacet facet) {
+    XmlTag rootTag = ((XmlFile)tag.getContainingFile()).getRootTag();
+    if (rootTag == null) {
+      return false;
+    }
+    String rootTagName = rootTag.getName();
+    if (rootTagName.startsWith(ANDROIDX_PKG_PREFIX)) {
+      return true;
+    }
+    else if (rootTagName.startsWith(ANDROID_PKG_PREFIX)) {
+      return false;
+    }
+    else if (rootTagName.startsWith("android.support.v") && StringUtil.getPackageName(rootTagName).endsWith("preference")) {
+      return true;
+    }
+    Project project = facet.getModule().getProject();
+    String preferencesLibName = MigrateToAndroidxUtil.getNameInProject(CLASS_PREFERENCE_ANDROIDX, project);
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
+    if (psiFacade.findClass(preferencesLibName, rootTag.getResolveScope()) == null) {
+      return false;
+    }
+    PsiJavaParserFacade parser = psiFacade.getParserFacade();
+    try {
+      PsiType type = parser.createTypeFromText(rootTagName, null);
+      if (type instanceof PsiClassType && ((PsiClassType)type).resolve() != null) {
+        if (InheritanceUtil.isInheritor(type, preferencesLibName)) {
+          return true;
+        }
+        return false;
+      }
+    } catch (IncorrectOperationException e) {
+      // When the root tag does not specify a valid type but is in a AndroidX project. eg. <preference-headers>, since AndroidX is being
+      // used we assume this is an AndroidX file.
+      return true;
+    }
+    // The root tag is an unqualified name (eg. PreferenceScreen), if AndroidX is being used then we assume that AndroidX classes
+    // are being used.
+    return true;
   }
 }
