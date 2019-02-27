@@ -36,6 +36,7 @@ import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -71,7 +72,7 @@ public class SubtagsProcessingUtil {
 
     PsiClass libClass = preferenceClassMap.get(MigrateToAndroidxUtil.getNameInProject(CLASS_PREFERENCE_GROUP_ANDROIDX, project));
     if (libClass != null) {
-      if (psiManager.areElementsEquivalent(frameworkClass, psiClass) || psiClass.isInheritor(libClass, true)) {
+      if (psiManager.areElementsEquivalent(libClass, psiClass) || psiClass.isInheritor(libClass, true)) {
         return true;
       }
     }
@@ -124,7 +125,12 @@ public class SubtagsProcessingUtil {
     }
 
     // for preferences
-    Map<String, PsiClass> prefClassMap = AttributeProcessingUtil.getPreferencesClassMap(facet);
+    Map<String, PsiClass> prefClassMap;
+    if (AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)) {
+      prefClassMap = AttributeProcessingUtil.getAndroidXPreferencesClassMap(facet);
+    } else {
+      prefClassMap = AttributeProcessingUtil.getFrameworkPreferencesClassMap(facet);
+    }
     PsiClass psiClass = prefClassMap.get(tagName);
 
     if (psiClass != null && isPreferenceGroup(psiClass, prefClassMap)) {

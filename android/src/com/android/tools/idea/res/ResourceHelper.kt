@@ -30,6 +30,7 @@ import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_DRAWABLE
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.CLASS_PREFERENCE
+import com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
@@ -88,12 +89,11 @@ import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiRecursiveElementVisitor
-import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlElementType
@@ -111,6 +111,7 @@ import com.intellij.util.ui.TwoColorsIcon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.jetbrains.android.refactoring.getNameInProject
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
@@ -335,12 +336,11 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
  * @see .isViewPackageNeeded
  */
 fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int): Boolean {
-  val viewClass = JavaPsiFacade.getInstance(baseClass.project).findClass(CLASS_VIEW, GlobalSearchScope.allScope(baseClass.project))
-
   return when {
-    viewClass != null && baseClass.isInheritor(viewClass, true) -> isViewPackageNeeded(qualifiedName, apiLevel)
-    CLASS_PREFERENCE == baseClass.qualifiedName -> // Handled by PreferenceInflater in Android framework
-      !isDirectlyInPackage(qualifiedName, "android.preference.")
+    InheritanceUtil.isInheritor(baseClass, CLASS_VIEW) -> isViewPackageNeeded(qualifiedName, apiLevel)
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE) -> !isDirectlyInPackage(qualifiedName, "android.preference")
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.getNameInProject(baseClass.project)) ->
+      !isDirectlyInPackage(qualifiedName, "androidx.preference")
     else -> // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
       // Issue with further information: http://b.android.com/186559
       !qualifiedName.startsWith(ANDROID_PKG_PREFIX)
