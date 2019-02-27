@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking;
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceDataManagerKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
@@ -99,7 +100,7 @@ public class DnDTransferItem {
                               "    android:layout_width=\"wrap_content\"\n" +
                               "    android:layout_height=\"wrap_content\"\n" +
                               "    android:src=\"" + url.toString() + "\"/>";
-
+      ResourceManagerTracking.INSTANCE.logDragOnViewGroup();
       return new DnDTransferItem(new DnDTransferComponent(SdkConstants.IMAGE_VIEW, representation, 200, 100));
     }
     return null;

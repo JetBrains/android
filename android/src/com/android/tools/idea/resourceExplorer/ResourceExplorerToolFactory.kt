@@ -36,7 +36,6 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import org.jetbrains.android.facet.AndroidFacet
 
 private const val TOOL_WINDOW_ID = "Resources Explorer"
@@ -129,6 +128,7 @@ private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   Disposer.register(content, resourceExplorer)
   contentManager.addContent(content)
   connectListeners(toolWindow, facet.module.project, resourceExplorer)
+  ResourceManagerTracking.logPanelOpens()
 }
 
 private class MyFileEditorListener(val project: Project,
@@ -169,6 +169,7 @@ private class MyToolWindowManagerListener(private val project: Project) : ToolWi
     val resourceExplorerIsPresent = contentManager.contents.any { it.component is ResourceExplorer }
     if (!window.isVisible) {
       contentManager.removeAllContents(true)
+      ResourceManagerTracking.logPanelCloses()
     }
     else if (!resourceExplorerIsPresent) {
       createContent(window, project)
