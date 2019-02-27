@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.profilers.analytics;
 
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.stats.UsageTrackerUtils;
@@ -42,6 +46,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,27 +98,43 @@ public final class StudioFeatureTracker implements FeatureTracker {
       LegacyAllocationsSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_LEGACY_ALLOCATIONS
     );
 
+  private final ImmutableMap<Class<? extends Exception>, TransportFailureMetadata.FailureType> TRANSPORT_FAILURE_MAP =
+    ImmutableMap.<Class<? extends Exception>, TransportFailureMetadata.FailureType>builder()
+      .put(TimeoutException.class, TransportFailureMetadata.FailureType.TIMEOUT)
+      .put(InterruptedException.class, TransportFailureMetadata.FailureType.INTERRUPTED)
+      .put(IOException.class, TransportFailureMetadata.FailureType.IO)
+      .put(SyncException.class, TransportFailureMetadata.FailureType.SYNC)
+      .put(ShellCommandUnresponsiveException.class, TransportFailureMetadata.FailureType.SHELL_COMMAND_UNRESPONSIVE)
+      .put(AdbCommandRejectedException.class, TransportFailureMetadata.FailureType.ADB_COMMAND_REJECTED)
+    .build();
+
   @NotNull
   private AndroidProfilerEvent.Stage myCurrStage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
-    // TODO b/124793130 add actual tracking once log proto is ready
+    newTracker(AndroidProfilerEvent.Type.PRE_TRANSPORT_DAEMON_STARTS).setDevice(transportDevice).track();
   }
 
   @Override
   public void trackTransportDaemonFailed(@NotNull Common.Device transportDevice, Exception exception) {
-    // TODO b/124793130 add actual tracking once log proto is ready
+    TransportFailureMetadata.FailureType failureType =
+      TRANSPORT_FAILURE_MAP.getOrDefault(exception.getClass(), TransportFailureMetadata.FailureType.UNKNOWN_FAILURE_TYPE);
+    newTracker(AndroidProfilerEvent.Type.TRANSPORT_DAEMON_FAILED).setDevice(transportDevice)
+      .setTransportFailureMetadata(TransportFailureMetadata.newBuilder().setFailureType(failureType).build()).track();
   }
 
   @Override
   public void trackTransportProxyCreationFailed(@NotNull Common.Device transportDevice, Exception exception) {
-    // TODO b/124793130 add actual tracking once log proto is ready
+    TransportFailureMetadata.FailureType failureType =
+      TRANSPORT_FAILURE_MAP.getOrDefault(exception.getClass(), TransportFailureMetadata.FailureType.UNKNOWN_FAILURE_TYPE);
+    newTracker(AndroidProfilerEvent.Type.TRANSPORT_PROXY_FAILED).setDevice(transportDevice)
+      .setTransportFailureMetadata(TransportFailureMetadata.newBuilder().setFailureType(failureType).build()).track();
   }
 
   @Override
   public void trackProfilerInitializationFailed() {
-    // TODO b/124793130 add actual tracking once log proto is ready
+    track(AndroidProfilerEvent.Type.PROFILER_INITIALIZATION_FAILED);
   }
 
   @Override
@@ -129,12 +150,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackAutoProfilingRequested() {
-    // TODO b/124793130 add actual tracking once log proto is ready
+    track(AndroidProfilerEvent.Type.AUTO_PROFILING_REQUESTED);
   }
 
   @Override
   public void trackAutoProfilingSucceeded() {
-    // TODO b/124793130 add actual tracking once log proto is ready
+    track(AndroidProfilerEvent.Type.AUTO_PROFILING_SUCCEEDED);
   }
 
   @Override
@@ -165,6 +186,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackSessionDropdownClicked() {
+    track(AndroidProfilerEvent.Type.SESSION_DROPDOWN_CLICKED);
   }
 
   @Override
@@ -490,6 +512,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
     @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
     @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
+    @Nullable private TransportFailureMetadata myTransportFailureMetadata;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -567,6 +590,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    public Tracker setTransportFailureMetadata(TransportFailureMetadata metadata) {
+      myTransportFailureMetadata = metadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -584,6 +613,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case SESSION_ARTIFACT_SELECTED:
           profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+          break;
+        case TRANSPORT_DAEMON_FAILED:
+        case TRANSPORT_PROXY_FAILED:
+          assert myTransportFailureMetadata != null;
+          profilerEvent.setTransportFailureMetadata(myTransportFailureMetadata);
           break;
         case CPU_API_TRACING:
           profilerEvent.setCpuApiTracingMetadata(myCpuApiTracingMetadata);
