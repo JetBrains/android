@@ -15,28 +15,22 @@
  */
 package org.jetbrains.android.dom.navigation;
 
-import com.android.resources.ResourceFolderType;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.annotations.NotNull;
-
 import static com.android.SdkConstants.TAG_NAVIGATION;
 
-public class NavigationDomFileDescription extends AndroidResourceDomFileDescription<NavGraphElement> {
+import com.android.resources.ResourceFolderType;
+import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.dom.ResourceFolderTypeDomFileDescription;
+import org.jetbrains.annotations.NotNull;
+
+public class NavigationDomFileDescription extends ResourceFolderTypeDomFileDescription<NavGraphElement> {
   // We don't have access to a project at this point, and thus don't have access to the nav library, so this has to be hardcoded.
   public static final String DEFAULT_ROOT_TAG = TAG_NAVIGATION;
 
   public NavigationDomFileDescription() {
-    super(NavGraphElement.class, DEFAULT_ROOT_TAG, ResourceFolderType.NAVIGATION);
-  }
-
-  // We might have custom types
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
+    super(NavGraphElement.class, ResourceFolderType.NAVIGATION, DEFAULT_ROOT_TAG);
   }
 
   public static boolean isNavFile(@NotNull XmlFile file) {
-    return doIsMyFile(file, ResourceFolderType.NAVIGATION);
+    return isFileInResourceFolderType(file, ResourceFolderType.NAVIGATION);
   }
 }

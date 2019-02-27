@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.animator.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animator.Set;
 
 /**
@@ -24,7 +24,7 @@ import org.jetbrains.android.dom.animator.Set;
  *
  * This description handles "set" root tag
  */
-public class AnimatorSetDomFileDescription extends AbstractSingleRootFileDescription<Set> {
+public class AnimatorSetDomFileDescription extends SingleRootResourceDomFileDescription<Set> {
   public AnimatorSetDomFileDescription() {
     super(Set.class, "set", ResourceFolderType.ANIMATOR);
   }
