@@ -32,7 +32,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 public class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
   @NonNls public static final String FILES = "files";
 
-  @NotNull private String myConfigurationName;
   @NotNull private final GradleDslSimpleExpression myFileDslExpression;
 
   static Collection<FileDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
@@ -62,7 +61,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
 
   private FileDependencyModelImpl(@NotNull String configurationName,
                                   @NotNull GradleDslSimpleExpression fileDslExpression) {
-    myConfigurationName = configurationName;
+    super(configurationName);
     myFileDslExpression = fileDslExpression;
   }
 
@@ -70,12 +69,6 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   @NotNull
   protected GradleDslElement getDslElement() {
     return myFileDslExpression;
-  }
-
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
   }
 
   @Override

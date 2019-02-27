@@ -30,12 +30,22 @@ import org.jetbrains.annotations.Nullable;
  * </ol>
  */
 public abstract class DependencyModelImpl implements DependencyModel {
+
+  @NotNull
+  private String myConfigurationName;
+
+  protected DependencyModelImpl(@NotNull String configurationName) {
+    myConfigurationName = configurationName;
+  }
+
   @NotNull
   protected abstract GradleDslElement getDslElement();
 
   @Override
   @NotNull
-  public abstract String configurationName();
+  public final String configurationName() {
+    return myConfigurationName;
+  }
 
   @Override
   @Nullable
