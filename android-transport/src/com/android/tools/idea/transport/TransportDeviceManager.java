@@ -32,11 +32,15 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -57,6 +61,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.analytics.UsageTracker;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn Transport pipeline clients.
@@ -287,6 +292,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         @Override
         public void addOutput(byte[] data, int offset, int length) {
           String s = new String(data, offset, length, Charsets.UTF_8);
+          if (s.contains("Perfd Segmentation Fault:")) {
+            reportTransportSegmentationFault(s);
+          }
           getLogger().info("[Transport]: " + s);
 
           // On supported API levels (Lollipop+), we should only start the proxy once Transport has successfully launched the grpc server.
@@ -423,6 +431,30 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         Thread.sleep(TimeUnit.SECONDS.toMillis(1));
       }
       return false;
+    }
+
+    /**
+     * Helper function that parses the segmentation fault string sent by transport. The parsed string is then sent to
+     * @param crashString the string passed from transport when a segmentation fault happens. This is expected to be
+     *                    in the format of "Perfd Segmentation Fault: 1234,1234,1234,1234," where each number represents
+     *                    an address in the callstack.
+     */
+    private void reportTransportSegmentationFault(String crashString) {
+      PerfdCrashInfo.Builder crashInfo = PerfdCrashInfo.newBuilder();
+      String[] stack = crashString.split("[:,]+");
+      // The first value is the detection string.
+      for (int i = 1; i < stack.length; i++) {
+        crashInfo.addBackstackAddressList(Long.parseLong(stack[i].trim()));
+      }
+
+      // Create metrics event to report callstack.
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myDevice))
+        .setAndroidProfilerEvent(AndroidProfilerEvent.newBuilder()
+                                   .setType(AndroidProfilerEvent.Type.PERFD_CRASHED)
+                                   .setPerfdCrashInfo(crashInfo));
+      UsageTracker.log(event);
     }
   }
 
