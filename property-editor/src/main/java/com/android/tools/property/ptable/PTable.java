@@ -27,9 +27,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +78,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
     setShowVerticalLines(true);
     setIntercellSpacing(new Dimension(0, 1));
-    setGridColor(UIUtil.getSlightlyDarkerColor(getBackground()));
+    setGridColor(ColorUtil.darker(getBackground(), 1));
 
     setColumnSelectionAllowed(false);
     setCellSelectionEnabled(false);
