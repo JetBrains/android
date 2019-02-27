@@ -94,7 +94,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
           dest.add(mapNotation);
         }
       }
-      else {
+      else if (element instanceof GradleDslSimpleExpression) {
         ArtifactDependencyModelImpl.CompactNotation compactNotation = ArtifactDependencyModelImpl.CompactNotation
           .create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
         if (compactNotation != null) {
