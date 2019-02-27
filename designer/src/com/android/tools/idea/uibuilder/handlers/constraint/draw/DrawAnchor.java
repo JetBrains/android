@@ -231,8 +231,8 @@ public class DrawAnchor extends DrawRegion {
     @SwingCoordinate int swingWidth = transform.getSwingDimensionDip(componentWidth);
 
     int l = swingX - swingWidth / 2 + AnchorTarget.ANCHOR_SIZE;
-    int t = swingY - AnchorTarget.ANCHOR_SIZE;
+    int t = swingY - AnchorTarget.ANCHOR_SIZE / 2;
     int w = swingWidth - 2 * AnchorTarget.ANCHOR_SIZE;
-    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE * 2, type, isConnected, mode));
+    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE, type, isConnected, mode));
   }
 }
