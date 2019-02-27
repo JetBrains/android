@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.importer
 
 import com.android.ide.common.resources.configuration.ResourceQualifier
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.model.Mapper
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
@@ -71,6 +72,10 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
     // Append the rest of the path that has not been matched
     matcher.appendTail(finalFileName)
     val resourceName = getResourceName(finalFileName.toString())
+
+    if(qualifiers.isNotEmpty()) {
+      ResourceManagerTracking.logDensityInferred()
+    }
     return Result(resourceName, qualifiers)
   }
 

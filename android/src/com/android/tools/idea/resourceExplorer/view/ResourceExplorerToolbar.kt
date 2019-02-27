@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.manifmerger.ActionRecorder
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -141,6 +141,7 @@ private class ShowDependenciesAction internal constructor(val viewModel: Resourc
   override fun isSelected(e: AnActionEvent) = viewModel.isShowDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowDependencies = state
+    ResourceManagerTracking.logShowLibrariesToggle(state)
   }
 }
 
