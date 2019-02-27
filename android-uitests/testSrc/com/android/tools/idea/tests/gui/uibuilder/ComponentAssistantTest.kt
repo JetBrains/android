@@ -57,7 +57,8 @@ class ComponentAssistantTest {
       .waitForGradleProjectSyncToFinish()
       .editor
 
-    layout.findView("android.support.v7.widget.RecyclerView", 0)
+    layout.waitForRenderToFinish()
+      .findView("android.support.v7.widget.RecyclerView", 0)
       .click()
       .openComponentAssistant()
       .getRecyclerViewAssistant().apply {
