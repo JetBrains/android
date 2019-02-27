@@ -55,28 +55,35 @@ public class DeviceVersion implements IDebugBridgeChangeListener, IDeviceChangeL
   public Future<AndroidVersion> get(@NotNull IDevice iDevice) {
     return myVersions.compute(
       iDevice,
-      (d, f) -> ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      (d, f) -> {
         if (f != null && f.isDone()) {
-          AndroidVersion version = f.get();
-          if (version != AndroidVersion.DEFAULT) {
-            return version;
+          try {
+            AndroidVersion version = f.get();
+            if (version != AndroidVersion.DEFAULT) {
+              return f;
+            }
           }
-          // Otherwise, we fall through (since there's been an error, including cancelling the Future) and try again.
+          catch (Exception ignored) {
+          }
         }
-        try {
-          String buildApi = d.getProperty(PROP_BUILD_API_LEVEL);
-          if (buildApi == null) {
+
+        // Otherwise, we fall through (since there's been an error, including cancelling the Future) and try again.
+        return ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          try {
+            String buildApi = d.getProperty(PROP_BUILD_API_LEVEL);
+            if (buildApi == null) {
+              return AndroidVersion.DEFAULT;
+            }
+
+            int api = Integer.parseInt(buildApi);
+            String codeName = d.getProperty(PROP_BUILD_CODENAME);
+            return new AndroidVersion(api, codeName);
+          }
+          catch (Exception e) {
             return AndroidVersion.DEFAULT;
           }
-
-          int api = Integer.parseInt(buildApi);
-          String codeName = d.getProperty(PROP_BUILD_CODENAME);
-          return new AndroidVersion(api, codeName);
-        }
-        catch (Exception e) {
-          return AndroidVersion.DEFAULT;
-        }
-      }));
+        });
+      });
   }
 
   @Override
