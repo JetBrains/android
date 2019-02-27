@@ -101,7 +101,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
   @Override
   protected void checkChildren(final DomElement element, Consumer<? super DomElement> visitor) {
     // The following code is similar to contents of the overridden method,
-    // but adds support for "aapr:attr" attributes.
+    // but adds support for "aapt:attr" attributes.
     final XmlElement xmlElement = element.getXmlElement();
     if (xmlElement instanceof XmlTag) {
       for (final DomElement child : DomUtil.getDefinedChildren(element, true, true)) {
