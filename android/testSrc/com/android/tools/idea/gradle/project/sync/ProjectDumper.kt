@@ -232,8 +232,8 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
 private fun ProjectDumper.dump(contentEntry: ContentEntry) {
   head("CONENT_ENTRY") { contentEntry.url.toPrintablePath() }
   nest {
-    contentEntry.sourceFolders.forEach { dump(it) }
-    contentEntry.excludeFolders.forEach { dump(it) }
+    contentEntry.sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
+    contentEntry.excludeFolders.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
   }
 }
 
@@ -432,6 +432,7 @@ private fun String.removeAndroidVersionsFromDependencyNames(): String =
  * Replaces artifact version in string containing artifact ids like com.android.group.artifact.artifact-28.3.4.jar with <VERSION>.
  */
 private val androidPathPattern = Regex("(?:com/android/.*/)([0-9.]+)(?:/.*-)(\\1)(?:\\.jar)")
+
 private fun String.removeAndroidVersionsFromPath(): String =
     androidPathPattern.find(this)?.groups?.get(1)?.let {
       this.replace(it.value, "<VERSION>")
