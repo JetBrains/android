@@ -19,12 +19,10 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,8 +31,6 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
 public class DeployTargetContext implements JDOMExternalizable {
-  private static final Logger LOG = Logger.getInstance(DeployTargetContext.class);
-
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
@@ -65,25 +61,13 @@ public class DeployTargetContext implements JDOMExternalizable {
 
   @NotNull
   public DeployTargetProvider getCurrentDeployTargetProvider() {
-    if (TARGET_SELECTION_MODE.equals(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name()) &&
-        !mySelectDeviceSnapshotComboBoxVisible.get()) {
-      return getShowDialogDeployTargetProvider();
-    }
+    Object mode = getTargetSelectionMode().name();
 
-    return getDeployTargetProvider(myDeployTargetProviders, TARGET_SELECTION_MODE).orElse(getShowDialogDeployTargetProvider());
-  }
-
-  @NotNull
-  private DeployTargetProvider getShowDialogDeployTargetProvider() {
-    return getDeployTargetProvider(myDeployTargetProviders, TargetSelectionMode.SHOW_DIALOG.name()).orElseThrow(AssertionError::new);
-  }
-
-  @NotNull
-  private static Optional<DeployTargetProvider> getDeployTargetProvider(@NotNull Collection<DeployTargetProvider> providers,
-                                                                        @NotNull String id) {
-    return providers.stream()
-      .filter(provider -> provider.getId().equals(id))
+    Optional<DeployTargetProvider> optionalProvider = myDeployTargetProviders.stream()
+      .filter(provider -> provider.getId().equals(mode))
       .findFirst();
+
+    return optionalProvider.orElseThrow(AssertionError::new);
   }
 
   @NotNull
@@ -110,14 +94,49 @@ public class DeployTargetContext implements JDOMExternalizable {
     TARGET_SELECTION_MODE = target.getId();
   }
 
+  @VisibleForTesting
+  void setTargetSelectionMode(@NotNull @SuppressWarnings("SameParameterValue") String mode) {
+    TARGET_SELECTION_MODE = mode;
+  }
+
   @NotNull
   public TargetSelectionMode getTargetSelectionMode() {
     try {
-      return TargetSelectionMode.valueOf(TARGET_SELECTION_MODE);
+      TargetSelectionMode mode = TargetSelectionMode.valueOf(TARGET_SELECTION_MODE);
+
+      if (!mySelectDeviceSnapshotComboBoxVisible.get()) {
+        switch (mode) {
+          case DEVICE_AND_SNAPSHOT_COMBO_BOX:
+            return TargetSelectionMode.SHOW_DIALOG;
+          case SHOW_DIALOG:
+          case EMULATOR:
+          case USB_DEVICE:
+          case FIREBASE_DEVICE_MATRIX:
+          case FIREBASE_DEVICE_DEBUGGING:
+            return mode;
+          default:
+            throw new AssertionError(mode);
+        }
+      }
+
+      switch (mode) {
+        case DEVICE_AND_SNAPSHOT_COMBO_BOX:
+          return mode;
+        case SHOW_DIALOG:
+        case EMULATOR:
+        case USB_DEVICE:
+          return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX;
+        case FIREBASE_DEVICE_MATRIX:
+        case FIREBASE_DEVICE_DEBUGGING:
+          return mode;
+        default:
+          throw new AssertionError(mode);
+      }
     }
-    catch (IllegalArgumentException e) {
-      LOG.info(e);
-      return TargetSelectionMode.EMULATOR;
+    catch (IllegalArgumentException exception) {
+      return mySelectDeviceSnapshotComboBoxVisible.get()
+             ? TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
+             : TargetSelectionMode.SHOW_DIALOG;
     }
   }
 
