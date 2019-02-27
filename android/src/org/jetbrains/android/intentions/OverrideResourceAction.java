@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package org.jetbrains.android.intentions;
+
+import static com.android.SdkConstants.ATTR_NAME;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -43,11 +45,19 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
 import org.jetbrains.android.actions.ElementCreatingValidator;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -57,13 +67,6 @@ import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.SdkConstants.ATTR_NAME;
 
 /**
  * Action in XML files which lets you override a resource (by creating a new resource in a different resource folder

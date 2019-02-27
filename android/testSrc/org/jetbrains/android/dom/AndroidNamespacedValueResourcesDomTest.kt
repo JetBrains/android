@@ -28,9 +28,9 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.inspections.AndroidDomInspection
-import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection
 
 /**
  * Tests for code editor features when working with value resources XML files in namespaced projects.

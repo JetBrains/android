@@ -32,6 +32,7 @@
 
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../com/android/tools/idea/resourceExplorer/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="../org/jetbrains/android/dom/android-dom.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
 
@@ -403,59 +404,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidIoManager"/>
     <projectService serviceImplementation="org.jetbrains.android.uipreview.UserDeviceManager"/>
 
-    <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.CustomDrawableDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.BitmapDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.NinePatchDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LayerListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LevelListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ShapeDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimationListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RippleDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ColorDrawableDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.VectorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedVectorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.InsetDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ClipDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ScaleDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
-
-    <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewLayoutDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription" />
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenAlphaFileDescription" />
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenRotateFileDescription" />
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenScaleFileDescription" />
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenTranslateFileDescription" />
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.LayoutAnimationControllerDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.GridLayoutAnimationControllerDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorSetDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.ObjectAnimatorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.transition.TransitionDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.font.FontFamilyDomFileDescription"/>
-    <dom.fileDescription implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription"/>
-    <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement"
-                  extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>
-
-    <!--<frameworkSupport implementation="org.jetbrains.android.facet.AndroidSupportProvider"/>-->
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
 
@@ -540,12 +489,12 @@
     </intentionAction>
 
     <intentionAction>
-      <className>org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction</className>
+      <className>org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
-      <className>com.android.tools.idea.actions.OverrideResourceAction</className>
+      <className>org.jetbrains.android.intentions.OverrideResourceAction</className>
       <category>Android</category>
     </intentionAction>
 
@@ -554,18 +503,6 @@
       <category>Android</category>
     </intentionAction>
 
-    <localInspection language="XML" shortName="AndroidDomInspection" bundle="messages.AndroidBundle" key="android.inspections.dom.name"
-                     groupKey="android.inspections.group.name" enabledByDefault="true" level="ERROR"
-                     implementationClass="org.jetbrains.android.inspections.AndroidDomInspection"/>
-
-    <localInspection language="XML" shortName="AndroidUnknownAttribute" bundle="messages.AndroidBundle"
-                     key="android.inspections.unknown.attribute.name" groupKey="android.inspections.group.name" enabledByDefault="true"
-                     level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidUnknownAttributeInspection"/>
-
-    <localInspection language="XML" shortName="AndroidElementNotAllowed" bundle="messages.AndroidBundle"
-                     key="android.inspections.element.not.allowed.name" groupKey="android.inspections.group.name" enabledByDefault="true"
-                     level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidElementNotAllowedInspection"/>
-
     <localInspection language="XML" shortName="AndroidMissingOnClickHandler" bundle="messages.AndroidBundle"
                      key="android.inspections.on.click.missing.name" groupKey="android.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection"/>
@@ -573,7 +510,7 @@
                      key="android.inspections.non.constant.res.ids.in.switch.name" groupKey="android.inspections.group.name"
                      enabledByDefault="true" level="ERROR"
                      implementationClass="org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection"/>
-    <localInspection language="XML"
+    <localInspection language="XML" bundle="messages.AndroidBundle"
                      implementationClass="org.jetbrains.android.inspections.XmlWrongFileTypeInspection"
                      enabledByDefault="true"
                      key="android.inspections.root.tag.name" groupKey="android.inspections.group.name"/>
@@ -944,9 +881,6 @@
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
     <externalAnnotator language="XML" implementationClass="org.jetbrains.android.AndroidXMLResourceExternalAnnotator"/>
 
-    <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
-    <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
-
     <facet.toolWindow id="Logcat"
                       facetIdList="android"
                       anchor="bottom"
@@ -1024,10 +958,6 @@
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
 
-    <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
-    <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
-      <pattern type="xml">xmlTag()</pattern>
-    </psi.referenceProvider>
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
     <projectService serviceInterface="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"
                     serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
@@ -1062,8 +992,6 @@
     <problemFileHighlightFilter implementation="org.jetbrains.android.AndroidProblemFileHighlightingFilter"/>
 
     <lang.documentationProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidDocumentationProvider" order="first"/>
-    <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.AndroidXmlDocumentationProvider" order="first"/>
-    <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.lint.IssueIdDocumentationProvider" />
 
     <sdkType implementation="org.jetbrains.android.sdk.AndroidSdkType"/>
     <gotoDeclarationHandler implementation="org.jetbrains.android.AndroidGotoDeclarationHandler"/>
@@ -1149,7 +1077,6 @@
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
     <resolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
-    <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
     <gotoRelatedProvider implementation="org.jetbrains.android.AndroidGotoRelatedProvider"/>
     <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
@@ -1181,8 +1108,6 @@
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
     <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
     <useScopeOptimizer implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactUseScopeOptimizer"/>
-    <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
-    <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
 
     <!-- Translations Editor -->
     <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
@@ -1210,7 +1135,6 @@
 
     <projectImportProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider"/>
     <projectImportBuilder implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider$AndroidGradleImportBuilder"/>
-    <elementDescriptionProvider implementation="org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper$DescriptionProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

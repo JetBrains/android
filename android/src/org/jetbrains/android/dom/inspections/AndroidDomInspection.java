@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.inspections;
+package org.jetbrains.android.dom.inspections;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * @author yole
  */
 public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomElement> {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.AndroidDomInspection");
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.inspections.AndroidDomInspection");
 
   public AndroidDomInspection() {
     super(AndroidDomElement.class);

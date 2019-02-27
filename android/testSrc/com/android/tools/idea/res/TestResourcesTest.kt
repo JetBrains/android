@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.jetbrains.android.inspections.AndroidDomInspection
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
 
 class TestResourcesTest : AndroidGradleTestCase() {
   fun testResolveErrors() {
