@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -107,7 +108,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
     GradleDslLiteral literal = new GradleDslLiteral(myParent, GradleNameElement.copy(myName));
     Object v = getRawValue();
     if (v != null) {
-      literal.setValue(v);
+      literal.setValue(isReference() ? new ReferenceTo((String)v) : v);
     }
     return literal;
   }
