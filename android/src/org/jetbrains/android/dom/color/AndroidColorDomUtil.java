@@ -31,6 +31,6 @@ public class AndroidColorDomUtil {
   }
 
   public static boolean isColorResourceFile(@NotNull XmlFile file) {
-    return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.COLOR);
+    return AndroidResourceDomFileDescription.isFileInResourceFolderType(file, ResourceFolderType.COLOR);
   }
 }

@@ -49,7 +49,7 @@ public class AndroidDrawableDomUtil {
   }
 
   public static boolean isDrawableResourceFile(@NotNull XmlFile file) {
-    return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.DRAWABLE);
+    return AndroidResourceDomFileDescription.isFileInResourceFolderType(file, ResourceFolderType.DRAWABLE);
   }
 
   @NotNull

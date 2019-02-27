@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.AnimatedRotate;
 
-public class AnimatedRotateDomFileDescription extends AbstractSingleRootFileDescription<AnimatedRotate> {
+public class AnimatedRotateDomFileDescription extends SingleRootResourceDomFileDescription<AnimatedRotate> {
 
   public AnimatedRotateDomFileDescription() {
     super(AnimatedRotate.class, "animated-rotate", ResourceFolderType.DRAWABLE);

@@ -15,13 +15,13 @@
  */
 package org.jetbrains.android.dom.layout;
 
+import static com.android.SdkConstants.TAG_LAYOUT;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.TAG_LAYOUT;
 
 /**
  * Data binding root tag: {@code <layout>}
@@ -32,8 +32,8 @@ public class DataBindingDomFileDescription extends LayoutDomFileDescription<Layo
   }
 
   @Override
-  public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-    return super.isMyFile(file, module) && hasDataBindingRootTag(file);
+  public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
+    return hasDataBindingRootTag(file);
   }
 
   public static boolean hasDataBindingRootTag(@NotNull XmlFile file) {

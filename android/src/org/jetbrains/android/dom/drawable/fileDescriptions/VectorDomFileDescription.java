@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.Vector;
 
-public class VectorDomFileDescription extends AbstractSingleRootFileDescription<Vector> {
+public class VectorDomFileDescription extends SingleRootResourceDomFileDescription<Vector> {
   public static final String TAG = "vector";
 
   public VectorDomFileDescription() {
