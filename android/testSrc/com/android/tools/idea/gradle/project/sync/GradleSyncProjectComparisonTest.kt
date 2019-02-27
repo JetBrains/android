@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
 import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
 import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE
+import com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
 import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
@@ -38,6 +39,7 @@ import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.util.io.FileUtil
@@ -176,6 +178,12 @@ abstract class GradleSyncProjectComparisonTest(
 
   fun testSyncWithKotlinDsl() {
     val text = importSyncAndDumpProject(KOTLIN_GRADLE_DSL)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testSyncKotlinProject() {
+    // TODO(b/125321223): Remove suffixes from the snapshot files when fixed.
+    val text = importSyncAndDumpProject(NEW_SYNC_KOTLIN_TEST)
     assertIsEqualToSnapshot(text)
   }
 
