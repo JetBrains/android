@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.demo;
+package com.android.tools.idea.transport.demo;
 
 import static com.android.tools.profiler.proto.Transport.Command.CommandType.ECHO;
 
@@ -23,11 +23,11 @@ import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
-import com.android.tools.idea.profilers.ProfilerService;
+import com.android.tools.idea.transport.TransportClient;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.pipeline.example.proto.Echo;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.profilers.ProfilerClient;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -75,8 +75,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
   @NotNull private final JBTextArea myEventLog;
 
   @NotNull private final Updater myUpdater;
-  // TODO replace with TransportClient once ready.
-  @Nullable private final ProfilerClient myClient;
+  @NotNull private final TransportClient myClient;
   @Nullable private Common.Stream mySelectedStream = Common.Stream.getDefaultInstance();
   @Nullable private Common.Process mySelectedProcess = Common.Process.getDefaultInstance();
   private Map<Common.Stream, List<Common.Process>> myProcessesMap;
@@ -88,7 +87,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     setTitle(TITLE);
     setModal(false);
 
-    myClient = ProfilerService.getInstance(project).getProfilerClient();
+    myClient = TransportService.getInstance().getClient();
     myUpdater = new Updater(new FpsTimer(1));
     myUpdater.register(this);
 
@@ -109,7 +108,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
           .setStreamId(mySelectedStream.getStreamId())
           .setPid(mySelectedProcess.getPid())
           .build();
-        myClient.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build());
+        myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build());
       }
     });
 
@@ -168,10 +167,6 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
 
   @Override
   public void update(long elapsedNs) {
-    if (myClient == null) {
-      return;
-    }
-
     // Query for current devices and processes
     Map<Common.Stream, List<Common.Process>> processesMap = new HashMap<>();
     {
@@ -181,7 +176,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
         .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
         .setKind(Common.Event.Kind.STREAM)
         .build();
-      Transport.GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(request);
+      Transport.GetEventGroupsResponse response = myClient.getTransportStub().getEventGroups(request);
       for (Transport.EventGroup group : response.getGroupsList()) {
         boolean isStreamDead = group.getEvents(group.getEventsCount() - 1).getIsEnded();
         if (isStreamDead) {
@@ -205,7 +200,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
           .setStreamId(stream.getStreamId())
           .setKind(Common.Event.Kind.PROCESS)
           .build();
-        Transport.GetEventGroupsResponse processResponse = myClient.getTransportClient().getEventGroups(processRequest);
+        Transport.GetEventGroupsResponse processResponse = myClient.getTransportStub().getEventGroups(processRequest);
         List<Common.Process> processList = new ArrayList<>();
         // A group is a collection of events that happened to a single process.
         for (Transport.EventGroup groupProcess : processResponse.getGroupsList()) {
@@ -242,7 +237,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
             .setFromTimestamp(myLastEventRequestTimestampNs)
             .setToTimestamp(Long.MAX_VALUE)
             .build();
-          Transport.GetEventGroupsResponse eventResponse = myClient.getTransportClient().getEventGroups(eventRequest);
+          Transport.GetEventGroupsResponse eventResponse = myClient.getTransportStub().getEventGroups(eventRequest);
           if (!eventResponse.equals(Transport.GetEventGroupsResponse.getDefaultInstance())) {
             List<Common.Event> events = new ArrayList<>();
             eventResponse.getGroupsList().forEach(group -> events.addAll(group.getEventsList()));
@@ -265,7 +260,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
           .setStreamId(mySelectedStream.getStreamId())
           .setPid(mySelectedProcess.getPid())
           .build();
-        Transport.GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(agentRequest);
+        Transport.GetEventGroupsResponse response = myClient.getTransportStub().getEventGroups(agentRequest);
         for (Transport.EventGroup group : response.getGroupsList()) {
           if (group.getEvents(group.getEventsCount() - 1).getAgentData().getStatus().equals(Common.AgentData.Status.ATTACHED)) {
             myAgentConnected = true;
@@ -311,7 +306,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
                 .setAttachAgent(
                   Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
                 .build();
-              myClient.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+              myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
               myAgentConnected = false;
               toggleControls(myAgentConnected);
             });
