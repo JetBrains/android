@@ -52,6 +52,7 @@ import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassObjectAccessExpression;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.SmartPointerManager;
@@ -269,9 +270,8 @@ public class NavigationSchema implements Disposable {
     @Nullable String myTagName;
     @Nullable TypeRef myDestinationClassRef;
 
-    public NavigatorKeyInfo(PsiClass navigator, @Nullable String tag, @Nullable PsiClass destinationClass) {
-      Document document = PsiDocumentManager.getInstance(navigator.getProject()).getDocument(navigator.getContainingFile());
-      myModificationCount = document == null ? 0 : document.getModificationStamp();
+    private NavigatorKeyInfo(@NotNull PsiClass navigator, @Nullable String tag, @Nullable PsiClass destinationClass) {
+      myModificationCount = getModificationCount(navigator);
       myTagName = tag;
       myDestinationClassRef = destinationClass == null ? NULL_TYPE : new TypeRef(destinationClass);
     }
@@ -281,8 +281,8 @@ public class NavigationSchema implements Disposable {
       if (otherClass == null) {
         return false;
       }
-      Document otherDocument = PsiDocumentManager.getInstance(otherClass.getProject()).getDocument(otherClass.getContainingFile());
-      if ((otherDocument == null ? 0 : otherDocument.getModificationStamp()) == myModificationCount) {
+
+      if (getModificationCount(otherClass) == myModificationCount) {
         return true;
       }
 
@@ -307,6 +307,21 @@ public class NavigationSchema implements Disposable {
       String otherName = (otherDestination == null) ? null : otherDestination.getQualifiedName();
 
       return Objects.equals(destinationName, otherName);
+    }
+
+    private long getModificationCount(@NotNull PsiClass psiClass) {
+      PsiDocumentManager manager = PsiDocumentManager.getInstance(psiClass.getProject());
+      if (manager == null) {
+        return 0;
+      }
+
+      PsiFile file = psiClass.getContainingFile();
+      if (file == null) {
+        return 0;
+      }
+
+      Document document = manager.getDocument(file);
+      return document == null ? 0 : document.getModificationStamp();
     }
   }
 
