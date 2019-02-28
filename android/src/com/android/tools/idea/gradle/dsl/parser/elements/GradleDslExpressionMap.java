@@ -100,4 +100,19 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
   public List<GradleReferenceInjection> getResolvedVariables() {
     return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
   }
+
+  @NotNull
+  public GradleDslExpressionMap copy() {
+    GradleDslExpressionMap mapClone =
+      new GradleDslExpressionMap(myParent, GradleNameElement.copy(myName), /*isLiteralMap()*/false);
+    for (GradleDslElement element : getCurrentElements()) {
+      assert element instanceof GradleDslSimpleExpression;
+      // NOTE: This line may throw if we try to change the configuration name of an unsupported element.
+      GradleDslSimpleExpression sourceExpression = (GradleDslSimpleExpression)element;
+      GradleDslSimpleExpression copiedExpression = sourceExpression.copy();
+      // NOTE: setNewElement is a confusing name which does not reflect what the method does.
+      mapClone.setNewElement(copiedExpression);
+    }
+    return mapClone;
+  }
 }
