@@ -57,8 +57,8 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtra
 import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpgradeAppenginePluginVersionHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseCurrentlyRunningJdkHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink
 import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -157,7 +157,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is ToggleOfflineModeHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.TOGGLE_OFFLINE_MODE_HYPERLINK
       is UpdatePluginHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK
       is UpgradeAppenginePluginVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.UPGRADE_APPENGINE_PLUGIN_VERSION_HYPERLINK
-      is UseCurrentlyRunningJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK
+      is UseJavaHomeAsJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }

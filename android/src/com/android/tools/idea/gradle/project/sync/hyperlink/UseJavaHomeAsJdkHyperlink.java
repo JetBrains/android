@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -27,24 +28,26 @@ import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UseCurrentlyRunningJdkHyperlink extends NotificationHyperlink {
+public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
+  @NotNull private String myJavaHome;
+
   @Nullable
-  public static UseCurrentlyRunningJdkHyperlink create() {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      return new UseCurrentlyRunningJdkHyperlink();
+  public static UseJavaHomeAsJdkHyperlink create() {
+    String javaHome = getJdkFromJavaHome();
+    if (!isEmpty(javaHome)) {
+      return new UseJavaHomeAsJdkHyperlink(javaHome);
     }
     return null;
   }
 
-  private UseCurrentlyRunningJdkHyperlink() {
-    super("useCurrentJdk", "Use same JDK for running both Gradle and Android Studio");
+  private UseJavaHomeAsJdkHyperlink(@NotNull String javaHome) {
+    super("useJavaHomeAsJdk", "Set Android Studio to use the same JDK as Gradle and sync project");
+    myJavaHome = javaHome;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeSdks.getInstance().setJdkPath(new File(System.getProperties().getProperty("java.home")));
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(new File(myJavaHome)));
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_JDK_CHANGED_TO_CURRENT);
   }
 }
