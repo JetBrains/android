@@ -47,7 +47,7 @@ class BrTests(private val mode: DataBindingMode) {
     val modes = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = AndroidProjectRule.withSdk()
 
   // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
   // initialized on the EDT.
@@ -83,6 +83,35 @@ class BrTests(private val mode: DataBindingMode) {
     """.trimIndent())
 
     ModuleDataBinding.getInstance(androidFacet).setMode(mode)
+  }
+
+  @Test
+  fun brClassReferenceIsFoundWithoutWarnings() {
+    fixture.addFileToProject("res/layout/variables_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="aStr" type="String" />
+        </data>
+      </layout>
+    """.trimIndent())
+
+    val activityWithBr = fixture.addClass("""
+      package test.db;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      public class MainActivity extends Activity {
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+          int brValue = BR.aStr;
+        }
+      }
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(activityWithBr.containingFile.virtualFile)
+    fixture.checkHighlighting() // If BR is found, there will be no "Cannot resolve symbol" warning
   }
 
   @Test
