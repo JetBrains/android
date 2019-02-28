@@ -15,4 +15,4 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-class MemoryLeakDetectedError(message: String?) : AssertionError(message)
+class MemoryLeakDetectedError(message: String?) : Error(message)
