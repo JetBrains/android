@@ -132,6 +132,9 @@ public class EmbeddedDistributionPaths {
       if (distributionPath.isDirectory()) {
         return distributionPath;
       }
+      else {
+        getLog().warn(localDistributionPath + " not found");
+      }
     }
 
     return null;
