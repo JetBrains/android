@@ -93,7 +93,7 @@ public class IdeaGradleSync implements GradleSync {
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
           setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = false;
+          setupRequest.generateSourcesAfterSync = true;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
@@ -111,6 +111,7 @@ public class IdeaGradleSync implements GradleSync {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
     setupRequest.cleanProjectAfterSync = request.cleanProject;
+    setupRequest.usingCachedGradleModels = false;
 
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
