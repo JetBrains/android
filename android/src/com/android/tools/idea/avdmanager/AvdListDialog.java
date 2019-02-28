@@ -22,19 +22,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
 
 /**
  * Display existing AVDs and offer actions for editing/creating.
  */
 public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoProvider {
   private static final String DIMENSION_KEY = "AVDManager";
-  private final Project myProject;
+  private Project myProject;
   private AvdDisplayList myAvdDisplayList;
 
   public AvdListDialog(@Nullable Project project) {
@@ -48,19 +48,26 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     getFrame().setSize(1000, 600);
   }
 
+  @Override
+  public void dispose() {
+    myProject = null;
+    myAvdDisplayList = null;
+    super.dispose();
+  }
+
   public void init() {
     JPanel root = new JPanel(new BorderLayout());
     setComponent(root);
     JPanel northPanel = WizardStepHeaderPanel
-      .create(myProject, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, null, "Your Virtual Devices",
+      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, null, "Your Virtual Devices",
               "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
     getFrame().setSize(1000, 600);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public AvdInfo getAvdInfo() {
     return null;
   }
@@ -75,14 +82,14 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     myAvdDisplayList.refreshAvdsAndSelect(avdToSelect);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Project getProject() {
     return myProject;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public JComponent getComponent() {
     return myAvdDisplayList;
   }
