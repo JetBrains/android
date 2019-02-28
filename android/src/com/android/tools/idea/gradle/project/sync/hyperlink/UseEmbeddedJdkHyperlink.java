@@ -17,26 +17,16 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
-  @Nullable
-  public static UseEmbeddedJdkHyperlink create() {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      return new UseEmbeddedJdkHyperlink();
-    }
-    return null;
-  }
-
-  private UseEmbeddedJdkHyperlink() {
-    super("useEmbeddedJdk", "Use embedded JDK (recommended)");
+  public UseEmbeddedJdkHyperlink() {
+    super("useEmbeddedJdk", "Use embedded JDK");
   }
 
   @Override

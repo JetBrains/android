@@ -27,6 +27,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.ui.MessageType.WARNING;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -37,16 +38,21 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
@@ -54,7 +60,10 @@ import com.google.common.collect.Ordering;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.impl.NotificationsConfigurationImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -70,7 +79,10 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import javax.swing.event.HyperlinkEvent;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +90,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
-  private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
+  private static final NotificationGroup SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle sync");
+  public static final NotificationGroup
+    JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME");
 
   @VisibleForTesting
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
@@ -220,7 +234,7 @@ public class GradleSyncState {
     LOG.info(String.format("Started %1$s sync with Gradle for project '%2$s'.", syncType, myProject.getName()));
 
     setSyncStartedTimeStamp(System.currentTimeMillis(), request.trigger);
-    addInfoToEventLog(String.format("Gradle sync started with %1$s sync", syncType));
+    addInfoToSyncEventLog(String.format("Gradle sync started with %1$s sync", syncType));
 
     if (notifyUser) {
       notifyStateChanged();
@@ -279,7 +293,7 @@ public class GradleSyncState {
     long syncEndTimestamp = System.currentTimeMillis();
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s (from cached state)", getFormattedSyncDuration(syncEndTimestamp));
-    addInfoToEventLog(msg);
+    addInfoToSyncEventLog(msg);
     LOG.info(msg);
 
     stopSyncInProgress();
@@ -316,7 +330,7 @@ public class GradleSyncState {
       msg += String.format(": %1$s", message);
     }
     msg += String.format(" (%1$s)", getFormattedSyncDuration(syncEndTimestamp));
-    addToEventLog(msg, ERROR);
+    addToSyncEventLog(msg, ERROR);
     LOG.info(msg);
 
     logSyncEvent(GRADLE_SYNC_FAILURE);
@@ -339,7 +353,7 @@ public class GradleSyncState {
     }
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s", getFormattedSyncDuration(syncEndTimestamp));
-    addInfoToEventLog(msg);
+    addInfoToSyncEventLog(msg);
     LOG.info(msg);
 
     // Temporary: Clear resourcePrefix flag in case it was set to false when working with
@@ -362,12 +376,35 @@ public class GradleSyncState {
     return formatDuration(getSyncDurationMS(syncEndTimestamp));
   }
 
-  private void addInfoToEventLog(@NotNull String message) {
-    addToEventLog(message, INFO);
+  private void addInfoToSyncEventLog(@NotNull String message) {
+    addToSyncEventLog(message, INFO);
   }
 
-  private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
-    LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
+  private void addToSyncEventLog(@NotNull String message, @NotNull MessageType type) {
+    addToEventLog(SYNC_NOTIFICATION_GROUP, message, type, null);
+  }
+
+  private void addWarningToJdkEventLog(@NotNull String message, @Nullable List<NotificationHyperlink> quickFixes) {
+    addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, WARNING, quickFixes);
+  }
+
+  private void addToEventLog(@NotNull NotificationGroup notificationGroup, @NotNull String message, @NotNull MessageType type, @Nullable List<NotificationHyperlink> quickFixes) {
+    StringBuilder msg = new StringBuilder(message);
+    NotificationListener listener = null;
+    if (quickFixes != null) {
+      for (NotificationHyperlink quickFix : quickFixes) {
+        msg.append("\n").append(quickFix.toHtml());
+      }
+      listener = new NotificationListener() {
+        @Override
+        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          for (NotificationHyperlink quickFix : quickFixes) {
+            quickFix.executeIfClicked(myProject, event);
+          }
+        }
+      };
+    }
+    notificationGroup.createNotification("", msg.toString(), type.toNotificationType(), listener).notify(myProject);
   }
 
   private void syncFinished(long timestamp) {
@@ -376,6 +413,33 @@ public class GradleSyncState {
     mySummary.setSyncTimestamp(timestamp);
     enableNotifications();
     notifyStateChanged();
+    warnIfNotJdkHome();
+  }
+
+  private void warnIfNotJdkHome() {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      return;
+    }
+    if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.getDisplayId()).isShouldLog()) {
+      return;
+    }
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    if (ideSdks.isUsingJavaHomeJdk()) {
+      return;
+    }
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
+    UseJavaHomeAsJdkHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
+    if (useJavaHomeHyperlink != null) {
+      quickFixes.add(useJavaHomeHyperlink);
+    }
+    quickFixes.add(new DoNotShowJdkHomeWarningAgainHyperlink());
+    String msg = "Android Studio is using this JDK location:\n" +
+                 ideSdks.getJdkPath() + "\n" +
+                 "which is different to what Gradle uses by default:\n" +
+                 IdeSdks.getJdkFromJavaHome() + "\n" +
+                 "Using different locations may spawn multiple Gradle daemons if\n" +
+                 "Gradle tasks are run from command line while using Android Studio.\n";
+    addWarningToJdkEventLog(msg, quickFixes);
   }
 
   private void stopSyncInProgress() {
@@ -471,7 +535,7 @@ public class GradleSyncState {
   public void setupStarted() {
     long syncSetupTimestamp = System.currentTimeMillis();
     setSyncSetupStartedTimeStamp(syncSetupTimestamp);
-    addInfoToEventLog("Project setup started");
+    addInfoToSyncEventLog("Project setup started");
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
     logSyncEvent(GRADLE_SYNC_SETUP_STARTED);
@@ -493,7 +557,7 @@ public class GradleSyncState {
   public void sourceGenerationFinished() {
     long sourceGenerationEndedTimestamp = System.currentTimeMillis();
     setSourceGenerationEndedTimeStamp(sourceGenerationEndedTimestamp);
-    addInfoToEventLog(String.format("Source generation ended in %1$s",
+    addInfoToSyncEventLog(String.format("Source generation ended in %1$s",
                                     formatDuration(mySourceGenerationEndedTimeStamp - mySyncSetupStartedTimeStamp)));
     LOG.info(String.format("Finished source generation of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).sourceGenerationFinished(myProject));
