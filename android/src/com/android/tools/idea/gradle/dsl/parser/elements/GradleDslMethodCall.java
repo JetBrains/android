@@ -195,15 +195,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
     for (GradleDslExpression argument : getArguments()) {
       GradleDslExpression copy;
-      if (argument instanceof GradleDslSimpleExpression) {
-        copy = ((GradleDslSimpleExpression)argument).copy();
-      }
-      else if (argument instanceof GradleDslExpressionMap) {
-        copy = ((GradleDslExpressionMap)argument).copy();
-      }
-      else {
-        throw new UnsupportedOperationException("Cannot copy: " + argument.getClass().getSimpleName());
-      }
+      copy = argument.copy();
       methodCall.addNewArgument(copy);
     }
     return methodCall;

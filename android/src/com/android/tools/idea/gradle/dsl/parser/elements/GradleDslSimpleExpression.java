@@ -166,6 +166,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
    * This means that it can be used to duplicate the element and use it elsewhere in the tree without the danger that the PsiElement will
    * be deleted from use elsewhere.
    */
+  @Override
   @NotNull
   public abstract GradleDslSimpleExpression copy();
 
