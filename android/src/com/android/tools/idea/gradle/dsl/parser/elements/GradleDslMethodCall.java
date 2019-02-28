@@ -17,25 +17,26 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a method call expression element.
  */
 public final class GradleDslMethodCall extends GradleDslSimpleExpression {
+  public static final Logger LOG = Logger.getInstance(GradleDslMethodCall.class);
   /**
    * The name of the method that this method call is invoking.
    * For example:
-   *   storeFile file('file.txt') -> myMethodName = file
-   *   google()                   -> myMethodName = google
-   *   System.out.println('text') -> myMethodName = System.out.println
+   * storeFile file('file.txt') -> myMethodName = file
+   * google()                   -> myMethodName = google
+   * System.out.println('text') -> myMethodName = System.out.println
    */
   @NotNull private String myMethodName;
   @NotNull private GradleDslExpressionList myArguments;
@@ -191,15 +192,26 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   public GradleDslMethodCall copy() {
     assert myParent != null;
     GradleDslMethodCall methodCall = new GradleDslMethodCall(myParent, GradleNameElement.copy(myName), myMethodName);
-    Object v = getRawValue();
-    if (v != null) {
-      methodCall.setValue(v);
+
+    for (GradleDslExpression argument : getArguments()) {
+      GradleDslExpression copy;
+      if (argument instanceof GradleDslSimpleExpression) {
+        copy = ((GradleDslSimpleExpression)argument).copy();
+      }
+      else if (argument instanceof GradleDslExpressionMap) {
+        copy = ((GradleDslExpressionMap)argument).copy();
+      }
+      else {
+        throw new UnsupportedOperationException("Cannot copy: " + argument.getClass().getSimpleName());
+      }
+      methodCall.addNewArgument(copy);
     }
     return methodCall;
   }
 
   private void setFileValue(@NotNull File file) {
     if (!myMethodName.equals("file")) {
+      LOG.error(new UnsupportedOperationException("Cannot set a file value to a method other than file(). Method name: " + myMethodName));
       return;
     }
 
