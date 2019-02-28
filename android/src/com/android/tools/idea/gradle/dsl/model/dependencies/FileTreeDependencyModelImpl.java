@@ -38,17 +38,16 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";
 
-  @NotNull private String myConfigurationName;
   @NotNull private final GradleDslMethodCall myDslElement;
 
   @NotNull
-  static FileTreeDependencyModel create(@NotNull GradlePropertiesDslElement parent,
-                                        @NotNull String configurationName,
-                                        @NotNull String dir,
-                                        @Nullable List<String> includes,
-                                        @Nullable List<String> excludes) {
+  static FileTreeDependencyModel createNew(@NotNull GradlePropertiesDslElement parent,
+                                           @NotNull String configurationName,
+                                           @NotNull String dir,
+                                           @Nullable List<String> includes,
+                                           @Nullable List<String> excludes) {
     GradleDslMethodCall newElement = new GradleDslMethodCall(parent, GradleNameElement.create(configurationName), FILE_TREE);
-    FileTreeDependencyModel fileTreeModel = create(parent, newElement, configurationName);
+    FileTreeDependencyModel fileTreeModel = create(newElement, configurationName);
     // Since we just created the method call with the FILE_TREE name, create should never return null.
     assert fileTreeModel != null;
     fileTreeModel.dir().setValue(dir);
@@ -67,19 +66,17 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   }
 
   @Nullable
-  static FileTreeDependencyModel create(@NotNull GradlePropertiesDslElement parent,
-                                        @NotNull GradleDslMethodCall methodCall,
+  static FileTreeDependencyModel create(@NotNull GradleDslMethodCall methodCall,
                                         @NotNull String configName) {
     if (!methodCall.getMethodName().equals(FILE_TREE)) {
       return null;
     }
-    return new FileTreeDependencyModelImpl(parent, configName, methodCall);
+    return new FileTreeDependencyModelImpl(configName, methodCall);
   }
 
-  private FileTreeDependencyModelImpl(@NotNull GradlePropertiesDslElement holder,
-                                      @NotNull String configurationName,
+  private FileTreeDependencyModelImpl(@NotNull String configurationName,
                                       @NotNull GradleDslMethodCall dslElement) {
-    myConfigurationName = configurationName;
+    super(configurationName);
     myDslElement = dslElement;
   }
 
@@ -87,12 +84,6 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @NotNull
   protected GradleDslElement getDslElement() {
     return myDslElement;
-  }
-
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
   }
 
   @Override

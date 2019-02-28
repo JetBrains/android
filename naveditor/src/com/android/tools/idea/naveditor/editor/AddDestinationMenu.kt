@@ -21,7 +21,10 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.model.className
+import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.includeFile
+import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.scene.NavColorSet
@@ -108,6 +111,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val module = model.module
       val schema = model.schema
       val parent = surface.currentNavigation
+
+      val existingClasses = parent.children.mapNotNull { it.className }
+
       for (tag in schema.allTags) {
         for (psiClass in schema.getDestinationClassesForTag(tag)) {
           if (ModuleUtilCore.findModuleForPsiElement(psiClass) != null) {
@@ -117,7 +123,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
           val query = ClassInheritorsSearch.search(psiClass, GlobalSearchScope.moduleWithDependenciesScope(module), true, true, false)
           for (child in query) {
-            if (isNavHostFragment(child) || classToDestination.containsKey(child)) {
+            if (isNavHostFragment(child) || classToDestination.containsKey(child) || existingClasses.contains(child.qualifiedName)) {
               continue
             }
 
@@ -137,6 +143,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
         for (item in itemComputable?.compute() ?: continue) {
           val element = item.element as? PsiClass ?: continue
+          if (existingClasses.contains(element.qualifiedName)) {
+            continue
+          }
+
           val tags = schema.getTagsForDestinationClass(element) ?: continue
           if (tags.size == 1) {
             if (resourceFile in hosts) {

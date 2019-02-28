@@ -157,8 +157,10 @@
     </action>
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android">
       <separator/>
-      <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-          icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"/>
+      <action id="Android.RunAndroidAvdManager"
+              class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+              icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"
+              description="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
       <action id="Android.ShowThemeEditor" class="com.android.tools.idea.actions.AndroidShowThemeEditor"/>
@@ -184,7 +186,6 @@
     </group>
 
     <group id="Internal.Android" text="Android" popup="true" internal="true">
-      <action internal="true" id="Android.CleanImportProject" class="com.android.tools.idea.gradle.actions.CleanImportProjectAction" />
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
@@ -922,6 +923,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongThread" displayName="Wrong Thread" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongThreadInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongThreadInterprocedural" displayName="Wrong Thread (Interprocedural)" bundle="messages.AndroidBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongThreadInterproceduralInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongViewCast" displayName="Mismatched view type" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWrongViewCastInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintXmlEscapeNeeded" displayName="Missing XML Escape" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintXmlEscapeNeededInspection"/>
 
     <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
 
@@ -940,6 +942,7 @@
     <annotator language="XML" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <annotator language="JAVA" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
+    <externalAnnotator language="XML" implementationClass="org.jetbrains.android.AndroidXMLResourceExternalAnnotator"/>
 
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
     <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />

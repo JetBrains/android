@@ -55,6 +55,7 @@ public final class TestProjectPaths {
   public static final String PROJECT_WITH1_DOT5 = "projects/projectWith1Dot5";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
+  public static final String PSD_PROJECT_DIR = "projects/psdProjectDir";
   public static final String PSD_SAMPLE = "projects/psdSample";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
@@ -87,6 +88,7 @@ public final class TestProjectPaths {
   public static final String TEST_RESOURCES = "projects/testResources";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
   public static final String TRANSITIVE_DEPENDENCIES_PRE30 = "projects/transitiveDependencies_pre30";
+  public static final String TWO_JARS = "projects/two_jars";
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";

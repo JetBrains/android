@@ -66,6 +66,10 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidColorAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
+      // Gutter icon annotator for Java and XML files is run as an external annotator when this flag is enabled.
+      return;
+    }
     if (element instanceof XmlTag) {
       XmlTag tag = (XmlTag)element;
       String tagName = tag.getName();
@@ -89,10 +93,6 @@ public class AndroidColorAnnotator implements Annotator {
       }
       annotateXml(element, holder, value);
     } else if (element instanceof PsiReferenceExpression) {
-      if (StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
-        // Gutter icon annotator for Java files is run as an external annotator when this flag is enabled.
-        return;
-      }
       ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(element);
       if (referenceType != ResourceReferenceType.NONE) {
         // (isResourceReference will return true for both "R.drawable.foo" and the foo literal leaf in the
@@ -113,13 +113,13 @@ public class AndroidColorAnnotator implements Annotator {
       if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
         if (element instanceof XmlTag) {
           Annotation annotation = holder.createInfoAnnotation(element, null);
-          annotation.setGutterIconRenderer(new ColorRenderer(element, null));
+          annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
         } else {
           assert element instanceof XmlAttributeValue;
           Color color = ResourceHelper.parseColor(value);
           if (color != null) {
             Annotation annotation = holder.createInfoAnnotation(element, null);
-            annotation.setGutterIconRenderer(new ColorRenderer(element, null));
+            annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
           }
         }
       }
@@ -178,7 +178,7 @@ public class AndroidColorAnnotator implements Annotator {
       Color color = ResourceHelper.resolveColor(resourceResolver, value, project);
       if (color != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new ColorRenderer(element, color));
+        annotation.setGutterIconRenderer(new ColorRenderer(element, color, false));
       }
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;

@@ -197,8 +197,7 @@ public class AndroidInitialConfigurator {
   }
 
   private static void activateAndroidStudioInitializerExtensions() {
-    Runnable[] extensions = EP_NAME.getExtensions();
-    for (Runnable r : extensions) {
+    for (Runnable r : EP_NAME.getExtensionList()) {
       r.run();
     }
   }

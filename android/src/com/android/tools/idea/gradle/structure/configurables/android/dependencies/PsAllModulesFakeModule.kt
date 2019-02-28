@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.model.*
 import java.io.File
 
-open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", parent) {
+open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", ModuleKind.FAKE, parent) {
   override val descriptor get() = PsModelDescriptor.None
   override val dependencies: PsDependencyCollection<PsModule, Nothing, Nothing, Nothing> get() = throw UnsupportedOperationException()
   override val projectType: PsModuleType = PsModuleType.UNKNOWN

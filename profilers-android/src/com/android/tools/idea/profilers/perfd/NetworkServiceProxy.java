@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
-import com.android.tools.idea.transport.TransportProxyService;
+import com.android.tools.idea.transport.ServiceProxy;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
-public class NetworkServiceProxy extends TransportProxyService {
+public class NetworkServiceProxy extends ServiceProxy {
   private NetworkServiceGrpc.NetworkServiceBlockingStub myServiceStub;
 
   public NetworkServiceProxy(@NotNull ManagedChannel channel) {

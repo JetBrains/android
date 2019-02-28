@@ -37,6 +37,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentRequest;
@@ -105,16 +106,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    pushNewAgentConfig(project, device);
+    pushNewAgentConfig(project, profilerService, device);
     String agentArgs = getAttachAgentArgs(applicationId, profilerService, device, deviceId);
     String startupProfilingResult = startStartupProfiling(applicationId, project, profilerService, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
-  private static void pushNewAgentConfig(@NotNull Project project, @NotNull IDevice device) {
+  private void pushNewAgentConfig(@NotNull Project project, @NotNull ProfilerService profilerService, @NotNull IDevice device) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
-      ProfilerDeviceFileManager.pushAgentConfig(device, shouldEnableMemoryLiveAllocationAtStartup(project));
+      new TransportFileManager(device, profilerService.getMessageBus()).pushAgentConfig(getSelectedRunConfiguration(project));
     }
     catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
       throw new RuntimeException(e);
@@ -139,11 +140,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
     ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getTransportClient()
       .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder()
-          .setStreamId(deviceId)
-          // TODO: Find a way of finding the correct ABI
-          .setAgentLibFileName(getAbiDependentLibPerfaName(device))
-          .setAppPackageName(appPackageName)
-          .build());
+                               .setStreamId(deviceId)
+                               // TODO: Find a way of finding the correct ABI
+                               .setAgentLibFileName(getAbiDependentLibPerfaName(device))
+                               .setAppPackageName(appPackageName)
+                               .build());
     return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
   }
 
@@ -224,19 +225,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   /**
-   * If startup profiling is enabled and the profiling config disables memory live allocation, disable live allocation at startup.
-   */
-  private static boolean shouldEnableMemoryLiveAllocationAtStartup(@NotNull Project project) {
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
-    if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
-      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
-      return startupConfig == null || !startupConfig.isDisableLiveAllocation();
-    }
-    return true;
-  }
-
-  /**
    * Waits for perfd to come online for maximum 1 minute.
    *
    * @return ID of device, i.e {@link Common.Device#getDeviceId()}
@@ -275,10 +263,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   private static String getAbiDependentLibPerfaName(IDevice device) {
     String abi = getBestAbiCpuArch(device,
-                                   "plugins/android/resources/perfa",
-                                   "../../bazel-bin/tools/base/profiler/native/perfa/android",
-                                   "libperfa.so");
-    return abi.isEmpty() ? "" : String.format("libperfa_%s.so", abi);
+                                   "plugins/android/resources/transport/agent",
+                                   "../../bazel-bin/tools/base/transport/agent/android",
+                                   "libjvmtiagent.so");
+    return abi.isEmpty() ? "" : String.format("libjvmtiagent_%s.so", abi);
   }
 
   @NotNull

@@ -32,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
@@ -97,26 +96,15 @@ public class NewCppProjectTestUtil {
   protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      newProjectWizard
-        .getChooseAndroidProjectStep()
-        .chooseActivity("Native C++")
-        .wizard()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterPackageName("com.example.myapplication")
-        .wizard()
-        .clickNext();
-    }
-    else {
-      newProjectWizard.getConfigureAndroidProjectStep()
-                      .enterPackageName("com.example.myapplication")
-                      .setCppSupport(true); // Default "App name", "company domain" and "package name"
-      newProjectWizard.clickNext();
-      newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
-      newProjectWizard.clickNext(); // Skip "Add Activity" step
-      newProjectWizard.clickNext(); // Use default activity names
-    }
+    newProjectWizard
+      .getChooseAndroidProjectStep()
+      .chooseActivity("Native C++")
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterPackageName("com.example.myapplication")
+      .wizard()
+      .clickNext();
 
     newProjectWizard.getConfigureCppStepFixture()
                     .selectToolchain(toolChain);
@@ -129,9 +117,7 @@ public class NewCppProjectTestUtil {
   }
 
   protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.runApp(APP_NAME)
-            .selectDevice(new StringTextMatcher("Google Nexus 5X"))
-            .clickOk();
+    ideFrame.runApp(APP_NAME, "Google Nexus 5X");
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(APP_NAME);

@@ -19,7 +19,7 @@ import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.module.FormFactorApiComboBox;
+import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -61,7 +61,7 @@ public class FormFactorSdkControls implements Disposable {
   private JPanel myLoadingDataPanel;
   private AsyncProcessIcon myLoadingDataIcon;
   private JLabel myLoadingDataLabel;
-  private FormFactorApiComboBox myMinSdkCombobox;
+  private AndroidApiLevelComboBox myMinSdkCombobox;
   private JPanel myRoot;
 
   public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {

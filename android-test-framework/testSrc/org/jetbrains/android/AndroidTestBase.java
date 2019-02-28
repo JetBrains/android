@@ -35,16 +35,23 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.AppScheduledExecutorService;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
@@ -56,23 +63,24 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
     // Compute the workspace root before any IDE code starts messing with user.dir:
     TestUtils.getWorkspaceRoot();
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), FileUtil.toCanonicalPath(getAndroidPluginHome()));
   }
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      myFixture = null;
+    ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
+    Callable<Void> callable = () -> {
+      ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
+      return null;
+    };
+    callable.call();
+    AppScheduledExecutorService service = (AppScheduledExecutorService)AppExecutorUtil.getAppScheduledExecutorService();
+    List<Future<Void>> futures = service.invokeAll(Collections.nCopies(service.getBackendPoolExecutorSize(), callable));
+    for (Future<Void> future : futures) {
+      future.get();
     }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  protected AndroidTestBase() {
-    // IDEA14 seems to be stricter regarding validating accesses against known roots. By default, it contains the entire idea folder,
-    // but it doesn't seem to include our custom structure tools/idea/../adt/idea where the android plugin is placed.
-    // The following line explicitly adds that folder as an allowed root.
-    VfsRootAccess.allowRootAccess(FileUtil.toCanonicalPath(getAndroidPluginHome()));
+    myFixture = null;
+    super.tearDown();
   }
 
   public void refreshProjectFiles() {

@@ -27,6 +27,7 @@ import android.databinding.tool.reflection.ModelMethod;
 import com.android.annotations.NonNull;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor.ResolvesToModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
@@ -36,7 +37,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.DataBindingEvent;
@@ -141,12 +142,14 @@ public class DataBindingCompletionContributor extends CompletionContributor {
   private static void autoCompleteVariablesAndUnqualifiedFunctions(@NonNull DbFile file, @NonNull CompletionResultSet result) {
     autoCompleteUnqualifiedFunctions(result);
 
-    DataBindingInfo dataBindingInfo = DataBindingLangUtil.getDataBindingInfo(file);
-    if (dataBindingInfo == null) {
+    DataBindingLayoutInfo dataBindingLayoutInfo = DataBindingLangUtil.getDataBindingLayoutInfo(file);
+    if (dataBindingLayoutInfo == null) {
       return;
     }
-    for (PsiDataBindingResourceItem resourceItem : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
-      result.addElement(createTrackedLookupElement(resourceItem.getXmlTag(), resourceItem.getName()));
+    for (PsiDataBindingResourceItem resourceItem : dataBindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
+      result.addElement(
+        createTrackedLookupElement(resourceItem.getXmlTag(),
+                                   DataBindingUtil.convertToJavaFieldName(resourceItem.getName())));
     }
   }
 

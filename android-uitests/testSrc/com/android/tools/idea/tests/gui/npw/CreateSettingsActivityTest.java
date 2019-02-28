@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -25,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,11 +32,6 @@ import org.junit.runner.RunWith;
 public class CreateSettingsActivityTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @After
-  public void tearDown() {
-    NPW_DYNAMIC_APPS.clearOverride();
-  }
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
@@ -66,33 +59,17 @@ public class CreateSettingsActivityTest {
   @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void activityTemplate() {
-    NPW_DYNAMIC_APPS.override(true);
     // Create a new project with Settings Activity.
-    if (NPW_DYNAMIC_APPS.get()) {
-      guiTest.welcomeFrame().createNewProject()
-             .getChooseAndroidProjectStep()
-             .chooseActivity("Empty Activity")
-             .wizard()
-             .clickNext()
-             .clickFinish();
+    guiTest.welcomeFrame().createNewProject()
+           .getChooseAndroidProjectStep()
+           .chooseActivity("Empty Activity")
+           .wizard()
+           .clickNext()
+           .clickFinish();
 
-      guiTest.ideFrame().waitForGradleProjectSyncToFinish()
-             .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
-             .clickFinish();
-    } else {
-      guiTest.welcomeFrame().createNewProject()
-             .getConfigureAndroidProjectStep()
-             .setCppSupport(false)
-             .enterApplicationName("SettingsActApp")
-             .enterCompanyDomain("android.devtools")
-             .enterPackageName("dev.tools")
-             .wizard()
-             .clickNext()
-             .clickNext() // Skip "Select minimum SDK Api" step.
-             .chooseActivity("Settings Activity")
-             .clickNext() // Use default activity name.
-             .clickFinish();
-    }
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish()
+           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
+           .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 

@@ -19,7 +19,9 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_M
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
@@ -45,12 +47,29 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
-    assertThat(dependencies).hasSize(1);
+    assertThat(dependencies).hasSize(5);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":javalib1";
     assertMatches(expected, dependencies.get(0));
+
+    ExpectedModuleDependency expected1 = new ExpectedModuleDependency();
+    expected1.configurationName = "test";
+    expected1.path = ":test1";
+    assertMatches(expected1, dependencies.get(1));
+    ExpectedModuleDependency expected2 = new ExpectedModuleDependency();
+    expected2.configurationName = "test";
+    expected2.path = ":test2";
+    assertMatches(expected2, dependencies.get(2));
+    ExpectedModuleDependency expected3 = new ExpectedModuleDependency();
+    expected3.configurationName = "androidTestImplementation";
+    expected3.path = ":test3";
+    assertMatches(expected3, dependencies.get(3));
+    ExpectedModuleDependency expected4 = new ExpectedModuleDependency();
+    expected4.configurationName = "androidTestImplementation";
+    expected4.path = ":test4";
+    assertMatches(expected4, dependencies.get(4));
   }
 
   @Test
@@ -116,6 +135,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -138,12 +158,46 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":newName";
     expected.configuration = "flavor1Release";
     assertMatches(expected, dependency);
+  }
+
+  @Test
+  public void testSetNamesOnItemsInExpressionList() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+    ModuleDependencyModel dependency1 = dependencies.get(0);
+    dependency1.setName("newName");
+
+    ModuleDependencyModel dependency2 = dependencies.get(1);
+    dependency2.setName("newName2");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(2);
+    dependency1 = dependencies.get(0);
+    dependency2 = dependencies.get(1);
+
+    ExpectedModuleDependency expected1 = new ExpectedModuleDependency();
+    expected1.configurationName = "compile";
+    expected1.path = ":newName";
+    expected1.configuration = "flavor1Release";
+
+    ExpectedModuleDependency expected2 = new ExpectedModuleDependency();
+    expected2.configurationName = "compile";
+    expected2.path = ":newName2";
+    assertMatches(expected1, dependency1);
+    assertMatches(expected2, dependency2);
   }
 
   @Test
@@ -158,6 +212,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    dependency = dependencies.get(0);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -183,6 +238,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ModuleDependencyModel actual = dependencies.get(0);
 
@@ -192,6 +248,40 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertMatches(expected, actual);
 
     assertEquals("helloWorld", actual.name());
+  }
+
+  @Test
+  public void testRemoveWhenMultiple() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(2);
+
+    ModuleDependencyModel dependency1 = dependencies.get(0);
+    assertThat(dependency1.path().toString()).isEqualTo(":androidlib1");
+
+    ModuleDependencyModel dependency2 = dependencies.get(1);
+    assertThat(dependency2.path().toString()).isEqualTo(":other");
+
+    buildModel.dependencies().remove(dependency2);
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(1);
+
+    ModuleDependencyModel actual = dependencies.get(0);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.configuration = "flavor1Release";
+    expected.path = ":androidlib1";
+    assertMatches(expected, actual);
+
+    assertEquals("androidlib1", actual.name());
   }
 
   @Test
@@ -213,6 +303,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";

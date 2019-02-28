@@ -69,6 +69,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
@@ -208,7 +209,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module, test]",
-        "//tools/vendor/intellij/cidr:intellij.c[module, test]",
     ],
 )
 

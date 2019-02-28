@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.annotations.concurrency.Blocking;
+import com.android.annotations.concurrency.Slow;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Clock;
@@ -39,7 +39,7 @@ public class MergedManifestManager {
    * @param module the android module
    * @return a {@link MergedManifestSnapshot} for the given module, never null
    */
-  @Blocking
+  @Slow
   @NotNull
   public static MergedManifestSnapshot getSnapshot(@NotNull Module module, boolean forceRefresh) {
     if (module.isDisposed()) {
@@ -67,7 +67,7 @@ public class MergedManifestManager {
    * Returns the most up-to-date version of the MergedManifestSnapshot if available. If the passed version
    * is up-to-date or we can not retrieve a newer version, it will return the same instance.
    */
-  @Blocking
+  @Slow
   @NotNull
   private static MergedManifestSnapshot getFreshSnapshot(@NotNull AndroidFacet facet, @NotNull MergedManifestSnapshot snapshot) {
     long creationTimestamp = snapshot.getCreationTimestamp();
@@ -108,7 +108,7 @@ public class MergedManifestManager {
    * @param facet the Android facet associated with a module.
    * @return a {@link MergedManifestSnapshot} for the given module
    */
-  @Blocking
+  @Slow
   @NotNull
   public static synchronized MergedManifestSnapshot getSnapshot(@NotNull AndroidFacet facet, boolean forceRefresh) {
     Module module = facet.getModule();
@@ -144,7 +144,7 @@ public class MergedManifestManager {
    * @param facet the Android facet associated with a module.
    * @return a {@link MergedManifestSnapshot} for the given module
    */
-  @Blocking
+  @Slow
   @NotNull
   public static MergedManifestSnapshot getSnapshot(@NotNull AndroidFacet facet) {
     return getSnapshot(facet, true);

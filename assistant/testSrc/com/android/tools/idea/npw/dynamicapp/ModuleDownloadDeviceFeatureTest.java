@@ -15,53 +15,70 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import javax.swing.JPanel;
-import org.jetbrains.android.AndroidTestCase;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-public class ModuleDownloadDeviceFeatureTest extends AndroidTestCase {
+@RunsInEdt
+public class ModuleDownloadDeviceFeatureTest {
 
+  private AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+  // AndroidProjectRule should not be initialized on the EDT
+  @Rule
+  public RuleChain myRuleChain = RuleChain.outerRule(myProjectRule).around(new EdtRule());
+
+  @Test
   public void testValidation() {
+    Project project = myProjectRule.getProject();
+
     DeviceFeatureModel deviceFeatureModel = new DeviceFeatureModel();
-    ValidatorPanel validatorPanel = new ValidatorPanel(getProject(), new JPanel());
+    ValidatorPanel validatorPanel = new ValidatorPanel(project, new JPanel());
 
-    new ModuleDownloadDeviceFeature(getProject(), deviceFeatureModel, new BoolValueProperty(true), validatorPanel);
+    new ModuleDownloadDeviceFeature(project, deviceFeatureModel, new BoolValueProperty(true), validatorPanel);
 
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Device feature value must be set", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Device feature value must be set");
 
     deviceFeatureModel.deviceFeatureValue().set("test<");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '<' in Name 'test<'", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Illegal character '<' in Name 'test<'");
 
     deviceFeatureModel.deviceFeatureValue().set("\"test");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '\"' in Name '\"test'", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Illegal character '\"' in Name '\"test'");
 
     deviceFeatureModel.deviceFeatureValue().set("\"tes&t");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '\"' in Name '\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Illegal character '\"' in Name '\"tes&t'");
 
     deviceFeatureModel.deviceFeatureValue().set("<\"tes&t");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '<' in Name '<\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Illegal character '<' in Name '<\"tes&t'");
 
     deviceFeatureModel.deviceFeatureType().set(DeviceFeatureKind.GL_ES_VERSION);
 
     deviceFeatureModel.deviceFeatureValue().set("&<\"tes&t");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '&' in OpenGL ES Version '&<\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Illegal character '&' in OpenGL ES Version '&<\"tes&t'");
 
     deviceFeatureModel.deviceFeatureValue().set("test&<\"tes&t");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '&' in OpenGL ES Version 'test&<\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Illegal character '&' in OpenGL ES Version 'test&<\"tes&t'");
 
     deviceFeatureModel.deviceFeatureValue().set("test");
-    assertFalse(validatorPanel.hasErrors().get());
+    assertThat(validatorPanel.hasErrors().get()).isFalse();
 
     deviceFeatureModel.deviceFeatureValue().set("");
-    assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Device feature value must be set", validatorPanel.getValidationLabel().getText());
+    assertThat(validatorPanel.hasErrors().get()).isTrue();
+    assertThat(validatorPanel.getValidationLabel().getText()).isEqualTo("Device feature value must be set");
   }
 }

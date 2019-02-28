@@ -30,14 +30,22 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.Topic;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
@@ -53,15 +61,17 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.analytics.UsageTracker;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn Transport pipeline clients.
  * On device connection it will spawn the performance daemon on device, and will notify the pipeline system that
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
-public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener,
-                                                        AndroidDebugBridge.IDeviceChangeListener,
-                                                        IdeSdks.IdeSdkChangeListener, Disposable {
+public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener,
+                                                     AndroidDebugBridge.IDeviceChangeListener,
+                                                     IdeSdks.IdeSdkChangeListener, Disposable {
+  public static final Topic<TransportDeviceManagerListener> TOPIC = new Topic<>("TransportDevice", TransportDeviceManagerListener.class);
 
   private static Logger getLogger() {
     return Logger.getInstance(TransportDeviceManager.class);
@@ -75,18 +85,19 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
   // On-device daemon uses Unix abstract socket for O and future devices.
   public static final String DEVICE_SOCKET_NAME = "AndroidStudioTransport";
 
-  @NotNull
-  protected final DataStoreService myDataStoreService;
+  @NotNull private final DataStoreService myDataStoreService;
+  @NotNull private final MessageBus myMessageBus;
   private boolean isAdbInitialized;
 
   /**
    * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
    * All accesses to the {@link DeviceContext} must be through its synchronization methods.
    */
-  protected final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
+  private final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
 
-  public TransportDeviceManager(@NotNull DataStoreService dataStoreService) {
+  public TransportDeviceManager(@NotNull DataStoreService dataStoreService, @NotNull MessageBus messageBus) {
     myDataStoreService = dataStoreService;
+    myMessageBus = messageBus;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
@@ -213,17 +224,8 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     });
   }
 
-  /**
-   * Subclass implements this method to return an instance of TransportThread to be spawned
-   *
-   * @param device
-   * @return instance of TransportThread
-   */
-  protected abstract TransportThread getTransportThread(@NonNull IDevice device,
-                                                        @NotNull Map<String, DeviceContext> serialToDeviceContextMap);
-
   private void spawnTransportThread(@NonNull IDevice device) {
-    TransportThread transportThread = getTransportThread(device, mySerialToDeviceContextMap);
+    TransportThread transportThread = new TransportThread(device, myDataStoreService, myMessageBus, mySerialToDeviceContextMap);
     mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
       assert context != null && (context.myLastKnownTransportProxy == null || context.myLastKnownTransportProxy.getDevice() != device);
       context.myLastKnownTransportThreadFuture = context.myExecutor.submit(transportThread);
@@ -231,67 +233,48 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     });
   }
 
-  protected static abstract class TransportThread implements Runnable {
-    @NotNull protected final DataStoreService myDataStore;
-    @NotNull protected final IDevice myDevice;
-    private int myLocalPort;
-    protected volatile TransportProxy myTransportProxy;
+  private static final class TransportThread implements Runnable {
+    @NotNull private final DataStoreService myDataStore;
+    @NotNull private final IDevice myDevice;
+    @NotNull private final MessageBus myMessageBus;
+    private volatile TransportProxy myTransportProxy;
     private final Map<String, DeviceContext> mySerialToDeviceContextMap;
 
-    public TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore,
-                           @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
+    private TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore, @NotNull MessageBus messageBus,
+                            @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
       myDataStore = datastore;
+      myMessageBus = messageBus;
       myDevice = device;
-      myLocalPort = 0;
       mySerialToDeviceContextMap = serialToDeviceContextMap;
     }
 
     @Override
     public void run() {
+      Common.Device transportDevice = Common.Device.getDefaultInstance();
       try {
         // Waits to make sure the device has completed boot sequence.
         if (!waitForBootComplete()) {
           throw new TimeoutException("Timed out waiting for device to be ready.");
         }
 
-        preStartTransportThread();
-        startTransportThread();
-
+        transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
+        myMessageBus.syncPublisher(TOPIC).onPreTransportDaemonStart(transportDevice);
+        TransportFileManager fileManager = new TransportFileManager(myDevice, myMessageBus);
+        fileManager.copyFilesToDevice();
+        startTransportDaemon(transportDevice);
         getLogger().info("Terminating Transport thread");
       }
       catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException | SyncException e) {
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
         throw new RuntimeException(e);
       }
       catch (AdbCommandRejectedException | IOException e) {
         // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
         // We don't want to crash in this case.
-        getLogger().warn("Error when trying to spawn Transport:");
-        getLogger().warn(e);
+        getLogger().warn("Error when trying to spawn Transport", e);
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
       }
     }
-
-    /**
-     * Subclass implements this method to perform actions before Transport daemon is started. This is when files should
-     * be copied to the device.
-     *
-     * @throws SyncException
-     * @throws AdbCommandRejectedException
-     * @throws TimeoutException
-     * @throws ShellCommandUnresponsiveException
-     * @throws IOException
-     */
-    protected abstract void preStartTransportThread()
-      throws SyncException, AdbCommandRejectedException, TimeoutException, ShellCommandUnresponsiveException, IOException;
-
-    /**
-     * @return Path to Transport executable
-     */
-    protected abstract String getExecutablePath();
-
-    /**
-     * @return Config file path for Transport executable
-     */
-    protected abstract String getConfigPath();
 
     /**
      * Executes shell command on device to start the Transport daemon
@@ -301,14 +284,17 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
      * @throws ShellCommandUnresponsiveException
      * @throws IOException
      */
-    private void startTransportThread()
+    private void startTransportDaemon(@NotNull Common.Device transportDevice)
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-      String command = getExecutablePath() + " -config_file=" + getConfigPath();
+      String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getAgentConfigPath();
       getLogger().info("[Transport]: Executing " + command);
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
         @Override
         public void addOutput(byte[] data, int offset, int length) {
           String s = new String(data, offset, length, Charsets.UTF_8);
+          if (s.contains("Perfd Segmentation Fault:")) {
+            reportTransportSegmentationFault(s);
+          }
           getLogger().info("[Transport]: " + s);
 
           // On supported API levels (Lollipop+), we should only start the proxy once Transport has successfully launched the grpc server.
@@ -334,11 +320,12 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
           }
 
           try {
-            createTransportProxy();
+            createTransportProxy(transportDevice);
             getLogger().info(String.format("TransportProxy successfully created for device: %s", myDevice));
           }
           catch (AdbCommandRejectedException | IOException | TimeoutException e) {
             getLogger().warn(String.format("TransportProxy failed for device: %s", myDevice), e);
+            myMessageBus.syncPublisher(TOPIC).onTransportProxyCreationFail(transportDevice, e);
           }
         }
 
@@ -365,78 +352,66 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
      * @throws AdbCommandRejectedException
      * @throws IOException
      */
-    private void createTransportProxy() throws TimeoutException, AdbCommandRejectedException, IOException {
+    private void createTransportProxy(@NotNull Common.Device transportDevice)
+      throws TimeoutException, AdbCommandRejectedException, IOException {
+      int localPort = NetUtils.findAvailableSocketPort();
+      if (localPort < 0) {
+        throw new RuntimeException("Unable to find available socket port");
+      }
+
+      if (isAtLeastO(myDevice)) {
+        myDevice.createForward(localPort, DEVICE_SOCKET_NAME, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+      }
+      else {
+        myDevice.createForward(localPort, DEVICE_PORT);
+      }
+      getLogger().info(String.format("Port forwarding created for port: %d", localPort));
+
+      /*
+        Creates the channel that is used to connect to the device transport daemon.
+
+        TODO: investigate why ant build fails to find the ManagedChannel-related classes
+        The temporary fix is to stash the currently set context class loader,
+        so ManagedChannelProvider can find an appropriate implementation.
+       */
+      ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+      Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
+      ManagedChannel transportChannel = NettyChannelBuilder
+        .forAddress("localhost", localPort)
+        .usePlaintext(true)
+        .maxMessageSize(MAX_MESSAGE_SIZE)
+        .build();
+      Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+
+      // Creates a proxy server that the datastore connects to.
+      String channelName = myDevice.getSerialNumber();
+      myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
+      myMessageBus.syncPublisher(TOPIC).customizeProxyService(myTransportProxy);
+      myTransportProxy.initializeProxyServer(channelName);
       try {
-        myLocalPort = NetUtils.findAvailableSocketPort();
-        if (myLocalPort < 0) {
-          throw new RuntimeException("Unable to find available socket port");
-        }
-
-        if (isAtLeastO(myDevice)) {
-          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-        }
-        else {
-          myDevice.createForward(myLocalPort, DEVICE_PORT);
-        }
-        getLogger().info(String.format("Port forwarding created for port: %d", myLocalPort));
-
-        /*
-          Creates the channel that is used to connect to the device transport daemon.
-
-          TODO: investigate why ant build fails to find the ManagedChannel-related classes
-          The temporary fix is to stash the currently set context class loader,
-          so ManagedChannelProvider can find an appropriate implementation.
-         */
-        ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
-        ManagedChannel transportChannel = NettyChannelBuilder
-          .forAddress("localhost", myLocalPort)
-          .usePlaintext(true)
-          .maxMessageSize(MAX_MESSAGE_SIZE)
-          .build();
-        Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
-
-        // Creates a proxy server that the datastore connects to.
-        String channelName = myDevice.getSerialNumber();
-        Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
-        myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
-
-        // Subclass can register proxies here
-        postProxyCreation();
-
-        myTransportProxy.initializeProxyServer(channelName);
         myTransportProxy.connect();
-
-        mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
-          assert context != null;
-          context.myLastKnownTransportProxy = myTransportProxy;
-          return context;
-        });
-
-        // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
-        // We should otherwise do it for performance reasons, so we should investigate why.
-        ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
-        myDataStore.connect(Common.Stream.newBuilder()
-                              .setStreamId(transportDevice.getDeviceId())
-                              .setType(Common.Stream.Type.DEVICE)
-                              .setDevice(transportDevice)
-                              .build(),
-                            proxyChannel);
       }
-      catch (TimeoutException | AdbCommandRejectedException | IOException e) {
-        // If some error happened after TransportProxy was created, make sure to disconnect it
-        if (myTransportProxy != null) {
-          myTransportProxy.disconnect();
-        }
-        throw e;
+      catch (IOException exception) {
+        myTransportProxy.disconnect();
+        throw exception;
       }
+
+      mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
+        assert context != null;
+        context.myLastKnownTransportProxy = myTransportProxy;
+        return context;
+      });
+
+      // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
+      // We should otherwise do it for performance reasons, so we should investigate why.
+      ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
+      myDataStore.connect(Common.Stream.newBuilder()
+                            .setStreamId(transportDevice.getDeviceId())
+                            .setType(Common.Stream.Type.DEVICE)
+                            .setDevice(transportDevice)
+                            .build(),
+                          proxyChannel);
     }
-
-    /**
-     * Subclass implements this method to perform actions after myTransportProxy has been initialized, but before
-     * the proxy server itself has been built. This is where proxy services should be registered.
-     */
-    protected abstract void postProxyCreation();
 
     /**
      * A helper method to check whether the device has completed the boot sequence.
@@ -457,12 +432,72 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
       }
       return false;
     }
+
+    /**
+     * Helper function that parses the segmentation fault string sent by transport. The parsed string is then sent to
+     * @param crashString the string passed from transport when a segmentation fault happens. This is expected to be
+     *                    in the format of "Perfd Segmentation Fault: 1234,1234,1234,1234," where each number represents
+     *                    an address in the callstack.
+     */
+    private void reportTransportSegmentationFault(String crashString) {
+      PerfdCrashInfo.Builder crashInfo = PerfdCrashInfo.newBuilder();
+      String[] stack = crashString.split("[:,]+");
+      // The first value is the detection string.
+      for (int i = 1; i < stack.length; i++) {
+        crashInfo.addBackstackAddressList(Long.parseLong(stack[i].trim()));
+      }
+
+      // Create metrics event to report callstack.
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myDevice))
+        .setAndroidProfilerEvent(AndroidProfilerEvent.newBuilder()
+                                   .setType(AndroidProfilerEvent.Type.PERFD_CRASHED)
+                                   .setPerfdCrashInfo(crashInfo));
+      UsageTracker.log(event);
+    }
   }
 
-  protected static class DeviceContext {
+  private static class DeviceContext {
     @NotNull public final ExecutorService myExecutor = new ThreadPoolExecutor(0, 1, 1L,
                                                                               TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     @Nullable public TransportProxy myLastKnownTransportProxy;
     @Nullable public Future<?> myLastKnownTransportThreadFuture;
+  }
+
+  public interface TransportDeviceManagerListener {
+    /**
+     * Callback for when before the device manager starts the daemon on the specified device.
+     */
+    void onPreTransportDaemonStart(@NotNull Common.Device device);
+
+    /**
+     * Callback for when the transport daemon fails to start.
+     */
+    void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception);
+
+    /**
+     * Callback for when the device manager fails to initialize the proxy layer that connects between the datastore and the daemon.
+     */
+    void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception);
+
+    /**
+     * void onTransportThreadStarts(@NotNull IDevice device, @NotNull Common.Device transportDevice);
+     * <p>
+     * /**
+     * Allows for subscribers to customize the Transport pipeline's ServiceProxy before it is fully initialized.
+     */
+    void customizeProxyService(@NotNull TransportProxy proxy);
+
+    /**
+     * Allows for subscribers to customize the agent config before it is being pushed to the device, which is then used to initialized
+     * the transport daemon and app agent.
+     *
+     * @param configBuilder the AgentConifg.Builder to customize. Note that it is up to the subscriber to not override fields that are set
+     *                      in {@link TransportFileManager#pushAgentConfig(AndroidRunConfigurationBase)} which are primarily used for
+     *                      establishing connection to the transport daemon and app agent.
+     * @param runConfig     the run config associated with the current app launch.
+     */
+    void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder, @Nullable AndroidRunConfigurationBase runConfig);
   }
 }

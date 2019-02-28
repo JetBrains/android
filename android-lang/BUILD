@@ -10,6 +10,7 @@ iml_module(
         "resources",
     ],
     iml_files = ["intellij.android.lang.iml"],
+    lint_baseline = "lint_baseline.xml",
     tags = ["no_test_mac_psq"],
     test_runtime_deps = ["//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions"],
     visibility = ["//visibility:public"],
@@ -61,7 +62,6 @@ iml_module(
         "//tools/idea/plugins/IntelliLang:intellij.xml.langInjection",
         "//tools/idea/uast/uast-java:intellij.java.uast",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
-        "//tools/vendor/intellij/cidr:intellij.c",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
@@ -73,7 +73,6 @@ iml_module(
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     # do not sort: must match IML order
     deps = [

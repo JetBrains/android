@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -58,6 +59,15 @@ public class ConstraintAnchorTargetTest extends SceneTest {
 
     myScreen.get("@id/button2").expectXml("<Button\n" +
                                           "    android:id=\"@id/button2\"/>");
+  }
+
+  public void testBaselineTargetPosition() {
+    SceneComponent button2 = myScene.getSceneComponent("button2");
+    AnchorTarget baselineTarget = AnchorTarget.findAnchorTarget(button2, AnchorTarget.Type.BASELINE);
+
+    // Unit of SceneComponent is Integer and unit of Target is double. They may have up to 0.5d differences.
+    assertEquals(button2.getCenterX(), baselineTarget.getCenterX(), 0.5);
+    assertEquals(button2.getDrawY() + button2.getBaseline(), baselineTarget.getCenterY(), 0.5);
   }
 
   @Override

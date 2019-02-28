@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel.parsePropertiesFile;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
@@ -250,10 +249,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return;
     }
 
-    GradlePropertiesModel propertiesModel = parsePropertiesFile(propertiesFile, buildDslFile.getProject(), buildDslFile.getName(), context);
-    if (propertiesModel == null) {
+    GradlePropertiesFile parsedProperties = context.getOrCreatePropertiesFile(propertiesFile, buildDslFile.getName());
+    if (parsedProperties == null) {
       return;
     }
+    GradlePropertiesModel propertiesModel = new GradlePropertiesModel(parsedProperties);
 
     GradleDslFile propertiesDslFile = propertiesModel.myGradleDslFile;
     buildDslFile.setSiblingDslFile(propertiesDslFile);
@@ -401,7 +401,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public Set<GradleFileModel> getInvolvedFiles() {
-    return getAllInvolvedFiles().stream().map(e -> getFileModel(e)).collect(Collectors.toSet());
+    return getAllInvolvedFiles().stream().distinct().map(e -> getFileModel(e)).collect(Collectors.toSet());
   }
 
   @NotNull

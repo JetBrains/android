@@ -31,16 +31,27 @@ import kotlin.math.sqrt
 
 private const val LAYER_SPACING = 150
 
-class DeviceViewPanelModel(val model: InspectorModel) {
+class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
-  var xOff = 0.0
+  internal var xOff = 0.0
   @VisibleForTesting
-  var yOff = 0.0
+  internal var yOff = 0.0
 
-  var rootDimension: Dimension = Dimension()
+  private var rootDimension: Dimension = Dimension()
+  private var maxDepth: Int = 0
+
+  internal val maxWidth
+    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.width.toFloat()).toInt()
+
+  internal val maxHeight
+    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
   @VisibleForTesting
-  val hitRects = mutableListOf<Triple<Shape, AffineTransform, InspectorView>>()
+  internal var hitRects = listOf<Triple<Shape, AffineTransform, InspectorView>>()
+
+  init {
+    refresh()
+  }
 
   fun findTopRect(x: Double, y: Double): InspectorView? {
     return hitRects.findLast {
@@ -48,18 +59,16 @@ class DeviceViewPanelModel(val model: InspectorModel) {
     }?.third
   }
 
-  fun rotateX(increment: Double) {
-    xOff = (xOff + increment).coerceIn(-1.0, 1.0)
-  }
-
-  fun rotateY(increment: Double) {
-    yOff = (yOff + increment).coerceIn(-1.0, 1.0)
+  fun rotate(xRotation: Double, yRotation: Double) {
+    xOff = (xOff + xRotation).coerceIn(-1.0, 1.0)
+    yOff = (yOff + yRotation).coerceIn(-1.0, 1.0)
+    refresh()
   }
 
   @VisibleForTesting
   fun refresh() {
     rootDimension = Dimension(model.root.width, model.root.height)
-    hitRects.clear()
+    val newHitRects = mutableListOf<Triple<Shape, AffineTransform, InspectorView>>()
     val transform = AffineTransform()
     transform.translate(-model.root.width / 2.0, -model.root.height / 2.0)
 
@@ -68,20 +77,21 @@ class DeviceViewPanelModel(val model: InspectorModel) {
 
     transform.translate(rootDimension.width / 2.0, rootDimension.height / 2.0)
     transform.rotate(angle)
-    val maxDepth = findMaxDepth(model.root)
-    rebuildOneRect(transform, magnitude, 0, maxDepth, angle, model.root)
+    maxDepth = findMaxDepth(model.root)
+    rebuildOneRect(transform, magnitude, 0, angle, model.root, newHitRects)
+    hitRects = newHitRects.toList()
   }
 
   private fun findMaxDepth(view: InspectorView): Int {
-    return 1 + (view.children.map { findMaxDepth(it) }.max() ?: 0)
+    return 1 + (view.children.values.map { findMaxDepth(it) }.max() ?: 0)
   }
 
   private fun rebuildOneRect(transform: AffineTransform,
                              magnitude: Double,
                              depth: Int,
-                             maxDepth: Int,
                              angle: Double,
-                             view: InspectorView) {
+                             view: InspectorView,
+                             newHitRects: MutableList<Triple<Shape, AffineTransform, InspectorView>>) {
     val viewTransform = AffineTransform(transform)
 
     val sign = if (xOff < 0) -1 else 1
@@ -91,13 +101,12 @@ class DeviceViewPanelModel(val model: InspectorModel) {
     viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
 
     val rect = viewTransform.createTransformedShape(Rectangle(view.x, view.y, view.width, view.height))
-    hitRects.add(Triple(rect, viewTransform, view))
-    view.children.forEach { rebuildOneRect(transform, magnitude, depth + 1, maxDepth, angle, it) }
+    newHitRects.add(Triple(rect, viewTransform, view))
+    view.children.values.forEach { rebuildOneRect(transform, magnitude, depth + 1, angle, it, newHitRects) }
   }
 
   fun resetRotation() {
     xOff = 0.0
     yOff = 0.0
   }
-
 }

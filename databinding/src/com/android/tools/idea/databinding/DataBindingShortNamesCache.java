@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DataBindingShortNamesCache extends PsiShortNamesCache {
   private final DataBindingProjectComponent myComponent;
-  private final CachedValue<Map<String, List<DataBindingInfo>>> myNameCache;
+  private final CachedValue<Map<String, List<DataBindingLayoutInfo>>> myNameCache;
   private final CachedValue<String[]> myAllClassNamesCache;
   private final CachedValue<Map<String, List<PsiMethod>>> myMethodsByNameCache;
   private final CachedValue<Map<String, List<PsiField>>> myFieldsByNameCache;
@@ -109,8 +109,8 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   }
 
   private void traverseAllClasses(Function<PsiClass, Void> receiver) {
-    for (List<DataBindingInfo> infoList : myNameCache.getValue().values()) {
-      for (DataBindingInfo info : infoList) {
+    for (List<DataBindingLayoutInfo> infoList : myNameCache.getValue().values()) {
+      for (DataBindingLayoutInfo info : infoList) {
         PsiClass psiClass = DataBindingClassFactory.getOrCreatePsiClass(info);
         receiver.fun(psiClass);
       }
@@ -123,12 +123,12 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     if (!isEnabled()) {
       return PsiClass.EMPTY_ARRAY;
     }
-    List<DataBindingInfo> infoList = myNameCache.getValue().get(name);
+    List<DataBindingLayoutInfo> infoList = myNameCache.getValue().get(name);
     if (infoList == null || infoList.isEmpty()) {
       return PsiClass.EMPTY_ARRAY;
     }
     List<PsiClass> selected = Lists.newArrayList();
-    for (DataBindingInfo info : infoList) {
+    for (DataBindingLayoutInfo info : infoList) {
       if (scope.accept(info.getPsiFile().getVirtualFile())) {
         selected.add(DataBindingClassFactory.getOrCreatePsiClass(info));
       }
@@ -263,36 +263,36 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     Collections.addAll(set, getAllFieldNames());
   }
 
-  private static class NameCacheProvider extends ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingInfo> {
+  private static class NameCacheProvider extends ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingLayoutInfo> {
 
     public NameCacheProvider(DataBindingProjectComponent component) {
       super(component);
     }
 
     @Override
-    ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> createCacheProvider(AndroidFacet facet) {
+    ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>> createCacheProvider(AndroidFacet facet) {
       return new FacetNameCacheProvider(facet);
     }
   }
 
-  private static class FacetNameCacheProvider extends ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> {
+  private static class FacetNameCacheProvider extends ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>> {
     public FacetNameCacheProvider(AndroidFacet facet) {
       super(facet, null);
     }
 
     @Override
-    Map<String, List<DataBindingInfo>> doCompute() {
+    Map<String, List<DataBindingLayoutInfo>> doCompute() {
       LocalResourceRepository moduleResources = ResourceRepositoryManager.getInstance(getFacet()).getExistingModuleResources();
       if (moduleResources == null) {
         return defaultValue();
       }
-      Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+      Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         return defaultValue();
       }
-      Map<String, List<DataBindingInfo>> cache = Maps.newHashMap();
-      for (DataBindingInfo info : dataBindingResourceFiles.values()) {
-        List<DataBindingInfo> infoList = cache.get(info.getClassName());
+      Map<String, List<DataBindingLayoutInfo>> cache = Maps.newHashMap();
+      for (DataBindingLayoutInfo info : dataBindingResourceFiles.values()) {
+        List<DataBindingLayoutInfo> infoList = cache.get(info.getClassName());
         if (infoList == null) {
           infoList = Lists.newArrayList();
           cache.put(info.getClassName(), infoList);
@@ -303,7 +303,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     }
 
     @Override
-    Map<String, List<DataBindingInfo>> defaultValue() {
+    Map<String, List<DataBindingLayoutInfo>> defaultValue() {
       return Maps.newHashMap();
     }
   }

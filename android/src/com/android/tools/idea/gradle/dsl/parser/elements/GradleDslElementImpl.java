@@ -372,7 +372,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   @NotNull
   public <T extends BuildModelNotification> T notification(@NotNull NotificationTypeReference<T> type) {
-    return getDslFile().getContext().getNotificationForType(type);
+    return getDslFile().getContext().getNotificationForType(myDslFile, type);
   }
 
   @Override

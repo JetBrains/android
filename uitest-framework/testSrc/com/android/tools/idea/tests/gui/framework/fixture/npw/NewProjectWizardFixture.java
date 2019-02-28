@@ -21,13 +21,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.ProjectManager;
+import javax.swing.JDialog;
+import javax.swing.JRootPane;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTabbedPaneFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
@@ -41,12 +41,6 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture<NewProjectWizardFixture> getConfigureAndroidProjectStep() {
-    JRootPane rootPane = findStepWithTitle("Create Android Project");
-    return new ConfigureAndroidProjectStepFixture<>(this, rootPane);
-  }
-
-  @NotNull
   public ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> getConfigureNewAndroidProjectStep() {
     JRootPane rootPane = findStepWithTitle("Configure your project");
     return new ConfigureNewAndroidProjectStepFixture<>(this, rootPane);
@@ -56,17 +50,6 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {
     JRootPane rootPane = findStepWithTitle("Choose your project");
     return new ChooseAndroidProjectStepFixture<>(this, rootPane);
-  }
-
-  @NotNull
-  public ConfigureFormFactorStepFixture<NewProjectWizardFixture> getConfigureFormFactorStep() {
-    JRootPane rootPane = findStepWithTitle("Target Android Devices", 30);
-    return new ConfigureFormFactorStepFixture<>(this, rootPane);
-  }
-
-  public ConfigureInstantModuleStepFixture<NewProjectWizardFixture> getConfigureInstantModuleStep() {
-    JRootPane rootPane = findStepWithTitle("Configure the Instant App Feature module");
-    return new ConfigureInstantModuleStepFixture<>(this, rootPane);
   }
 
   @NotNull
@@ -89,12 +72,6 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public ChooseOptionsForNewFileStepFixture<NewProjectWizardFixture> getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ChooseOptionsForNewFileStepFixture<>(this, rootPane);
-  }
-
-  @NotNull
   public NewProjectWizardFixture clickFinish(@NotNull Wait dialog, @NotNull Wait projectOpen, @NotNull Wait indexing) {
     super.clickFinish(dialog);
     projectOpen.expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
@@ -105,11 +82,5 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   @NotNull
   public NewProjectWizardFixture clickFinish() {
     return clickFinish(Wait.seconds(10), Wait.seconds(5), Wait.seconds(120));
-  }
-
-  @NotNull
-  public ConfigureBasicActivityStepFixture<NewProjectWizardFixture> getConfigureActivityStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
   }
 }

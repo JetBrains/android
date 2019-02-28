@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -26,24 +29,18 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.DependencyTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.table.JBTable;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.junit.Assert.assertTrue;
 
 public class DependenciesTestUtil {
 
@@ -68,35 +65,19 @@ public class DependenciesTestUtil {
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,
                                                     @NotNull String minSdk) {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .getChooseAndroidProjectStep()
-        .chooseActivity("Empty Activity")
-        .wizard()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterName(appName)
-        .enterPackageName("android.com.app")
-        .selectMinimumSdkApi(minSdk)
-        .wizard()
-        .clickFinish();
-    }
-    else {
-      NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
-
-      newProjectWizard.getConfigureAndroidProjectStep()
-        .enterApplicationName(appName)
-        .enterCompanyDomain("com.android");
-
-      newProjectWizard.clickNext();
-      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdk);
-      newProjectWizard.clickNext();
-      newProjectWizard.chooseActivity("Empty Activity");
-      newProjectWizard.clickNext();
-      newProjectWizard.clickFinish();
-    }
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity("Empty Activity")
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(appName)
+      .enterPackageName("android.com.app")
+      .selectMinimumSdkApi(minSdk)
+      .wizard()
+      .clickFinish();
 
     return guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
   }

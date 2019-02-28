@@ -15,22 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.npw
 
+import com.android.tools.idea.flags.StudioFlags.NPW_OFFLINE_REPO_CHECKBOX
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-
-import com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS
-import com.android.tools.idea.flags.StudioFlags.NPW_OFFLINE_REPO_CHECKBOX
-import com.google.common.base.Charsets.UTF_8
-import com.google.common.truth.Truth.assertThat
 
 @RunIn(TestGroup.UNRELIABLE)  // b/113298184
 @RunWith(GuiTestRemoteRunner::class)
@@ -40,13 +37,11 @@ class OfflineRepoTest {
 
   @Before
   fun setUp() {
-    NPW_DYNAMIC_APPS.override(true)
     NPW_OFFLINE_REPO_CHECKBOX.override(true)
   }
 
   @After
   fun tearDown() {
-    NPW_DYNAMIC_APPS.clearOverride()
     NPW_OFFLINE_REPO_CHECKBOX.clearOverride()
   }
 
@@ -71,8 +66,6 @@ class OfflineRepoTest {
   }
 
   private fun newProject(offlineRepoEnabled: Boolean) {
-    NPW_DYNAMIC_APPS.override(true)
-
     guiTest
       .welcomeFrame()
       .createNewProject()

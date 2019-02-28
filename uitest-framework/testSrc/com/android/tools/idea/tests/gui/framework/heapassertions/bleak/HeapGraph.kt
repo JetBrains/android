@@ -140,14 +140,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     }
 
     // trashes marks
-    fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false): List<Node> {
-      val dominated = mutableListOf<Node>()
-      bfs (roots = roots, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it !== this }) {}
-      bfs (clearMarks = false, markValue = 2, roots = listOf(this), followWeakSoftRefs = followWeakSoftRefs, childFilter = { it.mark != 1 }) {
-        dominated.add(this)
-      }
-      return dominated
-    }
+    fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) = dominatedNodes(setOf(this), roots)
 
     fun retainedSize() = dominatedNodes().fold(0) { acc, node -> acc + node.approximateSize }
   }
@@ -331,6 +324,15 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     var found = false
     bfs(roots = roots, setIncomingEdges = true) { if (this@bfs in this@anyReachableFrom) found = true; return@bfs }
     return found
+  }
+
+  fun dominatedNodes(dominators: Set<Node>, traversalRoots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false): List<Node> {
+    val dominated = mutableListOf<Node>()
+    bfs (roots = traversalRoots, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it !in dominators }) {}
+    bfs (clearMarks = false, markValue = 2, roots = dominators, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it.mark != 1 }) {
+      dominated.add(this)
+    }
+    return dominated
   }
 
   fun computeIncomingEdges(followWeakSoftRefs: Boolean = true): Map<Node, List<Edge>> {

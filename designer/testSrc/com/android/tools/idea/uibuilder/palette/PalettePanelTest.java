@@ -33,6 +33,7 @@ import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
@@ -65,6 +66,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -86,9 +88,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
@@ -98,6 +98,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 
 public class PalettePanelTest extends LayoutTestCase {
   private NlTreeDumper myTreeDumper;
@@ -436,6 +437,18 @@ public class PalettePanelTest extends LayoutTestCase {
     verify(myBrowserLauncher).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull(), isNull());
   }
 
+  public void testPopupMenuWithPreferences() {
+    ActionManager actionManager = mock(ActionManager.class);
+    registerApplicationComponentImplementation(ActionManager.class, actionManager);
+
+    setUpPreferenceDesignSurface();
+    ItemList itemList = myPanel.getItemList();
+    itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true));
+
+    // There are no items in the common group for preferences, so no popup should be shown:
+    verifyZeroInteractions(actionManager);
+  }
+
   @NotNull
   private StatusBarEx registerMockStatusBar() {
     WindowManager windowManager = mock(WindowManagerEx.class);
@@ -481,6 +494,13 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
     return createDesignSurface(LayoutFileType.INSTANCE);
+  }
+
+  @NotNull
+  private DesignSurface setUpPreferenceDesignSurface() {
+    myPanel.setSize(800, 1000);
+    doLayout(myPanel);
+    return createDesignSurface(PreferenceScreenFileType.INSTANCE);
   }
 
   @NotNull

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.io.PrintStream
 import java.util.IdentityHashMap
@@ -47,14 +46,28 @@ private fun Signature.isWhitelisted(): Boolean =
   first() == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
   first() == "android.graphics.NinePatch_Delegate#sChunkCache" ||
   anyTypeContains("org.fest.swing") ||
+  entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields" ||
+  entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
+
+  // don't report that the total number of loaded classes has been increasing - this is generally expected.
   size == 4 && first() == "java.lang.Thread#contextClassLoader" && entry(1) == "com.intellij.util.lang.UrlClassLoader#classes" && label(2) == "elementData" ||
   size == 3 && first() == "com.intellij.util.lang.UrlClassLoader#classes" && label(1) == "elementData" ||
-  entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields"
+  // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
+  entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
+  entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
+
+  entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
+  entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
+  entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
+  entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
+  first() == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
+  first() == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315
 
 // "Troublesome" signatures are whitelisted as well, but are removed from the set of leak roots before leakShare is determined, rather
 // than after.
 fun Signature.isTroublesome(): Boolean =
-  size == 4 && lastLabel() in listOf("_set", "_values") && first() == "com.intellij.openapi.util.Disposer#ourTree"  // this accounts for both myObject2NodeMap and myRootObjects
+  size == 4 && lastLabel() in listOf("_set", "_values") && first() == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
+  entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers"
 
 private var currentLogPrinter: PrintStream? = null
 var currentLogFile: File? = null
@@ -72,6 +85,12 @@ fun runWithBleak(scenario: Runnable) {
 }
 
 private val USE_INCREMENTAL_PROPAGATION = System.getProperty("bleak.incremental.propagation") == "true"
+
+private fun mostCommonClassesOf(objects: Collection<Any?>, maxResults: Int): List<Pair<Class<*>, Int>> {
+  val classCounts = mutableMapOf<Class<*>, Int>()
+  objects.forEach { if (it != null) classCounts.merge(it.javaClass, 1) { currentCount, _ -> currentCount + 1 } }
+  return classCounts.toList().sortedByDescending { it.second }.take(maxResults)
+}
 
 private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   scenario()  // warm up
@@ -106,8 +125,14 @@ private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
         val prevLeakRoot = g2.getNodeForPath(leakRoot.getPath()) ?: g2.leakRoots.find { it.obj === leakRoot.obj }
         if (prevLeakRoot != null) {
           val prevChildrenObjects = IdentityHashMap<Any, Any>(prevLeakRoot.degree)
+          val newChildrenObjects = IdentityHashMap<Any, Any>(leakRoot.degree)
           prevChildrenObjects.putAll(prevLeakRoot.children.map { it.obj to it.obj })  // use map as a set
-          leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }.take(20).forEach {
+          newChildrenObjects.putAll(leakRoot.children.map { it.obj to it.obj })  // use map as a set
+          val addedChildren = leakRoot.children.filterNot { prevChildrenObjects.containsKey(it.obj) }
+
+          // print information about the newly added objects
+          appendln(" ${leakRoot.degree} children (+${leakRoot.degree - prevLeakRoot.degree}) [${newChildrenObjects.size} distinct (+${newChildrenObjects.size- prevChildrenObjects.size})]. New children: ${addedChildren.size}")
+          addedChildren.take(20).forEach {
             try {
               appendln("    Added object: ${it.type.name}: ${it.obj.toString().take(80)}")
             }
@@ -115,6 +140,22 @@ private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
               appendln("    Added object: ${it.type.name} [NPE in toString]")
             }
           }
+          // if many objects are added, print summary information about their most common classes
+          if (addedChildren.size > 20) {
+            appendln("    ...")
+            appendln("  Most common classes of added objects: ")
+            mostCommonClassesOf(addedChildren.map{it.obj}, 5).forEach {
+              appendln("    ${it.second} ${it.first.name}")
+            }
+          }
+
+          // print information about objects retained by the added children:
+          val retained = finalGraph.dominatedNodes(addedChildren.toSet())
+          appendln("\n Retained by new children: ${retained.size} (${retained.fold(0) { acc, node -> acc + node.getApproximateSize() }} bytes)")
+          mostCommonClassesOf(retained.map{it.obj}, 50).forEach {
+            appendln("    ${it.second} ${it.first.name}")
+          }
+
         }
         else {
           appendln("Warning: path and object have both changed between penultimate and final snapshots for this root")

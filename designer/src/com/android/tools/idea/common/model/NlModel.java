@@ -19,7 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
 
-import com.android.annotations.concurrency.Blocking;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceResolver;
@@ -30,8 +30,8 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
@@ -56,6 +56,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -80,7 +83,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,7 +115,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
 
-  @Blocking
+  @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
@@ -123,7 +125,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return new NlModel(parent, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
   }
 
-  @Blocking
+  @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
@@ -993,13 +995,30 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    NlDependencyManager.Companion.get().addDependencies(
-      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask)
-    );
+    // Add the components in a separate thread as it might end up running network operations to add missing dependencies.
+    ProgressManager.getInstance().run(new Task.Backgroundable(myFacet.getModule().getProject(), "Adding Components...") {
+
+      private boolean myHasMissingDependencies;
+
+      private Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        myHasMissingDependencies =
+          NlDependencyManager.Companion.get().addDependencies(toAdd, getFacet(), callback).getHadMissingDependencies();
+      }
+
+      @Override
+      public void onSuccess() {
+        if (!myHasMissingDependencies) {
+          // Only add the components if there were no missing dependencies.
+          callback.run();
+        }
+      }
+    });
   }
 
-  @Nullable
-  private Unit addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
+  private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
                                           @NotNull NlComponent receiver,
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
@@ -1016,7 +1035,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       notifyModified(ChangeType.ADD_COMPONENTS);
     });
-    return null;
   }
 
   @NotNull

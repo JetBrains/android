@@ -19,7 +19,7 @@ import com.android.tools.idea.resourceExplorer.plugin.ResourceImporter
  * Provides methods to get aggregated data from the registered [ResourceImporter].
  */
 class ImportersProvider(
-    val importers: Set<ResourceImporter> = ResourceImporter.EP_NAME.extensions.toSet()
+    val importers: Set<ResourceImporter> = ResourceImporter.EP_NAME.extensionList.toSet()
 ) {
 
   private val typeToImporter = importers

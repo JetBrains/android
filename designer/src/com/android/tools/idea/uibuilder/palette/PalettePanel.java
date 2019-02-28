@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.palette;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
@@ -39,6 +38,7 @@ import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.DataManager;
@@ -245,6 +245,9 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
 
       private void showPopupMenu(@NotNull MouseEvent event) {
+        if (myItemList.isEmpty()) {
+          return;
+        }
         myItemList.setSelectedIndex(myItemList.locationToIndex(event.getPoint()));
         ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, myActionGroup);
         popupMenu.getComponent().show(myItemList, event.getX(), event.getY());

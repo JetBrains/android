@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,7 +130,7 @@ public abstract class Device {
   }
 
   @NotNull
-  abstract AndroidVersion getAndroidVersion();
+  abstract Future<AndroidVersion> getAndroidVersion();
 
   final boolean isRunning(@NotNull String appPackage) {
     if (!isConnected()) {

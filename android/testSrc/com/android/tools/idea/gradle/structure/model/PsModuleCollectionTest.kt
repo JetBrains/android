@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -117,6 +120,28 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
     assertThat(module.variables.getVariableScopes().map { it.name })
         .containsExactly("${project.name} (build script)", "${project.name} (project)", "nested1", "nested1-deep")
+  }
+
+  fun testRelocatedModules_withoutResolvedModels() {
+    loadProject(TestProjectPaths.PSD_PROJECT_DIR)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib")
+  }
+
+  fun testRelocatedModules_withResolvedModel() {
+    loadProject(TestProjectPaths.PSD_PROJECT_DIR)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib", ":jav")
+
+    // And make sure the build file is parsed.
+    val javModule = project.findModuleByGradlePath(":jav") as? PsJavaModule
+    assertThat(javModule?.dependencies?.findLibraryDependencies("junit", "junit")?.firstOrNull()?.version).isEqualTo("4.12".asParsed())
   }
 }
 
