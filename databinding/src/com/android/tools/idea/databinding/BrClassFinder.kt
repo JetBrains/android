@@ -39,6 +39,20 @@ class BrClassFinder(private val component: DataBindingProjectComponent) : PsiEle
       }, false)
   }
 
+  override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
+    if (!isEnabled || psiPackage.project != scope.project) {
+      return PsiClass.EMPTY_ARRAY
+    }
+
+    val qualifiedPackage = psiPackage.qualifiedName
+    return if (qualifiedPackage.isNotEmpty()) {
+      findClasses("$qualifiedPackage.${DataBindingUtil.BR}", scope)
+    }
+    else {
+      PsiClass.EMPTY_ARRAY
+    }
+  }
+
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     if (!isEnabled || !qualifiedName.endsWith(DataBindingUtil.BR)) {
       return null
