@@ -138,7 +138,7 @@ class ResourcePasteProvider : PasteProvider {
                                   resourceReference: String): Boolean {
     if (xmlAttribute == null) return false
     runWriteAction {
-      xmlAttribute.value = resourceReference
+      xmlAttribute.setValue(resourceReference)
     }
     xmlAttribute.valueElement?.valueTextRange?.startOffset?.let {
       caret.selectStringFromOffset(resourceReference, it)
