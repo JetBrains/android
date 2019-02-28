@@ -252,6 +252,9 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     env["HOME"] = AndroidLocation.getUserHomeFolder()!!
     AndroidDebugBridge.init(false, false, env)
     val adbBinary = File(sdkLocation, "platform-tools/adb")
+
+    // Wait for ADB to start with 30 seconds. Slow machine can cause ADB to take very long time to start
+    DdmPreferences.setTimeOut(30000)
     return AndroidDebugBridge.createBridge(adbBinary.absolutePath, false)!!
   }
 
