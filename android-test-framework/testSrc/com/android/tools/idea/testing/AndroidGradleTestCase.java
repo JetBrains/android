@@ -74,6 +74,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -418,6 +419,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    if (path == null) {
+      path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+    }
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }
