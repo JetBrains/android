@@ -38,5 +38,8 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
