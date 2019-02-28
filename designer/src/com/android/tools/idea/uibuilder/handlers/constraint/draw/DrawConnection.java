@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -79,6 +80,7 @@ public class DrawConnection implements DrawCommand {
   @SwingCoordinate int myMarginDistance;
   boolean myIsMarginReference;
   float myBias;
+  boolean myIsComponentSelected;
   int myModeFrom; // use to describe various display modes 0=default 1 = Source selected
   int myModeTo;
   long myStateChangeTime;
@@ -106,7 +108,7 @@ public class DrawConnection implements DrawCommand {
     return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
            mySourceDirection + "," + rectToString(myDest) + "," + myDestDirection + "," +
            myDestType + "," + myShift + "," + myMargin + "," + myMarginDistance + "," +
-           myIsMarginReference + "," + myBias + "," + myModeFrom + "," + myModeTo + "," + 0;
+           myIsMarginReference + "," + myBias + "," + myIsComponentSelected + "," + myModeFrom + "," + myModeTo + "," + 0;
   }
 
   private static String rectToString(Rectangle r) {
@@ -138,6 +140,7 @@ public class DrawConnection implements DrawCommand {
     myMarginDistance = Integer.parseInt(sp[c++]);
     myIsMarginReference = Boolean.parseBoolean(sp[c++]);
     myBias = Float.parseFloat(sp[c++]);
+    myIsComponentSelected = Boolean.parseBoolean(sp[c++]);
     myModeFrom = Integer.parseInt(sp[c++]);
     myModeTo = Integer.parseInt(sp[c++]);
     myStateChangeTime = Long.parseLong(sp[c++]);
@@ -147,8 +150,8 @@ public class DrawConnection implements DrawCommand {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
-    boolean animate = draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance,
-         myIsMarginReference, myModeFrom, myModeTo, myStateChangeTime);
+    boolean animate = draw(g, sceneContext, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance,
+         myIsMarginReference, myIsComponentSelected, myModeFrom, myModeTo, myStateChangeTime);
     if (animate) {
       sceneContext.repaint();
     }
@@ -165,9 +168,12 @@ public class DrawConnection implements DrawCommand {
                         @SwingCoordinate int marginDistance,
                         boolean isMarginReference,
                         Float bias,
-                        int modeFrom, int modeTo, long nanoTime) {
+                        boolean isComponentSelected,
+                        int modeFrom,
+                        int modeTo,
+                        long nanoTime) {
     config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias,
-           modeFrom, modeTo, nanoTime);
+           isComponentSelected, modeFrom, modeTo, nanoTime);
   }
 
   public static void buildDisplayList(DisplayList list,
@@ -182,10 +188,13 @@ public class DrawConnection implements DrawCommand {
                                       @SwingCoordinate int marginDistance,
                                       boolean isMarginReference,
                                       Float bias,
-                                      int modeFrom, int modeTo, long nanoTime) {
+                                      boolean isComponentSelected,
+                                      int modeFrom,
+                                      int modeTo,
+                                      long nanoTime) {
     list
       .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance,
-                              isMarginReference, bias, modeFrom, modeTo, nanoTime));
+                              isMarginReference, bias, isComponentSelected, modeFrom, modeTo, nanoTime));
   }
 
   public void config(int connectionType,
@@ -199,6 +208,7 @@ public class DrawConnection implements DrawCommand {
                      @SwingCoordinate int marginDistance,
                      boolean isMarginReference,
                      Float bias,
+                     boolean isComponentSelected,
                      int modeFrom,
                      int modeTo,
                      long stateChangeTime) {
@@ -215,6 +225,7 @@ public class DrawConnection implements DrawCommand {
     myMarginDistance = marginDistance;
     myIsMarginReference = isMarginReference;
     myBias = bias;
+    myIsComponentSelected = isComponentSelected;
     myModeFrom = modeFrom;
     myModeTo = modeTo;
     myStateChangeTime = stateChangeTime;
@@ -260,7 +271,9 @@ public class DrawConnection implements DrawCommand {
   }
 
   public static boolean draw(Graphics2D g,
-                             ColorSet color, int connectionType,
+                             SceneContext sceneContext,
+                             ColorSet color,
+                             int connectionType,
                              @SwingCoordinate Rectangle source,
                              int sourceDirection,
                              @SwingCoordinate Rectangle dest,
@@ -269,9 +282,16 @@ public class DrawConnection implements DrawCommand {
                              int margin,
                              @SwingCoordinate int marginDistance,
                              boolean isMarginReference,
+                             boolean isComponentSelected,
                              int modeFrom,
                              int modeTo,
                              long stateChange) {
+    Shape originalClip = null;
+    if (isComponentSelected) {
+      originalClip = g.getClip();
+      g.setClip(sceneContext.getRenderableBounds());
+    }
+
     boolean animate = false;
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     Color constraintColor = modeGetConstraintsColor(modeTo, color);
@@ -288,6 +308,9 @@ public class DrawConnection implements DrawCommand {
 
     if (connectionType == TYPE_BASELINE) {
       drawBaseLine(g, source, dest, constraintColor);
+      if (originalClip != null) {
+        g.setClip(originalClip);
+      }
       return animate;
     }
     int startx = getConnectionX(sourceDirection, source);
@@ -645,6 +668,10 @@ public class DrawConnection implements DrawCommand {
         DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
+    }
+
+    if (originalClip != null) {
+      g.setClip(originalClip);
     }
     return animate;
   }
