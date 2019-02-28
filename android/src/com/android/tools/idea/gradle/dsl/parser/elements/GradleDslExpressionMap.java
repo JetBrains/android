@@ -17,11 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
@@ -101,15 +100,15 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
     return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
   }
 
+  @Override
   @NotNull
   public GradleDslExpressionMap copy() {
     GradleDslExpressionMap mapClone =
       new GradleDslExpressionMap(myParent, GradleNameElement.copy(myName), /*isLiteralMap()*/false);
     for (GradleDslElement element : getCurrentElements()) {
-      assert element instanceof GradleDslSimpleExpression;
       // NOTE: This line may throw if we try to change the configuration name of an unsupported element.
-      GradleDslSimpleExpression sourceExpression = (GradleDslSimpleExpression)element;
-      GradleDslSimpleExpression copiedExpression = sourceExpression.copy();
+      GradleDslExpression sourceExpression = (GradleDslExpression)element;
+      GradleDslExpression copiedExpression = sourceExpression.copy();
       // NOTE: setNewElement is a confusing name which does not reflect what the method does.
       mapClone.setNewElement(copiedExpression);
     }
