@@ -100,7 +100,7 @@ public class DnDTransferItem {
                               "    android:layout_width=\"wrap_content\"\n" +
                               "    android:layout_height=\"wrap_content\"\n" +
                               "    android:src=\"" + url.toString() + "\"/>";
-      ResourceManagerTracking.INSTANCE.logDragOnViewGroup();
+      ResourceManagerTracking.INSTANCE.logDragOnViewGroup(url.type);
       return new DnDTransferItem(new DnDTransferComponent(SdkConstants.IMAGE_VIEW, representation, 200, 100));
     }
     return null;
