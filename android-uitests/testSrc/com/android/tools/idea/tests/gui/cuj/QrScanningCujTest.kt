@@ -47,7 +47,7 @@ class QrScanningCujTest {
 
   @Rule
   @JvmField
-  val guiTest: GuiTestRule = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  val guiTest: GuiTestRule = GuiTestRule().withTimeout(8, TimeUnit.MINUTES)
 
   @Rule
   @JvmField
