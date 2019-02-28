@@ -182,7 +182,6 @@ public class GradleProjectImporter {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
     projectInfo.setNewProject(request.isNewProject);
     projectInfo.setImportedProject(true);
-    projectInfo.setExtraInfo(request.extraInfo);
     projectInfo.setSkipStartupActivity(true);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
@@ -208,7 +207,6 @@ public class GradleProjectImporter {
 
     @Nullable public Project project;
     @Nullable public LanguageLevel javaLanguageLevel;
-    @Nullable public NewProjectExtraInfo extraInfo;
 
     public boolean generateSourcesOnSuccess = true;
     public boolean isNewProject;
