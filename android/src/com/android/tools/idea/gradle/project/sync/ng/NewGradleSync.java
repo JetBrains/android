@@ -168,6 +168,10 @@ public class NewGradleSync implements GradleSync {
     if (trySyncWithCachedGradleModels(setupRequest, indicator, syncListener)) {
       return;
     }
+    else {
+      request.useCachedGradleModels = false;
+      setupRequest.usingCachedGradleModels = false;
+    }
 
     boolean isVariantOnlySync = request.variantOnlySyncOptions != null;
     boolean isCompoundSync = isCompoundSync(myProject) && request.generateSourcesOnSuccess;
@@ -209,7 +213,7 @@ public class NewGradleSync implements GradleSync {
       return false;
     }
 
-    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.generateSourcesAfterSync = true;
     setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
     ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);

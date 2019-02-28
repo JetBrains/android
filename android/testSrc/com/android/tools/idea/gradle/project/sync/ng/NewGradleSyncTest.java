@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -87,6 +88,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   public void testSyncFromCachedModels() throws Exception {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
+    request.generateSourcesOnSuccess = false;
 
     Project project = getProject();
     ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
@@ -98,8 +100,16 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.usingCachedGradleModels = request.useCachedGradleModels;
+
+    // Verify that source generation is true for cached sync.
+    setupRequest.generateSourcesAfterSync = true;
+    setupRequest.cleanProjectAfterSync = request.cleanProject;
+    setupRequest.lastSyncTimestamp = 0;
+
     verify(mySyncMessages).removeAllMessages();
-    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
+    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), eq(setupRequest), any(), same(mySyncListener), any());
   }
 
   public void testFailedSyncFromCachedModels() throws Exception {
@@ -124,7 +134,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
       }
     };
     doAnswer(getTaskIdAndTrowError).when(myResultHandler)
-                                   .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
+      .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
 
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
