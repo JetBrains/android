@@ -117,9 +117,9 @@ public class ProfilingConfiguration {
 
   public int getRequiredDeviceLevel() {
     switch (myProfilerType) {
-      // Atrace is fully supported from Android 8.0 (O)
+      // Atrace requires '-o' option which is supported from Android 7.0 (N).
       case ATRACE:
-        return AndroidVersion.VersionCodes.O;
+        return AndroidVersion.VersionCodes.N;
       // Simpleperf is supported from Android 8.0 (O)
       case SIMPLEPERF:
         return AndroidVersion.VersionCodes.O;
