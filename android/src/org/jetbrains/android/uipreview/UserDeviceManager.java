@@ -6,10 +6,8 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.util.CachedValue;
@@ -22,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.xml.sax.SAXException;
 
 /**
@@ -37,11 +36,20 @@ public class UserDeviceManager {
     return ServiceManager.getService(project, UserDeviceManager.class);
   }
 
+  @TestOnly
+  public static UserDeviceManager getInstanceWithCustomPath(@NotNull Project project, @NotNull String customUserDeviceXmlFilePath) {
+    return new UserDeviceManager(project, customUserDeviceXmlFilePath);
+  }
+
   private UserDeviceManager(@NotNull Project project) {
-    myDevicesFile = getUserDevicesFile(logger);
+    this(project, null);
+  }
+
+  private UserDeviceManager(@NotNull Project project, @Nullable String customUserDeviceXmlFilePath) {
+    myDevicesFile = getUserDevicesFile(logger, customUserDeviceXmlFilePath);
     if (myDevicesFile != null) {
       myDevices = CachedValuesManager.getManager(project).createCachedValue(
-        () -> new CachedValueProvider.Result<>(parseUserDevicesFile(myDevicesFile, logger), myDevicesFile));
+        () -> new CachedValueProvider.Result<>(parseUserDevicesFile(myDevicesFile, logger), myDevicesFile), false);
     }
   }
 
@@ -101,9 +109,9 @@ public class UserDeviceManager {
   }
 
   @Nullable
-  private static VirtualFile getUserDevicesFile(ILogger logger) {
+  private static VirtualFile getUserDevicesFile(ILogger logger, @Nullable String customUserDeviceXmlFilePath) {
     try {
-      String myFolderToStoreDevicesXml = AndroidLocation.getFolder();
+      String myFolderToStoreDevicesXml = customUserDeviceXmlFilePath == null ? AndroidLocation.getFolder() : customUserDeviceXmlFilePath;
       return LocalFileSystem.getInstance().findFileByIoFile(new File(myFolderToStoreDevicesXml, SdkConstants.FN_DEVICES_XML));
     }
     catch (AndroidLocation.AndroidLocationException e) {
