@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -46,17 +46,17 @@ public class DataBindingClassFinder extends PsiElementFinder {
     }
     for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
       LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
-      Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+      Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;
       }
-      DataBindingInfo dataBindingInfo = dataBindingResourceFiles.get(qualifiedName);
-      if (dataBindingInfo == null) {
+      DataBindingLayoutInfo dataBindingLayoutInfo = dataBindingResourceFiles.get(qualifiedName);
+      if (dataBindingLayoutInfo == null) {
         continue;
       }
-      VirtualFile file = dataBindingInfo.getPsiFile().getVirtualFile();
+      VirtualFile file = dataBindingLayoutInfo.getPsiFile().getVirtualFile();
       if (file != null && scope.accept(file)) {
-        return DataBindingClassFactory.getOrCreatePsiClass(dataBindingInfo);
+        return DataBindingClassFactory.getOrCreatePsiClass(dataBindingLayoutInfo);
       }
     }
     return null;

@@ -21,8 +21,9 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PAR
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_ONE_OF_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -55,10 +56,16 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
-    assertThat(fileDependencies).hasSize(3);
+    assertThat(fileDependencies).hasSize(9);
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
     assertEquals("lib2.jar", fileDependencies.get(1).file().toString());
     assertEquals("lib3.jar", fileDependencies.get(2).file().toString());
+    assertEquals("lib4.jar", fileDependencies.get(3).file().toString());
+    assertEquals("lib5.jar", fileDependencies.get(4).file().toString());
+    assertEquals("lib6.jar", fileDependencies.get(5).file().toString());
+    assertEquals("lib7.jar", fileDependencies.get(6).file().toString());
+    assertEquals("lib8.jar", fileDependencies.get(7).file().toString());
+    assertEquals("lib9.jar", fileDependencies.get(8).file().toString());
   }
 
   @Test
@@ -96,27 +103,34 @@ public class FileDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
-  public void testUpdateOneOfFileDependency() throws IOException {
-    writeToBuildFile(FILE_DEPENDENCY_UPDATE_ONE_OF_FILE_DEPENDENCY);
+  public void testUpdateSomeOfFileDependencies() throws IOException {
+    writeToBuildFile(FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
-    assertThat(fileDependencies).hasSize(2);
+    assertThat(fileDependencies).hasSize(6);
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
 
     FileDependencyModel fileDependency = fileDependencies.get(1);
     assertEquals("lib2.jar", fileDependency.file().toString());
-
     fileDependency.file().setValue("lib3.jar");
+
+    fileDependency = fileDependencies.get(4);
+    assertEquals("lib5.jar", fileDependency.file().toString());
+    fileDependency.file().setValue("lib5.aar");
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
 
     fileDependencies = buildModel.dependencies().files();
-    assertThat(fileDependencies).hasSize(2);
+    assertThat(fileDependencies).hasSize(6);
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
     assertEquals("lib3.jar", fileDependencies.get(1).file().toString());
+    assertEquals("lib3.jar", fileDependencies.get(2).file().toString());
+    assertEquals("lib4.jar", fileDependencies.get(3).file().toString());
+    assertEquals("lib5.aar", fileDependencies.get(4).file().toString());
+    assertEquals("lib6.jar", fileDependencies.get(5).file().toString());
   }
 
   @Test
@@ -176,5 +190,32 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
     assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+  }
+
+  @Test
+  public void testRemoveWhenMultiple() throws IOException {
+    writeToBuildFile(FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileDependencyModel> fileDependencies = dependencies.files();
+    assertThat(fileDependencies).hasSize(6);
+
+    assertEquals("lib2.jar", fileDependencies.get(1).file().toString());
+    assertEquals("lib3.jar", fileDependencies.get(2).file().toString());
+    assertEquals("lib6.jar", fileDependencies.get(5).file().toString());
+
+    dependencies.remove(fileDependencies.get(5));
+    dependencies.remove(fileDependencies.get(2));
+    dependencies.remove(fileDependencies.get(1));
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    fileDependencies = buildModel.dependencies().files();
+    assertThat(fileDependencies).hasSize(3);
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+    assertEquals("lib4.jar", fileDependencies.get(1).file().toString());
+    assertEquals("lib5.jar", fileDependencies.get(2).file().toString());
   }
 }

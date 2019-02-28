@@ -16,6 +16,8 @@
 
 package org.jetbrains.android;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.TargetElementUtil;
@@ -30,10 +32,12 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.PsiElementUsageTarget;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -463,8 +467,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  describeUsages(references));
   }
 
-  private static Collection<UsageInfo> findUsages(String fileName, final JavaCodeInsightTestFixture fixture, String newFilePath)
-    throws Throwable {
+  private static Collection<UsageInfo> findUsages(String fileName, final JavaCodeInsightTestFixture fixture, String newFilePath) {
     VirtualFile file = fixture.copyFileToProject(BASE_PATH + fileName, newFilePath);
     fixture.configureFromExistingVirtualFile(file);
 
@@ -481,11 +484,13 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
   public static Collection<UsageInfo> findUsages(VirtualFile file, JavaCodeInsightTestFixture fixture) throws Exception {
     fixture.configureFromExistingVirtualFile(file);
-    final PsiElement targetElement = TargetElementUtil
-      .findTargetElement(fixture.getEditor(),
-                         TargetElementUtil.ELEMENT_NAME_ACCEPTED | TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+    final PsiElement targetElement =
+      TargetElementUtil.findTargetElement(fixture.getEditor(),
+                                          TargetElementUtil.ELEMENT_NAME_ACCEPTED | TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
     assert targetElement != null;
-    return fixture.findUsages(targetElement);
+    Collection<UsageInfo> usages = fixture.findUsages(targetElement);
+    assertThat(usages).named("Usages of " + targetElement).doesNotContain(null);
+    return usages;
   }
 
   private static String describeUsages(Collection<UsageInfo> collection) {

@@ -74,7 +74,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private final boolean myIsLibrary;
   private final boolean myIsInstantApp;
 
-  private FormFactorApiComboBox mySdkControls;
+  private AndroidApiLevelComboBox myApiLevelCombo;
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
@@ -137,7 +137,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     myRenderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
 
-    myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
+    myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
     myValidatorPanel.registerValidator(myRenderModel.androidSdkInfo(), value ->
       value.isPresent() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text")));
 
@@ -166,8 +166,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     // TODO: The old version only loaded the list of version once, and kept everything on a static field
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
     myAndroidVersionsInfo.loadLocalVersions();
-    mySdkControls.init(myFormFactor, myAndroidVersionsInfo.getKnownTargetVersions(myFormFactor, myMinSdkLevel)); // Pre-populate
-    myAndroidVersionsInfo.loadRemoteTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
+    myApiLevelCombo.init(myFormFactor, myAndroidVersionsInfo.getKnownTargetVersions(myFormFactor, myMinSdkLevel)); // Pre-populate
+    myAndroidVersionsInfo.loadRemoteTargetVersions(myFormFactor, myMinSdkLevel, items -> myApiLevelCombo.init(myFormFactor, items));
   }
 
   @NotNull
@@ -214,7 +214,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   }
 
   private void createUIComponents() {
-    mySdkControls = new FormFactorApiComboBox();
+    myApiLevelCombo = new AndroidApiLevelComboBox();
   }
 
   @Override

@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.SdkConstants;
 import com.android.ide.common.util.PathString;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
@@ -53,7 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link AndroidColorAnnotator} and {@link AndroidJavaResourceExternalAnnotator}.
+ * Tests for {@link AndroidColorAnnotator}, {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
  */
 public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
@@ -108,8 +109,15 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
+    myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
 
     copyRJavaToGeneratedSources();
+  }
+
+  public void testDrawableInManifest() throws IOException {
+    // Drawable icon in AndroidManifest.xml file.
+    HighlightInfo highlightInfo = findHighlightInfo(SdkConstants.FN_ANDROID_MANIFEST_XML, "@drawable/drawable1", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/drawable1_thumbnail.png");
   }
 
   public void testNoResourceReferences() {
@@ -150,12 +158,16 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     // Color definition in a values file
     HighlightInfo highlightInfo = findHighlightInfo("res/values/colors1.xml", "3F51B5", XmlTag.class);
     checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    // Inline color have a color picker click action
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
 
   public void testColorInValues2() {
     // Color definition in a values file
     HighlightInfo highlightInfo = findHighlightInfo("res/values/colors2.xml", "303F9F", XmlTag.class);
     checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    // Inline color have a color picker click action
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
 
   public void testColorStateListInValues() {
@@ -164,18 +176,24 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoColor(highlightInfo, new Color(255, 0, 0));
     highlightInfo = findHighlightInfo("res/color/selector.xml", "#ff00ff00", XmlAttributeValue.class);
     checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
+    // Inline color have a color picker click action
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
 
   public void testColorReferenceInXml1() {
     // Reference to a color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color1", XmlAttributeValue.class);
     checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    // No click action for a color reference.
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNull();
   }
 
   public void testColorReferenceInXml2() {
     // Reference to a color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color2", XmlAttributeValue.class);
     checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    // No click action for a color reference.
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNull();
   }
 
   public void testColorReferenceInXml3() {

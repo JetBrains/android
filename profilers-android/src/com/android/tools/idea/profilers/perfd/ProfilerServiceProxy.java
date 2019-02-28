@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 
-import com.android.tools.idea.transport.TransportProxyService;
+import com.android.tools.idea.transport.ServiceProxy;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A simple pass-through proxy for the ProfilerService. All logic is handled on device side.
  */
-public class ProfilerServiceProxy extends TransportProxyService {
+public class ProfilerServiceProxy extends ServiceProxy {
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
 
   public ProfilerServiceProxy(@NotNull ManagedChannel channel) {

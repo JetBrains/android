@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.google.common.collect.Lists;
@@ -274,9 +275,17 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     @NotNull
     protected DefaultActionGroup createPopupActionGroup(JComponent button) {
       List<VariantSelectionAction> actions = Lists.newArrayList();
-      myAndroidModel.getAndroidProject().forEachVariant(variant -> {
-        actions.add(new VariantSelectionAction(variant));
-      });
+      if (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC) {
+        // Using single variant sync. Do not confuse the user by showing a subset of the variants.
+        actions.add(new VariantSelectionAction(myAndroidModel.getSelectedVariant()));
+      }
+      else {
+        // Using all-variants sync, we can show all variants in the combobox.
+        myAndroidModel.getAndroidProject().forEachVariant(variant -> {
+          actions.add(new VariantSelectionAction(variant));
+        });
+      }
+
       return new DefaultActionGroup(actions);
     }
   }

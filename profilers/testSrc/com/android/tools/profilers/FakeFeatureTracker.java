@@ -87,12 +87,42 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Nullable private CaptureDetails.Type myLastCaptureDetailsType = null;
 
   @Override
+  public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
+
+  }
+
+  @Override
+  public void trackTransportDaemonFailed(@NotNull Common.Device transportDevice, Exception exception) {
+
+  }
+
+  @Override
+  public void trackTransportProxyCreationFailed(@NotNull Common.Device transportDevice, Exception exception) {
+
+  }
+
+  @Override
+  public void trackProfilerInitializationFailed() {
+
+  }
+
+  @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
 
   }
 
   @Override
   public void trackRunWithProfiling() {
+
+  }
+
+  @Override
+  public void trackAutoProfilingRequested() {
+
+  }
+
+  @Override
+  public void trackAutoProfilingSucceeded() {
 
   }
 
@@ -113,6 +143,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackChangeProcess(@Nullable Common.Process process) {
+
+  }
+
+  @Override
+  public void trackSessionDropdownClicked() {
 
   }
 

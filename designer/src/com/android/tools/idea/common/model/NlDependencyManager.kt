@@ -18,7 +18,10 @@ package com.android.tools.idea.common.model
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrent.addCallback
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
@@ -38,34 +41,53 @@ class NlDependencyManager {
     fun get() = NlDependencyManager()
   }
 
+  data class AddDependenciesResult(val hadMissingDependencies: Boolean, val dependenciesPresent: Boolean)
+
   /**
-   * Make sure the dependencies of the components being added are present and resolved in the module.
+   * Makes sure the dependencies of the components being added are present and resolved in the module.
    * If they are not: ask the user if they can be added now.
-   * Return true if the dependencies are present now (they may have just been added).
+   *
+   * Returns an instance of [AddDependenciesResult] with hadMissingDependencies set to true if some dependencies were not yet present, and
+   * dependenciesPresent set to true if all dependencies were already present or if they were added (i.e. the user chose to install them).
    */
   @JvmOverloads
-  fun addDependencies(components: Iterable<NlComponent>,
-                      facet: AndroidFacet,
-                      syncDoneCallback: (() -> Unit)? = null): Boolean {
+  fun addDependencies(
+    components: Iterable<NlComponent>,
+    facet: AndroidFacet,
+    syncDoneCallback: (() -> Unit)? = null
+  ): AddDependenciesResult {
     val moduleSystem = facet.module.getModuleSystem()
     val missingDependencies = collectDependencies(components).filter { moduleSystem.getRegisteredDependency(it) == null }
     if (missingDependencies.isEmpty()) {
-      syncDoneCallback?.invoke()
-      return true
+      // We don't have any missing dependencies, therefore they're all present.
+      return AddDependenciesResult(hadMissingDependencies = false, dependenciesPresent = true)
     }
 
-    if (facet.module.addDependencies(missingDependencies, false, false).isNotEmpty()) {
-      return false
+    if (facet.module.addDependencies(missingDependencies, false, requestSync = false).isNotEmpty()) {
+      // User clicked "No" when asked to install the missing dependencies, so they won't be present.
+      return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = false)
     }
 
+    // When the user clicks "Yes" to install the missing dependencies, sync the project so they'll effectively be present.
     val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
       facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
 
     if (syncDoneCallback != null) {
-      syncResult.addCallback(success = { _ -> syncDoneCallback() }, failure = { _ -> syncDoneCallback() })
+      syncResult.addCallback(success = { syncDoneCallback() }, failure = { syncDoneCallback() })
     }
 
-    return true
+    return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = true)
+  }
+
+  /**
+   * @see addDependencies
+   */
+  fun addDependencies(
+    components: Iterable<NlComponent>,
+    facet: AndroidFacet,
+    syncDoneCallback: Runnable
+  ): AddDependenciesResult {
+    return addDependencies(components, facet, syncDoneCallback::run)
   }
 
   /**
@@ -81,7 +103,7 @@ class NlDependencyManager {
       facet.module.getModuleSystem().getResolvedDependency(artifactId.getCoordinate("+"))?.version
 
   /**
-   * Check if there is any missing dependencies and ask the user only if they are some.
+   * Checks if there is any missing dependencies and ask the user only if they are some.
    *
    * User cannot be asked to accept dependencies in a write action.
    * Calls to this method should be made outside a write action, or all dependencies should already be added.
@@ -107,13 +129,13 @@ class NlDependencyManager {
   }
 
   /**
-   * Find all dependencies for the given components and map them to a [GradleCoordinate]
+   * Finds all dependencies for the given components and maps them to a [GradleCoordinate]
    * @see GradleCoordinate.parseCoordinateString()
    */
   private fun collectDependencies(components: Iterable<NlComponent>): Iterable<GradleCoordinate> {
     return components
         .flatMap { it.dependencies}
-        .mapNotNull { artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") }
+        .mapNotNull { artifact -> GradleCoordinate.parseCoordinateString("$artifact:+") }
         .toList()
   }
 }

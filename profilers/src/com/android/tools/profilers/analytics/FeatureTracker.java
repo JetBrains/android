@@ -37,6 +37,28 @@ import org.jetbrains.annotations.Nullable;
 public interface FeatureTracker {
 
   /**
+   * Track when the TransportDeviceManager detects an ddmlib device and is about to begin the logic
+   * to launch the transport daemon.
+   */
+  void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice);
+
+  /**
+   * Track when the transport daemon fails to launch.
+   */
+  void trackTransportDaemonFailed(@NotNull Common.Device transportDevice, Exception exception);
+
+  /**
+   * Track when the transport proxy fails to connect the datastore and the daemon server.
+   */
+  void trackTransportProxyCreationFailed(@NotNull Common.Device transportDevice, Exception exception);
+
+  /**
+   * Track when the profilers failed to initiailize. This happens when the ProfilerService is
+   * unavailable. (e.g. more than one Studio instance access profilers)
+   */
+  void trackProfilerInitializationFailed();
+
+  /**
    * Track when we enter a new stage. The stage should always be included as state with all other
    * tracking events.
    */
@@ -47,6 +69,17 @@ public interface FeatureTracker {
    * This is in contrast to when the user attaches profilers to an app that was already running.
    */
   void trackRunWithProfiling();
+
+  /**
+   * Track when auto profiling is requested. e.g. when the user clicks "Profile", or "Run"/"Debug"
+   * while the profilers window is opened.
+   */
+  void trackAutoProfilingRequested();
+
+  /**
+   * Track when auto profiling has found the matching process.
+   */
+  void trackAutoProfilingSucceeded();
 
   /**
    * Track when we begin profiling a target process.
@@ -71,6 +104,11 @@ public interface FeatureTracker {
    * if the process actually changes.
    */
   void trackChangeProcess(@Nullable Common.Process process);
+
+  /**
+   * Track when user presses the "+" button in the Sessions panel.
+   */
+  void trackSessionDropdownClicked();
 
   /**
    * Track when the user explicitly creates a new session via the Sessions UI.

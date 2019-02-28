@@ -15,14 +15,11 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
-import com.android.testutils.TestUtils
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Test
 import java.io.*
-import java.util.zip.Deflater
-import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
 
 class AtraceExporterTest {
@@ -35,9 +32,9 @@ class AtraceExporterTest {
 
     // Read in header.
     val inputStream = FileInputStream(exportedFile)
-    val headerData = ByteArray(AtraceDecompressor.HEADER.size())
+    val headerData = ByteArray(AtraceProducer.HEADER.size())
     inputStream.read(headerData)
-    assertThat(headerData).isEqualTo(AtraceDecompressor.HEADER.toByteArray())
+    assertThat(headerData).isEqualTo(AtraceProducer.HEADER.toByteArray())
 
     // Read in rest of file deflated.
     val readCompressedFile = InflaterInputStream(inputStream)
@@ -52,10 +49,10 @@ class AtraceExporterTest {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
     AtraceExporter.export(FileInputStream(file), FileOutputStream(exportedFile))
-    val decompressor = AtraceDecompressor(exportedFile)
-    var line = decompressor.nextLine
+    val producer = AtraceProducer(exportedFile)
+    var line = producer.nextLine
     assertThat(line).matches("# Initial Data Required by Importer")
-    line = decompressor.nextLine
+    line = producer.nextLine
     assertThat(line).matches("# tracer: nop")
   }
 

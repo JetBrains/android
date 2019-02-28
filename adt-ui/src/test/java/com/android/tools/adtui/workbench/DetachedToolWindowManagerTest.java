@@ -107,6 +107,9 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
       //myManager.projectClosed();
       //myManager.disposeComponent();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }

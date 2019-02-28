@@ -40,11 +40,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.B
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
-import com.intellij.openapi.vfs.LocalFileSystem
 import org.gradle.internal.impldep.org.hamcrest.CoreMatchers.hasItems
 import org.gradle.internal.impldep.org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
+import java.io.IOException
 
 class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
@@ -97,7 +97,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(subModuleSettingsText)
 
     // Delete the main build file
-    myBuildFile.delete()
+    runWriteAction<Unit, IOException> { myBuildFile.delete(this) }
 
     val pbm = ProjectBuildModel.get(myProject)
     assertNull(pbm.projectBuildModel)
@@ -233,8 +233,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToBuildFile(PROJECT_BUILD_MODEL_GET_MODEL_FROM_VIRTUAL_FILE)
 
     val pbm = ProjectBuildModel.get(myProject)
-    val file = LocalFileSystem.getInstance().findFileByIoFile(myBuildFile)!!
-    val buildModel = pbm.getModuleBuildModel(file)
+    val buildModel = pbm.getModuleBuildModel(myBuildFile)
     assertNotNull(buildModel)
     verifyPropertyModel(buildModel.android().compileSdkVersion(), STRING_TYPE, "28", STRING, REGULAR, 0)
   }

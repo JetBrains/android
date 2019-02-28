@@ -21,12 +21,15 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -110,8 +113,19 @@ public final class ChooserDeployableProvider implements DeployableProvider {
 
     @NotNull
     @Override
-    public AndroidVersion getVersion() {
-      return myAndroidDevice.getVersion();
+    public Future<AndroidVersion> getVersion() {
+      if (myAndroidDevice.isRunning()) {
+        try {
+          return DeploymentApplicationService.getInstance().getVersion(myAndroidDevice.getLaunchedDevice().get());
+        }
+        catch (InterruptedException | ExecutionException e) {
+          return Futures.immediateFuture(AndroidVersion.DEFAULT);
+        }
+      }
+      else {
+        // When !AndroidDevice.isRunning(), getVersion() returns immediately since the information is read from AvdInfo (always available).
+        return Futures.immediateFuture(myAndroidDevice.getVersion());
+      }
     }
 
     @Override

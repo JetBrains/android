@@ -18,7 +18,7 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.DataBindingInfo
+import com.android.tools.idea.res.DataBindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore
@@ -28,12 +28,12 @@ import org.jetbrains.android.facet.AndroidFacet
 const val JAVA_LANG = "java.lang."
 
 /**
- * Given a [PsiElement], return an associated [DataBindingInfo] for it.
+ * Given a [PsiElement], return an associated [DataBindingLayoutInfo] for it.
  * This will return null if the IDEA module of the [PsiElement] cannot be found,
  * doesn't have an Android facet attached to it, or databinding is not enabled on it.
  */
-fun getDataBindingInfo(element: PsiElement): DataBindingInfo? {
-  var dataBindingInfo: DataBindingInfo? = null
+fun getDataBindingLayoutInfo(element: PsiElement): DataBindingLayoutInfo? {
+  var dataBindingLayoutInfo: DataBindingLayoutInfo? = null
   val module = ModuleUtilCore.findModuleForPsiElement(element)
   if (module != null) {
     val facet = AndroidFacet.getInstance(module)
@@ -43,9 +43,9 @@ fun getDataBindingInfo(element: PsiElement): DataBindingInfo? {
       if (topLevelFile != null) {
         var name = topLevelFile.name
         name = name.substring(0, name.lastIndexOf('.'))
-        dataBindingInfo = moduleResources.getDataBindingInfoForLayout(name)
+        dataBindingLayoutInfo = moduleResources.getDataBindingLayoutInfo(name)
       }
     }
   }
-  return dataBindingInfo
+  return dataBindingLayoutInfo
 }

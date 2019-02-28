@@ -98,5 +98,6 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf[test]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
         "//tools/vendor/intellij/cidr:intellij.c[module, test]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
     ],
 )

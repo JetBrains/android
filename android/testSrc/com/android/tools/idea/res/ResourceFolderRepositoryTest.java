@@ -24,6 +24,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -116,10 +117,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
   }
 
-  /**
-   * Package private to be able to re-use from {@link ResourceFolderDataBindingTest}.
-   */
-  static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
+  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
     MutablePicoContainer applicationContainer = (MutablePicoContainer)
       ApplicationManager.getApplication().getPicoContainer();
 
@@ -393,6 +391,33 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2b"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
+    assertTrue(resources.getModificationCount() > generation);
+  }
+
+  public void testRenameLayoutFileToInvalid() {
+    VirtualFile file = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
+
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+
+    // Check renames.
+    //  Rename layout file.
+    long generation = resources.getModificationCount();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet()).containsExactly("layout2");
+
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        try {
+          file.rename(this, "layout*2.xml");
+        }
+        catch (IOException e) {
+          fail(e.toString());
+        }
+      }
+    });
+
+    assertThat(resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet()).isEmpty();
     assertTrue(resources.getModificationCount() > generation);
   }
 
@@ -2964,15 +2989,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEmptyNames_values() {
-    VirtualFile file1 = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/empty.xml");
-    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
-    assertNotNull(psiFile1);
+  public void testInvalidValueName() {
+    VirtualFile file = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/empty.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     assertNotNull(documentManager);
-    Document document = documentManager.getDocument(psiFile1);
+    Document document = documentManager.getDocument(psiFile);
     assertNotNull(document);
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -2980,7 +3005,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING).keySet()).isEmpty();
+
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(0, document.getTextLength() - 1, "<resources>\n<string name=\"foo bar\"\n</resources>");
+      documentManager.commitDocument(document);
+    });
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING).keySet()).isEmpty();
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.replaceString(0,
@@ -2989,7 +3021,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ATTR).keySet()).isEmpty();
+
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(0,
+                             document.getTextLength() - 1,
+                             "<resources>\n<declare-styleable name=\"foo\"><attr format=\"boolean\" name=\"foo bar\"\n</declare-styleable></resources>");
+      documentManager.commitDocument(document);
+    });
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ATTR).keySet()).isEmpty();
 
     // Now exercise childAdded, without a full rescan.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -3003,39 +3044,58 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING).keySet()).isEmpty();
+
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.insertString(document.getLineStartOffset(1), "<string name=\"foo bar\">foo</string>");
+      documentManager.commitDocument(document);
+    });
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING).keySet()).isEmpty();
   }
 
-  public void testEmptyNames_layouts() {
-    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
-    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
-    assertNotNull(psiFile1);
+  public void testInvalidId() {
+    VirtualFile file = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID).keySet())
+        .containsExactly("btn_title_refresh", "header", "noteArea", "text2", "title_refresh_progress");
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     assertNotNull(documentManager);
-    Document document = documentManager.getDocument(psiFile1);
+    Document document = documentManager.getDocument(psiFile);
     assertNotNull(document);
 
-    XmlTag tag = findTagById(psiFile1, "noteArea");
+    XmlTag tag = findTagById(psiFile, "noteArea");
     assertNotNull(tag);
     WriteCommandAction.runWriteCommandAction(null, () -> {
       // First edit runs the PSI parser, convering ResourceFile to PsiResourceFile.
       tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/forcePsiConversion");
     });
 
+    // Check an empty resource name.
     WriteCommandAction.runWriteCommandAction(null, () -> {
       tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/");
     });
 
     UIUtil.dispatchAllInvocationEvents();
-    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID).keySet())
+        .containsExactly("btn_title_refresh", "header", "text2", "title_refresh_progress");
+
+    // Check an invalid resource name.
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/foo bar");
+    });
+
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID).keySet())
+        .containsExactly("btn_title_refresh", "header", "text2", "title_refresh_progress");
   }
 
-  public void testIssue56799() {
+  public void testIssue36973561() {
     // Test deleting a string; ensure that the whole repository is updated correctly.
-    // Regression test for
-    //   https://code.google.com/p/android/issues/detail?id=56799
+    // Regression test for https://issuetracker.google.com/36973561.
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3095,7 +3155,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name2"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
-
     long generation = resources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     Document document = documentManager.getDocument(psiFile1);
@@ -3144,7 +3203,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testIssue64239() {
+  public void testIssue36986886() {
+    // Regression test for https://issuetracker.google.com/36986886.
     // If you duplicate a string, then change its contents (which still duplicated),
     // and then finally rename the string, then the value of the second clone will
     // continue to be referred from the first string:
@@ -3305,19 +3365,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     // If a file had bad value names, test that it can still be parsed.
-    VirtualFile file1 = myFixture.copyFileToProject(VALUES_WITH_BAD_NAME, "res/values/values.xml");
-    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
-    assertNotNull(psiFile1);
+    VirtualFile file = myFixture.copyFileToProject(VALUES_WITH_BAD_NAME, "res/values/values.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app*name"));
-    //noinspection ConstantConditions
-    assertEquals("Animations Demo",
-                 resources.getResources(RES_AUTO, ResourceType.STRING, "app*name").get(0).getResourceValue().getValue());
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING)).isEmpty();
 
     long generation = resources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    Document document = documentManager.getDocument(psiFile1);
+    Document document = documentManager.getDocument(psiFile);
     assertNotNull(document);
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
@@ -3327,19 +3384,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.replaceString(offset, offset + origString.length(), newString);
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
-    assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app*name"));
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertThat(resources.isScanPending(psiFile)).isTrue();
+    assertThat(resources.getModificationCount()).isEqualTo(generation);
+    UIUtil.dispatchAllInvocationEvents();
+    List<ResourceItem> items = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name");
+    assertThat(items).hasSize(1);
     //noinspection ConstantConditions
-    assertEquals("Fixed Animations Demo",
-                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
-
-    ensureIncremental();
+    assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("Fixed Animations Demo");
   }
 
   public void testIdScanFromLayout() {
-    // Test for http://b.android.com/172239
+    // Test for https://issuetracker.google.com/37044944.
     myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout/layout1.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
@@ -3349,7 +3404,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testSync() {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=79629
+    // Regression test for https://issuetracker.google.com/37010548.
     // Ensure that sync() handles rescanning immediately.
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3494,7 +3549,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Add a space to an attribute name.
     WriteCommandAction.runWriteCommandAction(null, () -> {
       int offset = document.getText().indexOf("app_name");
-      document.insertString(offset, " ");
+      document.insertString(offset, "_");
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
@@ -3502,20 +3557,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, " app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "_app_name"));
     resetScanCounter();
 
     // Try a second edit, adding another space.
     long generation2 = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf(" app_name");
-      document.insertString(offset, " ");
+      int offset = document.getText().indexOf("_app_name");
+      document.insertString(offset, "_");
       documentManager.commitDocument(document);
     });
 
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "  app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "__app_name"));
     generation2 = resources.getModificationCount();
 
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "title_zoom");

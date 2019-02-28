@@ -97,7 +97,8 @@ public final class DeployableFile {
   public static class Builder {
     @NotNull private final String myFileName;
     @NotNull private String myReleaseDir = "plugins/android/resources";
-    @NotNull private String myDevDir = "../../bazel-genfiles/tools/base";
+    // TODO b/122597221 refactor general agent code to be outside of profiler-specific directory.
+    @NotNull private String myDevDir = "../../bazel-genfiles/tools/base/profiler/app";
     @Nullable private String myOnDeviceAbiFileNameFormat;
     @NotNull private Supplier<String> myHomePathSupplier = () -> PathManager.getHomePath();
 

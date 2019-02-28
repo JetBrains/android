@@ -300,7 +300,7 @@ public final class GradleUtil {
 
   /**
    * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts.
+   * in the UI) artifacts. The returned list does not contain any duplicates.
    */
   @NotNull
   public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
@@ -314,7 +314,7 @@ public final class GradleUtil {
       dependencies = testArtifact.getLevel2Dependencies();
       libraries.addAll(dependencies.getModuleDependencies());
     }
-    return libraries;
+    return libraries.stream().distinct().collect(Collectors.toList());
   }
 
   @Nullable
@@ -357,7 +357,8 @@ public final class GradleUtil {
 
   /**
    * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
-   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'.
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'. This method does not cause a VFS
+   * refresh of the file, this should be done by the caller if it is likely that the file has just been created on disk.
    * <p>
    * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
    * {@link #getGradleBuildFile(Module)}.
@@ -370,7 +371,8 @@ public final class GradleUtil {
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
     File gradleBuildFilePath = getGradleBuildFilePath(dirPath);
-    return findFileByIoFile(gradleBuildFilePath, true);
+    VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
   }
 
   /**
@@ -398,14 +400,24 @@ public final class GradleUtil {
     return defaultBuildFile;
   }
 
+  /**
+   * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
+   * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
+   * should use {@link #getGradleSettingsFilePath(File)} along with {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
+   * to ensure a refresh occurs.
+   *
+   * @param dirPath the path to find the Gradle settings file for.
+   * @return the VirtualFile representing the Gradle settings file or null if it was unable to be found or the file is invalid.
+   */
   @Nullable
   public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
     File gradleSettingsFilePath = getGradleSettingsFilePath(dirPath);
-    return findFileByIoFile(gradleSettingsFilePath, true);
+    VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
   }
 
   @NotNull
-  private static File getGradleSettingsFilePath(@NotNull File dirPath) {
+  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
     File defaultSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE);
     if (!defaultSettingsFile.isFile()) {
       File ktsSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE_KTS);

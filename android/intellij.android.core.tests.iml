@@ -37,7 +37,6 @@
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="intellij.java.compiler.impl" scope="TEST" />
@@ -113,6 +112,6 @@
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.c" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
   </component>
 </module>

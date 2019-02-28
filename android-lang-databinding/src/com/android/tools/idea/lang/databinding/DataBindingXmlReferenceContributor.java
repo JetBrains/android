@@ -29,7 +29,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbExpressionList;
 import com.android.tools.idea.lang.databinding.psi.PsiDbId;
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -53,6 +53,7 @@ import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -82,7 +83,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           return PsiReference.EMPTY_ARRAY;
         }
 
-        DataBindingInfo dataBindingInfo = null;
+        DataBindingLayoutInfo dataBindingLayoutInfo = null;
         Module module = ModuleUtilCore.findModuleForPsiElement(element);
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -98,20 +99,20 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
               }
               String name = topLevelFile.getName();
               name = name.substring(0, name.lastIndexOf('.'));
-              dataBindingInfo = moduleResources.getDataBindingInfoForLayout(name);
+              dataBindingLayoutInfo = moduleResources.getDataBindingLayoutInfo(name);
             }
           }
         }
-        if (dataBindingInfo == null) {
+        if (dataBindingLayoutInfo == null) {
           return PsiReference.EMPTY_ARRAY;
         }
-        for (PsiDataBindingResourceItem variable : dataBindingInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
+        for (PsiDataBindingResourceItem variable : dataBindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
           if (text.equals(variable.getName())) {
             XmlTag xmlTag = variable.getXmlTag();
-            return toArray(new VariableDefinitionReference(id, xmlTag, variable, dataBindingInfo, module));
+            return toArray(new VariableDefinitionReference(id, xmlTag, variable, dataBindingLayoutInfo, module));
           }
         }
-        for (PsiDataBindingResourceItem anImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT).values()) {
+        for (PsiDataBindingResourceItem anImport : dataBindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values()) {
           if (text.equals(DataBindingUtil.getAlias(anImport))) {
             XmlTag xmlTag = anImport.getXmlTag();
             return toArray(new ImportDefinitionReference(id, xmlTag, anImport, module));
@@ -330,6 +331,13 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     public boolean isStatic() {
       return false;
     }
+
+    @Override
+    public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
+      LeafPsiElement identifier = (LeafPsiElement)myElement.findElementAt(myTextRange.getStartOffset());
+      identifier.rawReplaceWithText(newElementName);
+      return identifier;
+    }
   }
 
   private static class VariableDefinitionReference extends DefinitionReference {
@@ -338,10 +346,10 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     private VariableDefinitionReference(@NotNull PsiElement element,
                                         @NotNull XmlTag resolveTo,
                                         @NotNull PsiDataBindingResourceItem variable,
-                                        @NotNull DataBindingInfo dataBindingInfo,
+                                        @NotNull DataBindingLayoutInfo dataBindingLayoutInfo,
                                         @NotNull Module module) {
       super(element, resolveTo);
-      String type = DataBindingUtil.getQualifiedType(variable.getTypeDeclaration(), dataBindingInfo, false);
+      String type = DataBindingUtil.getQualifiedType(variable.getTypeDeclaration(), dataBindingLayoutInfo, false);
       PsiModelClass modelClass = null;
       if (type != null) {
         PsiClass psiType =

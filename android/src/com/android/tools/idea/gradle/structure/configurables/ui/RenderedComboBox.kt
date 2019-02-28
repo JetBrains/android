@@ -31,7 +31,6 @@ import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
 import javax.swing.JTextField
 import javax.swing.ListCellRenderer
-import javax.swing.border.Border
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
 /**
@@ -235,18 +234,3 @@ internal fun SimpleColoredComponent.toRenderer() = object : TextRenderer {
     this@toRenderer.append(text, attributes)
   }
 }
-
-class AdjustedBorder(val border: Border, val component: Component, val icons: Int) : Border {
-  override fun isBorderOpaque(): Boolean = border.isBorderOpaque
-
-  override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) =
-    border.paintBorder(c, g, x, y, width, height)
-
-  override fun getBorderInsets(c: Component?): Insets =
-    border.getBorderInsets(c).let {
-      Insets(it.top, it.left, it.bottom, it.right + icons)
-    }
-}
-
-private fun Border.adjustBorder(component: ExtendableTextField) =
-  AdjustedBorder(this, component, component.extensions?.sumBy { it.preferredSpace } ?: 0)

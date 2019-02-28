@@ -22,11 +22,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A model corresponding to a {@link Common.Session}.
@@ -163,7 +162,8 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
   public void onSelect() {
     // Navigate to the new session
     myProfilers.getSessionsManager().setSession(mySession);
-    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL) {
+    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL &&
+        !myProfilers.getStageClass().equals(StudioMonitorStage.class)) {
       myProfilers.setStage(new StudioMonitorStage(myProfilers));
     }
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());

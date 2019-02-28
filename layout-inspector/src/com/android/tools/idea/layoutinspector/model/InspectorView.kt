@@ -15,22 +15,58 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.ide.common.resources.ResourceItem
-import org.jetbrains.kotlin.utils.keysToMap
+import com.intellij.util.ui.UIUtil
 import java.awt.Image
+import java.awt.Point
+import java.awt.image.BufferedImage
+import java.awt.image.DataBuffer
+import java.awt.image.DataBufferInt
+import java.awt.image.DirectColorModel
+import java.awt.image.Raster
+import java.awt.image.SinglePixelPackedSampleModel
 
-class InspectorView(val id: String,
-                    val type: String,
-                    var x: Int,
-                    var y: Int,
-                    var width: Int,
-                    var height: Int,
-                    _properties: Collection<ResourceItem>) {
-
+/**
+ * Representation of a single View in the layout inspector. Should (eventually) include all information available about that view, including
+ * properties and an image of the view.
+ *
+ * Currently primarily created through JNI by the skia parser.
+ */
+class InspectorView(
+  val id: String,
+  val type: String,
+  var x: Int,
+  var y: Int,
+  var width: Int,
+  var height: Int
+) {
   var image: Image? = null
   var imageGenerationTime: Long? = null
 
-  val properties: MutableMap<ResourceItem, PropertyTrace?> = _properties.associateBy({ it }, { null }).toMutableMap()
+  /**
+   * Map of View IDs to views.
+   */
+  val children: MutableMap<String, InspectorView> = mutableMapOf()
 
-  val children: MutableList<InspectorView> = mutableListOf()
+  @Suppress("unused") // invoked via reflection
+  fun setData(data: IntArray) {
+    val buffer = DataBufferInt(data, width * height)
+    val model = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, intArrayOf(0xff0000, 0xff00, 0xff, -0x1000000))
+    val raster = Raster.createWritableRaster(model, buffer, Point(0, 0))
+    val tmpimage = BufferedImage(
+      DirectColorModel(32, 0xff0000, 0xff00, 0xff, -0x1000000), raster, false, null)
+    UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB).let {
+      image = it
+      imageGenerationTime = System.currentTimeMillis()
+      it.createGraphics().drawImage(tmpimage, 0, 0, null)
+    }
+  }
+
+  @Suppress("unused") // invoked via reflection
+  fun addChild(child: InspectorView) {
+    children[child.id] = child
+  }
+
+  fun flatten(): Collection<InspectorView> {
+    return children.values.flatMap { it.flatten() }.plus(this)
+  }
 }

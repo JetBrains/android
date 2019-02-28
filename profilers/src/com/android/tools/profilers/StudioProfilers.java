@@ -152,13 +152,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Whether the profiler should auto-select a process to profile.
    */
-  private boolean myAutoProfilingEnabled;
+  private boolean myAutoProfilingEnabled = true; /* b/126563739 */
 
   /**
-   * The number of update count the profilers have waited for an agent statc to become ATTACHED.
+   * The number of update count the profilers have waited for an agent status to become ATTACHED for a particular session id.
    * If the agent status remains UNSPECIFIED after {@link AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to be without agent.
    */
-  private int myAgentStatusRetryCount = 0;
+  public final Map<Long, Integer> mySessionIdToAgentStatusRetryMap = new HashMap<>();
 
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -274,6 +274,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setPreferredProcess(@Nullable String deviceName,
                                   @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
+    myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
     myPreferredDeviceName = deviceName;
     setPreferredProcessName(processName);
     myPreferredProcessFilter = processFilter;
@@ -285,6 +286,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public void setPreferredProcessName(@Nullable String processName) {
     myPreferredProcessName = processName;
+  }
+
+  // b/126563739
+  @Nullable
+  String getPreferredDeviceName() {
+    return myPreferredDeviceName;
   }
 
   @Nullable
@@ -435,9 +442,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         AgentData agentData = getAgentData(mySelectedSession);
         // Consider the agent to be unattachable if it remains unspecified for long enough.
-        if (agentData.getStatus() == AgentData.Status.UNSPECIFIED && ++myAgentStatusRetryCount >= AGENT_STATUS_MAX_RETRY_COUNT) {
+        int agentStatusRetryCount = mySessionIdToAgentStatusRetryMap.getOrDefault(mySelectedSession.getSessionId(), 0) + 1;
+        if (agentData.getStatus() == AgentData.Status.UNSPECIFIED && agentStatusRetryCount >= AGENT_STATUS_MAX_RETRY_COUNT) {
           agentData = AgentData.newBuilder().setStatus(AgentData.Status.UNATTACHABLE).build();
         }
+        mySessionIdToAgentStatusRetryMap.put(mySelectedSession.getSessionId(), agentStatusRetryCount);
 
         if (!myAgentData.equals(agentData)) {
           if (myAgentData.getStatus() != AgentData.Status.ATTACHED &&
@@ -487,7 +496,26 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    return null;
+    // b/126563739 No preferred candidate. Choose any device that has online processes
+    return myAutoProfilingEnabled && myPreferredDeviceName == null ?
+           devices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(null) : null;
+  }
+
+  private boolean deviceHasAliveProcesses(@NotNull Common.Device device) {
+    if (!device.getState().equals(Common.Device.State.ONLINE)) {
+      return false;
+    }
+
+    List<Common.Process> deviceProcesses = myProcesses.get(device);
+    if (deviceProcesses == null) {
+      return false;
+    }
+    for (Common.Process process : deviceProcesses) {
+      if (process.getState().equals(Common.Process.State.ALIVE)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public void setMonitoringStage() {
@@ -572,7 +600,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     mySelectedSession = newSession;
     myAgentData = getAgentData(mySelectedSession);
-    myAgentStatusRetryCount = 0;
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
       myTimeline.setIsPaused(true);
@@ -639,6 +666,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       for (Common.Process process : processes) {
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
             (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
+          myIdeServices.getFeatureTracker().trackAutoProfilingSucceeded();
           return process;
         }
       }
@@ -660,7 +688,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    return null;
+    // b/126563739 No preferred candidate. Choose a new process if we are not already waiting for the preferred process.
+    return myAutoProfilingEnabled ? processes.get(0) : null;
   }
 
   @NotNull

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
@@ -69,12 +69,12 @@ public class DataBindingPackageFinder extends PsiElementFinder {
             @Override
             Set<String> doCompute() {
               LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(getFacet());
-              Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+              Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
               if (dataBindingResourceFiles == null) {
                 return Collections.emptySet();
               }
               Set<String> result = Sets.newHashSet();
-              for (DataBindingInfo info : dataBindingResourceFiles.values()) {
+              for (DataBindingLayoutInfo info : dataBindingResourceFiles.values()) {
                 result.add(info.getPackageName());
               }
               return result;

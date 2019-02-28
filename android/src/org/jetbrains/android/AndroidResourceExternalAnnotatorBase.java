@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -29,7 +30,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -52,6 +52,26 @@ public abstract class AndroidResourceExternalAnnotatorBase
 
   @Nullable
   @Override
+  public final FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
+    // Run even when hasErrors is true.
+    if (!StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
+      return null;
+    }
+    return collectInformation(file, editor);
+  }
+
+  @Nullable
+  protected abstract FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor);
+
+  @Nullable
+  @Override
+  public final FileAnnotationInfo collectInformation(@NotNull PsiFile file) {
+    // External annotators can also be run in batch mode for analysis, but we do nothing if there's no Editor.
+    return null;
+  }
+
+  @Nullable
+  @Override
   public Map<PsiElement, GutterIconRenderer> doAnnotate(@NotNull FileAnnotationInfo fileAnnotationsInfo) {
     AndroidFacet facet = fileAnnotationsInfo.getFacet();
     Editor editor = fileAnnotationsInfo.getEditor();
@@ -71,18 +91,19 @@ public abstract class AndroidResourceExternalAnnotatorBase
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug(String.format("Rendering icon for %s in %s.", element.getReference(), fileAnnotationsInfo.getFile()));
+        LOG.debug(String.format("Rendering icon for %s in %s.", element.getResource(), fileAnnotationsInfo.getFile()));
       }
 
-      ResourceType type = element.getReference().getResourceType();
       GutterIconRenderer gutterIconRenderer;
-      if (type == ResourceType.COLOR) {
-        gutterIconRenderer = getColorGutterIconRenderer(resolver, element.getReference(), facet, element.getPsiElement());
+      if (element.getResource() != null) {
+        gutterIconRenderer =
+          getResourceGutterIconRender(element.getResource(), element.getPsiElement(), resolver, facet, configuration);
       }
       else {
-        assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
-        gutterIconRenderer =
-          getDrawableGutterIconRenderer(resolver, element.getReference(), facet.getModule().getProject(), facet, configuration);
+        // Inline color
+        assert (element.getColor() != null);
+        Color color = element.getColor();
+        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, true);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -92,13 +113,31 @@ public abstract class AndroidResourceExternalAnnotatorBase
   }
 
   @Nullable
+  private static GutterIconRenderer getResourceGutterIconRender(@NotNull ResourceReference reference,
+                                                                @NotNull PsiElement element,
+                                                                @NotNull ResourceResolver resolver,
+                                                                @NotNull AndroidFacet facet,
+                                                                @NotNull Configuration configuration) {
+    ResourceType type = reference.getResourceType();
+    if (type == ResourceType.COLOR) {
+      return getColorGutterIconRenderer(resolver, reference, facet, element);
+    }
+    else {
+      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
+      return getDrawableGutterIconRenderer(resolver, reference, facet, configuration);
+    }
+  }
+
+  @Nullable
   private static GutterIconRenderer getDrawableGutterIconRenderer(@NotNull ResourceResolver resourceResolver,
                                                                   @NotNull ResourceReference reference,
-                                                                  @NotNull Project project,
                                                                   @NotNull AndroidFacet facet,
                                                                   @NotNull Configuration configuration) {
     ResourceValue drawable = resourceResolver.getResolvedResource(reference);
-    VirtualFile bitmap = ResourceHelper.resolveDrawable(resourceResolver, drawable, project);
+    if (drawable == null) {
+      return null;
+    }
+    VirtualFile bitmap = AndroidAnnotatorUtil.resolveDrawableFile(drawable, resourceResolver, facet);
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
     if (bitmap == null) {
       return null;
@@ -119,7 +158,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     if (color == null) {
       return null;
     }
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color);
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, false);
   }
 
   @Override
@@ -140,7 +179,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     private final long myTimestamp;
     @NotNull private final List<AnnotatableElement> myElements;
 
-    FileAnnotationInfo(@NotNull AndroidFacet facet, @NotNull PsiFile file, @NotNull Editor editor) {
+    public FileAnnotationInfo(@NotNull AndroidFacet facet, @NotNull PsiFile file, @NotNull Editor editor) {
       myFacet = facet;
       myFile = file;
       myEditor = editor;
@@ -172,23 +211,36 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return myTimestamp;
     }
 
-    static class AnnotatableElement {
-      private final ResourceReference myReference;
-      private final PsiElement myPsiElement;
+    public static class AnnotatableElement {
+      @Nullable private final ResourceReference myReference;
+      @NotNull private final PsiElement myPsiElement;
+      @Nullable private final Color myColor;
 
-      AnnotatableElement(@NotNull ResourceReference reference, @NotNull PsiElement element) {
+      public AnnotatableElement(@NotNull ResourceReference reference, @NotNull PsiElement element) {
         myReference = reference;
         myPsiElement = element;
+        myColor = null;
       }
 
-      @NotNull
-      public ResourceReference getReference() {
+      AnnotatableElement(@NotNull Color color, @NotNull PsiElement element) {
+        myReference = null;
+        myPsiElement = element;
+        myColor = color;
+      }
+
+      @Nullable
+      public ResourceReference getResource() {
         return myReference;
       }
 
       @NotNull
       public PsiElement getPsiElement() {
         return myPsiElement;
+      }
+
+      @Nullable
+      public Color getColor() {
+        return myColor;
       }
     }
   }

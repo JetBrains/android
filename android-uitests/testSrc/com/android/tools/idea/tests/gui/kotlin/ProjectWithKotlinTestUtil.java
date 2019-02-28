@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
@@ -28,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPane
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewKotlinClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -138,33 +136,18 @@ public class ProjectWithKotlinTestUtil {
   protected static void createKotlinProj(boolean hasCppSupport, GuiTestRule guiTest) throws IOException {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
                                                       .createNewProject();
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> configAndroid = newProjectWizard
-        .getChooseAndroidProjectStep()
-        .chooseActivity(hasCppSupport ? "Native C++" : "Empty Activity")
-        .wizard()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterPackageName("android.com");
 
-      waitForPackageNameToShow("android.com", configAndroid);
+    ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> configAndroid = newProjectWizard
+      .getChooseAndroidProjectStep()
+      .chooseActivity(hasCppSupport ? "Native C++" : "Empty Activity")
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterPackageName("android.com");
 
-      configAndroid.setSourceLanguage("Kotlin");
-    }
-    else {
-      ConfigureAndroidProjectStepFixture<NewProjectWizardFixture> configAndroid =
-        newProjectWizard.getConfigureAndroidProjectStep()
-          .enterPackageName("android.com");
+    waitForPackageNameToShow("android.com", configAndroid);
 
-      waitForPackageNameToShow("android.com", configAndroid);
-
-      configAndroid.setCppSupport(hasCppSupport)
-        .setKotlinSupport(true); // Default "App name", "company domain" and "package name"
-
-      newProjectWizard.clickNext();
-      newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
-      newProjectWizard.clickNext(); // Skip "Add Activity" step
-    }
+    configAndroid.setSourceLanguage("Kotlin");
 
     if (hasCppSupport) {
       newProjectWizard.clickNext();

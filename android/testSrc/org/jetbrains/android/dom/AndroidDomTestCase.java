@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -34,6 +35,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
@@ -41,12 +51,6 @@ import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Abstract class for creating unit tests for XML editor. Contains utility methods for performing things such as
@@ -186,21 +190,31 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final void doTestHighlighting() throws Throwable {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
-    doTestHighlighting(getTestName(true) + ".xml");
+    String sourceFile = getTestName(true) + ".xml";
+    String destinationFile = getPathToCopy(TemplateUtils.camelCaseToUnderlines(sourceFile));
+    doTestHighlighting(sourceFile, destinationFile);
   }
 
   /**
-   * Creates a virtual file from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing it as a parameter
+   * Creates a virtual file from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing it as a parameter.
    */
-  protected final void doTestHighlighting(String fileName) throws Throwable {
+  protected final void doTestHighlighting(@NotNull String fileName) throws Throwable {
     doTestHighlighting(copyFileToProject(fileName));
+  }
+
+  /**
+   * Creates a virtual file {@code projectFile} from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing
+   * it as a parameter.
+   */
+  protected final void doTestHighlighting(@NotNull String sourceFile, @NotNull String projectFile) throws Throwable {
+    doTestHighlighting(copyFileToProject(sourceFile, projectFile));
   }
 
   /**
    * Loads a virtual file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
    * described by an example, check the usages of the function to find out.
    */
-  protected final void doTestHighlighting(VirtualFile virtualFile) throws Throwable {
+  protected final void doTestHighlighting(@NotNull VirtualFile virtualFile) throws Throwable {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }

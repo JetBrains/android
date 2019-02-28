@@ -62,7 +62,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(REFERENCE_RESOLUTION_RESOLVE_PROJECT_DIR_SUB);
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
-    String expectedSubModuleDir = mySubModuleBuildFile.getParent();
+    String expectedSubModuleDir = mySubModuleBuildFile.getParent().getPath();
     ExtModel ext = getSubModuleGradleBuildModel().ext();
     verifyPropertyModel(ext.findProperty("pd").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);
     verifyPropertyModel(ext.findProperty("pd1").resolve(), STRING_TYPE, expectedSubModuleDir, STRING, PropertyType.REGULAR, 1);

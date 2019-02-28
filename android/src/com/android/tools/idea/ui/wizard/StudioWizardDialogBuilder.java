@@ -57,6 +57,7 @@ public final class StudioWizardDialogBuilder {
     /**
      * Similar to ORIGINAL, without the "Android Studio" sub header and a slightly larger Dialog.
      */
+    // maybe delete this.
     INSTANT_APP,
     /**
      * Has a simpler title bar with only the main text header, in large font, for the Step title.

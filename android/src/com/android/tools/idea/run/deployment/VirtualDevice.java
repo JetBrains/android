@@ -22,12 +22,14 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -39,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.Future;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 import javax.swing.Icon;
@@ -201,17 +204,17 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  AndroidVersion getAndroidVersion() {
+  Future<AndroidVersion> getAndroidVersion() {
     Object androidDevice = getAndroidDevice();
 
     if (androidDevice instanceof LaunchableAndroidDevice) {
-      return ((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion();
+      return Futures.immediateFuture(((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion());
     }
 
     IDevice ddmlibDevice = getDdmlibDevice();
     assert ddmlibDevice != null;
 
-    return ddmlibDevice.getVersion();
+    return DeploymentApplicationService.getInstance().getVersion(ddmlibDevice);
   }
 
   @Override

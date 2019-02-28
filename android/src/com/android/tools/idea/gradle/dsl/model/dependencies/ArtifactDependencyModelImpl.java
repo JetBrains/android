@@ -61,12 +61,11 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveEl
 public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements
                                                                               ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
-  @NotNull private String myConfigurationName;
   protected boolean mySetThrough = false;
 
   public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement, @NotNull String configurationName) {
+    super(configurationName);
     myConfigurationElement = configurationElement;
-    myConfigurationName = configurationName;
   }
 
   @NotNull
@@ -129,74 +128,10 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     mySetThrough = false;
   }
 
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
-  }
-
-  @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslElement element) {
-    return create(configurationName, element, null);
-  }
-
-  @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull String configurationName,
-                                              @NotNull GradleDslElement element,
-                                              @Nullable GradleDslClosure configurationElement) {
-    if (configurationElement == null) {
-      configurationElement = element.getClosureElement();
-    }
-    List<ArtifactDependencyModel> results = Lists.newArrayList();
-    // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
-    // parser bug) then don't create anything.
-    if (!(element instanceof GradleDslExpression)) {
-      return ImmutableList.of();
-    }
-    GradleDslExpression resolved = (GradleDslExpression)element;
-    if (element instanceof GradleDslLiteral) {
-      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
-      if (foundElement instanceof GradleDslExpression) {
-        resolved = (GradleDslExpression)foundElement;
-      }
-    }
-
-    if (resolved instanceof GradleDslExpressionMap) {
-      MapNotation mapNotation =
-        MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
-      if (mapNotation != null) {
-        results.add(mapNotation);
-      }
-    }
-    else if (resolved instanceof GradleDslMethodCall) {
-      String name = ((GradleDslMethodCall)resolved).getMethodName();
-      if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
-        for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
-          results.addAll(create(configurationName, argument, configurationElement));
-        }
-      }
-    }
-    else if (resolved instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
-        CompactNotation compactNotation = CompactNotation.create(configurationName, expression, configurationElement);
-        if (compactNotation != null) {
-          results.add(compactNotation);
-        }
-      }
-    }
-    else {
-      CompactNotation compactNotation = CompactNotation.create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
-      if (compactNotation != null) {
-        results.add(compactNotation);
-      }
-    }
-    return results;
-  }
-
-  static void create(@NotNull GradlePropertiesDslElement parent,
-                     @NotNull String configurationName,
-                     @NotNull ArtifactDependencySpec dependency,
-                     @NotNull List<ArtifactDependencySpec> excludes) {
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        @NotNull List<ArtifactDependencySpec> excludes) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setElementType(REGULAR);
@@ -223,7 +158,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     return shouldInterpolate ? iStr(compact) : compact;
   }
 
-  private static class MapNotation extends ArtifactDependencyModelImpl {
+  static class MapNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslExpressionMap myDslElement;
 
     @Nullable
@@ -287,7 +222,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     }
   }
 
-  private static class CompactNotation extends ArtifactDependencyModelImpl {
+  static class CompactNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslSimpleExpression myDslExpression;
 
     @Nullable

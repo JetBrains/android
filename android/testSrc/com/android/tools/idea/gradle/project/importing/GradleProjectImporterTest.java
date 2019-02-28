@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
@@ -82,38 +81,17 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
   }
 
-  // See:
-  // https://code.google.com/p/android/issues/detail?id=172347
-  // https://code.google.com/p/android/issues/detail?id=227437
-  public void testOpenProject() throws Exception {
-    Project newProject = getProject();
-    VirtualFile rootFolder = newProject.getBaseDir();
-
-    when(myProjectSetup.openProject(myProjectFolderPath.getPath())).thenReturn(newProject);
-
-    myProjectImporter.openProject(rootFolder);
-
-    // Verify project setup before syncing.
-    verifyProjectFilesCreation();
-    verifyProjectCreation(never());
-    verifyProjectPreparation(null, true);
-    verifyGradleVmOptionsCleanup(times(1));
-
-    verify(myProjectSetup, times(1)).openProject(myProjectFolderPath.getPath());
-    verifyProjectWasMarkedAsImported();
-  }
-
   public void testImportProjectWithDefaultSettings() throws Exception {
     Project newProject = getProject();
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    myProjectImporter.importProject(myProjectName, myProjectFolderPath, syncListener);
+    myProjectImporter.importProject(myProjectName, myProjectFolderPath, GradleProjectImporter.Request.EMPTY_REQUEST, syncListener);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
     verifyProjectCreation(times(1));
-    verifyProjectPreparation(null, false);
+    verifyProjectPreparation(null);
     verifyGradleVmOptionsCleanup(times(1));
 
     // Verify sync.
@@ -134,7 +112,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
     verifyProjectCreation(times(1));
-    verifyProjectPreparation(JDK_1_8, false);
+    verifyProjectPreparation(JDK_1_8);
     verifyGradleVmOptionsCleanup(times(1));
 
     // Verify sync.
@@ -152,7 +130,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
     verifyProjectCreation(never());
-    verifyProjectPreparation(JDK_1_8, false);
+    verifyProjectPreparation(JDK_1_8);
     verifyGradleVmOptionsCleanup(never());
 
     // Verify sync.
@@ -168,8 +146,8 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     verify(myProjectSetup, verificationMode).createProject(myProjectName, myProjectFolderPath.getPath());
   }
 
-  private void verifyProjectPreparation(@Nullable LanguageLevel languageLevel, boolean openProject) {
-    verify(myProjectSetup, times(1)).prepareProjectForImport(getProject(), languageLevel, openProject);
+  private void verifyProjectPreparation(@Nullable LanguageLevel languageLevel) {
+    verify(myProjectSetup, times(1)).prepareProjectForImport(getProject(), languageLevel);
   }
 
   private void verifyGradleVmOptionsCleanup(@NotNull VerificationMode verificationMode) {

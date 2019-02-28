@@ -96,17 +96,20 @@ public class SimpleperfTraceParserTest {
       // and there is no way to predict where they are going to be trimmed.
       if ("Studio:Heartbeat".contains(thread)) {
         studioHeartbeatCount++;
-        // libperfa should be the entry point
+        // libjvmtiagent should be the entry point
+        // TODO: Update file name along with the trace files
         validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("Studio:MemoryAgent".contains(thread)) {
         studioMemoryAgentCount++;
-        // libperfa should be the entry point
+        // libjvmtiagent should be the entry point
+        // TODO: Update file name along with the trace files
         validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("Studio:Socket".contains(thread)) {
         studioSocketCount++;
-        // libperfa should be the entry point
+        // libjvmtiagent should be the entry point
+        // TODO: Update file name along with the trace files
         validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("JVMTI Agent thread".contains(thread)) {

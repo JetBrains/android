@@ -348,7 +348,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         requestBuilder.setJvmtiConfig(
           BeginSession.JvmtiConfig.newBuilder()
             .setAttachAgent(true)
-            .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+            .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
             .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
             .build());
       }
@@ -374,7 +374,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         requestBuilder.setJvmtiConfig(
           BeginSessionRequest.JvmtiConfig.newBuilder()
             .setAttachAgent(true)
-            .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+            .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
             .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
             .build());
       }

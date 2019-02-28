@@ -84,8 +84,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
 
         JavaModuleModel javaModel = JavaModuleModel.get(rootModel.getModule());
         if (javaModel != null) {
-          result.addAll(getJavaCompilerOutputFolders(javaModel, includeProduction, includeTests));
-          result.addAll(getKotlinCompilerOutputFolders(javaModel, includeProduction, includeTests));
+          result.addAll(getJavaAndKotlinCompilerOutputFolders(javaModel, includeProduction, includeTests));
           super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
           return true;
         }
@@ -100,14 +99,18 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
                                                                     boolean includeProduction,
                                                                     boolean includeTests) {
     List<String> toAdd = new LinkedList<>();
+    // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
+    // if multiple definitions of the same class exist in both the test and the main artifact.
+    if (includeTests) {
+      if (androidModel.getSelectedVariant().getUnitTestArtifact() != null) {
+        addFoldersFromArtifact(androidModel.getSelectedVariant().getUnitTestArtifact(), toAdd);
+      }
+      if (androidModel.getSelectedVariant().getAndroidTestArtifact() != null) {
+        addFoldersFromArtifact(androidModel.getSelectedVariant().getAndroidTestArtifact(), toAdd);
+      }
+    }
     if (includeProduction) {
       addFoldersFromArtifact(androidModel.getSelectedVariant().getMainArtifact(), toAdd);
-    }
-    if (includeTests && androidModel.getSelectedVariant().getUnitTestArtifact() != null) {
-      addFoldersFromArtifact(androidModel.getSelectedVariant().getUnitTestArtifact(), toAdd);
-    }
-    if (includeTests && androidModel.getSelectedVariant().getAndroidTestArtifact() != null) {
-      addFoldersFromArtifact(androidModel.getSelectedVariant().getAndroidTestArtifact(), toAdd);
     }
     return toAdd;
   }
@@ -128,7 +131,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   }
 
   @NotNull
-  private static Collection<String> getJavaCompilerOutputFolders(@NotNull JavaModuleModel javaModel,
+  private static Collection<String> getJavaAndKotlinCompilerOutputFolders(@NotNull JavaModuleModel javaModel,
                                                                  boolean includeProduction,
                                                                  boolean includeTests) {
     Collection<String> toAdd = new LinkedList<>();
@@ -136,6 +139,8 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
     File mainResourcesFolderPath = null;
     File testClassesFolderPath = null;
     File testResourcesFolderPath = null;
+    File mainKotlinClassesFolderPath = null;
+    File testKotlinClassesFolderPath = null;
 
     ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
     if (compilerOutput != null) {
@@ -145,8 +150,8 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
       testResourcesFolderPath = compilerOutput.getTestResourcesDir();
     }
 
+    File buildFolderPath = javaModel.getBuildFolderPath();
     if (javaModel.isBuildable()) {
-      File buildFolderPath = javaModel.getBuildFolderPath();
       if (mainClassesFolderPath == null) {
         // Guess default output folder
         mainClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, MAIN_FOLDER_NAME));
@@ -165,40 +170,44 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
       }
     }
 
-    if (includeProduction && mainClassesFolderPath != null) {
-      toAdd.add(pathToIdeaUrl(mainClassesFolderPath));
-    }
-
-    if (includeProduction && mainResourcesFolderPath != null) {
-      toAdd.add(pathToIdeaUrl(mainResourcesFolderPath));
-    }
-
-    if (includeTests && testClassesFolderPath != null) {
-      toAdd.add(pathToIdeaUrl(testClassesFolderPath));
-    }
-
-    if (includeTests && testResourcesFolderPath != null) {
-      toAdd.add(pathToIdeaUrl(testResourcesFolderPath));
-    }
-
-    return toAdd;
-  }
-
-  @NotNull
-  private static Collection<String> getKotlinCompilerOutputFolders(@NotNull JavaModuleModel javaModel,
-                                                                   boolean includeProduction,
-                                                                   boolean includeTests) {
-    Collection<String> toAdd = new LinkedList<>();
-
-    File buildFolder = javaModel.getBuildFolderPath();
-    if (buildFolder != null) {
+    // For Kotlin models it is possible that the javaModel#isBuildable returns false since no javaCompile task exists.
+    // As a result we always need to try and look for Kotlin output folder.
+    if (buildFolderPath != null) {
       // We try to guess Kotlin output folders (Gradle default), since we cannot obtain that from Kotlin model for now.
-      File kotlinClasses = buildFolder.toPath().resolve(CLASSES_FOLDER_NAME).resolve(KOTLIN_FOLDER_NAME).toFile();
-      if (includeProduction) {
-        toAdd.add(pathToIdeaUrl(new File(kotlinClasses, MAIN_FOLDER_NAME)));
-      }
+      File kotlinClasses = buildFolderPath.toPath().resolve(CLASSES_FOLDER_NAME).resolve(KOTLIN_FOLDER_NAME).toFile();
+      // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
+      // is multiple definitions of the same class existed in both the test and the main artifact.
       if (includeTests) {
-        toAdd.add(pathToIdeaUrl(new File(kotlinClasses, TEST_FOLDER_NAME)));
+        testKotlinClassesFolderPath = new File(kotlinClasses, TEST_FOLDER_NAME);
+      }
+      if (includeProduction) {
+        mainKotlinClassesFolderPath = new File(kotlinClasses, MAIN_FOLDER_NAME);
+      }
+    }
+
+    // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
+    // is multiple definitions of the same class existed in both the test and the main artifact.
+    if (includeTests) {
+      if (testClassesFolderPath != null) {
+        toAdd.add(pathToIdeaUrl(testClassesFolderPath));
+      }
+      if (testKotlinClassesFolderPath != null) {
+        toAdd.add(pathToIdeaUrl(testKotlinClassesFolderPath));
+      }
+      if (testResourcesFolderPath != null) {
+        toAdd.add(pathToIdeaUrl(testResourcesFolderPath));
+      }
+    }
+
+    if (includeProduction) {
+      if (mainClassesFolderPath != null) {
+        toAdd.add(pathToIdeaUrl(mainClassesFolderPath));
+      }
+      if (mainKotlinClassesFolderPath != null) {
+        toAdd.add(pathToIdeaUrl(mainKotlinClassesFolderPath));
+      }
+      if (mainResourcesFolderPath != null) {
+        toAdd.add(pathToIdeaUrl(mainResourcesFolderPath));
       }
     }
 

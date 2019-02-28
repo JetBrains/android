@@ -38,12 +38,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -115,6 +117,11 @@ public class PreviewProvider implements Disposable {
       double scale = getScale();
       size = new Dimension((int)(image.getWidth() / scale), (int)(image.getHeight() / scale));
     }
+
+    // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
+    boolean inUserScale = !SystemInfo.isWindows || !UIUtil.isJreHiDPI(component);
+    image = ImageUtil.toBufferedImage(image, inUserScale);
+
     return new ImageAndDimension(image, size);
   }
 
@@ -221,7 +228,7 @@ public class PreviewProvider implements Disposable {
 
   private double getScale() {
     DesignSurface surface = myDesignSurfaceSupplier.get();
-    return surface != null ? surface.getScale() : 1.0;
+    return surface != null ? surface.getScale() * surface.getScreenScalingFactor() : 1.0;
   }
 
   @Nullable
