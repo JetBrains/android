@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.transport.IntellijLogService;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.profilers.ProfilerClient;
@@ -87,8 +86,6 @@ public class ProfilerService implements Disposable {
     myMessageBus = project.getMessageBus();
     myManager = new TransportDeviceManager(myDataStoreService, myMessageBus);
     Disposer.register(this, myManager);
-    myManager.initialize(project);
-    IdeSdks.subscribe(myManager, this);
 
     myClient = new ProfilerClient(datastoreName);
 
