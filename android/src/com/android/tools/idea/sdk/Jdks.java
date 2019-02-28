@@ -15,10 +15,22 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static java.util.Collections.emptyList;
+
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.hyperlink.*;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
@@ -35,23 +47,14 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static java.util.Collections.emptyList;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods related to IDEA JDKs.
@@ -263,19 +266,17 @@ public class Jdks {
     List<NotificationHyperlink> quickFixes = Lists.newArrayList();
 
     if (myIdeInfo.isAndroidStudio()) {
-      File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
-      if (embeddedJdkPath == null || !isJdkRunnableOnPlatform(embeddedJdkPath.getAbsolutePath())) {
-        NotificationHyperlink downloadAndroidStudioHyperLink = new DownloadAndroidStudioHyperlink();
-        quickFixes.add(downloadAndroidStudioHyperLink);
-        NotificationHyperlink useCurrentJdkHyperLink = UseCurrentlyRunningJdkHyperlink.create();
-        if (useCurrentJdkHyperLink != null) {
-          quickFixes.add(useCurrentJdkHyperLink);
-        }
+      NotificationHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
+      if (useJavaHomeHyperlink != null) {
+        quickFixes.add(useJavaHomeHyperlink);
       }
       else {
-        NotificationHyperlink useEmbeddedJdkHyperlink = UseEmbeddedJdkHyperlink.create();
-        if (useEmbeddedJdkHyperlink != null) {
-          quickFixes.add(useEmbeddedJdkHyperlink);
+        File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+        if (embeddedJdkPath != null && isJdkRunnableOnPlatform(embeddedJdkPath.getAbsolutePath())) {
+          quickFixes.add(new UseEmbeddedJdkHyperlink());
+        }
+        else {
+          quickFixes.add(new DownloadAndroidStudioHyperlink());
         }
       }
     }
