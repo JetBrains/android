@@ -211,9 +211,9 @@
         </constraints>
         <properties>
           <font style="0"/>
-          <label value="Use AndroidX artifacts"/>
+          <label value="Use androidx.* artifacts"/>
           <selected value="true"/>
-          <text value="Use AndroidX artifacts"/>
+          <text value="Use androidx.* artifacts"/>
         </properties>
       </component>
     </children>
