@@ -37,4 +37,10 @@ public class GradleDslClosure extends GradlePropertiesDslElement implements Grad
   public PsiElement getExpression() {
     return getPsiElement();
   }
+
+  @NotNull
+  @Override
+  public GradleDslExpression copy() {
+    throw new UnsupportedOperationException("Copying GradleDslClosure is not supported.");
+  }
 }
