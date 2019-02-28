@@ -27,30 +27,24 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,9 +53,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.analytics.UsageTracker;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn Transport pipeline clients.
@@ -69,8 +61,7 @@ import com.android.tools.analytics.UsageTracker;
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
 public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener,
-                                                     AndroidDebugBridge.IDeviceChangeListener,
-                                                     IdeSdks.IdeSdkChangeListener, Disposable {
+                                                     AndroidDebugBridge.IDeviceChangeListener, Disposable {
   public static final Topic<TransportDeviceManagerListener> TOPIC = new Topic<>("TransportDevice", TransportDeviceManagerListener.class);
 
   private static Logger getLogger() {
@@ -87,7 +78,6 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
   @NotNull private final DataStoreService myDataStoreService;
   @NotNull private final MessageBus myMessageBus;
-  private boolean isAdbInitialized;
 
   /**
    * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
@@ -100,37 +90,6 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     myMessageBus = messageBus;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
-    // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
-    isAdbInitialized = false;
-  }
-
-  @Override
-  public void sdkPathChanged(@NotNull File newSdkPath) {
-    isAdbInitialized = false;
-  }
-
-  public void initialize(@NotNull Project project) {
-    if (isAdbInitialized) {
-      return;
-    }
-
-    final File adb = AndroidSdkUtils.getAdb(project);
-    if (adb != null) {
-      Futures.addCallback(AdbService.getInstance().getDebugBridge(adb), new FutureCallback<AndroidDebugBridge>() {
-        @Override
-        public void onSuccess(@Nullable AndroidDebugBridge result) {
-          isAdbInitialized = true;
-        }
-
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          getLogger().warn(String.format("getDebugBridge %s failed", adb.getAbsolutePath()));
-        }
-      }, EdtExecutor.INSTANCE);
-    }
-    else {
-      getLogger().warn("No adb available");
-    }
   }
 
   @Override
@@ -435,6 +394,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
     /**
      * Helper function that parses the segmentation fault string sent by transport. The parsed string is then sent to
+     *
      * @param crashString the string passed from transport when a segmentation fault happens. This is expected to be
      *                    in the format of "Perfd Segmentation Fault: 1234,1234,1234,1234," where each number represents
      *                    an address in the callstack.

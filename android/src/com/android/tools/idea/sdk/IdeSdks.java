@@ -63,9 +63,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.messages.MessageBus;
-import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.messages.Topic;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,36 +80,24 @@ public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
 
-  private static final Topic<IdeSdkChangeListener> IDE_SYNC_TOPIC = new Topic<>("IDE SDKs", IdeSdkChangeListener.class);
-
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final IdeInfo myIdeInfo;
-  @NotNull private final MessageBus myMessageBus;
 
   @NotNull
   public static IdeSdks getInstance() {
     return ServiceManager.getService(IdeSdks.class);
   }
 
-  @NotNull
-  public static MessageBusConnection subscribe(@NotNull IdeSdkChangeListener listener, @NotNull Disposable parentDisposable) {
-    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect(parentDisposable);
-    connection.subscribe(IDE_SYNC_TOPIC, listener);
-    return connection;
-  }
-
   public IdeSdks(@NotNull AndroidSdks androidSdks,
                  @NotNull Jdks jdks,
                  @NotNull EmbeddedDistributionPaths embeddedDistributionPaths,
-                 @NotNull IdeInfo ideInfo,
-                 @NotNull MessageBus messageBus) {
+                 @NotNull IdeInfo ideInfo) {
     myAndroidSdks = androidSdks;
     myJdks = jdks;
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myIdeInfo = ideInfo;
-    myMessageBus = messageBus;
   }
 
   /**
@@ -325,8 +310,6 @@ public class IdeSdks {
 
       afterAndroidSdkPathUpdate(resolved);
 
-      myMessageBus.syncPublisher(IDE_SYNC_TOPIC).sdkPathChanged(path);
-
       return sdks;
     }
     return Collections.emptyList();
@@ -341,7 +324,7 @@ public class IdeSdks {
    * Updates ProjectJdkTable based on what is currently available on Android SDK path and what SDK Manager says
    *
    * @param currentProject used to get Android SDK path. If {@code null} or if it does not have Android SDK path setup this function will
-   * use the result from {@link IdeSdks#getAndroidSdkPath()()}
+   *                       use the result from {@link IdeSdks#getAndroidSdkPath()()}
    */
   public void updateFromAndroidSdkPath(@Nullable Project currentProject) {
     File sdkDir = null;
@@ -719,9 +702,5 @@ public class IdeSdks {
         ProjectJdkTable.getInstance().removeJdk(sdk);
       }
     }));
-  }
-
-  public interface IdeSdkChangeListener {
-    void sdkPathChanged(@NotNull File newSdkPath);
   }
 }
