@@ -32,9 +32,9 @@ import java.util.Map;
 /**
  * PsiElementFinder extensions that finds classes generated for layout files.
  */
-public class DataBindingClassFinder extends PsiElementFinder {
+public class DataBindingLayoutClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
-  public DataBindingClassFinder(DataBindingProjectComponent component) {
+  public DataBindingLayoutClassFinder(DataBindingProjectComponent component) {
     myComponent = component;
   }
 
