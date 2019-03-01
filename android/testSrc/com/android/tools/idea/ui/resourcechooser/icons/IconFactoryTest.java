@@ -25,7 +25,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.EmptyIcon;
-import org.gradle.internal.impldep.org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.swing.*;

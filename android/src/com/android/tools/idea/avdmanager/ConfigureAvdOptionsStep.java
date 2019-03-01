@@ -118,9 +118,9 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.gradle.internal.impldep.org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
