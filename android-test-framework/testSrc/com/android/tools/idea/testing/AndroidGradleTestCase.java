@@ -416,7 +416,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
-  protected void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
+  public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     if (path == null) {

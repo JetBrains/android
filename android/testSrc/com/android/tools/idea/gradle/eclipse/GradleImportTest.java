@@ -9,6 +9,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.android.utils.Pair;
@@ -3291,7 +3292,7 @@ public class GradleImportTest extends AndroidTestCase {
     }
     else {
       importer.exportProject(destDir, false);
-      updateGradle(destDir);
+      AndroidGradleTestCase.createGradleWrapper(destDir, GRADLE_LATEST_VERSION);
     }
     String summary = Files.toString(new File(gradleProjectDir, IMPORT_SUMMARY_TXT), UTF_8);
     summary = summary.replace("\r", "");
@@ -3326,13 +3327,6 @@ public class GradleImportTest extends AndroidTestCase {
     return summary.substring(0, index) + "$DESTDIR" +
            summary.substring(index + path.length(), nextLineIndex) +
            "        " + summary.substring(nextLineIndex + path.length());
-  }
-
-  protected static void updateGradle(File projectRoot) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
-    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-    wrapper.updateDistributionUrl(path);
   }
 
   private static boolean isWindows() {
