@@ -79,18 +79,18 @@ abstract class GradleSyncProjectComparisonTest(
 
   class NewSyncSingleVariantGradleSyncProjectComparisonTest :
       GradleSyncProjectComparisonTest(useNewSync = true, singleVariantSync = true) {
-    @Ignore("b/124504437")
+    /** TODO(b/124504437): Enable this test */
     override fun testNdkProjectSync() = Unit
   }
 
   class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false) {
-    @Ignore("b/124497021")
+    /** TODO(b/124497021): Enable this test */
     override fun testLoadPlainJavaProject() = Unit
 
-    @Ignore("b/124508973")
+    /** TODO(b/124508973): Enable this test */
     override fun testPsdDependency() = Unit
 
-    @Ignore("b/124508973")
+    /** TODO(b/124508973): Enable this test */
     override fun testPsdDependencyUpgradeLibraryModule() = Unit
   }
 
