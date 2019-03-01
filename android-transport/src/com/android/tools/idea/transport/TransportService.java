@@ -32,11 +32,16 @@ import org.jetbrains.annotations.NotNull;
  * across project where users can use different client features in multiple studio instances.
  */
 public class TransportService implements Disposable {
-  public synchronized static TransportService getInstance() {
+  public static TransportService getInstance() {
     return ServiceManager.getService(TransportService.class);
   }
 
+  public static boolean isServiceInitialized() {
+    return ourServiceInitialized;
+  }
+
   private static final String DATASTORE_NAME = "DataStoreService";
+  private static boolean ourServiceInitialized = false;
 
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final DataStoreService myDataStoreService;
@@ -53,6 +58,8 @@ public class TransportService implements Disposable {
 
     Disposer.register(this, myDataStoreService::shutdown);
     Disposer.register(this, myDeviceManager);
+
+    ourServiceInitialized = true;
   }
 
   @Override

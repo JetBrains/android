@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.profilers.ProfilerService;
 import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
@@ -66,7 +65,9 @@ public final class IntellijCodeNavigator extends CodeNavigator {
    */
   @NotNull private Supplier<String> myCpuAbiArchSupplier;
 
-  public IntellijCodeNavigator(@NotNull Project project, @NotNull NativeSymbolizer nativeSymbolizer, @NotNull FeatureTracker featureTracker) {
+  public IntellijCodeNavigator(@NotNull Project project,
+                               @NotNull NativeSymbolizer nativeSymbolizer,
+                               @NotNull FeatureTracker featureTracker) {
     super(featureTracker);
     myProject = project;
     myNativeSymbolizer = nativeSymbolizer;
@@ -217,9 +218,8 @@ public final class IntellijCodeNavigator extends CodeNavigator {
    */
   @Nullable
   private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
-    ProfilerService service = ProfilerService.getInstance(myProject);
     String arch = fetchCpuAbiArch();
-    if (service == null || location.getFileName() == null || arch == null) {
+    if (location.getFileName() == null || arch == null) {
       return null;
     }
     Symbol symbol;
