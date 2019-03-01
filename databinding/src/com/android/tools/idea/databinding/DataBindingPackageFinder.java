@@ -37,7 +37,7 @@ import java.util.Set;
 
 /**
  * This element finder has minimum priority and only finds packages that are missing in the app.
- * See {@link DataBindingClassFinder}, {@link DataBindingComponentClassFinder} and {@link BrClassFinder} for actual classes.
+ * See {@link DataBindingLayoutClassFinder}, {@link DataBindingComponentClassFinder} and {@link BrClassFinder} for actual classes.
  */
 public class DataBindingPackageFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
