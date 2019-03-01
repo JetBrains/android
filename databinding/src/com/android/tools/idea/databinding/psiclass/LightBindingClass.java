@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding.psiclass;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.tools.idea.databinding.DataBindingMode;
+import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
@@ -59,7 +63,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private final DataBindingMode myMode;
   private final Object myLock = new Object();
 
-  protected LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingLayoutInfo info) {
+  public LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, @NotNull DataBindingLayoutInfo info) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myInfo = info;
     myFacet = facet;
@@ -72,7 +76,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     myPsiMethodsCache =
       cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet, myLock) {
         @Override
-        PsiMethod[] doCompute() {
+        protected PsiMethod[] doCompute() {
           Map<String, PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
           // Generate getter if this is merged or does not have an alternative layout in another configuration.
           List<PsiMethod> methods = new ArrayList<>(variables.size() * 2 + STATIC_METHOD_COUNT);
@@ -97,7 +101,7 @@ public class LightBindingClass extends AndroidLightClassBase {
         }
 
         @Override
-        PsiMethod[] defaultValue() {
+        protected PsiMethod[] defaultValue() {
           return PsiMethod.EMPTY_ARRAY;
         }
       }, false);
@@ -105,7 +109,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     myPsiFieldsCache =
       cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet, myLock) {
         @Override
-        PsiField[] doCompute() {
+        protected PsiField[] doCompute() {
           if (myInfo.getMergedInfo() != null) {
             // fields are generated in the base class.
             return PsiField.EMPTY_ARRAY;
@@ -133,7 +137,7 @@ public class LightBindingClass extends AndroidLightClassBase {
         }
 
         @Override
-        PsiField[] defaultValue() {
+        protected PsiField[] defaultValue() {
           return PsiField.EMPTY_ARRAY;
         }
       }, false);
@@ -268,7 +272,7 @@ public class LightBindingClass extends AndroidLightClassBase {
           continue;
         }
 
-        if (name != null && !qName.endsWith("." + name)) {
+        if (name != null && !qName.endsWith("" + name)) {
           continue;
         }
 
@@ -425,7 +429,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   /**
    * The light method class that represents the generated data binding methods for a layout file.
    */
-  static class LightDataBindingMethod extends LightMethod {
+  public static class LightDataBindingMethod extends LightMethod {
     private PsiElement myNavigationElement;
 
     public LightDataBindingMethod(@NotNull PsiElement navigationElement,
@@ -459,7 +463,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   /**
    * The light field class that represents the generated view fields for a layout file.
    */
-  static class LightDataBindingField extends LightField {
+  public static class LightDataBindingField extends LightField {
     private final DataBindingLayoutInfo.ViewWithId myViewWithId;
 
     public LightDataBindingField(DataBindingLayoutInfo.ViewWithId viewWithId,
