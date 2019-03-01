@@ -45,11 +45,13 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
-
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Arrays;
@@ -104,7 +106,9 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   }
 
   private void createUIComponents() {
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this) {
+    myLoadingPanel = new JBLoadingPanel(
+      new BorderLayout(), this,
+      ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS) {
       @Override
       public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
@@ -115,6 +119,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         }
       }
     };
+    myLoadingPanel.setLoadingText("Loading Android project template files");
   }
 
   @Override
