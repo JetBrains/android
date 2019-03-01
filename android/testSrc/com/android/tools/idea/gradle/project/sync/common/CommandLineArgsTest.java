@@ -59,7 +59,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(getProject(), getTestRootDisposable()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
     myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false /* do not apply Java library plugin */);
   }
