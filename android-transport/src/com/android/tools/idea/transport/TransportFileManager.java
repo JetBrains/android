@@ -68,6 +68,34 @@ public final class TransportFileManager {
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("simpleperf_%s") // e.g simpleperf_arm64
       .build();
+
+    @NotNull static final DeployableFile PERFETTO = new DeployableFile.Builder("perfetto")
+      .setReleaseDir("plugins/android/resources/perfetto")
+      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setExecutable(true)
+      .setOnDeviceAbiFileNameFormat("perfetto_%s") // e.g perfetto_arm64
+      .build();
+
+    @NotNull static final DeployableFile PERFETTO_SO = new DeployableFile.Builder("libperfetto.so")
+      .setReleaseDir("plugins/android/resources/perfetto")
+      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setExecutable(true)
+      .setOnDeviceAbiFileNameFormat("%s/libperfetto.so") // e.g arm64/libperfetto.so
+      .build();
+
+    @NotNull static final DeployableFile TRACED = new DeployableFile.Builder("traced")
+      .setReleaseDir("plugins/android/resources/perfetto")
+      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setExecutable(true)
+      .setOnDeviceAbiFileNameFormat("traced_%s") // e.g traced_arm64
+      .build();
+
+    @NotNull static final DeployableFile TRACED_PROBE = new DeployableFile.Builder("traced_probes")
+      .setReleaseDir("plugins/android/resources/perfetto")
+      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setExecutable(true)
+      .setOnDeviceAbiFileNameFormat("traced_probes_%s") // e.g traced_probe_arm64
+      .build();
   }
 
   private static Logger getLogger() {
@@ -98,6 +126,12 @@ public final class TransportFileManager {
       // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
       copyFileToDevice(HostFiles.SIMPLEPERF);
     }
+    if (isAtLeastP(myDevice)) {
+      copyFileToDevice(HostFiles.PERFETTO);
+      copyFileToDevice(HostFiles.PERFETTO_SO);
+      copyFileToDevice(HostFiles.TRACED);
+      copyFileToDevice(HostFiles.TRACED_PROBE);
+    }
     pushAgentConfig(null);
   }
 
@@ -124,6 +158,10 @@ public final class TransportFileManager {
    */
   private static boolean isAtLeastO(IDevice device) {
     return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+  }
+
+  private static boolean isAtLeastP(IDevice device) {
+    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.P;
   }
 
   /**

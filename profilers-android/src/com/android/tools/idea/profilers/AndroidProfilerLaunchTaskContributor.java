@@ -195,7 +195,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
 
     if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      requestBuilder.setAbiCpuArch(getSimpleperfAbiCpuArch(device));
+      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("simpleperf", "simpleperf", device));
+    }
+    else if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("perfetto", "perfetto", device));
     }
 
     CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
@@ -271,11 +274,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @NotNull
-  private static String getSimpleperfAbiCpuArch(IDevice device) {
+  private static String getAbiDependentCommonLibName(String dir, String fileName, IDevice device) {
     return getBestAbiCpuArch(device,
-                             "plugins/android/resources/simpleperf",
-                             "../../prebuilts/tools/common/simpleperf",
-                             "simpleperf");
+                             "plugins/android/resources/" + dir,
+                             "../../prebuilts/tools/common/" + dir,
+                             fileName);
   }
 
   /**
