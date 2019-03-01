@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * PsiShortNames cache that finds classes generated for layout files.
  */
-public class DataBindingShortNamesCache extends PsiShortNamesCache {
+public class DataBindingLayoutShortNamesCache extends PsiShortNamesCache {
   private final DataBindingProjectComponent myComponent;
   private final CachedValue<Map<String, List<DataBindingLayoutInfo>>> myNameCache;
   private final CachedValue<String[]> myAllClassNamesCache;
@@ -55,7 +55,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   private final CachedValue<String[]> myAllMethodNamesCache;
   private final CachedValue<String[]> myAllFieldNamesCache;
 
-  public DataBindingShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
+  public DataBindingLayoutShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
     myComponent = dataBindingProjectComponent;
     final NameCacheProvider nameCacheProvider = new NameCacheProvider(myComponent);
     Project project = dataBindingProjectComponent.getProject();
