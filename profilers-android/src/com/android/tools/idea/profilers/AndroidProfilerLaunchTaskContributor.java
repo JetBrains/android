@@ -38,12 +38,14 @@ import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.transport.TransportFileManager;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentRequest;
 import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -58,6 +60,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.util.messages.MessageBus;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -90,15 +93,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     Project project = module.getProject();
-    ProfilerService profilerService = ProfilerService.getInstance(project);
-    if (profilerService == null) {
+    TransportService transportService = TransportService.getInstance();
+    if (transportService == null) {
       // Profiler cannot be run.
       return "";
     }
 
+    ProfilerClient client = new ProfilerClient(transportService.getChannelName());
     long deviceId;
     try {
-      deviceId = waitForPerfd(device, profilerService);
+      deviceId = waitForPerfd(device, client);
     }
     catch (InterruptedException | TimeoutException e) {
       getLogger().debug(e);
@@ -106,16 +110,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    pushNewAgentConfig(project, profilerService, device);
-    String agentArgs = getAttachAgentArgs(applicationId, profilerService, device, deviceId);
-    String startupProfilingResult = startStartupProfiling(applicationId, project, profilerService, device, deviceId);
+    pushNewAgentConfig(project, transportService.getMessageBus(), device);
+    String agentArgs = getAttachAgentArgs(applicationId, client, device, deviceId);
+    String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
-  private void pushNewAgentConfig(@NotNull Project project, @NotNull ProfilerService profilerService, @NotNull IDevice device) {
+  private void pushNewAgentConfig(@NotNull Project project, @NotNull MessageBus messageBus, @NotNull IDevice device) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
-      new TransportFileManager(device, profilerService.getMessageBus()).pushAgentConfig(getSelectedRunConfiguration(project));
+      new TransportFileManager(device, messageBus).pushAgentConfig(getSelectedRunConfiguration(project));
     }
     catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
       throw new RuntimeException(e);
@@ -131,14 +135,14 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   @NotNull
   private static String getAttachAgentArgs(@NotNull String appPackageName,
-                                           @NotNull ProfilerService profilerService,
+                                           @NotNull ProfilerClient client,
                                            @NotNull IDevice device,
                                            long deviceId) {
     // --attach-agent flag was introduced from android API level 27.
     if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
       return "";
     }
-    ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getTransportClient()
+    ConfigureStartupAgentResponse response = client.getTransportClient()
       .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder()
                                .setStreamId(deviceId)
                                // TODO: Find a way of finding the correct ABI
@@ -158,7 +162,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   @NotNull
   private static String startStartupProfiling(@NotNull String appPackageName,
                                               @NotNull Project project,
-                                              @NotNull ProfilerService profilerService,
+                                              @NotNull ProfilerClient client,
                                               @NotNull IDevice device,
                                               long deviceId) {
     if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
@@ -194,9 +198,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       requestBuilder.setAbiCpuArch(getSimpleperfAbiCpuArch(device));
     }
 
-    CpuProfiler.StartupProfilingResponse response = profilerService
-      .getProfilerClient().getCpuClient()
-      .startStartupProfiling(requestBuilder.build());
+    CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
 
     if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getProfilerType() != CpuProfiler.CpuProfilerType.ART) {
       return "";
@@ -229,11 +231,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    *
    * @return ID of device, i.e {@link Common.Device#getDeviceId()}
    */
-  private static long waitForPerfd(@NotNull IDevice device, @NotNull ProfilerService profilerService)
+  private static long waitForPerfd(@NotNull IDevice device, @NotNull ProfilerClient client)
     throws InterruptedException, TimeoutException {
     // Wait for perfd to come online for 1 minute.
     for (int i = 0; i < 60; ++i) {
-      Common.Device profilerDevice = getProfilerDevice(device, profilerService);
+      Common.Device profilerDevice = getProfilerDevice(device, client);
       if (!Common.Device.getDefaultInstance().equals(profilerDevice)) {
         return profilerDevice.getDeviceId();
       }
@@ -248,9 +250,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    * {@link Common.Device#getDefaultInstance()} otherwise.
    */
   @NotNull
-  private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerService profilerService) {
-    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(StudioFlags.PROFILER_UNIFIED_PIPELINE.get(),
-                                                                     profilerService.getProfilerClient(), null);
+  private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerClient client) {
+    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null);
     for (Common.Device profilerDevice : devices) {
       if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;
@@ -398,14 +399,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       long startTimeNs = Long.MIN_VALUE;
 
       // If it's not a profile launch avoid initializing the service as it is an expensive call.
-      if (!isProfilerLaunch(myLaunchOptions) && !ProfilerService.isServiceInitialized(myModule.getProject())) {
+      if (!isProfilerLaunch(myLaunchOptions) && !TransportService.isServiceInitialized()) {
         return startTimeNs;
       }
 
-      ProfilerService profilerService = ProfilerService.getInstance(myModule.getProject());
-      if (profilerService == null) {
+      TransportService transportService = TransportService.getInstance();
+      if (transportService == null) {
         return startTimeNs;
       }
+      ProfilerClient client = new ProfilerClient(transportService.getChannelName());
 
       // If we are launching from the "Profile" action, wait for perfd to start properly to get the time.
       // Note: perfd should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
@@ -413,7 +415,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       long deviceId = -1;
       if (isProfilerLaunch(myLaunchOptions)) {
         try {
-          deviceId = waitForPerfd(device, profilerService);
+          deviceId = waitForPerfd(device, client);
         }
         catch (InterruptedException | TimeoutException e) {
           getLogger().debug(e);
@@ -422,11 +424,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       else {
         // If we are launching from Run/Debug, do not bother waiting for perfd start, but try to get the time anyway in case the profiler
         // is already running.
-        deviceId = getProfilerDevice(device, profilerService).getDeviceId();
+        deviceId = getProfilerDevice(device, client).getDeviceId();
       }
 
-      TimeResponse timeResponse = profilerService.getProfilerClient().getTransportClient().getCurrentTime(
-        TimeRequest.newBuilder().setStreamId(deviceId).build());
+      TimeResponse timeResponse = client.getTransportClient().getCurrentTime(TimeRequest.newBuilder().setStreamId(deviceId).build());
       if (!TimeResponse.getDefaultInstance().equals(timeResponse)) {
         // Found a valid time response, sets that as the time for detecting when the process is next launched.
         startTimeNs = timeResponse.getTimestampNs();
