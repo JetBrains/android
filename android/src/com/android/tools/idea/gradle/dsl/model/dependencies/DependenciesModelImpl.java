@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -66,6 +67,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                @NotNull GradleDslElement element,
                @NotNull GradleDslElement resolved,
                @Nullable GradleDslClosure configurationElement,
+               @NotNull DependencyModelImpl.Maintainer maintainer,
                @NotNull List<? super T> dest);
   }
 
@@ -75,6 +77,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
+                      @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
       // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
       // parser bug) then don't create anything.
@@ -89,14 +92,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
       if (resolved instanceof GradleDslExpressionMap) {
         ArtifactDependencyModelImpl.MapNotation mapNotation =
-          ArtifactDependencyModelImpl.MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
+          ArtifactDependencyModelImpl.MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement,
+                                                         maintainer);
         if (mapNotation != null) {
           dest.add(mapNotation);
         }
       }
       else if (element instanceof GradleDslSimpleExpression) {
         ArtifactDependencyModelImpl.CompactNotation compactNotation = ArtifactDependencyModelImpl.CompactNotation
-          .create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
+          .create(configurationName, (GradleDslSimpleExpression)element, configurationElement, maintainer);
         if (compactNotation != null) {
           dest.add(compactNotation);
         }
@@ -110,11 +114,12 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
+                      @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super ModuleDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
         if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
-          ModuleDependencyModel model = ModuleDependencyModelImpl.create(configurationName, methodCall);
+          ModuleDependencyModel model = ModuleDependencyModelImpl.create(configurationName, methodCall, maintainer);
           if (model != null && model.path().getValueType() != NONE) {
             dest.add(model);
           }
@@ -129,11 +134,12 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
+                      @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super FileDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
         if (methodCall.getMethodName().equals(FileDependencyModelImpl.FILES)) {
-          dest.addAll(FileDependencyModelImpl.create(configurationName, methodCall));
+          dest.addAll(FileDependencyModelImpl.create(configurationName, methodCall, maintainer));
         }
       }
     }
@@ -145,11 +151,12 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
+                      @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super FileTreeDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
         if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
-          FileTreeDependencyModel model = FileTreeDependencyModelImpl.create(methodCall, configurationName);
+          FileTreeDependencyModel model = FileTreeDependencyModelImpl.create(methodCall, configurationName, maintainer);
           if (model != null && model.dir().getValueType() != NONE) {
             dest.add(model);
           }
@@ -164,13 +171,263 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull GradleDslElement element,
                       @NotNull GradleDslElement resolved,
                       @Nullable GradleDslClosure configurationElement,
+                      @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super DependencyModel> dest) {
-      ourArtifactFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
-      ourModuleFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
-      ourFileFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
-      ourFileTreeFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
+      ourArtifactFetcher.fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
+      ourModuleFetcher.fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
+      ourFileFetcher.fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
+      ourFileTreeFetcher.fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
     }
   };
+
+
+  enum Maintainers implements DependencyModelImpl.Maintainer {
+
+    /**
+     * Handles items in structures like:
+     *
+     * <p>implementation "group:artifact:version", [group: "group", name: "artifact": version: someVersion]
+     */
+    EXPRESSION_LIST_MAINTAINER {
+      @NotNull
+      @Override
+      public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
+        GradleDslElement dslElement = dependencyModel.getDslElement();
+        GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
+        List<GradleDslExpression> expressions = parentList.getExpressions();
+        GradleDslElement nameHolder = parentList;
+        GradleNameElement nameElement = nameHolder.getNameElement();
+
+        if (expressions.size() == 1) {
+          renameSingleElementConfiguration(nameHolder, newConfigurationName);
+          return this;
+        }
+
+        DependenciesDslElement dependenciesElement = (DependenciesDslElement)(nameHolder.getParent());
+        int index = dependenciesElement.getAllElements().indexOf(nameHolder);
+
+        if (expressions.get(0) == dslElement && expressions.get(1) instanceof GradleDslExpressionMap) {
+          throw new UnsupportedOperationException(
+            "Changing the configuration name of a multi-entry dependency declaration containing map-notations is not supported.");
+        }
+
+        GradleDslElement copiedElement;
+        copiedElement = ((GradleDslExpression)dslElement).copy();
+        copiedElement.getNameElement().rename(newConfigurationName);
+        dependencyModel.setDslElement(copiedElement);
+        dependenciesElement.addNewElementAt(index, copiedElement);
+        parentList.removeElement(dslElement);
+        dependenciesElement.setModified();
+        return SINGLE_ITEM_MAINTAINER;
+      }
+    },
+
+    /**
+     * Handles items in structures like:
+     *
+     * <p>implementation ([group: "group", name: "artifact": version: someVersion], "group:artifact:version")
+     * <p> -=or=-
+     * <p>implementation (group: "group", name: "artifact": version: someVersion)
+     * <p> -=or=-
+     * <p>implementation ("group:artifact:version")
+     * <p>with an optional closure that may follow a single item.
+     */
+    ARGUMENT_LIST_MAINTAINER {
+      @NotNull
+      @Override
+      public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
+        GradleDslElement dslElement = dependencyModel.getDslElement();
+        GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
+        List<GradleDslExpression> expressions = parentList.getExpressions();
+        GradleDslElement nameHolder = parentList.getParent();
+        GradleNameElement nameElement = nameHolder.getNameElement();
+
+        if (expressions.size() == 1) {
+          renameSingleElementConfiguration(nameHolder, newConfigurationName);
+          return this;
+        }
+
+        DependenciesDslElement dependenciesElement = (DependenciesDslElement)(nameHolder.getParent());
+        int index = dependenciesElement.getAllElements().indexOf(nameHolder);
+        GradleDslElement copiedElement;
+        copiedElement = ((GradleDslExpression)dslElement).copy();
+        copiedElement.getNameElement().rename(newConfigurationName);
+        dependencyModel.setDslElement(copiedElement);
+        dependenciesElement.addNewElementAt(index, copiedElement);
+        parentList.removeElement(dslElement);
+        dependenciesElement.setModified();
+        return SINGLE_ITEM_MAINTAINER;
+      }
+    },
+
+    /**
+     * Handles items in structures like:
+     *
+     * <p>implementation "group:artifact:$version"
+     * <p> -=or=-
+     * <p>implementation group: "group", name: "artifact", version: "1.0"
+     * <p>with an optional closure that follows.
+     */
+    SINGLE_ITEM_MAINTAINER {
+      @NotNull
+      @Override
+      public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
+        GradleDslElement dslElement = dependencyModel.getDslElement();
+        renameSingleElementConfiguration(dslElement, newConfigurationName);
+        return this;
+      }
+    },
+
+    /**
+     * Handles items in structures like:
+     *
+     * <p>implementation files("a"), files("b", "c")
+     */
+    DEEP_EXPRESSION_LIST_MAINTAINER {
+      @NotNull
+      @Override
+      public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
+        GradleDslElement dslElement = dependencyModel.getDslElement();
+        GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
+        List<GradleDslExpression> expressions = parentList.getExpressions();
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)parentList.getParent();
+
+        GradleDslExpressionList declarationExpressionList = (GradleDslExpressionList)(methodCall.getParent());
+        GradleDslExpressionList nameHolder = declarationExpressionList;
+
+        DependenciesDslElement dependenciesElement = (DependenciesDslElement)(nameHolder.getParent());
+        int index = dependenciesElement.getAllElements().indexOf(nameHolder);
+
+        if (expressions.size() == 1) {
+          List<GradleDslExpression> declarationExpressions = declarationExpressionList.getExpressions();
+          if (declarationExpressions.size() == 1) {
+            renameSingleElementConfiguration(nameHolder, newConfigurationName);
+            return this;
+          }
+        }
+
+        GradleDslMethodCall copiedMethodElement;
+        copiedMethodElement = new GradleDslMethodCall(dependenciesElement,
+                                                      GradleNameElement.create(newConfigurationName),
+                                                      methodCall.getMethodName());
+        GradleDslExpression expressionCopy = ((GradleDslExpression)dslElement).copy();
+        copiedMethodElement.addNewArgument(expressionCopy);
+        dependencyModel.setDslElement(expressionCopy);
+        dependenciesElement.addNewElementAt(index, copiedMethodElement);
+
+        if (expressions.size() == 1) {
+          declarationExpressionList.removeElement(methodCall);
+        }
+        else {
+          parentList.removeElement(dslElement);
+        }
+
+        dependenciesElement.setModified();
+        return DEEP_SINGLE_ITEM_MAINTAINER;
+      }
+    },
+
+    /**
+     * Handles items in structures like:
+     *
+     * <p>implementation(files("a"), files("b", "c"))
+     */
+    DEEP_ARGUMENT_LIST_MAINTAINER {
+      @NotNull
+      @Override
+      public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
+        GradleDslElement dslElement = dependencyModel.getDslElement();
+        GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
+        List<GradleDslExpression> expressions = parentList.getExpressions();
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)parentList.getParent();
+
+        GradleDslExpressionList declarationMethodArguments = (GradleDslExpressionList)(methodCall.getParent());
+        GradleDslMethodCall nameHolder = (GradleDslMethodCall)declarationMethodArguments.getParent();
+
+        DependenciesDslElement dependenciesElement = (DependenciesDslElement)(nameHolder.getParent());
+        int index = dependenciesElement.getAllElements().indexOf(nameHolder);
+
+        if (expressions.size() == 1) {
+          List<GradleDslExpression> declarationMethodExpressions = declarationMethodArguments.getExpressions();
+          if (declarationMethodExpressions.size() == 1) {
+            renameSingleElementConfiguration(nameHolder, newConfigurationName);
+            return this;
+          }
+        }
+
+        GradleDslMethodCall copiedMethodElement;
+        copiedMethodElement = new GradleDslMethodCall(dependenciesElement,
+                                                      GradleNameElement.create(newConfigurationName),
+                                                      methodCall.getMethodName());
+        GradleDslExpression expressionCopy = ((GradleDslExpression)dslElement).copy();
+        copiedMethodElement.addNewArgument(expressionCopy);
+        dependencyModel.setDslElement(expressionCopy);
+        dependenciesElement.addNewElementAt(index, copiedMethodElement);
+
+        if (expressions.size() == 1) {
+          declarationMethodArguments.removeElement(methodCall);
+        }
+        else {
+          parentList.removeElement(dslElement);
+        }
+
+        dependenciesElement.setModified();
+        return DEEP_SINGLE_ITEM_MAINTAINER;
+      }
+    },
+
+    /**
+     * Handles items in structures like:
+     *
+     * <p>implementation files("a")
+     * <p> -=or=-
+     * <p>implementation files("a", "b")
+     */
+    DEEP_SINGLE_ITEM_MAINTAINER {
+      @NotNull
+      @Override
+      public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
+        GradleDslElement dslElement = dependencyModel.getDslElement();
+        GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
+        List<GradleDslExpression> expressions = parentList.getExpressions();
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)parentList.getParent();
+
+        if (expressions.size() == 1) {
+          renameSingleElementConfiguration(methodCall, newConfigurationName);
+          return this;
+        }
+
+        GradleDslMethodCall nameHolder = methodCall;
+        DependenciesDslElement dependenciesElement = (DependenciesDslElement)(nameHolder.getParent());
+        int index = dependenciesElement.getAllElements().indexOf(nameHolder);
+
+        GradleDslMethodCall copiedMethodElement;
+        copiedMethodElement = new GradleDslMethodCall(dependenciesElement,
+                                                      GradleNameElement.create(newConfigurationName),
+                                                      methodCall.getMethodName());
+        GradleDslExpression expressionCopy = ((GradleDslExpression)dslElement).copy();
+        copiedMethodElement.addNewArgument(expressionCopy);
+        dependencyModel.setDslElement(expressionCopy);
+        dependenciesElement.addNewElementAt(index, copiedMethodElement);
+
+        parentList.removeElement(dslElement);
+
+        dependenciesElement.setModified();
+        return DEEP_SINGLE_ITEM_MAINTAINER;
+      }
+    };
+
+    private static void renameSingleElementConfiguration(@NotNull GradleDslElement dslElement, @NotNull String newConfigurationName) {
+      if (dslElement instanceof GradleDslMethodCall) {
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)dslElement;
+        if (methodCall.getMethodName().equals(dslElement.getNameElement().name())) {
+          methodCall.setMethodName(newConfigurationName);
+        }
+      }
+      dslElement.getNameElement().rename(newConfigurationName);
+      dslElement.setModified();
+    }
+  }
 
 
   /**
@@ -348,7 +605,8 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     if (resolved instanceof GradleDslExpressionList) {
       for (GradleDslExpression expression : ((GradleDslExpressionList)resolved).getExpressions()) {
         GradleDslElement resolvedExpression = resolveElement(expression);
-        byFetcher.fetch(configurationName, expression, resolvedExpression, configurationElement, dest);
+        byFetcher
+          .fetch(configurationName, expression, resolvedExpression, configurationElement, Maintainers.EXPRESSION_LIST_MAINTAINER, dest);
       }
       return;
     }
@@ -357,12 +615,12 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       if (name.equals(configurationName)) {
         for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
           GradleDslElement resolvedArgument = resolveElement(argument);
-          byFetcher.fetch(configurationName, argument, resolvedArgument, configurationElement, dest);
+          byFetcher.fetch(configurationName, argument, resolvedArgument, configurationElement, Maintainers.ARGUMENT_LIST_MAINTAINER, dest);
         }
         return;
       }
     }
-    byFetcher.fetch(configurationName, element, resolved, configurationElement, dest);
+    byFetcher.fetch(configurationName, element, resolved, configurationElement, Maintainers.SINGLE_ITEM_MAINTAINER, dest);
   }
 
   @NotNull

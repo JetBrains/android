@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.dependencies;
-
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public interface DependencyModel {
-  @NotNull
-  String configurationName();
-
-  void setConfigurationName(@NotNull String newConfigurationName);
-
-  /**
-   * Returns the {@link PsiElement} that this {@link DependencyModel} represents.
-   */
-  @Nullable
-  PsiElement getPsiElement();
+dependencies {
+  test project(":abc")
+  compile (project(":xyz"))
+  api (project(path: ":klm"))
+  testCompile(project(":")) {
+    exclude module: 'module1'
+  }
 }
