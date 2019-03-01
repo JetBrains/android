@@ -44,7 +44,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
     super.setUp();
     Project project = getProject();
     mySyncMessages = new MySyncMessages(project);
-    new IdeComponents(project).replaceProjectService(GradleSyncMessages.class, mySyncMessages);
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncMessages.class, mySyncMessages);
 
     mySetupStep = new MissingPlatformsSetupStep();
   }
