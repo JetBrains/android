@@ -40,11 +40,15 @@ final class PhysicalDevice extends Device {
   private static final Icon ourInvalidIcon = ExecutionUtil.getLiveIndicator(AllIcons.General.Error);
 
   @NotNull
-  static Builder newBuilder(@NotNull DeviceNameProperties properties, @NotNull IDevice ddmlibDevice) {
+  static PhysicalDevice newDevice(@NotNull DeviceNameProperties properties,
+                                  @NotNull IDevice ddmlibDevice,
+                                  @Nullable LaunchCompatibilityChecker checker,
+                                  @NotNull KeyToConnectionTimeMap map) {
     return new Builder()
       .setName(getName(properties))
       .setKey(ddmlibDevice.getSerialNumber())
-      .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, null));
+      .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, null))
+      .build(checker, map);
   }
 
   static final class Builder extends Device.Builder<Builder> {
@@ -56,12 +60,12 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @Override
-    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
       return new PhysicalDevice(this, checker, map);
     }
   }
 
-  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
     super(builder, checker, map);
   }
 

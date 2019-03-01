@@ -67,7 +67,7 @@ public final class AsyncDevicesGetterTest {
       Mockito.mock(ISystemImage.class),
       null);
 
-    myVirtualDevice = VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(null, myMap);
+    myVirtualDevice = VirtualDevice.newDisconnectedDevice(avdInfo, null);
   }
 
   @Before
