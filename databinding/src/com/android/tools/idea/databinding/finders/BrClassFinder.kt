@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.finders
 
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService
+import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.DataBindingUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
