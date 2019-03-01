@@ -44,6 +44,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -337,7 +338,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
         }
 
-        application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
+        application.invokeLater(() -> notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(MILLISECONDS)));
 
         if (!getProject().isDisposed()) {
           List<Message> buildMessages = new ArrayList<>();
@@ -425,10 +426,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     return Logger.getInstance(GradleBuildInvoker.class);
   }
 
-  private void notifyGradleInvocationCompleted(long durationMillis) {
+  private void notifyGradleInvocationCompleted(@NotNull GradleBuildState buildState, long durationMillis) {
     Project project = myRequest.getProject();
     if (!project.isDisposed()) {
-      String statusMsg = createStatusMessage(durationMillis);
+      String statusMsg = createStatusMessage(buildState, durationMillis);
       MessageType messageType = myErrorCount > 0 ? ERROR : INFO;
       if (durationMillis > ONE_MINUTE_MS) {
         BALLOON_NOTIFICATION.createNotification(statusMsg, messageType).notify(project);
@@ -441,13 +442,31 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   }
 
   @NotNull
-  private String createStatusMessage(long durationMillis) {
-    String message = "Gradle build finished";
+  private String createStatusMessage(@NotNull GradleBuildState buildState, long durationMillis) {
+    String message = "Gradle build " + formatBuildStatusFromState(buildState);
     if (myErrorCount > 0) {
       message += String.format(" with %d error(s)", myErrorCount);
     }
     message = message + " in " + formatDuration(durationMillis);
     return message;
+  }
+
+  @NotNull
+  private static String formatBuildStatusFromState(@NotNull GradleBuildState state) {
+    BuildSummary summary = state.getSummary();
+    if (summary != null) {
+      switch (summary.getStatus()) {
+        case SKIPPED:
+          return "skipped";
+        case SUCCESS:
+          return "finished";
+        case FAILED:
+          return "failed";
+        case CANCELED:
+          return "cancelled";
+      }
+    }
+    return "finished";
   }
 
   private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
