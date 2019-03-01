@@ -32,7 +32,6 @@ public class IdeaModuleDependencyStub implements IdeaModuleDependency {
     return myModule.getName();
   }
 
-  @Override
   public IdeaModule getDependencyModule() {
     return myModule;
   }
