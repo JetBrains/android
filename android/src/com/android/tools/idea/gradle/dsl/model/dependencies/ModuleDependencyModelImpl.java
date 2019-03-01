@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.MapMethodTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgToMapTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -46,9 +47,11 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @NotNull private GradleDslMethodCall myDslElement;
 
   @Nullable
-  static ModuleDependencyModel create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
+  static ModuleDependencyModel create(@NotNull String configurationName,
+                                      @NotNull GradleDslMethodCall methodCall,
+                                      @NotNull Maintainer maintainer) {
     if (PROJECT.equals(methodCall.getMethodName())) {
-      return new ModuleDependencyModelImpl(configurationName, methodCall);
+      return new ModuleDependencyModelImpl(configurationName, methodCall, maintainer);
     }
     return null;
   }
@@ -67,12 +70,13 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
     }
     methodCall.addNewArgument(mapArguments);
     parent.setNewElement(methodCall);
-    return  new ModuleDependencyModelImpl(configurationName, methodCall);
+    return new ModuleDependencyModelImpl(configurationName, methodCall, DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
   }
 
   private ModuleDependencyModelImpl(@NotNull String configurationName,
-                                    @NotNull GradleDslMethodCall dslElement) {
-    super(configurationName);
+                                    @NotNull GradleDslMethodCall dslElement,
+                                    @NotNull Maintainer maintainer) {
+    super(configurationName, maintainer);
     myDslElement = dslElement;
   }
 
@@ -80,6 +84,11 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @NotNull
   protected GradleDslMethodCall getDslElement() {
     return myDslElement;
+  }
+
+  @Override
+  void setDslElement(@NotNull GradleDslElement dslElement) {
+    myDslElement = (GradleDslMethodCall)dslElement;
   }
 
   @Override

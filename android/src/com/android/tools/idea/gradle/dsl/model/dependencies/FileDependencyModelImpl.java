@@ -15,32 +15,51 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 public class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
   @NonNls public static final String FILES = "files";
 
-  @NotNull private final GradleDslSimpleExpression myFileDslExpression;
+  @NotNull private GradleDslSimpleExpression myFileDslExpression;
 
-  static Collection<FileDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
+  static Collection<FileDependencyModel> create(@NotNull String configurationName,
+                                                @NotNull GradleDslMethodCall methodCall,
+                                                @NotNull Maintainer maintainer) {
     List<FileDependencyModel> result = new ArrayList<>();
+    Maintainer argumentMaintainer;
+    if (maintainer == DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER) {
+      argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_SINGLE_ITEM_MAINTAINER;
+    }
+    else if (maintainer == DependenciesModelImpl.Maintainers.ARGUMENT_LIST_MAINTAINER) {
+      argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_ARGUMENT_LIST_MAINTAINER;
+    }
+    else if (maintainer == DependenciesModelImpl.Maintainers.EXPRESSION_LIST_MAINTAINER) {
+      argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_EXPRESSION_LIST_MAINTAINER;
+    }
+    else {
+      throw new IllegalStateException();
+    }
     if (FILES.equals(methodCall.getMethodName())) {
       List<GradleDslExpression> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
         if (argument instanceof GradleDslSimpleExpression) {
-          result.add(new FileDependencyModelImpl(configurationName, (GradleDslSimpleExpression)argument));
+          result.add(new FileDependencyModelImpl(configurationName, (GradleDslSimpleExpression)argument, argumentMaintainer));
         }
       }
     }
@@ -60,8 +79,9 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   }
 
   private FileDependencyModelImpl(@NotNull String configurationName,
-                                  @NotNull GradleDslSimpleExpression fileDslExpression) {
-    super(configurationName);
+                                  @NotNull GradleDslSimpleExpression fileDslExpression,
+                                  @NotNull Maintainer maintainer) {
+    super(configurationName, maintainer);
     myFileDslExpression = fileDslExpression;
   }
 
@@ -69,6 +89,11 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   @NotNull
   protected GradleDslElement getDslElement() {
     return myFileDslExpression;
+  }
+
+  @Override
+  void setDslElement(@NotNull GradleDslElement dslElement) {
+    myFileDslExpression = (GradleDslSimpleExpression)dslElement;
   }
 
   @Override
