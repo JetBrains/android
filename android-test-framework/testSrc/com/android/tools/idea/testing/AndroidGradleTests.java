@@ -110,6 +110,10 @@ public class AndroidGradleTests {
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
+      contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
+                                   pluginVersion);
+      contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
+                                   buildEnvironment.getExperimentalPluginVersion());
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
