@@ -52,6 +52,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -622,7 +623,7 @@ public class RenderService implements Disposable {
         }
 
         return null;
-      });
+      }, AppExecutorUtil.getAppExecutorService());
     }
 
     /**
