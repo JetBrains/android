@@ -30,7 +30,8 @@ import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.profilers.ProfilerService
+import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.TransportService
 import com.android.tools.layoutinspector.proto.LayoutInspector.*
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
@@ -77,7 +78,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
 
   private val updater = Updater(FpsTimer(10))
 
-  var client = ProfilerService.getInstance(layoutInspector.project)!!.profilerClient
+  private val client = TransportClient(TransportService.getInstance().channelName)
 
   private val showBordersCheckBox = object : CheckboxAction("Show borders") {
     override fun isSelected(e: AnActionEvent): Boolean {
@@ -192,7 +193,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
         .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
         .setKind(Common.Event.Kind.STREAM)
         .build()
-      val response = client.transportClient.getEventGroups(request)
+      val response = client.transportStub.getEventGroups(request)
       for (group in response.groupsList) {
         val isStreamDead = group.getEvents(group.eventsCount - 1).isEnded
         if (isStreamDead) {
@@ -214,7 +215,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
           .setStreamId(stream.streamId)
           .setKind(Common.Event.Kind.PROCESS)
           .build()
-        val processResponse = client.transportClient.getEventGroups(processRequest)
+        val processResponse = client.transportStub.getEventGroups(processRequest)
         val processList = ArrayList<Common.Process>()
         // A group is a collection of events that happened to a single process.
         for (groupProcess in processResponse.groupsList) {
@@ -255,7 +256,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
       .setStreamId(mySelectedStream!!.streamId)
       .setPid(mySelectedProcess!!.pid)
       .build()
-    val response = client.transportClient.getEventGroups(agentRequest)
+    val response = client.transportStub.getEventGroups(agentRequest)
     for (group in response.groupsList) {
       if (group.getEvents(group.eventsCount - 1).agentData.status == Common.AgentData.Status.ATTACHED) {
         myAgentConnected = true
@@ -267,7 +268,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
             .setStreamId(stream.streamId)
             .setPid(mySelectedProcess!!.pid)
             .build()
-          client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+          client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
           // TODO: verify that capture started successfully
         }
         break
@@ -281,7 +282,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
       .setFromTimestamp(myLastEventRequestTimestampNs)
       .setToTimestamp(java.lang.Long.MAX_VALUE)
       .build()
-    val eventResponse = client.transportClient.getEventGroups(eventRequest)
+    val eventResponse = client.transportStub.getEventGroups(eventRequest)
     if (eventResponse != Transport.GetEventGroupsResponse.getDefaultInstance()) {
       val events = ArrayList<Common.Event>()
       eventResponse.groupsList.forEach { group -> events.addAll(group.eventsList) }
@@ -306,7 +307,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
         .setId(evt.layoutInspectorEvent.payloadId.toString())
         .build()
 
-      val bytes = client.transportClient.getBytes(bytesRequest).contents.toByteArray()
+      val bytes = client.transportStub.getBytes(bytesRequest).contents.toByteArray()
       if (bytes.isNotEmpty()) {
         SkiaParser().getViewTree(bytes)?.let {
           layoutInspector.layoutInspectorModel.update(it)
@@ -374,7 +375,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
                   .setAttachAgent(
                     Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
                   .build()
-                client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+                client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
                 myAgentConnected = false
               }
             }
