@@ -27,19 +27,15 @@ final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<VirtualD
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  @NotNull
-  private final KeyToConnectionTimeMap myMap;
-
-  VirtualDevicesWorkerDelegate(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+  VirtualDevicesWorkerDelegate(@Nullable LaunchCompatibilityChecker checker) {
     myChecker = checker;
-    myMap = map;
   }
 
   @NotNull
   @Override
   protected Collection<VirtualDevice> doInBackground() {
     return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream()
-      .map(avdInfo -> VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(myChecker, myMap))
+      .map(avdInfo -> VirtualDevice.newDisconnectedDevice(avdInfo, myChecker))
       .collect(Collectors.toList());
   }
 }

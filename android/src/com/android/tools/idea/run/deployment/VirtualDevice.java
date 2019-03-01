@@ -63,12 +63,13 @@ final class VirtualDevice extends Device {
   private final ImmutableCollection<String> mySnapshots;
 
   @NotNull
-  static Builder newDisconnectedDeviceBuilder(@NotNull AvdInfo avdInfo) {
+  static VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avdInfo, @Nullable LaunchCompatibilityChecker checker) {
     return new Builder()
       .setName(AvdManagerConnection.getAvdDisplayName(avdInfo))
       .setKey(avdInfo.getName())
       .setAndroidDevice(new LaunchableAndroidDevice(avdInfo))
-      .setSnapshots(getSnapshots(avdInfo));
+      .setSnapshots(getSnapshots(avdInfo))
+      .build(checker, null);
   }
 
   @NotNull
@@ -132,7 +133,10 @@ final class VirtualDevice extends Device {
   }
 
   @NotNull
-  static Builder newConnectedDeviceBuilder(@NotNull VirtualDevice virtualDevice, @NotNull IDevice ddmlibDevice) {
+  static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
+                                          @NotNull IDevice ddmlibDevice,
+                                          @Nullable LaunchCompatibilityChecker checker,
+                                          @NotNull KeyToConnectionTimeMap map) {
     AvdInfo avdInfo = ((LaunchableAndroidDevice)virtualDevice.getAndroidDevice()).getAvdInfo();
 
     return new Builder()
@@ -140,7 +144,8 @@ final class VirtualDevice extends Device {
       .setKey(virtualDevice.getKey())
       .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, Collections.singletonList(avdInfo)))
       .setConnected(true)
-      .setSnapshots(virtualDevice.mySnapshots);
+      .setSnapshots(virtualDevice.mySnapshots)
+      .build(checker, map);
   }
 
   static final class Builder extends Device.Builder<Builder> {
@@ -173,12 +178,12 @@ final class VirtualDevice extends Device {
 
     @NotNull
     @Override
-    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
       return new VirtualDevice(this, checker, map);
     }
   }
 
-  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
     super(builder, checker, map);
 
     myConnected = builder.myConnected;
