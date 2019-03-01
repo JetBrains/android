@@ -68,6 +68,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD;
@@ -88,6 +90,7 @@ import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigura
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
@@ -1425,7 +1428,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name) throws IOException {
+  private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
+    throws IOException {
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1674,6 +1678,224 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     ArtifactDependencyModel secondArtifact = artifacts.get(1);
     assertNotNull(secondArtifact.name());
+  }
+
+  @Test
+  public void testSetConfigurationWhenSingle() throws Exception {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertSize(7, artifacts);
+
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("test");
+    artifacts.get(0).setConfigurationName("androidTest");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("androidTest");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("compile");
+    artifacts.get(1).setConfigurationName("zapi");
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("zapi");
+    artifacts.get(1).setConfigurationName("api"); // Try twice.
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("api");
+    artifacts.get(2).setConfigurationName("zompile");
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("zompile");
+    artifacts.get(2).setConfigurationName("compile"); // Try twice
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("compile");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testCompile");
+    artifacts.get(3).setConfigurationName("testImplementation");
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testImplementation");
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("implementation");
+    artifacts.get(4).setConfigurationName("debugImplementation");
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("debugImplementation");
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("api");
+    artifacts.get(5).setConfigurationName("implementation");
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("debug");
+    artifacts.get(6).setConfigurationName("prerelease");
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("prerelease");
+    artifacts.get(6).setConfigurationName("release");
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("release");
+
+    applyChangesAndReparse(buildModel);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertSize(7, artifacts);
+
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("a:b:1.0");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("compile");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("a:b:1.0");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testImplementation");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+    assertThat(artifacts.get(3).configuration().force().toBoolean()).isEqualTo(true);
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("debugImplementation");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("release");
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.example:artifact:2.0");
+    assertThat(artifacts.get(6).configuration().force().toBoolean()).isEqualTo(true);
+  }
+
+  @Test
+  public void testSetConfigurationWhenMultiple() throws Exception {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertSize(11, artifacts);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("test");
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("test");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("compile");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("compile");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("com.android.support:appcompat-v7:22.1.1");
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(7).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(7).compactNotation()).isEqualTo("com.example.libs:lib1:2.0");
+
+    assertThat(artifacts.get(8).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(8).compactNotation()).isEqualTo("com.example.libs:lib2:1.0");
+
+    assertThat(artifacts.get(9).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(9).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
+
+    assertThat(artifacts.get(10).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib4:1.0");
+
+    {
+      artifacts.get(1).setConfigurationName("androidTest");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(0).configurationName()).isEqualTo("androidTest");
+      assertThat(updatedArtifacts.get(0).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+      assertThat(updatedArtifacts.get(1).configurationName()).isEqualTo("test");
+      assertThat(updatedArtifacts.get(1).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+    }
+
+    {
+      // Rename both elements of the same group and rename some of them twice.
+      artifacts.get(2).setConfigurationName("zapi");
+      artifacts.get(2).setConfigurationName("api");
+      artifacts.get(3).setConfigurationName("zimplementation");
+      artifacts.get(3).setConfigurationName("implementation");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(2).configurationName()).isEqualTo("api");
+      assertThat(updatedArtifacts.get(2).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+      assertThat(updatedArtifacts.get(3).configurationName()).isEqualTo("implementation");
+      assertThat(updatedArtifacts.get(3).compactNotation()).isEqualTo("com.android.support:appcompat-v7:22.1.1");
+    }
+
+    {
+      artifacts.get(6).setConfigurationName("zapi");
+      artifacts.get(6).setConfigurationName("api");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(4).configurationName()).isEqualTo("api");
+      assertThat(updatedArtifacts.get(4).compactNotation()).isEqualTo("org.example:artifact:2.0");
+      assertThat(updatedArtifacts.get(4).version().getUnresolvedModel().getValueType()).isEqualTo(REFERENCE);
+
+      assertThat(updatedArtifacts.get(5).configurationName()).isEqualTo("implementation");
+      assertThat(updatedArtifacts.get(5).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+      assertThat(updatedArtifacts.get(6).configurationName()).isEqualTo("implementation");
+      assertThat(updatedArtifacts.get(6).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+    }
+
+    {
+      try {
+        // Try an unsupported case.
+        artifacts.get(7).setConfigurationName("debugImplementation1");
+        fail();
+      }
+      catch (UnsupportedOperationException e) {
+      }
+    }
+    {
+      artifacts.get(10).setConfigurationName("debugApi1");
+      artifacts.get(10).setConfigurationName("debugApi");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(9).configurationName()).isEqualTo("debugApi");
+      assertThat(updatedArtifacts.get(9).compactNotation()).isEqualTo("com.example.libs:lib4:1.0");
+
+      assertThat(updatedArtifacts.get(10).configurationName()).isEqualTo("api");
+      assertThat(updatedArtifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
+    }
+
+    applyChangesAndReparse(buildModel);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertSize(11, artifacts);
+
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("test");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("com.android.support:appcompat-v7:22.1.1");
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("org.example:artifact:2.0");
+    assertThat(artifacts.get(4).version().getUnresolvedModel().getValueType()).isEqualTo(REFERENCE);
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+
+    assertThat(artifacts.get(7).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(7).compactNotation()).isEqualTo("com.example.libs:lib1:2.0");
+
+    assertThat(artifacts.get(8).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(8).compactNotation()).isEqualTo("com.example.libs:lib2:1.0");
+
+    assertThat(artifacts.get(9).configurationName()).isEqualTo("debugApi");
+    assertThat(artifacts.get(9).compactNotation()).isEqualTo("com.example.libs:lib4:1.0");
+
+    assertThat(artifacts.get(10).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

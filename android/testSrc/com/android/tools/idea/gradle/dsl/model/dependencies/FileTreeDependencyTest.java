@@ -28,12 +28,15 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENC
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_FILE_TREE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_ONLY_POSSIBLE_IN_MAP_FORM;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_FROM_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_DIR_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_INCLUDES_IN_METHOD_CALL_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_TREE_DEPENDENCY_SET_REFERENCE_DIR_IN_METHOD_CALL_NOTATION;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
@@ -162,6 +165,139 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     dependency = dependencies.get(0);
     assertEquals("jars", dependency.dir().toString());
+  }
+
+  @Test
+  public void testSetConfigurationWhenSingle() throws Exception {
+    writeToBuildFile(FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> fileTrees = buildModel.dependencies().fileTrees();
+    assertSize(4, fileTrees);
+
+    assertThat(fileTrees.get(0).configurationName()).isEqualTo("test");
+    fileTrees.get(0).setConfigurationName("androidTest");
+    assertThat(fileTrees.get(0).configurationName()).isEqualTo("androidTest");
+
+    assertThat(fileTrees.get(1).configurationName()).isEqualTo("compile");
+    fileTrees.get(1).setConfigurationName("zapi");
+    assertThat(fileTrees.get(1).configurationName()).isEqualTo("zapi");
+    fileTrees.get(1).setConfigurationName("api"); // Try twice.
+    assertThat(fileTrees.get(1).configurationName()).isEqualTo("api");
+
+    assertThat(fileTrees.get(2).configurationName()).isEqualTo("api");
+    fileTrees.get(2).setConfigurationName("zompile");
+    assertThat(fileTrees.get(2).configurationName()).isEqualTo("zompile");
+    fileTrees.get(2).setConfigurationName("compile"); // Try twice
+    assertThat(fileTrees.get(2).configurationName()).isEqualTo("compile");
+
+    assertThat(fileTrees.get(3).configurationName()).isEqualTo("testCompile");
+    fileTrees.get(3).setConfigurationName("testImplementation");
+    assertThat(fileTrees.get(3).configurationName()).isEqualTo("testImplementation");
+    assertThat(fileTrees.get(3).includes().toString()).isEqualTo("[*.jar]");
+    assertThat(fileTrees.get(3).includes().getValueType()).isEqualTo(GradlePropertyModel.ValueType.LIST);
+
+    applyChangesAndReparse(buildModel);
+
+    fileTrees = buildModel.dependencies().fileTrees();
+
+    assertSize(4, fileTrees);
+    assertThat(fileTrees.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(fileTrees.get(0).dir().toString()).isEqualTo("libs");
+
+    assertThat(fileTrees.get(1).configurationName()).isEqualTo("api");
+    assertThat(fileTrees.get(1).dir().toString()).isEqualTo("xyz");
+
+    assertThat(fileTrees.get(2).configurationName()).isEqualTo("compile");
+    assertThat(fileTrees.get(2).dir().toString()).isEqualTo("klm");
+
+    assertThat(fileTrees.get(3).configurationName()).isEqualTo("testImplementation");
+    assertThat(fileTrees.get(3).dir().toString()).isEqualTo("a");
+    assertThat(fileTrees.get(3).includes().toString()).isEqualTo("[*.jar]");
+    assertThat(fileTrees.get(3).includes().getValueType()).isEqualTo(GradlePropertyModel.ValueType.LIST);
+  }
+
+  @Test
+  public void testSetConfigurationWhenMultiple() throws Exception {
+    writeToBuildFile(FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> fileTrees = buildModel.dependencies().fileTrees();
+    assertSize(5, fileTrees);
+    assertThat(fileTrees.get(0).configurationName()).isEqualTo("testCompile");
+    assertThat(fileTrees.get(0).dir().toString()).isEqualTo("abc");
+
+    assertThat(fileTrees.get(1).configurationName()).isEqualTo("testCompile");
+    assertThat(fileTrees.get(1).dir().toString()).isEqualTo("xyz");
+    assertThat(fileTrees.get(1).includes().toString()).isEqualTo("*.jar");
+
+    assertThat(fileTrees.get(2).configurationName()).isEqualTo("compile");
+    assertThat(fileTrees.get(2).dir().toString()).isEqualTo("klm");
+
+    assertThat(fileTrees.get(3).configurationName()).isEqualTo("compile");
+    assertThat(fileTrees.get(3).dir().toString()).isEqualTo("libs");
+
+    assertThat(fileTrees.get(4).configurationName()).isEqualTo("compile");
+    assertThat(fileTrees.get(4).dir().toString()).isEqualTo("pqr");
+    assertThat(fileTrees.get(4).excludes().toString()).isEqualTo("[*.aar, *.tmp]");
+    assertThat(fileTrees.get(4).excludes().getValueType()).isEqualTo(GradlePropertyModel.ValueType.LIST);
+
+    {
+      fileTrees.get(0).setConfigurationName("androidTest");
+      List<FileTreeDependencyModel> updatedFileTrees = buildModel.dependencies().fileTrees();
+      assertSize(5, updatedFileTrees);
+
+      assertThat(updatedFileTrees.get(0).configurationName()).isEqualTo("androidTest");
+      assertThat(updatedFileTrees.get(0).dir().toString()).isEqualTo("abc");
+
+      assertThat(updatedFileTrees.get(1).configurationName()).isEqualTo("testCompile");
+      assertThat(updatedFileTrees.get(1).dir().toString()).isEqualTo("xyz");
+      assertThat(fileTrees.get(1).includes().toString()).isEqualTo("*.jar");
+    }
+
+    {
+      // Rename both elements of the same group and rename some of them twice.
+      fileTrees.get(2).setConfigurationName("zapi");
+      fileTrees.get(2).setConfigurationName("api");
+      fileTrees.get(4).setConfigurationName("zimplementation");
+      fileTrees.get(4).setConfigurationName("implementation");
+      List<FileTreeDependencyModel> updatedFileTrees = buildModel.dependencies().fileTrees();
+      assertSize(5, updatedFileTrees);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedFileTrees.get(2).configurationName()).isEqualTo("api");
+      assertThat(updatedFileTrees.get(2).dir().toString()).isEqualTo("klm");
+
+      assertThat(updatedFileTrees.get(3).configurationName()).isEqualTo("implementation");
+      assertThat(updatedFileTrees.get(3).dir().toString()).isEqualTo("pqr");
+      assertThat(updatedFileTrees.get(3).excludes().toString()).isEqualTo("[*.aar, *.tmp]");
+      assertThat(updatedFileTrees.get(3).excludes().getValueType()).isEqualTo(GradlePropertyModel.ValueType.LIST);
+
+      assertThat(updatedFileTrees.get(4).configurationName()).isEqualTo("compile");
+      assertThat(updatedFileTrees.get(4).dir().toString()).isEqualTo("libs");
+    }
+
+    applyChangesAndReparse(buildModel);
+
+    fileTrees = buildModel.dependencies().fileTrees();
+    assertSize(5, fileTrees);
+
+    assertThat(fileTrees.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(fileTrees.get(0).dir().toString()).isEqualTo("abc");
+
+    assertThat(fileTrees.get(1).configurationName()).isEqualTo("testCompile");
+    assertThat(fileTrees.get(1).dir().toString()).isEqualTo("xyz");
+    assertThat(fileTrees.get(1).includes().toString()).isEqualTo("*.jar");
+
+    assertThat(fileTrees.get(2).configurationName()).isEqualTo("api");
+    assertThat(fileTrees.get(2).dir().toString()).isEqualTo("klm");
+
+    assertThat(fileTrees.get(3).configurationName()).isEqualTo("implementation");
+    assertThat(fileTrees.get(3).dir().toString()).isEqualTo("pqr");
+    assertThat(fileTrees.get(3).excludes().toString()).isEqualTo("[*.aar, *.tmp]");
+    assertThat(fileTrees.get(3).excludes().getValueType()).isEqualTo(GradlePropertyModel.ValueType.LIST);
+
+    assertThat(fileTrees.get(4).configurationName()).isEqualTo("compile");
+    assertThat(fileTrees.get(4).dir().toString()).isEqualTo("libs");
   }
 
   @Test
