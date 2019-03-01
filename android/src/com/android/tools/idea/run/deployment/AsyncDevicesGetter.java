@@ -81,7 +81,7 @@ class AsyncDevicesGetter {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
 
     Collection<VirtualDevice> virtualDevices = myVirtualDevicesWorker.get(
-      () -> new VirtualDevicesWorkerDelegate(myChecker, myMap),
+      () -> new VirtualDevicesWorkerDelegate(myChecker),
       Collections.emptyList());
 
     Collection<IDevice> connectedDevices = new ArrayList<>(myConnectedDevicesWorker.get(
@@ -95,7 +95,7 @@ class AsyncDevicesGetter {
       .forEach(devices::add);
 
     connectedDevices.stream()
-      .map(device -> PhysicalDevice.newBuilder(myDevicePropertiesFetcher.get(device), device).build(myChecker, myMap))
+      .map(device -> PhysicalDevice.newDevice(myDevicePropertiesFetcher.get(device), device, myChecker, myMap))
       .forEach(devices::add);
 
     Collection<String> keys = devices.stream()
@@ -157,7 +157,7 @@ class AsyncDevicesGetter {
 
       if (Objects.equals(device.getAvdName(), key)) {
         i.remove();
-        return VirtualDevice.newConnectedDeviceBuilder(virtualDevice, device).build(myChecker, myMap);
+        return VirtualDevice.newConnectedDevice(virtualDevice, device, myChecker, myMap);
       }
     }
 
