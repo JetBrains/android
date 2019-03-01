@@ -41,7 +41,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
   private lateinit var facets: MutableList<AndroidFacet>
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(LightPlatformTestCase.getProject())
+    ideComponents = IdeComponents(LightPlatformTestCase.getProject(), testRootDisposable)
     facets = ArrayList()
   }
 
