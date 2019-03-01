@@ -106,6 +106,7 @@ public class RenderTask {
    * {@link IImageFactory} that returns a new image exactly of the requested size. It does not do caching or resizing.
    */
   private static final IImageFactory SIMPLE_IMAGE_FACTORY = new IImageFactory() {
+    @NotNull
     @Override
     public BufferedImage getImage(int width, int height) {
       @SuppressWarnings("UndesirableClassUsage")
@@ -665,14 +666,10 @@ public class RenderTask {
 
     try {
       return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
-        if (xmlFile.getProject().isDisposed()) {
-          return null;
-        }
         if (myImageFactoryDelegate != null) {
           return myImageFactoryDelegate.getImage(width, height);
         }
 
-        //noinspection UndesirableClassUsage
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       }));
     }
