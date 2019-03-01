@@ -499,7 +499,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * @return true if import was successful, or false otherwise.
    */
   public boolean importSessionFromFile(@NotNull File file) {
-    int indexOfDot = file.getName().indexOf('.');
+    int indexOfDot = file.getName().lastIndexOf('.');
     if (indexOfDot == -1) {
       return false;
     }
