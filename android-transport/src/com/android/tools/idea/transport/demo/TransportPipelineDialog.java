@@ -87,7 +87,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     setTitle(TITLE);
     setModal(false);
 
-    myClient = TransportService.getInstance().getClient();
+    myClient = new TransportClient(TransportService.getInstance().getChannelName());
     myUpdater = new Updater(new FpsTimer(1));
     myUpdater.register(this);
 
