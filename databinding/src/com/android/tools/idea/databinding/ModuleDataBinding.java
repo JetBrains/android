@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
+import com.android.tools.idea.databinding.psiclass.LightBrClass;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
@@ -90,7 +93,7 @@ public class ModuleDataBinding {
    * @param lightBrClass
    * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
    */
-  void setLightBrClass(@NotNull LightBrClass lightBrClass) {
+  public void setLightBrClass(@NotNull LightBrClass lightBrClass) {
     myLightBrClass = lightBrClass;
   }
 
@@ -101,7 +104,7 @@ public class ModuleDataBinding {
    * @see DataBindingClassFactory#getOrCreateBrClassFor(AndroidFacet)
    */
   @Nullable
-  LightBrClass getLightBrClass() {
+  public LightBrClass getLightBrClass() {
     return myLightBrClass;
   }
 }

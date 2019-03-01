@@ -102,7 +102,7 @@ public final class DataBindingUtil {
    * {@code null} instead of throwing an exception if the result is a reference to an invalid type.
    */
   @Nullable
-  static PsiType parsePsiType(@NotNull String typeStr, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
+  public static PsiType parsePsiType(@NotNull String typeStr, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
     PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
     try {
       PsiType type = instance.createTypeFromText(typeStr, context);

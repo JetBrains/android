@@ -47,7 +47,7 @@ public final class BrUtil {
    * as {@code @{viewModel.data}}, because "getData" can be referenced as "data".
    */
   @NotNull
-  static Set<String> collectIds(@NotNull Collection<? extends PsiModifierListOwner> psiElements) {
+  public static Set<String> collectIds(@NotNull Collection<? extends PsiModifierListOwner> psiElements) {
     Set<String> properties = new HashSet<>();
     for (PsiModifierListOwner owner : psiElements) {
       String key = null;

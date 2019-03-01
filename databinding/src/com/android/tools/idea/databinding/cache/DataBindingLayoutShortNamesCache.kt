@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.cache
 
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService
+import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.res.DataBindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.psi.PsiClass
@@ -194,7 +197,7 @@ class DataBindingLayoutShortNamesCache(private val component: DataBindingProject
   private class LayoutInfoCacheProvider(component: DataBindingProjectComponent)
     : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingLayoutInfo>(component) {
 
-    internal override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>> {
+    override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>> {
       return DelegateLayoutInfoCacheProvider(facet)
     }
   }
@@ -202,7 +205,7 @@ class DataBindingLayoutShortNamesCache(private val component: DataBindingProject
   private class DelegateLayoutInfoCacheProvider(facet: AndroidFacet)
     : ResourceCacheValueProvider<Map<String, List<DataBindingLayoutInfo>>>(facet, null) {
 
-    internal override fun doCompute(): Map<String, List<DataBindingLayoutInfo>> {
+    override fun doCompute(): Map<String, List<DataBindingLayoutInfo>> {
       val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
       val resourceFiles = moduleResources.dataBindingResourceFiles ?: return defaultValue()
       // Convert "List<Info>" to a map of "Info.className to List<Info>"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding.cache;
 
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.ModificationTracker;
@@ -100,7 +101,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
     return cachedValue;
   }
 
-  abstract ResourceCacheValueProvider<V> createCacheProvider(AndroidFacet facet);
+  abstract protected ResourceCacheValueProvider<V> createCacheProvider(AndroidFacet facet);
 
   abstract public static class MergedMapValueProvider<A, B> extends ProjectResourceCachedValueProvider<Map<A, List<B>>, Map<A, List<B>>> {
 

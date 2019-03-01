@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding.finders;
 
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
+import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -64,10 +68,10 @@ public class DataBindingPackageFinder extends PsiElementFinder {
         }
 
         @Override
-        ResourceCacheValueProvider<Set<String>> createCacheProvider(AndroidFacet facet) {
+        protected ResourceCacheValueProvider<Set<String>> createCacheProvider(AndroidFacet facet) {
           return new ResourceCacheValueProvider<Set<String>>(facet, null) {
             @Override
-            Set<String> doCompute() {
+            protected Set<String> doCompute() {
               LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(getFacet());
               Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
               if (dataBindingResourceFiles == null) {
@@ -81,7 +85,7 @@ public class DataBindingPackageFinder extends PsiElementFinder {
             }
 
             @Override
-            Set<String> defaultValue() {
+            protected Set<String> defaultValue() {
               return Collections.emptySet();
             }
           };
