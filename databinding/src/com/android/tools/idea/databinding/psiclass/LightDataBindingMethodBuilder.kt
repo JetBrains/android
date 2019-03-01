@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.psiclass
 
 import com.intellij.lang.Language
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiModifierList
-import com.intellij.psi.PsiParameterList
-import com.intellij.psi.PsiReferenceList
-import com.intellij.psi.PsiTypeParameterList
 import com.intellij.psi.impl.light.LightMethodBuilder
-import com.intellij.psi.impl.source.javadoc.PsiDocCommentImpl
-import com.intellij.psi.javadoc.PsiDocComment
 
 /**
  * A LightMethodBuilder that supports deprecation.
@@ -46,8 +39,8 @@ class LightDataBindingMethodBuilder(
   }
 
   override fun equals(other: Any?): Boolean {
-    return  super.equals(other) &&
-            (other as? LightDataBindingMethodBuilder)?.deprecated == deprecated
+    return super.equals(other) &&
+           (other as? LightDataBindingMethodBuilder)?.deprecated == deprecated
   }
 
   override fun hashCode(): Int {

@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.ide.common.blame.Message;
+import com.android.tools.idea.databinding.renamer.DataBindingRenamer;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
@@ -105,7 +106,7 @@ public class DataBindingRenameTest {
   /**
    * Checks renaming of a resource IDs when a Java field generated from that resource by Data Binding is renamed.
    *
-   * @see com.android.tools.idea.databinding.DataBindingRenamer
+   * @see DataBindingRenamer
    */
   @Test
   @RunsInEdt
