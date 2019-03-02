@@ -47,8 +47,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The light class that represents the generated data binding code for a layout file or a list of layout files from different
- * configurations.
+ * In-memory PSI for classes generated from a layout file (or a list of related layout files from
+ * different configurations)
+ *
+ * See also: https://developer.android.com/topic/libraries/data-binding/expressions#binding_data
  */
 public class LightBindingClass extends AndroidLightClassBase {
   private static final int STATIC_METHOD_COUNT = 6;
@@ -333,7 +335,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     PsiClassType viewType =
         PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, module.getModuleWithDependenciesAndLibrariesScope(true));
 
-    LightDataBindingMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
+    DeprecatableLightMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
     inflate4Arg.addParameter("inflater", layoutInflaterType);
     inflate4Arg.addParameter("root", viewGroupType);
     inflate4Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
@@ -346,7 +348,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     inflate3Arg.addParameter("root", viewGroupType);
     inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-    LightDataBindingMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
+    DeprecatableLightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
     inflate2Arg.addParameter("inflater", layoutInflaterType);
     inflate2Arg.addParameter("bindingComponent", dataBindingComponent);
     // methods receiving DataBindingComponent are deprecated. see: b/116541301
@@ -358,7 +360,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
     bind.addParameter("view", viewType);
 
-    LightDataBindingMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
+    DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
     bindWithComponent.addParameter("view", viewType);
     bindWithComponent.addParameter("bindingComponent", dataBindingComponent);
     // methods receiving DataBindingComponent are deprecated. see: b/116541301
@@ -372,15 +374,15 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private LightDataBindingMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
-    LightDataBindingMethodBuilder method = createPublicMethod(name, returnType);
+  private DeprecatableLightMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
+    DeprecatableLightMethodBuilder method = createPublicMethod(name, returnType);
     method.addModifier("static");
     return method;
   }
 
   @NotNull
-  private LightDataBindingMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
-    LightDataBindingMethodBuilder method = new LightDataBindingMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
+  private DeprecatableLightMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
+    DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
     method.setContainingClass(this);
     method.setMethodReturnType(returnType);
     method.addModifier("public");

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.databinding.finders;
 
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
+import com.android.tools.idea.databinding.psiclass.LightBindingClass;
 import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -26,18 +27,22 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 /**
- * PsiElementFinder extensions that finds classes generated for layout files.
+ * Finder for classes generated from data binding layout xml files.
+ *
+ * For example, for a module with an "activity_main.xml" file in it that uses data binding, this
+ * class would find the generated "ActivityMainBinding" class.
+ *
+ * See {@link LightBindingClass}
  */
-public class DataBindingLayoutClassFinder extends PsiElementFinder {
+public class LayoutBindingClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
-  public DataBindingLayoutClassFinder(DataBindingProjectComponent component) {
+  public LayoutBindingClassFinder(DataBindingProjectComponent component) {
     myComponent = component;
   }
 

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.databinding.cache
 
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService
 import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
@@ -33,6 +34,11 @@ import com.intellij.util.containers.HashSet
 
 private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
 
+/**
+ * Cache that stores the BR instances associated with each module.
+ *
+ * See [LightBrClass]
+ */
 class BrShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
   private val allFieldNamesCache: CachedValue<Array<String>>
 
