@@ -27,6 +27,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 
 abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_TYPE.defaultExtension, RoomSqlParserDefinition()) {
+  override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
+
   override fun setUp() {
     super.setUp()
     // b/110189571: ParsingTestCase puts in place a new root area and registers just a few extension points in it. Our parser implementation
