@@ -758,6 +758,27 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "ImportSampleProjectTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.ImportSampleProjectTest"],
+    tags = [
+        "cpu:3",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_unreliable",  # b/76023451
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 config_setting(
     name = "has_emulator",
     define_values = {
