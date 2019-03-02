@@ -135,7 +135,7 @@ class SyncResultHandler {
       ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
       projectSetup.setUpProject(models, indicator);
       projectSetup.commit();
-      SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
+      SyncIssuesReporter.getInstance().report(myProject);
       scheduleExternalViewStructureUpdate(myProject, SYSTEM_ID);
 
       if (syncListener != null) {
@@ -162,7 +162,7 @@ class SyncResultHandler {
     ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
     projectSetup.setUpProject(projectModelsCache, indicator);
     projectSetup.commit();
-    SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
+    SyncIssuesReporter.getInstance().report(myProject);
 
     if (syncListener != null) {
       syncListener.syncSkipped(myProject);
@@ -236,7 +236,7 @@ class SyncResultHandler {
         ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
         projectSetup.setUpProject(models, indicator);
         projectSetup.commit();
-        SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
+        SyncIssuesReporter.getInstance().report(myProject);
 
         if (syncListener != null) {
           syncListener.syncSucceeded(myProject);
