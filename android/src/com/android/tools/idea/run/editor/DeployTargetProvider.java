@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
@@ -77,7 +77,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
     return false;
   }
 
-  public boolean isApplicable(boolean isTestConfig) {
+  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
     return true;
   }
 
