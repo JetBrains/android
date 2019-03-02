@@ -18,7 +18,11 @@ package com.android.tools.idea.run.editor;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerUtils;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.EmulatorTargetChooser;
+import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.run.ValidationError;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -28,12 +32,11 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetProvider.State> {
   public static final class State extends DeployTargetState {
@@ -83,6 +86,11 @@ public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetP
   @Override
   public State createState() {
     return new State();
+  }
+
+  @Override
+  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+    return !deviceSnapshotComboBoxVisible;
   }
 
   @Override

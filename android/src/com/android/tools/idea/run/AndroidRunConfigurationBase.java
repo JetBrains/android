@@ -189,15 +189,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public List<DeployTargetProvider> getApplicableDeployTargetProviders() {
-    List<DeployTargetProvider> targets = Lists.newArrayList();
-
-    for (DeployTargetProvider target : getDeployTargetContext().getDeployTargetProviders()) {
-      if (target.isApplicable(myAndroidTests)) {
-        targets.add(target);
-      }
-    }
-
-    return targets;
+    return getDeployTargetContext().getApplicableDeployTargetProviders(myAndroidTests);
   }
 
   protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {

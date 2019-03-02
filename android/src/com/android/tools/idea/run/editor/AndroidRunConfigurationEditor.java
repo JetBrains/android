@@ -91,12 +91,17 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     };
     myModulesComboBox.addActionListener(this);
 
-    if (StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      myDeploymentTargetOptions = null;
-    }
-    else {
-      myDeploymentTargetOptions = new DeploymentTargetOptions(config, this, project);
-      myDeploymentTargetOptions.addTo((Container)myTabbedPane.getComponentAt(0));
+    List<DeployTargetProvider> providers = config.getApplicableDeployTargetProviders();
+
+    switch (providers.size()) {
+      case 0:
+      case 1:
+        myDeploymentTargetOptions = null;
+        break;
+      default:
+        myDeploymentTargetOptions = new DeploymentTargetOptions(providers, this, project);
+        myDeploymentTargetOptions.addTo((Container)myTabbedPane.getComponentAt(0));
+        break;
     }
 
     if (config instanceof AndroidTestRunConfiguration) {
