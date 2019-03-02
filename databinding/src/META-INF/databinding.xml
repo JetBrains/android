@@ -16,11 +16,11 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BrShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.DataBindingLayoutShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.DataBindingComponentShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.LayoutBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BindingComponentShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingLayoutClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <applicationConfigurable groupId="editor" id="android.databinding"
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
