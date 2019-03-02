@@ -55,7 +55,9 @@ import org.jetbrains.android.facet.AndroidFacet
 private const val ALL_FIELD = "_all"
 
 /**
- * The light class that represents a data binding BR file
+ * In-memory PSI that represents a data binding BR file.
+ *
+ * See also: https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
  */
 class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
   AndroidLightClassBase(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL)) {

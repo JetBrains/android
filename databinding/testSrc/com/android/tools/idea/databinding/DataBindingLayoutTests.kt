@@ -103,12 +103,12 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     """.trimIndent())
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
-    // DataBindingLayoutShortNamesCache class.
+    // LayoutBindingShortNamesCache class.
     ResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
     val projectScope = projectRule.project.projectScope()
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
-    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingLayoutShortNamesCache
+    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by LayoutBindingShortNamesCache
 
     assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("FirstLayoutBinding", "SecondLayoutBinding"))
     assertThat(cache.getClassesByName("FirstLayoutBinding", projectScope).toList().map { it.name }).contains("FirstLayoutBinding")

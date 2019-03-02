@@ -24,7 +24,7 @@ import com.intellij.psi.impl.light.LightMethodBuilder
  *
  * TODO(b/119872892): Investigate upstreaming fixes to LightMethodBuilder so we don't need this class.
  */
-class LightDataBindingMethodBuilder(
+class DeprecatableLightMethodBuilder(
   manager: PsiManager,
   language: Language,
   name: String
@@ -40,7 +40,7 @@ class LightDataBindingMethodBuilder(
 
   override fun equals(other: Any?): Boolean {
     return super.equals(other) &&
-           (other as? LightDataBindingMethodBuilder)?.deprecated == deprecated
+           (other as? DeprecatableLightMethodBuilder)?.deprecated == deprecated
   }
 
   override fun hashCode(): Int {
