@@ -37,7 +37,7 @@ public class SyncIssueDataService extends AbstractProjectDataService<SyncIssuesM
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
-    SyncIssuesReporter.getInstance().report(Lists.newArrayList(modelsProvider.getModules()));
+    SyncIssuesReporter.getInstance().report(project);
   }
 
   @NotNull
