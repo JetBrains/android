@@ -19,27 +19,90 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
 public final class DeployTargetContextTest {
-  @Rule
-  public final TestRule myRule = AndroidProjectRule.inMemory();
+  private DeployTargetProvider myDeviceAndSnapshotComboBoxTargetProvider;
+  private DeployTargetProvider myShowChooserTargetProvider;
+  private DeployTargetProvider myEmulatorTargetProvider;
+  private DeployTargetProvider myUsbDeviceTargetProvider;
+  private DeployTargetProvider myCloudTestMatrixTargetProvider;
 
   private List<DeployTargetProvider> myProviders;
 
   @Before
   public void initProviders() {
-    myProviders = Arrays.asList(DeployTargetProvider.EP_NAME.getExtensions());
+    myDeviceAndSnapshotComboBoxTargetProvider = new DeviceAndSnapshotComboBoxTargetProvider();
+    myShowChooserTargetProvider = new ShowChooserTargetProvider();
+    myEmulatorTargetProvider = new EmulatorTargetProvider();
+    myUsbDeviceTargetProvider = new UsbDeviceTargetProvider();
+    myCloudTestMatrixTargetProvider = new CloudTestMatrixTargetProvider();
+
+    myProviders = Arrays.asList(
+      myDeviceAndSnapshotComboBoxTargetProvider,
+      myShowChooserTargetProvider,
+      myEmulatorTargetProvider,
+      myUsbDeviceTargetProvider,
+      myCloudTestMatrixTargetProvider,
+      new CloudDebuggingTargetProvider());
+  }
+
+  @Test
+  public void getApplicableDeployTargetProvidersVisibleComboBoxAppConfiguration() {
+    // Arrange
+    DeployTargetContext context = new DeployTargetContext(() -> true, myProviders);
+
+    // Act
+    Object actualProviders = context.getApplicableDeployTargetProviders(false);
+
+    // Assert
+    assertEquals(Collections.singletonList(myDeviceAndSnapshotComboBoxTargetProvider), actualProviders);
+  }
+
+  @Test
+  public void getApplicableDeployTargetProvidersVisibleComboBoxTestConfiguration() {
+    // Arrange
+    DeployTargetContext context = new DeployTargetContext(() -> true, myProviders);
+
+    // Act
+    Object actualProviders = context.getApplicableDeployTargetProviders(true);
+
+    // Assert
+    assertEquals(Arrays.asList(myDeviceAndSnapshotComboBoxTargetProvider, myCloudTestMatrixTargetProvider), actualProviders);
+  }
+
+  @Test
+  public void getApplicableDeployTargetProvidersInvisibleComboBoxAppConfiguration() {
+    // Arrange
+    DeployTargetContext context = new DeployTargetContext(() -> false, myProviders);
+
+    // Act
+    Object actualProviders = context.getApplicableDeployTargetProviders(false);
+
+    // Assert
+    assertEquals(Arrays.asList(myShowChooserTargetProvider, myEmulatorTargetProvider, myUsbDeviceTargetProvider), actualProviders);
+  }
+
+  @Test
+  public void getApplicableDeployTargetProvidersInvisibleComboBoxTestConfiguration() {
+    // Arrange
+    DeployTargetContext context = new DeployTargetContext(() -> false, myProviders);
+
+    // Act
+    Object actualProviders = context.getApplicableDeployTargetProviders(true);
+
+    // Assert
+    Object expectedProviders = Arrays.asList(
+      myShowChooserTargetProvider,
+      myEmulatorTargetProvider,
+      myUsbDeviceTargetProvider,
+      myCloudTestMatrixTargetProvider);
+
+    assertEquals(expectedProviders, actualProviders);
   }
 
   @Test
@@ -48,17 +111,12 @@ public final class DeployTargetContextTest {
 
     Object provider = context.getCurrentDeployTargetProvider();
 
-    assertEquals(DeployTargetProvider.EP_NAME.findExtension(DeviceAndSnapshotComboBoxTargetProvider.class), provider);
+    assertEquals(myDeviceAndSnapshotComboBoxTargetProvider, provider);
   }
 
   @Test
   public void getCurrentDeployTargetProviderTargetSelectionModeEqualsFirebaseDeviceMatrix() {
     // Arrange
-    DeployTargetProvider expectedProvider = new CloudTestMatrixTargetProvider();
-
-    myProviders = new ArrayList<>(myProviders);
-    myProviders.add(expectedProvider);
-
     DeployTargetContext context = new DeployTargetContext(() -> true, myProviders);
     context.setTargetSelectionMode(TargetSelectionMode.FIREBASE_DEVICE_MATRIX);
 
@@ -66,44 +124,7 @@ public final class DeployTargetContextTest {
     Object actualProvider = context.getCurrentDeployTargetProvider();
 
     // Assert
-    assertEquals(expectedProvider, actualProvider);
-  }
-
-  private static final class CloudTestMatrixTargetProvider extends DeployTargetProvider {
-    @NotNull
-    @Override
-    public String getId() {
-      return TargetSelectionMode.FIREBASE_DEVICE_MATRIX.name();
-    }
-
-    @NotNull
-    @Override
-    public String getDisplayName() {
-      throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    @Override
-    public DeployTargetState createState() {
-      return new State();
-    }
-
-    private static final class State extends DeployTargetState {
-    }
-
-    @NotNull
-    @Override
-    public DeployTargetConfigurable createConfigurable(@NotNull Project project,
-                                                       @NotNull Disposable parent,
-                                                       @NotNull DeployTargetConfigurableContext context) {
-      throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    @Override
-    public DeployTarget getDeployTarget() {
-      throw new UnsupportedOperationException();
-    }
+    assertEquals(myCloudTestMatrixTargetProvider, actualProvider);
   }
 
   @Test
@@ -113,7 +134,7 @@ public final class DeployTargetContextTest {
 
     Object provider = context.getCurrentDeployTargetProvider();
 
-    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
+    assertEquals(myShowChooserTargetProvider, provider);
   }
 
   @Test
@@ -122,7 +143,7 @@ public final class DeployTargetContextTest {
 
     Object provider = context.getCurrentDeployTargetProvider();
 
-    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
+    assertEquals(myShowChooserTargetProvider, provider);
   }
 
   @Test
@@ -132,6 +153,6 @@ public final class DeployTargetContextTest {
 
     Object provider = context.getCurrentDeployTargetProvider();
 
-    assertEquals(DeployTargetProvider.EP_NAME.findExtension(ShowChooserTargetProvider.class), provider);
+    assertEquals(myShowChooserTargetProvider, provider);
   }
 }

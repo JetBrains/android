@@ -39,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
   private boolean myProvidingMultipleTargets;
 
-  private DeviceAndSnapshotComboBoxTargetProvider() {
+  @VisibleForTesting
+  public DeviceAndSnapshotComboBoxTargetProvider() {
   }
 
   @NotNull
@@ -62,6 +63,11 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @VisibleForTesting
   static final class State extends DeployTargetState {
+  }
+
+  @Override
+  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+    return deviceSnapshotComboBoxVisible;
   }
 
   @NotNull
