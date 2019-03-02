@@ -44,10 +44,10 @@ final class DeploymentTargetOptions {
   private final JComboBox<DeployTargetProvider> myTargetComboBox;
   private final CardLayoutPanel<Configurable, Configurable, JComponent> myCardLayoutPanel;
 
-  DeploymentTargetOptions(@NotNull AndroidRunConfigurationBase configuration,
+  DeploymentTargetOptions(@NotNull List<DeployTargetProvider> providers,
                           @NotNull AndroidRunConfigurationEditor editor,
                           @NotNull Project project) {
-    myProviders = configuration.getApplicableDeployTargetProviders();
+    myProviders = providers;
     myIdToConfigurableMap = newIdToConfigurableMap(editor, project);
 
     mySeparator = new TitledSeparator("Deployment Target Options");

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,8 +56,12 @@ public class DeployTargetContext implements JDOMExternalizable {
   }
 
   @NotNull
-  public List<DeployTargetProvider> getDeployTargetProviders() {
-    return myDeployTargetProviders;
+  public List<DeployTargetProvider> getApplicableDeployTargetProviders(boolean testConfiguration) {
+    boolean deviceSnapshotComboBoxVisible = mySelectDeviceSnapshotComboBoxVisible.get();
+
+    return myDeployTargetProviders.stream()
+      .filter(provider -> provider.isApplicable(testConfiguration, deviceSnapshotComboBoxVisible))
+      .collect(Collectors.toList());
   }
 
   @NotNull
