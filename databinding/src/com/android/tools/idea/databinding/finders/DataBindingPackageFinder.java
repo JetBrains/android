@@ -40,8 +40,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This element finder has minimum priority and only finds packages that are missing in the app.
- * See {@link DataBindingLayoutClassFinder}, {@link DataBindingComponentClassFinder} and {@link BrClassFinder} for actual classes.
+ * A finder responsible for finding data binding packages missing in the app.
+ *
+ * See {@link LayoutBindingClassFinder}, {@link BindingComponentClassFinder} and
+ * {@link BrClassFinder} for the class-focused finders.
  */
 public class DataBindingPackageFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;

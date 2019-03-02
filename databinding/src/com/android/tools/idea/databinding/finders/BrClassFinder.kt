@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService
 import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
@@ -27,6 +28,11 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
+/**
+ * A finder responsible for finding all the BR files in this project.
+ *
+ * See [LightBrClass]
+ */
 class BrClassFinder(private val component: DataBindingProjectComponent) : PsiElementFinder() {
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 

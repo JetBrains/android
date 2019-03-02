@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.databinding.cache
 
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService
 import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService
+import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.DataBindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.psi.PsiClass
@@ -35,9 +36,11 @@ import com.intellij.util.containers.HashSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * PsiShortNames cache that finds classes generated for layout files.
+ * Cache for classes generated from data binding layout xml files.
+ *
+ * See also: [LightBindingClass]
  */
-class DataBindingLayoutShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
+class LayoutBindingShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
   private val layoutInfoCache: CachedValue<Map<String, List<DataBindingLayoutInfo>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>

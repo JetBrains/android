@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.finders;
 
 import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
-import com.android.tools.idea.databinding.psiclass.LightGeneratedComponentClass;
+import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiClass;
@@ -34,11 +34,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class DataBindingComponentClassFinder extends PsiElementFinder {
+/**
+ * A finder responsible for finding all the generated DataBindingComponents in this project.
+ *
+ * See {@link LightBindingComponentClass}
+ */
+public class BindingComponentClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
   private CachedValue<List<PsiClass>> myClasses;
 
-  public DataBindingComponentClassFinder(final DataBindingProjectComponent component) {
+  public BindingComponentClassFinder(final DataBindingProjectComponent component) {
     myComponent = component;
     myClasses = CachedValuesManager.getManager(component.getProject()).createCachedValue(
       () -> {
@@ -47,7 +52,7 @@ public class DataBindingComponentClassFinder extends PsiElementFinder {
           if (facet.getConfiguration().isLibraryProject()) {
             continue;
           }
-          classes.add(new LightGeneratedComponentClass(PsiManager.getInstance(component.getProject()), facet));
+          classes.add(new LightBindingComponentClass(PsiManager.getInstance(component.getProject()), facet));
         }
         return CachedValueProvider.Result.create(classes, myComponent, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
       }, false);

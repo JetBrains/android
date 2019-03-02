@@ -58,15 +58,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Virtual class for DataBinding that represents the generated BindingComponent class.
+ * In-memory PSI for the generated DataBindingComponent class.
+ *
+ * Note: A DataBindingComponent's purpose is to be (optionally) subclassed in tests, to allow
+ * overriding BindingAdapters with test-specific implementations if necessary. It is not expected
+ * that a user would grab an instance of and interact with one, so its PSI fields and methods are
+ * not implemented here.
+ *
+ * See also: https://developer.android.com/reference/android/databinding/DataBindingComponent
  */
-public class LightGeneratedComponentClass extends AndroidLightClassBase implements ModificationTracker {
+public class LightBindingComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
   private CachedValue<PsiMethod[]> myMethodCache;
   private PsiFile myContainingFile;
   private final DataBindingMode myMode;
 
-  public LightGeneratedComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
+  public LightBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC));
     myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
     myFacet = facet;

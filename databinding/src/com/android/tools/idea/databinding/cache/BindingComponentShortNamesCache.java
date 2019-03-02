@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.databinding.cache;
 
-
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
-import com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder;
+import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
+import com.android.tools.idea.databinding.finders.BindingComponentClassFinder;
+import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
@@ -33,14 +33,15 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The ShortNamesCache for DataBinding. Note that this class does not implement method/field search methods since they are not useful for
- * DataBindingComponent.
+ * Cache that stores the DataBindingComponent instances associated with each module.
+ *
+ * See {@link LightBindingComponentClass}
  */
-public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
+public class BindingComponentShortNamesCache extends PsiShortNamesCache {
   private DataBindingProjectComponent myComponent;
   private static final String[] ourClassNames = new String[]{SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT};
-  private DataBindingComponentClassFinder myClassFinder;
-  public DataBindingComponentShortNamesCache(DataBindingProjectComponent component, DataBindingComponentClassFinder componentClassFinder) {
+  private BindingComponentClassFinder myClassFinder;
+  public BindingComponentShortNamesCache(DataBindingProjectComponent component, BindingComponentClassFinder componentClassFinder) {
     myComponent = component;
     myClassFinder = componentClassFinder;
   }
