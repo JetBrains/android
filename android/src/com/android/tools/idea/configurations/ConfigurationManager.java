@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
+
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
@@ -27,17 +31,14 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -45,20 +46,19 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.tools.idea.configurations.ConfigurationListener.*;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A {@linkplain ConfigurationManager} is responsible for managing {@link Configuration}
@@ -75,9 +75,6 @@ public class ConfigurationManager implements Disposable {
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
 
   @NotNull private final Module myModule;
-
-  @NotNull private Collection<Device> mySdkDevices = Collections.emptyList();
-  @NotNull private Map<String,Device> mySdkDevicesById = Collections.emptyMap();
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
   private final Object myLocalesLock = new Object();
   @GuardedBy("myLocalesLock")
@@ -149,7 +146,7 @@ public class ConfigurationManager implements Disposable {
     return configuration;
   }
 
-  @VisibleForTesting
+  @TestOnly
   boolean hasCachedConfiguration(@NotNull VirtualFile file) {
     return myCache.get(file) != null;
   }
@@ -221,57 +218,37 @@ public class ConfigurationManager implements Disposable {
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
-    return new ImmutableList.Builder<Device>()
-      .addAll(updateAndGetPlatformDevices())
-      .addAll(UserDeviceManager.getInstance(getProject()).getUserDevices())
-      .build();
-  }
-
-  @Slow
-  @NotNull
-  public Collection<Device> updateAndGetPlatformDevices() {
-    if (mySdkDevices.isEmpty()) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
-      if (platform != null) {
-        final DeviceManager deviceManager = platform.getSdkData().getDeviceManager();
-        mySdkDevices = deviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR));
-      }
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    if (platform == null) {
+      return ImmutableList.of();
     }
-
-    return mySdkDevices;
-  }
-
-  @NotNull
-  private ImmutableMap<String,Device> getDeviceMap() {
-    ImmutableMap.Builder<String, Device> deviceMapBuilder = new ImmutableMap.Builder<>();
-    for (Device device : getDevices()) {
-      deviceMapBuilder.put(device.getId(), device);
-    }
-    return deviceMapBuilder.build();
+    return ImmutableList.copyOf(platform.getSdkData().getDeviceManager().getDevices(DeviceManager.ALL_DEVICES));
   }
 
   @Nullable
   public Device getDeviceById(@NotNull String id) {
-    return getDeviceMap().get(id);
+    return getDevices()
+      .stream()
+      .filter(device -> device.getId().equals(id))
+      .findFirst()
+      .orElse(null);
   }
 
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
-    AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    assert facet != null;
-    for (Device device : getDevices()) {
-      if (device.getManufacturer().equals(avd.getDeviceManufacturer())
-          && (device.getId().equals(avd.getDeviceName()) || device.getDisplayName().equals(avd.getDeviceName()))) {
-
-        String avdName = avd.getName();
-        Device.Builder builder = new Device.Builder(device);
-        builder.setName(avdName);
-        builder.setId(Configuration.AVD_ID_PREFIX + avdName);
-        return builder.build();
-      }
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    if (platform == null) {
+      return null;
     }
-
-    return null;
+    Device modelDevice = platform.getSdkData().getDeviceManager().getDevice(avd.getDeviceManufacturer(), avd.getDeviceName());
+    if (modelDevice == null) {
+      return null;
+    }
+    String avdName = avd.getName();
+    Device.Builder builder = new Device.Builder(modelDevice);
+    builder.setName(avdName);
+    builder.setId(Configuration.AVD_ID_PREFIX + avdName);
+    return builder.build();
   }
 
   public static boolean isAvdDevice(@NotNull Device device) {
