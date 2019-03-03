@@ -22,10 +22,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.generated.common.v1.IdDisplayType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.util.IconLoader;
 import icons.StudioIcons;
-
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Map;
@@ -97,12 +94,10 @@ public class AvdDisplayListTest extends AndroidGradleTestCase {
     assertEquals(StudioIcons.Avd.DEVICE_MOBILE_LARGE, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
 
     myPropertiesMap.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
-    Icon tvDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-tv-large.png", AvdDisplayList.class);
-    assertEquals(tvDeviceIcon, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
+    assertEquals(StudioIcons.Avd.DEVICE_TV_LARGE, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
 
     myPropertiesMap.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
-    Icon wearDeviceIcon = IconLoader.getIcon("/studio/icons/avd/device-wear-large.png", AvdDisplayList.class);
-    assertEquals(wearDeviceIcon, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
+    assertEquals(StudioIcons.Avd.DEVICE_WEAR_LARGE, AvdDisplayList.getDeviceClassIconPair(myAvdInfo).getBaseIcon());
   }
 
   public void testTargetString() {
