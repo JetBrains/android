@@ -28,7 +28,7 @@ class SyncIssueRegisterTest : IdeaTestCase() {
   @Before
   override fun setUp() {
     super.setUp()
-    register = SyncIssueRegister()
+    register = SyncIssueRegister(project)
   }
 
   @Test
