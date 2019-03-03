@@ -55,7 +55,7 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
 
     VirtualFile folder = psiDirectory.getVirtualFile();
     Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
-    if (module != null) {
+    if (module != null && !module.isDisposed()) {
       if (isModuleDir(module, folder)) {
         data.setIcon(getModuleIcon(module));
       }
