@@ -27,16 +27,15 @@ import com.intellij.openapi.util.Disposer
  * shortly afterward. The map is cleared at the start of each sync.
  */
 class SyncIssueRegister {
-  private val _syncIssueMap: MutableMap<Module, MutableList<SyncIssue>> = HashMap()
-  val syncIssueMap: Map<Module, List<SyncIssue>> = _syncIssueMap // projection to read-only
+  private val syncIssueMap: MutableMap<Module, MutableList<SyncIssue>> = HashMap()
 
   fun register(module: Module, syncIssues: Collection<SyncIssue>) {
-    _syncIssueMap.computeIfAbsent(module) { ArrayList() }.addAll(syncIssues)
-    Disposer.register(module, Disposable { _syncIssueMap.remove(module) })
+    syncIssueMap.computeIfAbsent(module) { ArrayList() }.addAll(syncIssues)
+    Disposer.register(module, Disposable { syncIssueMap.remove(module) })
   }
 
-  fun clear() {
-    _syncIssueMap.clear()
+  fun getAndClear(): Map<Module, List<SyncIssue>> {
+    return syncIssueMap.toMap().also { syncIssueMap.clear() }
   }
 
   companion object {
