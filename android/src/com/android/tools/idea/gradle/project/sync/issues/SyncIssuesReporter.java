@@ -64,7 +64,7 @@ public class SyncIssuesReporter {
   }
 
   public void report(@NotNull Project project) {
-    report(SyncIssueRegister.getInstance(project).getSyncIssueMap());
+    report(SyncIssueRegister.getInstance(project).getAndClear());
   }
 
   /**
