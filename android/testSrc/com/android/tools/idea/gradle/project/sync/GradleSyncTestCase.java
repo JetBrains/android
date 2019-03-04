@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GradleSyncTestCase extends AndroidGradleTestCase {
+public abstract class GradleSyncTestCase extends GradleSyncIntegrationTestCase {
   protected GradleSync myGradleSync;
 
 

@@ -28,4 +28,19 @@ public class NewGradleSyncIntegrationTest extends GradleSyncTestCase {
   protected GradleSync createGradleSync() {
     return new NewGradleSync(getProject());
   }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return true;
+  }
+
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
+  }
 }
