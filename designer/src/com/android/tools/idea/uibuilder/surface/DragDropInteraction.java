@@ -275,13 +275,21 @@ public class DragDropInteraction extends Interaction {
         added.addAll(myDraggedComponents);
         final NlModel model = mySceneView.getModel();
         InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
+
+        // Callback to be execute as soon as commit finishes executing. As commit might include asynchronous operations, we don't call this
+        // immediately after calling commit. Instead we pass the callback to the commit, which knows better when to call it.
+        Runnable dragCallback = () -> {
+          model.notifyModified(NlModel.ChangeType.DND_COMMIT);
+          // Select newly dropped components
+          myDesignSurface.getSelectionModel().setSelection(added);
+          myDesignSurface.getLayeredPane().requestFocus();
+          mySceneView.getSurface().repaint();
+        };
+
         // TODO: Run this *after* making a copy
-        myDragHandler.commit(ax, ay, modifiers, insertType);
-        model.notifyModified(NlModel.ChangeType.DND_COMMIT);
-        // Select newly dropped components
-        myDesignSurface.getSelectionModel().setSelection(added);
-        myDesignSurface.getLayeredPane().requestFocus();
+        myDragHandler.commit(ax, ay, modifiers, insertType, dragCallback);
       }
+      // Redundant repaint in case we did not commit.
       mySceneView.getSurface().repaint();
     }
   }
