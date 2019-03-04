@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -23,9 +24,25 @@ import org.jetbrains.annotations.NotNull;
  * Tests for {@link IdeaGradleSync}.
  */
 public class IdeaGradleSyncTest extends GradleSyncTestCase {
+
   @Override
   @NotNull
   protected GradleSync createGradleSync() {
     return new IdeaGradleSync(getProject());
+  }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
   }
 }
