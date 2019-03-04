@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.deploy",
     srcs = ["src"],
     iml_files = ["intellij.android.deploy.iml"],
+    test_coverage = True,
     test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
     # do not sort: must match IML order
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],

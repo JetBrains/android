@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.apkanalyzer",
     srcs = ["src"],
     iml_files = ["intellij.android.apkanalyzer.iml"],
+    test_coverage = True,
     test_resources = ["testSrc/resources"],
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc/java"],

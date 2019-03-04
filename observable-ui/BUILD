@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.observable.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.observable.ui.iml"],
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
