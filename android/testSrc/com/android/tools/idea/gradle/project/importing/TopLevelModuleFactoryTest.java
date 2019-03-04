@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.mockito.Mock;
-
-import java.io.File;
-
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
+import java.io.File;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link TopLevelModuleFactory}.
@@ -44,7 +44,7 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
   @Mock private IdeInfo myIdeInfo;
 
   private IdeSdks myIdeSdks;
-  private TopLevelModuleFactory mySyncFailureHandler;
+  private TopLevelModuleFactory myTopLevelModuleFactory;
 
   @Override
   public void setUp() throws Exception {
@@ -52,7 +52,7 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     initMocks(this);
 
     myIdeSdks = IdeSdks.getInstance();
-    mySyncFailureHandler = new TopLevelModuleFactory(myIdeInfo, myIdeSdks);
+    myTopLevelModuleFactory = new TopLevelModuleFactory(myIdeInfo, myIdeSdks);
   }
 
   public void testCreateTopLevelModule() throws Exception {
@@ -65,13 +65,14 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
 
     when(myIdeInfo.isAndroidStudio()).thenReturn(true); // Simulate is Android Studio.
 
-    ApplicationManager.getApplication().runWriteAction(() -> mySyncFailureHandler.createTopLevelModule(project));
+    ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
 
     modules = moduleManager.getModules();
 
     // Verify we have a top-level module.
     assertThat(modules).hasLength(1);
     Module module = modules[0];
+    assertEquals(getProject().getName(), module.getName());
     File moduleFilePath = new File(module.getModuleFilePath());
     assertEquals(projectRootFolderPath.getPath(), moduleFilePath.getParent());
 
@@ -83,6 +84,11 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     // Verify module was marked as a "Gradle" module.
     String systemId = module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY);
     assertEquals(GRADLE_SYSTEM_ID.getId(), systemId);
+
+    ExternalSystemModulePropertyManager externalSystemProperties = ExternalSystemModulePropertyManager.getInstance(module);
+    assertEquals(GRADLE_SYSTEM_ID.getId(), externalSystemProperties.getExternalSystemId());
+    assertEquals(":", externalSystemProperties.getLinkedProjectId());
+    assertEquals(projectRootFolderPath.getPath(), externalSystemProperties.getRootProjectPath());
 
     // Verify the module has a "Gradle" facet.
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
