@@ -23,11 +23,11 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities;
 import com.android.tools.idea.explorer.adbimpl.AdbFileOperations;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -36,13 +36,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSyste
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.containers.ContainerUtil;
-import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +43,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.fest.swing.timing.Wait;
+import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class InstantAppRunTest {
@@ -87,9 +86,7 @@ public class InstantAppRunTest {
         .build()
     );
 
-    ideFrame.runApp(runConfigName)
-      .selectDevice(avdName)
-      .clickOk();
+    ideFrame.runApp(runConfigName, avdName);
 
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
 
