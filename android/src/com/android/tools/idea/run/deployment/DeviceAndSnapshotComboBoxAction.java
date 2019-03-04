@@ -206,16 +206,16 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    Project project = event.getProject();
-
-    if (project == null) {
-      return;
-    }
-
     Presentation presentation = event.getPresentation();
 
     if (!mySelectDeviceSnapshotComboBoxVisible.get()) {
       presentation.setVisible(false);
+      return;
+    }
+
+    Project project = event.getProject();
+
+    if (project == null) {
       return;
     }
 
