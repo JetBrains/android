@@ -102,6 +102,7 @@ public class NewAndroidComponentAction extends AnAction {
       return;
     }
 
+    // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
     Presentation presentation = e.getPresentation();
     AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
     if (myMinSdkApi > moduleInfo.getMinSdkVersion().getFeatureLevel()) {
