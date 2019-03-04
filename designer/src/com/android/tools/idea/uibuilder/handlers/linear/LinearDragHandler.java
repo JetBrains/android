@@ -107,7 +107,11 @@ class LinearDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+  public void commit(@AndroidCoordinate int x,
+                     @AndroidCoordinate int y,
+                     int modifiers,
+                     @NotNull InsertType insertType,
+                     @Nullable Runnable callback) {
     Scene scene = editor.getScene();
     if (myComponent != null) {
       myDragTarget.mouseCancel();
