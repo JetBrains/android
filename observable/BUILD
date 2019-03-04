@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.observable",
     srcs = ["src"],
     iml_files = ["intellij.android.observable.iml"],
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",

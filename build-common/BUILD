@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.buildCommon.iml"],
     resources = ["resources"],
+    test_coverage = True,
     test_resources = ["testResources"],
     # do not sort: must match IML order
     test_runtime_deps = [

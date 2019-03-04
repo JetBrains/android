@@ -11,6 +11,7 @@ iml_module(
     iml_files = ["intellij.android.smali.iml"],
     resources = ["resources"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",

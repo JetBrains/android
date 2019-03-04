@@ -47,6 +47,7 @@ iml_module(
     name = "intellij.android.debuggers.tests",
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",

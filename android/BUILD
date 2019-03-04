@@ -146,6 +146,7 @@ iml_module(
     iml_files = ["intellij.android.core.tests.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
+    test_coverage = True,
     # keep sorted
     test_data = [
         ":com.android.tools.build_gradle",

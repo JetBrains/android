@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.layout-inspector",
     srcs = ["src"],
     iml_files = ["intellij.android.layout-inspector.iml"],
+    test_coverage = True,
     test_data = ["//tools/adt/idea/layout-inspector/testData"],
     test_resources = ["testData"],
     # do not sort: must match IML order
