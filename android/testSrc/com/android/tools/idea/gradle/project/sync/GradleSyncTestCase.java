@@ -28,7 +28,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 
-public abstract class GradleSyncTestCase extends AndroidGradleTestCase {
+public abstract class GradleSyncTestCase extends GradleSyncIntegrationTestCase {
   protected GradleSync myGradleSync;
 
 
