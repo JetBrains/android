@@ -242,7 +242,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     // trigger initialization
     ResourceRepositoryManager.getModuleResources(projectRule.androidFacet)
 
-    val classesOut = File(projectRule.project.basePath, "/app/build/intermediates/javac//debug/compileDebugJavaWithJavac/classes")
+    val classesOut = File(projectRule.project.basePath, "/app/build/intermediates/javac//debug/classes")
 
     val classes = FileUtils.listFiles(classesOut, arrayOf("class"), true)
     assertWithMessage("No compiled classes found. Something is wrong with this test.")
