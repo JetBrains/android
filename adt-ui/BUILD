@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["intellij.android.adt.ui.iml"],
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
+    test_coverage = True,
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
