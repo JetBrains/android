@@ -27,6 +27,12 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,13 +41,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class RunOnEmulatorTest {
@@ -115,10 +114,7 @@ public class RunOnEmulatorTest {
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice("Google Nexus 5X")
-      .clickOk();
+    ideFrameFixture.runApp(APP_NAME, "Google Nexus 5X");
 
     // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
