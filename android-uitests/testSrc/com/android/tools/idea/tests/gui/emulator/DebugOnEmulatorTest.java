@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -26,6 +27,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSyste
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
 import org.junit.Rule;
@@ -100,7 +103,12 @@ public class DebugOnEmulatorTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void debugOnEmulator() throws IOException {
-    guiTest.importSimpleApplication();
+    try {
+      guiTest.importSimpleApplication();
+    } catch(WaitTimedOutError ignore) {
+      // Ignore timeouts. QA sanity tests do not care about timeouts
+      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
+    }
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
