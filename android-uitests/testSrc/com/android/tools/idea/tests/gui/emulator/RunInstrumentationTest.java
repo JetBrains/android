@@ -22,14 +22,13 @@ import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class RunInstrumentationTest {
@@ -86,9 +85,7 @@ public class RunInstrumentationTest {
                                    .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
                                    .clickOk();
 
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME)
-                   .selectDevice(avdName)
-                   .clickOk();
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME, avdName);
 
     // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
