@@ -23,14 +23,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class HandleRunAsErrorsTest {
@@ -48,10 +47,8 @@ public class HandleRunAsErrorsTest {
   private static final String APP_NAME = "app";
   private static final Pattern RUN_CONNECTED_PATTERN = Pattern.
       compile(".*Connected to process.*", Pattern.DOTALL);
-  private static final Pattern INSTALL_APP_PATTERN = Pattern.
-      compile(".*adb install-multiple.*", Pattern.DOTALL);
   private static final Pattern LAUNCH_APP_PATTERN = Pattern.
-      compile(".*Launching app.*", Pattern.DOTALL);
+      compile(".*Launching 'app'.*", Pattern.DOTALL);
 
   /**
    * Handling of run-as errors: b.android.com/201285, b.android.com/201234, b.android.com/200881
@@ -85,9 +82,7 @@ public class HandleRunAsErrorsTest {
         .moveBetween(BEFORE, AFTER)
         .enterText(TEXT);
 
-    ideFrame.runApp(APP_NAME)
-        .selectDevice(emulator.getDefaultAvdName())
-        .clickOk();
+    ideFrame.runApp(APP_NAME, emulator.getDefaultAvdName());
 
     // Wait for app is running.
     RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
@@ -99,9 +94,7 @@ public class HandleRunAsErrorsTest {
 
     ideFrame.stopApp();
 
-    ideFrame.runApp(APP_NAME)
-        .selectDevice(emulator.getDefaultAvdName())
-        .clickOk();
+    ideFrame.runApp(APP_NAME, emulator.getDefaultAvdName());
 
     // TODO: Find the reason why emulator is disconnected without waiting, and do it in the right way.
     // Workaround: Wait to skip the scenario encountering emulator disconnected.
@@ -114,7 +107,6 @@ public class HandleRunAsErrorsTest {
     ExecutionToolWindowFixture.ContentFixture contentFixture = runToolWindowFixture
         .findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 20);
-    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 60);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_CONNECTED_PATTERN), 120);
   }
 }
