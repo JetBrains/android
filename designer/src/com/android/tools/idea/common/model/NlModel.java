@@ -58,9 +58,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -1003,27 +1000,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    // Add the components in a separate thread as it might end up running network operations to add missing dependencies.
-    ProgressManager.getInstance().run(new Task.Backgroundable(myFacet.getModule().getProject(), "Adding Components...") {
-
-      private boolean myHasMissingDependencies;
-
-      private Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        myHasMissingDependencies =
-          NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), callback).getHadMissingDependencies();
-      }
-
-      @Override
-      public void onSuccess() {
-        if (!myHasMissingDependencies) {
-          // Only add the components if there were no missing dependencies.
-          callback.run();
-        }
-      }
-    });
+    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+    NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
   }
 
   private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
