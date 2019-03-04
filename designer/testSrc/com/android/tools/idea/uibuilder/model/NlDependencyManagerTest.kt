@@ -29,14 +29,12 @@ open class NlDependencyManagerTest : LayoutTestCase() {
 
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var model: NlModel
-  private lateinit var nlDependencyManager: NlDependencyManager
 
   override fun setUp() {
     super.setUp()
     projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
     PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
                                                                      projectSystem, testRootDisposable)
-    nlDependencyManager = NlDependencyManager()
     model = model("model.xml",
                   component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
                     .withBounds(0, 0, 10, 10)
@@ -49,22 +47,22 @@ open class NlDependencyManagerTest : LayoutTestCase() {
   fun testEnsureLibraryIsIncluded() {
     val depsShouldBeAdded = listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
                                    GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"))
-    nlDependencyManager.addDependencies(model.components, model.facet)
+    NlDependencyManager.getInstance().addDependencies(model.components, model.facet)
     assertSameElements(projectSystem.getAddedDependencies(model.module), depsShouldBeAdded)
   }
 
   fun testIdentifiesMissingDependency() {
-    TestCase.assertFalse(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
+    TestCase.assertFalse(NlDependencyManager.getInstance().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
   }
 
   fun testIdentifiesCorrectDependency() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet.module, GradleVersion(1, 1))
-    TestCase.assertTrue(nlDependencyManager.isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
+    TestCase.assertTrue(NlDependencyManager.getInstance().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
   }
 
   fun testGetModuleDependencyVersion() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet.module, GradleVersion(1, 1))
-    TestCase.assertEquals(nlDependencyManager.getModuleDependencyVersion(GoogleMavenArtifactId.APP_COMPAT_V7, model.facet),
+    TestCase.assertEquals(NlDependencyManager.getInstance().getModuleDependencyVersion(GoogleMavenArtifactId.APP_COMPAT_V7, model.facet),
                           GradleVersion(1, 1))
   }
 }
