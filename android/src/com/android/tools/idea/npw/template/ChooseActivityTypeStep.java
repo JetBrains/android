@@ -19,6 +19,7 @@ package com.android.tools.idea.npw.template;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
@@ -36,11 +37,13 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +54,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.TestOnly;
 
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -236,29 +241,56 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     return templateRenderers.toArray(new TemplateRenderer[0]);
   }
 
+
+  /**
+   * See also {@link com.android.tools.idea.actions.NewAndroidComponentAction#update}
+   */
   private void validateTemplate() {
     TemplateHandle template = myRenderModel.getTemplateHandle();
     TemplateMetadata templateData = (template == null) ? null : template.getMetadata();
     AndroidVersionsInfo.VersionItem androidSdkInfo = myRenderModel.androidSdkInfo().getValueOrNull();
+    AndroidFacet facet = myRenderModel.getAndroidFacet();
 
-    myInvalidParameterMessage.set(validateTemplate(templateData, androidSdkInfo, isNewModule()));
+    // Start by assuming API levels are great enough for the Template
+    int moduleApiLevel = Integer.MAX_VALUE, moduleBuildApiLevel = Integer.MAX_VALUE;
+    if (androidSdkInfo != null) {
+      moduleApiLevel = androidSdkInfo.getMinApiLevel();
+      moduleBuildApiLevel = androidSdkInfo.getBuildApiLevel();
+    }
+    else if (facet != null) {
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
+      moduleApiLevel = moduleInfo.getMinSdkVersion().getFeatureLevel();
+      if (moduleInfo.getBuildSdkVersion() != null) {
+        moduleBuildApiLevel = moduleInfo.getBuildSdkVersion().getFeatureLevel();
+      }
+    }
+
+    Project project = getModel().getProject().getValueOrNull();
+    boolean isAndroidxProj = project != null &&  isAndroidx(project);
+    myInvalidParameterMessage.set(validateTemplate(templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule(), isAndroidxProj));
   }
 
-  private static String validateTemplate(@Nullable TemplateMetadata template,
-                                         @Nullable AndroidVersionsInfo.VersionItem androidSdkInfo,
-                                         boolean isNewModule) {
+  @NotNull
+  @VisibleForTesting
+  static String validateTemplate(@Nullable TemplateMetadata template,
+                                 int moduleApiLevel,
+                                 int moduleBuildApiLevel,
+                                 boolean isNewModule,
+                                 boolean isAndroidxProj) {
     if (template == null) {
       return isNewModule ? "" : message("android.wizard.activity.not.found");
     }
 
-    if (androidSdkInfo != null) {
-      if (androidSdkInfo.getMinApiLevel() < template.getMinSdk()) {
-        return message("android.wizard.activity.invalid.min.sdk", template.getMinSdk());
-      }
+    if (moduleApiLevel < template.getMinSdk()) {
+      return message("android.wizard.activity.invalid.min.sdk", template.getMinSdk());
+    }
 
-      if (androidSdkInfo.getBuildApiLevel() < template.getMinBuildApi()) {
-        return message("android.wizard.activity.invalid.min.build", template.getMinBuildApi());
-      }
+    if (moduleBuildApiLevel < template.getMinBuildApi()) {
+      return message("android.wizard.activity.invalid.min.build", template.getMinBuildApi());
+    }
+
+    if (template.getAndroidXRequired() && !isAndroidxProj) {
+      return message("android.wizard.activity.invalid.androidx");
     }
 
     return "";
