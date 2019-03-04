@@ -358,8 +358,7 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
 /**
  * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
  * Note: This operation can only be called when the caller is already holding a write lock. This will be the
- * case from [ViewHandler] callbacks such as [ViewHandler.onCreate]
- * and [DragHandler.commit].
+ * case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and [DragHandler.commit].
 
  * @param editor     The editor showing the component
  * @param fqcn       The fully qualified name of the widget to insert, such as `android.widget.LinearLayout`
