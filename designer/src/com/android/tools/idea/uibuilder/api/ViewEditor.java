@@ -193,14 +193,6 @@ public abstract class ViewEditor {
                                       int index,
                                       @NotNull InsertType insertType);
 
-  /**
-   * Get the dependency manager to handle adding missing dependency and
-   * check current dependencies
-   */
-  @NotNull
-  public abstract NlDependencyManager getDependencyManager();
-
-
   public abstract void openResourceFile(@NotNull String resourceId);
 
   /**

@@ -34,6 +34,10 @@
     <fileEditorProvider implementation="com.android.tools.idea.sampledata.CsvEditorProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
+  </extensions>
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.util.JavaDocViewer</implementation-class>
