@@ -27,6 +27,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,9 +79,13 @@ public class FileFixture {
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
     waitUntilErrorAnalysisFinishes();
+    try {
     Wait.seconds(5)
       .expecting("number of highlight items to be " + expected)
       .until(() -> queryHighlightInfos(severity).size() == expected);
+    } catch (WaitTimedOutError w) {
+      throw new AssertionError("AFTER: "+GuiQuery.get(() -> queryHighlightInfos(severity).toString()), w);
+    }
     return this;
   }
 }
