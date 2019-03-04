@@ -11,6 +11,7 @@ iml_module(
         "no_test_mac_psq",
         "no_test_windows",
     ],  # b/113099009
+    test_coverage = True,
     test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
     # do not sort: must match IML order
     test_runtime_deps = [

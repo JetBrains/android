@@ -46,6 +46,7 @@ iml_module(
         "no_test_windows",
     ],  # b/113099009
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
+    test_coverage = True,
     test_data = glob(["testData/**"]) + [
         "//tools/adt/idea/android/annotations",
         "//tools/base/templates",

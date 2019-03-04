@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.profilers.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.profilers.ui.iml"],
+    test_coverage = True,
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = [
