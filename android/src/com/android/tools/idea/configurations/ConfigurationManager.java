@@ -591,42 +591,6 @@ public class ConfigurationManager implements Disposable {
     }
   }
 
-  /**
-   * Synchronizes changes to the given attributes (indicated by the mask
-   * referencing the {@code CFG_} configuration attribute bit flags in
-   * {@link Configuration} to the layout variations of the given updated file.
-   *
-   * @param flags the attributes which were updated
-   * @param updatedFile the file which was updated
-   * @param base the base configuration to base the chooser off of
-   * @param includeSelf whether the updated file itself should be updated
-   * @param async whether the updates should be performed asynchronously
-   */
-  public void syncToVariations(
-    final int flags,
-    final @NotNull VirtualFile updatedFile,
-    final @NotNull Configuration base,
-    final boolean includeSelf,
-    boolean async) {
-    if (async) {
-      ApplicationManager.getApplication().runReadAction(() -> doSyncToVariations(flags, updatedFile, includeSelf, base));
-    } else {
-      doSyncToVariations(flags, updatedFile, includeSelf, base);
-    }
-  }
-
-  private void doSyncToVariations(@SuppressWarnings("UnusedParameters") int flags,
-                                  VirtualFile updatedFile, boolean includeSelf,
-                                  Configuration base) {
-    // Synchronize the given changes to other configurations as well
-    List<VirtualFile> files = ResourceHelper.getResourceVariations(updatedFile, includeSelf);
-    for (VirtualFile file : files) {
-      Configuration configuration = getConfiguration(file);
-      Configuration.copyCompatible(base, configuration);
-      configuration.save();
-    }
-  }
-
   public int getStateVersion() {
     return myStateVersion;
   }
