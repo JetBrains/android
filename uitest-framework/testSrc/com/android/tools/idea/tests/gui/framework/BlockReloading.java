@@ -15,27 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.configurationStore.StoreReloadManager;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 /**
- * Calls {@link ProjectManagerEx#blockReloadingProjectOnExternalChanges} before the test and
- * {@link ProjectManagerEx#unblockReloadingProjectOnExternalChanges} after.
+ * Calls {@link StoreReloadManager#blockReloadingProjectOnExternalChanges} before the test and
+ * {@link StoreReloadManager#unblockReloadingProjectOnExternalChanges} after.
  * <p>
  * There is a race condition between reloading the configuration file after file deletion detected
  * and the serialization of IDEA model we just customized so that modules can't be loaded correctly.
  * This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
  */
 class BlockReloading extends TestWatcher {
-
   @Override
   protected void starting(Description description) {
-    ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
+    StoreReloadManager.getInstance().blockReloadingProjectOnExternalChanges();
   }
 
   @Override
   protected void finished(Description description) {
-    ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
+    StoreReloadManager.getInstance().unblockReloadingProjectOnExternalChanges();
   }
 }
