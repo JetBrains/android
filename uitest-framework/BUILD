@@ -8,6 +8,10 @@ iml_module(
     iml_files = ["intellij.android.guiTestFramework.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
+    test_data = [
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//tools/idea:platform-build-info",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
