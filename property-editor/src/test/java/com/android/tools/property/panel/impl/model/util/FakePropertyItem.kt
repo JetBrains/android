@@ -49,6 +49,10 @@ open class FakePropertyItem(
 
   override var resolvedValue: String? = initialValue
 
+  override var tooltipForName = ""
+
+  override var tooltipForValue = ""
+
   var updateCount = 0
     protected set
 
