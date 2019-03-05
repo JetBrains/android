@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.Collection;
@@ -366,9 +365,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
         child.removeParent(this);
-        if (!Disposer.isDisposed(child)) {
-          Disposer.dispose(child);
-        }
       }
     }
   }
