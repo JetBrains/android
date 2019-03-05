@@ -17,9 +17,13 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.idea.res.ResourcesTestsUtil.addBinaryAarDependency;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
@@ -38,5 +42,21 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
     addBinaryAarDependency(myModule);
     assertThat(repositoryManager.getLibraryResources()).hasSize(1);
     assertThat(Iterables.getOnlyElement(repositoryManager.getLibraryResources()).getNamespace()).isEqualTo(libraryNamespace);
+  }
+
+  public void testDisposal() {
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
+    assertThat(myFacet.requiresAndroidModel()).named("module uses a model").isTrue();
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+    repositoryManager.getAppResources();
+    repositoryManager.resetResources(); // This can be triggered from the layout editor UI.
+    for (SingleNamespaceResourceRepository repository : repositoryManager.getAppResources().getLeafResourceRepositories()) {
+      if (repository instanceof Disposable) {
+        assertWithMessage("%s has already been disposed but is returned from ResourceRepositoryManager", repository)
+          .that(Disposer.isDisposed((Disposable)repository))
+          .isFalse();
+      }
+    }
   }
 }

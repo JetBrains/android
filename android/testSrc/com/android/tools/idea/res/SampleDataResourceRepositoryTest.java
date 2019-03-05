@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.*;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -28,25 +36,19 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.google.common.truth.Truth.assertThat;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Test for {@link SampleDataResourceRepository}.
@@ -84,9 +86,9 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     // We should return a cached instance of the resource repository..
     assertThat(SampleDataResourceRepository.getInstance(myFacet)).isSameAs(repository);
 
-    // ..until we dispose of the existing repository, at which point another call to
+    // ..until we refresh the layout or sync, at which point another call to
     // getInstance() should give us a newly-constructed repository and not the disposed one.
-    Disposer.dispose(repository);
+    SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet).reset();
     assertThat(SampleDataResourceRepository.getInstance(myFacet)).isNotSameAs(repository);
   }
 

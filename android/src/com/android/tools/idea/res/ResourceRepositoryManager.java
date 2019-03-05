@@ -28,6 +28,7 @@ import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -111,7 +112,13 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     if (instance == null) {
-      instance = facet.putUserDataIfAbsent(KEY, new ResourceRepositoryManager(facet, namespacing));
+      ResourceRepositoryManager manager = new ResourceRepositoryManager(facet, namespacing);
+      instance = facet.putUserDataIfAbsent(KEY, manager);
+      if (instance == manager) {
+        // Our object ended up stored in the facet.
+        Disposer.register(facet, instance);
+        AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
+      }
     }
 
     return instance;
@@ -231,10 +238,6 @@ public final class ResourceRepositoryManager implements Disposable {
   private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull AaptOptions.Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
-
-    AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
-
-    Disposer.register(facet, this);
   }
 
   /**
@@ -428,7 +431,11 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private LocalResourceRepository computeTestAppResources() {
+    // For disposal, the newly created test module repository ends up owned by the repository manager if returned from this method or the
+    // TestAppResourceRepository if passed to it. This is slightly different to the main module repository, which is always owned by the
+    // manager and stored in myModuleResources.
     LocalResourceRepository moduleTestResources = ModuleResourceRepository.forTestResources(myFacet);
+
     if (myNamespacing == AaptOptions.Namespacing.REQUIRED) {
       // TODO(namespaces): Confirm that's how test resources will work.
       return moduleTestResources;
@@ -439,7 +446,9 @@ public final class ResourceRepositoryManager implements Disposable {
       return moduleTestResources;
     }
 
-    return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+    TestAppResourceRepository testAppRepo = TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+    Disposer.register(testAppRepo, moduleTestResources);
+    return testAppRepo;
   }
 
   /**
@@ -486,9 +495,11 @@ public final class ResourceRepositoryManager implements Disposable {
     return appRepository.getRepositoriesForNamespace(namespace);
   }
 
+  @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
     resetVisibility();
     resetLibraries();
+    SampleDataRepositoryManager.getInstance(myFacet).reset();
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
@@ -508,6 +519,13 @@ public final class ResourceRepositoryManager implements Disposable {
       if (myAppResources != null) {
         Disposer.dispose(myAppResources);
         myAppResources = null;
+      }
+    }
+
+    synchronized (TEST_APP_RESOURCES_LOCK) {
+      if (myTestAppResources != null) {
+        Disposer.dispose(myTestAppResources);
+        myTestAppResources = null;
       }
     }
   }
