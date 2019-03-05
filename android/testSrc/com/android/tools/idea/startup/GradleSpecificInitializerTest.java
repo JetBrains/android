@@ -44,9 +44,7 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in ActionManager and in Welcome dialog (b/37141013)
    */
   public void testAndroidTemplateProjectSettingsGroup() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction action = actionManager.getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
-    assertThat(action).isNotNull();
+    AnAction action = ActionManager.getInstance().getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
     assertThat(action).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
   }
 
@@ -54,15 +52,10 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in Welcome dialog
    */
   public void testAndroidTemplateProjectSettingsGroupInWelcomeDialog() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
-    assertThat(configureIdeaAction).isNotNull();
-    assertThat(configureIdeaAction).isInstanceOf(DefaultActionGroup.class);
-    DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
+    DefaultActionGroup settingsGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("WelcomeScreen.Configure.IDEA");
     AnAction[] children = settingsGroup.getChildren(null);
     assertThat(children).hasLength(1);
-    AnAction child = children[0];
-    assertThat(child).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
+    assertThat(children[0]).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
   }
 
   public void testRefreshProjectsActionIsHidden() {
