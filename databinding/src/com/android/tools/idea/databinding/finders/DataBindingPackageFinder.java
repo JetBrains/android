@@ -42,8 +42,16 @@ import java.util.Set;
 /**
  * A finder responsible for finding data binding packages missing in the app.
  *
- * See {@link LayoutBindingClassFinder}, {@link BindingComponentClassFinder} and
+ * Note that some packages used by databinding are already found by default finders, and if we try
+ * to suggest our own copies, it can confuse the IntelliJ project structure tool window, which
+ * thinks there are two packages with the same name.
+ *
+ * Therefore, this finder is registered with a reduced priority, so it will only suggest packages
+ * that were not previously suggested, while data binding class finders are added with a higher
+ * priority. See {@link LayoutBindingClassFinder}, {@link BindingComponentClassFinder} and
  * {@link BrClassFinder} for the class-focused finders.
+ *
+ * See also: https://issuetracker.google.com/37120280
  */
 public class DataBindingPackageFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
