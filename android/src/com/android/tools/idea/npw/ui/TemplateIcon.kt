@@ -18,14 +18,14 @@ package com.android.tools.idea.npw.ui
 import com.android.tools.adtui.ImageUtils
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBScalableIcon
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 
-class TemplateIcon(private val myDelegateIcon: Icon) : JBUI.ScalableJBIcon() {
+class TemplateIcon(private val myDelegateIcon: Icon) : JBScalableIcon() {
   private var myScale = 1f
   private var myCropRectangle: Rectangle = Rectangle(myDelegateIcon.iconWidth, myDelegateIcon.iconHeight)
 
