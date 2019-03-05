@@ -94,6 +94,9 @@ class TableEditor(val lineModel: TableLineModelImpl,
   private fun getToolTipText(event: MouseEvent): String? {
     val tableRow = component.rowAtPoint(event.point)
     val tableColumn = component.columnAtPoint(event.point)
+    if (tableRow < 0 || tableColumn < 0) {
+      return null
+    }
     val item = component.getValueAt(tableRow, tableColumn)
     val renderer = component.getCellRenderer(tableRow, tableColumn)
     val cell = renderer.getTableCellRendererComponent(component, item, false, false, tableRow, tableColumn) ?: return null
