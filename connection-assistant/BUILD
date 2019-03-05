@@ -54,9 +54,11 @@ iml_module(
     test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/base/templates",
+        "//tools/idea:platform-build-info",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
@@ -96,5 +98,6 @@ iml_module(
         "//tools/adt/idea/connection-assistant[module, test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
     ],
 )
