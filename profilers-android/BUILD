@@ -8,6 +8,10 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_coverage = True,
+    test_data = [
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//tools/idea:platform-build-info",
+    ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

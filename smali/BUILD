@@ -12,6 +12,10 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
     test_coverage = True,
+    test_data = [
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//tools/idea:platform-build-info",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",

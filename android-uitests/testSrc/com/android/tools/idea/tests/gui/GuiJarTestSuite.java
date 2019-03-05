@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.tests.gui;
 
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
+
 import com.android.testutils.ClassSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.junit.ClassRule;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
+import org.junit.ClassRule;
+import org.junit.runner.RunWith;
 
 @RunWith(ClassSuiteRunner.class)
 public class GuiJarTestSuite extends IdeaTestSuiteBase {
@@ -53,8 +52,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
       "tools/base/templates",
       "tools/external/gradle",
       "tools/idea/java",
-      "tools/idea/bin",
-      "tools/idea/build.txt");
+      "tools/idea/bin");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
