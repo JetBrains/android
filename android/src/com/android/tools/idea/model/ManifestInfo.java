@@ -345,7 +345,7 @@ final class ManifestInfo {
       return null;
     }
 
-    public boolean refresh() {
+    public synchronized boolean refresh() {
       Map<Object, Long> lastModifiedMap = new HashMap<>();
 
       VirtualFile primaryManifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
