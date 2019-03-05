@@ -32,6 +32,27 @@ import java.lang.reflect.Field;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
+  public static ActionButtonFixture locateByActionId(@NotNull final String actionId,
+                                                     @NotNull final Robot robot,
+                                                     @NotNull final Container container,
+                                                     long secondsToWait) {
+    // Sometimes we need to locate the button without it being enabled, because there is an issue with the UI where it needs
+    // the mouse to be over it and moving before it will refresh itself.
+    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        AnAction action = component.getAction();
+        if (action != null) {
+          String id = ActionManager.getInstance().getId(action);
+          return actionId.equals(id);
+        }
+        return false;
+      }
+    }, secondsToWait);
+    return new ActionButtonFixture(robot, button);
+  }
+
+  @NotNull
   public static ActionButtonFixture findByActionId(@NotNull final String actionId,
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {

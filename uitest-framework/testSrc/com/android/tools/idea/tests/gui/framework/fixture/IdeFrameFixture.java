@@ -54,7 +54,10 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -86,6 +89,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.WindowAncestorFinder;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -223,12 +227,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ActionButtonFixture findRunApplicationButton() {
-    return findActionButtonByActionId("Run", 30);
-  }
-
-  @NotNull
-  public ActionButtonFixture findApplyChangesButton() {
-    return findActionButtonByText("Apply Changes");
+    return findActionButtonWithRefresh("Run");
   }
 
   @NotNull
@@ -496,6 +495,80 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
 
     GuiTests.waitForBackgroundTasks(robot());
+  }
+
+  @NotNull
+  private ActionButtonFixture locateActionButtonByActionId(@NotNull String actionId) {
+    return ActionButtonFixture.locateByActionId(actionId, robot(), target(), 30);
+  }
+
+  /**
+   * IJ doesn't always refresh the state of the toolbar buttons. This forces it to refresh.
+   */
+  public static void updateToolbars() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() {
+        ActionToolbarImpl.updateAllToolbarsImmediately();
+      }
+    });
+  }
+
+  /**
+   * ActionButtons while being recreated by IJ and queried through the Action system
+   * may not have a proper parent. Therefore, we can not rely on FEST's system of
+   * checking the component tree, as that will cause the test to immediately fail.
+   */
+  private static boolean hasValidWindowAncestor(@NotNull Component target) {
+    return execute(new GuiQuery<Boolean>() {
+      @Nullable
+      @Override
+      protected Boolean executeInEDT() {
+        return WindowAncestorFinder.windowAncestorOf(target) != null;
+      }
+    });
+  }
+
+  /**
+   * Finds the button while jittering the mouse over the IDE frame.
+   *
+   * Due to IJ refresh policy (will only refresh if it detects mouse movement over its window),
+   * the cursor needs to be intermittently moved before the ActionButton moves into the location
+   * place and update to its final state.
+   */
+  @NotNull
+  private ActionButtonFixture findActionButtonWithRefresh(@NotNull String actionId) {
+    Ref<ActionButtonFixture> fixtureRef = new Ref<>();
+    Wait.seconds(30)
+      .expecting("button to enable")
+      .until(() -> {
+        updateToolbars();
+        ActionButtonFixture fixture = locateActionButtonByActionId(actionId);
+        fixtureRef.set(fixture);
+        if (hasValidWindowAncestor(fixture.target())) {
+          robot().jitter(target()); // Jitter somewhere in the window.
+          return execute(new GuiQuery<Boolean>() {
+            @Nullable
+            @Override
+            protected Boolean executeInEDT() {
+              if (WindowAncestorFinder.windowAncestorOf(fixture.target()) != null) {
+                ActionButton button = fixture.target();
+                AnAction action = button.getAction();
+                Presentation presentation = action.getTemplatePresentation();
+                return presentation.isEnabled() &&
+                       presentation.isVisible() &&
+                       button.isEnabled() &&
+                       button.isShowing() &&
+                       button.isVisible();
+              }
+              return false;
+            }
+          });
+        }
+
+        return false;
+      });
+    return fixtureRef.get();
   }
 
   @NotNull

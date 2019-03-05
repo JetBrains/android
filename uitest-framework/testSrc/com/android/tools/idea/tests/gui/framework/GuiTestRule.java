@@ -351,6 +351,21 @@ public class GuiTestRule implements TestRule {
     return projectPath;
   }
 
+  @NotNull
+  public Project openProject(@NotNull String projectDirName) throws Exception {
+    File projectDir = copyProjectBeforeOpening(projectDirName);
+    VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
+    ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
+
+    Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+
+    Project project = ProjectManager.getInstance().getOpenProjects()[0];
+    GuiTests.waitForProjectIndexingToFinish(project);
+    IdeFrameFixture.updateToolbars();
+
+    return project;
+  }
+
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion);
     File path = TestUtils.runningFromBazel() ?
