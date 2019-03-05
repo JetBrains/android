@@ -17,11 +17,14 @@ package com.android.tools.property.panel.impl.table
 
 import com.android.tools.property.ptable2.*
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.impl.ui.PropertyTooltip
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Insets
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JTable
 import kotlin.math.max
 
 const val LEFT_STANDARD_INDENT = 2
@@ -67,5 +70,18 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
     }
     ipad = Insets(0, indent, 0, 0)
     return this
+  }
+
+  override fun getToolTipText(event: MouseEvent): String? {
+    // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+    val component = event.source as? JTable ?: return null
+    val tableRow = component.rowAtPoint(event.point)
+    val tableColumn = component.columnAtPoint(event.point)
+    if (tableRow < 0 || tableColumn < 0) {
+      return null
+    }
+    val item = component.getValueAt(tableRow, tableColumn)
+    val property = item as? PropertyItem ?: return null
+    return PropertyTooltip.setToolTip(component, event, property, forValue = tableColumn == 1, text = "")
   }
 }

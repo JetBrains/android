@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_BORDER_COLOR
 import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_FILL_COLOR
 import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_TEXT_COLOR
 import com.android.tools.property.panel.api.PropertyItem
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.intellij.ide.IdeTooltip
 import com.intellij.ide.IdeTooltipManager
@@ -51,7 +52,8 @@ private const val TIP_WIDTH_END = "</div>"
  * the IJ IdeTooltipManager.
  */
 class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(component, point, TooltipComponent()) {
-  private val tip = tipComponent as TooltipComponent
+  @VisibleForTesting
+  internal val tip = tipComponent as TooltipComponent
 
   override fun onHidden() {
     // Remove references to this custom tool tip
@@ -131,7 +133,8 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
   }
 }
 
-private class TooltipComponent: JPanel(BorderLayout()) {
+@VisibleForTesting
+internal class TooltipComponent: JPanel(BorderLayout()) {
   private val iconLabel = JBLabel()
   private val textLabel = JBLabel()
 
