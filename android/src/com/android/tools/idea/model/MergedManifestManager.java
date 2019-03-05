@@ -147,6 +147,6 @@ public class MergedManifestManager {
   @Slow
   @NotNull
   public static MergedManifestSnapshot getSnapshot(@NotNull AndroidFacet facet) {
-    return getSnapshot(facet, true);
+    return getSnapshot(facet, false);
   }
 }
