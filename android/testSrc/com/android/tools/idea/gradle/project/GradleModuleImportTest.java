@@ -110,7 +110,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     }
   }
 
-  private static void assertModuleInSettingsFile(Project project, String name) throws IOException {
+  private static void assertModuleInSettingsFile(Project project, String name) {
     GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
     assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsFile);
     Iterable<String> modules = settingsFile.getModules();
@@ -120,8 +120,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     }
   }
 
-  private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot)
-    throws IOException {
+  private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot) {
     assertNotNull("Module sources were not copied", project.getBaseDir().findFileByRelativePath(relativePath));
     final VirtualFile[] moduleChildren = moduleRoot.getChildren();
     assertNoFilesAdded(moduleChildren);
@@ -288,7 +287,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project1 != null && project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -302,7 +301,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   public void testMissingRequiredProjects() throws IOException {
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -330,7 +329,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -346,7 +345,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1), module(3));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -365,8 +364,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
         myFixture.tearDown();
         myFixture = null;
       }
-      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-      Project[] openProjects = projectManager.getOpenProjects();
+      Project[] openProjects = ProjectManagerEx.getInstanceEx().getOpenProjects();
       if (openProjects.length > 0) {
         final Project project = openProjects[0];
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
