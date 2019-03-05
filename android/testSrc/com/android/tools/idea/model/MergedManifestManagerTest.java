@@ -374,6 +374,32 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals("com.android.unittest3", snapshot.getPackage());
   }
 
+  public void testLoadFromDisk() {
+    @Language("xml")
+    final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                   "    package='com.android.unittest'>\n" +
+                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                   "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                                   "    <uses-permission\n" +
+                                   "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                                   "    <permission\n" +
+                                   "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                                   "        android:protectionLevel=\"dangerous\" />\n" +
+                                   "</manifest>\n";
+
+    ManifestInfo.ManifestFile file = ManifestInfo.ManifestFile.create(myFacet);
+
+    // On the first load, the manifest is out of date and it will load even with forceLoad = false
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
+    // Now, it's up to date, so the next call will return null
+    assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, true));
+    updateManifestContents(originalContent.replace("unittest", "unittest2"));
+    // Even with forceLoad == false, now we should refresh from disk since we've changed the manifest
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
+
+  }
+
   @SuppressWarnings("ConstantConditions")
   private static class TestAndroidTarget implements IAndroidTarget {
     private final int mApiLevel;
