@@ -28,6 +28,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -86,6 +87,7 @@ public class ResourceFolderRegistry {
 
     ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
     assert repository.getNamespace().equals(namespace);
+    assert !Disposer.isDisposed(repository);
 
     // TODO(b/80179120): figure out why this is not always true.
     // assert repository.getFacet().equals(facet);
