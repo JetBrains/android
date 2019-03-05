@@ -672,7 +672,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",  # fails 0 out of 3000 runs
-        "qa_unreliable",  # b/122276901
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
