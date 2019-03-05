@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.intellij.openapi.application.ApplicationManager
@@ -73,7 +74,13 @@ class BuildCppKotlinTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   fun buildCppKotlinProj() {
-    val ideFrame = guiTest.importProject("CppKotlin")
+    val ideFrame = try {
+      guiTest.importProject("CppKotlin")
+    } catch(timeout: WaitTimedOutError) {
+      // Ignore. We do not care about project indexing or syncing timeouts in QA tests
+      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
+      guiTest.ideFrame()
+    }
 
     // TODO remove the following hack: b/110174414
     val androidSdk = IdeSdks.getInstance().androidSdkPath
