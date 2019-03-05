@@ -23,13 +23,13 @@ import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.Installer;
-import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
@@ -92,25 +92,36 @@ public abstract class AbstractDeployTask implements LaunchTask {
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
     Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer, ideService, logger);
+    List<String> idsSkippedInstall = new ArrayList<>();
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
       try {
-        Collection<DeployMetric> metrics = perform(device, deployer, applicationId, apkFiles);
-        addSubTaskDetails(metrics);
+        Deployer.Result result = perform(device, deployer, applicationId, apkFiles);
+        addSubTaskDetails(result.metrics);
+        if (result.skippedInstall) {
+          idsSkippedInstall.add(applicationId);
+        }
       }
       catch (DeployerException e) {
         return toLaunchResult(e);
       }
     }
 
-    NOTIFICATION_GROUP.createNotification(getDescription() + " successful", NotificationType.INFORMATION)
-      .setImportant(false).notify(myProject);
+    if (idsSkippedInstall.isEmpty()) {
+      NOTIFICATION_GROUP.createNotification(getDescription() + " successful", NotificationType.INFORMATION)
+        .setImportant(false).notify(myProject);
+    } else {
+      NOTIFICATION_GROUP.createNotification(getDescription() + " successful",
+                                            createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size())
+        ,NotificationType.INFORMATION, null)
+        .setImportant(false).notify(myProject);
+    }
 
     return new LaunchResult();
   }
 
-  abstract protected Collection<DeployMetric> perform(
+  abstract protected Deployer.Result perform(
     IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
   private String getLocalInstaller() {
@@ -175,6 +186,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     result.setErrorId(e.getId());
     return result;
   }
+
+  protected abstract String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all);
 
   private class DeploymentErrorNotificationListener implements NotificationListener {
     @Override
