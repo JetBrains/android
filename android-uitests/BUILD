@@ -112,6 +112,8 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
     ],
 )
 
@@ -303,6 +305,19 @@ java_test(
     name = "AndroidProfilerTest",
     data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
+    tags = COMMON_TAGS,
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "DeploymentTest",
+    data = COMMON_DATA + [
+        "//tools/base/deploy/deployer:test_apks",
+    ] + glob([
+        "testData/simple/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

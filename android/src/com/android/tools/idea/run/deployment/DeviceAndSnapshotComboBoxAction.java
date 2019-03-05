@@ -202,6 +202,17 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Instant.parse(time);
   }
 
+  @VisibleForTesting
+  public final boolean setSelectedDevice(@NotNull Project project, @Nullable String key) {
+    List<Device> devices = getDevices(project);
+    Device device = devices.stream().filter(d -> d.getKey().equals(key)).findFirst().orElse(null);
+    if (device == null) {
+      return false;
+    }
+    setSelectedDevice(project, device);
+    return true;
+  }
+
   final void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
     PropertiesComponent properties = myGetProperties.apply(project);
 
