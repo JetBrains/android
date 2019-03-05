@@ -336,6 +336,44 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals("com.android.unittest2", snapshot.getPackage());
   }
 
+  public void testDefaultCaching() {
+    Clock.setTime(System.currentTimeMillis());
+    @Language("xml")
+    final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                   "    package='com.android.unittest'>\n" +
+                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                   "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                                   "    <uses-permission\n" +
+                                   "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                                   "    <permission\n" +
+                                   "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                                   "        android:protectionLevel=\"dangerous\" />\n" +
+                                   "</manifest>\n";
+
+    // We've never loaded a snapshot so that must return null
+    assertNull(MergedManifestManager.getCachedSnapshot(myFacet));
+
+    getMergedManifest(originalContent);
+    assertEquals("com.android.unittest", MergedManifestManager.getCachedSnapshot(myFacet).getPackage());
+
+    updateManifestContents(originalContent.replace("unittest", "unittest2"));
+    MergedManifestSnapshot snapshot = MergedManifestManager.getSnapshot(myFacet);
+    assertEquals("com.android.unittest", snapshot.getPackage());
+
+    snapshot = MergedManifestManager.getSnapshot(myFacet.getModule());
+    assertEquals("com.android.unittest", snapshot.getPackage());
+
+    // Advance time to make sure the refresh happens
+    Clock.setTime(Clock.getTime() + TimeUnit.DAYS.toMillis(1));
+    snapshot = MergedManifestManager.getSnapshot(myModule);
+    assertEquals("com.android.unittest2", snapshot.getPackage());
+
+    updateManifestContents(originalContent.replace("unittest", "unittest3"));
+    Clock.setTime(Clock.getTime() + TimeUnit.DAYS.toMillis(1));
+    snapshot = MergedManifestManager.getSnapshot(myFacet);
+    assertEquals("com.android.unittest3", snapshot.getPackage());
+  }
+
   @SuppressWarnings("ConstantConditions")
   private static class TestAndroidTarget implements IAndroidTarget {
     private final int mApiLevel;
