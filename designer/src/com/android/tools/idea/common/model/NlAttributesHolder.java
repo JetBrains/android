@@ -23,10 +23,8 @@ import static com.android.SdkConstants.ANDROID_URI;
 /**
  * Interface for elements dealing with {@link NlComponent} attributes.
  */
-public interface NlAttributesHolder {
+public interface NlAttributesHolder extends NlAttributesReader {
   void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value);
-
-  String getAttribute(@Nullable String namespace, @NotNull String attribute);
 
   default void removeAndroidAttribute(@NotNull String name) {
     setAttribute(ANDROID_URI, name, null);
@@ -43,11 +41,9 @@ public interface NlAttributesHolder {
     setAttribute(ANDROID_URI, name, value);
   }
 
-  /**
-   * Gets an attribute value from the "android" namespace.
-   */
   @Nullable
-  default String getAndroidAttribute(@NotNull String name) {
-    return getAttribute(ANDROID_URI, name);
+  @Override
+  default String getAndroidAttribute(@NotNull String attribute) {
+    return getAttribute(ANDROID_URI, attribute);
   }
 }
