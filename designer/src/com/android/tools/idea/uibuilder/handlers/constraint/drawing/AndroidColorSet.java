@@ -67,8 +67,8 @@ public class AndroidColorSet extends ColorSet {
         // Selected colors
 
         mSelectedBackground = mBackground;
-        mSelectedFrames = Color.blue;
-        mSelectedConstraints = Color.blue;
+        mSelectedFrames = new Color(24, 134, 247);
+        mSelectedConstraints = new Color(24, 134, 247);
         mSelectedText = Color.black;
 
         mSelectionColor = Color.black;

@@ -852,6 +852,26 @@ public class DrawConnectionUtils {
                                           @SwingCoordinate int y) {
     g.drawLine(x1, y, x2, y);
 
+    drawHorizontalMarginString(g, /* stringColor= */ null, string, isReference, x1, x2, y);
+  }
+
+  /**
+   * Draw the text of an horizontal margin line.
+   *
+   * @param stringColor The color of the text, may be null and use current color.
+   * @param string      The margin value to display. May be null.
+   */
+  public static void drawHorizontalMarginString(@NotNull Graphics2D g,
+                                                @Nullable Color stringColor,
+                                                @Nullable String string,
+                                                boolean isReference,
+                                                @SwingCoordinate int x1,
+                                                @SwingCoordinate int x2,
+                                                @SwingCoordinate int y) {
+    if (stringColor != null) {
+      g.setColor(stringColor);
+    }
+
     if (string != null) {
       Font previousFont = g.getFont();
       g.setFont(sFont);
@@ -879,6 +899,26 @@ public class DrawConnectionUtils {
                                         @SwingCoordinate int y1,
                                         @SwingCoordinate int y2) {
     g.drawLine(x, y1, x, y2);
+
+    drawVerticalMarginString(g, /* stringColor= */ null, string, isReference, x, y1, y2);
+  }
+
+  /**
+   * Draw the text of a vertical margin line.
+   *
+   * @param stringColor The color of the text, may be null and use current color.
+   * @param string      The margin value to display. May be null.
+   */
+  public static void drawVerticalMarginString(@NotNull Graphics2D g,
+                                                @Nullable Color stringColor,
+                                                @Nullable String string,
+                                                boolean isReference,
+                                                @SwingCoordinate int x,
+                                                @SwingCoordinate int y1,
+                                                @SwingCoordinate int y2) {
+    if (stringColor != null) {
+      g.setColor(stringColor);
+    }
 
     if (string != null) {
       Font previousFont = g.getFont();
