@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Ordering;
 import com.intellij.application.options.ModulesComboBox;
@@ -42,6 +41,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor,
                                                                                                                        ActionListener {
@@ -170,7 +170,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
     myModuleSelector.reset(configuration);
 
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+    if (myDeploymentTargetOptions != null) {
       myDeploymentTargetOptions.resetFrom(configuration);
     }
 
@@ -191,7 +191,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   protected void applyEditorTo(@NotNull T configuration) {
     myModuleSelector.applyTo(configuration);
 
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+    if (myDeploymentTargetOptions != null) {
       myDeploymentTargetOptions.applyTo(configuration);
     }
 
@@ -235,5 +235,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @VisibleForTesting
   public ConfigurationSpecificEditor<T> getConfigurationSpecificEditor() {
     return myConfigurationSpecificEditor;
+  }
+
+  @Nullable
+  @VisibleForTesting
+  DeploymentTargetOptions getDeploymentTargetOptions() {
+    return myDeploymentTargetOptions;
   }
 }

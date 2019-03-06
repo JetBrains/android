@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
@@ -36,12 +37,22 @@ import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 final class DeploymentTargetOptions {
+  @NotNull
   private final List<DeployTargetProvider> myProviders;
+
+  @NotNull
   private final Map<String, DeployTargetConfigurableWrapper> myIdToConfigurableMap;
 
+  @NotNull
   private final Component mySeparator;
+
+  @NotNull
   private final Component myTargetLabel;
+
+  @NotNull
   private final JComboBox<DeployTargetProvider> myTargetComboBox;
+
+  @NotNull
   private final CardLayoutPanel<Configurable, Configurable, JComponent> myCardLayoutPanel;
 
   DeploymentTargetOptions(@NotNull List<DeployTargetProvider> providers,
@@ -153,5 +164,11 @@ final class DeploymentTargetOptions {
 
     int id = configuration.hashCode();
     myProviders.forEach(provider -> myIdToConfigurableMap.get(provider.getId()).applyTo(context.getDeployTargetState(provider), id));
+  }
+
+  @NotNull
+  @VisibleForTesting
+  JComboBox getTargetComboBox() {
+    return myTargetComboBox;
   }
 }
