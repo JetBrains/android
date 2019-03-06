@@ -84,4 +84,21 @@ public class SelectionModelTest {
     model.toggle(component1);
     assertFalse(called.get());
   }
+  @Test
+  public void testSubSelection() {
+    SelectionModel model = new SelectionModel();
+    assertTrue(model.isEmpty());
+    NlComponent component1 = mock(NlComponent.class);
+    NlComponent component2 = mock(NlComponent.class);
+    model.setSecondarySelection(component1,"left");
+    assertEquals("did not store secondary selection" ,
+                 model.getSecondarySelection(),"left");
+    assertEquals("component should be primary selection",
+                 component1, model.getPrimary());
+    model.toggle(component2);
+    assertNull("Selecting a component should clear secondary selection" ,
+                 model.getSecondarySelection());
+    model.setSecondarySelection(component1,"left");
+
+  }
 }
