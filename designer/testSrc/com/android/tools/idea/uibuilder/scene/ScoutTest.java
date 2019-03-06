@@ -69,10 +69,10 @@ public class ScoutTest extends SceneTest {
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,450,490,100,20,1,20,20\n" +
-                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,false,2,0,0\n" +
-                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,false,2,0,0\n" +
-                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,false,2,0,0\n" +
-                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,false,2,0,0\n" +
+                        "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -82,10 +82,10 @@ public class ScoutTest extends SceneTest {
     String result = disp.generateSortedDisplayList();
     String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
-                    "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,false,2,0,0\n" +
-                    "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,false,2,0,0\n" +
-                    "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,false,2,0,0\n" +
-                    "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,false,2,0,0\n" +
+                    "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                    "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                    "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                    "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                     "DrawComponentBackground,450,490,100,20,1\n" +
                     "DrawTextRegion,450,490,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                     "DrawNlComponentFrame,450,490,100,20,1,20,20\n" +
