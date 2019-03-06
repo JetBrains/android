@@ -8,8 +8,10 @@ iml_module(
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
+        "//tools/idea/images:intellij.platform.images",
+        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
+        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
