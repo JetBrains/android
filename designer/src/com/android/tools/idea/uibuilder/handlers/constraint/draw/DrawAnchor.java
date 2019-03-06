@@ -54,7 +54,6 @@ public class DrawAnchor extends DrawRegion {
   private final Mode myMode;
   private final boolean myIsConnected;
   private final Type myType;
-  private final boolean myIsComponentSelected;
 
   public DrawAnchor(@SwingCoordinate int x,
                     @SwingCoordinate int y,
@@ -62,13 +61,11 @@ public class DrawAnchor extends DrawRegion {
                     @SwingCoordinate int height,
                     Type type,
                     boolean isConnected,
-                    Mode mode,
-                    boolean isComponentSelected) {
+                    Mode mode) {
     super(x, y, width, height);
     myMode = mode;
     myIsConnected = isConnected;
     myType = type;
-    myIsComponentSelected = isComponentSelected;
   }
 
   private static int getPulseAlpha(int deltaT) {
@@ -85,16 +82,8 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
-    Shape originalClip = null;
-    if (myIsComponentSelected) {
-      originalClip = g.getClip();
-      g.setClip(sceneContext.getRenderableBounds());
-    }
     if (myType == Type.BASELINE) {
       paintBaseline(g, sceneContext);
-      if (originalClip != null) {
-        g.setClip(originalClip);
-      }
       return;
     }
 
@@ -159,10 +148,6 @@ public class DrawAnchor extends DrawRegion {
       sceneContext.repaint();
       g.setComposite(comp);
     }
-
-    if (originalClip != null) {
-      g.setClip(originalClip);
-    }
   }
 
   public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
@@ -222,16 +207,14 @@ public class DrawAnchor extends DrawRegion {
                          @AndroidDpCoordinate float y,
                          Type type,
                          boolean isConnected,
-                         Mode mode,
-                         boolean isComponentSelected) {
+                         Mode mode) {
     assert type != Type.BASELINE;
     @SwingCoordinate int swingX = transform.getSwingXDip(x);
     @SwingCoordinate int swingY = transform.getSwingYDip(y);
 
     int l = swingX - AnchorTarget.ANCHOR_SIZE;
     int t = swingY - AnchorTarget.ANCHOR_SIZE;
-    int size = AnchorTarget.ANCHOR_SIZE * 2;
-    list.add(new DrawAnchor(l, t, size, size, type, isConnected, mode, isComponentSelected));
+    list.add(new DrawAnchor(l, t, AnchorTarget.ANCHOR_SIZE * 2, AnchorTarget.ANCHOR_SIZE * 2, type, isConnected, mode));
   }
 
   public static void addBaseline(@NotNull DisplayList list,
@@ -241,8 +224,7 @@ public class DrawAnchor extends DrawRegion {
                                  @AndroidDpCoordinate float componentWidth,
                                  Type type,
                                  boolean isConnected,
-                                 Mode mode,
-                                 boolean isComponentSelected) {
+                                 Mode mode) {
     assert type == Type.BASELINE;
     @SwingCoordinate int swingX = transform.getSwingXDip(x);
     @SwingCoordinate int swingY = transform.getSwingYDip(y);
@@ -251,6 +233,6 @@ public class DrawAnchor extends DrawRegion {
     int l = swingX - swingWidth / 2 + AnchorTarget.ANCHOR_SIZE;
     int t = swingY - AnchorTarget.ANCHOR_SIZE / 2;
     int w = swingWidth - 2 * AnchorTarget.ANCHOR_SIZE;
-    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE, type, isConnected, mode, isComponentSelected));
+    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE, type, isConnected, mode));
   }
 }
