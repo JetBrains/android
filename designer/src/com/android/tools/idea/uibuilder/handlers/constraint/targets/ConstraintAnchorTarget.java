@@ -735,7 +735,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
           }
         }
         if (!allItems.isEmpty()) {
-          JBPopupMenu menu = new JBPopupMenu("Connect to:"); // FIXME: fuck this.
+          JBPopupMenu menu = new JBPopupMenu("Connect to:");
           for (SceneComponent component : allItems) {
             list.set(1, component.getAuthoritativeNlComponent());
             switch (myType) {
