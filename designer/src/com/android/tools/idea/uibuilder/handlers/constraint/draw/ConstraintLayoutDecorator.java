@@ -436,7 +436,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         }
         DrawConnection
           .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
-                            isMarginReference, bias, child.isSelected(), previousMode, currentMode, changeStart);
+                            isMarginReference, bias, previousMode, currentMode, changeStart);
         if (currentMode == DrawConnection.MODE_WILL_DESTROY) {
           if (destType == DrawConnection.DEST_GUIDELINE) {
             int over_size_line = 3000;
@@ -470,7 +470,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                           DrawConnection.TYPE_BASELINE,
                           DrawConnection.DEST_NORMAL,
                           false, 0, 0, false,
-                          0f, child.isSelected(), previousMode, currentMode, changeStart);
+                          0f, previousMode, currentMode, changeStart);
     }
   }
 
