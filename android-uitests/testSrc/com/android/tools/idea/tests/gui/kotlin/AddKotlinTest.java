@@ -20,16 +20,24 @@ import com.android.tools.idea.npw.model.JavaToKotlinHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.StudioRobot;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import javax.swing.JButton;
 import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +58,13 @@ public class AddKotlinTest {
 
   private static final String PROJECT_DIR_NAME = "LinkProjectWithKotlin";
   private static final String PACKAGE_NAME = "com.android.linkprojectwithkotlin";
+
+  @Before
+  public void enableXwinClipboardWorkaround() {
+    CopyPasteManager cpm = CopyPasteManager.getInstance();
+    StudioRobot robot = (StudioRobot) guiTest.robot();
+    robot.enableXwinClipboardWorkaround(cpm);
+  }
 
   /**
    * Verifies user can link project with Kotlin.
@@ -130,8 +145,25 @@ public class AddKotlinTest {
     editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
     // As default, "All modules containing Kotlin files" option is selected for now.
-    ConfigureKotlinDialogFixture.find(ideFrameFixture)
-      .clickOk();
+    ConfigureKotlinDialogFixture cfgKotlin = ConfigureKotlinDialogFixture.find(ideFrameFixture);
+    // OK button can take a while to be enabled. We just wait for the button to be available, and
+    // then we explicitly wait a long time for it to be enabled. This lets us have a less
+    // strict wait for the button to be clickable.
+    JButton okButton = GuiTests.waitUntilShowing(
+      ideFrameFixture.robot(),
+      cfgKotlin.target(),
+      Matchers.byText(JButton.class, "OK")
+    );
+
+    JButtonFixture okButtonFixture = new JButtonFixture(
+      ideFrameFixture.robot(),
+      okButton
+    );
+    Wait.seconds(TimeUnit.MINUTES.toSeconds(5))
+      .expecting("OK button to be enabled")
+      .until(() -> okButtonFixture.isEnabled());
+
+    okButtonFixture.click();
 
     // TODO: the following is a hack. See http://b/79752752 for removal of the hack
     // The Kotlin plugin version chosen is done with a network request. This does not work
@@ -175,10 +207,17 @@ public class AddKotlinTest {
     if (ioError != null) {
       throw new Exception("Unable to modify build.gradle file", ioError);
     }
+    guiTest.waitForBackgroundTasks();
     // TODO End hack
 
     ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @After
+  public void disableXwinClipboardWorkaround() {
+    StudioRobot robot = (StudioRobot) guiTest.robot();
+    robot.disableXwinClipboardWorkaround();
   }
 }
