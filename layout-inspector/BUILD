@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.iml"],
     test_data = ["//tools/adt/idea/layout-inspector/testData"],
     test_resources = ["testData"],
+    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
