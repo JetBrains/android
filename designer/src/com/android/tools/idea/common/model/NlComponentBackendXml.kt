@@ -139,7 +139,7 @@ open class NlComponentBackendXml private constructor(
     val xmlTag = tag
     if (xmlTag == null) {
       Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
-        "Unable to get attribute from ${getTagName()} becaause XmlTag is invalidated ${getStackTrace()}")
+        "Unable to get attribute from ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return null
     }
     return xmlTag.getAttributeValue(attribute, namespace)
