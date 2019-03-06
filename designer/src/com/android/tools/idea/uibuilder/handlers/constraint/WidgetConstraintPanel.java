@@ -43,6 +43,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * UI component for Constraint Inspector
  */
 public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPanel {
+  private static final String PANEL_TITLE = "Constraint Widget";
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
@@ -100,6 +102,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mVerticalSlider.addFocusListener(new ScrollToViewFocusListener(mVerticalSlider));
     mHorizontalSlider.addFocusListener(new ScrollToViewFocusListener(mHorizontalSlider));
 
+    JLabel title = new JLabel(PANEL_TITLE);
+    title.setSize(JBUI.size(280, 20));
+    title.setBorder(JBUI.Borders.emptyLeft(8));
+    add(title);
     add(mVerticalSlider);
     add(mMain);
     add(mHorizontalSlider);
@@ -289,6 +295,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       if (slider.getOrientation() == SwingConstants.VERTICAL) {
         percentText = Integer.toString(100 - slider.getValue());
       }
+
       else {
         percentText = Integer.toString(slider.getValue());
       }
