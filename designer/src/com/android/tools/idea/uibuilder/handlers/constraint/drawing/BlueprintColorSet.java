@@ -35,13 +35,11 @@ public class BlueprintColorSet extends ColorSet {
 
         // Base colors
 
-        //mBackground = new Color(24, 55, 112);
         mBackground = new Color(35, 77, 110);
         mComponentObligatoryBackground = mBackground;
         mComponentBackground = new Color(51, 105, 153, 125);
         mComponentHighlightedBackground = new Color(51, 105, 153, 185);
         mFrames = new Color(100, 152, 199);
-        //mConstraints = new Color(102, 129, 204);
         mConstraints = new Color(106, 161, 211);
         mSoftConstraintColor = new Color(102, 129, 204, 80);
         mButtonBackground  = new Color(51, 105, 153, 160);
@@ -70,10 +68,8 @@ public class BlueprintColorSet extends ColorSet {
         // Selected colors
 
         mSelectedBackground = ColorTheme.updateBrightness(mBackground, 1.3f);
-        mSelectedConstraints = ColorTheme.fadeToColor(
-                ColorTheme.updateBrightness(mConstraints, 2f),
-                Color.white, 0.7f);
-        mSelectedFrames = ColorTheme.fadeToColor(mSelectedConstraints, mSelectedBackground, 0.2f);
+        mSelectedConstraints = Color.white;
+        mSelectedFrames = Color.white;
         mSelectedText = ColorTheme.fadeToColor(mText, mSelectedBackground, 0.7f);
 
         // Anchor colors
