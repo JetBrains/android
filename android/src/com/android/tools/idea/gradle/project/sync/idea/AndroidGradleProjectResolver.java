@@ -50,6 +50,7 @@ import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
@@ -65,6 +66,12 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
+import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
+import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector;
+import com.android.tools.idea.gradle.project.sync.ng.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -94,6 +101,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -105,6 +113,7 @@ import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
+import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -218,8 +227,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     Collection<SyncIssue> syncIssues = new ArrayList<>();
     String moduleName = gradleModule.getName();
 
+    VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
+
     if (androidProject != null) {
       Variant selectedVariant = myVariantSelector.findVariantToSelect(androidProject);
+      if (selectedVariant == null && variantGroup != null) {
+        List<Variant> variants = variantGroup.getVariants();
+        // If we have single variant sync enabled the Variant model comes separately, select the first one.
+        // All are added to the AndroidModuleModel below.
+        if (!variants.isEmpty()) {
+          selectedVariant = variants.get(0);
+        }
+      }
       if (selectedVariant == null) {
         // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.
         // For now we are going to treat this case as a Java library module, because everywhere in the IDE (e.g. run configurations,
@@ -230,9 +249,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         syncIssues = androidProject.getSyncIssues();
       }
       else {
-        String variantName = selectedVariant.getName();
         AndroidModuleModel model =
-          new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName, myDependenciesFactory);
+          new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, selectedVariant.getName(), myDependenciesFactory,
+                                 (variantGroup == null) ? null : variantGroup.getVariants());
         populateKaptKotlinGeneratedSourceDir(gradleModule, model);
         ideModule.createChild(ANDROID_MODEL, model);
       }
@@ -241,7 +260,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
       IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy, emptyList());
+      List<IdeNativeVariantAbi> ideNativeVariantAbis = new ArrayList<>();
+      if (variantGroup != null) {
+        ideNativeVariantAbis.addAll(variantGroup.getNativeVariants().stream().map(IdeNativeVariantAbi::new).collect(Collectors.toList()));
+      }
+
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy, ideNativeVariantAbis);
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
@@ -440,6 +464,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return modelClasses;
   }
 
+  @NotNull
+  @Override
+  public ProjectImportExtraModelProvider getExtraModelProvider() {
+    // TODO: Change to configureAndGetExtraModelProvider() to ensure SVS in old sync.
+    return super.getExtraModelProvider();
+  }
+
   @Override
   public void preImportCheck() {
     simulateRegisteredSyncError();
@@ -539,6 +570,31 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       builder.append(". ").append(recommendedVersion);
     }
     return builder.toString();
+  }
+
+  @NotNull
+  private AndroidExtraModelProvider configureAndGetExtraModelProvider() {
+    // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
+    // to decide which models t request from Gradle.
+    Project project = myProjectFinder.findProject(resolverCtx);
+    SelectedVariants selectedVariants = null;
+    boolean isSingleVariantSync = false;
+    boolean shouldGenerateSources = false;
+
+    if (project != null) {
+      isSingleVariantSync = NewGradleSync.isSingleVariantSync(project);
+      shouldGenerateSources = NewGradleSync.isCompoundSync(project);
+      if (isSingleVariantSync) {
+        SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
+        selectedVariants = variantCollector.collectSelectedVariants();
+      }
+    }
+
+    SyncActionOptions options = new SyncActionOptions();
+    options.setSingleVariantSyncEnabled(isSingleVariantSync);
+    options.setShouldGenerateSources(shouldGenerateSources);
+    options.setSelectedVariants(selectedVariants);
+    return new AndroidExtraModelProvider(options);
   }
 
   @Override
