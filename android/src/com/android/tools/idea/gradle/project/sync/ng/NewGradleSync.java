@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static java.util.Arrays.asList;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -33,7 +35,6 @@ import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
@@ -48,10 +49,16 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -216,6 +223,12 @@ public class NewGradleSync implements GradleSync {
         return false;
       }
 
+      // The library jar files are missing from disk, this will happen if Gradle cache is removed from disk.
+      if (areCachedFilesMissing(myProject)) {
+        Logger.getInstance(NewGradleSync.class).info("Cached library files are missing from disk. Performing a Gradle Sync.");
+        return false;
+      }
+
       setupRequest.generateSourcesAfterSync = true;
       setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
@@ -234,6 +247,41 @@ public class NewGradleSync implements GradleSync {
       return false;
     }
     return true;
+  }
+
+  /**
+   * @return true if the expected jars from cached libraries don't exist on disk.
+   */
+  public static boolean areCachedFilesMissing(@NotNull Project project) {
+    final Ref<Boolean> missingFileFound = Ref.create(false);
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+      rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
+        for (OrderRootType type : OrderRootType.getAllTypes()) {
+          List<String> expectedUrls = asList(entry.getUrls(type));
+          // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
+          // all files are missing.
+          if (type.equals(CLASSES)) {
+            if (expectedUrls.stream().noneMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) != null)) {
+              missingFileFound.set(true);
+              return false; // Don't continue with processor.
+            }
+          }
+          // For other types of root, fail validation if any file is missing. This includes annotation processor, sources and javadoc.
+          else {
+            if (expectedUrls.stream().anyMatch(url -> VirtualFileManager.getInstance().findFileByUrl(url) == null)) {
+              missingFileFound.set(true);
+              return false; // Don't continue with processor.
+            }
+          }
+        }
+        return true;
+      });
+      if (missingFileFound.get()) {
+        return true;
+      }
+    }
+    return missingFileFound.get();
   }
 
   private static PostSyncProjectSetup.Request createPostSyncRequest(@NotNull GradleSyncInvoker.Request request) {
