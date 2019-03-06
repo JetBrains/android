@@ -51,10 +51,11 @@ public class DrawResize extends DrawRegion {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getSelectedFrames();
+    Color borderColor = colorSet.getComponentObligatoryBackground();
     g.setColor(background);
     g.fillRect(x, y, width, height);
     //noinspection UseJBColor
-    g.setColor(Color.WHITE);
+    g.setColor(borderColor);
     g.drawRect(x, y, width, height);
   }
 

@@ -421,8 +421,9 @@ public class DrawConnection implements DrawCommand {
 
               int marginX = endx - ((endx > startx) ? gap : -gap);
               int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-              g.setColor(marginColor);
-              DrawConnectionUtils.drawHorizontalMargin(g, marginString, isMarginReference, marginX, endx - arrow, endy);
+              g.setColor(constraintColor);
+              g.drawLine(marginX, endy, endx - arrow, endy);
+              DrawConnectionUtils.drawHorizontalMarginString(g, marginColor, marginString, isMarginReference, marginX, endx - arrow, endy);
 
               springEndX = marginX;
             }
@@ -435,8 +436,9 @@ public class DrawConnection implements DrawCommand {
 
               int marginY = endy - ((endy > starty) ? gap : -gap);
               int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-              g.setColor(marginColor);
-              DrawConnectionUtils.drawVerticalMargin(g, marginString, isMarginReference, endx, marginY, endy - arrow);
+              g.setColor(constraintColor);
+              g.drawLine(endx, marginY, endx, endy - arrow);
+              DrawConnectionUtils.drawVerticalMarginString(g, marginColor, marginString, isMarginReference, endx, marginY, endy - arrow);
 
               springEndY = marginY;
             }
