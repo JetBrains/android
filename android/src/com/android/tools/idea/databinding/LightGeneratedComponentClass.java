@@ -196,7 +196,7 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
         SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
         "package " + myMode.packageName + ";\n"
         + "public interface DataBindingComponent {}"
-      , false, true, true, myFacet.getModule().getProject().getBaseDir());
+      , false, true, true, null);
 
     }
     return myContainingFile;
