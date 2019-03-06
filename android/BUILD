@@ -183,7 +183,6 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
