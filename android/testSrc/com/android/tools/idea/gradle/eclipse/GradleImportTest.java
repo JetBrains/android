@@ -3365,7 +3365,12 @@ public class GradleImportTest extends AndroidTestCase {
     removeJcenter(new File(base, "build.gradle"));
     AndroidGradleTests.updateGradleVersions(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
-    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
+    try {
+      cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
+    }
+    catch (Throwable e) {
+      System.out.println(e.getMessage());
+    }
     cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
