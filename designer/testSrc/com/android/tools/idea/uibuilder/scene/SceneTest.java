@@ -47,8 +47,8 @@ public abstract class SceneTest extends LayoutTestCase {
     myModel = createModel().build();
     myScreen = new ScreenFixture(myModel);
     myScreen.withScale(1);
-    buildScene();
     ConstraintLayoutHandler.forceDefaultVisualProperties();
+    buildScene();
   }
 
   protected void buildScene() {

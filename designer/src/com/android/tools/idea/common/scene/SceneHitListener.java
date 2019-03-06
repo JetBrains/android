@@ -22,14 +22,13 @@ import com.android.tools.idea.common.scene.target.Target;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Hit listener implementation (used for hover / click detection)
  */
-class SceneHitListener implements ScenePicker.HitElementListener {
+class SceneHitListener {
   @NotNull private SelectionModel mySelectionModel;
   private ScenePicker myPicker = new ScenePicker();
   double myClosestComponentDistance = Double.MAX_VALUE;
@@ -40,7 +39,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
 
   public SceneHitListener(@NotNull SelectionModel selectionModel) {
     mySelectionModel = selectionModel;
-    myPicker.setSelectListener(this);
+    myPicker.setSelectListener((a, b) -> over(a, b));
   }
 
   public void setTargetFilter(@Nullable Predicate<Target> filter) {
@@ -61,7 +60,6 @@ class SceneHitListener implements ScenePicker.HitElementListener {
   }
 
   @SuppressWarnings("FloatingPointEquality")  // The values are directly assigned with no math, so this should be fine.
-  @Override
   public void over(Object over, double dist) {
     if (over instanceof Target) {
       if (!myTargertFilter.test((Target) over)) {
