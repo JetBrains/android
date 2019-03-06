@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestMessagesDialog;
@@ -39,7 +40,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 /**
  * Tests for {@link GradleDistributionCleanUpTask}
  */
-public class GradleDistributionCleanUpTaskTest extends AndroidGradleTestCase {
+public class GradleDistributionCleanUpTaskTest extends GradleSyncIntegrationTestCase {
   private TestMessagesDialog myTestDialog;
   private GradleDistributionCleanUpTask myCleanUpTask;
 
@@ -50,6 +51,21 @@ public class GradleDistributionCleanUpTaskTest extends AndroidGradleTestCase {
     Messages.setTestDialog(myTestDialog);
 
     myCleanUpTask = new GradleDistributionCleanUpTask();
+  }
+
+  @Override
+  protected boolean useNewSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
   }
 
   // See https://code.google.com/p/android/issues/detail?id=66880
