@@ -17,7 +17,6 @@ package com.android.tools.idea.run.editor;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
@@ -30,7 +29,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -62,7 +60,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox myShowLogcatCheckBox;
   private JCheckBox mySkipNoOpApkInstallation;
   private JCheckBox myForceStopRunningApplicationCheckBox;
-  private HyperlinkLabel myOldVersionLabel;
 
   private JComponent anchor;
 
@@ -229,39 +226,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myModulesComboBox) {
-      updateLinkState();
       if (myConfigurationSpecificEditor instanceof ApplicationRunParameters) {
         ((ApplicationRunParameters)myConfigurationSpecificEditor).onModuleChanged();
       }
     }
-  }
-
-  private void createUIComponents() {
-    // JBColor keeps a strong reference to its parameter func, so, using a lambda avoids this reference and fixes a leak
-    myOldVersionLabel = new HyperlinkLabel();
-
-    setSyncLinkMessage("");
-  }
-
-  private void setSyncLinkMessage(@NotNull String syncMessage) {
-    myOldVersionLabel.setHyperlinkText("Instant Run requires a newer version of the Gradle plugin. ", "Update Project", " " + syncMessage);
-    myOldVersionLabel.repaint();
-  }
-
-  private void updateLinkState() {
-    Module module = getModuleSelector().getModule();
-    if (module == null) {
-      myOldVersionLabel.setVisible(false);
-      return;
-    }
-
-    AndroidModuleModel model = AndroidModuleModel.get(module);
-    if (model == null) {
-      myOldVersionLabel.setVisible(false);
-      return;
-    }
-
-    myOldVersionLabel.setVisible(true);
   }
 
   @VisibleForTesting
