@@ -46,11 +46,6 @@
     </component>
   </application-components>
 -->
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
-    </component>
-  </project-components>
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
@@ -126,6 +121,7 @@
                      enabledByDefault="true" level="WARNING"
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
 
+    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
   </extensions>
 
 </idea-plugin>

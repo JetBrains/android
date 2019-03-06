@@ -16,32 +16,36 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.utils.NullLogger
+import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.AbstractProjectComponent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.StatusBarEx
 
-class UserSentimentProjectComponent(val project: Project) : AbstractProjectComponent(project) {
-  override fun projectOpened() {
-    super.projectOpened()
+private class UserSentimentProjectComponent : ApplicationInitializedListener {
+  override fun componentsInitialized() {
+    ApplicationManager.getApplication().messageBus.connect().subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
+      override fun projectOpened(project: Project) {
+        if (!AnalyticsSettings.optedIn) {
+          return
+        }
 
-    if (!AnalyticsSettings.optedIn) {
-      return
-    }
+        val statusBar = WindowManager.getInstance().getStatusBar(project) as StatusBarEx
+        val positive = UserSentimentPanel(project, true)
+        val negative = UserSentimentPanel(project, false)
 
-    val statusBar = WindowManager.getInstance().getStatusBar(project) as StatusBarEx
-    val positive = UserSentimentPanel(project, true)
-    val negative = UserSentimentPanel(project, false)
+        statusBar.addWidget(positive, "after ReadOnlyAttribute")
+        statusBar.addWidget(negative, "after " + positive.ID())
 
-    statusBar.addWidget(positive, "after ReadOnlyAttribute")
-    statusBar.addWidget(negative, "after " + positive.ID())
-
-    Disposer.register(project, Disposable {
-      statusBar.removeWidget(positive.ID())
-      statusBar.removeWidget(negative.ID())
+        Disposer.register(project, Disposable {
+          statusBar.removeWidget(positive.ID())
+          statusBar.removeWidget(negative.ID())
+        })
+      }
     })
   }
 }

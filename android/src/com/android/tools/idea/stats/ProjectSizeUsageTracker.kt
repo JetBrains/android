@@ -24,7 +24,7 @@ import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.AbstractProjectComponent
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
@@ -33,8 +33,7 @@ import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 
-open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(project) {
-
+open class ProjectSizeUsageTracker(private val project: Project) : ProjectComponent {
   private enum class FileType(private val fileType: com.intellij.openapi.fileTypes.FileType,
                               private val statsFileType: IntellijProjectSizeStats.FileType) {
     JAVA(JavaFileType.INSTANCE, IntellijProjectSizeStats.FileType.JAVA),
@@ -72,7 +71,7 @@ open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(
 
 
   override fun projectOpened() {
-    myProject.messageBus.connect(myProject).subscribe<ProjectSystemSyncManager.SyncResultListener>(
+    project.messageBus.connect(project).subscribe<ProjectSystemSyncManager.SyncResultListener>(
       PROJECT_SYSTEM_SYNC_TOPIC,
       object : ProjectSystemSyncManager.SyncResultListener {
         override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
@@ -82,7 +81,7 @@ open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(
             val builder = AndroidStudioEvent
               .newBuilder()
               .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
-              .withProjectId(myProject)
+              .withProjectId(project)
             for (stats in fileCountStats) {
               builder.addIntellijProjectSizeStats(
                 IntellijProjectSizeStats.newBuilder()
@@ -104,7 +103,7 @@ open class ProjectSizeUsageTracker(project: Project) : AbstractProjectComponent(
       val fileType = FileType.values()[i % fileTypeSize]
       FileCountStats(globalSearchScope, fileType,
                      if (fileType.languageFileType() !is PlainTextFileType) {
-                       FileTypeIndex.getFiles(fileType.languageFileType(), globalSearchScope.globalSearchScope(myProject)).size
+                       FileTypeIndex.getFiles(fileType.languageFileType(), globalSearchScope.globalSearchScope(project)).size
                      }
                      else 0)
     }
