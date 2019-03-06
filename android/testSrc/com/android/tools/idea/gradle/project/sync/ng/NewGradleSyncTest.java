@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
@@ -39,11 +43,21 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCach
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -206,6 +220,110 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(mySyncMessages).removeAllMessages();
     // Full sync should have been executed.
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+  }
+
+  public void testSyncFromCachedModelsWithMissingJars() throws IOException {
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+    request.useCachedGradleModels = true;
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(true);
+
+    CachedProjectModels projectModelsCache = mock(CachedProjectModels.class);
+    when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
+
+    // Simulate the case when javadoc file is missing.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = createTempFileAndRefresh("res", "");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = new File(getProject().getBasePath(), "library-javadoc.jar");
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    // Full sync should have been executed.
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+  }
+
+  public void testAreCachedFilesMissingWithoutMissingFiles() throws IOException {
+    // Simulate the case that all files exist.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = createTempFileAndRefresh("res", "");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertFalse(areCachedFilesMissing(getProject()));
+  }
+
+  public void testAreCachedFilesMissingWithMissedSourceFile() throws IOException {
+    // Simulate the case that source file is missing.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = createTempFileAndRefresh("res", "");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+    File sourcePath = new File(getProject().getBasePath(), "library-sources.jar");
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertTrue(areCachedFilesMissing(getProject()));
+  }
+
+  public void testAreCachedFilesMissingWithMissedResFile() throws IOException {
+    // Simulate the case that res folder is missing. This should not cause a full sync because res folder
+    // are often non-existing.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = new File(getProject().getBasePath(), "res");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertFalse(areCachedFilesMissing(getProject()));
+  }
+
+  public void testAreCachedFilesMissingWithMissedResAndJarFile() throws IOException {
+    // Simulate the case that all of CLASSES files are missing.
+    File classesJarPath = new File(getProject().getBasePath(), "library.jar");
+    File resFolder = new File(getProject().getBasePath(), "res");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertTrue(areCachedFilesMissing(getProject()));
+  }
+
+  @NotNull
+  private File createTempFileAndRefresh(@NotNull String name, @NotNull String text) throws IOException {
+    File file = createTempFile(name, text);
+    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+    return file;
+  }
+
+  private void createLibraryEntry(@NotNull File classesJarPath,
+                                  @NotNull File resFolder,
+                                  @NotNull File sourcePath,
+                                  @NotNull File javadocPath) {
+    ModifiableRootModel rootModel = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+    LibraryTable libraryTable = rootModel.getModuleLibraryTable();
+    LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
+    Library library = libraryTableModel.createLibrary("Gradle: " + classesJarPath.getName());
+
+    Application application = ApplicationManager.getApplication();
+    application.runWriteAction(libraryTableModel::commit);
+
+    Library.ModifiableModel libraryModel = library.getModifiableModel();
+    libraryModel.addRoot(pathToIdeaUrl(classesJarPath), CLASSES);
+    libraryModel.addRoot(pathToIdeaUrl(resFolder), CLASSES);
+    libraryModel.addRoot(pathToIdeaUrl(sourcePath), SOURCES);
+    libraryModel.addRoot(pathToIdeaUrl(javadocPath), JavadocOrderRootType.getInstance());
+
+    application.runWriteAction(libraryModel::commit);
+    application.runWriteAction(rootModel::commit);
   }
 
   public void testSyncWithSuccessfulSync() {
