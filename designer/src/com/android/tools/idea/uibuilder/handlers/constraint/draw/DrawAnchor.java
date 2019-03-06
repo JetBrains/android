@@ -92,27 +92,28 @@ public class DrawAnchor extends DrawRegion {
     Color color = colorSet.getSelectedFrames();
 
     if (myMode == Mode.OVER) {
-      if (myIsConnected) {
-        g.setColor(colorSet.getAnchorDisconnectionCircle());
-      }
-      else {
-        g.setColor(colorSet.getAnchorConnectionCircle());
-      }
-      int delta = width / 3;
-      int delta2 = delta * 2;
-      g.fillRoundRect(x - delta, y - delta, width + delta2, height + delta2, width + delta2, height + delta2);
-      g.drawRoundRect(x - delta, y - delta, width + delta2, height + delta2, width + delta2, height + delta2);
+      // Draw a ring around the anchor Should go a bit over the white background.
+      int overRingOffset = width * 40/100;
+      int overRingWidth = width + (overRingOffset * 2);
+      g.setColor(color);
+      g.fillRoundRect(x - overRingOffset, y - overRingOffset, overRingWidth, overRingWidth, overRingWidth, overRingWidth);
     }
 
+    // The background of the anchor. Goes 20% extra width over the actual size (~2dp).
     g.setColor(background);
-    g.fillRoundRect(x, y, width, height, width, height);
+    int whiteSpaceOffset = width * 20/100;
+    int whiteSpaceWidth = width + (whiteSpaceOffset * 2);
+    g.fillRoundRect(x - whiteSpaceOffset, y - whiteSpaceOffset, whiteSpaceWidth, whiteSpaceWidth, whiteSpaceWidth, whiteSpaceWidth);
+
+    // The fill circle of an anchor.
     g.setColor(color);
-    g.drawRoundRect(x, y, width, height, width, height);
-    int delta = width / 4;
-    int delta2 = delta * 2;
-    if (myIsConnected) {
-      g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
-      g.drawRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
+    g.fillRoundRect(x, y, width, width, width, width);
+    if (!myIsConnected) {
+      // Add a "hole" for non-connected anchors.
+      int innerCircleOffset = width * 30 / 100;
+      int innerCircleWidth = width - (innerCircleOffset * 2);
+      g.setColor(background);
+      g.fillRoundRect(x + innerCircleOffset, y + innerCircleOffset, innerCircleWidth, innerCircleWidth, innerCircleWidth, innerCircleWidth);
     }
 
     if (myMode == Mode.CAN_CONNECT) {
@@ -124,6 +125,7 @@ public class DrawAnchor extends DrawRegion {
       sceneContext.repaint();
       g.setComposite(comp);
     }
+
     if (myMode == Mode.CANNOT_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
