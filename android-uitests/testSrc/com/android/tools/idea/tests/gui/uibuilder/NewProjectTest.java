@@ -77,7 +77,7 @@ public class NewProjectTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-      "Project '" + guiTest.getProjectPath() + "' Test Application",
+      "InspectionViewTree",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android",
       "        Lint",

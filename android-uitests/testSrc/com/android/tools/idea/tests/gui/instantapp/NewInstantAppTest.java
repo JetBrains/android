@@ -94,7 +94,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject(projectName, featureModuleName, activityName, false);
   }
 
-  private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn, String testName) {
+  private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
     String projectName = "Warning";
     createAndOpenDefaultAIAProject(projectName, null, null);
@@ -105,7 +105,7 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               "Project '.*" + testName + "/Warning' Warning",
+                               "InspectionViewTree",
                                "    Android",
                                "        Lint",
                                "            Correctness",
@@ -149,13 +149,13 @@ public class NewInstantAppTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/116163055
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_NO_UAB() {
-    testNoWarningsInDefaultNewInstantAppProjects(false, "testNoWarningsInDefaultNewInstantAppProjects_NO_UAB");
+    testNoWarningsInDefaultNewInstantAppProjects(false);
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/116163055
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_UAB() {
-    testNoWarningsInDefaultNewInstantAppProjects(true, "testNoWarningsInDefaultNewInstantAppProjects_UAB");
+    testNoWarningsInDefaultNewInstantAppProjects(true);
   }
 
   @Test
