@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
@@ -305,14 +306,15 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val targetSnapperY = targetSnapper.trySnapVertical(snappedY).orElse(snappedY)
 
     // TODO: Makes Live Rendering works when dragging widget between different ViewGroups
-    if (myComponent.scene.isLiveRenderingEnabled && ph is ConstraintPlaceholder && myComponent.parent == ph.host) {
+    if (isLiveRenderSupported(ph)) {
       // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged in the same ConstraintLayout
-      draggedComponents.forEachIndexed { index, it -> when (index) {
-        0 -> it.setPosition(targetSnapperX, targetSnapperY)
-        else -> it.setPosition(targetSnapperX + offsets[0].x - offsets[index].x, targetSnapperY + offsets[0].y - offsets[index].y)
-      } }
-
-      applyPlaceholder(ph, commit = false)
+      draggedComponents.forEachIndexed { index, it ->
+        val expectedX = if (index == 0) targetSnapperX else targetSnapperX + offsets[0].x - offsets[index].x
+        val expectedY = if (index == 0) targetSnapperY else targetSnapperY + offsets[0].y - offsets[index].y
+        val trans = it.authoritativeNlComponent.startAttributeTransaction()
+        (ph as ConstraintPlaceholder).updateAttribute(it, trans, expectedX, expectedY)
+        trans.apply()
+      }
 
       myComponent.authoritativeNlComponent.fireLiveChangeEvent()
       myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
@@ -355,11 +357,11 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   }
 
   /**
-   * Apply the given [Placeholder]. Returns true if succeed, false otherwise. If [commit] is true, the applied attributes will be
+   * Apply the given [Placeholder]. Returns true if succeed, false otherwise.
    * write to file directly.
    */
   @VisibleForTesting
-  fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true) {
+  fun applyPlaceholder(placeholder: Placeholder) {
     val parent = placeholder.host.authoritativeNlComponent
     val primaryNlComponent = myComponent.authoritativeNlComponent
     val model = primaryNlComponent.model
@@ -368,18 +370,27 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     val attributesTransactions = draggedComponents.map {
       val transaction = it.authoritativeNlComponent.startAttributeTransaction()
-      placeholder.updateAttribute(it, transaction)
+      if (!isLiveRenderSupported(placeholder)) {
+        // In live rendering case, the attributes are updated during mouse dragging.
+        placeholder.updateAttribute(it, transaction)
+      }
       transaction
     }
-    if (commit) {
-      model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
-        attributesTransactions.forEach { it.commit() }
-      }
-    }
-    else {
-      attributesTransactions.forEach { it.apply() }
+    model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
+      attributesTransactions.forEach { it.commit() }
     }
   }
+
+  /**
+   * Live rendering is applied under below conditions:
+   * 1. The live rendering option should be enabled.
+   * 2. [myComponent] is dragging in the ConstraintLayout. (The live rendering is supported in ConstraintLayout only)
+   * 3. [myComponent] should be dragging in the same ConstraintLayout.
+   * 4. [myComponent] should not be [TemporarySceneComponent], which is used when dragging from palette.
+   */
+  private fun isLiveRenderSupported(placeholder: Placeholder?) =
+    myComponent.scene.isLiveRenderingEnabled && placeholder is ConstraintPlaceholder &&
+    placeholder.host == myComponent.parent && myComponent !is TemporarySceneComponent
 
   /**
    * Reset the status when the dragging is canceled.
