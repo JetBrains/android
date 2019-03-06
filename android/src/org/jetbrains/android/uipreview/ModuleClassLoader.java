@@ -29,6 +29,8 @@ import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ReadAction;
@@ -386,7 +388,18 @@ public final class ModuleClassLoader extends RenderClassLoader {
         return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
       }
       catch (IOException ignore) {
-        // Ignore to return null.
+        // Workaround for https://issuetracker.google.com/127647973
+        // Until fixed, the VFS might have an outdated view of the gradle cache directory. Some manifests might appear as missing but they
+        // are actually there. In those cases, we issue a refresh call to fix the problem.
+        if (VirtualFileSystemOpener.INSTANCE.recognizes(manifestFile)) {
+          FileExtensions.toVirtualFile(manifestFile, true);
+
+          try {
+            return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
+          } catch (IOException ignore2) {
+            return null;
+          }
+        }
       }
     }
     return null;
