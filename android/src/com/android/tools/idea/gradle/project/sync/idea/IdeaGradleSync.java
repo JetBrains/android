@@ -53,6 +53,7 @@ import java.util.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
@@ -90,7 +91,7 @@ public class IdeaGradleSync implements GradleSync {
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
         DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(myProject);
         DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
-        if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
+        if (cache != null && !dataNodeCaches.isCacheMissingModels(cache) && !areCachedFilesMissing(myProject)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
           setupRequest.usingCachedGradleModels = true;
           setupRequest.generateSourcesAfterSync = true;
