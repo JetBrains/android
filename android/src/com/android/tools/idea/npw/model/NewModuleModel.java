@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model;
 
 import com.android.tools.idea.instantapp.InstantApps;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.model.RenderTemplateModel.getInitialSourceLanguage;
 import static com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -62,6 +64,7 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final StringProperty myProjectPackageName;
   @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
   @NotNull private final BoolProperty myEnableCppSupport;
+  @NotNull private final OptionalValueProperty<Language> myLanguage;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
@@ -79,7 +82,7 @@ public final class NewModuleModel extends WizardModel {
     myProjectPackageName = myPackageName;
     myCreateInExistingProject = true;
     myEnableCppSupport = new BoolValueProperty();
-
+    myLanguage = new OptionalValueProperty<>(getInitialSourceLanguage(project));
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
     myProjectLocation = new StringValueProperty(project.getBasePath());
@@ -100,6 +103,7 @@ public final class NewModuleModel extends WizardModel {
     myTemplateFile.setValue(templateFile);
     myMultiTemplateRenderer = projectModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.incrementRenders();
+    myLanguage = new OptionalValueProperty<>();
 
     myBindings.bind(myPackageName, myProjectPackageName, myIsInstantApp.not());
   }
@@ -156,6 +160,11 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public BoolProperty enableCppSupport() {
     return myEnableCppSupport;
+  }
+
+  @NotNull
+  public OptionalValueProperty<Language> language() {
+    return myLanguage;
   }
 
   @NotNull
@@ -258,6 +267,9 @@ public final class NewModuleModel extends WizardModel {
       }
 
       if (renderTemplateValues != null) {
+        if (language().get().isPresent()) { // For new Projects, we have a different UI, so no Language should be present
+          new TemplateValueInjector(renderTemplateValues).setLanguage(language().getValue());
+        }
         myTemplateValues.putAll(renderTemplateValues);
       }
 
