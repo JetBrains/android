@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.platform.Language;
+import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
@@ -75,6 +77,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private final boolean myIsInstantApp;
 
   private AndroidApiLevelComboBox myApiLevelCombo;
+  private JComboBox<Language> myLanguageCombo;
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
@@ -140,6 +143,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
     myValidatorPanel.registerValidator(myRenderModel.androidSdkInfo(), value ->
       value.isPresent() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text")));
+
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -215,6 +220,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
   private void createUIComponents() {
     myApiLevelCombo = new AndroidApiLevelComboBox();
+    myLanguageCombo = new LanguageComboProvider().createComponent();
   }
 
   @Override

@@ -18,8 +18,6 @@ package com.android.tools.idea.npw.template;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
@@ -297,8 +295,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private boolean displayLanguageChoice(TemplateMetadata templateMetadata) {
-    // Note: For new projects we have a different UI.
-    if (getModel().getProject().getValueOrNull() == null) {
+    // Note: For new projects and new module we have a different UI.
+    if (getModel().getAndroidFacet() == null) {
       return false;
     }
     // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
@@ -582,13 +580,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       if (property != null) {
         templateValues.put(parameter.id, property.get());
       }
-    }
-
-    //noinspection ConstantConditions
-    if (displayLanguageChoice(getModel().getTemplateHandle().getMetadata())) {
-      Language language = getModel().getLanguage().get();
-      templateValues.put(ATTR_LANGUAGE, language);
-      templateValues.put(ATTR_KOTLIN_SUPPORT, language == Language.KOTLIN);
     }
   }
 
