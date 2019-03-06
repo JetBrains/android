@@ -19,7 +19,7 @@ import com.android.tools.idea.run.TargetSelectionMode;
 
 final class CloudDebuggingTargetProvider extends TestDeployTargetProvider {
   CloudDebuggingTargetProvider() {
-    super(TargetSelectionMode.FIREBASE_DEVICE_DEBUGGING);
+    super(TargetSelectionMode.FIREBASE_DEVICE_DEBUGGING, "Firebase Test Lab Debugging Device");
   }
 
   @Override
