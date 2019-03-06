@@ -19,7 +19,7 @@ import com.android.tools.idea.run.TargetSelectionMode;
 
 final class CloudTestMatrixTargetProvider extends TestDeployTargetProvider {
   CloudTestMatrixTargetProvider() {
-    super(TargetSelectionMode.FIREBASE_DEVICE_MATRIX);
+    super(TargetSelectionMode.FIREBASE_DEVICE_MATRIX, "Firebase Test Lab Device Matrix");
   }
 
   @Override
