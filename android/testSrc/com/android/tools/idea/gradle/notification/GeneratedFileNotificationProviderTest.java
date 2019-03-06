@@ -79,7 +79,7 @@ public class GeneratedFileNotificationProviderTest extends IdeaTestCase {
     when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
     when(myFileEditor.getUserData(DISABLE_GENERATED_FILE_NOTIFICATION_KEY)).thenReturn(Boolean.TRUE);
 
-    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor);
+    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor, getProject());
     assertNull(panel);
   }
 }
