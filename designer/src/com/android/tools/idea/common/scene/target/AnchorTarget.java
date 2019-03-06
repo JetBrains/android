@@ -271,10 +271,10 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
     if (mode != DrawAnchor.Mode.DO_NOT_DRAW) {
       if (type != DrawAnchor.Type.BASELINE) {
-        DrawAnchor.add(list, sceneContext, myPositionX, myPositionY, type, drawAsConnected, mode, myComponent.isSelected());
+        DrawAnchor.add(list, sceneContext, myPositionX, myPositionY, type, drawAsConnected, mode);
       }
       else {
-        DrawAnchor.addBaseline(list, sceneContext, myPositionX, myPositionY, myComponent.getDrawWidth(), type, drawAsConnected, mode, myComponent.isSelected());
+        DrawAnchor.addBaseline(list, sceneContext, myPositionX, myPositionY, myComponent.getDrawWidth(), type, drawAsConnected, mode);
       }
     }
   }
