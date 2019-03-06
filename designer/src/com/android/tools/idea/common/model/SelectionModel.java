@@ -18,10 +18,9 @@ package com.android.tools.idea.common.model;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Represents a selection of components
@@ -31,6 +30,8 @@ public class SelectionModel {
   private ImmutableList<NlComponent> mySelection = ImmutableList.of();
   private NlComponent myPrimary;
   private final ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
+  @Nullable
+  Object mySecondarySelection;
 
   @NotNull
   public ImmutableList<NlComponent> getSelection() {
@@ -52,6 +53,9 @@ public class SelectionModel {
       return;
     }
     mySelection = ImmutableList.copyOf(components);
+    if (myPrimary != primary) {
+      mySecondarySelection = null;
+    }
     myPrimary = primary;
     notifySelectionChanged();
   }
@@ -62,6 +66,8 @@ public class SelectionModel {
     }
     mySelection = ImmutableList.of();
     myPrimary = null;
+
+    mySecondarySelection = null;
     notifySelectionChanged();
   }
 
@@ -95,12 +101,13 @@ public class SelectionModel {
       newSelection = builder.build();
       newPrimary = myPrimary;
     }
+
+    mySecondarySelection = null;
     setSelection(newSelection, newPrimary);
   }
 
   private void notifySelectionChanged() {
     myListeners.forEach(l -> l.selectionChanged(this, mySelection));
-
   }
 
   public void addListener(@NotNull SelectionListener listener) {
@@ -115,8 +122,52 @@ public class SelectionModel {
     return mySelection.isEmpty();
   }
 
-  /** Returns true if the given component is part of the selection */
+  /**
+   * Returns true if the given component is part of the selection
+   */
   public boolean isSelected(@NotNull NlComponent component) {
     return mySelection.contains(component);
+  }
+
+  /**
+   * Set the secondary selection.
+   * Secondary selections must be associated with a NlComponent which is considered to be selected
+   *
+   * @param component the parent component of the secondary selection
+   * @param secondary the secondary selection the object can be of any type but should implement equals
+   */
+  public void setSecondarySelection(NlComponent component, Object secondary) {
+    if (component == null) {
+      mySelection = ImmutableList.of();
+      myPrimary = null;
+      mySecondarySelection = null;
+    }
+    else {
+      mySecondarySelection = secondary; // TODO selection cleared in setSelection !
+      mySelection = ImmutableList.of(component);
+      myPrimary = component;
+    }
+    notifySelectionChanged();
+  }
+
+  /**
+   * This returns the secondary selection. Users of this api should check the type and treat it as null if the type is not known.
+   *
+   * @return the secondary selection
+   */
+  public Object getSecondarySelection() {
+    return mySecondarySelection;
+  }
+
+  /**
+   * Test if the object is the secondary selection.
+   * Object is the selection if object == secondary || object.equals(secondary)
+   *
+   * @param object
+   * @return
+   */
+  public boolean isSecondarySelected(Object object) {
+    if (mySecondarySelection == object) return true;
+    return mySecondarySelection != null && mySecondarySelection.equals(object);
   }
 }
