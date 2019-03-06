@@ -76,7 +76,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 /**
  * Model tests. This checks that when a model is updated, we correctly
