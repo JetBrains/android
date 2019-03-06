@@ -23,6 +23,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ui.UIUtil;
+import javax.swing.JComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -110,7 +111,8 @@ public abstract class ToolWindowFixture {
 
       boolean isDescendant;
       if (nonNullContent) {
-        isDescendant = UIUtil.isDescendingFrom(owner, content.getPreferredFocusableComponent());
+        JComponent focusableComponent = content.getPreferredFocusableComponent();
+        isDescendant = focusableComponent != null && UIUtil.isDescendingFrom(owner, focusableComponent);
       } else {
         isDescendant = false;
       }
