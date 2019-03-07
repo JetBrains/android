@@ -398,8 +398,8 @@ fun NlComponent.createChild(tagName: String,
                             insertType: InsertType = InsertType.CREATE
 ): NlComponent? {
   if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
-    Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
-      "Unable to create child NlComponent ${tagName}. createChild must be called within a write action.")
+    Logger.getInstance(NlWriteCommandActionUtil::class.java).error(
+        Throwable("Unable to create child NlComponent ${tagName}. The createChild method must be called within a write action."))
     return null
   }
 
