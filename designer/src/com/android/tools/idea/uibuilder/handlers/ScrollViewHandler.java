@@ -71,7 +71,9 @@ public class ScrollViewHandler extends ViewGroupHandler {
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
       NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.PROGRAMMATIC);
-      linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
+      if (linear != null) {
+        linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
+      }
     }
 
     return true;
@@ -112,7 +114,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
 
-    if (viewObject != null && viewObject instanceof ViewGroup) {
+    if (viewObject instanceof ViewGroup) {
       return (ViewGroup)viewObject;
     }
     return null;
@@ -153,7 +155,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   static class ToggleRenderModeAction extends ToggleViewAction {
-    public ToggleRenderModeAction() {
+    ToggleRenderModeAction() {
       super(StudioIcons.LayoutEditor.Toolbar.VIEWPORT_RENDER, StudioIcons.LayoutEditor.Toolbar.NORMAL_RENDER, "Toggle Viewport Render Mode", null);
     }
 
