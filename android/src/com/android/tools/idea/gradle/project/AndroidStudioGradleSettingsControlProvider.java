@@ -5,10 +5,6 @@ import org.jetbrains.plugins.gradle.service.settings.*;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-/**
- * @author Vladislav.Soroka
- * @since 2/24/2015
- */
 public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsControlProvider {
   @Override
   public String getPlatformPrefix() {
@@ -28,6 +24,8 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
       .dropGradleJdkComponents()
       .dropCreateEmptyContentRootDirectoriesBox()
       .dropUseAutoImportBox()
-      .dropResolveModulePerSourceSetCheckBox();
+      .dropResolveModulePerSourceSetCheckBox()
+      .dropDelegateBuildCombobox()
+      .dropTestRunnerCombobox();
   }
 }
