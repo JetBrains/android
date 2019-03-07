@@ -166,6 +166,18 @@ abstract class GradleSyncProjectComparisonTest(
     assertIsEqualToSnapshot(text)
   }
 
+  fun testSimpleApplicationWithAgp3_3_2() {
+    val text = importSyncAndDumpProject(SIMPLE_APPLICATION) {
+      val buildFile = it.resolve("build.gradle")
+      buildFile.writeText(
+        buildFile.readText()
+          .replace(
+            Regex("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]"),
+            "classpath 'com.android.tools.build:gradle:3.3.2'"))
+    }
+    assertIsEqualToSnapshot(text)
+  }
+
   // See https://code.google.com/p/android/issues/detail?id=74259
   fun testWithCentralBuildDirectoryInRootModuleDeleted() {
     val text = importSyncAndDumpProject(CENTRAL_BUILD_DIRECTORY) { projectRootPath ->
