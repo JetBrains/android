@@ -50,15 +50,17 @@ constructor(val threadDumpPath: Path?,
 
   @Throws(IOException::class)
   override fun asCrashReport(): CrashReport {
-    val edtStack = ThreadDumper.getEdtStackForCrash(String(Files.readAllBytes(threadDumpPath)),
-                                                    "com.android.ApplicationNotResponding") ?: EMPTY_ANR_STACKTRACE
+    val edtStack =
+      threadDumpPath?.let { ThreadDumper.getEdtStackForCrash(String(Files.readAllBytes(it)),
+                                         "com.android.ApplicationNotResponding") } ?: EMPTY_ANR_STACKTRACE
+
     val contents = TreeMap<String, String>()
     reportParts.forEach { name, path -> contents[name] = String(Files.readAllBytes(path)) }
 
     return object : DiagnosticCrashReport(type, properties) {
       override fun serialize(builder: MultipartEntityBuilder) {
         super.serialize(builder)
-        builder.addTextBody("totalDuration", totalDuration.toString())
+        totalDuration?.let { builder.addTextBody("totalDuration", it.toString()) }
         builder.addTextBody("timedOut", timedOut.toString())
         builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
         contents.forEach { name, contents ->

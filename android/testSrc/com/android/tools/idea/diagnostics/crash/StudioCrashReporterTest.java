@@ -23,11 +23,13 @@ import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
+import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpCrashReport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import java.util.TreeMap;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
@@ -188,6 +190,17 @@ public class StudioCrashReporterTest {
     assertRequestContainsField(request, "exception_info",
                                 "com.android.ApplicationNotResponding: AWT-EventQueue-0 WAITING on java.util.concurrent.FutureTask@12345678\n" +
                                 "\tat sun.misc.Unsafe.park(Native Method)");
+  }
+
+  @Test
+  public void serializeFreezeReportEmpty() throws Exception {
+    CrashReport report = new FreezeReport(null, new TreeMap<>(), false, null, null).asCrashReport();
+
+    String request = getSerializedContent(report);
+
+    assertRequestContainsField(request, "exception_info",
+                               "com.android.ApplicationNotResponding: \n" +
+                               "\tat com.android.tools.idea.diagnostics.report.FreezeReport.missingEdtStack(Unknown source)");
   }
 
   @NotNull
