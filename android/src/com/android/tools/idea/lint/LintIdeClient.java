@@ -95,6 +95,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
@@ -714,6 +715,12 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return model.getDesugaring();
+  }
+
+  @Nullable
+  @Override
+  public String getRelativePath(@Nullable File baseFile, @Nullable File file) {
+    return FileUtilRt.getRelativePath(baseFile, file);
   }
 
   /**
