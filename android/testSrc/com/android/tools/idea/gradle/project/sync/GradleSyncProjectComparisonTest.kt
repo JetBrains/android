@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.runningFromBazel
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
@@ -39,7 +42,6 @@ import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
-import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.util.io.FileUtil
@@ -51,7 +53,6 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import org.junit.Ignore
 import java.io.File
 
 /**
@@ -109,16 +110,16 @@ abstract class GradleSyncProjectComparisonTest(
     patch?.invoke(projectRootPath)
     val project = this.project
     importProject(project.name, getBaseDirPath(project), null)
-    return buildDump {
-      dump(project)
-    }
+    val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
+    dumper.dump(project)
+    return dumper.toString()
   }
 
   private fun syncAndDumpProject(): String {
     requestSyncAndWait()
-    return buildDump {
-      dump(project)
-    }
+    val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
+    dumper.dump(project)
+    return dumper.toString()
   }
 
   override fun setUp() {
@@ -350,4 +351,8 @@ abstract class GradleSyncProjectComparisonTest(
     }
   }
 }
+
+private fun getOfflineM2Repositories(): List<File> =
+    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
+        .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 
