@@ -432,6 +432,7 @@ public class StudioIcons {
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.svg"); // 16x16
       public static final Icon ARGUMENT = load("/studio/icons/nav-editor/properties/argument.svg"); // 16x16
+      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/properties/deeplink.svg"); // 16x16
       public static final Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.svg"); // 16x16
       public static final Icon POP_ACTION = load("/studio/icons/nav-editor/properties/pop-action.svg"); // 16x16
       public static final Icon SOURCE = load("/studio/icons/nav-editor/properties/source.svg"); // 16x16
