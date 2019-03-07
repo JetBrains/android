@@ -60,6 +60,7 @@ private fun createRenderTask(facet: AndroidFacet,
     .withDownscaleFactor(DOWNSCALE_FACTOR)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
+    .disableShadow()
     .build()
 }
 
