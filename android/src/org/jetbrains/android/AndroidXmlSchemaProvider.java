@@ -56,6 +56,13 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Provides namespaces and their standard prefix names commonly used in Android XML files.
+ *
+ * <p>Additionally it resolves all namespace URLs to a dummy file, which effectively opts out of standard IntelliJ mechanism for validating
+ * XML files. This is because Android doesn't provide XSD schemas and verifying their are correct is a complicated task that we handle in
+ * code in this package. See the README.md file for details.
+ */
 public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   private static final NotNullLazyKey<XmlFile, Project> DUMMY_XSD = NotNullLazyKey.create(

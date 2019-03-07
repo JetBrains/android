@@ -63,7 +63,7 @@ import org.jetbrains.annotations.NotNull;
  * This handles completion in the data binding expressions (inside {@code @{}}).
  * <p/>
  * Completion for everything under {@code <data>} tag is in
- * {@link org.jetbrains.android.AndroidCompletionContributor#completeDataBindingTypeAttr}.
+ * {@link org.jetbrains.android.AndroidXmlCompletionContributor#completeDataBindingTypeAttr}.
  */
 public class DataBindingCompletionContributor extends CompletionContributor {
   public DataBindingCompletionContributor() {
