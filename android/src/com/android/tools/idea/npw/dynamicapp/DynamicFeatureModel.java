@@ -61,7 +61,7 @@ public class DynamicFeatureModel extends WizardModel {
   @NotNull private final TemplateHandle myTemplateHandle;
   @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
 
-  @NotNull private final StringProperty myModuleName = new StringValueProperty("dynamic_feature");
+  @NotNull private final StringProperty myModuleName = new StringValueProperty("dynamicfeature");
   @NotNull private final StringProperty myFeatureTitle = new StringValueProperty("Module Title");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
