@@ -81,7 +81,13 @@ about unknown attributes and sub-tags, essentially telling the XML layer that ev
 the default highlighter, we provide [AndroidUnknownAttributeInspection](inspections/AndroidUnknownAttributeInspection.java) and
 [AndroidElementNotAllowedInspection](inspections/AndroidElementNotAllowedInspection.java) that detect cases we care about.
 
+We also have an annotator, which creates gutter icons on lines that reference a drawable or a color.
+
+We opt-out of the usual IntelliJ mechanisms for validating XML files against schema definitions, by resolving all namespaces to a dummy
+XSD file in `AndroidXmlSchemaProvider`.
+
 *TODO:* AndroidUnknownAttributeInspection ignores non-framework attributes
+*TODO:* Can we replace `AndroidMissingOnClickHandlerInspection` with lint checks?
 
 ## References
 
@@ -109,14 +115,19 @@ completion machinery. We augment it in a few different ways:
 * `AndroidLayoutXmlTagNameProvider` is used in layout files. It creates better `LookupElement` instances and relies on these instances being
 equal to the default ones (created by `DefaultXmlTagNameProvider`) to replace them in the final set of completion results.
 * Some of the references mentioned above implement `getVariants`
-* There's a custom `AndroidCompletionContributor`.
+* There's a custom `AndroidXmlCompletionContributor`.
 
 *TODO:* AndroidLayoutXmlTagNameProvider setting a different insert handler makes the LookupElements not equal, so both appear in completion,
         one with the wrong insert handler.
 
 *TODO:* Add more lookup strings in other file types, e.g. preferences.
 
-*TODO:* Class names in tags seem to be provided by both DOM and `getVariants` in `AndroidXmlReferenceProvider.MyClassOrPackageReference`.
+*TODO:* Class names in tags are provided by DOM, `getVariants` in `AndroidXmlReferenceProvider.MyClassOrPackageReference`,
+        `AndroidXmlCompletionContributor` and `AndroidLayoutXmlTagNameProvider`.
+        
+*TODO:* Remove the "namespace prefix" completion from `AndroidXmlCompletionContributor`, since all attributes are suggested anyway.
+
+*TODO:* Can we make `AndroidXmlCompletionContributor` not specialized to only work on layouts?
 
 When a new tag is inserted, `AndroidXmlTagDescriptor.getContentType` is called to determine if it should be collapsed or not, depending on
 whether we expect the tag to have children or not.
@@ -149,7 +160,21 @@ Layout structure view shows icons chosen by `AndroidDomElementDescriptorProvider
 
 *TODO:* For other files, the default XML structure view is probably better than the broken DOM one.
 
+## Code style settings
+
+We have a set of classes to provide the "standard Android" formatting of XML files. The settings themselves are stored in
+`AndroidXmlCodeStyleSettings` and modified through UI in `AndroidXmlCodeStylePanel`. The most important setting is `USE_CUSTOM_SETTINGS`
+which controls whether Android files should get special treatment. It is checked by `AndroidXmlFormattingModelBuilder` when an XML file
+is reformatted. 
+
+We provide a "predefined style" for XML that enables `USE_CUSTOM_SETTINGS` and a notification panel (in
+`AndroidCodeStyleNotificationProvider`) that suggests it is applied.
+
 ## Other editor features
+
+`ResourceFoldingBuilder` uses the code folding feature to "collapse" resource references (e.g. `@string/app_name`) and display the
+referenced string, integer or dimen instead. This is similar to how Java anonymous classes are displayed using lambda syntax in recent
+versions of IntelliJ.
 
 `AndroidXmlExtension` implements support for `aapt:attr`, where attributes can be replaced by special sub-tags. See [Inline complex XML
 resources](https://developer.android.com/guide/topics/resources/complex-xml-resources) on DAC.
@@ -160,3 +185,15 @@ resources](https://developer.android.com/guide/topics/resources/complex-xml-reso
 in conjunction with `FlagConverter` and `AndroidCompletionContributor`.
 
 *TODO:* This feature seems unfinished, pressing `|` should insert the current value and open completion again for a second value.
+
+`AndroidLineMarkerProvider` adds gutter icons for related Java files.
+
+*TODO:* Use `RelatedItemLineMarkerProvider` instead of two separate classes for related files and icons.
+
+`AndroidXmlSpellcheckingStrategy` controls which strings are checked for spelling mistakes and how they are tokenized.
+
+*TODO:* Remove check for `generated.xml`, these files have a different name now and are marked as generated.
+*TODO:* It doesn't seem to handle `@NoSpellchecking` that we use in DOM definitions.
+
+`AndroidXmlnsImplicitUsagesProvider` understands that namespace prefixes can be used by Android resource references in XML attributes and
+marks referenced namespaces as used.
