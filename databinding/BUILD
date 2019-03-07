@@ -36,6 +36,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea:intellij.java.analysis.impl[module]",
     ],
 )
 
@@ -64,6 +65,7 @@ iml_module(
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
+        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
