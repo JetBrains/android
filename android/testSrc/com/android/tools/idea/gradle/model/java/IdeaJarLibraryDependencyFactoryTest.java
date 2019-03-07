@@ -34,11 +34,16 @@ import static org.mockito.Mockito.when;
 public class IdeaJarLibraryDependencyFactoryTest {
   private IdeaSingleEntryLibraryDependency myOriginalDependency;
   private IdeaJarLibraryDependencyFactory myIdeaJarLibraryDependencyFactory;
+  private GradleModuleVersion myModuleVersion;
 
   @Before
   public void setUp() {
     myOriginalDependency = mock(IdeaSingleEntryLibraryDependency.class);
     myIdeaJarLibraryDependencyFactory = new IdeaJarLibraryDependencyFactory();
+    myModuleVersion = mock(GradleModuleVersion.class);
+    when(myModuleVersion.getGroup()).thenReturn("group");
+    when(myModuleVersion.getName()).thenReturn("name");
+    when(myModuleVersion.getVersion()).thenReturn("version");
   }
 
   @Test
@@ -54,7 +59,7 @@ public class IdeaJarLibraryDependencyFactoryTest {
     FileStub javadocPath = new FileStub("fake-javadoc.jar", true);
 
     IdeaDependencyScope scope = mock(IdeaDependencyScope.class);
-    GradleModuleVersion moduleVersion = mock(GradleModuleVersion.class);
+    GradleModuleVersion moduleVersion = new GradleModuleVersionImpl(myModuleVersion);
 
     when(myOriginalDependency.getFile()).thenReturn(binaryPath);
     when(myOriginalDependency.getSource()).thenReturn(sourcePath);
@@ -70,14 +75,14 @@ public class IdeaJarLibraryDependencyFactoryTest {
     assertSame(binaryPath, dependency.getBinaryPath());
     assertSame(sourcePath, dependency.getSourcePath());
     assertSame(javadocPath, dependency.getJavadocPath());
-    assertSame(moduleVersion, dependency.getModuleVersion());
+    assertEquals(moduleVersion, dependency.getModuleVersion());
     assertTrue(dependency.isResolved());
   }
 
   @Test
   public void testCopyWithUnresolvedDependency() {
     FileStub binaryPath = new FileStub("unresolved dependency - fake", true);
-    GradleModuleVersion moduleVersion = mock(GradleModuleVersion.class);
+    GradleModuleVersion moduleVersion = new GradleModuleVersionImpl(myModuleVersion);
 
     when(myOriginalDependency.getFile()).thenReturn(binaryPath);
     when(myOriginalDependency.getSource()).thenReturn(null);
@@ -92,7 +97,7 @@ public class IdeaJarLibraryDependencyFactoryTest {
     assertSame(binaryPath, dependency.getBinaryPath());
     assertNull(dependency.getSourcePath());
     assertNull(dependency.getJavadocPath());
-    assertSame(moduleVersion, dependency.getModuleVersion());
+    assertEquals(moduleVersion, dependency.getModuleVersion());
     assertFalse(dependency.isResolved());
   }
 

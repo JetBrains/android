@@ -77,7 +77,9 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -111,8 +113,10 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.LeakHunter;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -141,6 +145,31 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(singletonList(projectSettings));
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      // TODO(b/117274283): Remove when upgrading to Kotlin 1.3.30, or whichever version fixes KT-30076
+      if ("syncWithKotlinDsl".equals(getTestName(true))) {
+        return;
+      }
+
+      // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
+      Object model;
+      if (useNewSyncInfrastructure()) {
+        model = new CachedProjectModels.Loader().loadFromDisk(getProject());
+      } else {
+        model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
+      }
+
+      if (model != null) {
+        LeakHunter.checkLeak(model, Proxy.class, o -> Arrays.stream(
+          o.getClass().getInterfaces()).anyMatch(clazz -> clazz.getName().contains("gradle.tooling")));
+      }
+    } finally {
+      super.tearDown();
+    }
   }
 
   @Override
