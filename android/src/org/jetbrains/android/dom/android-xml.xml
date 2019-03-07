@@ -76,10 +76,40 @@
     <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
-    <elementDescriptionProvider implementation="org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper$DescriptionProvider" />
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
       <pattern type="xml">xmlTag()</pattern>
     </psi.referenceProvider>
+    <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
+    <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidXmlCompletionContributor"
+                            id="compositieAttributeValues" order="first"/>
+    <localInspection language="XML" shortName="AndroidMissingOnClickHandler" bundle="messages.AndroidBundle"
+                     key="android.inspections.on.click.missing.name" groupKey="android.inspections.group.name" enabledByDefault="true"
+                     level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection"/>
+    <localInspection language="XML" bundle="messages.AndroidBundle"
+                     implementationClass="org.jetbrains.android.inspections.XmlWrongFileTypeInspection"
+                     enabledByDefault="true"
+                     key="android.inspections.root.tag.name" groupKey="android.inspections.group.name"/>
+    <xml.schemaProvider implementation="org.jetbrains.android.AndroidXmlSchemaProvider"/>
+    <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
+    <spellchecker.support language="XML" implementationClass="org.jetbrains.android.spellchecker.AndroidXmlSpellcheckingStrategy" order="before xml"/>
+    <lang.refactoringSupport
+        id="android_string_resource"
+        implementationClass="com.android.tools.idea.editors.strings.StringResourceRefactoringSupportProvider"
+        language="XML"
+        order="first"/>
+    <implicitUsageProvider implementation="org.jetbrains.android.AndroidXmlnsImplicitUsagesProvider"/>
+
+    <!-- Code style: -->
+    <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlCodeStyleSettingsProvider"/>
+    <lang.formatter language="XML" implementationClass="org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder"/>
+    <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
+    <lang.rearranger language="XML" implementationClass="org.jetbrains.android.formatter.AndroidXmlRearranger" order="first"/>
+    <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle"/>
+
+    <!-- Annotators: -->
+    <annotator language="XML" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
+    <externalAnnotator language="XML" implementationClass="org.jetbrains.android.AndroidXMLResourceExternalAnnotator"/>
+
 
     <!-- Documentation providers: -->
     <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.AndroidXmlDocumentationProvider" order="first"/>

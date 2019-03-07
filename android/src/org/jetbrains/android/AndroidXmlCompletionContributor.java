@@ -88,10 +88,91 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-
-public class AndroidCompletionContributor extends CompletionContributor {
+/**
+ * {@link CompletionContributor} for Android XML files. It provides:
+ * <ul>
+ *   <li>root tag names
+ *   <li>a fake {@link LookupElement} with just the {@code android:} namespace prefix
+ *   <li>design-time attributes, e.g. {@code tools:text}
+ *   <li>Data binding attributes and values of the {@code type} attribute
+ *   <li>replacement {@link LookupElement}s for deprecated layout attributes
+ *   <li>combinations of flag values to be used with attr's with {@code format="flags"}
+ * </ul>
+ *
+ * @see org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider
+ */
+public class AndroidXmlCompletionContributor extends CompletionContributor {
 
   private static final String LAYOUT_ATTRIBUTE_PREFIX = "layout_";
+
+  @Override
+  public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet resultSet) {
+    PsiElement position = parameters.getPosition();
+    PsiElement originalPosition = parameters.getOriginalPosition();
+    AndroidFacet facet = AndroidFacet.getInstance(position);
+
+    if (facet == null) {
+      return;
+    }
+    PsiElement parent = position.getParent();
+    PsiElement originalParent = originalPosition != null ? originalPosition.getParent() : null;
+
+    if (parent instanceof XmlTag) {
+      XmlTag tag = (XmlTag)parent;
+
+      if (tag.getParentTag() != null) {
+        return;
+      }
+      final ASTNode startTagName = XmlChildRole.START_TAG_NAME_FINDER.findChild(tag.getNode());
+
+      if (startTagName == null || startTagName.getPsi() != position) {
+        return;
+      }
+      final PsiFile file = tag.getContainingFile();
+      if (!(file instanceof XmlFile)) {
+        return;
+      }
+      final PsiReference reference = file.findReferenceAt(parameters.getOffset());
+      if (reference != null) {
+        final PsiElement element = reference.getElement();
+        if (element != null) {
+          final int refOffset = element.getTextRange().getStartOffset() +
+                                reference.getRangeInElement().getStartOffset();
+          if (refOffset != position.getTextRange().getStartOffset()) {
+            // do not provide completion if we're inside some reference starting in the middle of tag name
+            return;
+          }
+        }
+      }
+
+      if (!completeRootTagNames(facet, (XmlFile)file, resultSet)) {
+        resultSet.stopHere();
+      }
+    }
+    else if (parent instanceof XmlAttribute) {
+      final ASTNode attrName = XmlChildRole.ATTRIBUTE_NAME_FINDER.findChild(parent.getNode());
+
+      if (attrName == null ||
+          attrName.getPsi() != position) {
+        return;
+      }
+      addAndroidPrefixElement(position, parent, resultSet);
+      final XmlAttribute attribute = (XmlAttribute)parent;
+      final String namespace = attribute.getNamespace();
+
+      // We want to show completion variants for designtime attributes only if "tools:" prefix
+      // has already been typed
+      if (SdkConstants.TOOLS_URI.equals(namespace)) {
+        addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
+      }
+      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, parameters, resultSet);
+      customizeAddedAttributes(facet, parameters, attribute, resultSet);
+    }
+    else if (originalParent instanceof XmlAttributeValue) {
+      completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
+      completeDataBindingTypeAttr(parameters, resultSet, (XmlAttributeValue)originalParent);
+    }
+  }
 
   private static void addAll(Collection<String> collection, CompletionResultSet set) {
     for (String s : collection) {
@@ -99,7 +180,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
   }
 
-  private static boolean completeTagNames(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile, @NotNull CompletionResultSet resultSet) {
+  private static boolean completeRootTagNames(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile, @NotNull CompletionResultSet resultSet) {
     if (ManifestDomFileDescription.isManifestFile(xmlFile, facet)) {
       resultSet.addElement(LookupElementBuilder.create("manifest"));
       return false;
@@ -167,75 +248,6 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     return true;
-  }
-
-  @Override
-  public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet resultSet) {
-    PsiElement position = parameters.getPosition();
-    PsiElement originalPosition = parameters.getOriginalPosition();
-    AndroidFacet facet = AndroidFacet.getInstance(position);
-
-    if (facet == null) {
-      return;
-    }
-    PsiElement parent = position.getParent();
-    PsiElement originalParent = originalPosition != null ? originalPosition.getParent() : null;
-
-    if (parent instanceof XmlTag) {
-      XmlTag tag = (XmlTag)parent;
-
-      if (tag.getParentTag() != null) {
-        return;
-      }
-      final ASTNode startTagName = XmlChildRole.START_TAG_NAME_FINDER.findChild(tag.getNode());
-
-      if (startTagName == null || startTagName.getPsi() != position) {
-        return;
-      }
-      final PsiFile file = tag.getContainingFile();
-      if (!(file instanceof XmlFile)) {
-        return;
-      }
-      final PsiReference reference = file.findReferenceAt(parameters.getOffset());
-      if (reference != null) {
-        final PsiElement element = reference.getElement();
-        if (element != null) {
-          final int refOffset = element.getTextRange().getStartOffset() +
-                                reference.getRangeInElement().getStartOffset();
-          if (refOffset != position.getTextRange().getStartOffset()) {
-            // do not provide completion if we're inside some reference starting in the middle of tag name
-            return;
-          }
-        }
-      }
-
-      if (!completeTagNames(facet, (XmlFile)file, resultSet)) {
-        resultSet.stopHere();
-      }
-    }
-    else if (parent instanceof XmlAttribute) {
-      final ASTNode attrName = XmlChildRole.ATTRIBUTE_NAME_FINDER.findChild(parent.getNode());
-
-      if (attrName == null ||
-          attrName.getPsi() != position) {
-        return;
-      }
-      addAndroidPrefixElement(position, parent, resultSet);
-      final XmlAttribute attribute = (XmlAttribute)parent;
-      final String namespace = attribute.getNamespace();
-
-      // We want to show completion variants for designtime attributes only if "tools:" prefix
-      // has already been typed
-      if (SdkConstants.TOOLS_URI.equals(namespace)) {
-        addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
-      }
-      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, parameters, resultSet);
-      customizeAddedAttributes(facet, parameters, attribute, resultSet);
-    }
-    else if (originalParent instanceof XmlAttributeValue) {
-      completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
-      completeDataBindingTypeAttr(parameters, resultSet, (XmlAttributeValue)originalParent);
-    }
   }
 
   /**
