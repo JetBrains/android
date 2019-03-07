@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync
+package com.android.tools.idea.gradle.project.sync.internal
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
-import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
@@ -40,6 +43,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
@@ -51,11 +55,12 @@ import java.lang.Math.max
 /**
  * A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests.
  */
-class ProjectDumper {
+class ProjectDumper(
+  private val offlineRepos: List<File> = getOfflineM2Repositories(),
+  private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
+) {
   private val devBuildHome: File = getStudioSourcesLocation()
   private val gradleCache: File = getGradleCacheLocation()
-  private val offlineRepos: List<File> = getOfflineM2Repositories()
-  private val androidSdk: File = TestUtils.getSdk()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
@@ -140,13 +145,7 @@ class ProjectDumper {
     }
   }
 
-  override fun toString(): String = output.toString()
-}
-
-fun buildDump(code: ProjectDumper.() -> Unit): String {
-  val dumper = ProjectDumper()
-  dumper.code()
-  return dumper.toString().trimIndent()
+  override fun toString(): String = output.toString().trimIndent()
 }
 
 private fun ProjectDumper.prop(name: String, value: () -> String?) {
@@ -412,7 +411,7 @@ private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home
 private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
 
 private fun getOfflineM2Repositories(): List<File> =
-    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
+    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths())
         .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 
 private fun String.removeSuffix(suffix: String) =
@@ -443,3 +442,16 @@ private fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]
 
 private fun String.smartPad() = this.padEnd(max(20, 10 + this.length / 10 * 10))
 private fun String.markMatching(matching: String) = if (this == matching) "$this [=]" else this
+
+
+class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project!!
+    val dumper = ProjectDumper()
+    dumper.dump(project)
+    val dump = dumper.toString().trimIndent()
+    val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")
+    outputFile.writeText(dump)
+    println("Dumped to: file://$outputFile")
+  }
+}
