@@ -332,14 +332,14 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   public void performPostRunActivities(@NotNull List<InspectionToolWrapper> inspections, @NotNull final GlobalInspectionContext context) {
     if (myBaseline != null) {
       // Close the baseline; we need to hold a read lock such that line numbers can be computed from PSI file contents
-      if (myBaseline.isWriteOnClose()) {
+      if (myBaseline.getWriteOnClose()) {
         ApplicationManager.getApplication().runReadAction(() -> myBaseline.close());
       }
 
       // If we wrote a baseline file, post a notification
-      if (myBaseline.isWriteOnClose()) {
+      if (myBaseline.getWriteOnClose()) {
         String message;
-        if (myBaseline.isRemoveFixed()) {
+        if (myBaseline.getRemoveFixed()) {
           message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
                                   myBaseline.getFixedCount(),
                                   Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
@@ -348,7 +348,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
           message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
                                   myBaseline.getTotalCount());
         }
-        new NotificationGroup("Convert to WebP", NotificationDisplayType.BALLOON, true)
+        new NotificationGroup("Wrote Baseline", NotificationDisplayType.BALLOON, true)
           .createNotification(message, NotificationType.INFORMATION)
           .notify(context.getProject());
       }
