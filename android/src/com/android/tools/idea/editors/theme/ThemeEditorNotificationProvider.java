@@ -28,7 +28,6 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -42,6 +41,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     return KEY;
   }
 
+  @Override
   public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor, @NotNull Project project) {
     if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
       return null;
