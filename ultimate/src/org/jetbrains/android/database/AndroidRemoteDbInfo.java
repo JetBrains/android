@@ -11,7 +11,7 @@ class AndroidRemoteDbInfo {
   private final String myDatabaseName;
   private final boolean myExternal;
 
-  public AndroidRemoteDbInfo(@NotNull String deviceId, @NotNull String packageName, @NotNull String databaseName, boolean external) {
+  AndroidRemoteDbInfo(@NotNull String deviceId, @NotNull String packageName, @NotNull String databaseName, boolean external) {
     myDeviceId = deviceId;
     myPackageName = packageName;
     myDatabaseName = databaseName;

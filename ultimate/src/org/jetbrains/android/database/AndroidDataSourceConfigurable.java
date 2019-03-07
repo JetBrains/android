@@ -70,7 +70,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   protected AndroidDataSourceConfigurable(@NotNull AndroidDataSourceManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
-    myTempDataSource = dataSource.copy();
+    myTempDataSource = dataSource.copy(true);
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
       @Override
       public void deviceConnected(IDevice device) {
