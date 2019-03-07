@@ -175,6 +175,7 @@ iml_module(
         "//tools/adt/idea/resources-aar:framework_res",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system/previous-versions:3.3.2.zip",
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
