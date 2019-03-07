@@ -56,6 +56,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -878,24 +879,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   @Nullable
   public NlComponent createComponent(@Nullable DesignSurface surface,
-                                     @NotNull XmlTag tag,
+                                     @NotNull final XmlTag tag,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
                                      @NotNull InsertType insertType) {
+    XmlTag addedTag = tag;
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTagDeprecated();
-      if (before != null) {
-        // noinspection AssignmentToMethodParameter
-        tag = (XmlTag)parentTag.addBefore(tag, before.getTagDeprecated());
-      }
-      else {
-        // noinspection AssignmentToMethodParameter
-        tag = parentTag.addSubTag(tag, false);
-      }
+      addedTag = WriteAction.compute(() -> {
+        if (before != null) {
+          return (XmlTag)parentTag.addBefore(tag, before.getTagDeprecated());
+        }
+        return parentTag.addSubTag(tag, false);
+      });
     }
 
-    NlComponent child = createComponent(tag);
+    NlComponent child = createComponent(addedTag);
 
     if (parent != null) {
       parent.addChild(child, before);
