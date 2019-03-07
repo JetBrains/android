@@ -81,7 +81,7 @@ class AddDynamicFeatureTest {
     createDefaultDynamicModule(ideFrame)
 
     ideFrame.editor
-      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .open("dynamicfeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:onDemand="true"""")
       assertThat(this).contains("""<dist:fusing dist:include="true" />""")
@@ -90,7 +90,7 @@ class AddDynamicFeatureTest {
     ideFrame.editor
       .open("app/src/main/res/values/strings.xml")
       .currentFileContents.run {
-      assertThat(this).contains("""<string name="title_dynamic_feature">Module Title</string>""")
+      assertThat(this).contains("""<string name="title_dynamicfeature">Module Title</string>""")
     }
   }
 
@@ -108,7 +108,7 @@ class AddDynamicFeatureTest {
    * 1. The new Dynamic Feature Module is shown in the project explorer pane.
    * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
    * "dist:fusing include" are set to false.
-   * 3. Module Title contains @string/title_dynamic_feature
+   * 3. Module Title contains @string/title_dynamicfeature
    * 4. "dist:instant" is set to true
    * 5. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for the dynamic feature title
@@ -123,7 +123,7 @@ class AddDynamicFeatureTest {
     createInstantDynamicModule(ideFrame)
 
     ideFrame.editor
-      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .open("dynamicfeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:onDemand="false"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
@@ -134,7 +134,7 @@ class AddDynamicFeatureTest {
     ideFrame.editor
       .open("app/src/main/res/values/strings.xml")
       .currentFileContents.run {
-      assertThat(this).contains("""<string name="title_dynamic_feature">Module Title</string>""")
+      assertThat(this).contains("""<string name="title_dynamicfeature">Module Title</string>""")
     }
 
     ideFrame.editor
@@ -157,7 +157,7 @@ class AddDynamicFeatureTest {
     createInstantDynamicModuleWithFusing(ideFrame)
 
     ideFrame.editor
-      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .open("dynamicfeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
@@ -186,7 +186,7 @@ class AddDynamicFeatureTest {
     createInstantDynamicModuleWithFusing(ideFrame)
 
     ideFrame.editor
-      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .open("dynamicfeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
       assertThat(this).contains("""dist:instant="true"""")
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
@@ -484,7 +484,7 @@ class AddDynamicFeatureTest {
    * 1. The new Dynamic Feature Module is shown in the project explorer pane.
    * 2. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
    * new string was added for "title_activity_login"
-   * 3. Open the "dynamic_feature" module strings.xml and check there are new strings
+   * 3. Open the "dynamicfeature" module strings.xml and check there are new strings
    * like: "prompt_email", "prompt_password", "error_invalid_email", etc
    * </pre>
    */
@@ -506,7 +506,7 @@ class AddDynamicFeatureTest {
     }
 
     ideFrame.editor
-      .open("dynamic_feature/src/main/res/values/strings.xml")
+      .open("dynamicfeature/src/main/res/values/strings.xml")
       .currentFileContents.run {
       assertThat(this).contains("prompt_email")
       assertThat(this).contains("prompt_password")
@@ -527,7 +527,7 @@ class AddDynamicFeatureTest {
    * 5. Go to File -> New -> Google -> Google Maps Activity -> Finish
    * Verify:
    * 1. The new Dynamic Feature Module is shown in the project explorer pane.
-   * 2. Open the "dynamic_feature" module build.gradle check that play-services-maps was not added.
+   * 2. Open the "dynamicfeature" module build.gradle check that play-services-maps was not added.
    * 3. Open the "app" module build.gradle and check that play-services-maps was added with "api" dependency.
    * 4. "com.android.support" base dependencies, should be re-written from "implementation" to "api"
    * </pre>
@@ -551,7 +551,7 @@ class AddDynamicFeatureTest {
       .waitForGradleProjectSyncToFinish()
 
     ideFrame.editor
-      .open("dynamic_feature/build.gradle")
+      .open("dynamicfeature/build.gradle")
       .currentFileContents.run {
       assertThat(this).doesNotContain("play-services-maps")
     }
@@ -661,7 +661,7 @@ class AddDynamicFeatureTest {
       .waitForGradleProjectSyncToFinish()
       .projectView
       .selectAndroidPane()
-      .clickPath("dynamic_feature")
+      .clickPath("dynamicfeature")
 
     return ideFrame
   }
