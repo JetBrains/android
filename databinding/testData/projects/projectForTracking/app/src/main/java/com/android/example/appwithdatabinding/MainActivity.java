@@ -2,6 +2,7 @@ package com.android.example.appwithdatabinding;
 
 import android.app.Activity;
 import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ObservableArrayList;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -9,6 +10,8 @@ import android.view.MenuItem;
 import com.android.example.appwithdatabinding.databinding.ActivityMainBinding;
 
 public class MainActivity extends Activity {
+
+    public final ObservableArrayList<Object> user = new ObservableArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -36,6 +36,7 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
       "tools/adt/idea/android/annotations",
       "tools/adt/idea/databinding/testData",
       "tools/base/templates",
+      "tools/idea/build.txt",
       "tools/idea/java"); // For the mock JDK.
 
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
