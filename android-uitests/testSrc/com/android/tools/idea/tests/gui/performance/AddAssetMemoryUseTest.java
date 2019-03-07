@@ -18,27 +18,25 @@ package com.android.tools.idea.tests.gui.performance;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * The test execute a basic scenario of add image asset making use of BLeak - memory leak checker.
+ * The test execute a basic scenario of add asset making use of BLeak - memory leak checker.
  * BLeak repeatedly runs the test and capture memory state of each run.
  * At the end, BLeak outputs result based on memory usage collected from each run.
  */
 
 @RunWith(GuiTestRemoteRunner.class)
 @RunIn(TestGroup.PERFORMANCE)
-public class AddImageAssetMemoryUseTest {
+public class AddAssetMemoryUseTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -63,5 +61,25 @@ public class AddImageAssetMemoryUseTest {
       .getProjectView()
       .selectAndroidPane()
       .deletePath("app","res","mipmap", "imagename_round");
+  }
+  
+  @Test
+  @UseBleak
+  public void addVectorAsset() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    BleakKt.runWithBleak(() -> runAddVectorAssetTest(ideFrameFixture));
+  }
+
+  private void runAddVectorAssetTest(IdeFrameFixture fixture) {
+    fixture.getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .setName("vectorname")
+      .clickNext()
+      .clickFinish()
+      .getProjectView()
+      .selectAndroidPane()
+      .deletePath("app","res","drawable", "vectorname.xml");
   }
 }
