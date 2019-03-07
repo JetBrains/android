@@ -35,6 +35,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 
+
 /**
  * Class for logging data binding related metrics.
  */
@@ -112,12 +113,14 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
             }
           }
         }
+
         trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
                           DataBindingEvent.DataBindingPollMetadata.newBuilder()
                             .setLayoutXmlCount(layoutCount)
                             .setImportCount(importCount)
                             .setVariableCount(variableCount)
                             .setExpressionCount(expressionCount)
+                            .setObservableMetrics(trackObservableDataTypes(project))
                             .build())
       }
     }
