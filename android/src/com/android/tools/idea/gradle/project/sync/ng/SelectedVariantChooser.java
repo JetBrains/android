@@ -136,7 +136,11 @@ public class SelectedVariantChooser implements Serializable {
     Collection<String> variantNames = androidModule.getAndroidProject().getVariantNames();
     // If this is the first sync (variant == null), or the previously selected variant no longer exists then choose the default variant.
     if (variant == null || !variantNames.contains(variant)) {
-      variant = androidModule.getAndroidProject().getDefaultVariant();
+      try {
+        variant = androidModule.getAndroidProject().getDefaultVariant();
+      } catch (UnsupportedMethodException e) {
+        variant = getDefaultOrFirstItem(variantNames, "debug");
+      }
     }
     return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller, shouldGenerateSources) : null;
   }
