@@ -52,7 +52,6 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
   }
 
   public void addDataSource(AndroidDataSource dataSource) {
-    dataSource.init();
     dataSource.setDatabaseDriver(DbImplUtil.guessDatabaseDriver(Dbms.SQLITE));
     myDataSources.add(dataSource);
   }

@@ -118,7 +118,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     private final AndroidDebugBridge myDebugBridge;
     private final Set<AndroidDataSource> myDataSources;
 
-    public MySynchronizeDataSourcesTask(@NotNull Project project,
+    MySynchronizeDataSourcesTask(@NotNull Project project,
                                         @NotNull AndroidDebugBridge debugBridge,
                                         @NotNull Set<AndroidDataSource> dataSources) {
       super(project, AndroidBundle.message("android.db.downloading.progress.title"), true);
