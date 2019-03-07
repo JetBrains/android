@@ -43,7 +43,6 @@ import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
@@ -880,7 +879,7 @@ public class InteractionManager {
         components = mySurface.getSelectionModel().getSelection();
       }
       else {
-        components = WriteAction.compute(() -> model.createComponents(item, insertType, mySurface));
+        components = model.createComponents(item, insertType, mySurface);
 
         if (components.isEmpty()) {
           return null;  // User cancelled
