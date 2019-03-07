@@ -19,18 +19,17 @@ import com.android.annotations.VisibleForTesting
 import com.android.annotations.VisibleForTesting.Visibility
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
-import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import com.intellij.reference.SoftReference
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
 import org.jetbrains.ide.PooledThreadExecutor
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.HashMap
 import java.util.concurrent.CompletableFuture
@@ -50,38 +49,18 @@ const val MAX_RENDER_HEIGHT = 1024
 const val DOWNSCALE_FACTOR = 0.25f
 
 
-/**
- * Source data to generate a rendering. This is used to cache the generated
- * images using [CachedRenderVersion].
- */
-private data class CachedRenderSource(
-  val file: VirtualFile,
-  val configuration: Configuration
-)
-
-/**
- * Representation of a rendering version which is defined by the combination of
- * an image, a [version] from [LocalResourceRepository.getModificationCount] and
- * a [VirtualFile] modification timestamp ([modStamp]).
- */
-private data class CachedRenderVersion(
-  var version: Long,
-  var modStamp: Long,
-  var image: SoftReference<BufferedImage>? = null
-)
-
-typealias RenderTaskProvider = (AndroidFacet, XmlFile, Configuration) -> RenderTask?
+typealias RenderTaskProvider = (AndroidFacet, XmlFile, Configuration) -> CompletableFuture<RenderTask?>
 
 private fun createRenderTask(facet: AndroidFacet,
                              xmlFile: XmlFile,
-                             configuration: Configuration): RenderTask? {
+                             configuration: Configuration): CompletableFuture<RenderTask?> {
   return RenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
     .withDownscaleFactor(DOWNSCALE_FACTOR)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
-    .buildSynchronously()
+    .build()
 }
 
 /**
@@ -94,9 +73,6 @@ constructor(
   facet: AndroidFacet,
   private val renderTaskProvider: RenderTaskProvider = ::createRenderTask
 ) : AndroidFacetScopedService(facet) {
-
-  private val renderCache = HashMap<CachedRenderSource, CachedRenderVersion>()
-  private val localResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
 
   @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<BufferedImage?>>()
@@ -147,51 +123,18 @@ constructor(
   }
 
   private fun getFullImage(configuration: Configuration, xmlFile: XmlFile): CompletableFuture<BufferedImage?> {
-    val file = xmlFile.virtualFile
-    val cachedRenderSource = CachedRenderSource(file, configuration)
-    val fullSize = renderCache[cachedRenderSource]?.image?.get()
-    return if (fullSize != null && fileIsUpToDate(file, cachedRenderSource)) {
-      CompletableFuture.completedFuture(fullSize)
-    }
-    else {
-      renderFile(xmlFile, file, configuration)
-    }
-  }
-
-  private fun fileIsUpToDate(file: VirtualFile,
-                             cachedRenderSource: CachedRenderSource): Boolean =
-    renderCache[cachedRenderSource]?.let {
-      it.modStamp == file.timeStamp &&
-      it.version == localResourceRepository.modificationCount
-    } ?: false
-
-
-  private fun renderFile(xmlFile: XmlFile,
-                         file: VirtualFile,
-                         configuration: Configuration): CompletableFuture<BufferedImage?> {
-
-    val task = renderTaskProvider(facet, xmlFile, configuration) ?: return CompletableFuture.completedFuture(null)
-    return task.render()
-      .thenApplyAsync(
-        Function { it: RenderResult ->
-          when {
-            it.renderResult.isSuccess -> it.renderedImage.copy
-            it.renderResult.exception != null -> throw it.renderResult.exception
-            else -> throw RenderingException(it.renderResult.status.name)
-          }
-        },
-        PooledThreadExecutor.INSTANCE)
-      .thenApply { image ->
-        if (image != null) {
-          val cachedRenderSource = CachedRenderSource(file, configuration)
-          val cachedRenderVersion = CachedRenderVersion(
-            version = localResourceRepository.modificationCount,
-            modStamp = file.timeStamp,
-            image = SoftReference(image))
-          renderCache[cachedRenderSource] = cachedRenderVersion
+    return renderTaskProvider(facet, xmlFile, configuration)
+      .thenCompose { it?.render() }
+      .thenApplyAsync(Function {
+        if (it == null) {
+          return@Function null
         }
-        image
-      }
+        when {
+          it.renderResult.isSuccess -> it.renderedImage.copy
+          it.renderResult.exception != null -> throw it.renderResult.exception
+          else -> throw RenderingException(it.renderResult.status.name)
+        }
+      }, PooledThreadExecutor.INSTANCE)
   }
 
   override fun onServiceDisposal(facet: AndroidFacet) {}
