@@ -46,7 +46,7 @@ iml_module(
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/idea/xml/impl:intellij.xml.impl[module]",
-        "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module]",
+        "//tools/idea:intellij.platform.debugger.impl_and_others[module]",
         "//tools/idea/java/execution/openapi:intellij.java.execution[module]",
         "//tools/idea/platform/smRunner:intellij.platform.smRunner[module]",
         "//tools/idea/plugins/junit:intellij.junit[module]",

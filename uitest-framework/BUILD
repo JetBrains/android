@@ -8,7 +8,11 @@ iml_module(
     iml_files = ["intellij.android.guiTestFramework.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
-    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/vendor/intellij/cidr/cidr-common-testFramework:intellij.cidr.common.testFramework",
+        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -35,7 +39,7 @@ iml_module(
         "//tools/idea/plugins/gradle/java:intellij.gradle.java[module, test]",
         "//tools/idea/java/openapi:intellij.java[module, test]",
         "//tools/idea/platform/bootstrap:intellij.platform.bootstrap[module, test]",
-        "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module, test]",
+        "//tools/idea:intellij.platform.debugger.impl_and_others[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

@@ -85,7 +85,7 @@ iml_module(
         "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
         "//tools/idea:intellij.java.impl[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
-        "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module, test]",
+        "//tools/idea:intellij.platform.debugger.impl_and_others[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
