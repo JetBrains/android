@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.idea.editors.theme.ColorUtils;
@@ -519,11 +505,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     result.add(previewPanel);
 
     final JComponent rgbPanel = new Box(BoxLayout.LINE_AXIS);
-    if (!UIUtil.isUnderAquaLookAndFeel()) {
-      myR_after.setPreferredSize(JBUI.size(14, -1));
-      myG_after.setPreferredSize(JBUI.size(14, -1));
-      myB_after.setPreferredSize(JBUI.size(14, -1));
-    }
+    myR_after.setPreferredSize(JBUI.size(14, -1));
+    myG_after.setPreferredSize(JBUI.size(14, -1));
+    myB_after.setPreferredSize(JBUI.size(14, -1));
     rgbPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
     rgbPanel.add(myA);
     rgbPanel.add(myAlpha);
@@ -532,17 +516,17 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myR);
     rgbPanel.add(myRed);
-    if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myR_after);
+    rgbPanel.add(myR_after);
     myR_after.setVisible(false);
     rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myG);
     rgbPanel.add(myGreen);
-    if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myG_after);
+    rgbPanel.add(myG_after);
     myG_after.setVisible(false);
     rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myB);
     rgbPanel.add(myBlue);
-    if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myB_after);
+    rgbPanel.add(myB_after);
     myB_after.setVisible(false);
     rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myFormat);

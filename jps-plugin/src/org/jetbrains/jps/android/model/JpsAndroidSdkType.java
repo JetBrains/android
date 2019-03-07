@@ -31,4 +31,9 @@ public class JpsAndroidSdkType extends JpsSdkType<JpsSimpleElement<JpsAndroidSdk
   public String getJavaSdkName(@NotNull JpsElement properties) {
     return ((JpsAndroidSdkProperties)((JpsSimpleElement<?>)properties).getData()).getJdkName();
   }
+
+  @Override
+  public String getPresentableName() {
+    return "Android SDK";
+  }
 }
