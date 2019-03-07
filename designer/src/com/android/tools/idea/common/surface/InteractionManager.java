@@ -43,6 +43,7 @@ import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
@@ -762,11 +763,10 @@ public class InteractionManager {
             // remove selection when dragging from Palette.
             mySurface.getSelectionModel().clear();
           }
-          dragged = ApplicationManager.getApplication()
-            .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(item, insertType, mySurface));
+          dragged = model.createComponents(item, insertType, mySurface);
         }
 
-        if (dragged == null || dragged.isEmpty()) {
+        if (dragged.isEmpty()) {
           event.reject();
           return;
         }
