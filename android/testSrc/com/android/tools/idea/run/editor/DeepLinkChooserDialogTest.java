@@ -34,7 +34,7 @@ public class DeepLinkChooserDialogTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    TemplateManagerImpl.setTemplateTesting(getProject(), getProject());
+    TemplateManagerImpl.setTemplateTesting(getTestRootDisposable());
   }
 
   public void testMatchDeeplink() throws Exception {
