@@ -244,7 +244,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile,
                                                                     @NotNull BuildModelContext context) {
     File propertiesFilePath = new File(buildDslFile.getDirectoryPath(), FN_GRADLE_PROPERTIES);
-    VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, true);
+    VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, false);
     if (propertiesFile == null) {
       return;
     }

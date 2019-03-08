@@ -187,7 +187,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     if (buildFilePath == null) {
       return null;
     }
-    VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
+    VirtualFile buildFile = findFileByIoFile(buildFilePath, false);
     if (buildFile == null) {
       return null;
     }
