@@ -20,7 +20,6 @@ import static com.android.ide.common.repository.MavenRepositories.getHighestInst
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 
-import com.android.SdkConstants;
 import com.android.builder.model.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOp;

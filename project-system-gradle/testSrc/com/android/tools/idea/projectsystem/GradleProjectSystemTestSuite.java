@@ -34,10 +34,10 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
                       "tools/adt/idea/android/testData",
                       "tools/base/templates",
                       "tools/idea/java",
-                      "prebuilts/studio/sdk",
-                      "prebuilts/tools/common/offline-m2");
+                      "prebuilts/studio/sdk");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
+    setUpOfflineRepo("tools/base/build-system/previous-versions/2.2.0.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
   }
