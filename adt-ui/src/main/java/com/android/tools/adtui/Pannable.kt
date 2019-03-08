@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.actions
+package com.android.tools.adtui
 
-import com.android.tools.adtui.ZOOMABLE_KEY
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 
-object ZoomActualAction : SetZoomAction(ZoomType.ACTUAL) {
-  // TODO: register shortcuts
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToActual() ?: false
-  }
+@JvmField
+val PANNABLE_KEY = DataKey.create<Pannable>(Pannable::class.java.name)
+
+/** Interface for components that can be panned (drag and move a view within a Scrolling panel) to support Panning actions. */
+interface Pannable {
+  var isPanning: Boolean
 }

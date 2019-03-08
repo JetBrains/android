@@ -351,6 +351,11 @@ public final class StudioFlags {
     NELE, "show.custom.view.preview", "Show Custom View Preview",
     "Enable the feature which shows a graphical preview for Android custom View classes.",
     false);
+
+  public static final Flag<Boolean> NELE_DESIGN_SURFACE_ZOOM = Flag.create(
+    NELE, "design.surface.zoom", "Zoom panel in Design Surface",
+    "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
+    false);
   //endregion
 
   //region Navigation Editor

@@ -221,6 +221,10 @@ public class InteractionManager implements Disposable {
     return mySurface;
   }
 
+  public boolean isPanning() {
+    return myIsPanning;
+  }
+
   /**
    * This will registers all the listeners to {@link DesignSurface} needed by the {@link InteractionManager}.<br>
    * Do nothing if it is listening already.

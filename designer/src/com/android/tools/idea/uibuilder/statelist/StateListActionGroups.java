@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.statelist;
 
-import com.android.tools.adtui.actions.SetZoomAction;
-import com.android.tools.adtui.actions.ZoomInAction;
-import com.android.tools.adtui.actions.ZoomLabelAction;
-import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.adtui.actions.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 
 public final class StateListActionGroups extends ToolbarActionGroups {
   public StateListActionGroups(@NotNull DesignSurface surface) {
@@ -47,12 +40,7 @@ public final class StateListActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-
-    group.add(ZoomOutAction.INSTANCE);
-    group.add(ZoomLabelAction.INSTANCE);
-    group.add(ZoomInAction.INSTANCE);
-    group.add(ZoomToFitAction.INSTANCE);
-
+    group.addAll(getZoomActions());
     return group;
   }
 }
