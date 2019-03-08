@@ -189,7 +189,13 @@ public class AndroidGradleTests {
     if (TestUtils.runningFromBazel()) {
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
-      repositories.add(new File(tmp, prebuiltsRepo));
+      File file = new File(tmp, prebuiltsRepo);
+      if (file.exists()) {
+        repositories.add(file);
+      }
+      else {
+        repositories.add(getWorkspaceFile(prebuiltsRepo));
+      }
       // publish local should already be available inside prebuilts
     }
     else if (System.getProperty("idea.gui.test.running.on.release") != null) {

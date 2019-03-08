@@ -3,7 +3,7 @@ package p1.p2;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class <warning>MyParcelable</warning> implements Parcelable {
+public class MyParcelable implements Parcelable {
   public static final Creator<MyParcelable> CREATOR = new Creator<MyParcelable>() {
     @Override
     public MyParcelable createFromParcel(Parcel source) {
