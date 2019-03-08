@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
+import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
@@ -37,7 +38,7 @@ public class AndroidGradlePluginOutputParser implements BuildOutputParser {
   private static final String ERROR_PREFIX = "error:"; // Prefix used by the Android Gradle Plugin when reporting error.
 
   @Override
-  public boolean parse(String line, BuildOutputInstantReader reader, Consumer<? super MessageEvent> messageConsumer) {
+  public boolean parse(String line, BuildOutputInstantReader reader, Consumer<? super BuildEvent> messageConsumer) {
     if (WARNING_PREFIX.regionMatches(true, 0, line, 0, WARNING_PREFIX.length())) {
       String message = line.substring(WARNING_PREFIX.length()).trim();
       messageConsumer
