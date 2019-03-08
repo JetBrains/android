@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.transport.demo;
 
-import static com.android.tools.profiler.proto.Transport.Command.CommandType.ECHO;
+import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.FpsTimer;
@@ -26,6 +26,8 @@ import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.idea.transport.TransportClient;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.pipeline.example.proto.Echo;
+import com.android.tools.profiler.proto.Commands;
+import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.google.common.collect.ImmutableMap;
@@ -61,15 +63,15 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
 
   private JPanel myRootPanel;
 
-  private static final Map<Transport.Command.CommandType, Transport.Command.Builder> SUPPORTED_COMMANDS = ImmutableMap.of(
-    ECHO, Transport.Command.newBuilder().setType(ECHO).setEchoData(Echo.EchoData.newBuilder().setData("Hello World"))
+  private static final Map<Command.CommandType, Command.Builder> SUPPORTED_COMMANDS = ImmutableMap.of(
+    ECHO, Command.newBuilder().setType(ECHO).setEchoData(Echo.EchoData.newBuilder().setData("Hello World"))
   );
 
 
   @NotNull private final CommonAction myProcessSelectionAction;
   @NotNull private final CommonDropDownButton myProcessSelectionDropDown;
   @NotNull private final JLabel myProcessAgentStatus;
-  @NotNull private final ComboBox<Transport.Command.CommandType> myCommandComboBox;
+  @NotNull private final ComboBox<Command.CommandType> myCommandComboBox;
   @NotNull private final JButton mySendCommandButton;
   @NotNull private final ComboBox<Common.Event.Kind> myEventFilter;
   @NotNull private final JBTextArea myEventLog;
@@ -97,14 +99,14 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     myProcessAgentStatus = new JLabel("");
 
     myCommandComboBox = new ComboBox<>();
-    for (Transport.Command.CommandType type : SUPPORTED_COMMANDS.keySet()) {
+    for (Command.CommandType type : SUPPORTED_COMMANDS.keySet()) {
       myCommandComboBox.addItem(type);
     }
     mySendCommandButton = new JButton("Send Command");
     mySendCommandButton.addActionListener(e -> {
-      Transport.Command.CommandType selectedCommand = (Transport.Command.CommandType)myCommandComboBox.getSelectedItem();
+      Command.CommandType selectedCommand = (Command.CommandType)myCommandComboBox.getSelectedItem();
       if (SUPPORTED_COMMANDS.containsKey(selectedCommand)) {
-        Transport.Command command = SUPPORTED_COMMANDS.get(selectedCommand)
+        Command command = SUPPORTED_COMMANDS.get(selectedCommand)
           .setStreamId(mySelectedStream.getStreamId())
           .setPid(mySelectedProcess.getPid())
           .build();
@@ -299,12 +301,12 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
               mySelectedProcess = process;
 
               // The device daemon takes care of the case if and when the agent is previously attached already.
-              Transport.Command attachCommand = Transport.Command.newBuilder()
+              Command attachCommand = Command.newBuilder()
                 .setStreamId(mySelectedStream.getStreamId())
                 .setPid(mySelectedProcess.getPid())
-                .setType(Transport.Command.CommandType.ATTACH_AGENT)
+                .setType(Command.CommandType.ATTACH_AGENT)
                 .setAttachAgent(
-                  Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
+                  Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
                 .build();
               myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
               myAgentConnected = false;

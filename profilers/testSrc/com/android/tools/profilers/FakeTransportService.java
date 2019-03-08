@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Transport;
@@ -64,7 +65,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
   private final Map<Long, List<Transport.EventGroup.Builder>> myStreamEvents;
-  private final Map<Transport.Command.CommandType, CommandHandler> myCommandHandlers;
+  private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
   private final FakeTimer myTimer;
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
@@ -94,14 +95,14 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * This method creates any command handlers needed by test, for more information see {@link CommandHandler}.
    */
   private void initializeCommandHandlers() {
-    setCommandHandler(Transport.Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
-    setCommandHandler(Transport.Command.CommandType.END_SESSION, new EndSession(myTimer));
+    setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
+    setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
   }
 
   /**
    * Allow test to overload specific command handles if they need to generate customized data.
    */
-  public void setCommandHandler(Transport.Command.CommandType type, CommandHandler handler) {
+  public void setCommandHandler(Command.CommandType type, CommandHandler handler) {
     myCommandHandlers.put(type, handler);
   }
 
@@ -284,7 +285,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   }
 
   public boolean getAgentAttachCalled() {
-    return ((BeginSession)myCommandHandlers.get(Transport.Command.CommandType.BEGIN_SESSION)).getAgentAttachCalled();
+    return ((BeginSession)myCommandHandlers.get(Command.CommandType.BEGIN_SESSION)).getAgentAttachCalled();
   }
 
   /**
