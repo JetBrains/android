@@ -16,6 +16,7 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
+import com.android.tools.adtui.model.stdui.SelectiveFilteringListModel
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
 import com.intellij.psi.codeStyle.NameUtil
@@ -25,13 +26,23 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN
 import com.intellij.ui.components.JBList
-import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
-import java.awt.*
-import javax.swing.*
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.Toolkit
+import javax.swing.DefaultListModel
+import javax.swing.JComponent
+import javax.swing.JList
+import javax.swing.JPopupMenu
+import javax.swing.ListCellRenderer
+import javax.swing.ListModel
+import javax.swing.ListSelectionModel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+import javax.swing.SwingUtilities
 import kotlin.math.max
 import kotlin.math.min
 
@@ -48,7 +59,7 @@ private fun Int.modulo(other: Int): Int {
  */
 class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI()) {
   private val listModel = DefaultListModel<String>()
-  private val filteredModel = FilteringListModel<String>(listModel)
+  private val filteredModel = SelectiveFilteringListModel<String>(listModel)
   private var matcher = Matcher()
   private val condition = { element: String -> matcher.matches(element) }
   private var showBelow = true
@@ -103,6 +114,7 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
     val text = editor.text
     val oldSelectedValue = ui.selectedValue
     matcher.pattern = text
+    filteredModel.perfectMatch = text
     filteredModel.refilter()
     val matchesToShow = filteredModel.size > 0
     when {
