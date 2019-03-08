@@ -16,7 +16,9 @@
 package com.android.tools.idea.common.surface;
 
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
+import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 
+import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -69,6 +71,7 @@ import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -116,7 +119,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable {
+public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable {
 
   public enum State {
     /** Surface is taking the total space of the design editor. */
@@ -126,7 +129,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     /** Surface is deactivated and not being displayed. */
     DEACTIVATED
   }
-
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
   private final Project myProject;
@@ -144,6 +146,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+  protected final JPanel myVisibleSurfaceLayerPanel;
 
   private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
@@ -232,6 +235,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myProgressPanel.setName("Layout Editor Progress Panel");
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
 
+    myVisibleSurfaceLayerPanel = new MyVisibleSurfaceLayerPane();
+    myVisibleSurfaceLayerPanel.setLayout(new BorderLayout());
+    myVisibleSurfaceLayerPanel.setBounds(0, 0, 100, 100);
+    myLayeredPane.add(myVisibleSurfaceLayerPanel, JLayeredPane.POPUP_LAYER);
+
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(myLayeredPane);
     myScrollPane.setBorder(null);
@@ -277,6 +285,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
     myActionManager.registerActionsShortcuts(myLayeredPane, this);
+
+    myVisibleSurfaceLayerPanel.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }
 
   /**
@@ -671,6 +681,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return zoom(type, -1, -1);
   }
 
+  @Override
+  public void setPanning(boolean isPanning) {
+    myInteractionManager.setPanning(isPanning);
+  }
+
   /**
    * <p>
    * Execute a zoom on the content. See {@link ZoomType} for the different types of zoom available.
@@ -784,6 +799,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Override
+  public boolean isPanning() {
+    return myInteractionManager.isPanning();
+  }
+
+  @Override
   public boolean canZoomIn() {
     return getScale() < getMaxScale();
   }
@@ -796,6 +816,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public boolean canZoomToFit() {
     return true;
+  }
+
+  @Override
+  public boolean canZoomToActual() {
+    return (myScale > 1 && canZoomOut()) || (myScale < 1 && canZoomIn());
   }
 
   /**
@@ -1278,6 +1303,35 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
+  /**
+   * Creates a panel which bounds are always limited to the DesignSurface's visible area.
+   */
+  private class MyVisibleSurfaceLayerPane extends JBPanel {
+
+    MyVisibleSurfaceLayerPane() {
+      setOpaque(false);
+    }
+
+    @Override
+    public Rectangle getBounds(@Nullable Rectangle rv) {
+      if (myScrollPane != null && myScrollPane.getViewport() != null) {
+        if (rv == null) {
+          rv = new Rectangle();
+        }
+        // Force the bounds of this panel to the visible area in the design surface.
+        Rectangle viewportBorderBounds = myScrollPane.getViewportBorderBounds();
+        rv.height = viewportBorderBounds.height;
+        rv.width = viewportBorderBounds.width;
+        Point point = myScrollPane.getViewport().getViewPosition();
+        rv.x = point.x;
+        rv.y = point.y;
+        setBounds(rv);
+        return rv;
+      }
+      return super.getBounds(rv);
+    }
+  }
+
   private static class GlassPane extends JComponent {
     private static final long EVENT_FLAGS = AWTEvent.KEY_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK;
 
@@ -1489,7 +1543,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (ZOOMABLE_KEY.is(dataId)) {
+    if (ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
       return this;
     }
     if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {

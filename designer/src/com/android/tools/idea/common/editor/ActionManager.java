@@ -83,6 +83,11 @@ public abstract class ActionManager<S extends DesignSurface> {
     return new ActionsToolbar(mySurface, mySurface).getToolbarComponent();
   }
 
+  @NotNull
+  public JComponent createDesignSurfaceToolbar() {
+    return new DesignSurfaceActionsToolbar(mySurface, mySurface, mySurface).getDesignSurfaceToolbar();
+  }
+
   public final void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = getPopupMenuActions(leafComponent);
     if (group.getChildrenCount() == 0) {

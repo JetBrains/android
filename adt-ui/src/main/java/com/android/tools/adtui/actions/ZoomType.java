@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.actions;
 
-import com.intellij.icons.AllIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,36 +27,40 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen", StudioIcons.Common.RESET_ZOOM),
+  // TODO(b/139432440): Only use icons dedicated for zoom controls.
+  FIT("Zoom to Fit Screen", StudioIcons.Common.RESET_ZOOM, StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
    */
-  FIT_INTO("Zoom out to Fit Screen", StudioIcons.Common.RESET_ZOOM),
+  FIT_INTO("Zoom out to Fit Screen", StudioIcons.Common.RESET_ZOOM, null),
 
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100%", null),
+  ACTUAL("100%", null, StudioIcons.Common.ZOOM_ACTUAL),
 
   /**
    * Zoom in
    */
-  IN("Zoom In", AllIcons.General.ZoomIn),
+  // TODO(b/139432440): Only use icons dedicated for zoom controls.
+  IN("Zoom In", StudioIcons.Common.ZOOM_IN, StudioIcons.Common.ADD),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out", AllIcons.General.ZoomOut),
+  // TODO(b/139432440): Only use icons dedicated for zoom controls.
+  OUT("Zoom Out", StudioIcons.Common.ZOOM_OUT, StudioIcons.Common.REMOVE),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)
    */
-  SCREEN("Exact Device Size", null);
+  SCREEN("Exact Device Size", null, null);
 
-  ZoomType(@NotNull String label, @Nullable Icon icon) {
+  ZoomType(@NotNull String label, @Nullable Icon normalIcon, @Nullable Icon floatingIcon) {
     myLabel = label;
-    myIcon = icon;
+    myIcon = normalIcon;
+    myFloatingIcon = floatingIcon;
   }
 
   /** Describes the zoom action to the user */
@@ -65,10 +68,16 @@ public enum ZoomType {
     return myLabel;
   }
 
-  /** Returns an icon for this zoom type, if any */
+  /** Returns the icon for this zoom type. Null if this icon is not set. */
   @Nullable
   public Icon getIcon() {
     return myIcon;
+  }
+
+  /** Returns the icon for this zoom type when used on the DesignSurface. Null for actions not used on the DesignSurface. */
+  @Nullable
+  public Icon getFloatingIcon() {
+    return myFloatingIcon;
   }
 
   /** Returns true if this zoom type should be shown to the user */
@@ -83,6 +92,7 @@ public enum ZoomType {
 
   private final String myLabel;
   private final Icon myIcon;
+  private final Icon myFloatingIcon;
 
   // Zoom percentages
   // 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, 150%, 200%, 300%, 400%, .... +100%
