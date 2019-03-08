@@ -22,7 +22,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract class DefinitionReference implements DataBindingXmlReferenceContributor.ResolvesToModelClass, PsiReference {
+abstract class DefinitionReference implements DataBindingExprReferenceContributor.ResolvesToModelClass, PsiReference {
   protected final TextRange myTextRange;
   protected final PsiElement myElement;
   protected final PsiElement myTarget;
