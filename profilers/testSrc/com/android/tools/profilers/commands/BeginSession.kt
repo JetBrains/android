@@ -17,7 +17,7 @@ package com.android.tools.profilers.commands
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Transport.Command
+import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Transport.EventGroup
 
 /**
