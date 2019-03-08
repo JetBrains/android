@@ -113,6 +113,7 @@ class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsA
   }
 
   override fun onTestingFinished(testsRoot: SMTestProxy.SMRootTestProxy) {
+    if (testsRoot.handler == null) return
     val testRunBuilder = testsRoot.handler.getUserData(TEST_RUN_KEY) ?: return
     testRunBuilder.numberOfTestsExecuted = testsRoot.allTests.count { it.isLeaf }
 
