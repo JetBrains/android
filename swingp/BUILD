@@ -11,7 +11,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/idea/.idea/libraries:ASM",
         "//tools/idea/.idea/libraries:gson",
         "//tools/idea/.idea/libraries:Guava",
@@ -43,7 +42,6 @@ java_binary(
         "//tools/idea/.idea/libraries:ASM",
         "//tools/idea/.idea/libraries:http-client",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
-        "//tools/idea/platform/util:intellij.platform.util",
     ],
 )
 
