@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build.output
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
@@ -38,7 +39,7 @@ class DataBindingOutputParser : BuildOutputParser {
   private val jsonFormatter = JsonDataBindingOutputParser()
   private val legacyFormatter = LegacyDataBindingOutputParser()
 
-  override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+  override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     return jsonFormatter.parse(line, reader, messageConsumer) || legacyFormatter.parse(line, reader, messageConsumer)
   }
 
@@ -65,7 +66,8 @@ class DataBindingOutputParser : BuildOutputParser {
      */
     private val gson = Gson()
 
-    override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+    override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
+      if (line == null || reader == null || messageConsumer == null) return false
       if (line.contains(ERROR_LOG_HEADER)) {
         // Consume useless log header so other parsers don't waste time on it
         return true
@@ -137,7 +139,8 @@ class DataBindingOutputParser : BuildOutputParser {
       private val LOCATION_REGEX = Regex("""(\d+):(\d+) - (\d+):(\d+)""")
     }
 
-    override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+    override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
+      if (line == null || reader == null || messageConsumer == null) return false
       if (line.contains(ERROR_LOG_HEADER)) {
         // Consume useless log header so other parsers don't waste time on it
         return true
