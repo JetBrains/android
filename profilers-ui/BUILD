@@ -52,6 +52,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/.idea/libraries:Java_Compatibility",
-        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
     ],
 )
