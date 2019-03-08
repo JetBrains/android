@@ -39,7 +39,6 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
 
   static {
     optSymlinkToIdeaHome(
-      "prebuilts/tools/common/offline-m2",
       "prebuilts/studio/jdk",
       "prebuilts/studio/layoutlib",
       "prebuilts/studio/sdk",

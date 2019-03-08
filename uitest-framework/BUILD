@@ -61,7 +61,7 @@ iml_module(
     ],
 )
 
-# Dependencies of UI tests not covered by //tools/adt/idea/android:test_deps, //prebuilts/tools/common/offline-m2, or out/studio/repo. This
+# Dependencies of UI tests not covered by //tools/adt/idea/android:test_deps or out/studio/repo. This
 # allows us to run UI tests on a release bundle without a source checkout.
 maven_repo(
     name = "uitest_deps",

@@ -152,7 +152,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     // Now add gson to unit test dependencies as well
     VirtualFile buildFile = getGradleBuildFile(scopes.getModule());
     assertNotNull(buildFile);
-    appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.2.4' }\n");
+    appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.8.0' }\n");
 
     CountDownLatch latch = new CountDownLatch(1);
     GradleSyncListener postSetupListener = new GradleSyncListener() {
