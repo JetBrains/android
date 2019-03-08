@@ -69,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
  * For references in DataBinding expressions. For references in {@code <data>} tag,
  * see {@link org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter}.
  */
-public class DataBindingXmlReferenceContributor extends PsiReferenceContributor {
+public class DataBindingExprReferenceContributor extends PsiReferenceContributor {
   // TODO: Support generics
   @Override
   public void registerReferenceProviders(@NotNull PsiReferenceRegistrar registrar) {
