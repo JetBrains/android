@@ -147,6 +147,10 @@ public class DataBindingExprReferenceContributor extends PsiReferenceContributor
         ResolvesToModelClass ref = resolveClassReference(qualifierExpr);
         PsiModelClass psiModelClass = resolveClassType(ref);
         if (psiModelClass == null) {
+          // If here, it means that the user is referencing a (fully qualified) class in their
+          // expression without a corresponding <import> or <variable> declaration. In that case,
+          // we search the current module to see if we can find it there.
+
           PsiReference[] references = qualifierExpr.getReferences();
 
           if (references.length > 0) {
