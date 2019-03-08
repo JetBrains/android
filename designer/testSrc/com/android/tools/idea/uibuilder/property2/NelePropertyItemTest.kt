@@ -419,6 +419,25 @@ class NelePropertyItemTest {
     assertThat(values).containsExactlyElementsIn(expected)
   }
 
+  @Test
+  fun testbackgroundCompletion() {
+    projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    val util = SupportTestUtil(projectRule, createTextView())
+    val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
+    val values = background.editingSupport.completion()
+    val set = HashSet(values)
+
+    // There must be no duplicates
+    assertThat(values.size).isEqualTo(set.size)
+
+    // Check that local resources are shown before framework resources
+    val localValue = values.indexOf("@drawable/cancel")
+    val firstFrameworkValue = values.indexOfFirst { it.startsWith("@android:") }
+    assertThat(localValue).isAtLeast(0)
+    assertThat(firstFrameworkValue).isAtLeast(0)
+    assertThat(localValue).isLessThan(firstFrameworkValue)
+  }
+
   @RunsInEdt
   @Test
   fun testParentTagCompletion() {

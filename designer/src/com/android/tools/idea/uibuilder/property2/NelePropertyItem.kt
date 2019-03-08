@@ -330,17 +330,24 @@ open class NelePropertyItem(
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
+      // Resources may contain multiple entries for the same name
+      val valueSet = mutableSetOf<String>()
+
       // Local resources.
       for (type in types) {
         // TODO(namespaces): Exclude non-public resources from library modules.
-        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(values, toName)
+        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(valueSet, toName)
       }
+
+      // Sort and add to the result list:
+      values.addAll(valueSet.sorted())
+      valueSet.clear()
 
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
           if (resourceItem is AarResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
-            values.add(toName(resourceItem))
+            valueSet.add(toName(resourceItem))
           }
           return ResourceVisitor.VisitResult.CONTINUE
         }
@@ -350,10 +357,17 @@ open class NelePropertyItem(
         }
       })
 
+      // Sort and add to the result list:
+      values.addAll(valueSet.sorted())
+      valueSet.clear()
+
       // Framework resources.
       for (type in types) {
-        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
+        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(valueSet, toName)
       }
+
+      // Sort and add to the result list:
+      values.addAll(valueSet.sorted())
     }
     if (type == NelePropertyType.FONT) {
       values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
