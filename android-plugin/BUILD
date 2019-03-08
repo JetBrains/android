@@ -5,11 +5,6 @@ iml_module(
     name = "intellij.android.plugin",
     srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/vendor/intellij/cidr/cidr-common-testFramework:intellij.cidr.common.testFramework",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
