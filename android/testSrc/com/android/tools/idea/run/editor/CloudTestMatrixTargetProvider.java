@@ -17,8 +17,8 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.TargetSelectionMode;
 
-final class CloudTestMatrixTargetProvider extends TestDeployTargetProvider {
-  CloudTestMatrixTargetProvider() {
+public final class CloudTestMatrixTargetProvider extends TestDeployTargetProvider {
+  public CloudTestMatrixTargetProvider() {
     super(TargetSelectionMode.FIREBASE_DEVICE_MATRIX, "Firebase Test Lab Device Matrix");
   }
 
