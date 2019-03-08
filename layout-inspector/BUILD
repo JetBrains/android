@@ -8,11 +8,6 @@ iml_module(
     test_coverage = True,
     test_data = ["//tools/adt/idea/layout-inspector/testData"],
     test_resources = ["testData"],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/vendor/intellij/cidr/cidr-common-testFramework:intellij.cidr.common.testFramework",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
-    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -38,7 +33,6 @@ iml_module(
         "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
-        "//tools/vendor/intellij/cidr:intellij.c[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module]",

@@ -32,8 +32,6 @@ iml_module(
     test_runtime_deps = [
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/vendor/intellij/cidr/cidr-common-testFramework:intellij.cidr.common.testFramework",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
