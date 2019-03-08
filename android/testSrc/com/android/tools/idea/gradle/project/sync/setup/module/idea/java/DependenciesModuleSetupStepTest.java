@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.gradle.project.sync.setup.module.idea.java.DependenciesModuleSetupStep.getExported;
+import static com.android.tools.idea.gradle.project.sync.setup.module.idea.java.DependenciesModuleSetupStep.isSelfDependencyByTest;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -25,20 +35,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
-import org.mockito.Mock;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-
-import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.project.sync.setup.module.idea.java.DependenciesModuleSetupStep.getExported;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link DependenciesModuleSetupStep}.
@@ -102,5 +102,24 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     GradleModuleModel gradleModuleModel = mock(GradleModuleModel.class);
     when(gradleModuleModel.getGradlePath()).thenReturn(":" + myModule.getName());
     facet.setGradleModuleModel(gradleModuleModel);
+  }
+
+  public void testIsDependenciesModuleSetupStepSelfDependencyByTest() {
+    String libModulePath = "lib";
+
+    // Create lib module.
+    Module libModule = createModule(libModulePath);
+
+    // Create module dependency on lib module.
+    JavaModuleDependency selfCompileDependency = new JavaModuleDependency(libModulePath, ":", "COMPILE", false);
+    JavaModuleDependency selfTestDependency = new JavaModuleDependency(libModulePath, ":", "TEST", false);
+    // Create module dependency on some other module.
+    JavaModuleDependency otherDependency = new JavaModuleDependency("other", ":", "TEST", false);
+
+    // Verify that isSelfDependencyByTest is false for compile scope, and true for test scope.
+    assertFalse(isSelfDependencyByTest(selfCompileDependency, libModule, libModule));
+    assertTrue(isSelfDependencyByTest(selfTestDependency, libModule, libModule));
+    // Verify that isSelfDependencyByTest is false non-self dependency.
+    assertFalse(isSelfDependencyByTest(otherDependency, libModule, createModule("other")));
   }
 }
