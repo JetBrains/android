@@ -117,6 +117,18 @@ class LookupTest {
   }
 
   @Test
+  fun testExactMatchFirst() {
+    val model = TestCommonTextFieldModel("")
+    val field = CommonTextField(model)
+    val ui = TestUI()
+    val lookup = Lookup(field, ui)
+    field.text = "@string/app_name"
+    lookup.showLookup()
+    assertThat(ui.visible).isTrue()
+    assertThat(ui.elements().subList(0, 3)).containsExactly("@string/app_name", "@string/app_firstName", "@string/app_name1").inOrder()
+  }
+
+  @Test
   fun testNext() {
     val model = TestCommonTextFieldModel("")
     val field = CommonTextField(model)
@@ -275,12 +287,13 @@ class LookupTest {
     field.text = "a"
     lookup.showLookup()
     lookup.selectNext()
-    assertThat(ui.selectedIndex).isEqualTo(1)
+    lookup.selectNext()
+    assertThat(ui.selectedIndex).isEqualTo(2)
     assertThat(ui.selectedValue).isEqualTo("@string/app_name")
 
     field.text = "ap"
     lookup.showLookup()
-    assertThat(ui.selectedIndex).isEqualTo(0)
+    assertThat(ui.selectedIndex).isEqualTo(1)
     assertThat(ui.selectedValue).isEqualTo("@string/app_name")
   }
 
