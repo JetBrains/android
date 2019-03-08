@@ -213,6 +213,7 @@ class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
 
   override val completion = fun(): List<String> {
     return listOf("@string/almond",
+                  "@string/app_firstName",
                   "@string/app_name",
                   "@string/app_name1",
                   "@string/app_name2",
