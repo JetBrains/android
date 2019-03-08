@@ -15,24 +15,26 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.Common;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-
-import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
@@ -117,7 +119,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     TabularLayout layout = new TabularLayout("*,Fit-,*", "*");
     myContainer.setLayout(layout);
     boolean canConfigureAdvancedProfiling = myMonitor.getProfilers().getDevice() != null &&
-                                            myMonitor.getProfilers().getDevice().getFeatureLevel() < Common.Device.AndroidVersion.O_VALUE;
+                                            myMonitor.getProfilers().getDevice().getFeatureLevel() < AndroidVersion.VersionCodes.O;
     if (canConfigureAdvancedProfiling) {
       layout.setRowSizing(0, "6*");
       layout.setRowSizing(1, "4*");
