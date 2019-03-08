@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
+import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
+
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
 import org.jetbrains.plugins.gradle.settings.GradleRunnerConfigurable;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
 class GradleRunnerCleanupTask extends AndroidStudioCleanUpTask {
   @Override
@@ -41,12 +40,14 @@ class GradleRunnerCleanupTask extends AndroidStudioCleanUpTask {
     for (ConfigurableEP<Configurable> configurableEP : projectConfigurable.getExtensions()) {
       if (GradleConfigurable.class.getName().equals(configurableEP.instanceClass)) {
         List<ConfigurableEP> children = new ArrayList<>();
-        for (ConfigurableEP child : configurableEP.children) {
-          if (!GradleRunnerConfigurable.class.getName().equals(child.instanceClass)) {
-            children.add(child);
+        if (configurableEP.children != null) {
+          for (ConfigurableEP child : configurableEP.children) {
+            if (!GradleRunnerConfigurable.class.getName().equals(child.instanceClass)) {
+              children.add(child);
+            }
           }
+          configurableEP.children = children.toArray(new ConfigurableEP[0]);
         }
-        configurableEP.children = children.toArray(new ConfigurableEP[0]);
       }
     }
   }
