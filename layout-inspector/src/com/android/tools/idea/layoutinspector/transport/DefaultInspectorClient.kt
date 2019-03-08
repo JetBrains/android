@@ -21,6 +21,8 @@ import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.layoutinspector.proto.LayoutInspector
 import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorCommand
+import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import java.util.ArrayList
@@ -54,8 +56,8 @@ object DefaultInspectorClient: InspectorClient {
         !agentConnected) {
       return
     }
-    val transportCommand = Transport.Command.newBuilder()
-      .setType(Transport.Command.CommandType.LAYOUT_INSPECTOR)
+    val transportCommand = Command.newBuilder()
+      .setType(Command.CommandType.LAYOUT_INSPECTOR)
       .setLayoutInspector(command)
       .setStreamId(selectedStream.streamId)
       .setPid(selectedProcess.pid)
@@ -131,12 +133,12 @@ object DefaultInspectorClient: InspectorClient {
     captureStarted = false
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
-    val attachCommand = Transport.Command.newBuilder()
+    val attachCommand = Command.newBuilder()
       .setStreamId(selectedStream.streamId)
       .setPid(selectedProcess.pid)
-      .setType(Transport.Command.CommandType.ATTACH_AGENT)
+      .setType(Command.CommandType.ATTACH_AGENT)
       .setAttachAgent(
-        Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.abiCpuArch)))
+        Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.abiCpuArch)))
       .build()
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   }
