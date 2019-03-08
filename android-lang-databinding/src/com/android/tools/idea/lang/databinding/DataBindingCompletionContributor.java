@@ -29,7 +29,7 @@ import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker;
-import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor.ResolvesToModelClass;
+import com.android.tools.idea.lang.databinding.DataBindingExprReferenceContributor.ResolvesToModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelField;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
