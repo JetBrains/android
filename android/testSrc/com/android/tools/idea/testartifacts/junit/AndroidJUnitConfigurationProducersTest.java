@@ -156,7 +156,8 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
     assertEquals(CompileStepBeforeRun.ID, beforeRunTasks.get(0).getProviderId());
   }
 
-  public void testIsFromContextForDirectoryJUnitConfiguration() throws Exception {
+  // b/128036533
+  public void ignore_testIsFromContextForDirectoryJUnitConfiguration() throws Exception {
     loadSimpleApplication();
     AndroidJUnitConfiguration configuration = createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java");
     ConfigurationContext context = createContext(getProject(), getPsiElement(getProject(), "app/src/test/java", true));
