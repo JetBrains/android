@@ -15,17 +15,17 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.openapi.ui.Divider;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBCardLayout;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.util.List;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link SidePanel} displays the currently visible docked windows
@@ -50,7 +50,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
     myEmpty = new JPanel();
     myLayout = new JBCardLayout();
     myCards = new JPanel(myLayout);
-    setBorder(new SideBorder(StudioColorsKt.getBorder(), side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
+    setBorder(new SideBorder(JBColor.border(), side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
     add(myCards, BorderLayout.CENTER);
     model.addListener(this);
   }

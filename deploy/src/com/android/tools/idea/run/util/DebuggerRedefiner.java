@@ -103,10 +103,13 @@ public class DebuggerRedefiner implements ClassRedefiner {
   }
 
   private static void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) throws DeployerException {
-    disableBreakPoints(project, session);
-    VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
-    new JdiBasedClassRedefiner(vm).redefine(request);
-    enableBreakPoints(project, session);
+    try {
+      disableBreakPoints(project, session);
+      VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
+      new JdiBasedClassRedefiner(vm).redefine(request);
+    } finally {
+      enableBreakPoints(project, session);
+    }
   }
 
   /**

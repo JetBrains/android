@@ -635,7 +635,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     switch (type) {
       case IN: {
         double currentScale = myScale * getScreenScalingFactor();
-        int current = (int)(currentScale * 100);
+        int current = (int)(Math.round(currentScale * 100));
         double scale = (ZoomType.zoomIn(current) / 100.0) / getScreenScalingFactor();
         scaled = setScale(scale, x, y);
         break;
@@ -1144,8 +1144,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         return;
       }
 
+      Rectangle bounds = myScrollPane.getViewport().getViewRect();
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
+          g2d.setClip(bounds);
           layer.paint(g2d);
         }
       }

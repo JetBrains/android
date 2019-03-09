@@ -33,7 +33,6 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
  * <li>{@link AndroidModuleModelDataService}</li>
  * <li>{@link JavaModuleModelDataService}</li>
  * <li>{@link ProjectCleanupDataService}</li>
- * <li>{@link ModuleDisposalDataService}</li>
  * </ol>
  * <br/>
  * The reason for having {@link GradleModuleModelDataService} before all other services is that we need to

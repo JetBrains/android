@@ -16,7 +16,7 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.resourceExplorer.ImageCache
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
@@ -44,7 +44,6 @@ import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.update.MergingUpdateQueue
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -390,6 +389,7 @@ class ResourceExplorerView(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
+        ResourceManagerTracking.logSwitchToListMode()
         gridMode = false
         previewSize = LIST_CELL_SIZE
       }
@@ -407,6 +407,7 @@ class ResourceExplorerView(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
+        ResourceManagerTracking.logSwitchToGridMode()
         gridMode = true
         previewSize = MIN_CELL_WIDTH
       }

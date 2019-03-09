@@ -72,6 +72,7 @@ class ResourcePasteProvider : PasteProvider {
 
     if (psiElement is PsiWhiteSpace) {
       if (getFolderType(psiElement.containingFile) == ResourceFolderType.LAYOUT) {
+        ResourceManagerTracking.logPasteOnBlank(resourceUrl.type)
         if (resourceUrl.type == ResourceType.DRAWABLE) {
           insertImageView(resourceReference, psiElement, caret)
           return
@@ -80,26 +81,29 @@ class ResourcePasteProvider : PasteProvider {
     }
 
     if (psiElement !is XmlElement) {
-      pasteAtCaret(caret, resourceReference)
+      pasteAtCaret(caret, resourceReference, resourceUrl.type)
       return
     }
 
     val xmlAttributeValue = psiElement.parentOfType<XmlAttributeValue>()
     if (processForValue(xmlAttributeValue, caret, resourceReference)) {
+      ResourceManagerTracking.logPasteOnXmlAttribute(resourceUrl.type)
       return
     }
 
     val xmlAttribute = psiElement.parentOfType<XmlAttribute>()
     if (processForAttribute(xmlAttribute, caret, resourceReference)) {
+      ResourceManagerTracking.logPasteOnXmlAttribute(resourceUrl.type)
       return
     }
 
     val xmlTag = psiElement.parentOfType<XmlTag>()
     if (processForTag(xmlTag, caret, resourceReference)) {
+      ResourceManagerTracking.logPasteOnXmlTag(resourceUrl.type)
       return
     }
 
-    pasteAtCaret(caret, resourceReference)
+    pasteAtCaret(caret, resourceReference, resourceUrl.type)
   }
 
   private fun insertImageView(resourceReference: String, psiElement: PsiElement, caret: Caret) {
@@ -150,11 +154,14 @@ class ResourcePasteProvider : PasteProvider {
     return true
   }
 
-  private fun pasteAtCaret(caret: Caret, resourceReference: String) {
+  private fun pasteAtCaret(caret: Caret,
+                           resourceReference: String,
+                           type: ResourceType? = null) {
     runWriteAction {
       caret.editor.document.insertString(caret.offset, resourceReference)
     }
     caret.selectStringFromOffset(resourceReference, caret.offset)
+    ResourceManagerTracking.logPasteUrlText(type)
   }
 
   private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String) {

@@ -293,7 +293,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     // Create a temp file
     String data = "random_string_~!@#$%^&*()_+";
-    File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
+    // The '.' in the file name from the following line is useful to test we can handle file names with
+    // multiple dots correctly.
+    File file = FileUtil.createTempFile("fake.heap.dump", ".hprof", false);
     PrintWriter printWriter = new PrintWriter(file);
     printWriter.write(data);
     printWriter.close();

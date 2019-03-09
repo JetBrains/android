@@ -8,11 +8,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.Collection;
 
-/**
- * @author Vladislav.Soroka
- * @since 3/31/2016
- */
-
 public class AndroidStudioGradleSettings extends GradleSettings{
   public AndroidStudioGradleSettings(@NotNull Project project) {
     super(project);

@@ -48,6 +48,10 @@ public final class AvdDeviceData {
   private DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
   private IntProperty myScreenResolutionWidth = new IntValueProperty();
   private IntProperty myScreenResolutionHeight = new IntValueProperty();
+  private IntProperty myScreenFoldedXOffset = new IntValueProperty();
+  private IntProperty myScreenFoldedYOffset = new IntValueProperty();
+  private IntProperty myScreenFoldedWidth = new IntValueProperty();
+  private IntProperty myScreenFoldedHeight = new IntValueProperty();
 
   private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
 
@@ -190,6 +194,31 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public IntProperty screenFoldedXOffset() {
+    return myScreenFoldedXOffset;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedYOffset() {
+    return myScreenFoldedYOffset;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedWidth() {
+    return myScreenFoldedWidth;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedHeight() {
+    return myScreenFoldedHeight;
+  }
+
+  @NotNull
+  public BoolProperty isFoldable() {
+    return new BoolValueProperty(myScreenFoldedHeight.get() > 0 && myScreenFoldedWidth.get() > 0);
+  }
+
+  @NotNull
   public ObjectProperty<Storage> ramStorage() {
     return myRamStorage;
   }
@@ -307,6 +336,8 @@ public final class AvdDeviceData {
     myDiagonalScreenSize.set(5.0);
     myScreenResolutionWidth.set(1080);
     myScreenResolutionHeight.set(1920);
+    myScreenFoldedWidth.set(0);
+    myScreenFoldedHeight.set(0);
     myRamStorage.set(new Storage(2, Storage.Unit.GiB));
 
     myHasHardwareButtons.set(false);
@@ -380,6 +411,10 @@ public final class AvdDeviceData {
     myDiagonalScreenSize.set(screen.getDiagonalLength());
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
+    myScreenFoldedXOffset.set(screen.getFoldedXOffset());
+    myScreenFoldedYOffset.set(screen.getFoldedYOffset());
+    myScreenFoldedWidth.set(screen.getFoldedWidth());
+    myScreenFoldedHeight.set(screen.getFoldedHeight());
     /**
      * This is maxed out at {@link AvdWizardUtils.MAX_RAM_MB}, for more information read
      * {@link AvdWizardUtils#getDefaultRam(Hardware)}

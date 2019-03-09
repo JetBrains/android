@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
@@ -391,5 +393,35 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     else {
       assertFalse(filesModified);
     }
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInKotlinSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInKotlinSettingsFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
+                            virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingWhitespaceInKotlinBuildFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextChildInKotlinBuildFile() throws Exception {
+    loadSimpleApplication();
+
+    VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE_KTS);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
+                            virtualFile);
   }
 }

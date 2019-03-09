@@ -23,6 +23,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.intentions.OverrideResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public class OverrideResourceActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    TemplateManagerImpl.setTemplateTesting(getProject(), getProject());
+    TemplateManagerImpl.setTemplateTesting(getTestRootDisposable());
   }
 
   public void testLayout() throws IOException {

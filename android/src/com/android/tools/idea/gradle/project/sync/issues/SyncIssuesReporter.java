@@ -63,15 +63,8 @@ public class SyncIssuesReporter {
     myDefaultMessageFactory = new UnhandledIssuesReporter();
   }
 
-  public void report(@NotNull Module... modules) {
-    report(Arrays.asList(modules));
-  }
-
-  public void report(@NotNull List<Module> modules) {
-    if (modules.isEmpty()) {
-      return;
-    }
-    report(SyncIssueRegister.getInstance(modules.get(0).getProject()).getSyncIssueMap());
+  public void report(@NotNull Project project) {
+    report(SyncIssueRegister.getInstance(project).getAndClear());
   }
 
   /**

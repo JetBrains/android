@@ -67,7 +67,7 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
 
   @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> setUseAndroidX(boolean select) {
-    selectCheckBoxWithText("Use AndroidX artifacts", select);
+    selectCheckBoxWithText("Use androidx.* artifacts", select);
     return this;
   }
 

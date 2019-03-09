@@ -495,7 +495,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
-  @Ignore("b/72853928")
+  /** TODO(b/72853928): Enable this test */
   fun /*test*/SetListReferences() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

@@ -96,7 +96,7 @@ public final class GenerateIconsModel extends WizardModel {
     return Logger.getInstance(GenerateIconsModel.class);
   }
 
-  @State(name = "WizardSettings", storages = @Storage(file = "assetWizardSettings.xml"))
+  @State(name = "WizardSettings", storages = @Storage("assetWizardSettings.xml"))
   public static class StateStorage implements PersistentStateComponent<PersistentState> {
     private PersistentState myState;
 

@@ -24,17 +24,12 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.model.FpsTimer
-import com.android.tools.adtui.model.updater.Updatable
-import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.profilers.ProfilerService
-import com.android.tools.layoutinspector.proto.LayoutInspector.*
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Transport
-import com.android.tools.profiler.proto.Transport.Command.CommandType.LAYOUT_INSPECTOR
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -46,9 +41,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.LinkedList
 import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -57,7 +49,9 @@ import javax.swing.JPanel
 /**
  * Panel that shows the device screen in the layout inspector.
  */
-class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider, Updatable {
+class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
+  private val client = layoutInspector.client
+
   enum class ViewMode(val icon: Icon) {
     FIXED(StudioIcons.LayoutEditor.Extras.ROOT_INLINE),
     X_ONLY(StudioIcons.DeviceConfiguration.SCREEN_WIDTH),
@@ -75,10 +69,6 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
 
   private var drawBorders = true
 
-  private val updater = Updater(FpsTimer(10))
-
-  var client = ProfilerService.getInstance(layoutInspector.project)!!.profilerClient
-
   private val showBordersCheckBox = object : CheckboxAction("Show borders") {
     override fun isSelected(e: AnActionEvent): Boolean {
       return drawBorders
@@ -90,20 +80,13 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     }
   }
 
-  private val myProcessSelectionAction = DropDownAction("Select Process", "Select a process to connect to.", StudioIcons.Common.ADD)
-
-  private var mySelectedStream: Common.Stream? = Common.Stream.getDefaultInstance()
-  private var mySelectedProcess: Common.Process? = Common.Process.getDefaultInstance()
-
-  private var myAgentConnected = false
-  private var myCaptureStarted = false
-  private var myLastEventRequestTimestampNs = java.lang.Long.MIN_VALUE
+  private val myProcessSelectionAction = SelectProcessAction(client)
 
   val contentPanel = DeviceViewContentPanel(layoutInspector, scale, viewMode)
   private val scrollPane = JBScrollPane(contentPanel)
 
   init {
-    updater.register(this)
+    client.register(Common.Event.EventGroupIds.SKIA_PICTURE) { handleSkiaPictureEvent(it) }
 
     layoutInspector.modelChangeListeners.add(::modelChanged)
 
@@ -177,136 +160,16 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     return panel
   }
 
+  @Suppress("UNUSED_PARAMETER")
   private fun modelChanged(old: InspectorModel, new: InspectorModel) {
     scrollPane.viewport.revalidate()
     repaint()
   }
 
-  override fun update(elapsedNs: Long) {
-    // Query for current devices and processes
-    val processesMap = HashMap<Common.Stream, List<Common.Process>>()
-    run {
-      val streams = LinkedList<Common.Stream>()
-      // Get all streams of all types.
-      val request = Transport.GetEventGroupsRequest.newBuilder()
-        .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-        .setKind(Common.Event.Kind.STREAM)
-        .build()
-      val response = client.transportClient.getEventGroups(request)
-      for (group in response.groupsList) {
-        val isStreamDead = group.getEvents(group.eventsCount - 1).isEnded
-        if (isStreamDead) {
-          // Ignore dead streams.
-          continue
-        }
-        val connectedEvent = getLastMatchingEvent(group) { e -> e.hasStream() && e.stream.hasStreamConnected() }
-                             ?: // Ignore stream event groups that do not have the connected event.
-                             continue
-        val stream = connectedEvent.stream.streamConnected.stream
-        // We only want streams of type device to get process information.
-        if (stream.type == Common.Stream.Type.DEVICE) {
-          streams.add(stream)
-        }
-      }
-
-      for (stream in streams) {
-        val processRequest = Transport.GetEventGroupsRequest.newBuilder()
-          .setStreamId(stream.streamId)
-          .setKind(Common.Event.Kind.PROCESS)
-          .build()
-        val processResponse = client.transportClient.getEventGroups(processRequest)
-        val processList = ArrayList<Common.Process>()
-        // A group is a collection of events that happened to a single process.
-        for (groupProcess in processResponse.groupsList) {
-          val isProcessDead = groupProcess.getEvents(groupProcess.eventsCount - 1).isEnded
-          if (isProcessDead) {
-            // Ignore dead processes.
-            continue
-          }
-          val aliveEvent = getLastMatchingEvent(groupProcess) { e -> e.hasProcess() && e.process.hasProcessStarted() }
-                           ?: // Ignore process event groups that do not have the started event.
-                           continue
-          val process = aliveEvent.process.processStarted.process
-          processList.add(process)
-        }
-        processesMap[stream] = processList
-      }
-    }
-
-    refreshProcessDropdown(processesMap)
-
-    // If a process is selected, enabled the UI once the agent is detected.
-    mySelectedStream?.let { stream ->
-      if (mySelectedProcess != Common.Process.getDefaultInstance()) {
-        if (myAgentConnected) {
-          updatePicture(stream)
-        }
-        else {
-          tryToStartCapture(stream)
-        }
-      }
-    }
-  }
-
-  private fun tryToStartCapture(stream: Common.Stream) {
-    // Get agent data for requested session.
-    val agentRequest = Transport.GetEventGroupsRequest.newBuilder()
-      .setKind(Common.Event.Kind.AGENT)
-      .setStreamId(mySelectedStream!!.streamId)
-      .setPid(mySelectedProcess!!.pid)
-      .build()
-    val response = client.transportClient.getEventGroups(agentRequest)
-    for (group in response.groupsList) {
-      if (group.getEvents(group.eventsCount - 1).agentData.status == Common.AgentData.Status.ATTACHED) {
-        myAgentConnected = true
-        if (!myCaptureStarted) {
-          myCaptureStarted = true
-          val command = Transport.Command.newBuilder()
-            .setType(LAYOUT_INSPECTOR)
-            .setLayoutInspector(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START))
-            .setStreamId(stream.streamId)
-            .setPid(mySelectedProcess!!.pid)
-            .build()
-          client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-          // TODO: verify that capture started successfully
-        }
-        break
-      }
-    }
-  }
-
-  private fun updatePicture(stream: Common.Stream) {
-    val eventRequest = Transport.GetEventGroupsRequest.newBuilder()
-      .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
-      .setFromTimestamp(myLastEventRequestTimestampNs)
-      .setToTimestamp(java.lang.Long.MAX_VALUE)
-      .build()
-    val eventResponse = client.transportClient.getEventGroups(eventRequest)
-    if (eventResponse != Transport.GetEventGroupsResponse.getDefaultInstance()) {
-      val events = ArrayList<Common.Event>()
-      eventResponse.groupsList.forEach { group -> events.addAll(group.eventsList) }
-      events.sortBy { it.timestamp }
-      events.forEach { evt ->
-        if (evt.timestamp >= myLastEventRequestTimestampNs) {
-          System.out.println(evt.timestamp)
-          if (evt.groupId == Common.Event.EventGroupIds.SKIA_PICTURE_VALUE.toLong()) {
-            getPayload(stream, evt)
-          }
-        }
-      }
-      myLastEventRequestTimestampNs = Math.max(myLastEventRequestTimestampNs, events[events.size - 1].timestamp + 1)
-    }
-  }
-
-  private fun getPayload(stream: Common.Stream, evt: Common.Event) {
+  private fun handleSkiaPictureEvent(event: LayoutInspectorEvent) {
     val application = ApplicationManager.getApplication()
     application.executeOnPooledThread {
-      val bytesRequest = Transport.BytesRequest.newBuilder()
-        .setStreamId(stream.streamId)
-        .setId(evt.layoutInspectorEvent.payloadId.toString())
-        .build()
-
-      val bytes = client.transportClient.getBytes(bytesRequest).contents.toByteArray()
+      val bytes = client.getPayload(event.payloadId)
       if (bytes.isNotEmpty()) {
         SkiaParser().getViewTree(bytes)?.let {
           layoutInspector.layoutInspectorModel.update(it)
@@ -319,85 +182,65 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     }
   }
 
-  private fun buildDeviceName(device: Common.Device): String {
-    val deviceNameBuilder = StringBuilder()
-    val manufacturer = device.manufacturer
-    var model = device.model
-    val serial = device.serial
-    val suffix = String.format("-%s", serial)
-    if (model.endsWith(suffix)) {
-      model = model.substring(0, model.length - suffix.length)
-    }
-    if (!StringUtil.isEmpty(manufacturer)) {
-      deviceNameBuilder.append(manufacturer)
-      deviceNameBuilder.append(" ")
-    }
-    deviceNameBuilder.append(model)
+  // TODO: Replace this with the process selector from the profiler
+  private class SelectProcessAction(val client: InspectorClient) :
+    DropDownAction("Select Process", "Select a process to connect to.", StudioIcons.Common.ADD) {
 
-    return deviceNameBuilder.toString()
-  }
+    override fun updateActions(): Boolean {
+      removeAll()
 
-  private fun refreshProcessDropdown(processesMap: Map<Common.Stream, List<Common.Process>>) {
-    myProcessSelectionAction.removeAll()
-
-    // Rebuild the action tree.
-    if (processesMap.isEmpty()) {
-      val noDeviceAction = object : AnAction("No devices detected") {
-        override fun actionPerformed(e: AnActionEvent) {}
-      }
-      noDeviceAction.templatePresentation.isEnabled = false
-      myProcessSelectionAction.add(noDeviceAction)
-    }
-    else {
-      for (stream in processesMap.keys) {
-        val deviceAction = DropDownAction(buildDeviceName(stream.device), null, null)
-        val processes = processesMap[stream]
-        if (processes == null || processes.isEmpty()) {
-          val noProcessAction = object : AnAction("No debuggable processes detected") {
-            override fun actionPerformed(e: AnActionEvent) {}
-          }
-          noProcessAction.templatePresentation.isEnabled = false
-          deviceAction.add(noProcessAction)
+      // Rebuild the action tree.
+      val processesMap = client.loadProcesses()
+      if (processesMap.isEmpty()) {
+        val noDeviceAction = object : AnAction("No devices detected") {
+          override fun actionPerformed(e: AnActionEvent) {}
         }
-        else {
-          for (process in processes) {
-            val processAction = object : AnAction("${process.name} (${process.pid})") {
-              override fun actionPerformed(e: AnActionEvent) {
-                mySelectedStream = stream
-                mySelectedProcess = process
-
-                // The device daemon takes care of the case if and when the agent is previously attached already.
-                val attachCommand = Transport.Command.newBuilder()
-                  .setStreamId(mySelectedStream!!.streamId)
-                  .setPid(mySelectedProcess!!.pid)
-                  .setType(Transport.Command.CommandType.ATTACH_AGENT)
-                  .setAttachAgent(
-                    Transport.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch())))
-                  .build()
-                client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
-                myAgentConnected = false
-              }
+        noDeviceAction.templatePresentation.isEnabled = false
+        add(noDeviceAction)
+      }
+      else {
+        for (stream in processesMap.keys) {
+          val deviceAction = DropDownAction(buildDeviceName(stream.device), null, null)
+          val processes = processesMap[stream]
+          if (processes == null || processes.isEmpty()) {
+            val noProcessAction = object : AnAction("No debuggable processes detected") {
+              override fun actionPerformed(e: AnActionEvent) {}
             }
-            deviceAction.add(processAction)
+            noProcessAction.templatePresentation.isEnabled = false
+            deviceAction.add(noProcessAction)
           }
+          else {
+            for (process in processes) {
+              val processAction = object : AnAction("${process.name} (${process.pid})") {
+                override fun actionPerformed(event: AnActionEvent) {
+                  client.attach(stream, process)
+                }
+              }
+              deviceAction.add(processAction)
+            }
+          }
+          add(deviceAction)
         }
-        myProcessSelectionAction.add(deviceAction)
       }
-    }
-  }
-
-  /**
-   * Helper method to return the last even in an EventGroup that matches the input condition.
-   */
-  private fun getLastMatchingEvent(group: Transport.EventGroup, predicate: (Common.Event) -> Boolean): Common.Event? {
-    var matched: Common.Event? = null
-    for (event in group.eventsList) {
-      if (predicate(event)) {
-        matched = event
-      }
+      return true
     }
 
-    return matched
-  }
+    private fun buildDeviceName(device: Common.Device): String {
+      val deviceNameBuilder = StringBuilder()
+      val manufacturer = device.manufacturer
+      var model = device.model
+      val serial = device.serial
+      val suffix = String.format("-%s", serial)
+      if (model.endsWith(suffix)) {
+        model = model.substring(0, model.length - suffix.length)
+      }
+      if (!StringUtil.isEmpty(manufacturer)) {
+        deviceNameBuilder.append(manufacturer)
+        deviceNameBuilder.append(" ")
+      }
+      deviceNameBuilder.append(model)
 
+      return deviceNameBuilder.toString()
+    }
+  }
 }

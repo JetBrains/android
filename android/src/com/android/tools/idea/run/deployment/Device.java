@@ -79,10 +79,10 @@ public abstract class Device {
     abstract T self();
 
     @NotNull
-    abstract Device build(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map);
+    abstract Device build(@Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map);
   }
 
-  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
     assert builder.myName != null;
     myName = builder.myName;
 
@@ -93,7 +93,7 @@ public abstract class Device {
     myAndroidDevice = builder.myAndroidDevice;
 
     myIsValid = checker == null || !checker.validate(myAndroidDevice).isCompatible().equals(ThreeState.NO);
-    myConnectionTime = map.get(myKey);
+    myConnectionTime = map == null ? null : map.get(myKey);
   }
 
   @NotNull

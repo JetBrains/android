@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
@@ -57,9 +58,13 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
   private static final JBDimension PANEL_DIMENSION = JBUI.size(280, 215);
+  private static final Color STROKE_COLOR = JBColor.namedColor("UIDesigner.stroke.acceleratorForeground", new JBColor(0x8A8A8A, 0x808080));
+  private static final Color HIGH_STROKE_COLOR = JBColor.namedColor("UIDesigner.highStroke.foreground", new JBColor(0xB0B0B0, 0x6F7171));
+  private static final Color THUMB_CIRCLE_COLOR = JBColor.namedColor("UIDesigner.percent.foreground", new JBColor(Gray._192, Gray._128));
   @NotNull private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
+  private final InspectorColorSet mColorSet = new InspectorColorSet();
 
   private static final int UNCONNECTED = -1;
   private final static int SLIDER_DEFAULT = 50;
@@ -74,16 +79,15 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       mDrawWidgetInfos = true;
       mInspectorBackgroundColor = StudioColorsKt.getSecondaryPanelBackground();
       mInspectorFillColor = StudioColorsKt.getSecondaryPanelBackground();
-      mInspectorHighlightsStrokeColor = new JBColor(0xB0B0B0, 0x6F7171);
-      mInspectorStrokeColor = new JBColor(0x8A8A8A, 0x808080);
+      mInspectorHighlightsStrokeColor = HIGH_STROKE_COLOR;
+      mInspectorStrokeColor = STROKE_COLOR;
       mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
     }
   }
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(null);
-    ColorSet colorSet = new InspectorColorSet();
-    mMain = new SingleWidgetView(colorSet, myWidgetModel);
+    mMain = new SingleWidgetView(mColorSet, myWidgetModel);
     mMain.setOpaque(false);
     setPreferredSize(PANEL_DIMENSION);
     mVerticalSlider.setMajorTickSpacing(50);
@@ -100,8 +104,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     add(mMain);
     add(mHorizontalSlider);
 
-    mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, colorSet));
-    mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, colorSet));
+    mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, mColorSet));
+    mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, mColorSet));
     mHorizontalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     mVerticalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     mHorizontalSlider.setForeground(mSliderColor);
@@ -126,6 +130,17 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mMain.setBounds(mainX, mainY, mainSize.width, mainSize.height);
     mHorizontalSlider.setBounds((width - HSliderSize.width) / 2, mainY + mainSize.height, HSliderSize.width, HSliderSize.height);
     mVerticalSlider.setBounds(mainX - VSliderSize.width, (height - VSliderSize.height) / 2, VSliderSize.width, VSliderSize.height);
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (mVerticalSlider != null) {
+      mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, mColorSet));
+    }
+    if (mHorizontalSlider != null) {
+      mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, mColorSet));
+    }
   }
 
   @Override
@@ -284,18 +299,16 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.fillRoundRect(thumbRect.x, thumbRect.y, thumbRect.width - 1, thumbRect.height - 1, thumbRect.width,
                       thumbRect.height);
-      g.setColor(StudioColorsKt.getBorder());
+      g.setColor(THUMB_CIRCLE_COLOR);
       g.drawRoundRect(thumbRect.x, thumbRect.y, thumbRect.width - 1, thumbRect.height - 1, thumbRect.width,
                       thumbRect.height);
-      g.setColor(mColorSet.getInspectorStrokeColor());
+      g.setColor(mColorSet.getInspectorHighlightsStrokeColor());
       int x = thumbRect.x + thumbRect.width / 2;
       int y = thumbRect.y + thumbRect.height / 2;
       g.setFont(SMALL_FONT);
       FontMetrics fm = g.getFontMetrics();
       Rectangle2D bounds = fm.getStringBounds(percentText, g);
       double tw = bounds.getWidth();
-
-      g.setColor(mColorSet.getInspectorStrokeColor());
       g.drawString(percentText, (int)(x - tw / 2), (y + fm.getAscent() / 2));
     }
   }

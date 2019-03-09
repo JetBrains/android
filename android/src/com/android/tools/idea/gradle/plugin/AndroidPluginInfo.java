@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -50,6 +51,7 @@ public class AndroidPluginInfo {
    * @param project the given project.
    * @return the Android plugin information, if the "application" module was found; {@code null} otherwise.
    */
+  @Slow
   @Nullable
   public static AndroidPluginInfo find(@NotNull Project project) {
     return find(project, false);
@@ -63,11 +65,13 @@ public class AndroidPluginInfo {
    * @param project the given project.
    * @return the Android plugin information, if the "application" module was found; {@code null} otherwise.
    */
+  @Slow
   @Nullable
   public static AndroidPluginInfo searchInBuildFilesOnly(@NotNull Project project) {
     return find(project, true);
   }
 
+  @Slow
   @Nullable
   private static AndroidPluginInfo find(@NotNull Project project, boolean searchInBuildFilesOnly) {
     Module appModule = null;
@@ -121,6 +125,7 @@ public class AndroidPluginInfo {
     return null;
   }
 
+  @Slow
   @NotNull
   private static BuildFileSearchResult searchInBuildFiles(@NotNull Project project,
                                                           boolean searchForAppModule) {

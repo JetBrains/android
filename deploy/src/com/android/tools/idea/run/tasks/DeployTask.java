@@ -18,15 +18,14 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
-import com.android.tools.deployer.InstallMetric;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.flags.StudioFlags;
-import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class DeployTask extends AbstractDeployTask {
@@ -54,7 +53,7 @@ public class DeployTask extends AbstractDeployTask {
   }
 
   @Override
-  protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user
@@ -84,22 +83,23 @@ public class DeployTask extends AbstractDeployTask {
         installMode = Deployer.InstallMode.DELTA;
     }
 
-    List<InstallMetric> metrics = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
-    for(InstallMetric metric : metrics) {
-      LaunchTaskDetail detail = LaunchTaskDetail.newBuilder()
-        .setId(getId() + "." + metric.getName())
-        .setStartTimestampMs(metric.getStartTimeMs())
-        .setEndTimestampMs(metric.getEndTimeMs())
-        .setStatus(metric.getStatus())
-        .setTid((int)metric.getThreadId())
-        .build();
-      mySubTaskDetails.add(detail);
-    }
+    return deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
   }
 
   @NotNull
   @Override
   public String getDescription() {
     return "Install";
+  }
+
+  @NotNull
+  @Override
+  protected String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all) {
+    if (all) {
+      return "App restart successful without requiring a re-install.";
+    } else {
+      return "App restart successful without re-installing the following APK(s): " +
+             skippedApkList.stream().collect(Collectors.joining(", "));
+    }
   }
 }

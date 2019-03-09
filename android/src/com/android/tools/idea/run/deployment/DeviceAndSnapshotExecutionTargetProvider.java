@@ -21,6 +21,7 @@ import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
@@ -80,7 +81,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
     }
 
     @Override
-    public boolean canRun(@NotNull RunnerAndConfigurationSettings configuration) {
+    public boolean canRun(@NotNull RunConfiguration configuration) {
       return true;
     }
 

@@ -44,7 +44,7 @@ public class GuidelineAnchorTarget extends ConstraintAnchorTarget {
   }
 
   public GuidelineAnchorTarget(@NotNull Type type, boolean isHorizontal) {
-    super(type, false);
+    super(type, true);
     myIsHorizontal = isHorizontal;
   }
 

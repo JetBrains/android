@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.chooseDesignAssets
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
@@ -179,6 +180,7 @@ class ResourceExplorerToolbarViewModel(
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
       chooseDesignAssets(importersProvider) {
+        ResourceManagerTracking.logAssetAddedViaButton()
         ResourceImportDialog(ResourceImportDialogViewModel(facet, it, importersProvider = importersProvider)).show()
       }
     }

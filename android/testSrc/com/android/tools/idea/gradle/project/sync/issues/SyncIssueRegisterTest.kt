@@ -28,15 +28,16 @@ class SyncIssueRegisterTest : IdeaTestCase() {
   @Before
   override fun setUp() {
     super.setUp()
-    register = SyncIssueRegister()
+    register = SyncIssueRegister(project)
   }
 
   @Test
   fun testRegisterSyncIssues() {
     val syncIssue = mock(SyncIssue::class.java)
     register!!.register(myModule, listOf(syncIssue))
-    assertThat(register!!.syncIssueMap.entries).hasSize(1)
-    assertThat(register!!.syncIssueMap[myModule]).containsExactly(syncIssue)
+    val result = register!!.getAndClear()
+    assertThat(result.entries).hasSize(1)
+    assertThat(result[myModule]).containsExactly(syncIssue)
   }
 
   @Test
@@ -44,7 +45,7 @@ class SyncIssueRegisterTest : IdeaTestCase() {
     val syncIssue = mock(SyncIssue::class.java)
     register!!.register(myModule, listOf(syncIssue))
 
-    register!!.clear()
-    assertThat(register!!.syncIssueMap).isEmpty()
+    register!!.getAndClear()
+    assertThat(register!!.getAndClear()).isEmpty()
   }
 }

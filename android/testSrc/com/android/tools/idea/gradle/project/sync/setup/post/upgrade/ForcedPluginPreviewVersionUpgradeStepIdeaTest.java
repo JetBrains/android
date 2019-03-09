@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tets for {@link ForcedPluginPreviewVersionUpgradeStep}.
+ * Tets for {@link ForcedPluginVersionUpgradeStep}.
  */
 public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
@@ -50,7 +50,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
 
-  private ForcedPluginPreviewVersionUpgradeStep myVersionUpgrade;
+  private ForcedPluginVersionUpgradeStep myVersionUpgrade;
 
   @Override
   protected void setUp() throws Exception {
@@ -63,7 +63,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
-    myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();
+    myVersionUpgrade = new ForcedPluginVersionUpgradeStep();
   }
 
   @Override
@@ -83,7 +83,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("3.0.0"));
 
-    boolean upgraded = myVersionUpgrade.checkAndPerformUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncEnded();
@@ -99,7 +99,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
-    boolean upgraded = myVersionUpgrade.checkAndPerformUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
     verify(mySyncState).syncEnded();
@@ -116,7 +116,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     // Simulate user canceling upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
 
-    boolean upgraded = myVersionUpgrade.checkAndPerformUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();

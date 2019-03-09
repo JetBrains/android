@@ -383,7 +383,7 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.phasesToDump?.forEach { prop("- phasesToDump") { it } }
     compilerArguments.phasesToDumpAfter?.forEach { prop("- phasesToDumpAfter") { it } }
     compilerArguments.phasesToDumpBefore?.forEach { prop("- phasesToDumpBefore") { it } }
-    compilerArguments.pluginClasspaths?.forEach { prop("- pluginClasspaths") { it } }
+    compilerArguments.pluginClasspaths?.forEach { prop("- pluginClasspaths") { it.toPrintablePath() } }
     compilerArguments.pluginOptions?.forEach { prop("- pluginOptions") { it } }
     prop("profilePhases") { compilerArguments.profilePhases.takeIf { it }?.toString() }
     prop("progressiveMode") { compilerArguments.progressiveMode.takeIf { it }?.toString() }

@@ -70,6 +70,12 @@ interface AndroidProject {
    */
   val variantNames: Collection<String>
   /**
+   * The default variant, used to inform the selection of the current variant.
+   *
+   * Only null if there are no variants.
+   */
+  val defaultVariant: String?
+  /**
    * The compilation target as a full extended target hash string.
    *
    * @see com.android.sdklib.IAndroidTarget.hashString()
@@ -105,6 +111,7 @@ interface AndroidProject {
   fun toProto(converter: PathConverter): AndroidProjectProto.AndroidProject = AndroidProjectProto.AndroidProject.newBuilder()
     .setProjectType(AndroidProjectProto.AndroidProject.ProjectType.valueOf(projectType.name))
     .addAllVariantNames(variantNames)
+    .setDefaultVariant(defaultVariant ?: "")
     .setAaptOptions(aaptOptions.toProto())
     .setJavaCompileOptions(javaCompileOptions.toProto())
     .setBuildFolder(converter.fileToProto(buildFolder))

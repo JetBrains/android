@@ -113,14 +113,6 @@ public interface Target {
    */
   boolean isMouseHovered();
 
-  /**
-   * Can be used by the target to expand its bounds
-   *
-   * @param expand true to expand
-   */
-  default void setExpandSize(boolean expand) {
-  }
-
   String getToolTipText();
 
   /**

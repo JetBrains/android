@@ -65,8 +65,6 @@ import java.util.List;
  */
 public class DeviceDefinitionList extends JPanel implements ListSelectionListener, DocumentListener, DeviceUiAction.DeviceProvider {
 
-  private static final double PHONE_SIZE_CUTOFF = 7.0;
-  private static final double TV_SIZE_CUTOFF = 15.0;
   private static final String SEARCH_RESULTS = "Search Results";
   private static final String PHONE_TYPE = "Phone";
   private static final String TABLET_TYPE = "Tablet";
@@ -414,9 +412,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   /**
    * @return the category of the specified device. One of:
-   * TV, Wear, Tablet, and Phone, or Other if the category can
-   * not be determined. Mobile devices are considered tablets if
-   * their screen size is over {@link #PHONE_SIZE_CUTOFF}
+   * TV, Wear, Tablet, and Phone, or Other if the category
+   * cannot be determined.
    */
   private static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
@@ -430,13 +427,18 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     }
   }
 
+  /*
+   * A mobile device is considered a tablet if its screen is at least
+   * {@link #MINIMUM_TABLET_SIZE} and the screen is not foldable.
+   */
   @VisibleForTesting
   public static boolean isTablet(@NotNull Device d) {
-    return d.getDefaultHardware().getScreen().getDiagonalLength() >= PHONE_SIZE_CUTOFF;
+    return (d.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TABLET_SIZE
+            && !d.getDefaultHardware().getScreen().isFoldable());
   }
 
   private static boolean hasTvSizedScreen(@NotNull Device d) {
-    return d.getDefaultHardware().getScreen().getDiagonalLength() >= TV_SIZE_CUTOFF;
+    return d.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
   }
 
   /**

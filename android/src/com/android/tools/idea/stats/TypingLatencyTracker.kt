@@ -50,6 +50,7 @@ object TypingLatencyTracker : LatencyListener {
 
   override fun recordTypingLatency(editor: Editor, action: String, latencyMs: Long) {
     // This runs on the EDT, but is thread-safe with respect to a background thread running reportTypingLatency().
+    if (latencyMs < 0) return // Can happen due to non-monotonic system time, for example.
     val file = FileDocumentManager.getInstance().getFile(editor.document) ?: return
     val fileType = convertFileType(file)
     val recorder = latencyRecorders.computeIfAbsent(fileType) { SingleWriterRecorder(1) }

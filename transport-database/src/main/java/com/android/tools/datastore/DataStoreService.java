@@ -28,8 +28,6 @@ import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.nativeSymbolizer.NativeSymbolizer;
-import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
@@ -125,8 +123,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   @NotNull
   private Consumer<Throwable> myNoPiiExceptionHanlder;
   private TransportService myTransportService;
-  @NotNull
-  private NativeSymbolizer myNativeSymbolizer = new NopSymbolizer();
   private final ServerInterceptor myInterceptor;
   /**
    * Mapping a stream id to its DataStoreClient.
@@ -241,21 +237,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
       myConnectedClients.put(streamId, new DataStoreClient(channel));
       myTransportService.connectToChannel(stream, channel);
     }
-  }
-
-  /**
-   * Sets a symbolizer that is used to transform native backtraces into human readable callstacks.
-   */
-  public void setNativeSymbolizer(@NotNull NativeSymbolizer symbolizer) {
-    myNativeSymbolizer = symbolizer;
-  }
-
-  /**
-   * Gets native symbolizer to be used for JNI tracking
-   */
-  @NotNull
-  public NativeSymbolizer getNativeSymbolizer() {
-    return myNativeSymbolizer;
   }
 
   /**

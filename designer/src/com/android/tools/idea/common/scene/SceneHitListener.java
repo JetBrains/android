@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.target.Target;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,15 +36,15 @@ class SceneHitListener implements ScenePicker.HitElementListener {
   double myClosestTargetDistance = Double.MAX_VALUE;
   ArrayList<SceneComponent> myHitComponents = new ArrayList<>();
   @NotNull final ArrayList<Target> myHitTargets = new ArrayList<>();
-  Target mySkipTarget = null;
+  private Predicate<Target> myTargertFilter = it -> true;
 
   public SceneHitListener(@NotNull SelectionModel selectionModel) {
     mySelectionModel = selectionModel;
     myPicker.setSelectListener(this);
   }
 
-  public void skipTarget(Target target) {
-    mySkipTarget = target;
+  public void setTargetFilter(@Nullable Predicate<Target> filter) {
+    myTargertFilter = filter != null ? filter : it -> true;
   }
 
   public void find(@NotNull SceneContext transform,
@@ -63,7 +64,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
   @Override
   public void over(Object over, double dist) {
     if (over instanceof Target) {
-      if (mySkipTarget == over) {
+      if (!myTargertFilter.test((Target) over)) {
         return;
       }
       Target target = (Target)over;
