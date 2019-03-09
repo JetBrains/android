@@ -29,6 +29,7 @@ import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -147,6 +148,7 @@ class ComboBoxPropertyEditorModelTest {
     verify(listener).valueChanged()
   }
 
+  @Ignore("b/128037083")
   @Test
   fun testEnterInPopupOnAction() {
     // setup
