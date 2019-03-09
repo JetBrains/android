@@ -51,7 +51,6 @@ public class TimeBasedUpgradeReminder {
     return true;
   }
 
-  @VisibleForTesting
   @Nullable
   String getStoredTimestamp(@NotNull Project project) {
     return PropertiesComponent.getInstance(project).getValue(SYNC_PLUGIN_LAST_UPGRADE_TIMESTAMP_PROPERTY);
@@ -69,7 +68,6 @@ public class TimeBasedUpgradeReminder {
   /**
    * Check if user clicked "Don't ask me again" before.
    */
-  @VisibleForTesting
   boolean shouldAskForUpgrade(@NotNull Project project) {
     // don't ask for upgrading if we even cannot find gradle plugin info
     AndroidPluginInfo info = AndroidPluginInfo.find(project);

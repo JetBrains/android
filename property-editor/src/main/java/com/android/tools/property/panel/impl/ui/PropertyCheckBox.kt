@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -51,6 +52,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
 
   init {
     state = toStateValue(propertyModel.value)
+    background = secondaryPanelBackground
     HelpSupportBinding.registerHelpKeyActions(this, { propertyModel.property })
 
     addFocusListener(EditorFocusListener(this, propertyModel))

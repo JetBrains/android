@@ -20,7 +20,6 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.api.DragType;
@@ -63,6 +62,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -149,9 +149,6 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myMaterialDocAction = new MaterialDocAction();
     myActionGroup = createPopupActionGroup();
 
-    myCategoryList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
-    myItemList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
-
     myCategoryScrollPane = createScrollPane(myCategoryList);
     add(myCategoryScrollPane, BorderLayout.WEST);
     add(createScrollPane(myItemList), BorderLayout.CENTER);
@@ -162,7 +159,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myCategoryList.addListSelectionListener(event -> categorySelectionChanged());
     myCategoryList.setModel(myDataModel.getCategoryListModel());
     myCategoryList.addKeyListener(keyListener);
-    myCategoryList.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 0, 1));
+    myCategoryList.setBorder(JBUI.Borders.customLine(JBColor.border(), 0, 0, 0, 1));
 
     PreviewProvider provider = new PreviewProvider(() -> myDesignSurface.get(), myDependencyManager);
     Disposer.register(this, provider);

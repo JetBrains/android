@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.messages.MessageBusConnection;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -65,16 +63,16 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     myFacet = facet;
     myNamespace = namespace;
     assert facet.requiresAndroidModel();
-    Module module = facet.getModule();
 
-    MessageBusConnection parent = module.getProject().getMessageBus().connect(module);
-    parent.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+  }
+
+  private void registerListeners() {
+    myFacet.getModule().getProject().getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
       if (result == ProjectSystemSyncManager.SyncResult.SUCCESS) {
         notifyProjectSynced();
       }
     });
 
-    Disposer.register(parent, this);
     BuildVariantUpdater.getInstance(myFacet.getModule().getProject()).addSelectionChangeListener(this);
   }
 
@@ -94,11 +92,21 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return ResourceRepositoryImplUtil.getPackageName(myNamespace, myFacet);
   }
 
+  /**
+   * Creates a new {@link DynamicResourceValueRepository} for the given {@link AndroidFacet} and registers listeners to keep the repository
+   * up to date. The returned repository needs to be registered with a {@link Disposable} parent.
+   */
   @NotNull
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
-    return new DynamicResourceValueRepository(facet, ResourceRepositoryManager.getInstance(facet).getNamespace());
+    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getNamespace();
+    DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
+    repository.registerListeners();
+    return repository;
   }
 
+  /**
+   * Creates a {@link DynamicResourceValueRepository} with the given values.
+   */
   @VisibleForTesting
   @NotNull
   public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,

@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.IdeProfilerComponents;
@@ -119,7 +120,7 @@ public class AndroidProfilerToolWindow implements Disposable {
       return true;
     }
 
-    ProfilerService service = ProfilerService.getInstance(myProject);
+    TransportService service = TransportService.getInstance();
     if (service == null) {
       return false;
     }
@@ -276,17 +277,18 @@ public class AndroidProfilerToolWindow implements Disposable {
 
     StudioProfilersWrapper(@NotNull Project project,
                            @NotNull ToolWindow window,
-                           @NotNull ProfilerService service,
+                           @NotNull TransportService service,
                            @NotNull IntellijProfilerServices ideProfilerServices) {
       myProject = project;
       myWindow = window;
 
       service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
-      ProfilerClient client = service.getProfilerClient();
+      ProfilerClient client = new ProfilerClient(service.getChannelName());
       myProfilers = new StudioProfilers(client, ideProfilerServices);
       IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
-      // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected process.
-      navigator.setCpuAbiArchSupplier(() -> myProfilers.getProcess() == null ? null : myProfilers.getProcess().getAbiCpuArch());
+      // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
+      Common.SessionMetaData selectedSessionMetadata = myProfilers.getSessionsManager().getSelectedSessionMetaData();
+      navigator.setCpuAbiArchSupplier(() -> selectedSessionMetadata == null ? null : myProfilers.getProcess().getAbiCpuArch());
 
       myProfilers.addDependency(this)
         .onChange(ProfilerAspect.MODE, this::modeChanged)

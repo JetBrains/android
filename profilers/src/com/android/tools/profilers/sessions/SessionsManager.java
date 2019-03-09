@@ -277,6 +277,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setSessionId(session.getSessionId())
       .setType(Common.SessionMetaData.SessionType.forNumber(sessionData.getType().getNumber()))
       .setStartTimestampEpochMs(sessionData.getStartTimestampEpochMs())
+      .setProcessAbi(sessionData.getProcessAbi())
       .setJvmtiEnabled(sessionData.getJvmtiEnabled())
       .setSessionName(sessionData.getSessionName())
       .setLiveAllocationEnabled(sessionData.getLiveAllocationEnabled())
@@ -340,7 +341,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       assert streamId != 0;
       BeginSession.Builder requestBuilder = BeginSession.newBuilder()
         .setSessionName(buildSessionName(device, process))
-        .setRequestTimeEpochMs(System.currentTimeMillis());
+        .setRequestTimeEpochMs(System.currentTimeMillis())
+        .setProcessAbi(process.getAbiCpuArch());
       // Attach agent for advanced profiling if JVMTI is enabled
       if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
         // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
@@ -366,7 +368,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setDeviceId(device.getDeviceId())
         .setPid(process.getPid())
         .setSessionName(buildSessionName(device, process))
-        .setRequestTimeEpochMs(System.currentTimeMillis());
+        .setRequestTimeEpochMs(System.currentTimeMillis())
+        .setProcessAbi(process.getAbiCpuArch());
       // Attach agent for advanced profiling if JVMTI is enabled
       if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
         // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
@@ -496,7 +499,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * @return true if import was successful, or false otherwise.
    */
   public boolean importSessionFromFile(@NotNull File file) {
-    int indexOfDot = file.getName().indexOf('.');
+    int indexOfDot = file.getName().lastIndexOf('.');
     if (indexOfDot == -1) {
       return false;
     }

@@ -29,7 +29,6 @@ iml_module(
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -137,6 +136,7 @@ iml_module(
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
+        "//tools/idea/.idea/libraries:NanoXML",
     ],
 )
 
@@ -183,7 +183,6 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
@@ -198,7 +197,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
@@ -287,6 +285,7 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
         "//tools/idea/.idea/libraries:kotlin-plugin[test]",
+        "//tools/idea/.idea/libraries:NanoXML[test]",
     ],
 )
 
@@ -309,7 +308,7 @@ filegroup(
 filegroup(
     name = "deploy-artifacts",
     srcs = select({
-        "//tools/base/bazel:windows": [
+        "//tools/base/bazel:remote_windows": [
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [

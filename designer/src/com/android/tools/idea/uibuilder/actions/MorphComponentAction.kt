@@ -48,13 +48,11 @@ class MorphComponentAction(component: NlComponent)
    * Apply the provided tag name to the component in the model
    */
   private fun applyTagEdit(newTagName: String) {
-    val dependencyManager = NlDependencyManager.get()
+    val dependencyManager = NlDependencyManager.getInstance()
     val newTag = listOf(NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>")))
     if (dependencyManager.checkIfUserWantsToAddDependencies(newTag, myFacet)) {
-      if (!dependencyManager.addDependencies(newTag, myFacet) { editTagNameAndAttributes(newTagName) }.hadMissingDependencies) {
-        // If there were no missing dependencies, make sure to edit tag name and attributes.
-        editTagNameAndAttributes(newTagName)
-      }
+      val callback = Runnable { editTagNameAndAttributes(newTagName) }
+      dependencyManager.addDependenciesAsync(newTag, myFacet, "Converting Component...", callback)
     }
   }
 

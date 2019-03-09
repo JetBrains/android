@@ -363,7 +363,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
                        ParsedValue.Set.Parsed(value = interpolatedValue, dslText = dslText).annotated()))
   }
 
-  @Ignore("b/72088462")
+  // TODO(72088462): Enable this test
   fun /*test*/UpdatesToOtherUnresolvedDslText() {
     // TODO(b/72088462): Decide what the expectations are.
   }

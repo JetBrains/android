@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -43,6 +44,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -56,9 +58,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -70,6 +69,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,6 +107,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ModelVersion myModelVersion = new ModelVersion();
   private final DesignerEditorFileType myType;
   private long myConfigurationModificationCount;
+  private final MergingUpdateQueue myUpdateQueue;
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
@@ -150,6 +152,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = DesignerEditorFileTypeKt.typeOf(getFile());
+    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", NlPreviewForm.DELAY_AFTER_TYPING_MS,
+                                           true, null, null, null, SWING_THREAD);
+    myUpdateQueue.setRestartTimerOnAdd(true);
   }
 
   /**
@@ -962,7 +967,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private boolean checkIfUserWantsToAddDependencies(List<NlComponent> toAdd) {
     // May bring up a dialog such that the user can confirm the addition of the new dependencies:
-    return NlDependencyManager.Companion.get().checkIfUserWantsToAddDependencies(toAdd, getFacet());
+    return NlDependencyManager.getInstance().checkIfUserWantsToAddDependencies(toAdd, getFacet());
   }
 
   /**
@@ -995,27 +1000,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    // Add the components in a separate thread as it might end up running network operations to add missing dependencies.
-    ProgressManager.getInstance().run(new Task.Backgroundable(myFacet.getModule().getProject(), "Adding Components...") {
-
-      private boolean myHasMissingDependencies;
-
-      private Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        myHasMissingDependencies =
-          NlDependencyManager.Companion.get().addDependencies(toAdd, getFacet(), callback).getHadMissingDependencies();
-      }
-
-      @Override
-      public void onSuccess() {
-        if (!myHasMissingDependencies) {
-          // Only add the components if there were no missing dependencies.
-          callback.run();
-        }
-      }
-    });
+    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+    NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
   }
 
   private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
@@ -1143,10 +1129,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     for (ResourceNotificationManager.Reason r : reason) {
       switch (r) {
         case RESOURCE_EDIT:
-          notifyModified(ChangeType.RESOURCE_EDIT);
+          notifyModifiedViaUpdateQueue(ChangeType.RESOURCE_EDIT);
           break;
         case EDIT:
-          notifyModified(ChangeType.EDIT);
+          notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
           RefreshRenderAction.clearCache(getConfiguration());
@@ -1208,11 +1194,32 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myConfigurationModificationCount;
   }
 
-  public void notifyModified(ChangeType reason) {
+  public void notifyModified(@NotNull ChangeType reason) {
     myModelVersion.increase(reason);
     updateTheme();
     myModificationTrigger = reason;
     myListeners.forEach(listener -> listener.modelChanged(this));
+  }
+
+  /**
+   * Schedules {@link #notifyModified(ChangeType)} to be called via an {@link MergingUpdateQueue}, so once user activity (typing) has
+   * stopped. {@link #notifyModified(ChangeType)} gets called on the EDT, just like the "original" callback from
+   * {@link ResourceNotificationManager}.
+   */
+  public void notifyModifiedViaUpdateQueue(@NotNull ChangeType reason) {
+    myUpdateQueue.queue(
+      new Update("edit") {
+        @Override
+        public void run() {
+          notifyModified(reason);
+        }
+
+        @Override
+        public boolean canEat(Update update) {
+          return true;
+        }
+      }
+    );
   }
 
   @Nullable

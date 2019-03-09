@@ -53,10 +53,10 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      super.tearDown();
+      BatchInvoker.clearOverrideStrategy();
     }
     finally {
-      BatchInvoker.clearOverrideStrategy();
+      super.tearDown();
     }
   }
 

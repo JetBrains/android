@@ -77,7 +77,6 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     loadProject(INSTANT_APP, "feature");
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
-    assertNotNull(runConfiguration);
     runConfiguration.checkConfiguration();
   }
 

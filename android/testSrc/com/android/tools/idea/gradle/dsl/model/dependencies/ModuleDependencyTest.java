@@ -21,6 +21,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_P
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION;
@@ -118,6 +120,127 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     expected.configurationName = "runtime";
     expected.path = ":javalib2";
     assertMatches(expected, dependencies.get(2));
+  }
+
+  @Test
+  public void testSetConfigurationWhenSingle() throws Exception {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+    assertSize(4, modules);
+
+    assertThat(modules.get(0).configurationName()).isEqualTo("test");
+    modules.get(0).setConfigurationName("androidTest");
+    assertThat(modules.get(0).configurationName()).isEqualTo("androidTest");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("compile");
+    modules.get(1).setConfigurationName("zapi");
+    assertThat(modules.get(1).configurationName()).isEqualTo("zapi");
+    modules.get(1).setConfigurationName("api"); // Try twice.
+    assertThat(modules.get(1).configurationName()).isEqualTo("api");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("api");
+    modules.get(2).setConfigurationName("zompile");
+    assertThat(modules.get(2).configurationName()).isEqualTo("zompile");
+    modules.get(2).setConfigurationName("compile"); // Try twice
+    assertThat(modules.get(2).configurationName()).isEqualTo("compile");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("testCompile");
+    modules.get(3).setConfigurationName("testImplementation");
+    assertThat(modules.get(3).configurationName()).isEqualTo("testImplementation");
+
+    applyChangesAndReparse(buildModel);
+
+    modules = buildModel.dependencies().modules();
+    assertSize(4, modules);
+
+    assertThat(modules.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":abc");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("api");
+    assertThat(modules.get(1).path().toString()).isEqualTo(":xyz");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("testImplementation");
+    assertThat(modules.get(3).path().toString()).isEqualTo(":");
+  }
+
+  @Test
+  public void testSetConfigurationWhenMultiple() throws Exception {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+    assertSize(5, modules);
+    assertThat(modules.get(0).configurationName()).isEqualTo("testCompile");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":abc");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("testCompile");
+    assertThat(modules.get(1).path().toString()).isEqualTo(":xyz");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(3).path().toString()).isEqualTo(":");
+
+    assertThat(modules.get(4).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(4).path().toString()).isEqualTo(":pqr");
+
+    {
+      modules.get(0).setConfigurationName("androidTest");
+      List<ModuleDependencyModel> updatedModules = buildModel.dependencies().modules();
+      assertSize(5, updatedModules);
+      assertThat(updatedModules.get(0).configurationName()).isEqualTo("androidTest");
+      assertThat(updatedModules.get(0).path().toString()).isEqualTo(":abc");
+
+      assertThat(updatedModules.get(1).configurationName()).isEqualTo("testCompile");
+      assertThat(updatedModules.get(1).path().toString()).isEqualTo(":xyz");
+    }
+
+    {
+      // Rename both elements of the same group and rename some of them twice.
+      modules.get(2).setConfigurationName("zapi");
+      modules.get(2).setConfigurationName("api");
+      modules.get(4).setConfigurationName("zimplementation");
+      modules.get(4).setConfigurationName("implementation");
+      List<ModuleDependencyModel> updatedModules = buildModel.dependencies().modules();
+      assertSize(5, updatedModules);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedModules.get(2).configurationName()).isEqualTo("api");
+      assertThat(updatedModules.get(2).path().toString()).isEqualTo(":klm");
+
+      assertThat(updatedModules.get(3).configurationName()).isEqualTo("implementation");
+      assertThat(updatedModules.get(3).path().toString()).isEqualTo(":pqr");
+      assertThat(updatedModules.get(3).configuration().toString()).isEqualTo("config");
+
+      assertThat(updatedModules.get(4).configurationName()).isEqualTo("compile");
+      assertThat(updatedModules.get(4).path().toString()).isEqualTo(":");
+    }
+
+    applyChangesAndReparse(buildModel);
+
+    modules = buildModel.dependencies().modules();
+    assertSize(5, modules);
+
+    assertThat(modules.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":abc");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("testCompile");
+    assertThat(modules.get(1).path().toString()).isEqualTo(":xyz");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("api");
+    assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("implementation");
+    assertThat(modules.get(3).path().toString()).isEqualTo(":pqr");
+    assertThat(modules.get(3).configuration().toString()).isEqualTo("config");
+
+    assertThat(modules.get(4).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(4).path().toString()).isEqualTo(":");
   }
 
   @Test

@@ -24,7 +24,6 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
-import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
@@ -117,7 +116,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
-    when(myDataStore.getNativeSymbolizer()).thenReturn(new NopSymbolizer());
     when(myDataStore.getMemoryClient(anyLong())).thenReturn(MemoryServiceGrpc.newBlockingStub(myService.getChannel()));
     when(myDataStore.getTransportClient(anyLong())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();

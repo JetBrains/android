@@ -16,27 +16,36 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * A project based component that stores a map from modules to sync issues. These are registered during sync (module setup) and are reported
  * shortly afterward. The map is cleared at the start of each sync.
  */
-class SyncIssueRegister {
-  private val _syncIssueMap: MutableMap<Module, MutableList<SyncIssue>> = HashMap()
-  val syncIssueMap: Map<Module, List<SyncIssue>> = _syncIssueMap // projection to read-only
+class SyncIssueRegister(val project: Project) {
+  private val lock = ReentrantLock()
+  private var syncIssueMap: MutableMap<String, MutableList<SyncIssue>> = mutableMapOf()
 
   fun register(module: Module, syncIssues: Collection<SyncIssue>) {
-    _syncIssueMap.computeIfAbsent(module) { ArrayList() }.addAll(syncIssues)
-    Disposer.register(module, Disposable { _syncIssueMap.remove(module) })
+    lock.withLock {
+      syncIssueMap.computeIfAbsent(module.name) { ArrayList() }.addAll(syncIssues)
+    }
   }
 
-  fun clear() {
-    _syncIssueMap.clear()
+  fun getAndClear(): Map<Module, List<SyncIssue>> {
+    val old = lock.withLock {
+      syncIssueMap
+          .also { syncIssueMap = mutableMapOf() }
+    }
+
+    val moduleManager = ModuleManager.getInstance(project)
+    val modules = old.keys.mapNotNull { moduleManager.findModuleByName(it) }
+    return modules.map { it to old[it.name].orEmpty() }.toMap()
   }
 
   companion object {

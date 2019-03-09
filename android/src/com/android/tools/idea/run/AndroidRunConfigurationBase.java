@@ -2,13 +2,26 @@
 
 package com.android.tools.idea.run;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.run.editor.*;
+import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.editor.AndroidDebuggerContext;
+import com.android.tools.idea.run.editor.AndroidDebuggerState;
+import com.android.tools.idea.run.editor.AndroidJavaDebugger;
+import com.android.tools.idea.run.editor.DeployTarget;
+import com.android.tools.idea.run.editor.DeployTargetContext;
+import com.android.tools.idea.run.editor.DeployTargetProvider;
+import com.android.tools.idea.run.editor.DeployTargetState;
+import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -21,29 +34,35 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RuntimeConfigurationError;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.DefaultJDOMExternalizer;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.annotations.Transient;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
-
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element> implements PreferGradleMake {
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element>
+  implements PreferGradleMake {
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
@@ -189,15 +208,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public List<DeployTargetProvider> getApplicableDeployTargetProviders() {
-    List<DeployTargetProvider> targets = Lists.newArrayList();
-
-    for (DeployTargetProvider target : getDeployTargetContext().getDeployTargetProviders()) {
-      if (target.isApplicable(myAndroidTests)) {
-        targets.add(target);
-      }
-    }
-
-    return targets;
+    return getDeployTargetContext().getApplicableDeployTargetProviders(myAndroidTests);
   }
 
   protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
@@ -213,7 +224,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       RunProfileState state = doGetState(executor, env, stats);
       stats.markStateCreated();
       return state;
-    } catch (Throwable t) {
+    }
+    catch (Throwable t) {
       stats.abort();
       throw t;
     }
@@ -250,7 +262,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, getUniqueID());
+    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, hashCode());
     if (deviceFutures == null) {
       // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
       return null;
@@ -300,7 +312,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         continue;
       }
 
+      @SuppressWarnings("UnstableApiUsage")
       IDevice device = Futures.getUnchecked(future);
+
       if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
         return AndroidBundle.message("android.cannot.debug.noDebugPermissions", moduleName, device.getName());
       }
@@ -318,7 +332,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return currentTargetProvider.requiresRuntimePrompt() &&
              ((ShowChooserTargetProvider)currentTargetProvider)
                .getCachedDeployTarget(executor, facet, getDeviceCount(debug), getDeployTargetContext().getDeployTargetStates(),
-                                      getUniqueID()) == null;
+                                      hashCode()) == null;
     }
     return currentTargetProvider.requiresRuntimePrompt();
   }
@@ -340,7 +354,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           getDeviceCount(debug),
           myAndroidTests,
           getDeployTargetContext().getDeployTargetStates(),
-          getUniqueID(),
+          hashCode(),
           LaunchCompatibilityCheckerImpl.create(facet, env, this)
         );
       if (deployTarget == null) {

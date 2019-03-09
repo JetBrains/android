@@ -22,15 +22,6 @@ import static com.android.tools.property.panel.api.FilteredPTableModel.PTableMod
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.property.panel.api.EditorProvider;
-import com.android.tools.property.panel.api.FilteredPTableModel;
-import com.android.tools.property.panel.api.InspectorBuilder;
-import com.android.tools.property.panel.api.InspectorLineModel;
-import com.android.tools.property.panel.api.InspectorPanel;
-import com.android.tools.property.panel.api.PropertiesTable;
-import com.android.tools.property.panel.api.PropertiesView;
-import com.android.tools.property.panel.api.TableLineModel;
-import com.android.tools.property.panel.api.TableUIProvider;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -44,6 +35,15 @@ import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel;
+import com.android.tools.property.panel.api.EditorProvider;
+import com.android.tools.property.panel.api.FilteredPTableModel;
+import com.android.tools.property.panel.api.InspectorBuilder;
+import com.android.tools.property.panel.api.InspectorLineModel;
+import com.android.tools.property.panel.api.InspectorPanel;
+import com.android.tools.property.panel.api.PropertiesTable;
+import com.android.tools.property.panel.api.PropertiesView;
+import com.android.tools.property.panel.api.TableLineModel;
+import com.android.tools.property.panel.api.TableUIProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
@@ -197,7 +197,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty();
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
-        myModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false);
+        myModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, property);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
@@ -213,7 +213,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         (item) -> !item.getNamespace().isEmpty() && ArrayUtil.find(excluded, item) < 0 && item.getRawValue() != null;
       FilteredPTableModel<NelePropertyItem> tableModel =
         PTableModelFactory.create(
-          myModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true);
+          myModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, tableModel, properties);
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle(titleName, true, addFieldAction, deleteFieldAction);

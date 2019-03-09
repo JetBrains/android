@@ -189,6 +189,7 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
     items.forEach {
       val checkBox = JBCheckBox(it)
       panel.add(checkBox)
+      checkBox.background = secondaryPanelBackground
       checkBox.addActionListener { editorModel.toggle(checkBox.text) }
     }
   }
@@ -197,6 +198,7 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
     val apply = JButton()
     apply.text = "Apply"
     apply.isDefaultCapable = true
+    apply.background = secondaryPanelBackground
     val minSize = apply.minimumSize
     apply.preferredSize = Dimension(minSize.width * 2, minSize.height)
     apply.addActionListener {

@@ -16,11 +16,11 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
+import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
@@ -44,25 +44,16 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
    * Verify {@link AndroidTemplateProjectSettingsGroup} is used in ActionManager and in Welcome dialog (b/37141013)
    */
   public void testAndroidTemplateProjectSettingsGroup() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction action = actionManager.getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
-    assertThat(action).isNotNull();
+    AnAction action = ActionManager.getInstance().getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
     assertThat(action).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
   }
 
   /**
-   * Verify {@link AndroidTemplateProjectSettingsGroup} is used in Welcome dialog
+   * Verify {@link AndroidTemplateProjectStructureAction} is used in Welcome dialog
    */
-  public void testAndroidTemplateProjectSettingsGroupInWelcomeDialog() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
-    assertThat(configureIdeaAction).isNotNull();
-    assertThat(configureIdeaAction).isInstanceOf(DefaultActionGroup.class);
-    DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
-    AnAction[] children = settingsGroup.getChildren(null);
-    assertThat(children).hasLength(1);
-    AnAction child = children[0];
-    assertThat(child).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
+  public void testAndroidTemplateProjectStructureActionInWelcomeDialog() {
+    AnAction configureProjectStructureAction = ActionManager.getInstance().getAction("WelcomeScreen.Configure.ProjectStructure");
+    assertThat(configureProjectStructureAction).isInstanceOf(AndroidTemplateProjectStructureAction.class);
   }
 
   public void testRefreshProjectsActionIsHidden() {

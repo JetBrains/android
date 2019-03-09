@@ -61,6 +61,7 @@ fun createNewAndroidProject(): AndroidProject {
     name = "legacyTestProject",
     projectType = AndroidProject.ProjectType.APP,
     variantNames = listOf("debug", "release"),
+    defaultVariant = "debug",
     compileTarget = "android-28",
     bootClasspath = listOf(File(sdkPath, "path/to/Android.jar")),
     aaptOptions = aaptOptions,

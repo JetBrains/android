@@ -22,8 +22,13 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.icons.AllIcons
 
-class LayoutInspectorPropertiesPanelDefinition : ToolWindowDefinition<LayoutInspector>(
-  "Properties", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", Side.RIGHT, Split.TOP, AutoHide.DOCKED,
-  { LayoutInspectorPropertiesPanel() }
-) {
-}
+class LayoutInspectorPropertiesPanelDefinition :
+  ToolWindowDefinition<LayoutInspector>(
+    "Properties",
+    AllIcons.Toolwindows.ToolWindowStructure,
+    "PROPERTIES",
+    Side.RIGHT,
+    Split.TOP,
+    AutoHide.DOCKED,
+    { LayoutInspectorProperties(it) }
+  )

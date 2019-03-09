@@ -43,6 +43,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
   @NotNull private final List<String> myVariantNames = new ArrayList<>();
+  @Nullable private String myDefaultVariant = null;
   @NotNull private final List<SyncIssue> mySyncIssues = new ArrayList<>();
 
   @NotNull private final String myName;
@@ -213,6 +214,16 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull
   public Collection<String> getVariantNames() {
     return myVariantNames;
+  }
+
+  @Nullable
+  @Override
+  public String getDefaultVariant() {
+    return myDefaultVariant;
+  }
+
+  public void setDefaultVariant(@Nullable String defaultVariant) {
+    myDefaultVariant = defaultVariant;
   }
 
   @Override

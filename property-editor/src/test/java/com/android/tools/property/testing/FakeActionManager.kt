@@ -32,7 +32,11 @@ import javax.swing.JComponent
 private const val NOT_IMPLEMENTED = "Not implemented"
 
 class FakeActionManager : ActionManager() {
-  override fun createActionPopupMenu(place: String?, group: ActionGroup): ActionPopupMenu {
+  override fun createActionPopupMenu(place: String, group: ActionGroup): ActionPopupMenu {
+    error(NOT_IMPLEMENTED)
+  }
+
+  override fun replaceAction(actionId: String, newAction: AnAction) {
     error(NOT_IMPLEMENTED)
   }
 
@@ -68,27 +72,27 @@ class FakeActionManager : ActionManager() {
     error(NOT_IMPLEMENTED)
   }
 
-  override fun createButtonToolbar(actionPlace: String?, messageActionGroup: ActionGroup): JComponent {
+  override fun createButtonToolbar(actionPlace: String, messageActionGroup: ActionGroup): JComponent {
     error(NOT_IMPLEMENTED)
   }
 
-  override fun getActionOrStub(id: String?): AnAction? {
+  override fun getActionOrStub(id: String): AnAction? {
     error(NOT_IMPLEMENTED)
   }
 
-  override fun addTimerListener(delay: Int, listener: TimerListener?) {
+  override fun addTimerListener(delay: Int, listener: TimerListener) {
     error(NOT_IMPLEMENTED)
   }
 
-  override fun removeTimerListener(listener: TimerListener?) {
+  override fun removeTimerListener(listener: TimerListener) {
     error(NOT_IMPLEMENTED)
   }
 
-  override fun addTransparentTimerListener(delay: Int, listener: TimerListener?) {
+  override fun addTransparentTimerListener(delay: Int, listener: TimerListener) {
     error(NOT_IMPLEMENTED)
   }
 
-  override fun removeTransparentTimerListener(listener: TimerListener?) {
+  override fun removeTransparentTimerListener(listener: TimerListener) {
     error(NOT_IMPLEMENTED)
   }
 

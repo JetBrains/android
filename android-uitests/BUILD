@@ -248,7 +248,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/122276901
+        "qa_unreliable",  # Workaround for b/126957955
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -530,22 +530,6 @@ java_test(
 
 # sanity test
 java_test(
-    name = "ConvertFromPngToWebpTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/ImportLocalWebpProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromPngToWebpTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_sanity",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# sanity test
-java_test(
     name = "ConvertFromWebpToPngTest",
     size = "large",
     data = COMMON_DATA + glob([
@@ -607,7 +591,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
-        "qa_unreliable",  # b/123705632
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -626,7 +609,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  #b/116752977
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -642,7 +624,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
-        "qa_unreliable",  # b/122276901
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -658,7 +639,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",  # fails 1 out of 3000 runs
-        "qa_unreliable",  # b/122276901
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -674,7 +654,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",  # fails 0 out of 3000 runs
-        "qa_unreliable",  # b/122276901
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -726,7 +705,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/123705632
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -742,7 +720,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/123705632
+        "qa_unreliable",  # b/124009800
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -775,6 +753,27 @@ java_test(
         "no_psq",
         "qa_sanity",
         "qa_unreliable",  # b/119685470
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "ImportSampleProjectTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.ImportSampleProjectTest"],
+    tags = [
+        "cpu:3",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_unreliable",  # b/76023451
+        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -818,6 +817,22 @@ java_test(
         "qa_unreliable",
         "requires_emulator",
         "cpu:100",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CreateNavGraphTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavGraphTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+        "qa_unreliable",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

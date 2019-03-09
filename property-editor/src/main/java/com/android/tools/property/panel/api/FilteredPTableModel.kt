@@ -18,6 +18,7 @@ package com.android.tools.property.panel.api
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.panel.impl.model.FilteredPTableModelImpl
+import com.android.tools.property.ptable2.PTableColumn
 
 /**
  * A [PTableModel] for variable length property tables.
@@ -82,12 +83,15 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * The [groups] specifies which item are grouped under a specified
      * group name. The items are sorted using [itemComparator].
      */
-    fun <P : PropertyItem> create(model: PropertiesModel<P>,
-                                  itemFilter: (P) -> Boolean,
-                                  itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
-                                  groups: List<GroupSpec<P>> = emptyList(),
-                                  keepNewAfterFlyAway: Boolean = true): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, keepNewAfterFlyAway)
+    fun <P : PropertyItem> create(
+      model: PropertiesModel<P>,
+      itemFilter: (P) -> Boolean,
+      itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
+      groups: List<GroupSpec<P>> = emptyList(),
+      keepNewAfterFlyAway: Boolean = true,
+      allowEditing: Boolean = true
+    ): FilteredPTableModel<P> {
+      return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, keepNewAfterFlyAway, allowEditing)
     }
   }
 }

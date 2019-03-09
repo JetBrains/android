@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.rendering.AssetIcon
@@ -84,6 +85,7 @@ class ResourceDetailView(
   private val backAction = object : AnAction(StudioIcons.Common.BACK_ARROW) {
     init {
       templatePresentation.isEnabledAndVisible = true
+      ResourceManagerTracking.logDetailViewOpened(designAssetSet.designAssets.firstOrNull()?.type)
     }
 
     override fun actionPerformed(e: AnActionEvent) = navigateBack()
@@ -193,7 +195,7 @@ class ResourceDetailView(
       override fun mousePressed(e: MouseEvent) {
         requestFocusInWindow()
         if (e.clickCount == 2) {
-          viewModel.openFile(asset)
+          openFile(asset)
         }
         e.consume()
       }
@@ -203,6 +205,11 @@ class ResourceDetailView(
     isFocusable = true
     isRequestFocusEnabled = true
     PopupHandler.installPopupHandler(this, "ResourceExplorer", "ResourceExplorer")
+  }
+
+  private fun openFile(asset: DesignAsset) {
+    ResourceManagerTracking.logAssetOpened(asset.type)
+    viewModel.openFile(asset)
   }
 
   override fun getData(dataId: String): Any? {

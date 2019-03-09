@@ -27,6 +27,10 @@ import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -35,10 +39,11 @@ import org.jetbrains.android.facet.AndroidFacet
  * This class acts as an abstraction layer between Layout Editor component and the build system to manage
  * dependencies required by the provided [NlComponent]
  */
-class NlDependencyManager {
+class NlDependencyManager private constructor() {
 
   companion object {
-    fun get() = NlDependencyManager()
+    @JvmStatic
+    fun getInstance(): NlDependencyManager = ServiceManager.getService(NlDependencyManager::class.java)
   }
 
   data class AddDependenciesResult(val hadMissingDependencies: Boolean, val dependenciesPresent: Boolean)
@@ -80,14 +85,34 @@ class NlDependencyManager {
   }
 
   /**
+   * Adds the dependencies in a separate thread backed by a [ProgressIndicator] since this method might end up making network operations to
+   * add missing dependencies. Receives an optional callback to be called if there were no missing dependencies and to be passed to
+   * [addDependencies], which will set is as the callback of SyncManager#syncProject.
+   *
    * @see addDependencies
    */
-  fun addDependencies(
+  fun addDependenciesAsync(
     components: Iterable<NlComponent>,
     facet: AndroidFacet,
-    syncDoneCallback: Runnable
-  ): AddDependenciesResult {
-    return addDependencies(components, facet, syncDoneCallback::run)
+    progressIndicatorTitle: String,
+    callback: Runnable
+  ) {
+    ProgressManager.getInstance().run(object : Task.Backgroundable(facet.module.project, progressIndicatorTitle) {
+
+      private var hadMissingDependencies: Boolean = false
+
+      override fun run(indicator: ProgressIndicator) {
+        hadMissingDependencies = addDependencies(components, facet) { callback.run() }.hadMissingDependencies
+      }
+
+      override fun onSuccess() {
+        if (!hadMissingDependencies) {
+          // Only invoke the callback if there were no missing dependencies. If missing dependencies were installed later, the callback will
+          // be invoked by SyncManager#syncProject callback (see addDependencies).
+          callback.run()
+        }
+      }
+    })
   }
 
   /**

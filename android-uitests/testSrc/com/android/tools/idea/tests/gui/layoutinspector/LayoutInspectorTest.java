@@ -29,9 +29,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserD
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -47,7 +48,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class LayoutInspectorTest {
-
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private FakeAdbServer fakeAdbServer;
@@ -113,9 +113,7 @@ public class LayoutInspectorTest {
       new File(layoutDumpDir, "recorded_layout_inspector.png")
     );
 
-    ideFrame.runApp(appConfigName)
-      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
-      .clickOk();
+    ideFrame.runApp(appConfigName, "Google Nexus 5X");
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(240));
 
@@ -123,6 +121,12 @@ public class LayoutInspectorTest {
     // Also show the run tool window in case of failure so we have more information.
     RunToolWindowFixture runWindow = ideFrame.getRunToolWindow();
     runWindow.activate();
+
+    // TODO remove workaround due to http://b/126957955
+    Wait.seconds(200)
+      .expecting("Dumb mode to end")
+      .until(() -> !GuiQuery.get(() -> DumbService.isDumb(ideFrame.getProject())));
+    // TODO end workaround for http://b/126957955
 
     guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version

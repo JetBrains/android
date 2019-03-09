@@ -111,11 +111,28 @@ public class AddRemoveCppDependencyTest {
 
     assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp");
 
+    // Remove externalNativeBuild block programmatically.
+    // This test does not care about removing the block with UI actions only
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      WriteCommandAction.runWriteCommandAction(ideFixture.getProject(), () -> {
+        ProjectBuildModel pbm = ProjectBuildModel.get(ideFixture.getProject());
+        GradleBuildModel buildModel = pbm.getModuleBuildModel(ideFixture.getModule("app"));
+        buildModel
+          .android()
+          .externalNativeBuild()
+          .removeNdkBuild()
+          .removeCMake();
+
+        buildModel.applyChanges();
+      });
+    });
+    // end programmatic removal of externalNativeBuild block
+
+    // Open the build.gradle file so screenshot mechanism can take a snapshot of the
+    // project in case of failure
     ideFixture
       .getEditor()
       .open("app/build.gradle")
-      .select(getExternalNativeBuildRegExp())
-      .enterText(" ") // Remove the externalNativeBuild section
       .getIdeFrame()
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish();

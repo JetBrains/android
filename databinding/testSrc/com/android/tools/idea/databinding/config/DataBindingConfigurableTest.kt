@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.config
 
-import com.android.tools.idea.databinding.DataBindingCodeGenService
 import com.android.tools.idea.databinding.config.DataBindingConfiguration.CodeGenMode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockApplication

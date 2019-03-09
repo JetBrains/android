@@ -391,10 +391,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     return ImmutableList.of(
       new LassoTarget(),
-      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
+      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, true),
+      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true),
+      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, true),
+      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, true)
     );
   }
 
@@ -437,18 +437,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     listBuilder.add(
       new ConstraintDragTarget(),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.TOP),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
-      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, true),
-      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true),
-      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, true),
-      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, true)
+      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
     );
 
     int baseline = NlComponentHelperKt.getBaseline(childComponent.getNlComponent());
@@ -457,7 +453,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       baseline = info.getBaseLine();
     }
     if (baseline > 0) {
-      listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, true));
+      listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, false));
     }
 
     return listBuilder.build();

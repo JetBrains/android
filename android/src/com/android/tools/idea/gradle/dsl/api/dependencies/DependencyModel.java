@@ -23,6 +23,8 @@ public interface DependencyModel {
   @NotNull
   String configurationName();
 
+  void setConfigurationName(@NotNull String newConfigurationName);
+
   /**
    * Returns the {@link PsiElement} that this {@link DependencyModel} represents.
    */

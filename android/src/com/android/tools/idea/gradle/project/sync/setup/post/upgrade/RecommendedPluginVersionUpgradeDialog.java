@@ -33,7 +33,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -44,8 +43,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -272,7 +269,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
       recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, REMIND_ME_TOMORROW);
 
       // Schedule checking after 1 days.
-      PluginVersionUpgradeChecker.scheduleNextReminder(myProject, 1, TimeUnit.DAYS);
+      RecommendedPluginVersionUpgradeChecker.scheduleNextReminder(myProject, 1, TimeUnit.DAYS);
 
       close(CANCEL_EXIT_CODE);
     }

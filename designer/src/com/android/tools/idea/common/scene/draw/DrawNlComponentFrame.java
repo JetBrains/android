@@ -36,7 +36,7 @@ public class DrawNlComponentFrame extends DrawRegion {
   private static final Stroke myWrapStroke =  new BasicStroke(1);
   private static final Stroke myMatchParentStroke = new BasicStroke(1);
   private static final Stroke myDragReceiverStroke = new BasicStroke(3);
-  private static final Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 1);
+  private static final Stroke myMatchConstraintStroke = new BasicStroke(1);
 
   @NotNull private SceneComponent.DrawState myMode;
   private int myLayoutWidth;

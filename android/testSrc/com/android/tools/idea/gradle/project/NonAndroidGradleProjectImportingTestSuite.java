@@ -24,7 +24,6 @@ import org.junit.runners.Suite;
  * Check non-android gradle projects import with installed android plugin.
  *
  * @author Vladislav.Soroka
- * @since 7/2/2014
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({GradleDependenciesImportingTest.class, GradleFoldersImportingTest.class})

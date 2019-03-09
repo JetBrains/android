@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.findAllDesignAssets
 import com.android.tools.idea.resourceExplorer.importer.getAllLeafFiles
@@ -76,6 +77,7 @@ class ResourceImportDragTarget(
   override fun drop(event: DnDEvent) {
     val assetSets = getFiles(event)
       .findAllDesignAssets(importersProvider)
+    ResourceManagerTracking.logAssetAddedViaDnd()
     ResourceImportDialog(facet, assetSets).show()
   }
 

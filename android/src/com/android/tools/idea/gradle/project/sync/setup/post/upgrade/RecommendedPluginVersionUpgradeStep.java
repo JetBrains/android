@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -26,12 +27,22 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateRe
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
+public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgradeStep {
+
+  public static final ExtensionPointName<RecommendedPluginVersionUpgradeStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.recommendedPluginVersionUpgradeStep");
+
+  @NotNull
+  public static RecommendedPluginVersionUpgradeStep[] getExtensions() {
+    return EXTENSION_POINT_NAME.getExtensions();
+  }
+
   @NotNull private final RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @NotNull private final TimeBasedUpgradeReminder myUpgradeReminder;
 
@@ -48,6 +59,7 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
   }
 
   @Override
+  @Slow
   public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (myUpgradeReminder.shouldRecommendUpgrade(project) && shouldRecommendUpgrade(pluginInfo)) {
       GradleVersion current = pluginInfo.getPluginVersion();
@@ -64,7 +76,8 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
   }
 
   @Override
-  public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+  @Slow
+  public boolean performUpgradeAndSync(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (!checkUpgradable(project, pluginInfo)) {
       return false;
     }

@@ -18,12 +18,12 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
-import com.android.tools.deployer.tasks.TaskRunner;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplyChangesTask extends AbstractDeployTask {
@@ -49,9 +49,19 @@ public class ApplyChangesTask extends AbstractDeployTask {
   }
 
   @Override
-  protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying changes to application: " + applicationId);
-    List<TaskRunner.Task<?>> tasks = deployer.fullSwap(getPathsToInstall(files));
-    addSubTaskDetails(tasks);
+    return deployer.fullSwap(getPathsToInstall(files));
+  }
+
+  @NotNull
+  @Override
+  protected String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all) {
+    if (all) {
+      return "Activity restart successful; no code or resource changes detected.";
+    } else {
+      return "Activity restart successful without re-installing the following APK(s): " +
+             skippedApkList.stream().collect(Collectors.joining(", "));
+    }
   }
 }

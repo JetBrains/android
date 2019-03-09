@@ -16,19 +16,30 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.DevicePickerStateService;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.ManualTargetChooser;
+import com.android.tools.idea.run.TargetSelectionMode;
 import com.google.common.collect.Sets;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBCheckBox;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.*;
 
 public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserTargetProvider.State> {
   public static final String ID = TargetSelectionMode.SHOW_DIALOG.name();
@@ -157,12 +168,17 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     List<DeployTargetProvider<DeployTargetState>> targets = new ArrayList<>();
 
     for (DeployTargetProvider target : DeployTargetProvider.getProviders()) {
-      if (target.showInDevicePicker(executor) && target.isApplicable(androidTests)) {
+      if (target.showInDevicePicker(executor) && target.isApplicable(androidTests, false)) {
         targets.add(target);
       }
     }
 
     return targets;
+  }
+
+  @Override
+  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+    return !deviceSnapshotComboBoxVisible;
   }
 
   @Override

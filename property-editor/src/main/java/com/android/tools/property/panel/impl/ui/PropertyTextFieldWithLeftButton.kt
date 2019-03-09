@@ -92,7 +92,7 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
 
   private fun setFromModel() {
     isVisible = editorModel.visible
-    leftButton?.icon = editorModel.getLeftButtonIcon(leftButton?.hasFocus() == true)
+    leftButton?.icon = editorModel.leftButtonIcon
     toolTipText = editorModel.tooltip
   }
 
@@ -116,7 +116,7 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
 /**
  * A component to show an icon with a focus border.
  */
-class IconWithFocusBorder : JBLabel(), DataProvider {
+open class IconWithFocusBorder : JBLabel(), DataProvider {
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
     if (hasFocus() && g is Graphics2D) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
@@ -28,7 +29,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
-import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.awt.Point
 import java.awt.event.MouseAdapter
@@ -69,7 +69,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   }
 
   private fun updateFromModel() {
-    actionButton.icon = actionButtonModel?.getActionIcon(actionButton.hasFocus())
+    actionButton.icon = actionButtonModel?.actionIcon
     isVisible = model.visible
   }
 
@@ -103,7 +103,11 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     return Point(location.x + actionButton.width / 2, location.y + actionButton.height / 2)
   }
 
-  private inner class ButtonWithCustomTooltip : JBLabel() {
+  private inner class ButtonWithCustomTooltip : IconWithFocusBorder() {
+
+    init {
+      background = secondaryPanelBackground
+    }
 
     override fun getToolTipText(event: MouseEvent): String? {
       // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().

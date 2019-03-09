@@ -104,11 +104,6 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
     methodCalls.add((table) -> table.insertMethodInfo(session, new ArrayList<>()));
     methodCalls.add((table) -> table.insertStackInfo(session, new ArrayList<>()));
     methodCalls.add((table) -> table.insertThreadInfo(session, new ArrayList<>()));
-    methodCalls.add((table) -> {
-      List<NativeCallStack.NativeFrame> frames = new ArrayList<>();
-      frames.add(NativeCallStack.NativeFrame.getDefaultInstance());
-      table.updateSymbolizedNativeFrames(session, frames);
-    });
     methodCalls.add((table) -> table.getAllocationContexts(session, 0, 0));
     methodCalls.add((table) -> table.getAllocations(session, 0, 0));
     methodCalls.add((table) -> table.getJniReferencesEventsFromRange(session, 0, 0));
@@ -120,7 +115,6 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
       NativeBacktrace backtrace = NativeBacktrace.newBuilder().addAddresses(1).build();
       table.resolveNativeBacktrace(session, backtrace);
     });
-    methodCalls.add((table) -> table.queryNotsymbolizedNativeFrames(session, 0));
     methodCalls.add((table) -> table.insertOrReplaceAllocationSamplingRateEvent(session, AllocationSamplingRateEvent.getDefaultInstance()));
     methodCalls.add((table) -> table.getAllocationSamplingRateEvents(session.getSessionId(), 0, 0));
     return methodCalls;
@@ -233,100 +227,6 @@ public class MemoryLiveAllocationTableTest extends DatabaseTest<MemoryLiveAlloca
         assertThat(queryBatch.getEvents(i)).isEqualTo(insertBatch.getEvents(i));
       }
     }
-  }
-
-  @Test
-  public void testNativeSymbolResolution() {
-    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE1)
-      .setThreadId(THREAD1)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS4))
-      .setTimestamp(1)
-      .build();
-
-    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(CREATE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE2_TAG)
-      .setRefValue(JNI_REF_VALUE2)
-      .setThreadId(THREAD2)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS3, NATIVE_ADDRESS4))
-      .setTimestamp(5)
-      .build();
-
-    JNIGlobalReferenceEvent dealloc1 = JNIGlobalReferenceEvent
-      .newBuilder()
-      .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
-      .setObjectTag(KLASS1_INSTANCE1_TAG)
-      .setRefValue(JNI_REF_VALUE1)
-      .setThreadId(THREAD3)
-      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4))
-      .setTimestamp(10)
-      .build();
-
-    BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
-    insertBatch.setMemoryMap(createMemoryMap());
-    insertBatch.addEvents(alloc1).addEvents(alloc2).addEvents(dealloc1);
-    getTable().insertJniReferenceData(VALID_SESSION, insertBatch.build());
-
-    List<NativeCallStack.NativeFrame> limitedFrames = getTable().queryNotsymbolizedNativeFrames(VALID_SESSION, 2);
-    assertThat(limitedFrames.size()).isEqualTo(2);
-
-    List<NativeCallStack.NativeFrame> framesToResolve = getTable().queryNotsymbolizedNativeFrames(VALID_SESSION, 1000);
-    assertThat(framesToResolve.size()).isEqualTo(4);
-    NativeCallStack.NativeFrame frame1 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS1).findAny().get();
-    assertThat(frame1.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
-    assertThat(frame1.getModuleName()).isEqualTo(NATIVE_LIB1);
-    assertThat(frame1.getSymbolName()).isEmpty();
-    frame1 = frame1.toBuilder().setSymbolName(Long.toString(NATIVE_ADDRESS1)).build();
-
-    NativeCallStack.NativeFrame frame2 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS2).findAny().get();
-    assertThat(frame2.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
-    assertThat(frame2.getModuleName()).isEqualTo(NATIVE_LIB2);
-    assertThat(frame2.getSymbolName()).isEmpty();
-    frame2 = frame2.toBuilder().setSymbolName(Long.toString(NATIVE_ADDRESS2)).build();
-
-    NativeCallStack.NativeFrame frame3 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS3).findAny().get();
-    assertThat(frame3.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
-    assertThat(frame3.getModuleName()).isEqualTo(NATIVE_LIB3);
-    assertThat(frame3.getSymbolName()).isEmpty();
-    frame3 = frame3.toBuilder().setSymbolName(Long.toString(NATIVE_ADDRESS3)).build();
-
-    NativeCallStack.NativeFrame frame4 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS4).findAny().get();
-    assertThat(frame4.getModuleOffset()).isEqualTo(0);
-    assertThat(frame4.getModuleName()).isEmpty();
-    assertThat(frame4.getSymbolName()).isEmpty();
-
-    getTable().updateSymbolizedNativeFrames(VALID_SESSION, Arrays.asList(frame1, frame2, frame3, frame4));
-    List<NativeCallStack.NativeFrame> framesToResolve2 = getTable().queryNotsymbolizedNativeFrames(VALID_SESSION, 1000);
-    assertThat(framesToResolve2).isEmpty();
-
-    NativeCallStack callStack = getTable().resolveNativeBacktrace(
-      VALID_SESSION, createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4));
-
-    assertThat(callStack.getFramesCount()).isEqualTo(4);
-    frame1 = callStack.getFrames(0);
-    assertThat(frame1.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
-    assertThat(frame1.getModuleName()).isEqualTo(NATIVE_LIB1);
-    assertThat(frame1.getSymbolName()).isEqualTo(Long.toString(NATIVE_ADDRESS1));
-
-    frame2 = callStack.getFrames(1);
-    assertThat(frame2.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
-    assertThat(frame2.getModuleName()).isEqualTo(NATIVE_LIB2);
-    assertThat(frame2.getSymbolName()).isEqualTo(Long.toString(NATIVE_ADDRESS2));
-
-    frame3 = callStack.getFrames(2);
-    assertThat(frame3.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
-    assertThat(frame3.getModuleName()).isEqualTo(NATIVE_LIB3);
-    assertThat(frame3.getSymbolName()).isEqualTo(Long.toString(NATIVE_ADDRESS3));
-
-    frame4 = callStack.getFrames(3);
-    assertThat(frame4.getModuleOffset()).isEqualTo(0);
-    assertThat(frame4.getModuleName()).isEmpty();
-    assertThat(frame4.getSymbolName()).isEmpty();
   }
 
   @Test

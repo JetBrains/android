@@ -15,21 +15,21 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.LayoutBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BindingComponentShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <applicationConfigurable groupId="editor" id="android.databinding"
                              provider="com.android.tools.idea.databinding.config.DataBindingConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
-    <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingCodeGenService" />
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingCodeGenService" />
     <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
-    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
+    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
-    <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.DataBindingDomElementDescriptorProvider" order="first"/>
+    <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingTracker"
                     overrides="true"/>

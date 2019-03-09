@@ -7,11 +7,11 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.iml"],
     test_data = ["//tools/adt/idea/layout-inspector/testData"],
     test_resources = ["testData"],
+    test_runtime_deps = ["//tools/vendor/intellij/cidr:intellij.c.doxygen"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -33,12 +33,11 @@ iml_module(
         "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
-        "//tools/adt/idea/profilers:intellij.android.profilers[module]",
-        "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
         "//tools/vendor/intellij/cidr:intellij.c[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
     ],
 )

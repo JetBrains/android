@@ -20,7 +20,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
-import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplyCodeChangesTask extends AbstractDeployTask {
@@ -79,16 +79,26 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   }
 
   @Override
-  protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying code changes to application: " + applicationId);
     Map<Integer, ClassRedefiner> redefiners = makeSpecificRedefiners(getProject(), device);
-    List<TaskRunner.Task<?>> tasks = deployer.codeSwap(getPathsToInstall(files), redefiners);
-    addSubTaskDetails(tasks);
+    return deployer.codeSwap(getPathsToInstall(files), redefiners);
   }
 
   @NotNull
   @Override
   public String getDescription() {
     return "Apply Code Changes";
+  }
+
+  @NotNull
+  @Override
+  protected String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all) {
+    if (all) {
+      return "No code changes detected.";
+    } else {
+      return "No code changes detected. The ollowing APK(s) are not installed: " +
+             skippedApkList.stream().collect(Collectors.joining(", "));
+    }
   }
 }

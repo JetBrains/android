@@ -16,10 +16,14 @@
 package com.android.tools.idea.model;
 
 import com.android.annotations.concurrency.Slow;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +68,26 @@ public class MergedManifestManager {
   }
 
   /**
+   * If {@link ManifestInfo.ManifestFile} is out-of-date, returns a new {@link MergedManifestSnapshot} loaded from disk or null
+   * if is up-to-date.
+   * @param facet the {@link AndroidFacet}
+   * @param manifestFile the source {@link ManifestInfo.ManifestFile}
+   * @param forceLoad if true, the snapshot will be returned even if the manifestFile is up-to-date
+   */
+  @VisibleForTesting
+  @Nullable
+  static MergedManifestSnapshot readSnapshotFromDisk(@NotNull AndroidFacet facet,
+                                                     @NotNull ManifestInfo.ManifestFile manifestFile,
+                                                     boolean forceLoad) {
+    return ReadAction.compute(() -> {
+      if (manifestFile.refresh() || forceLoad) {
+        return MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, manifestFile);
+      }
+      return null;
+    });
+  }
+
+  /**
    * Returns the most up-to-date version of the MergedManifestSnapshot if available. If the passed version
    * is up-to-date or we can not retrieve a newer version, it will return the same instance.
    */
@@ -75,12 +99,7 @@ public class MergedManifestManager {
       // Check if the source file needs a refresh, if it does, then we need to re-issue the snapshot
       ManifestInfo.ManifestFile manifestFile = snapshot.getManifestFile();
       if (manifestFile != null) {
-        MergedManifestSnapshot newManifestSnapshot = ReadAction.compute(() -> {
-          if (manifestFile.refresh()) {
-            return MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, manifestFile);
-          }
-          return null;
-        });
+        MergedManifestSnapshot newManifestSnapshot = readSnapshotFromDisk(facet, manifestFile, false);
 
         if (newManifestSnapshot != null) {
           return newManifestSnapshot;
@@ -110,7 +129,7 @@ public class MergedManifestManager {
    */
   @Slow
   @NotNull
-  public static synchronized MergedManifestSnapshot getSnapshot(@NotNull AndroidFacet facet, boolean forceRefresh) {
+  public static MergedManifestSnapshot getSnapshot(@NotNull AndroidFacet facet, boolean forceRefresh) {
     Module module = facet.getModule();
     if (module.isDisposed()) {
       return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module);
@@ -121,10 +140,7 @@ public class MergedManifestManager {
       ManifestInfo.ManifestFile file = cachedManifest != null && cachedManifest.getManifestFile() != null ?
                                        cachedManifest.getManifestFile() :
                                        ManifestInfo.ManifestFile.create(facet);
-      cachedManifest = ReadAction.compute(() -> {
-        file.refresh();
-        return MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, file);
-      });
+      cachedManifest = readSnapshotFromDisk(facet, file, forceRefresh);
       if (cachedManifest != null) {
         module.putUserData(KEY, cachedManifest);
       }
@@ -147,6 +163,6 @@ public class MergedManifestManager {
   @Slow
   @NotNull
   public static MergedManifestSnapshot getSnapshot(@NotNull AndroidFacet facet) {
-    return getSnapshot(facet, true);
+    return getSnapshot(facet, false);
   }
 }
