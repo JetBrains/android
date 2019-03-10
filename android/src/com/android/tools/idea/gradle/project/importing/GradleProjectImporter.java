@@ -89,18 +89,19 @@ public class GradleProjectImporter {
    *
    * @param selectedFile the selected build.gradle or the project's root directory.
    */
-  public void importProject(@NotNull VirtualFile selectedFile) {
+  @Nullable
+  public Project importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
     }
     catch (IOException e) {
-      return;
+      return null;
     }
     try {
       String projectName = projectFolder.getName();
-      importProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder));
+      return importProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -109,6 +110,7 @@ public class GradleProjectImporter {
       showErrorDialog(e.getMessage(), "Project Import");
       getLogger().error(e);
     }
+    return null;
   }
 
   @NotNull
@@ -153,10 +155,11 @@ public class GradleProjectImporter {
    * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
    * storage to force their re-import.
    */
-  public void importProject(@NotNull String projectName,
-                            @NotNull File projectFolderPath,
-                            @NotNull Request request,
-                            @Nullable GradleSyncListener listener) throws IOException {
+  @NotNull
+  public Project importProject(@NotNull String projectName,
+                               @NotNull File projectFolderPath,
+                               @NotNull Request request,
+                               @Nullable GradleSyncListener listener) throws IOException {
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
@@ -191,6 +194,7 @@ public class GradleProjectImporter {
     }
 
     myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request), listener);
+    return newProject;
   }
 
   @NotNull
