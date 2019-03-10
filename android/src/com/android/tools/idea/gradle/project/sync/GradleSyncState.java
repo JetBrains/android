@@ -147,13 +147,12 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  @VisibleForTesting
-  GradleSyncState(@NotNull Project project,
-                  @NotNull AndroidProjectInfo androidProjectInfo,
-                  @NotNull GradleProjectInfo gradleProjectInfo,
-                  @NotNull GradleFiles gradleFiles,
-                  @NotNull MessageBus messageBus,
-                  @NotNull ProjectStructure projectStructure) {
+  public GradleSyncState(@NotNull Project project,
+                         @NotNull AndroidProjectInfo androidProjectInfo,
+                         @NotNull GradleProjectInfo gradleProjectInfo,
+                         @NotNull GradleFiles gradleFiles,
+                         @NotNull MessageBus messageBus,
+                         @NotNull ProjectStructure projectStructure) {
     this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
@@ -245,8 +244,6 @@ public class GradleSyncState {
       // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
       // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
       GradleSyncResultPublisher.getInstance(myProject);
-      // Make sure FileSystemUpdater is initialized.
-      FileSystemUpdater.getInstance(myProject);
     }
 
     mySummary.reset();
