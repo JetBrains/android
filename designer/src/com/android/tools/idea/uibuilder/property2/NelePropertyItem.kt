@@ -34,6 +34,7 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.property.panel.api.ActionIconButton
@@ -176,6 +177,7 @@ open class NelePropertyItem(
     override val completion = { getCompletionValues() }
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
+    override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
   }
 
   private fun browseToValue() {

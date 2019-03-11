@@ -90,9 +90,11 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
           return@Runnable
         }
         dataLoaded = true
-        listModel.clear()
-        values.forEach { listModel.addElement(it) }
-        updateFilter()
+        support.uiExecution(Runnable {
+          listModel.clear()
+          values.forEach { listModel.addElement(it) }
+          updateFilter()
+        })
       })
     }
   }
