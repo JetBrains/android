@@ -37,6 +37,7 @@ public class NlComponentUtilTest extends AndroidTestCase {
     super.setUp();
 
     myModel = mock(NlModel.class);
+    when(myModel.getProject()).thenReturn(myModule.getProject());
   }
 
   @NotNull
