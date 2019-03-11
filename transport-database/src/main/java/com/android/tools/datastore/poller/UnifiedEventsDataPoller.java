@@ -38,7 +38,6 @@ public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataSto
   @NotNull private final DataStoreService myDataStoreService;
   @NotNull private final CountDownLatch myRunningLatch;
   @NotNull private final AtomicBoolean myIsRunning = new AtomicBoolean(false);
-  @NotNull private final AtomicBoolean myIsStopCalled = new AtomicBoolean(false);
 
   public UnifiedEventsDataPoller(long streamId,
                                  @NotNull UnifiedEventsTable unifiedEventsTable,
@@ -58,8 +57,6 @@ public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataSto
 
   public void stop() {
     try {
-      // Request the running thread to stop.
-      myIsStopCalled.set(true);
       // Block stop method until the run function has completed.
       if (myIsRunning.get()) {
         myRunningLatch.await();
@@ -75,7 +72,7 @@ public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataSto
     try {
       // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
       Iterator<Event> events = myEventPollingService.getEvents(GetEventsRequest.getDefaultInstance());
-      while (!myIsStopCalled.get() && events.hasNext()) {
+      while (events.hasNext()) {
         Event event = events.next();
         if (event != null) {
           myTable.insertUnifiedEvent(myStreamId, event);
@@ -83,8 +80,7 @@ public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataSto
       }
     }
     catch (StatusRuntimeException exception) {
-      // We expect this to get called when connection to the device is lost.
-      // TODO clean up ongoing streams and processes - mark everything as disconnected or dead.
+      // device disconnect logic handle via TransportDeviceManager
     }
     // Signal end of run.
     myRunningLatch.countDown();
