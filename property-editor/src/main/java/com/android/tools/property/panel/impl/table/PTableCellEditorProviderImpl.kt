@@ -125,6 +125,10 @@ class PTableCellEditorImpl : PTableCellEditor {
     }
   }
 
+  override fun refresh() {
+    model?.refresh()
+  }
+
   fun nowEditing(newTable: PTable, newItem: PTableItem, newColumn: PTableColumn,
                  newControlType: ControlType, newModel: PropertyEditorModel, newEditor: JComponent) {
     table = newTable
