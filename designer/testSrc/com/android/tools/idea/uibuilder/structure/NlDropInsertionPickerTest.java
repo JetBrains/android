@@ -129,11 +129,11 @@ public class NlDropInsertionPickerTest {
     when(myModel.canAddComponents(anyList(), any(DummyComponent.class), any(), anyBoolean())).thenReturn(false);
     when(myModel.canAddComponents(anyList(), any(DummyComponentGroup.class), any())).thenReturn(true);
     when(myModel.canAddComponents(anyList(), any(DummyComponentGroup.class), any(), anyBoolean())).thenReturn(true);
+    when(myModel.getProject()).thenReturn(myRule.getProject());
 
     ourRoot = buildDummyComponentHierarchy();
     myTreePaths = buildDummyTreePathArray(ourRoot);
     when(myModel.getComponents()).thenReturn(ImmutableList.of(ourRoot));
-    when(myModel.getProject()).thenReturn(myRule.getProject());
 
     myPicker = getDefaultPicker();
     myDragged = ImmutableList.of(new DummyComponent(-1, myModel, false));

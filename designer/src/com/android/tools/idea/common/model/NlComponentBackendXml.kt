@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPointerManager
@@ -29,7 +30,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 
 open class NlComponentBackendXml private constructor(
-  private val myModel: NlModel) : NlComponentBackend {
+  private val myProject: Project) : NlComponentBackend {
   //TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
   private lateinit var myTag: XmlTag
   private lateinit var myTagName: String
@@ -39,22 +40,22 @@ open class NlComponentBackendXml private constructor(
     val DEBUG = false
   }
 
-  internal constructor(model: NlModel, tag: XmlTag) : this(model) {
+  internal constructor(project: Project, tag: XmlTag) : this(project) {
     myTag = tag
     myTagName = tag.name
     val application = ApplicationManager.getApplication()
     if (application.isReadAccessAllowed) {
-      myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(myTag)
+      myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(myTag)
     }
     else {
       application.runReadAction {
-        myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(myTag)
+        myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(myTag)
       }
     }
   }
 
   @VisibleForTesting
-  constructor(model: NlModel, tag: XmlTag, pointer: SmartPsiElementPointer<XmlTag>) : this(model) {
+  constructor(project: Project, tag: XmlTag, pointer: SmartPsiElementPointer<XmlTag>) : this(project) {
     myTag = tag
     myTagName = tag.name
     myTagPointer = pointer
@@ -65,14 +66,14 @@ open class NlComponentBackendXml private constructor(
     val application = ApplicationManager.getApplication()
     if (application.isReadAccessAllowed) {
       if (tag.isValid) {
-        myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(tag)
+        myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(tag)
         myTagName = tag.getName()
       }
     }
     else {
       application.runReadAction {
         if (tag.isValid()) {
-          myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(tag)
+          myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(tag)
           myTagName = tag.getName()
         }
       }
@@ -172,7 +173,7 @@ open class NlComponentBackendXml private constructor(
       return
     }
 
-    TemplateUtils.reformatAndRearrange(myModel.project, xmlTag)
+    TemplateUtils.reformatAndRearrange(myProject, xmlTag)
   }
 
   override fun isValid(): Boolean {
