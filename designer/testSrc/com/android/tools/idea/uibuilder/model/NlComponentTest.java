@@ -321,8 +321,10 @@ public final class NlComponentTest extends LayoutTestCase {
     when(tag.isValid()).thenReturn(true);
     when(tag.getName()).thenReturn("");
     when(mockPointer.getElement()).thenReturn(tag);
+    NlModel mockModel = mock(NlModel.class);
+    when(mockModel.getProject()).thenReturn(myModule.getProject());
     //noinspection unchecked
-    NlComponent component = new NlComponent(mock(NlModel.class), tag, mockPointer);
+    NlComponent component = new NlComponent(mockModel, tag, mockPointer);
 
     NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
     when(mixin.getAttribute(ANDROID_URI, ATTR_ID)).thenReturn("@id/mixinId");
@@ -331,7 +333,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
     when(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).thenReturn("@id/componentId");
     //noinspection unchecked
-    component = new NlComponent(mock(NlModel.class), tag, mockPointer);
+    component = new NlComponent(mockModel, tag, mockPointer);
     component.setMixin(mixin);
     assertEquals("componentId", component.getId());
   }
