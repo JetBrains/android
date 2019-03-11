@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.perf.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.perf;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_AVERAGE_PERF_PROJECT;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Measure performance for Single variant sync using the average project.
+ * Measure performance for IDEA sync using the average project.
  */
-public class SVSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
+public class IDEASyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
   public String getMetricName() {
-    return "Average-Project-Single-Variant-sync";
+    return "Average-Project-IDEA-sync";
   }
 
   @NotNull
@@ -37,12 +37,12 @@ public class SVSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
 
   @Override
   protected boolean useNewSyncInfrastructure() {
-    return true;
+    return false;
   }
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
-    return true;
+    return false;
   }
 
   @Override
