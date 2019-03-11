@@ -173,7 +173,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testResourceTypeCompletion() throws Throwable {
-    doTestCompletion();
+    // Be careful updating this. "declare-styleable" or "integer-array" is not recognized. "styleable" crashes aapt2.
+    doTestCompletionVariants("resourceTypeCompletion.xml",
+                             "drawable", "dimen", "bool", "color", "plurals", "string", "raw", "integer", "menu", "transition",
+                             "fraction", "layout", "navigation", "mipmap", "array", "interpolator", "xml", "style", "id", "anim", "attr",
+                             "animator", "font");
   }
 
   public void testStyles5() throws Throwable {
@@ -226,6 +230,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
 
   public void testIntegerArray() throws Throwable {
     toTestCompletion("integerArray.xml", "integerArray_after.xml");
+  }
+
+  public void testItemArray() throws Throwable {
+    doTestHighlighting("itemArray.xml");
   }
 
   public void testArray() throws Throwable {
