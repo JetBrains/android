@@ -389,6 +389,17 @@ class PTableImplTest {
   }
 
   @Test
+  fun testEditorIsRefreshedDuringRepaintEvent() {
+    table!!.setRowSelectionInterval(0, 0)
+    dispatchAction(KeyStrokes.ENTER)
+    assertThat(table!!.editingRow).isEqualTo(0)
+
+    table!!.tableChanged(PTableModelRepaintEvent(table!!.model))
+    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(editorProvider!!.editor.refreshCount).isEqualTo(1)
+  }
+
+  @Test
   fun testDeleteLastLineWhenEditing() {
     table!!.setRowSelectionInterval(5, 5)
     dispatchAction(KeyStrokes.ENTER)
@@ -509,6 +520,7 @@ class PTableImplTest {
     var column: PTableColumn? = null
     var toggleCount = 0
     var cancelCount = 0
+    var refreshCount = 0
 
     override val editorComponent = JPanel()
     val textEditor = JTextField()
@@ -542,6 +554,10 @@ class PTableImplTest {
     }
 
     override fun close(oldTable: PTable) {}
+
+    override fun refresh() {
+      refreshCount++
+    }
   }
 
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {

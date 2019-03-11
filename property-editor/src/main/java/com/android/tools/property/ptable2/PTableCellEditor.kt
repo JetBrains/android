@@ -64,6 +64,11 @@ interface PTableCellEditor {
    * Close is called when the editor is no longer used.
    */
   fun close(oldTable: PTable)
+
+  /**
+   * Refresh the value by making the editor read the current value of the property.
+   */
+  fun refresh()
 }
 
 open class DefaultPTableCellEditor : PTableCellEditor {
@@ -83,6 +88,8 @@ open class DefaultPTableCellEditor : PTableCellEditor {
   override fun cancelEditing(): Boolean { return true }
 
   override fun close(oldTable: PTable) {}
+
+  override fun refresh() {}
 }
 
 class DefaultPTableCellEditorProvider : PTableCellEditorProvider {
