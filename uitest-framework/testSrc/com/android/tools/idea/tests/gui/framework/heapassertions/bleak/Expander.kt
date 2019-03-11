@@ -254,9 +254,6 @@ open class DefaultObjectExpander(g: HeapGraph, val shouldOmitEdge: (Any, Field, 
     return null
   }
 
-  override fun getChildForLabel(n: Node, label: Label): Node? =
-    if (label is FieldLabel && label.field.declaringClass.isAssignableFrom(n.type)) n.getNode(label.field.get(n.obj)) else null
-
   companion object {
     private val FOLLOW_WEAK_REFS = System.getProperty("bleak.follow.weak.refs") == "true"
   }
