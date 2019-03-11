@@ -55,18 +55,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -89,7 +87,7 @@ public class TransportServiceProxy extends ServiceProxy
   @NotNull private final Common.Device myProfilerDevice;
   private final Map<Client, Common.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
   private final boolean myIsDeviceApiSupported;
-  private final EventQueue myEventQueue = new EventQueue();
+  private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   private Thread myEventsListenerThread;
 
   /**
@@ -204,6 +202,7 @@ public class TransportServiceProxy extends ServiceProxy
     AndroidDebugBridge.removeClientChangeListener(this);
     if (myEventsListenerThread != null) {
       myEventsListenerThread.interrupt();
+      myEventsListenerThread = null;
     }
   }
 
@@ -218,25 +217,41 @@ public class TransportServiceProxy extends ServiceProxy
     // We push all events into an event queue, so any proxy generated events can also be added.
     new Thread(() -> {
       Iterator<Event> response = myServiceStub.getEvents(request);
-      while (response.hasNext()) {
-        // Blocking call to device. If the device is disconnected this call returns null.
-        Event event = response.next();
-        if (event != null) {
-          myEventQueue.enqueue(event);
+      try {
+        while (response.hasNext()) {
+          // Blocking call to device. If the device is disconnected this call returns null.
+          Event event = response.next();
+          if (event != null) {
+            myEventQueue.offer(event);
+          }
         }
+      }
+      catch (StatusRuntimeException ignored) {
+        // disconnect handle generally outside of the exception.
+      }
+      // Reaching here means that the device side getEvents stream has terminated. We need to clean up any live processes.
+      removeProcesses(ImmutableSet.copyOf(myCachedProcesses.keySet()), Long.MAX_VALUE);
+      if (myEventsListenerThread != null) {
+        myEventsListenerThread.interrupt();
+        myEventsListenerThread = null;
       }
     }).start();
 
     // This loop runs on a GRPC thread, it should not exit until the grpc is terminated killing the thread.
     myEventsListenerThread = new Thread(() -> {
-      while (myEventsListenerThread.isAlive()) {
-        Event event = myEventQueue.waitForNextEvent();
-        if (event != null) {
-          responseObserver.onNext(event);
+      // The loop keeps running if the queue is not emptied, to make sure we pipe through all the existing
+      // events that are already in the queue.
+      while (!Thread.currentThread().isInterrupted() || !myEventQueue.isEmpty()) {
+        try {
+          Event event = myEventQueue.take();
+          if (event != null) {
+            responseObserver.onNext(event);
+          }
         }
-        // Note: We never call on complete. For streamed rpc calls because
-        // it is expected to endlessly append new events.
+        catch (InterruptedException ignored) {
+        }
       }
+      responseObserver.onCompleted();
     });
     myEventsListenerThread.start();
   }
@@ -340,11 +355,9 @@ public class TransportServiceProxy extends ServiceProxy
    * Note: This method is called from the ddmlib thread.
    */
   private void updateProcesses(@NotNull Collection<Client> addedClients, @NotNull Collection<Client> removedClients) {
-    if (!myIsDeviceApiSupported) {
-      return; // Device not supported. Do nothing.
+    if (!myIsDeviceApiSupported || !myDevice.isOnline()) {
+      return; // Device not supported or not online. Do nothing.
     }
-
-    assert myDevice.isOnline();
 
     TimeResponse times;
     try {
@@ -385,25 +398,29 @@ public class TransportServiceProxy extends ServiceProxy
         .build();
       myCachedProcesses.put(client, process);
       // New pipeline event - create a ProcessStarted event for each process.
-      myEventQueue.enqueue(Event.newBuilder()
-                             .setGroupId(process.getPid())
-                             .setKind(Event.Kind.PROCESS)
-                             .setProcess(ProcessData.newBuilder()
-                                           .setProcessStarted(ProcessData.ProcessStarted.newBuilder()
-                                                                .setProcess(process)))
-                             .setTimestamp(times.getTimestampNs())
-                             .build());
+      myEventQueue.offer(Event.newBuilder()
+                           .setGroupId(process.getPid())
+                           .setKind(Event.Kind.PROCESS)
+                           .setProcess(ProcessData.newBuilder()
+                                         .setProcessStarted(ProcessData.ProcessStarted.newBuilder()
+                                                              .setProcess(process)))
+                           .setTimestamp(times.getTimestampNs())
+                           .build());
     }
 
+    removeProcesses(removedClients, times.getTimestampNs());
+  }
+
+  private void removeProcesses(@NotNull Collection<Client> removedClients, long timestampNs) {
     for (Client client : removedClients) {
       Common.Process process = myCachedProcesses.remove(client);
       // New data pipeline event.
-      myEventQueue.enqueue(Common.Event.newBuilder()
-                             .setGroupId(process.getPid())
-                             .setKind(Event.Kind.PROCESS)
-                             .setIsEnded(true)
-                             .setTimestamp(times.getTimestampNs())
-                             .build());
+      myEventQueue.offer(Common.Event.newBuilder()
+                           .setGroupId(process.getPid())
+                           .setKind(Event.Kind.PROCESS)
+                           .setIsEnded(true)
+                           .setTimestamp(timestampNs)
+                           .build());
     }
   }
 
@@ -411,42 +428,5 @@ public class TransportServiceProxy extends ServiceProxy
   @NotNull
   Map<Client, Common.Process> getCachedProcesses() {
     return myCachedProcesses;
-  }
-
-  /**
-   * Helper class to manage writing events from one thread, and reading events from another.
-   */
-  private static class EventQueue {
-    private final ArrayDeque<Event> myEvents = new ArrayDeque<>();
-    private final Lock myEventsLock = new ReentrantLock();
-    private final Condition myEventsPopulated = myEventsLock.newCondition();
-
-    public void enqueue(@NotNull Event event) {
-      try {
-        myEventsLock.lock();
-        myEvents.add(event);
-        myEventsPopulated.signal();
-      }
-      finally {
-        myEventsLock.unlock();
-      }
-    }
-
-    public Event waitForNextEvent() {
-      try {
-        myEventsLock.lock();
-        while (myEvents.isEmpty()) {
-          myEventsPopulated.await();
-        }
-        return myEvents.removeFirst();
-      }
-      catch (InterruptedException ex) {
-        getLog().error(ex);
-      }
-      finally {
-        myEventsLock.unlock();
-      }
-      return null;
-    }
   }
 }
