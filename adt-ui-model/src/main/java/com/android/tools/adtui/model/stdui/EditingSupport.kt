@@ -50,6 +50,12 @@ interface EditingSupport {
   val execution: PooledThreadExecution
     get() = EDITOR_IMMEDIATE_EXECUTION
 
+  /**
+   * The swing component must be updated on the UI thread.
+   */
+  val uiExecution: (runnable: Runnable) -> Unit
+    get() = { it.run() }
+
   companion object {
     val INSTANCE: EditingSupport = DefaultEditingSupport()
   }
@@ -78,7 +84,7 @@ typealias EditingValidation = (editedValue: String?) -> Pair<EditingErrorCategor
 /** Completion callback */
 typealias EditorCompletion = () -> List<String>
 
-/** */
+/** Execute a longer running operation on a non UI thread */
 typealias PooledThreadExecution = (runnable: Runnable) -> Future<*>
 
 @JvmField
