@@ -29,6 +29,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -40,10 +41,14 @@ import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.internal.ServerImpl;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +62,8 @@ public class TransportServiceProxyTest {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
     TransportServiceProxy proxy =
-      new TransportServiceProxy(mockDevice, transportMockDevice, startNamedChannel("testBindServiceContainsAllMethods"));
+      new TransportServiceProxy(mockDevice, transportMockDevice,
+                                startNamedChannel("testBindServiceContainsAllMethods", new FakeTransportService()));
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = TransportServiceGrpc.getServiceDescriptor().getMethods();
@@ -92,7 +98,8 @@ public class TransportServiceProxyTest {
     Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
 
     TransportServiceProxy proxy =
-      new TransportServiceProxy(mockDevice, transportMockDevice, startNamedChannel("testClientsWithNullDescriptionsNotAdded"));
+      new TransportServiceProxy(mockDevice, transportMockDevice,
+                                startNamedChannel("testClientsWithNullDescriptionsNotCached", new FakeTransportService()));
     Map<Client, Common.Process> cachedProcesses = proxy.getCachedProcesses();
     assertThat(cachedProcesses.size()).isEqualTo(1);
     Map.Entry<Client, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();
@@ -103,12 +110,66 @@ public class TransportServiceProxyTest {
     assertThat(cachedProcess.getValue().getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
   }
 
+  @Test
+  public void testEventStreaming() throws Exception {
+    Client client1 = createMockClient(1, "test1", "testClient1");
+    Client client2 = createMockClient(2, "test2", "testClient2");
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client1, client2});
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+
+    FakeTransportService thruService = new FakeTransportService();
+    ManagedChannel thruChannel = startNamedChannel("testEventStreaming", thruService);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel);
+    List<Common.Event> receivedEvents = new ArrayList<>();
+    // We should expect six events: two process starts events, followed by event1 and event2, then process ends events.
+    CountDownLatch latch = new CountDownLatch(6);
+    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<Common.Event>() {
+      @Override
+      public void onNext(Common.Event event) {
+        receivedEvents.add(event);
+        latch.countDown();
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        assert false;
+      }
+
+      @Override
+      public void onCompleted() {
+      }
+    });
+
+    Common.Event event1 = Common.Event.newBuilder().setPid(1).setIsEnded(true).build();
+    Common.Event event2 = Common.Event.newBuilder().setPid(2).setIsEnded(true).build();
+    thruService.addEvents(event1, event2);
+    thruService.stopEventThread();
+    thruChannel.shutdownNow();
+    proxy.disconnect();
+    latch.await();
+
+    assertThat(receivedEvents).hasSize(6);
+    // We know event 1 and event 2 will arrive in order. But the two processes' events can arrive out of order. So here we only check
+    // whether those events are somewhere in the returned list.
+    assertThat(receivedEvents.stream().filter(e -> e.getProcess().getProcessStarted().getProcess().getPid() == 1).count()).isEqualTo(1);
+    assertThat(receivedEvents.stream().filter(e -> e.getProcess().getProcessStarted().getProcess().getPid() == 2).count()).isEqualTo(1);
+    assertThat(receivedEvents.get(2)).isEqualTo(event1);
+    assertThat(receivedEvents.get(3)).isEqualTo(event2);
+    assertThat(
+      receivedEvents.stream().filter(e -> e.getKind() == Common.Event.Kind.PROCESS && e.getGroupId() == 1 && e.getIsEnded()).count())
+      .isEqualTo(1);
+    assertThat(
+      receivedEvents.stream().filter(e -> e.getKind() == Common.Event.Kind.PROCESS && e.getGroupId() == 2 && e.getIsEnded()).count())
+      .isEqualTo(1);
+  }
+
   /**
    * @param uniqueName Name should be unique across tests.
    */
-  private ManagedChannel startNamedChannel(String uniqueName) throws IOException {
+  private ManagedChannel startNamedChannel(String uniqueName, FakeTransportService thruService) throws IOException {
     InProcessServerBuilder builder = InProcessServerBuilder.forName(uniqueName);
-    builder.addService(new TransportServiceProxyTest.FakeTransportService());
+    builder.addService(thruService);
     ServerImpl server = builder.build();
     server.start();
 
@@ -149,10 +210,51 @@ public class TransportServiceProxyTest {
   }
 
   private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
+    final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
+    @Nullable private Thread myEventThread;
+
     @Override
     public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
       responseObserver.onNext(TimeResponse.getDefaultInstance());
       responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getEvents(Transport.GetEventsRequest request, StreamObserver<Common.Event> responseObserver) {
+      myEventThread = new Thread(() -> {
+        while (!Thread.currentThread().isInterrupted() || !myEventQueue.isEmpty()) {
+          try {
+            Common.Event event = myEventQueue.take();
+            if (event != null) {
+              responseObserver.onNext(event);
+            }
+          }
+          catch (InterruptedException exception) {
+          }
+        }
+        responseObserver.onCompleted();
+      });
+      myEventThread.start();
+    }
+
+    void addEvents(@NotNull Common.Event... events) {
+      for (Common.Event event : events) {
+        myEventQueue.offer(event);
+      }
+      while (!myEventQueue.isEmpty()) {
+        try {
+          // Wait until all events have been sent through.
+          Thread.sleep(10);
+        }
+        catch (InterruptedException exception) {
+        }
+      }
+    }
+
+    void stopEventThread() {
+      if (myEventThread != null) {
+        myEventThread.interrupt();
+      }
     }
   }
 }

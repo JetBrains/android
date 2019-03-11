@@ -245,7 +245,9 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   public void disconnect(@NotNull long streamId) {
     if (myConnectedClients.containsKey(streamId)) {
       DataStoreClient client = myConnectedClients.remove(streamId);
-      client.shutdownNow();
+      // Shutdown instead of shutdown now so that the client have a chance to receive all the remaining events that need to be streamed
+      // through.
+      client.getChannel().shutdown();
       myTransportService.disconnectFromChannel(client.getChannel());
     }
   }
@@ -254,7 +256,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myReportTimer.cancel();
     myServer.shutdownNow();
     for (DataStoreClient client : myConnectedClients.values()) {
-      client.shutdownNow();
+      client.getChannel().shutdownNow();
     }
     myConnectedClients.clear();
     myDatabases.forEach((name, db) -> db.disconnect());
@@ -304,7 +306,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * This class is used to manage the stub to each service per device.
    */
   private static class DataStoreClient {
-    @NotNull private final Channel myChannel;
+    @NotNull private final ManagedChannel myChannel;
     @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
     @Nullable private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
     @Nullable private CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
@@ -313,7 +315,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     @Nullable private MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
     @Nullable private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
 
-    public DataStoreClient(@NotNull Channel channel) {
+    public DataStoreClient(@NotNull ManagedChannel channel) {
       myChannel = channel;
       myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
       if (!StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
@@ -327,7 +329,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     }
 
     @NotNull
-    public Channel getChannel() {
+    public ManagedChannel getChannel() {
       return myChannel;
     }
 
@@ -364,13 +366,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     @Nullable
     public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
       return myNetworkClient;
-    }
-
-    public void shutdownNow() {
-      // The check is needed because the test replace the channel with a PassthroughChannel instead of a managed channel.
-      if (myChannel instanceof ManagedChannel) {
-        ((ManagedChannel)myChannel).shutdownNow();
-      }
     }
   }
 
