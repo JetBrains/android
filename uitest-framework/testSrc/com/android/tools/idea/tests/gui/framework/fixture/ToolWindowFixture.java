@@ -159,6 +159,10 @@ public abstract class ToolWindowFixture {
       () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
   }
 
+  public void close() {
+    GuiTask.execute(() -> myToolWindow.getContentManager().removeAllContents(true));
+  }
+
   @NotNull
   public Robot robot() {
     return myRobot;
