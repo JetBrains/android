@@ -120,51 +120,48 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     Configuration configurationMock = mock(Configuration.class);
     when(configurationMock.getResourceResolver()).thenReturn(null);
     when(configurationMock.getDensity()).thenReturn(Density.HIGH);
-    NlModel nlModelMock = mock(NlModel.class);
-    when(nlModelMock.getConfiguration()).thenReturn(configurationMock);
-    when(nlModelMock.getModule()).thenReturn(myModule);
 
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "123456", nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "123456", myModule, configurationMock)).isTrue();
     assertThat(layoutParams.intAttribute).isEqualTo(123456);
     // Incompatible types
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "true", nlModelMock)).isFalse();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "true", myModule, configurationMock)).isFalse();
     assertThat(layoutParams.intAttribute).isEqualTo(123456);
     // Restore default value
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", null, nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", null, myModule, configurationMock)).isTrue();
     assertThat(layoutParams.intAttribute).isEqualTo(-50);
 
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", "Hello world", nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", "Hello world", myModule, configurationMock)).isTrue();
     assertThat(layoutParams.stringAttribute).isEqualTo("Hello world");
     // Restore default value
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", null, nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", null, myModule, configurationMock)).isTrue();
     assertThat(layoutParams.stringAttribute).isEqualTo("content");
 
     // Check dimension conversions
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", "123dp", nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", "123dp", myModule, configurationMock)).isTrue();
     assertThat(layoutParams.width).isEqualTo(185);
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", "123px", nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", "123px", myModule, configurationMock)).isTrue();
     assertThat(layoutParams.width).isEqualTo(123);
     // Restore default value
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", null, nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", null, myModule, configurationMock)).isTrue();
     assertThat(layoutParams.width).isEqualTo(0);
 
-    assertThat(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, nlModelMock)).isFalse();
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, myModule, configurationMock)).isFalse();
 
     // Test flag attribute
     AttributeDefinition flagDefinition =
         new AttributeDefinition(ResourceNamespace.RES_AUTO, "flagAttribute", null, EnumSet.of(AttributeFormat.FLAGS));
     flagDefinition.setValueMappings(ImmutableMap.of("value1", 0b001, "value2", 0b010, "value3", 0b111));
 
-    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "invalidValue", nlModelMock)).isFalse();
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "invalidValue", myModule, configurationMock)).isFalse();
     assertThat(layoutParams.flagAttribute).isEqualTo(987); // Invalid value so no change expected
-    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value3", nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value3", myModule, configurationMock)).isTrue();
     assertThat(layoutParams.flagAttribute).isEqualTo(0b111);
-    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value1", nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value1", myModule, configurationMock)).isTrue();
     assertThat(layoutParams.flagAttribute).isEqualTo(0b001);
-    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value1| value2|value3", nlModelMock))
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value1| value2|value3", myModule, configurationMock))
       .isTrue();
     assertThat(layoutParams.flagAttribute).isEqualTo(0b111); // This should be the three flags combined
-    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", null, nlModelMock)).isTrue();
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", null, myModule, configurationMock)).isTrue();
     assertThat(layoutParams.flagAttribute).isEqualTo(987); // Check that default value restored
   }
 }
