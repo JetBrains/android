@@ -36,43 +36,41 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagChild;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
 public class StringsWriteUtils {
   public static void removeLocale(@NotNull Locale locale, @NotNull AndroidFacet facet, @NotNull Object requestor) {
-    FolderConfiguration configuration = new FolderConfiguration();
-    configuration.setLocaleQualifier(locale.qualifier);
+    WriteCommandAction.writeCommandAction(facet.getModule().getProject())
+      .withName("Remove " + locale + " Locale")
+      .withGlobalUndo()
+      .run(() -> {
+        FolderConfiguration configuration = new FolderConfiguration();
+        configuration.setLocaleQualifier(locale.qualifier);
 
-    Project project = facet.getModule().getProject();
-    String name = configuration.getFolderName(ResourceFolderType.VALUES);
-
-    new WriteCommandAction.Simple(project, "Remove Locale " + locale) {
-      @Override
-      protected void run() throws Throwable {
-        // Makes the command global even if only one xml file is modified
-        // That way, the Undo is always available from the translation editor
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        String name = configuration.getFolderName(ResourceFolderType.VALUES);
 
         ResourceFolderManager.getInstance(facet).getFolders().stream()
           .map(directory -> directory.findChild(name))
           .filter(Objects::nonNull)
           .forEach(directory -> delete(directory, requestor));
-      }
-    }.execute();
+      });
   }
 
   private static void delete(@NotNull VirtualFile file, @NotNull Object requestor) {
