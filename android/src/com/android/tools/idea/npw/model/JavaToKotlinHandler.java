@@ -21,13 +21,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetType;
-import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -111,19 +105,5 @@ public class JavaToKotlinHandler {
       }
     }
     return psiJavaFiles;
-  }
-
-  static boolean hasKotlinFacet(@NotNull Project project) {
-    final FacetType kotlinFacet = FacetTypeRegistry.getInstance().findFacetType("kotlin-language");
-    if (kotlinFacet == null) {
-      return false;
-    }
-    FacetTypeId<?> kotlinFacetId = kotlinFacet.getId();
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (FacetManager.getInstance(module).getFacetByType(kotlinFacetId) != null) {
-        return true;
-      }
-    }
-    return false;
   }
 }
