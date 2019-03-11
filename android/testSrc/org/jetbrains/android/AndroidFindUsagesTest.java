@@ -482,7 +482,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     return fixture.findUsages(((PsiElementUsageTarget)targets[0]).getElement());
   }
 
-  public static Collection<UsageInfo> findUsages(VirtualFile file, JavaCodeInsightTestFixture fixture) throws Exception {
+  public static Collection<UsageInfo> findUsages(VirtualFile file, JavaCodeInsightTestFixture fixture) {
     fixture.configureFromExistingVirtualFile(file);
     final PsiElement targetElement =
       TargetElementUtil.findTargetElement(fixture.getEditor(),

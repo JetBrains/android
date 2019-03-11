@@ -22,6 +22,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -165,8 +166,10 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
   }
 
   private void doFindUsagesTest(String extension, String dir) throws Throwable {
-    myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass.java", "src/p1/p2/Class.java");
-    myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java", "additionalModules/lib/src/p1/p2/lib/Class.java");
+    myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass.java",
+                                "src/p1/p2/FindUsagesClass.java");
+    myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java",
+                                "additionalModules/lib/src/p1/p2/lib/FindUsagesClass.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesStyles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject(BASE_PATH + "picture1.png", "additionalModules/lib/res/drawable/picture1.png");
     copyRJavaToGeneratedSources();
@@ -178,19 +181,22 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
 
     refreshProjectFiles();
 
-    Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
-    List<UsageInfo> result = new ArrayList<>();
-    for (UsageInfo usage : usages) {
-      if (!usage.isNonCodeUsage) {
-        result.add(usage);
+    DumbService.getInstance(getProject()).runReadActionInSmartMode(() -> {
+      Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
+      List<UsageInfo> result = new ArrayList<>();
+      for (UsageInfo usage : usages) {
+        if (!usage.isNonCodeUsage) {
+          result.add(usage);
+        }
       }
-    }
 
-    assertThat(buildFileList(result)).containsExactly(
-      newFilePath,
-      "res/values/styles.xml",
-      "additionalModules/lib/src/p1/p2/lib/Class.java",
-      "src/p1/p2/Class.java");
+      assertThat(buildFileList(result)).containsExactly(
+        newFilePath,
+        "res/values/styles.xml",
+        "additionalModules/lib/src/p1/p2/lib/FindUsagesClass.java",
+        "src/p1/p2/FindUsagesClass.java");
+    });
+
   }
 
   @NotNull
