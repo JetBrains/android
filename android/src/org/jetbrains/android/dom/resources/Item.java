@@ -17,20 +17,23 @@ package org.jetbrains.android.dom.resources;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.dom.converters.FormatConverter;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
-
-import java.util.List;
 
 @Convert(QuietResourceReferenceConverter.class)
 public interface Item extends ResourceElement {
   class TypeConverter extends StaticEnumConverter {
     public TypeConverter() {
-      super(ContainerUtil.map(ResourceType.REFERENCEABLE_TYPES, ResourceType::getName));
+      // TODO(b/110344051): type="styleable" crashes aapt2.
+      super(ResourceType.getClassNames()
+              .stream()
+              .filter(type -> !type.equals("styleable"))
+              .collect(Collectors.toList()));
     }
   }
 
