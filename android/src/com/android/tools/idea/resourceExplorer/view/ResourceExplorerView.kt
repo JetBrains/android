@@ -382,7 +382,7 @@ class ResourceExplorerView(
    * Button to enable the list view
    */
   private inner class ListModeButton
-    : ToggleAction(null, null, StudioIcons.LayoutEditor.Palette.LIST_VIEW),
+    : ToggleAction("List mode", "Switch to list mode", StudioIcons.LayoutEditor.Palette.LIST_VIEW),
       DumbAware {
 
     override fun isSelected(e: AnActionEvent) = !gridMode
@@ -400,7 +400,7 @@ class ResourceExplorerView(
    * Button to enable the grid view
    */
   private inner class GridModeButton
-    : ToggleAction(null, null, StudioIcons.LayoutEditor.Palette.GRID_VIEW),
+    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.LayoutEditor.Palette.GRID_VIEW),
       DumbAware {
 
     override fun isSelected(e: AnActionEvent) = gridMode
@@ -417,7 +417,7 @@ class ResourceExplorerView(
   /**
    * Button to scale down the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomMinus : AnAction(StudioIcons.Common.ZOOM_OUT), DumbAware {
+  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", StudioIcons.Common.ZOOM_OUT), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
@@ -431,7 +431,7 @@ class ResourceExplorerView(
   /**
    * Button to scale up the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomPlus : AnAction(StudioIcons.Common.ZOOM_IN), DumbAware {
+  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", StudioIcons.Common.ZOOM_IN), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())
