@@ -1,6 +1,21 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.lint.*;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE;
+import static com.android.SdkConstants.OLD_PROGUARD_FILE;
+import static com.android.tools.lint.detector.api.TextFormat.HTML;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+
+import com.android.tools.idea.lint.LintIdeAnalytics;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeProject;
+import com.android.tools.idea.lint.LintIdeRequest;
+import com.android.tools.idea.lint.ProvideLintFeedbackIntentionAction;
+import com.android.tools.idea.lint.ProvideLintFeedbackPanel;
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.PsiProjectListener;
 import com.android.tools.lint.checks.DeprecationDetector;
@@ -19,7 +34,11 @@ import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.codeInspection.SuppressQuickFix;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
 import com.intellij.lang.annotation.Annotation;
@@ -49,6 +68,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.xml.util.XmlStringUtil;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.Icon;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -57,16 +81,6 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
-
-import javax.swing.*;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.TextFormat.HTML;
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * @author Eugene.Kudelevsky
@@ -128,9 +142,6 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     }
 
     final Set<Issue> issues = getIssuesFromInspections(file.getProject(), file);
-    if (issues.isEmpty()) {
-      return null;
-    }
     return new State(module, vFile, file.getText(), issues);
   }
 
