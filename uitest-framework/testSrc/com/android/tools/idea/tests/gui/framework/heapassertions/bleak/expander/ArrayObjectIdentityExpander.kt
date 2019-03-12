@@ -35,6 +35,7 @@ import java.lang.ref.WeakReference
 class ArrayObjectIdentityExpander(g: HeapGraph): Expander(g) {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
+  // primitive arrays should be expanded by DefaultObjectExpander so we don't end up with nodes for primitive types
   override fun canExpand(obj: Any): Boolean = obj.javaClass.isArray && !obj.javaClass.componentType.isPrimitive
   override fun expand(n: Node) {
     val arr = n.obj as Array<*>
