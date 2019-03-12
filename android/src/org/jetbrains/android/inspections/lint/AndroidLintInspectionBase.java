@@ -11,6 +11,7 @@ import com.android.tools.idea.lint.ProvideLintFeedbackFix;
 import com.android.tools.idea.lint.ProvideLintFeedbackPanel;
 import com.android.tools.idea.lint.ReplaceStringQuickFix;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
+import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
@@ -451,7 +452,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // and we don't want random other inspections to show up)
       String name = issue2InspectionShortName.get(issue);
       if (name == null &&
-          (!ApplicationManager.getApplication().isUnitTestMode() || ourRegisterDynamicToolsFromTests)) {
+          (!ApplicationManager.getApplication().isUnitTestMode() ||
+           (ourRegisterDynamicToolsFromTests && !new BuiltinIssueRegistry().getIssues().contains(issue)))) {
         AndroidLintInspectionBase tool = createInspection(issue);
         LintInspectionFactory factory = new LintInspectionFactory(tool);
         // We have to add the tool both to the current and the base profile; otherwise, bringing up
