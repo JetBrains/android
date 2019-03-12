@@ -16,6 +16,36 @@
 
 package com.android.tools.idea.gradle.eclipse;
 
+import static com.android.SdkConstants.ANDROID_LIBRARY;
+import static com.android.SdkConstants.ANDROID_LIBRARY_REFERENCE_FORMAT;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_PACKAGE;
+import static com.android.SdkConstants.CURRENT_PLATFORM;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.FD_ASSETS;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FD_SOURCES;
+import static com.android.SdkConstants.FN_PROJECT_PROPERTIES;
+import static com.android.SdkConstants.GEN_FOLDER;
+import static com.android.SdkConstants.LIBS_FOLDER;
+import static com.android.SdkConstants.PLATFORM_WINDOWS;
+import static com.android.SdkConstants.PROGUARD_CONFIG;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
+import static com.android.tools.idea.gradle.eclipse.ImportModule.APPCOMPAT_ARTIFACT;
+import static com.android.tools.idea.gradle.eclipse.ImportModule.GRIDLAYOUT_ARTIFACT;
+import static com.android.tools.idea.gradle.eclipse.ImportModule.MEDIA_ROUTER_ARTIFACT;
+import static com.android.tools.idea.gradle.eclipse.ImportModule.SUPPORT_ARTIFACT;
+import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_MIN_SDK_VERSION;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_TARGET_PACKAGE;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_TARGET_SDK_VERSION;
+import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
+import static com.android.xml.AndroidManifest.NODE_USES_SDK;
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
@@ -31,26 +61,26 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
-import static com.android.tools.idea.gradle.eclipse.ImportModule.*;
-import static com.android.utils.SdkUtils.endsWithIgnoreCase;
-import static com.android.xml.AndroidManifest.*;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /** Provides information about an Eclipse project */
 class EclipseProject implements Comparable<EclipseProject> {
@@ -268,7 +298,7 @@ class EclipseProject implements Comparable<EclipseProject> {
     myDirectLibraries = new ArrayList<EclipseProject>(4);
 
     for (int i = 0; i < 1000; i++) {
-      String key = String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, i);
+      String key = String.format(Locale.US, ANDROID_LIBRARY_REFERENCE_FORMAT, i);
       String library = properties.getProperty(key);
       if (library == null || library.isEmpty()) {
         // No holes in the numbering sequence is allowed

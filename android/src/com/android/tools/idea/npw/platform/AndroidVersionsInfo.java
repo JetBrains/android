@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -497,7 +498,7 @@ public class AndroidVersionsInfo {
     private String getLabel(@NotNull AndroidVersion version, @Nullable IdDisplay tag, @Nullable IAndroidTarget target) {
       int featureLevel = version.getFeatureLevel();
       if (SystemImage.GLASS_TAG.equals(tag)) {
-        return String.format("Glass Development Kit Preview (API %1$d)", featureLevel);
+        return String.format(Locale.US, "Glass Development Kit Preview (API %1$d)", featureLevel);
       }
       if (featureLevel <= HIGHEST_KNOWN_API) {
         if (version.isPreview()) {
@@ -510,7 +511,7 @@ public class AndroidVersionsInfo {
           return SdkVersionInfo.getAndroidName(featureLevel);
         }
         else if (!isEmptyOrSpaces(target.getDescription())) {
-          return String.format("API %1$d: %2$s", featureLevel, target.getDescription());
+          return String.format(Locale.US, "API %1$d: %2$s", featureLevel, target.getDescription());
         }
         else {
           return AndroidTargetHash.getTargetHashString(target);
@@ -518,10 +519,10 @@ public class AndroidVersionsInfo {
       }
       else {
         if (version.isPreview()) {
-          return String.format("API %1$d: Android (%2$s)", featureLevel, version.getCodename());
+          return String.format(Locale.US, "API %1$d: Android (%2$s)", featureLevel, version.getCodename());
         }
         else {
-          return String.format("API %1$d: Android", featureLevel);
+          return String.format(Locale.US, "API %1$d: Android", featureLevel);
         }
       }
     }

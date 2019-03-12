@@ -483,7 +483,7 @@ public class GradleEditorModelParseContext {
 
     @Override
     public String toString() {
-      return String.format("%s [%d;%d)", file.getName(), range.getStartOffset(), range.getEndOffset());
+      return String.format(Locale.US, "%s [%d;%d)", file.getName(), range.getStartOffset(), range.getEndOffset());
     }
   }
 }

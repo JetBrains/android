@@ -20,6 +20,7 @@ import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -67,7 +68,8 @@ public class GradleEditorSourceBinding implements Disposable {
   @Override
   public String toString() {
     if (myRangeMarker.isValid()) {
-      return String.format("%s: [%d;%d)", myFile.getName(), myRangeMarker.getStartOffset(), myRangeMarker.getEndOffset());
+      return String
+        .format(Locale.US, "%s: [%d;%d)", myFile.getName(), myRangeMarker.getStartOffset(), myRangeMarker.getEndOffset());
     }
     else {
       return "<disposed>";

@@ -240,7 +240,7 @@ public final class PathValidator implements Validator<File> {
     @NotNull
     @Override
     public String getMessage(@NotNull File file, @NotNull String fieldName) {
-      return String.format("The length of the %1$s exceeds the limit of %2$d characters.", fieldName, WINDOWS_PATH_LENGTH_LIMIT);
+      return String.format(Locale.US, "The length of the %1$s exceeds the limit of %2$d characters.", fieldName, WINDOWS_PATH_LENGTH_LIMIT);
     }
   };
 

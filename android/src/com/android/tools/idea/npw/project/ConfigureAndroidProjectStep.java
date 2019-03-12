@@ -70,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -269,7 +270,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     // Try appName, appName2, appName3, ...
     int counter = 2;
     while (projectDirectory.exists()) {
-      projectDirectory = new File(baseDirectory, format("%s%d", applicationName, counter++));
+      projectDirectory = new File(baseDirectory, format(Locale.US, "%s%d", applicationName, counter++));
     }
 
     return projectDirectory.getPath();

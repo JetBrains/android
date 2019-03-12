@@ -16,10 +16,31 @@
 package com.android.tools.idea.rendering.webp;
 
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ICON;
+import static com.android.SdkConstants.ATTR_ROUND_ICON;
+import static com.android.SdkConstants.DOT_9PNG;
+import static com.android.SdkConstants.DOT_BMP;
+import static com.android.SdkConstants.DOT_GIF;
+import static com.android.SdkConstants.DOT_JPEG;
+import static com.android.SdkConstants.DOT_JPG;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DRAWABLE_PREFIX;
+import static com.android.SdkConstants.FD_RES_DRAWABLE;
+import static com.android.SdkConstants.FD_RES_MIPMAP;
+import static com.android.SdkConstants.MIPMAP_PREFIX;
+import static com.android.SdkConstants.TAG_ACTIVITY;
+import static com.android.SdkConstants.TAG_ACTIVITY_ALIAS;
+import static com.android.SdkConstants.TAG_APPLICATION;
+import static com.android.SdkConstants.TAG_PROVIDER;
+import static com.android.SdkConstants.TAG_RECEIVER;
+import static com.android.SdkConstants.TAG_SERVICE;
+import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+
 import com.android.resources.ResourceFolderType;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -44,6 +65,17 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Nls;
@@ -51,16 +83,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 
 /**
  * Action which converts source PNG and JPEG images into WEBP
@@ -222,7 +244,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     }
     int exp = (int) (Math.log(bytes) / Math.log(unit));
     String pre = Character.toString("KMGTPE".charAt(exp-1));
-    return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    return String.format(Locale.US, "%.1f %sB", bytes / Math.pow(unit, exp), pre);
   }
 
   static class WebpConversionTask extends Task.Backgroundable {

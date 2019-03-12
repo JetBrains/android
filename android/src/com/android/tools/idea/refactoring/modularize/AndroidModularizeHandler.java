@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -176,7 +177,8 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         facetSet.add(facet);
 
         if (indicator != null) {
-          indicator.setText(String.format("Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
+          indicator.setText(
+            String.format(Locale.US, "Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
           indicator.setFraction((double)numVisited / (numVisited + myVisitQueue.size()));
         }
 
