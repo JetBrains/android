@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.AtomicNullableLazyValue;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -69,8 +70,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class LightBindingComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
-  private CachedValue<PsiMethod[]> myMethodCache;
-  private PsiFile myContainingFile;
+  private final CachedValue<PsiMethod[]> myMethodCache;
+  private final AtomicNullableLazyValue<PsiFile> myContainingFile = new AtomicNullableLazyValue<PsiFile>() {
+    @Nullable
+    @Override
+    protected PsiFile compute() {
+      String packageName = myMode.packageName;
+      if (packageName.endsWith(".")) {
+        packageName = packageName.substring(0, packageName.length() - 1);
+      }
+      return PsiFileFactory.getInstance(myFacet.getModule().getProject()).createFileFromText(
+        SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
+        "package " + myMode.packageName + ";\n"
+        + "public interface DataBindingComponent {}"
+        , false, true, true, null);
+    }
+  };
   private final DataBindingMode myMode;
 
   public LightBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
@@ -215,18 +230,7 @@ public class LightBindingComponentClass extends AndroidLightClassBase implements
   @Nullable
   @Override
   public PsiFile getContainingFile() {
-    if (myContainingFile == null) {
-      String packageName = myMode.packageName;
-      if (packageName.endsWith(".")) {
-        packageName = packageName.substring(0, packageName.length() - 1);
-      }
-      myContainingFile = PsiFileFactory.getInstance(myFacet.getModule().getProject()).createFileFromText(
-        SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
-        "package " + packageName + ";\n"
-        + "public interface DataBindingComponent {}"
-        , false, true, true);
-    }
-    return myContainingFile;
+    return myContainingFile.getValue();
   }
 
   @Override
