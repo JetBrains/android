@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
@@ -61,14 +62,10 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
-public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
-    implements DumbAware {
-
+public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
   private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
@@ -87,14 +84,16 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @Override
   @NotNull
-  public Key<EditorNotificationPanel> getKey() {
+  public final Key<EditorNotificationPanel> getKey() {
     return KEY;
   }
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(getKey());
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull FileEditor fileEditor,
+                                                         @NotNull Project project) {
+    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(KEY);
     NotificationPanel.Type newPanelType = notificationPanelType();
 
     if (oldPanel != null) {
@@ -207,11 +206,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
   }
 
-  // Notification panel which may contain actions which we don't want to be executed during indexing (e.g.,
-  // retrying sync itself)
+  /** Notification panel which may contain actions which we don't want to be executed during indexing (e.g., retrying sync itself). */
   @VisibleForTesting
   static class IndexingSensitiveNotificationPanel extends NotificationPanel implements Disposable {
-    private final DumbService myDumbService;
 
     IndexingSensitiveNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       this(project, type, text, DumbService.getInstance(project));
@@ -223,8 +220,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                                        @NotNull String text,
                                        @NotNull DumbService dumbService) {
       super(type, text);
-
-      myDumbService = dumbService;
 
       Disposer.register(project, this);
       MessageBusConnection connection = project.getMessageBus().connect(this);
@@ -240,8 +235,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         }
       });
 
-      // First subscribe, then update visibility
-      setVisible(!myDumbService.isDumb());
+      // First subscribe, then update visibility.
+      setVisible(!dumbService.isDumb());
     }
 
     @Override
