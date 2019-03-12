@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.intellij.util.ThreeState.YES;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
@@ -25,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -32,10 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import static com.intellij.util.ThreeState.YES;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
@@ -62,7 +63,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
-    myNotificationProvider = new ProjectSyncStatusNotificationProvider(getProject(), myProjectInfo, mySyncState);
+    myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState);
     myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
 
     myPropertiesComponent = new PropertiesComponentMock();
@@ -75,7 +76,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
-    assertNull(type.create(myProject, myFile, myProjectInfo));
+    assertNull(createPanel(type));
   }
 
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
@@ -84,7 +85,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
     if (StudioFlags.NEW_PSD_ENABLED.get()) {
       assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
@@ -106,7 +107,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.FAILED, type);
-    assertInstanceOf(type.create(myProject, myFile, myProjectInfo), IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(createPanel(type), IndexingSensitiveNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncErrors() {
@@ -116,7 +117,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
 
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     if (StudioFlags.NEW_PSD_ENABLED.get()) {
       assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
     }
@@ -130,7 +131,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
                                                Long.toString(System.currentTimeMillis()));
     type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
-    assertNull(type.create(myProject, myFile, myProjectInfo));
+    assertNull(createPanel(type));
   }
 
   public void testNotificationPanelTypeWithSyncNeeded() {
@@ -138,7 +139,17 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    assertInstanceOf(type.create(myProject, myFile, myProjectInfo), IndexingSensitiveNotificationPanel.class);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+  }
+
+  private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
+    // Disposing logic similar to the ProjectSyncStatusNotificationProvider.createNotificationPanel method.
+    if (panel instanceof Disposable) {
+      Disposer.register(getTestRootDisposable(), (Disposable)panel);
+    }
+    return panel;
   }
 
   public void testIndexingSensitiveNotificationPanel() {
@@ -146,12 +157,14 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     dumbService.setDumb(true);
     IndexingSensitiveNotificationPanel initiallyInvisibleNotificationPanel =
-      new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+        new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+    Disposer.register(getTestRootDisposable(), initiallyInvisibleNotificationPanel);
     assertFalse(initiallyInvisibleNotificationPanel.isVisible());
 
     dumbService.setDumb(false);
     IndexingSensitiveNotificationPanel notificationPanel =
-      new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+        new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+    Disposer.register(getTestRootDisposable(), notificationPanel);
     assertTrue(notificationPanel.isVisible());
 
     dumbService.setDumb(true);
@@ -171,7 +184,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     private boolean myDumb;
     private DumbModeListener myPublisher;
 
-    public OurMockDumbService(@NotNull Project project) {
+    OurMockDumbService(@NotNull Project project) {
       super(project);
       myDumb = false;
       myPublisher = project.getMessageBus().syncPublisher(DUMB_MODE);
