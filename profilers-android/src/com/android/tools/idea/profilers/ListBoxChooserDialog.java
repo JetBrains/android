@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.adtui.TabularLayout;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -111,7 +112,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
       panel.add(new JLabel(myMessage), new TabularLayout.Constraint(0, 0));
     }
     updateActivePresentation();
-    panel.add(new OptionsSelectorComboBox().createCustomComponent(myActivePresentation), new TabularLayout.Constraint(2, 0));
+    panel.add(new OptionsSelectorComboBox().createCustomComponent(myActivePresentation, ActionPlaces.UNKNOWN), new TabularLayout.Constraint(2, 0));
     return panel;
   }
 
@@ -123,7 +124,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
     NonOpaquePanel myPanel = new NonOpaquePanel(new BorderLayout());
 
     @Override
-    public JComponent createCustomComponent(final Presentation presentation) {
+    public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
       ComboBoxButton button = new ComboBoxButton(presentation) {
         @Override
         public Dimension getPreferredSize() {
