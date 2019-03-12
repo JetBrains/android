@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
+
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.collections.ObservableList;
@@ -22,6 +24,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.expressions.bool.AndExpression;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
 import javax.swing.BoxLayout;
@@ -29,10 +32,12 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleDownloadConditions {
+  private static final String myLinkUrl = STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/conditional-delivery";
   public JPanel myRootPanel;
   private JPanel myDeviceFeaturesContainer;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private LinkLabel<Void> myAddDeviceFeatureLinkLabel;
+  private HyperlinkLabel myFeatureHelpLink;
   private ObservableList<DeviceFeatureModel> myModel;
   private ObservableValue<Boolean> myIsPanelActive;
   private Project myProject;
@@ -55,6 +60,8 @@ public class ModuleDownloadConditions {
         addDeviceFeatureRow();
       }
     }, null);
+    myFeatureHelpLink.setHyperlinkTarget(myLinkUrl);
+    myFeatureHelpLink.setHtmlText("<html><a>About device features and user country</a></html>");
   }
 
   public void init(@NotNull Project project,

@@ -55,7 +55,7 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
 
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> setFusing(boolean select) {
-    selectCheckBoxWithText("Fusing (install module on devices that don't support on-demand delivery)", select);
+    selectCheckBoxWithText("Fusing (include module at install-time for pre-Lollipop devices)", select);
     return this;
   }
 

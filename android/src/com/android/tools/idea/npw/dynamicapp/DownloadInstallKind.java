@@ -22,11 +22,11 @@
   * Enum defining the download options for a dynamic feature module.
   */
  public enum DownloadInstallKind {
-   INCLUDE_AT_INSTALL_TIME("Include module at install time"),
+   ON_DEMAND_ONLY("Do not include module at install-time (on-demand only)"),
 
-   ON_DEMAND_ONLY("Do not include module at install time (on-demand only)"),
+   INCLUDE_AT_INSTALL_TIME("Include module at install-time"),
 
-   INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS("Include module at install time if device meets conditions below");
+   INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS("Only include module at install-time for devices with specified features");
 
    @NotNull
    private String myDisplayName;
