@@ -99,11 +99,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   @Override
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
     assert myResourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
-
-    List<String> roots = getPossibleRoots(facet);
-    assert roots.contains(getDefaultRootTag(facet.getModule()));
-
-    return roots;
+    return getPossibleRoots(facet);
   }
 
   @VisibleForTesting
