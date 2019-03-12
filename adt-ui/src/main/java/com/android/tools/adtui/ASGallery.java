@@ -25,9 +25,11 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ImageLoader;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +40,6 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -283,22 +284,13 @@ public class ASGallery<E> extends JBList {
    * as it may change without prior notice.
    */
   public void setImageProvider(@NotNull final Function<? super E, Image> imageProvider) {
-    Function<? super E, Image> scaledImageProvider = new Function<E, Image> () {
-      @Nullable
-      @Override
-      public Image apply(@Nullable E input) {
+    Function<? super E, Image> scaledImageProvider = (Function<E, Image>)input -> {
         Image img = imageProvider.apply(input);
         if (img == null) {
           return null;
         }
-        BufferedImage image = ImageUtil.toBufferedImage(img);
-        if (image.getHeight() <= 0 || image.getWidth() <= 0) {
-          return null;
-        }
-        double xScale = (double) myThumbnailSize.width / image.getWidth();
-        double yScale = (double) myThumbnailSize.height / image.getHeight();
-        return ImageUtils.scale(image, xScale, yScale);
-      }
+        img = ImageUtil.ensureHiDPI(img, JBUI.ScaleContext.create(this));
+        return ImageLoader.scaleImage(img, myThumbnailSize.width, myThumbnailSize.height);
     };
     CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledImageProvider));
     myCellRenderers.clear();
@@ -483,7 +475,8 @@ public class ASGallery<E> extends JBList {
       // | (label,     |
       // |   bottom)   |
       // +-------------+
-      ImageIcon icon = new ImageIcon(image, label);
+      ImageIcon icon = new JBImageIcon(image);
+      icon.setDescription(label);
       JLabel imageLabel = new JLabel(icon);
 
       JLabel textLabel = new JLabel(label, SwingConstants.CENTER);
