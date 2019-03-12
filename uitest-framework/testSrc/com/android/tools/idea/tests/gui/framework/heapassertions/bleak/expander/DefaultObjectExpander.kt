@@ -37,7 +37,6 @@ import java.lang.reflect.Modifier
  */
 open class DefaultObjectExpander(g: HeapGraph, val shouldOmitEdge: (Any, Field, Any) -> Boolean =
   { receiver, field, value -> value is DoNotTrace // avoid expanding BLeak internals
-                              || field.type.isArray && field.type.componentType.isPrimitive // don't expand primitve arrays
                               || receiver.javaClass.name == "com.intellij.openapi.util.objectTree.ObjectNode" && field.name == "myParent"
                               || (!FOLLOW_WEAK_REFS && receiver is Reference<*> && field.name in listOf("referent", "discovered")) // only expand Weak/Soft refs if that's enabled
   }): Expander(g) {
