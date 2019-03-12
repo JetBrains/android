@@ -17,14 +17,13 @@ package com.android.tools.idea.npw.dynamicapp;
 
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -35,43 +34,61 @@ import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.SwingHelper;
+import com.intellij.util.ui.UIUtil;
 import java.util.Optional;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicFeatureModel> {
+  private static final String myLinkText = "Learn more";
+  private static final String myLinkUrl = STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/configure";
   @NotNull
   private final ValidatorPanel myValidatorPanel;
   @NotNull
   private final BindingsManager myBindings = new BindingsManager();
   @NotNull
   private final ListenerManager myListeners = new ListenerManager();
-
   private JPanel myRootPanel;
-  @SuppressWarnings("unused") private JBLabel myFeatureTitleLabel;
-  @SuppressWarnings("unused") private JBLabel myModuleDeliveryLabel;
   private JTextField myFeatureTitle;
-  private JCheckBox myFusingCheckBox;
   private ModuleDownloadConditions myDownloadConditionsForm;
   private JComboBox<DownloadInstallKind> myInstallationOptionCombo;
-  private HyperlinkLabel myHeaderLabel;
   private JBLabel myDeviceSupportHint;
+  private JPanel myFeatureTitlePanel;
+  private JPanel myInstallTimeInclusionPanel;
+  private JPanel myFusingPanel;
+  private JPanel myHeaderPanel;
+  private JBLabel myFeatureTitleLabel;
+  private JBLabel myFeatureTitleHelp;
+  private JBLabel myInstallTimeInclusionLabel;
+  private JBLabel myInstallTimeInclusionHelp;
+  private JEditorPane myHeaderInfo;
+  private JCheckBox myFusingCheckBox;
+  private JBLabel myFusingHelp;
 
   public ConfigureModuleDownloadOptionsStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.new.dynamic.download.options"));
+    myHeaderInfo = SwingHelper.createHtmlViewer(false, null, null, null);
+    myHeaderInfo.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    myHeaderPanel.add(myHeaderInfo);
+    SwingHelper.setHtml(myHeaderInfo, "Dynamic feature modules can be delivered on-demand, included at install time," +
+                                      " or included conditionally based on device features or user country." +
+                                      " <a href='https://developer.android.com/studio/projects/dynamic-delivery#dynamic_feature_modules'>Learn more</a>",
+                        UIUtil.getLabelForeground());
 
-    myHeaderLabel.setHyperlinkTarget("https://developer.android.com/reference/com/google/android/play/core/splitinstall/SplitInstallManager");
-    myHeaderLabel.setHtmlText("<html>Dynamic modules can be included at install time or downloaded on-demand via the <a>SplitInstallManager API</a></html>");
     myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallKind.values()));
     myDownloadConditionsForm.setModel(model.deviceFeatures());
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myRootPanel));
@@ -100,7 +117,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
 
     myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
       StringUtil.isEmptyOrSpaces(value) ? new Validator.Result(ERROR, message("android.wizard.validate.empty.name")) : OK);
-    }
+  }
 
   @Override
   protected void onEntering() {
@@ -134,6 +151,21 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   @Override
   protected boolean shouldShow() {
     return !getModel().instantModule().get();
+  }
+
+  private void createUIComponents() {
+    myFeatureTitleHelp = ContextHelpLabel.createWithLink(null,
+                                                         "The platform uses this title to identify the module to users when," +
+                                                         " for example, confirming whether the user wants to download the module.",
+                                                         myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+
+    myInstallTimeInclusionHelp = ContextHelpLabel.
+      createWithLink(null, "Specify whether to include this module at install-time unconditionally, or based on device features.",
+                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+
+    myFusingHelp = ContextHelpLabel.
+      createWithLink(null, "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
+                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
   }
 
   private static void setVisible(boolean isVisible, JComponent... components) {
