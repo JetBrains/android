@@ -29,8 +29,8 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDeployTask implements LaunchTask {
 
@@ -179,10 +180,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
       bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
     }
 
+    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(error.getResolution());
     result.setError(bubbleError.toString());
     result.setConsoleError(FAILURE_TITLE + e.getMessage() + "\n" + e.getDetails());
-
-    result.setNotificationListener(new DeploymentErrorNotificationListener());
+    result.setConsoleHyperlink(error.getCallToAction(), hyperlinkInfo);
+    result.setNotificationListener(new DeploymentErrorNotificationListener(error.getResolution(),
+                                                                           hyperlinkInfo));
     result.setErrorId(e.getId());
     return result;
   }
@@ -190,40 +193,61 @@ public abstract class AbstractDeployTask implements LaunchTask {
   protected abstract String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all);
 
   private class DeploymentErrorNotificationListener implements NotificationListener {
+    private final @NotNull DeployerException.ResolutionAction myResolutionAction;
+    private final @NotNull DeploymentHyperlinkInfo myHyperlinkInfo;
+
+    public DeploymentErrorNotificationListener(@NotNull DeployerException.ResolutionAction resolutionAction,
+                                               @NotNull DeploymentHyperlinkInfo hyperlinkInfo) {
+      myResolutionAction = resolutionAction;
+      myHyperlinkInfo = hyperlinkInfo;
+    }
+
     @Override
     public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-      if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
-        return;
+      // Check if the hyperlink target matches the target we set in toLaunchResult.
+      if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED &&
+          event.getDescription().equals(myResolutionAction.name())) {
+        myHyperlinkInfo.navigate(myProject);
       }
-      ActionManager manager = ActionManager.getInstance();
+    }
+  }
 
-      DeployerException.ResolutionAction resolution = DeployerException.ResolutionAction.NONE;
-      try {
-        resolution = DeployerException.ResolutionAction.valueOf(event.getDescription());
-      } catch (IllegalArgumentException e) {
-        // Ignore it.
-      }
+  private class DeploymentHyperlinkInfo implements HyperlinkInfo {
+    private final @Nullable String myActionId;
 
-      String actionId = null;
-      switch (resolution) {
-        case APPLY_CHANGES: // TODO
-          actionId = ApplyChangesAction.ID;
+    public DeploymentHyperlinkInfo(@NotNull DeployerException.ResolutionAction resolutionAction) {
+      switch (resolutionAction) {
+        case APPLY_CHANGES:
+          myActionId = ApplyChangesAction.ID;
           break;
         case RUN_APP:
-          actionId = IdeActions.ACTION_DEFAULT_RUNNER;
+          myActionId = IdeActions.ACTION_DEFAULT_RUNNER;
           break;
         case RETRY:
-          actionId = getId();
+          myActionId = getId();
           break;
+        default:
+          myActionId = null;
       }
-      if (actionId == null) {
+    }
+
+    @Override
+    public void navigate(@NotNull Project project) {
+      if (myActionId == null) {
         return;
       }
-      AnAction action = manager.getAction(actionId);
+
+      ActionManager manager = ActionManager.getInstance();
+      AnAction action = manager.getAction(myActionId);
       if (action == null) {
         return;
       }
-      manager.tryToExecute(action, ActionCommand.getInputEvent(ApplyChangesAction.ID), null, ActionPlaces.UNKNOWN, true);
+
+      manager.tryToExecute(action,
+                           ActionCommand.getInputEvent(ApplyChangesAction.ID),
+                           null,
+                           ActionPlaces.UNKNOWN,
+                           true);
     }
   }
 }
