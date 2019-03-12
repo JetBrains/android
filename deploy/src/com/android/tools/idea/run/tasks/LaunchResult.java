@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.NotificationListener;
 
 public class LaunchResult {
@@ -24,11 +25,17 @@ public class LaunchResult {
   private String myConsoleError;
   private NotificationListener myNotificationListener;
 
+  // Hyperlink to be appended to the footer of the console error message.
+  private String myConsoleHyperlinkText;
+  private HyperlinkInfo myConsoleHyperlinkInfo;
+
   public LaunchResult() {
     mySuccess = true;
     myError = "";
     myErrorId = "";
     myConsoleError = "";
+    myConsoleHyperlinkText = "";
+    myConsoleHyperlinkInfo = null;
     myNotificationListener = null;
   }
 
@@ -62,6 +69,19 @@ public class LaunchResult {
 
   public String getConsoleError() {
     return myConsoleError;
+  }
+
+  public void setConsoleHyperlink(String hyperlinkText, HyperlinkInfo hyperlinkInfo) {
+    myConsoleHyperlinkText = hyperlinkText;
+    myConsoleHyperlinkInfo = hyperlinkInfo;
+  }
+
+  public String getConsoleHyperlinkText() {
+    return myConsoleHyperlinkText;
+  }
+
+  public HyperlinkInfo getConsoleHyperlinkInfo() {
+    return myConsoleHyperlinkInfo;
   }
 
   public NotificationListener getNotificationListener() {
