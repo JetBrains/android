@@ -22,6 +22,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Disposer;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,9 +105,9 @@ public abstract class AbstractSimpleGradleEditorEntity extends AbstractGradleEdi
     }
     List<GradleEditorSourceBinding> sourceBindings = getDefinitionValueSourceBindings();
     if (sourceBindings.size() != 1) {
-      return String.format(
-        "Can't apply version '%s' to the entity '%s'. Reason: expected the entity to hold only one source binding " + "but it has %d (%s)",
-        newValue, this, sourceBindings.size(), sourceBindings);
+      return String.format(Locale.US,
+                           "Can't apply version '%s' to the entity '%s'. Reason: expected the entity to hold only one source binding " +
+                           "but it has %d (%s)", newValue, this, sourceBindings.size(), sourceBindings);
     }
     GradleEditorSourceBinding binding = sourceBindings.get(0);
     RangeMarker rangeMarker = binding.getRangeMarker();

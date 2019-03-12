@@ -26,6 +26,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -66,8 +67,9 @@ public class StudioDownloader implements Downloader {
       mCurrentPercentage = percentage;
       long downloadedSize = (long)(fraction * mContentLength);
       double downloadedSizeInReasonableUnits = new Storage(downloadedSize).getPreciseSizeAsUnit(mReasonableUnit);
-      setText(String.format("Downloading (%1$d%%): %2$.1f / %3$s ...",
-                            mCurrentPercentage, downloadedSizeInReasonableUnits, mTotalDisplaySize));
+      setText(String
+                .format(Locale.US, "Downloading (%1$d%%): %2$.1f / %3$s ...", mCurrentPercentage, downloadedSizeInReasonableUnits,
+                        mTotalDisplaySize));
     }
   }
 

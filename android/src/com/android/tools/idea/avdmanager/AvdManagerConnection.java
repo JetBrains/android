@@ -801,7 +801,7 @@ public class AvdManagerConnection {
       skinFolder = null;
     }
     if (skinFolder == null) {
-      skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
+      skinName = String.format(Locale.US, "%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
@@ -942,7 +942,7 @@ public class AvdManagerConnection {
     int suffix = 1;
     String result = name;
     while (findAvdWithName(result)) {
-      result = String.format("%1$s %2$d", name, ++suffix);
+      result = String.format(Locale.US, "%1$s %2$d", name, ++suffix);
     }
     return result;
   }

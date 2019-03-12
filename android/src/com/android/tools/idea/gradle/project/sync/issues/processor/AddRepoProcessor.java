@@ -30,6 +30,7 @@ import com.intellij.usageView.UsageViewDescriptor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,9 +71,8 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
     return new UsageViewDescriptorAdapter() {
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
-        return String
-          .format("File%s to add %s repository to (%d file%s found)", (filesCount == 1 ? "" : "s"), myRepository.getDisplayName(),
-                  filesCount, (filesCount == 1 ? "" : "s"));
+        return String.format(Locale.US, "File%s to add %s repository to (%d file%s found)", (filesCount == 1 ? "" : "s"),
+                             myRepository.getDisplayName(), filesCount, (filesCount == 1 ? "" : "s"));
       }
 
       @NotNull
