@@ -70,14 +70,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
-  @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
 
-  public ProjectSyncStatusNotificationProvider(@NotNull Project project,
-                                               @NotNull GradleProjectInfo projectInfo,
-                                               @NotNull GradleSyncState syncState) {
-    myProject = project;
+  public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo, @NotNull GradleSyncState syncState) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
   }
@@ -105,7 +101,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       }
     }
 
-    return newPanelType.create(myProject, file, myProjectInfo);
+    NotificationPanel panel = newPanelType.create(project, file, myProjectInfo);
+    if (panel instanceof Disposable) {
+      Disposer.register(fileEditor, (Disposable)panel);
+    }
+    return panel;
   }
 
   @VisibleForTesting
@@ -221,7 +221,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                                        @NotNull DumbService dumbService) {
       super(type, text);
 
-      Disposer.register(project, this);
       MessageBusConnection connection = project.getMessageBus().connect(this);
       connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
         @Override
@@ -267,7 +266,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
-        final ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
+        ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
         if (tw != null && !tw.isActive()) {
           tw.activate(null, false);
         }
@@ -282,15 +281,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @VisibleForTesting
   static class ProjectStructureNotificationPanel extends NotificationPanel {
-    private Project myProject;
-
     ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text, @NotNull Module module) {
       super(type, text);
 
-      myProject = project;
-
       createActionLabel("Open Project Structure", () -> {
-        ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(myProject);
+        ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(project);
         if (projectSettingsService instanceof AndroidProjectSettingsService) {
           projectSettingsService.openModuleSettings(module);
         }
