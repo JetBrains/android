@@ -36,8 +36,10 @@ public class ApplyChangesAction extends BaseAction {
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
 
+  private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
+
   public ApplyChangesAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, SHORTCUT);
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, SHORTCUT, DESC);
   }
 }
 
