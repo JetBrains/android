@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.view
 import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionGroupUtil
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -44,6 +45,10 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.DocumentEvent
+
+private const val SEARCH_FIELD_LABEL = "Search resources by name"
+private const val ADD_BUTTON_LABEL = "Add resources to the module"
+private const val FILTERS_BUTTON_LABEL = "Filter displayed resources"
 
 /**
  * Toolbar displayed at the top of the resource explorer which allows users
@@ -94,7 +99,8 @@ private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewMo
 /**
  * Button to add new resources
  */
-private abstract class PopupAction internal constructor(val icon: Icon?) : AnAction(icon), DumbAware {
+abstract class PopupAction internal constructor(val icon: Icon?, description: String)
+  : AnAction(description, description, icon), DumbAware {
 
   override fun actionPerformed(e: AnActionEvent) {
     var x = 0
@@ -118,8 +124,7 @@ private abstract class PopupAction internal constructor(val icon: Icon?) : AnAct
 }
 
 private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : PopupAction(StudioIcons.Common.ADD) {
-
+  : PopupAction(StudioIcons.Common.ADD, ADD_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
     addAll(viewModel.addActions)
     val importersActions = viewModel.getImportersActions()
@@ -128,9 +133,11 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
       addAll(importersActions)
     }
   }
+
 }
 
-private class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) : PopupAction(StudioIcons.Common.FILTER) {
+class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : PopupAction(StudioIcons.Common.FILTER, FILTERS_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
     add(ShowDependenciesAction(viewModel))
   }
@@ -148,7 +155,14 @@ private class ShowDependenciesAction internal constructor(val viewModel: Resourc
 private class SearchAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : DumbAwareAction(), CustomComponentAction {
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = e.isFromActionToolbar
+  }
+
   val searchField = SearchTextField(true).apply {
+    isFocusable = true
+    toolTipText = SEARCH_FIELD_LABEL
+    accessibleContext.accessibleName = SEARCH_FIELD_LABEL
     textEditor.columns = 10
     textEditor.document.addDocumentListener(object : DocumentAdapter() {
       override fun textChanged(e: DocumentEvent) {
