@@ -27,6 +27,7 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -35,6 +36,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +56,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
   @NotNull private final RunStats myStats;
+  @NotNull private final BiConsumer<String, HyperlinkInfo> myConsoleConsumer;
 
   @Nullable private String myError;
   @Nullable private NotificationListener myErrorNotificationListener;
@@ -65,7 +68,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                           @NotNull ProcessHandler processHandler,
                           @NotNull DeviceFutures deviceFutures,
                           @NotNull LaunchTasksProvider launchTasksProvider,
-                          @NotNull RunStats stats) {
+                          @NotNull RunStats stats,
+                          @NotNull BiConsumer<String, HyperlinkInfo> consoleConsumer) {
     super(project, "Launching " + configName);
 
     myConfigName = configName;
@@ -75,6 +79,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     myDeviceFutures = deviceFutures;
     myLaunchTasksProvider = launchTasksProvider;
     myStats = stats;
+    myConsoleConsumer = consoleConsumer;
   }
 
   @Override
@@ -151,6 +156,13 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           myErrorNotificationListener = result.getNotificationListener();
           myError = result.getError();
           launchStatus.terminateLaunch(result.getConsoleError());
+
+          // append a footer hyperlink, if one was provided
+          if (result.getConsoleHyperlinkInfo() != null) {
+            myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
+                                     result.getConsoleHyperlinkInfo());
+          }
+
           myStats.setErrorId(result.getErrorId());
           break;
         }

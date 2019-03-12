@@ -108,7 +108,8 @@ public class AndroidRunState implements RunProfileState {
                                                  processHandler,
                                                  myDeviceFutures,
                                                  myLaunchTasksProvider,
-                                                 stats);
+                                                 stats,
+                                                 console::printHyperlink);
     ProgressManager.getInstance().run(task);
     return console == null ? null : new DefaultExecutionResult(console, processHandler);
   }
