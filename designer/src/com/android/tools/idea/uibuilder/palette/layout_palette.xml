@@ -303,9 +303,9 @@
     <item tag="androidx.constraintlayout.widget.ConstraintLayout" suggested="true"
           materialReference="https://material.io/guidelines/layout/principles.html"/>
     <item tag="android.support.constraint.Guideline"
-          title="Guideline (horizontal)"
+          title="Guideline (Horizontal)"
           suggested="true"
-          icon="StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE">
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL">
       <xml>
         <![CDATA[
             <android.support.constraint.Guideline
@@ -316,9 +316,9 @@
       </xml>
     </item>
     <item tag="androidx.constraintlayout.widget.Guideline"
-          title="Guideline (horizontal)"
+          title="Guideline (Horizontal)"
           suggested="true"
-          icon="StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE">
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL">
       <xml>
         <![CDATA[
             <androidx.constraintlayout.widget.Guideline
@@ -329,10 +329,10 @@
       </xml>
     </item>
     <item tag="android.support.constraint.Guideline"
-          title="Guideline (vertical)"
+          title="Guideline (Vertical)"
           suggested="true"
           id="VerticalGuideline"
-          icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL">
       <xml>
         <![CDATA[
             <android.support.constraint.Guideline
@@ -343,10 +343,10 @@
       </xml>
     </item>
     <item tag="androidx.constraintlayout.widget.Guideline"
-          title="Guideline (vertical)"
+          title="Guideline (Vertical)"
           suggested="true"
           id="VerticalGuideline2"
-          icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL">
       <xml>
         <![CDATA[
             <androidx.constraintlayout.widget.Guideline
