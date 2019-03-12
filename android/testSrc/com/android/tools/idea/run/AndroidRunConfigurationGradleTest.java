@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -47,10 +48,7 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
 
     // We override the default extension point to prevent the "Gradle Update" UI to show during the test
-    PlatformTestUtil.unregisterAllExtensions(RecommendedPluginVersionUpgradeStep.EXTENSION_POINT_NAME, getTestRootDisposable());
-    PlatformTestUtil.registerExtension(RecommendedPluginVersionUpgradeStep.EXTENSION_POINT_NAME,
-                                       new MyPluginVersionUpgradeStep(),
-                                       getTestRootDisposable());
+    PlatformTestUtil.maskExtensions(PluginVersionUpgradeStep.EXTENSION_POINT_NAME, Collections.singletonList(new MyPluginVersionUpgradeStep()), getTestRootDisposable());
   }
 
   @Override
