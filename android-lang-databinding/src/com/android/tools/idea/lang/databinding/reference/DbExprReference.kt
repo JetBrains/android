@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.databinding
+package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
-import com.intellij.util.IncorrectOperationException
 
 private fun getElementRange(element: PsiElement): TextRange {
   val startOffsetInParent = element.parent.startOffsetInParent
@@ -32,8 +31,8 @@ private fun getElementRange(element: PsiElement): TextRange {
  *  We might as well move this inside along with them, to keep related code together.
  */
 internal abstract class DbExprReference(private val psiElement: PsiElement,
-                                        private val resolveTo: PsiElement,
-                                        private val textRange: TextRange = getElementRange(psiElement)) :
+                               private val resolveTo: PsiElement,
+                               private val textRange: TextRange = getElementRange(psiElement)) :
   ModelClassResolvable, PsiReference {
 
 
