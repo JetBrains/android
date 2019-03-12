@@ -32,12 +32,10 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Depend
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -57,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * <li>"Excluded" for unit test source</li>
  * </ul>
  */
-public final class TestArtifactSearchScopes implements Disposable {
+public final class TestArtifactSearchScopes {
   private static final Key<TestArtifactSearchScopes> SEARCH_SCOPES_KEY = Key.create("TEST_ARTIFACT_SEARCH_SCOPES");
 
   @NotNull private final Module myModule;
@@ -99,14 +97,12 @@ public final class TestArtifactSearchScopes implements Disposable {
    */
   public static void initializeScope(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    TestArtifactSearchScopes scopes = androidModel != null ? new TestArtifactSearchScopes(module) : null;
+    TestArtifactSearchScopes scopes = androidModel == null ? null : new TestArtifactSearchScopes(module);
     module.putUserData(SEARCH_SCOPES_KEY, scopes);
   }
 
   private TestArtifactSearchScopes(@NotNull Module module) {
     myModule = module;
-    Disposer.register(module, this);
-    module.putUserData(SEARCH_SCOPES_KEY, this);
   }
 
   @NotNull
@@ -353,11 +349,6 @@ public final class TestArtifactSearchScopes implements Disposable {
         }
       }
     }
-  }
-
-  @Override
-  public void dispose() {
-    myModule.putUserData(SEARCH_SCOPES_KEY, null);
   }
 
   @VisibleForTesting
