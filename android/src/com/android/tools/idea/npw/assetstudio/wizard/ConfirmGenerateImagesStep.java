@@ -68,6 +68,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -217,14 +218,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
           myFileTypeTextField.setText(String.format("%s File", extension));
         }
 
-        mySizePxTextField.setText(String.format("%dx%d", icon.getIconWidth(), icon.getIconHeight()));
+        mySizePxTextField.setText(String.format(Locale.US, "%dx%d", icon.getIconWidth(), icon.getIconHeight()));
 
         Density density = generatedImageIcon.getDensity();
         myDensityTextField.setText(density.getResourceValue());
 
         double scaleFactor = getMdpiScaleFactor(density);
         mySizeDpTextField.setText(
-            String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
+          String.format(Locale.US, "%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
 
         mySizeDetailsRow.setVisible(true);
         mySizePxRow.setVisible(true);
@@ -276,7 +277,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
             mySizeDetailsRow.setVisible(false);
           }
           else {
-            mySizeDpTextField.setText(String.format("%dx%d", dpSize.width, dpSize.height));
+            mySizeDpTextField.setText(String.format(Locale.US, "%dx%d", dpSize.width, dpSize.height));
             mySizeDetailsRow.setVisible(true);
           }
           mySizePxRow.setVisible(false);

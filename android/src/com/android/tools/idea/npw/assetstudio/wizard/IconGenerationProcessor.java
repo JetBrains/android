@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Locale;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +120,7 @@ public class IconGenerationProcessor {
       long start = System.currentTimeMillis();
       myRequest.run();
       long end = System.currentTimeMillis();
-      getLog().info(String.format("Icons generated in %.2g sec", (end - start) / 1000.));
+      getLog().info(String.format(Locale.US, "Icons generated in %.2g sec", (end - start) / 1000.));
       return null;
     }
 

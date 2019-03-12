@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.psi.*;
+import java.util.Locale;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -344,7 +345,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     }
 
     int indexNumber = currentCFGClassSet.size() + 1;
-    String qualifiedName = String.format("%s.$%d%s", this.qualifiedClassName, indexNumber, name);
+    String qualifiedName = String.format(Locale.US, "%s.$%d%s", this.qualifiedClassName, indexNumber, name);
     nestedClass.qualifiedClassName = qualifiedName;
     currentCFGClassSet.add(nestedClass);
     return nestedClass;

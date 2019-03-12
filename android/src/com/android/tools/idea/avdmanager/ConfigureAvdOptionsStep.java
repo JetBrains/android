@@ -356,7 +356,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     int numNotShown = mySnapshotList.size() - snapshotModel.getSize();
     String finalLine = (mySnapshotList.isEmpty()) ? "(no snapshots)" :
                        (numNotShown == 0) ? "  Details ..." :
-                       String.format("  Details ... (+%d others)", numNotShown);
+                       String.format(Locale.US, "  Details ... (+%d others)", numNotShown);
     snapshotModel.add(finalLine);
     myChosenSnapshotComboBox.setModel(snapshotModel);
     myChosenSnapshotComboBox.setSelectedIndex(0);
@@ -926,7 +926,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         String errorMessage = myModel.isPlayStoreCompatible() ?
                               "Internal storage for Play Store devices must be at least %s." :
                               "Internal storage must be at least %s.";
-        return new Result(Severity.ERROR, String.format(errorMessage, myModel.minInternalMemSize()));
+        return new Result(Severity.ERROR, String.format(Locale.US, errorMessage, myModel.minInternalMemSize()));
       }
     });
 
