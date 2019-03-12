@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -214,7 +215,7 @@ public class TargetMenuAction extends DropDownAction {
       }
     }
 
-    return String.format("API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
+    return String.format(Locale.US, "API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
   }
 
   private static class TogglePickBestAction extends AnAction implements Toggleable {

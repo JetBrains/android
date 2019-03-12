@@ -22,6 +22,7 @@ import com.android.utils.Pair;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -56,10 +57,10 @@ final class ClientCellRenderer extends ColoredListCellRenderer<Client> {
     container.append(app.getSecond(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
 
     if (cd.isValidUserId() && cd.getUserId() != 0) {
-      container.append(String.format(" (user %1$d)", cd.getUserId()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+      container.append(String.format(Locale.US, " (user %1$d)", cd.getUserId()), SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
 
-    container.append(String.format(" (%1$d)", cd.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    container.append(String.format(Locale.US, " (%1$d)", cd.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
 
     if (!c.isValid()) {
       container.append(" [DEAD]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);

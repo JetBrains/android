@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.EXT_GRADLE;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -47,6 +49,15 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.regex.Pattern;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -55,13 +66,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.EXT_GRADLE;
 
 /**
  * Static utility methods pertaining to templates for projects, modules, and activities.
@@ -231,7 +235,7 @@ public class TemplateUtils {
           }
         }
         if (name == null) {
-          name = String.format("API %1$d", api);
+          name = String.format(Locale.US, "API %1$d", api);
         }
       }
       versions[api - 1] = name;

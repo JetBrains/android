@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +93,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
 
   @Override
   public void uiFreezeFinished(int lengthInSeconds) {
-    LOG.info(String.format("uiFreezeFinished: duration = %d seconds", lengthInSeconds));
+    LOG.info(String.format(Locale.US, "uiFreezeFinished: duration = %d seconds", lengthInSeconds));
     DiagnosticReportBuilder localBuilder = myBuilder;
     if (localBuilder == null) {
       return;

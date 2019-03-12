@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.util.Disposer;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +77,7 @@ public class ExternalDependencyGradleEditorEntity extends AbstractGradleEditorEn
   @NotNull
   @Override
   public String getName() {
-    return String.format("%s %s:%s:%s", myScope, myGroupId, myArtifactId, myVersion);
+    return String.format(Locale.US, "%s %s:%s:%s", myScope, myGroupId, myArtifactId, myVersion);
   }
 
   @NotNull
@@ -151,15 +152,15 @@ public class ExternalDependencyGradleEditorEntity extends AbstractGradleEditorEn
     }
     List<GradleEditorSourceBinding> sourceBindings = getVersionSourceBindings();
     if (sourceBindings.size() != 1) {
-      return String.format(
-        "Can't apply version '%s' to the entity '%s'. Reason: expected the entity to hold only one version source binding "
-        + "but it has %d (%s)",
-        newVersion, this, sourceBindings.size(), sourceBindings);
+      return String.format(Locale.US,
+                           "Can't apply version '%s' to the entity '%s'. Reason: expected the entity to hold only one version source binding "
+                           + "but it has %d (%s)", newVersion, this, sourceBindings.size(), sourceBindings);
     }
     GradleEditorSourceBinding binding = sourceBindings.get(0);
     RangeMarker rangeMarker = binding.getRangeMarker();
     if (!rangeMarker.isValid()) {
-      return String.format("Can't apply version '%s' to the entity '%s'. Reason: source file binding is incorrect", newVersion, this);
+      return String
+        .format(Locale.US, "Can't apply version '%s' to the entity '%s'. Reason: source file binding is incorrect", newVersion, this);
     }
     myVersion = newVersion;
     rangeMarker.getDocument().replaceString(rangeMarker.getStartOffset(), rangeMarker.getEndOffset(), newVersion);
@@ -190,10 +191,13 @@ public class ExternalDependencyGradleEditorEntity extends AbstractGradleEditorEn
     if (!getMetaData().isEmpty()) {
       buffer.append('[').append(Joiner.on('|').join(getMetaData())).append("] ");
     }
-    buffer.append(myScope.isEmpty() ? String.format("<defined %d times>", myScopeBindings.size()) : myScope);
-    buffer.append(" ").append(myGroupId.isEmpty() ? String.format("<defined %d times>", myGroupIdSourceBindings.size()) : myGroupId);
-    buffer.append(":").append(myArtifactId.isEmpty() ? String.format("<defined %d times>", myArtifactIdSourceBindings.size()) : myArtifactId);
-    buffer.append(":").append(myVersion.isEmpty() ? String.format("<defined %d times>", myVersionSourceBindings.size()) : myVersion);
+    buffer.append(myScope.isEmpty() ? String.format(Locale.US, "<defined %d times>", myScopeBindings.size()) : myScope);
+    buffer.append(" ").append(
+      myGroupId.isEmpty() ? String.format(Locale.US, "<defined %d times>", myGroupIdSourceBindings.size()) : myGroupId);
+    buffer.append(":").append(
+      myArtifactId.isEmpty() ? String.format(Locale.US, "<defined %d times>", myArtifactIdSourceBindings.size()) : myArtifactId);
+    buffer.append(":").append(
+      myVersion.isEmpty() ? String.format(Locale.US, "<defined %d times>", myVersionSourceBindings.size()) : myVersion);
     return buffer.toString();
   }
 }

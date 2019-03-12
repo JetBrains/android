@@ -29,6 +29,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -939,7 +940,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         if (name != null) {
           return name;
         }
-        return String.format("R: %d G: %d B: %d", color.getRed(), color.getGreen(), color.getBlue());
+        return String.format(Locale.US, "R: %d G: %d B: %d", color.getRed(), color.getGreen(), color.getBlue());
       }
 
       return super.getToolTipText(event);
@@ -1404,8 +1405,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
 
       private static String formatValue(int value, Unit unit) {
-        return String.format("%d%s", (int) (getMaxValue(unit) / LEVEL_MAX_VALUE * value),
-                             unit.equals(PERCENT) ? "%" : "");
+        return String.format(Locale.US, "%d%s", (int)(getMaxValue(unit) / LEVEL_MAX_VALUE * value), unit.equals(PERCENT) ? "%" : "");
       }
     }
 

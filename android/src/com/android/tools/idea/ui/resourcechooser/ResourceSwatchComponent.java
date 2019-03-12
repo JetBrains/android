@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
+
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.adtui.ui.ClickableLabel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -33,12 +35,18 @@ import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
@@ -47,8 +55,15 @@ import java.awt.geom.Area;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
-
-import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
+import java.util.Locale;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Component that displays a clickable icon and a label or a text field with autocompletion
@@ -327,12 +342,12 @@ public class ResourceSwatchComponent extends JPanel {
       errorText = PRIVATE_ERROR_PATTERN;
     }
     if (errorText != null) {
-      return new ValidationInfo(String.format(errorText, resourceValue), this);
+      return new ValidationInfo(String.format(Locale.US, errorText, resourceValue), this);
     }
 
     int resourceApi = ResolutionUtils.getOriginalApiLevel(getText(), myProject);
     if (resourceApi > minApi) {
-      return new ValidationInfo(String.format(API_ERROR_TEXT, resourceApi), this);
+      return new ValidationInfo(String.format(Locale.US, API_ERROR_TEXT, resourceApi), this);
     }
     return null;
   }

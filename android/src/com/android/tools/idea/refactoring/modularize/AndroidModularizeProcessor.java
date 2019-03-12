@@ -67,6 +67,7 @@ import com.intellij.usageView.UsageViewUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import javax.swing.JComponent;
 import org.jetbrains.android.AndroidFileTemplateProvider;
@@ -169,7 +170,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
-        return String.format("%1$d resources in %2$d files", usagesCount, filesCount);
+        return String.format(Locale.US, "%1$d resources in %2$d files", usagesCount, filesCount);
       }
 
       @Nullable

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.welcome.install.Haxm.UI_UNITS;
+
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
@@ -23,15 +25,19 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Font;
+import java.util.Hashtable;
+import java.util.Locale;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.util.Hashtable;
-
-import static com.android.tools.idea.welcome.install.Haxm.UI_UNITS;
 
 /**
  * Wizard page for setting up Intel® HAXM settings
@@ -136,7 +142,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   @NotNull
   private static String getMemoryLabel(int memorySize, Storage.Unit displayUnit) {
     long totalMemBytes = memorySize * UI_UNITS.getNumberOfBytes();
-    return String.format("%.1f %s", ((float) totalMemBytes) / displayUnit.getNumberOfBytes(), displayUnit.getDisplayValue());
+    return String.format(Locale.US, "%.1f %s", ((float)totalMemBytes) / displayUnit.getNumberOfBytes(), displayUnit.getDisplayValue());
   }
 
   @Override

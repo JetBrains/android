@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -340,13 +341,15 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       if (myBaseline.getWriteOnClose()) {
         String message;
         if (myBaseline.getRemoveFixed()) {
-          message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
-                                  myBaseline.getFixedCount(),
-                                  Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
-                                                           true));
+          message = String
+            .format(Locale.US, "Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
+                    myBaseline.getFixedCount(),
+                    Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
+                                        true));
         } else {
-          message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
-                                  myBaseline.getTotalCount());
+          message = String
+            .format(Locale.US, "Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
+                    myBaseline.getTotalCount());
         }
         new NotificationGroup("Wrote Baseline", NotificationDisplayType.BALLOON, true)
           .createNotification(message, NotificationType.INFORMATION)
