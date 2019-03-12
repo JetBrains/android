@@ -81,7 +81,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::d<caret>}"/>
+            android:onClick="@{member::do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -430,7 +430,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.d<caret>}"/>
+            android:onClick="@{() -> member.do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -486,5 +486,168 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
     fixture.complete(CompletionType.BASIC, 2)
     fixture.assertPreferredCompletionItems(0, "function_a()", "function_b()")
+  }
+
+  @Test
+  fun testDataBindingCompletion_methodsWithSameName() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public void doSomething(View view) {}
+        public void doSomething(View view, int a) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::do<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::doSomething}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_methodsFromBaseClass() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Base {
+        public void methodFromBaseClass(View view) {}
+      }
+    """.trimIndent())
+
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model extends Base {
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::m<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::methodFromBaseClass}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_fieldsFromBaseClass() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Base {
+        public int fieldFromBaseClass = 0;
+      }
+    """.trimIndent())
+
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model extends Base {
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.fi<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.fieldFromBaseClass}"/>
+      </layout>
+    """.trimIndent())
   }
 }
