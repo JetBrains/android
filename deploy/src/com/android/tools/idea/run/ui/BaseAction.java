@@ -64,8 +64,9 @@ public abstract class BaseAction extends AnAction {
                     @NotNull String name,
                     @NotNull Key<Boolean> key,
                     @NotNull Icon icon,
-                    @NotNull Shortcut shortcut) {
-    super(name, name, icon);
+                    @NotNull Shortcut shortcut,
+                    @NotNull String description) {
+    super(name, description, icon);
     myName = name;
     myKey = key;
     myIcon = icon;
