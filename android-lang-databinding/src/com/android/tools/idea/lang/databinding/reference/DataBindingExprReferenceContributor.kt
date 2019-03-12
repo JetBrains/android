@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,41 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.databinding
+package com.android.tools.idea.lang.databinding.reference
 
 import android.databinding.tool.reflection.Callable
 import android.databinding.tool.reflection.ModelClass
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.DbFileType
+import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.res.DataBindingLayoutInfo
-import com.android.tools.idea.res.PsiDataBindingResourceItem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiTypesUtil
-import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter
 import org.jetbrains.android.facet.AndroidFacet
@@ -268,140 +260,6 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         .filterIsInstance<PsiModelMethod>()
         .map { modelMethod -> PsiMethodReference(callExpr, modelMethod.psiMethod) }
         .toTypedArray()
-    }
-  }
-
-  /**
-   * Reference that points to an <import> tag in a layout XML file.
-   */
-  private class XmlImportReference(element: PsiElement,
-                                   resolveTo: XmlTag,
-                                   private val variable: PsiDataBindingResourceItem,
-                                   private val module: Module) : DbExprReference(element, resolveTo) {
-    override val resolvedType: PsiModelClass?
-      get() {
-        val project = element.project
-        return variable.typeDeclaration
-          ?.let { type -> JavaPsiFacade.getInstance(project).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false)) }
-          ?.let { psiType -> PsiModelClass(PsiTypesUtil.getClassType(psiType)) }
-      }
-
-    override val isStatic: Boolean
-      get() = true
-  }
-
-  /**
-   * Reference that points to a <variable> tag in a layout XML file.
-   */
-  private class XmlVariableReference(element: PsiElement,
-                                     resolveTo: XmlTag,
-                                     private val variable: PsiDataBindingResourceItem,
-                                     private val layoutInfo: DataBindingLayoutInfo,
-                                     private val module: Module)
-    : DbExprReference(element, resolveTo) {
-    override val resolvedType: PsiModelClass?
-      get() {
-        val project = element.project
-        return DataBindingUtil.getQualifiedType(variable.typeDeclaration, layoutInfo, false)
-          ?.let { type -> JavaPsiFacade.getInstance(project).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false)) }
-          ?.let { psiType -> PsiModelClass(PsiTypesUtil.getClassType(psiType)) }
-      }
-
-    override val isStatic: Boolean
-      get() = false
-  }
-
-  /**
-   * Reference that refers to a [PsiClass]
-   */
-  private class PsiClassReference(element: PsiElement, resolveTo: PsiClass) : DbExprReference(element, resolveTo) {
-    override val resolvedType: PsiModelClass
-      get() = PsiModelClass(PsiTypesUtil.getClassType(resolve() as PsiClass))
-
-    override val isStatic: Boolean
-      get() = true
-  }
-
-  /**
-   * Reference that refers to a [PsiPackage]
-   */
-  private class PsiPackageReference(private val element: PsiElement, private val target: PsiPackage) : PsiReference {
-    private val textRange: TextRange = element.textRange.shiftRight(-element.startOffsetInParent)
-
-    override fun getElement(): PsiElement {
-      return element
-    }
-
-    override fun getRangeInElement(): TextRange {
-      return textRange
-    }
-
-    override fun resolve(): PsiPackage? {
-      return target
-    }
-
-    override fun getCanonicalText(): String {
-      return element.text
-    }
-
-    override fun handleElementRename(newElementName: String): PsiElement? {
-      return null
-    }
-
-    override fun bindToElement(element: PsiElement): PsiElement? {
-      return null
-    }
-
-    override fun isReferenceTo(element: PsiElement): Boolean {
-      return element.manager.areElementsEquivalent(resolve(), element)
-    }
-
-    override fun isSoft(): Boolean {
-      return false
-    }
-  }
-
-  /**
-   * Reference that refers to a [PsiField]
-   */
-  private class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiField)
-    : DbExprReference(refExpr, field, refExpr.id.textRange.shiftRight(-refExpr.startOffsetInParent)) {
-
-    override val resolvedType: PsiModelClass
-      get() = PsiModelClass((resolve() as PsiField).type)
-
-    override val isStatic: Boolean
-      get() {
-        val modifierList = (resolve() as PsiField).modifierList
-        return modifierList != null && modifierList.hasModifierProperty(PsiModifier.STATIC)
-      }
-  }
-
-  /**
-   * Reference that refers to a [PsiMethod]
-   */
-  private class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, textRange: TextRange)
-    : DbExprReference(element, resolveTo, textRange) {
-
-    constructor(expr: PsiDbCallExpr, method: PsiMethod) :
-      this(expr, method, expr.refExpr.id.textRange.shiftRight(-expr.startOffsetInParent))
-
-    constructor(expr: PsiDbRefExpr, method: PsiMethod)
-      : this(expr, method, expr.id.textRange.shiftRight(-expr.startOffsetInParent))
-
-    override val resolvedType: PsiModelClass?
-      get() {
-        val returnType = (resolve() as PsiMethod).returnType
-        return if (returnType != null) PsiModelClass(returnType) else null
-      }
-
-    override val isStatic: Boolean
-      get() = false
-
-    override fun handleElementRename(newElementName: String): PsiElement? {
-      val identifier = element.findElementAt(rangeInElement.startOffset) as LeafPsiElement?
-      identifier?.rawReplaceWithText(newElementName)
-      return identifier
     }
   }
 }
