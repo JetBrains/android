@@ -428,6 +428,15 @@ public class LintIdeProject extends Project {
     return false;
   }
 
+  @Nullable
+  @Override
+  public com.intellij.openapi.project.Project getIdeaProject() {
+    if (client instanceof LintIdeClient) {
+      return ((LintIdeClient)client).myProject;
+    }
+    return super.getIdeaProject();
+  }
+
   private static class LintModuleProject extends LintIdeProject {
     private final Module myModule;
 
