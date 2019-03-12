@@ -214,7 +214,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.d<caret>}"/>
+            android:onClick="@{() -> member.do<caret>}"/>
       </layout>
     """.trimIndent())
       fixture.configureFromExistingVirtualFile(file.virtualFile)
