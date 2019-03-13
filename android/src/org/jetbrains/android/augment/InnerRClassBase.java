@@ -6,7 +6,6 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceNameKeyedMap;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -19,7 +18,6 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.ArrayUtil;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -130,8 +128,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          PsiField[] fields = doGetFields();
-          return CachedValueProvider.Result.create(fields, ArrayUtil.mergeArrays(getFieldsDependencies(), fields));
+          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
         });
     }
     return myFieldsCache.getValue();
