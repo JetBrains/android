@@ -123,7 +123,8 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
     myModuleSetup.setUpModule(myContext, myJavaModel, false /* sync not skipped */);
     SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    assertThat(register.getAndClear()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    register.seal();
+    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
   }
 
   public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
@@ -132,6 +133,7 @@ public class JavaModuleSetupTest extends IdeaTestCase {
 
     myModuleSetup.setUpModule(myContext, myJavaModel, true /* sync skipped */);
     SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    assertThat(register.getAndClear()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    register.seal();
+    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
   }
 }
