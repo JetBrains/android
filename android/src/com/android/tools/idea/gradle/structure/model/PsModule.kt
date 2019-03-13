@@ -153,6 +153,38 @@ abstract class PsModule protected constructor(
     isModified = true
   }
 
+  fun setLibraryDependencyConfiguration(
+    spec: PsArtifactDependencySpec,
+    configurationName: String,
+    newConfigurationName: String
+  ) {
+    var modified = false
+    // TODO (xof): OAOO (with setLibraryDependencyVersion(...) below)
+    var matchingDependencies = findLibraryDependencies(spec.group, spec.name)
+      .filter { it -> it.spec == spec }
+      .map { it as PsDeclaredDependency }
+      .filter { it.configurationName == configurationName }
+
+    for (dependency in matchingDependencies) {
+      val parsedDependency = dependency.parsedModel
+      assert(parsedDependency is ArtifactDependencyModel)
+      val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
+      artifactDependencyModel.setConfigurationName(newConfigurationName)
+      modified = true
+    }
+
+    if (modified) {
+      resetDependencies()
+      for (dependency in matchingDependencies) {
+        fireDependencyModifiedEvent(lazy {
+          // FIXME (xof): given that we're modifying the configuration name, this is unlikely to be the right way of grabbing the modified dependency
+          dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == dependency.configurationName }
+        })
+      }
+      isModified = true;
+    }
+  }
+
   fun setLibraryDependencyVersion(
     spec: PsArtifactDependencySpec,
     configurationName: String,
