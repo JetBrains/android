@@ -57,9 +57,6 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   private final ResourceFolderRegistry myRegistry;
 
   @NotNull
-  private final ResourceFolderManager myResourceFolderManager;
-
-  @NotNull
   private final ResourceFolderListener myResourceFolderListener = new ResourceFolderListener() {
       @Override
       public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
@@ -183,13 +180,10 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     myFacet = facet;
     myNamespace = namespace;
     mySourceSet = sourceSet;
-    setChildren(delegates, ImmutableList.of());
-
-    // Subscribe to update the roots when the resource folders change.
-    myResourceFolderManager = ResourceFolderManager.getInstance(myFacet);
-    myResourceFolderManager.addListener(myResourceFolderListener);
-
     myRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
+
+    setChildren(delegates, ImmutableList.of());
+    myFacet.getModule().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, myResourceFolderListener);
   }
 
   @VisibleForTesting
@@ -245,13 +239,6 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     }
 
     setChildren(resources, Collections.emptyList());
-  }
-
-  @Override
-  public void dispose() {
-    super.dispose();
-
-    myResourceFolderManager.removeListener(myResourceFolderListener);
   }
 
   @Override
