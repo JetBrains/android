@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 class JdkPreSyncCheck extends AndroidStudioSyncCheck {
   @Override
   @NotNull
-  PreSyncCheckResult doCheckCanSync(@NotNull Project project) {
+  PreSyncCheckResult doCheckCanSyncAndTryToFix(@NotNull Project project) {
     Sdk jdk = IdeSdks.getInstance().getJdk();
     String errorMessage = null;
     if (!isValidJdk(jdk)) {
