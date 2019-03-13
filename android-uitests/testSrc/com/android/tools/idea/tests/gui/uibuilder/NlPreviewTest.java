@@ -216,7 +216,7 @@ public class NlPreviewTest {
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/6717284
   @Test
   public void testCopyAndPaste() throws Exception {
     guiTest.importSimpleApplication();
