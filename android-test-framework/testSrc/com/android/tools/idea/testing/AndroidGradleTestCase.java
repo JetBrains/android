@@ -59,6 +59,7 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
@@ -76,6 +77,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -468,43 +470,48 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                                @Nullable GradleSyncListener listener) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
+    Disposable subscriptionDisposable = Disposer.newDisposable();
+    try {
+      Project project = getProject();
 
-    Project project = getProject();
+      runWriteCommandAction(project, () -> {
+        try {
+          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
+          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
+          GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(projectName, projectRoot, request);
 
-    runWriteCommandAction(project, () -> {
-      try {
-        // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
-        // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-        Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(projectName, projectRoot, request);
+          // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
+          // a new project was requested.
+          GradleSyncState.subscribe(newProject, syncListener, subscriptionDisposable);
 
-        // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
-        // a new project was requested.
-        GradleSyncState.subscribe(newProject, syncListener);
+          GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
+          syncRequest.generateSourcesOnSuccess = false;
+          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, listener);
+        }
+        catch (Throwable e) {
+          throwableRef.set(e);
+        }
+      });
 
-        GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
-        syncRequest.generateSourcesOnSuccess = false;
-        GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, listener);
+      Throwable throwable = throwableRef.get();
+      if (throwable != null) {
+        if (throwable instanceof IOException) {
+          throw (IOException)throwable;
+        }
+        else if (throwable instanceof ConfigurationException) {
+          throw (ConfigurationException)throwable;
+        }
+        else {
+          throw new RuntimeException(throwable);
+        }
       }
-      catch (Throwable e) {
-        throwableRef.set(e);
-      }
-    });
 
-    Throwable throwable = throwableRef.get();
-    if (throwable != null) {
-      if (throwable instanceof IOException) {
-        throw (IOException)throwable;
-      }
-      else if (throwable instanceof ConfigurationException) {
-        throw (ConfigurationException)throwable;
-      }
-      else {
-        throw new RuntimeException(throwable);
-      }
+      syncListener.await();
     }
-
-    syncListener.await();
+    finally {
+      Disposer.dispose(subscriptionDisposable);
+    }
     if (syncListener.failureMessage != null && listener == null) {
       fail(syncListener.failureMessage);
     }
