@@ -638,6 +638,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      success = false;
       failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getCurrentStack();
       myLatch.countDown();
     }
