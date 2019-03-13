@@ -116,15 +116,13 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
         }
       , false);
 
-    setModuleInfo(facet.getModule(), false);
+    myContainingFile = AtomicNotNullLazyValue.createValue(() -> PsiFileFactory.getInstance(myFacet.getModule().getProject()).createFileFromText(
+      SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
+      "package " + myMode.packageName + ";\n"
+      + "public interface DataBindingComponent {}"
+      , false, true, true, null));
 
-    myContainingFile = AtomicNotNullLazyValue.createValue(() -> {
-      return PsiFileFactory.getInstance(myFacet.getModule().getProject()).createFileFromText(
-        SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
-        "package " + myMode.packageName + ";\n"
-        + "public interface DataBindingComponent {}"
-        , false, true, true, null);
-    });
+    setModuleInfo(facet.getModule(), false);
   }
 
   @Override
