@@ -25,9 +25,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
+import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.awt.event.InputEvent;
 
 /**
@@ -43,8 +43,9 @@ public class GotoComponentAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    if (e.getInputEvent().getModifiers() == (InputEvent.BUTTON1_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
-      // We don't want to navigation on ctrl-click
+    InputEvent inputEvent = e.getInputEvent();
+    if (inputEvent instanceof MouseEvent && !mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent)) {
+      // We don't want to perform navigation if we are panning
       return;
     }
     SelectionModel selectionModel = mySurface.getSelectionModel();
