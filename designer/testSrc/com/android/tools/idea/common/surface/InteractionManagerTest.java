@@ -403,7 +403,8 @@ public class InteractionManagerTest extends LayoutTestCase {
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
 
-    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask), 0, 0));
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask)));
+    manager.handlePanInteraction(0, 0);
     Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);
   }
 
@@ -412,7 +413,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = manager.getSurface();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
-    assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0), 0, 0));
+    assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
     Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRABBING);
   }
 

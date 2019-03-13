@@ -43,8 +43,6 @@ import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import java.awt.Cursor;
@@ -422,7 +420,8 @@ public class InteractionManager {
         return;
       }
 
-      if (interceptPanInteraction(event, myLastMouseX, myLastMouseY)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(myLastMouseX, myLastMouseY);
         return;
       }
 
@@ -453,7 +452,8 @@ public class InteractionManager {
       int y = event.getY();
       int modifiers = event.getModifiers();
 
-      if (interceptPanInteraction(event, x, y)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(x, y);
         return;
       }
 
@@ -556,7 +556,8 @@ public class InteractionManager {
       int x = event.getX();
       int y = event.getY();
 
-      if (interceptPanInteraction(event, x, y)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(x, y);
         return;
       }
 
@@ -638,7 +639,8 @@ public class InteractionManager {
       myLastMouseX = x;
       myLastMouseY = y;
 
-      if (interceptPanInteraction(event, x, y)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(x, y);
         return;
       }
       //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -1002,32 +1004,38 @@ public class InteractionManager {
   }
 
   /**
-   * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key and scroll the {@link DesignSurface}
-   * by the same amount as the drag distance.
+   * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key.
    *
    * @param event {@link MouseEvent} passed by {@link MouseMotionListener#mouseDragged}
-   * @param x     x position of the cursor for the passed event
-   * @param y     y position of the cursor for the passed event
    * @return true if the event has been intercepted and handled, false otherwise.
    */
-  boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
+  public boolean interceptPanInteraction(@NotNull MouseEvent event) {
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
     if (myIsPanning
         || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
         || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
-      DesignSurface surface = getSurface();
-      Point position = surface.getScrollPosition();
-      // position can be null in tests
-      if (position != null) {
-        position.translate(myLastMouseX - x, myLastMouseY - y);
-        surface.setScrollPosition(position);
-        mySurface.setCursor(AdtUiCursors.GRABBING);
-      }
       return true;
     }
     return false;
+  }
+
+  /**
+   * Scroll the {@link DesignSurface} by the same amount as the drag distance.
+   *
+   * @param x     x position of the cursor for the passed event
+   * @param y     y position of the cursor for the passed event
+   */
+  void handlePanInteraction(int x, int y) {
+    DesignSurface surface = getSurface();
+    Point position = surface.getScrollPosition();
+    // position can be null in tests
+    if (position != null) {
+      position.translate(myLastMouseX - x, myLastMouseY - y);
+      surface.setScrollPosition(position);
+      mySurface.setCursor(AdtUiCursors.GRABBING);
+    }
   }
 
   /**
