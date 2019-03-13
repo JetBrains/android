@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+apply plugin: 'com.android.instantapp'
 
-public interface PsIssueType {
-  PsIssueType PROJECT_ANALYSIS = new PsIssueType() {};
-  PsIssueType LIBRARY_UPDATES_AVAILABLE = new PsIssueType() {};
-  PsIssueType OBSOLETE_SCOPE = new PsIssueType() {};
+android {
+  compileSdkVersion 19 // This will be replaced by AndroidGradleTestCase
+}
+
+dependencies {
+  api 'com.android.support:appcompat-v7:+'
+  implementation project(":obsoleteScopesLibrary")
+  // one obsolete scope here to test PsModuleType.ANDROID_INSTANTAPP case
+  compile 'androidx.appcompat:appcompat:1.0.2'
 }

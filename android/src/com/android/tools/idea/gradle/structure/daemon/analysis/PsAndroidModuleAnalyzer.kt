@@ -41,7 +41,7 @@ class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
   override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
-    return analyzeModuleVariants(model) + analyzeDeclaredDependencies(model) + analyzeLibraryVersionPromotions(model)
+    return analyzeModuleVariants(model) + analyzeDeclaredDependencies(model) + analyzeLibraryVersionPromotions(model) + analyzeLibraryScopes(model)
   }
 
   private fun analyzeModuleVariants(model: PsAndroidModule) : Sequence<PsIssue> =
@@ -90,6 +90,12 @@ class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer
         PROJECT_ANALYSIS,
         INFO)
     }
+  }
+
+  private fun analyzeLibraryScopes(model: PsAndroidModule): Sequence<PsIssue> {
+    return model.dependencies.libraries
+      .flatMap { dependency -> analyzeLibraryScope(dependency) }
+      .asSequence()
   }
 
   private data class PathSpaceAndPromotedTo(val path: PsPath, val spec: PsArtifactDependencySpec, val promotedTo: PsArtifactDependencySpec) {
