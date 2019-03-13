@@ -282,11 +282,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     loadProject(relativePath, null, chosenModuleName);
   }
 
-  protected void loadProject(@NotNull String relativePath, @Nullable GradleSyncListener listener)
-    throws Exception {
-    loadProject(relativePath, listener, null);
-  }
-
   protected void loadProject(@NotNull String relativePath,
                              @Nullable GradleSyncListener listener,
                              @Nullable String chosenModuleName) throws Exception {
