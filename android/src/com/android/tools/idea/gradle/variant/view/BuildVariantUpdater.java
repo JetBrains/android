@@ -120,13 +120,82 @@ public class BuildVariantUpdater {
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
-   * @param project          the module's project.
-   * @param moduleName       the module's name.
-   * @param buildVariantName the name of the selected build variant.
+   * @param project              the module's project.
+   * @param moduleName           the module's name.
+   * @param selectedBuildVariant the name of the selected build variant (without ABI).
    *
    * @return true if there are affected facets.
    */
-  boolean updateSelectedVariant(@NotNull Project project,
+  boolean updateSelectedBuildVariant(@NotNull Project project,
+                                     @NotNull String moduleName,
+                                     @NotNull String selectedBuildVariant) {
+    Module moduleToUpdate = findModule(project, moduleName);
+    if (moduleToUpdate == null) {
+      logAndShowBuildVariantFailure(String.format("Cannot find module '%1$s'.", moduleName));
+      return false;
+    }
+
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
+    if (ndkModuleModel == null) {
+      // Non-native module. ABI is irrelevant. Proceed with the build variant without ABI.
+      return updateSelectedVariant(project, moduleName, selectedBuildVariant);
+    }
+
+    // Native module: try to preserve the existing ABI for that module (if exists).
+    String newNdkBuildVariant = resolveNewNdkVariant(ndkModuleModel, selectedBuildVariant, null);
+    if (newNdkBuildVariant == null) {
+      logAndShowBuildVariantFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
+      return false;
+    }
+
+    return updateSelectedVariant(project, moduleName, newNdkBuildVariant);
+  }
+
+  /**
+   * Updates a module's structure when the user selects an ABI from the tool window.
+   * @param project          the module's project.
+   * @param moduleName       the module's name.
+   * @param selectedAbiName  the name of the selected ABI.
+   *
+   * @return true if there are affected facets.
+   */
+  boolean updateSelectedAbi(@NotNull Project project,
+                            @NotNull String moduleName,
+                            @NotNull String selectedAbiName) {
+    Module moduleToUpdate = findModule(project, moduleName);
+    if (moduleToUpdate == null) {
+      logAndShowAbiNameFailure(String.format("Cannot find module '%1$s'.", moduleName));
+      return false;
+    }
+
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
+    if (ndkModuleModel == null) {
+      // This is unexpected. If we presented ABI dropdown for this module, then it must have an NDK model.
+      logAndShowAbiNameFailure(String.format("Cannot find native module model '%1$s'.", moduleName));
+      return false;
+    }
+
+    // Keep using the same existing build variant.
+    String existingNdkBuildVariant = ndkModuleModel.getSelectedVariant().getName();
+    String existingBuildVariant = ndkModuleModel.getVariantName(existingNdkBuildVariant);
+    String newNdkBuildVariant = resolveNewNdkVariant(ndkModuleModel, existingBuildVariant, selectedAbiName);
+    if (newNdkBuildVariant == null) {
+      logAndShowAbiNameFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
+      return false;
+    }
+
+    return updateSelectedVariant(project, moduleName, newNdkBuildVariant);
+  }
+
+  /**
+   * Updates a module's structure when the user selects a build variant or ABI.
+   * @param project          the module's project.
+   * @param moduleName       the module's name.
+   * @param buildVariantName the name of the selected build variant (without abi for non-native modules, with ABI for native modules).
+   *
+   * @return true if there are affected facets.
+   */
+  private boolean updateSelectedVariant(@NotNull Project project,
                                 @NotNull String moduleName,
                                 @NotNull String buildVariantName) {
     List<AndroidFacet> affectedAndroidFacets = new ArrayList<>();
@@ -175,7 +244,7 @@ public class BuildVariantUpdater {
                                                      @NotNull List<NdkFacet> affectedNdkFacets) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
-      logAndShowUpdateFailure(variantToSelect, String.format("Cannot find module '%1$s'.", moduleName));
+      logAndShowBuildVariantFailure(String.format("Cannot find module '%1$s'.", moduleName));
       return false;
     }
 
@@ -184,7 +253,7 @@ public class BuildVariantUpdater {
 
     if (androidFacet == null && ndkFacet == null) {
       String msg = String.format("Cannot find 'Android' or 'Native-Android-Gradle' facets in module '%1$s'.", moduleToUpdate.getName());
-      logAndShowUpdateFailure(variantToSelect, msg);
+      logAndShowBuildVariantFailure(msg);
     }
 
     boolean ndkVariantExists = true;
@@ -192,27 +261,21 @@ public class BuildVariantUpdater {
     String variantName = variantToSelect;
     String abiName = null;
     if (ndkFacet != null) {
-      NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variantToSelect);
+      NdkModuleModel ndkModuleModel = getNdkModel(ndkFacet);
       if (ndkModuleModel != null) {
         String abiBeforeChange = ndkModuleModel.getAbiName(ndkModuleModel.getSelectedVariant().getName());
 
         ndkVariantExists =
           updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedAndroidFacets, affectedNdkFacets);
-        // The variant name to use for AndroidModuleModel.
-        // For example, variantToSelect for ndk module is debug-x86, and for AndroidModuleModel it should be debug.
-        variantName = ndkModuleModel.getVariantName(variantToSelect);
 
-        String abiAfterChange = ndkModuleModel.getAbiName(variantToSelect);
-        if (!abiBeforeChange.equals(abiAfterChange)) {
-          // The ABI for this native module changed. All dependent modules need to be aware of the ABI change, and apply it. Non-native
-          // modules also need to know about this change, because they may further depend on native modules that require this information.
-          abiName = abiAfterChange;
-        }
+        // The variant name (without ABI) and ABI name to use for dependent modules.
+        variantName = ndkModuleModel.getVariantName(variantToSelect);
+        abiName = ndkModuleModel.getAbiName(variantToSelect);
       }
     }
 
     if (androidFacet != null) {
-      AndroidModuleModel androidModel = getAndroidModel(androidFacet, variantName);
+      AndroidModuleModel androidModel = getAndroidModel(androidFacet);
       if (androidModel != null) {
         androidVariantExists =
           updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantName, abiName, affectedAndroidFacets, affectedNdkFacets);
@@ -235,7 +298,6 @@ public class BuildVariantUpdater {
     if (!ndkModuleModel.variantExists(variantToSelect)) {
       return false;
     }
-
     ndkModuleModel.setSelectedVariantName(variantToSelect);
     return true;
   }
@@ -307,22 +369,22 @@ public class BuildVariantUpdater {
                                              @NotNull List<AndroidFacet> affectedAndroidFacets,
                                              @NotNull List<NdkFacet> affectedNdkFacets) {
     if (dependencyModule == null) {
-      logAndShowUpdateFailure(projectVariant, String.format("Cannot find module with Gradle path '%1$s'.", gradlePath));
+      logAndShowBuildVariantFailure(String.format("Cannot find module with Gradle path '%1$s'.", gradlePath));
       return;
     }
 
     AndroidFacet dependencyFacet = AndroidFacet.getInstance(dependencyModule);
     if (dependencyFacet == null) {
-      logAndShowUpdateFailure(projectVariant,
-                              String.format("Cannot find 'Android' facet in module '%1$s'.", dependencyModule.getName()));
+      logAndShowBuildVariantFailure(
+        String.format("Cannot find 'Android' facet in module '%1$s'.", dependencyModule.getName()));
       return;
     }
 
-    AndroidModuleModel dependencyModel = getAndroidModel(dependencyFacet, projectVariant);
+    AndroidModuleModel dependencyModel = getAndroidModel(dependencyFacet);
     if (dependencyModel != null) {
       // Update the affected NDK facets, if exists.
       NdkFacet dependencyNdkFacet = NdkFacet.getInstance(dependencyModule);
-      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNativeAndroidModel(dependencyNdkFacet, projectVariant);
+      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNdkModel(dependencyNdkFacet);
       if (dependencyNdkModel != null) {
         String projectVariantWithAbi = resolveNewNdkVariant(dependencyNdkModel, projectVariant, abiToSelect);
         if (projectVariantWithAbi != null) {
@@ -354,7 +416,7 @@ public class BuildVariantUpdater {
                                              @NotNull String newVariant,
                                              @Nullable String userSelectedAbi) {
     if (userSelectedAbi != null) {
-      String ndkVariant = newVariant + "-" + userSelectedAbi;  // e.g., debug-x86
+      String ndkVariant = getNdkBuildVariantName(newVariant, userSelectedAbi);  // e.g., debug-x86
       if (ndkModel.getNdkVariantNames().contains(ndkVariant)) {
         return ndkVariant;
       }
@@ -366,7 +428,7 @@ public class BuildVariantUpdater {
     // If the user did not provide an ABI in their selection, or the variant+ABI combination they selected for some parent/ancestor module
     // does not exist in the current module, then we try to preserve the ABI for this module.
     String existingAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
-    String ndkVariant = newVariant + "-" + existingAbi;  // e.g., debug-x86
+    String ndkVariant = getNdkBuildVariantName(newVariant, existingAbi);  // e.g., debug-x86
 
     if (ndkModel.getNdkVariantNames().contains(ndkVariant)) {
       return ndkVariant;
@@ -403,30 +465,33 @@ public class BuildVariantUpdater {
                                                    @NotNull String buildVariantName,
                                                    @NotNull Runnable variantSelectionChangeListeners) {
     Module moduleToUpdate = findModule(project, moduleName);
-    if (moduleToUpdate != null) {
-      GradleFacet gradleFacet = GradleFacet.getInstance(moduleToUpdate);
-      if (gradleFacet != null) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
-        NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
-        GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
-        if (androidModel != null && gradleModel != null) {
-          GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-          String variantName = buildVariantName;
-          String abiName = null;
-          if (ndkModuleModel != null) {
-            variantName = ndkModuleModel.getVariantName(buildVariantName);
-            abiName = ndkModuleModel.getAbiName(buildVariantName);
-          }
-          boolean isCompoundSyncEnabled = NewGradleSync.isCompoundSync(project);
-          request.variantOnlySyncOptions =
-            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
-                                       isCompoundSyncEnabled);
-          // TODO: It is not necessary to generate source for all modules (when not in compound-sync), only the modules that have variant
-          // changes need to be re-generated. Need to change generateSource functions to accept specified modules.
-          request.generateSourcesOnSuccess = true;
-          GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
-        }
+    if (moduleToUpdate == null) {
+      return;
+    }
+
+    GradleFacet gradleFacet = GradleFacet.getInstance(moduleToUpdate);
+    if (gradleFacet == null) {
+      return;
+    }
+    AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
+    GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+    if (androidModel != null && gradleModel != null) {
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+      String variantName = buildVariantName;
+      String abiName = null;
+      if (ndkModuleModel != null) {
+        variantName = ndkModuleModel.getVariantName(buildVariantName);
+        abiName = ndkModuleModel.getAbiName(buildVariantName);
       }
+      boolean isCompoundSyncEnabled = NewGradleSync.isCompoundSync(project);
+      request.variantOnlySyncOptions =
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
+                                   isCompoundSyncEnabled);
+      // TODO: It is not necessary to generate source for all modules (when not in compound-sync), only the modules that have variant
+      // changes need to be re-generated. Need to change generateSource functions to accept specified modules.
+      request.generateSourcesOnSuccess = true;
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }
 
@@ -481,14 +546,14 @@ public class BuildVariantUpdater {
         indicator.setFraction(PROGRESS_SETUP_MODULES_START);
         List<IdeModifiableModelsProvider> modelsProviders = new ArrayList<>();
         for (NdkFacet ndkFacet : affectedNdkFacets) {
-          NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variant);
+          NdkModuleModel ndkModuleModel = getNdkModel(ndkFacet);
           if (ndkModuleModel != null) {
             modelsProviders.add(setUpModule(ndkFacet.getModule(), ndkModuleModel));
           }
         }
 
         for (AndroidFacet androidFacet : affectedAndroidFacets) {
-          AndroidModuleModel androidModel = getAndroidModel(androidFacet, variant);
+          AndroidModuleModel androidModel = getAndroidModel(androidFacet);
           if (androidModel != null) {
             modelsProviders.add(setUpModule(androidFacet.getModule(), androidModel));
           }
@@ -597,26 +662,34 @@ public class BuildVariantUpdater {
   }
 
   @Nullable
-  private static AndroidModuleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
+  private static AndroidModuleModel getAndroidModel(@NotNull AndroidFacet facet) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel == null) {
-      logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
+      logAndShowBuildVariantFailure(String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
     return androidModel;
   }
 
   @Nullable
-  private static NdkModuleModel getNativeAndroidModel(@NotNull NdkFacet facet, @NotNull String variantToSelect) {
+  private static NdkModuleModel getNdkModel(@NotNull NdkFacet facet) {
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet);
     if (ndkModuleModel == null) {
-      logAndShowUpdateFailure(variantToSelect,
-                              String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
+      logAndShowBuildVariantFailure(
+        String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
     return ndkModuleModel;
   }
 
-  private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {
-    String prefix = String.format("Unable to select build variant '%1$s':\n", buildVariantName);
+  private static void logAndShowBuildVariantFailure(@NotNull String reason) {
+    String prefix = "Unable to select build variant:\n";
+    String msg = prefix + reason;
+    getLog().error(msg);
+    msg += ".\n\nConsult IDE log for more details (Help | Show Log)";
+    Messages.showErrorDialog(msg, "Error");
+  }
+
+  private static void logAndShowAbiNameFailure(@NotNull String reason) {
+    String prefix = "Unable to select ABI:\n";
     String msg = prefix + reason;
     getLog().error(msg);
     msg += ".\n\nConsult IDE log for more details (Help | Show Log)";
@@ -634,5 +707,13 @@ public class BuildVariantUpdater {
     IdeModifiableModelsProvider create(@NotNull Project project) {
       return new IdeModifiableModelsProviderImpl(project);
     }
+  }
+
+  /**
+   * @return An NDK build variant name from the provided build variant name and ABI.
+   */
+  @NotNull
+  private static String getNdkBuildVariantName(@NotNull String buildVariantNameWithoutAbi, @NotNull String abiName) {
+    return buildVariantNameWithoutAbi + "-" + abiName;
   }
 }
