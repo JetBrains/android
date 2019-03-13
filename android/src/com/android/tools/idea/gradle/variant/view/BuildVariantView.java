@@ -67,7 +67,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
@@ -89,10 +94,11 @@ import org.jetbrains.annotations.Nullable;
  * The contents of the "Build Variants" tool window.
  */
 public class BuildVariantView {
-  private static final Object[] TABLE_COLUMN_NAMES = new Object[]{"Module", "Build Variant"};
+  private static final Object[] TABLE_COLUMN_NAMES = new Object[]{"Module", "Active Build Variant", "Active ABI"};
 
   private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
+  private static final int ABI_COLUMN_INDEX = 2;
 
   private static final Color CONFLICT_CELL_BACKGROUND = MessageType.ERROR.getPopupBackground();
 
@@ -153,34 +159,48 @@ public class BuildVariantView {
     }
 
     List<Object[]> rows = new ArrayList<>();
-    List<BuildVariantItem[]> variantNamesPerRow = new ArrayList<>();
 
+    // Maps the row number to the corresponding array of build variants and abis.
+    Map<Integer, BuildVariantItem[]> buildVariantsPerRow = new TreeMap<>();
+    Map<Integer, AbiItem[]> abisPerRow = new TreeMap<>();
+
+    int rowId = 0;
     for (Module module : getGradleModulesWithAndroidProjects()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
-
       assert androidFacet != null || ndkFacet != null; // getGradleModules() returns only relevant modules.
 
-      String variantName;
+      String variantNameWithoutAbi;
+      String abiName;
 
       if (ndkFacet != null) {
-        variantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
-      }
-      else {
-        variantName = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
+        NdkModuleModel ndkModel = NdkModuleModel.get(module);
+        assert ndkModel != null;  // getGradleModules() returns only relevant modules.
+        String variantNameWithAbi = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+        variantNameWithoutAbi = ndkModel.getVariantName(variantNameWithAbi);
+        abiName = ndkModel.getAbiName(variantNameWithAbi);
+      } else {
+        variantNameWithoutAbi = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
+        abiName = "";
       }
 
-      BuildVariantItem[] variantNames = getVariantItems(module);
-      if (variantNames != null) {
-        variantNamesPerRow.add(variantNames);
+      BuildVariantItem[] buildVariantItems = getBuildVariantItems(module);
+      if (buildVariantItems.length > 0) {
+        buildVariantsPerRow.put(rowId, buildVariantItems);
       }
 
-      if (variantName != null) {
-        Object[] row = {module, variantName};
-        rows.add(row);
+      AbiItem[] abiItems = getAbiItems(module, variantNameWithoutAbi);
+      if (abiItems.length > 0) {
+        abisPerRow.put(rowId, abiItems);
       }
+
+      Object[] row = {module, variantNameWithoutAbi, abiName};
+      rows.add(row);
+
+      rowId++;
     }
-    Runnable setModelTask = () -> getVariantsTable().setModel(rows, variantNamesPerRow);
+
+    Runnable setModelTask = () -> getVariantsTable().setModel(rows, buildVariantsPerRow, abisPerRow);
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
       setModelTask.run();
@@ -194,6 +214,9 @@ public class BuildVariantView {
     getVariantsTable().setLoading(true);
   }
 
+  /**
+   * @return All modules in the application that are either a valid android module or a valid NDK module.
+   */
   @NotNull
   private List<Module> getGradleModulesWithAndroidProjects() {
     List<Module> gradleModules = new ArrayList<>();
@@ -221,13 +244,13 @@ public class BuildVariantView {
     return (BuildVariantTable)myVariantsTable;
   }
 
-  @Nullable
-  private static BuildVariantItem[] getVariantItems(@NotNull Module module) {
+  /**
+   * @param module The module whose build variants will be returned.
+   * @return All possible build variants for the provided module.
+   */
+  @NotNull
+  private static BuildVariantItem[] getBuildVariantItems(@NotNull Module module) {
     Collection<String> variantNames = getVariantNames(module);
-    if (variantNames == null) {
-      return null;
-    }
-
     BuildVariantItem[] items = new BuildVariantItem[variantNames.size()];
     int i = 0;
     for (String name : variantNames) {
@@ -237,20 +260,65 @@ public class BuildVariantView {
     return items;
   }
 
-  @Nullable
+  /**
+   * @param module The module whose build variant names will be returned.
+   * @return All possible build variant names for the provided module.
+   */
+  @NotNull
   private static Collection<String> getVariantNames(@NotNull Module module) {
-    // Get variant names from NDKModuleModel instead of AndroidModuleModel for native modules,
-    // they are different for native modules because NDKModuleModel is ABI based.
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-    if (ndkModuleModel != null) {
-      return ndkModuleModel.getNdkVariantNames();
-    }
+    Set<String> buildVariantNames = new HashSet<>();
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      return androidModel.getVariantNames();
+      buildVariantNames.addAll(androidModel.getVariantNames());
     }
-    return null;
+
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel != null) {
+      buildVariantNames.addAll(
+        ndkModuleModel.getNdkVariantNames()
+          .stream()
+          .map(ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName))
+          .collect(Collectors.toList()));
+    }
+
+    return buildVariantNames;
+  }
+
+  /**
+   * @param module The module whose ABIs will be returned.
+   * @param variantNameWithoutAbi The variant that will be used to filter irrelevant variant+ABI combinations.
+   * @return All possible ABIs for the provided module, with the given build variant.
+   */
+  @NotNull
+  private static AbiItem[] getAbiItems(@NotNull Module module, @NotNull String variantNameWithoutAbi) {
+    Collection<String> variantNames = getAbiNames(module, variantNameWithoutAbi);
+    AbiItem[] items = new AbiItem[variantNames.size()];
+    int i = 0;
+    for (String name : variantNames) {
+      items[i++] = new AbiItem(module.getName(), name);
+    }
+    Arrays.sort(items);
+    return items;
+  }
+
+  /**
+   * @param module The module whose ABI names will be returned.
+   * @param variantNameWithoutAbi The variant that will be used to filter irrelevant variant+ABI combinations.
+   * @return All possible ABI names for the provided module, with the given build variant.
+   */
+  @NotNull
+  private static Collection<String> getAbiNames(@NotNull Module module, @NotNull String variantNameWithoutAbi) {
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel == null) {
+      return Collections.emptyList();
+    }
+
+    Collection<String> allNdkVariants = ndkModuleModel.getNdkVariantNames();
+    return allNdkVariants.stream()
+      .filter((String ndkVariant) -> ndkVariant.startsWith(variantNameWithoutAbi))
+      .map((String ndkVariant) -> ndkModuleModel.getAbiName(ndkVariant))
+      .collect(Collectors.toList());
   }
 
   public void updateContents(@NotNull List<Conflict> conflicts) {
@@ -304,10 +372,10 @@ public class BuildVariantView {
       super(new BorderLayout());
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? getToolTipBackground() : color);
-      setBorder(BorderFactory.createEmptyBorder(1, 15, 1, 15)); // Same as EditorNotificationPanel
+      setBorder(JBUI.Borders.empty(1, 15)); // Same as EditorNotificationPanel
       setPreferredSize(new Dimension(-1, scale(24)));
 
-      JLabel textLabel = new JLabel("Variant selection conflicts found.");
+      JLabel textLabel = new JLabel("Variant selection conflicts found");
       textLabel.setOpaque(false);
       add(textLabel, BorderLayout.CENTER);
 
@@ -364,8 +432,14 @@ public class BuildVariantView {
     }
   }
 
+  /**
+   * Represents a single selectable item in the Build Variant dropdown.
+   */
   private static class BuildVariantItem implements Comparable<BuildVariantItem> {
+    // The name of the module that this object refers to.
     @NotNull final String myModuleName;
+
+    // The name of the build variant (without ABI, if the module is native).
     @NotNull final String myBuildVariantName;
 
     BuildVariantItem(@NotNull String moduleName, @NotNull String buildVariantName) {
@@ -388,13 +462,64 @@ public class BuildVariantView {
     }
   }
 
-  private class BuildVariantTable extends JBTable {
-    private boolean myLoading;
-    private final List<TableCellEditor> myCellEditors = new ArrayList<>();
+  /**
+   * Represents a single selectable item in the ABI dropdown.
+   */
+  private static class AbiItem implements Comparable<AbiItem> {
+    // The name of the native module that this object refers to.
+    @NotNull final String myModuleName;
 
-    private final ModuleTableCell myModuleCellRenderer = new ModuleTableCell();
+    // The name of the ABI.
+    @NotNull final String myAbiName;
+
+    AbiItem(@NotNull String moduleName, @NotNull String abiName) {
+      myModuleName = moduleName;
+      myAbiName = abiName;
+    }
+
+    @Override
+    public int compareTo(@Nullable AbiItem o) {
+      return o != null ? Collator.getInstance().compare(myAbiName, o.myAbiName) : 1;
+    }
+
+    boolean hasAbiName(@Nullable Object name) {
+      return myAbiName.equals(name);
+    }
+
+    @Override
+    public String toString() {
+      return myAbiName;
+    }
+  }
+
+  /**
+   * The model to use for the Build Variant table in the panel.
+   */
+  private static class BuildVariantTableModel extends DefaultTableModel {
+    BuildVariantTableModel(List<Object[]> rows) {
+      super(rows.toArray(new Object[rows.size()][TABLE_COLUMN_NAMES.length]), TABLE_COLUMN_NAMES);
+    }
+  }
+
+  /**
+   * Represents the contents of the Build Variant table in the panel.
+   */
+  private class BuildVariantTable extends JBTable {
+    // If true, then the a "loading" label is displayed instead of the table rows. This prevents the user from making changes while the IDE
+    // is working to apply a previous selection (e.g., sync).
+    private boolean myLoading;
+
+    // Since the modules cells are not editable, they share a single common editor.
     private final ModuleTableCell myModuleCellEditor = new ModuleTableCell();
+
+    // Maps each table row to the corresponding build variant, and ABI cell editor.
+    private final Map<Integer, TableCellEditor> myVariantCellEditors = new TreeMap<>();
+    private final Map<Integer, TableCellEditor> myAbiCellEditors = new TreeMap<>();
+
+    // The renderers for the module, build variant, and ABI cells.
+    private final ModuleTableCell myModuleCellRenderer = new ModuleTableCell();
     private final VariantsCellRenderer myVariantsCellRenderer = new VariantsCellRenderer();
+    private final AbisCellRenderer myAbisCellRenderer = new AbisCellRenderer();
 
     BuildVariantTable() {
       super(new BuildVariantTableModel(Collections.emptyList()));
@@ -403,7 +528,10 @@ public class BuildVariantView {
         public void keyPressed(KeyEvent e) {
           int column = getSelectedColumn();
           int row = getSelectedRow();
-          if (column == VARIANT_COLUMN_INDEX && row >= 0 && e.getKeyCode() == KeyEvent.VK_F2 && editCellAt(row, column)) {
+
+          // Map the F2 button to enter edit mode when the the variant and ABI cells are selected.
+          if ((column == VARIANT_COLUMN_INDEX || column == ABI_COLUMN_INDEX)
+              && row >= 0 && e.getKeyCode() == KeyEvent.VK_F2 && editCellAt(row, column)) {
             Component editorComponent = getEditorComponent();
             if (editorComponent instanceof ComboBox) {
               editorComponent.requestFocusInWindow();
@@ -414,6 +542,10 @@ public class BuildVariantView {
       });
     }
 
+    /**
+     * @param row the row for which a conflict will be searched
+     * @return the conflict for the provided row, if exists.
+     */
     @Nullable
     Conflict findConflict(int row) {
       for (Conflict conflict : myConflicts) {
@@ -440,10 +572,13 @@ public class BuildVariantView {
 
     private void clearContents() {
       setModel(new BuildVariantTableModel(Collections.emptyList()));
-      myCellEditors.clear();
+      myVariantCellEditors.clear();
+      myAbiCellEditors.clear();
     }
 
-    void setModel(@NotNull List<Object[]> rows, @NotNull List<BuildVariantItem[]> variantNamesPerRow) {
+    void setModel(@NotNull List<Object[]> rows,
+                  @NotNull Map<Integer, BuildVariantItem[]> buildVariantsPerRow,
+                  @NotNull Map<Integer, AbiItem[]> abisPerRow) {
       setLoading(false);
       if (rows.isEmpty()) {
         // This is most likely an old-style (pre-Gradle) Android project. Just leave the table empty.
@@ -451,16 +586,21 @@ public class BuildVariantView {
         return;
       }
 
-      boolean hasVariants = !variantNamesPerRow.isEmpty();
+      boolean hasVariants = !buildVariantsPerRow.isEmpty();
       List<Object[]> content = hasVariants ? rows : Collections.emptyList();
 
       setModel(new BuildVariantTableModel(content));
-      addBuildVariants(variantNamesPerRow);
+      addBuildVariants(buildVariantsPerRow);
+      addAbiNames(abisPerRow);
     }
 
-    private void addBuildVariants(@NotNull List<BuildVariantItem[]> variantNamesPerRow) {
-      for (int row = 0; row < variantNamesPerRow.size(); row++) {
-        BuildVariantItem[] items = variantNamesPerRow.get(row);
+    /**
+     * Populates the contents of the build variant column for each row.
+     */
+    private void addBuildVariants(@NotNull Map<Integer, BuildVariantItem[]> buildVariantsPerRow) {
+      for (Map.Entry<Integer, BuildVariantItem[]> entry : buildVariantsPerRow.entrySet()) {
+        int row = entry.getKey();
+        BuildVariantItem[] items = entry.getValue();
         BuildVariantItem selected = null;
         for (BuildVariantItem item : items) {
           if (item.hasBuildVariantName(getValueAt(row, VARIANT_COLUMN_INDEX))) {
@@ -474,12 +614,12 @@ public class BuildVariantView {
           editor.setSelectedItem(selected);
         }
 
-        editor.setBorder(BorderFactory.createEmptyBorder());
+        editor.setBorder(JBUI.Borders.empty());
         editor.addItemListener(e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
             BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
             getVariantsTable().setLoading(true /* Show "loading" message in the table*/ );
-            if (!myUpdater.updateSelectedVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName)) {
+            if (!myUpdater.updateSelectedBuildVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName)) {
               updateContents();
             }
           }
@@ -495,19 +635,75 @@ public class BuildVariantView {
           }
         });
 
-        myCellEditors.add(defaultCellEditor);
+        myVariantCellEditors.put(row, defaultCellEditor);
+      }
+    }
+
+    /**
+     * Populates the contents of the ABIs column for each row.
+     */
+    private void addAbiNames(@NotNull Map<Integer, AbiItem[]> abisPerRow) {
+      for (Map.Entry<Integer, AbiItem[]> entry : abisPerRow.entrySet()) {
+        int row = entry.getKey();
+        AbiItem[] items = entry.getValue();
+
+        AbiItem selected = null;
+        for (AbiItem item : items) {
+          if (item.hasAbiName(getValueAt(row, ABI_COLUMN_INDEX))) {
+            selected = item;
+            break;
+          }
+        }
+
+        ComboBox<AbiItem> editor = new ComboBox<>(items);
+        if (selected != null) {
+          editor.setSelectedItem(selected);
+        }
+
+        editor.setBorder(JBUI.Borders.empty());
+        editor.addItemListener(e -> {
+          if (e.getStateChange() == ItemEvent.SELECTED) {
+            AbiItem selectedAbi = (AbiItem)e.getItem();
+            if (!myUpdater.updateSelectedAbi(myProject, selectedAbi.myModuleName, selectedAbi.myAbiName)) {
+              updateContents();
+            }
+          }
+        });
+        DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
+
+        editor.addKeyListener(new KeyAdapter() {
+          @Override
+          public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+              defaultCellEditor.cancelCellEditing();
+            }
+          }
+        });
+
+        myAbiCellEditors.put(row, defaultCellEditor);
       }
     }
 
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
-      return column == MODULE_COLUMN_INDEX ? myModuleCellRenderer : myVariantsCellRenderer;
+      if (column == MODULE_COLUMN_INDEX) {
+        return myModuleCellRenderer;
+      }
+
+      if (column == VARIANT_COLUMN_INDEX) {
+        return myVariantsCellRenderer;
+      }
+
+      return myAbisCellRenderer;
     }
 
     @Override
     public TableCellEditor getCellEditor(int row, int column) {
-      if (column == VARIANT_COLUMN_INDEX && row >= 0 && row < myCellEditors.size()) {
-        return myCellEditors.get(row);
+      if ((column == VARIANT_COLUMN_INDEX)) {
+        return myVariantCellEditors.getOrDefault(row, null);
+      }
+      if ((column == ABI_COLUMN_INDEX)) {
+        return myAbiCellEditors.getOrDefault(row, null);
       }
       return myModuleCellEditor;
     }
@@ -523,13 +719,14 @@ public class BuildVariantView {
     }
   }
 
-  private static class BuildVariantTableModel extends DefaultTableModel {
-    BuildVariantTableModel(List<Object[]> rows) {
-      super(rows.toArray(new Object[rows.size()][TABLE_COLUMN_NAMES.length]), TABLE_COLUMN_NAMES);
-    }
-  }
-
+  /**
+   * Determines how the cells in the Build Variants column will be displayed.
+   */
   private static class VariantsCellRenderer extends DefaultTableCellRenderer {
+    // Default help text that will be displayed as a tooltip on the Variants cells.
+    private static final String variantsCellHelpTooltipText =
+      "Determines the build variant context that will be deployed to device and used by the editor";
+
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -544,19 +741,56 @@ public class BuildVariantView {
         }
         component.setBackground(background);
 
-        String toolTip = conflictFound != null ? conflictFound.toString() : null;
+        String toolTip = conflictFound != null ? conflictFound.toString() : variantsCellHelpTooltipText;
         component.setToolTipText(toolTip);
 
         // add some padding to table cells. It is hard to read text of combo box.
-        component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(), BorderFactory.createEmptyBorder(3, 2, 4, 2)));
+        component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(),  JBUI.Borders.empty(3, 2, 4, 2)));
       }
 
       return c;
     }
   }
 
+  /**
+   * Determines how the cells in the ABIs column will be displayed.
+   */
+  private static class AbisCellRenderer extends DefaultTableCellRenderer {
+    // Default help text that will be displayed as a tooltip on the ABI cells.
+    private static final String abisCellHelpTooltipText =
+      "For NDK modules, determines the ABI context that will be used by the editor";
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+      if (c instanceof JLabel) {
+        JLabel component = (JLabel)c;
+
+        // Build Variant conflicts do not change the background color of ABI cells.
+        Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
+        component.setBackground(background);
+
+        // Build variant conflicts do not change the tooltip of ABI cells.
+        component.setToolTipText(abisCellHelpTooltipText);
+
+        // add some padding to table cells. It is hard to read text of combo box.
+        component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(),  JBUI.Borders.empty(3, 2, 4, 2)));
+
+        if (component.getText().isEmpty()) {
+          component.setText("\u2014");
+        }
+      }
+
+      return c;
+    }
+  }
+
+  /**
+   * Determines how the cells in the Modules column will be displayed.
+   */
   private static class ModuleTableCell extends AbstractTableCellEditor implements TableCellRenderer {
-    private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+    private static final Border EMPTY_BORDER = JBUI.Borders.empty(1);
 
     @Nullable private Conflict myConflict;
 
