@@ -335,6 +335,7 @@ public class ResourceNotificationManager {
     private final AndroidFacet myFacet;
     private long myGeneration;
     private final Object myListenersLock = new Object();
+    private MessageBusConnection myConnection;
 
     @GuardedBy("myListenersLock")
     private final List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(4);
@@ -370,18 +371,22 @@ public class ResourceNotificationManager {
 
     private void registerListeners() {
       if (myFacet.requiresAndroidModel()) {
-        // Ensure that the app resources have been initialized first, since
-        // we want it to add its own variant listeners before ours (such that
+        // Ensure that project resources have been initialized first, since
+        // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts a re-render)
-        ResourceRepositoryManager.getModuleResources(myFacet);
-        ResourceFolderManager.getInstance(myFacet).addListener(this);
+        ResourceRepositoryManager.getProjectResources(myFacet);
+
+        assert myConnection == null;
+        myConnection = myFacet.getModule().getMessageBus().connect(myFacet);
+        myConnection.subscribe(ResourceFolderManager.TOPIC, this);
+        ResourceFolderManager.getInstance(myFacet); // Make sure ResourceFolderManager is initialized.
       }
     }
 
     private void unregisterListeners() {
-      if (!myFacet.isDisposed() && myFacet.requiresAndroidModel()) {
-        ResourceFolderManager.getInstance(myFacet).removeListener(this);
+      if (myConnection != null) {
+        myConnection.disconnect();
       }
     }
 
