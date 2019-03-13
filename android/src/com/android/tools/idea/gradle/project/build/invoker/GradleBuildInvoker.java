@@ -405,11 +405,11 @@ public class GradleBuildInvoker {
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     List<BuildOutputParser> buildOutputParsers =
-      Arrays.asList(new AndroidGradlePluginOutputParser(),
+      Arrays.asList(new GradleBuildOutputParser(),
+                    new AndroidGradlePluginOutputParser(),
                     new DataBindingOutputParser(),
                     new JavacOutputParser(),
-                    new KotlincOutputParser(),
-                    new GradleBuildOutputParser());
+                    new KotlincOutputParser());
 
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
