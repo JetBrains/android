@@ -12,6 +12,7 @@ public final class TestProjectPaths {
   public static final String CIRCULAR_MODULE_DEPS = "projects/circularModuleDeps";
   public static final String COMPOSITE_BUILD = "projects/compositeBuild";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
+  public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
   public static final String DYNAMIC_APP = "projects/dynamicApp";
   public static final String EXPERIMENTAL_PLUGIN = "projects/experimentalPlugin";
   public static final String HELLO_JNI = "projects/helloJni";
