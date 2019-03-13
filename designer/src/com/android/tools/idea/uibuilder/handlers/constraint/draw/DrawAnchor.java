@@ -31,6 +31,10 @@ import java.awt.*;
  * Draws an Anchor
  */
 public class DrawAnchor extends DrawRegion {
+  // Percent values relative to the size of the anchor.
+  private static final int PAINT_BACKGROUND_SIZE_PERCENT = 20;
+  private static final int PAINT_HOVER_SIZE_PERCENT = 40;
+  private static final int PAINT_INNER_CIRCLE_SIZE_PERCENT = 10;
 
   public enum Type {
     NORMAL,
@@ -93,7 +97,7 @@ public class DrawAnchor extends DrawRegion {
 
     if (myMode == Mode.OVER) {
       // Draw a ring around the anchor Should go a bit over the white background.
-      int overRingOffset = width * 40/100;
+      int overRingOffset = width * PAINT_HOVER_SIZE_PERCENT / 100;
       int overRingWidth = width + (overRingOffset * 2);
       g.setColor(color);
       g.fillRoundRect(x - overRingOffset, y - overRingOffset, overRingWidth, overRingWidth, overRingWidth, overRingWidth);
@@ -101,7 +105,7 @@ public class DrawAnchor extends DrawRegion {
 
     // The background of the anchor. Goes 20% extra width over the actual size (~2dp).
     g.setColor(background);
-    int whiteSpaceOffset = width * 20/100;
+    int whiteSpaceOffset = width * PAINT_BACKGROUND_SIZE_PERCENT / 100;
     int whiteSpaceWidth = width + (whiteSpaceOffset * 2);
     g.fillRoundRect(x - whiteSpaceOffset, y - whiteSpaceOffset, whiteSpaceWidth, whiteSpaceWidth, whiteSpaceWidth, whiteSpaceWidth);
 
@@ -110,7 +114,7 @@ public class DrawAnchor extends DrawRegion {
     g.fillRoundRect(x, y, width, width, width, width);
     if (!myIsConnected) {
       // Add a "hole" for non-connected anchors.
-      int innerCircleOffset = width * 30 / 100;
+      int innerCircleOffset = width * PAINT_INNER_CIRCLE_SIZE_PERCENT / 100;
       int innerCircleWidth = width - (innerCircleOffset * 2);
       g.setColor(background);
       g.fillRoundRect(x + innerCircleOffset, y + innerCircleOffset, innerCircleWidth, innerCircleWidth, innerCircleWidth, innerCircleWidth);
