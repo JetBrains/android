@@ -24,5 +24,5 @@ class PsJavaModuleAnalyzer(parentDisposable: Disposable) : PsModelAnalyzer<PsJav
   override val supportedModelType: Class<PsJavaModule> = PsJavaModule::class.java
 
   override fun analyze(model: PsJavaModule): Sequence<PsIssue> =
-    model.dependencies.libraries.asSequence().flatMap { analyzeDeclaredDependency(it) }
+    model.dependencies.libraries.asSequence().flatMap { analyzeDeclaredDependency(it) + analyzeLibraryScope(it) }
 }
