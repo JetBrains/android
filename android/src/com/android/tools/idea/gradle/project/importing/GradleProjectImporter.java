@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -101,7 +100,7 @@ public class GradleProjectImporter {
     }
     try {
       String projectName = projectFolder.getName();
-      return importProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder));
+      return importProject(projectName, projectFolderPath, new Request(), createNewProjectListener(projectFolder));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -207,12 +206,18 @@ public class GradleProjectImporter {
   }
 
   public static class Request {
-    @NotNull public static final Request EMPTY_REQUEST = new Request();
-
-    @Nullable public Project project;
+    @Nullable public final Project project;
     @Nullable public LanguageLevel javaLanguageLevel;
 
     public boolean generateSourcesOnSuccess = true;
     public boolean isNewProject;
+
+    public Request() {
+      this.project = null;
+    }
+
+    public Request(@NotNull Project project) {
+      this.project = project;
+    }
   }
 }
