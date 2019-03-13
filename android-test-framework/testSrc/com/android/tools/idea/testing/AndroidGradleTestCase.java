@@ -543,8 +543,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void requestSyncAndWait() throws Exception {
-    SyncListener syncListener = requestSync(request -> {
-    });
+    SyncListener syncListener = requestSync(request -> { });
     checkStatus(syncListener);
   }
 
@@ -558,8 +557,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected String requestSyncAndGetExpectedFailure() throws Exception {
-    return requestSyncAndGetExpectedFailure(request -> {
-    });
+    return requestSyncAndGetExpectedFailure(request -> { });
   }
 
   @NotNull

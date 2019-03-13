@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncJavaModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.android.tools.idea.gradle.util.ContentEntries;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.FacetType;
@@ -58,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.JpsElement;
@@ -373,13 +375,19 @@ public class KotlinSyncModels {
   private static void populateAndroidModelWithKaptSourceSet(@NotNull KaptSourceSetModel kaptSourceSet,
                                                             @NotNull Module module,
                                                             @NotNull IdeModifiableModelsProvider provider) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    if (androidModel == null) {
+    // Since we are in setup we have to get the AndroidModuleModel via the Facet obtained from the provider.
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module, provider);
+    if (androidFacet == null) {
       return;
     }
+    AndroidModel androidModel = androidFacet.getConfiguration().getModel();
+    if (!(androidModel instanceof AndroidModuleModel)) {
+      return;
+    }
+    AndroidModuleModel androidModuleModel = (AndroidModuleModel)androidModel;
 
     String sourceSetName = kaptSourceSet.getSourceSetName();
-    Variant variant = androidModel.findVariantByName(getBaseVariantName(sourceSetName));
+    Variant variant = androidModuleModel.findVariantByName(getBaseVariantName(sourceSetName));
     if (variant == null) {
       return;
     }
@@ -387,7 +395,7 @@ public class KotlinSyncModels {
     File generatedKotlinSources = kaptSourceSet.getGeneratedKotlinSourcesDirFile();
 
     // Only add the content entry for the selected variant.
-    if (generatedKotlinSources != null && variant.equals(androidModel.getSelectedVariant())) {
+    if (generatedKotlinSources != null && variant.equals(androidModuleModel.getSelectedVariant())) {
       addGeneratedFolderToContentEntry(module, provider, generatedKotlinSources, kaptSourceSet.isTest());
     }
 

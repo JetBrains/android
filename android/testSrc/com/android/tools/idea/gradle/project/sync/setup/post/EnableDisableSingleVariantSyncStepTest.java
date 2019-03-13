@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -27,7 +30,9 @@ import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisabl
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+import static com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Tests for {@link EnableDisableSingleVariantSyncStep}.
@@ -40,7 +45,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
 
   public void testIsEligibleWithKotlinModule() throws Exception {
     loadProject(KOTLIN_GRADLE_DSL);
-    assertEquals(OLD_PLUGIN, isEligibleForSingleVariantSync(getProject()));
+    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithPureJavaProject() throws Exception {
@@ -60,7 +65,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
   public void testIsEligibleWithKotlinModuleWithNewSync() throws Exception {
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     loadProject(KOTLIN_GRADLE_DSL);
-    assertEquals(OLD_PLUGIN, isEligibleForSingleVariantSync(getProject()));
+    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(getProject()));
     StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
   }
 
