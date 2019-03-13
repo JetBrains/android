@@ -30,7 +30,6 @@ import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
-import java.awt.Insets
 import javax.swing.SwingConstants
 
 /**
@@ -45,9 +44,8 @@ abstract class AbstractTabbedMainPanel(
 
   private var inQuietSelection = false
 
-  private val tabbedPane = object : JBTabbedPane(SwingConstants.TOP) {
-    override fun getInsetsForTabComponent(): Insets = Insets(0, 0, 0, 0)
-  }.also {
+  private val tabbedPane = JBTabbedPane(SwingConstants.TOP).also {
+    it.tabComponentInsets = null
     add(it)
     it.addChangeListener {
       if (topLevelAncestor != null) {
