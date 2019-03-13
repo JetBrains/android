@@ -15,31 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.internal.R.id.contentPanel;
-
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.*;
-import com.intellij.openapi.wm.ex.ToolWindowEx;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -51,16 +53,18 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.StudioIcons;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.util.Arrays;
+import javax.swing.JComponent;
+import javax.swing.LayoutFocusTraversalPolicy;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.util.Arrays;
 
 /**
  * Manages a shared UI Preview window on the right side of the source editor which shows a preview
@@ -126,10 +130,8 @@ public class NlPreviewManager implements ProjectComponent {
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
     myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PREVIEW);
 
-    // The NlPreviewForm contains collapsible components like the palette. If one of those has the focus when the tool window is deactivated
-    // it won't be able to regain it at the next activation. So we make sure the tool window does not try to give the focus on activation to
-    // the last component that had it, but gives it instead to the default focusable component.
-    ((ToolWindowEx)myToolWindow).setUseLastFocusedOnActivation(false);
+    // Do not give focus to the preview when first opened:
+    myToolWindow.getComponent().setFocusTraversalPolicy(new NoDefaultFocusTraversalPolicy());
 
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
@@ -455,6 +457,35 @@ public class NlPreviewManager implements ProjectComponent {
         }
       }
       processFileEditorChange(layoutXmlEditor);
+    }
+  }
+
+  /**
+   * A {@link LayoutFocusTraversalPolicy} without a default focusable component.
+   *
+   * When a tool window is created a list of commands are supplied and executed.
+   * One of these commands are
+   *   {@link com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCmd}
+   * which starts a timer and for the next 10 secs will attempt to set focus to
+   * the component returned by {@link #getDefaultComponent}.
+   *
+   * This causes a problem if the user tries to open the palette within the
+   * first 10 seconds the preview is opened. The palette is designed to auto
+   * close when it looses focus. Thus a user may see the palette close
+   * immediately after opening it.
+   *
+   * When the preview is opened we probably should keep the focus in the text
+   * editor. There doesn't seem to be a way to avoid the request focus command
+   * to run for the tool window, but we can trick the focus command into
+   * believing that there is no component to give focus to.
+   */
+  private static class NoDefaultFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
+
+    @Override
+    @Nullable
+    public Component getDefaultComponent(@Nullable Container aContainer) {
+      super.getDefaultComponent(aContainer);
+      return null;
     }
   }
 }
