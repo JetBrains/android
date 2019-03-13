@@ -140,8 +140,6 @@ public class LightBindingComponentClass extends AndroidLightClassBase implements
         }
       , false);
 
-    setModuleInfo(facet.getModule(), false);
-
     myContainingFile = AtomicNotNullLazyValue.createValue(() -> {
       String packageName = myMode.packageName;
       if (packageName.endsWith(".")) {
@@ -153,6 +151,8 @@ public class LightBindingComponentClass extends AndroidLightClassBase implements
         + "public interface DataBindingComponent {}"
         , false, true, true);
     });
+
+    setModuleInfo(facet.getModule(), false);
   }
 
   @Override
