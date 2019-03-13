@@ -50,8 +50,8 @@ public class ErrorOpeningZipFileErrorHandlerTest extends AndroidGradleTestCase {
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
-    assertThat(notificationUpdate.getText()).contains("Failed to open zip file.\n" +
-                                                      "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n");
+    assertThat(notificationUpdate.getText()).isEqualTo("Failed to open zip file.\n" +
+                                                       "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
