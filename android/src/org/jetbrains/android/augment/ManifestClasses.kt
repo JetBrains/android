@@ -98,20 +98,19 @@ sealed class ManifestInnerClass(
       CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, PsiModificationTracker.MODIFICATION_COUNT)
     }
     else {
-      val fields = doGetFields().map { (name, value) ->
-        AndroidLightField(
-          name,
-          this,
-          javaLangString,
-          AndroidLightField.FieldModifier.FINAL,
-          value
-        ).apply {
-          initializer = factory.createExpressionFromText("\"$value\"", this)
-        }
-      }
       CachedValueProvider.Result.create<Array<PsiField>>(
-        fields.toTypedArray(),
-        listOf(manifest.xmlElement?.containingFile ?: PsiModificationTracker.MODIFICATION_COUNT) + fields
+        doGetFields().map { (name, value) ->
+          AndroidLightField(
+            name,
+            this,
+            javaLangString,
+            AndroidLightField.FieldModifier.FINAL,
+            value
+          ).apply {
+            initializer = factory.createExpressionFromText("\"$value\"", this)
+          }
+        }.toTypedArray(),
+        listOf(manifest.xmlElement?.containingFile ?: PsiModificationTracker.MODIFICATION_COUNT)
       )
     }
   }
