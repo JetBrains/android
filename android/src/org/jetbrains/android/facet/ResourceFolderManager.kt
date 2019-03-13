@@ -19,12 +19,12 @@ import com.android.SdkConstants.FD_MAIN
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_SOURCES
 import com.android.builder.model.AndroidArtifact
+import com.android.tools.idea.concurrency.withLockAndReadAccess
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.base.Splitter
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,7 +34,6 @@ import com.intellij.util.containers.isNullOrEmpty
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import javax.annotation.concurrent.GuardedBy
-import kotlin.concurrent.withLock
 
 /**
  * The resource folder manager is responsible for returning the current set of resource folders used in the project. It provides hooks for
@@ -240,16 +239,6 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       .trimResults()
       .split(this)
       .mapNotNull(manager::findFileByUrl)
-  }
-
-  /**
-   * Runs the specified [action] with the IDE read lock (obtained first) as well as the [ReentrantLock] (obtained second), to prevent
-   * deadlocks when some callers are already in a read/write action and some are not.
-   *
-   * Fix for b/128355384.
-   */
-  private inline fun <T> ReentrantLock.withLockAndReadAccess(crossinline action: () -> T): T {
-    return runReadAction { this.withLock(action) }
   }
 
   companion object {
