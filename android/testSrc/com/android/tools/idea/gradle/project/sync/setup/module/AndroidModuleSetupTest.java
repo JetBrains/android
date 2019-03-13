@@ -73,7 +73,8 @@ public class AndroidModuleSetupTest extends IdeaTestCase {
 
     myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
     SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    assertThat(register.getAndClear()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    register.seal();
+    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
   }
 
   public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
@@ -82,6 +83,7 @@ public class AndroidModuleSetupTest extends IdeaTestCase {
 
     myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
     SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    assertThat(register.getAndClear()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    register.seal();
+    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
   }
 }
