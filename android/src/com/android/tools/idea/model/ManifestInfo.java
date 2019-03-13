@@ -22,7 +22,7 @@ import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.project.SyncTimestampUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
@@ -38,7 +38,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -60,11 +59,9 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -278,19 +275,10 @@ final class ManifestInfo {
     private @Nullable ImmutableList<MergingReport.Record> myLoggingRecords;
     private @Nullable Actions myActions;
 
-    private AtomicLong myLastSyncTimestamp;
-
     private static final Pattern NAV_DIR_PATTERN = Pattern.compile("^navigation(-.*)?$");
 
     private ManifestFile(@NotNull AndroidFacet facet) {
       myFacet = facet;
-
-      myLastSyncTimestamp = new AtomicLong(-1L);
-      myFacet.getModule().getMessageBus().connect(myFacet).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-        if (result != ProjectSystemSyncManager.SyncResult.CANCELLED) {
-          myLastSyncTimestamp.set(Clock.getTime());
-        }
-      });
     }
 
     @NotNull
@@ -354,7 +342,7 @@ final class ManifestInfo {
       }
 
       lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
-      lastModifiedMap.put("sync", myLastSyncTimestamp.get());
+      lastModifiedMap.put("sync", SyncTimestampUtil.getLastSyncTimestamp(myFacet.getModule().getProject()));
 
       List<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(myFacet);
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
