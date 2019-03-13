@@ -105,7 +105,7 @@ public class DisplayList {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      g.setColor(sceneContext.getColorSet().getAnchorConnectionCircle());
+      g.setColor(sceneContext.getColorSet().getSelectedConstraints());
       int start_dx = 0;
       int start_dy = 0;
       int end_dx = 0;
