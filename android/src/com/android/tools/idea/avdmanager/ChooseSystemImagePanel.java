@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
@@ -164,6 +165,12 @@ public class ChooseSystemImagePanel extends JPanel
     if (device == null || image == null) {
       return false;
     }
+
+    // Foldable device requires Q preview or API29 and above
+    if (device.getDefaultHardware().getScreen().isFoldable()) {
+      return (image.getVersion().getFeatureLevel() >= MIN_FOLDABLE_DEVICE_API);
+    }
+
     String deviceTagId = device.getTagId();
     IdDisplay imageTag = image.getTag();
 
