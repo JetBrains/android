@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
@@ -27,14 +29,52 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import java.util.Optional;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class RunOnMultipleDevicesAction extends AnAction {
+  @NotNull
+  private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
+
   RunOnMultipleDevicesAction() {
+    this(project -> RunManager.getInstance(project).getSelectedConfiguration());
+  }
+
+  @VisibleForTesting
+  RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration) {
     super("Run on multiple devices", null, AllIcons.Actions.Execute);
+    myGetSelectedConfiguration = getSelectedConfiguration;
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent event) {
+    Project project = event.getProject();
+    Presentation presentation = event.getPresentation();
+
+    if (project == null) {
+      presentation.setEnabled(false);
+      return;
+    }
+
+    RunnerAndConfigurationSettings settings = myGetSelectedConfiguration.apply(project);
+
+    if (settings == null) {
+      presentation.setEnabled(false);
+      return;
+    }
+
+    Object configuration = settings.getConfiguration();
+
+    if (!(configuration instanceof AndroidRunConfiguration)) {
+      presentation.setEnabled(false);
+      return;
+    }
+
+    presentation.setEnabled(true);
   }
 
   @Override
