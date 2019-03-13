@@ -46,7 +46,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -117,6 +116,14 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
                                                new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),
                                                new NdkVariantChangeModuleSetup(myNdkSetupStepToIgnore, myNdkSetupStepToInvoke));
     myVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
+
+    when(myNdkModel.getNdkVariantNames()).thenReturn(new HashSet() {{
+      add("debug-armeabi-v7a");
+      add("debug-x86");
+      add("release-armeabi-v7a");
+      add("release-x86");
+    }});
+
   }
 
   public void testUpdateSelectedVariant() {
@@ -125,7 +132,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
     when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(mySetupStepToInvoke).setUpModule(myModuleSetupContext, myAndroidModel);
@@ -140,27 +147,92 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 
+  // Initial variant/ABI selection:
+  //    app: debug-x86      (native module)
+  // The user is changing the build variant of app to "release".
+  //
+  // Target variants/ABIs have already been synced, and are served from cache.
+  //
+  // Expected final Variant/ABI selection:
+  //    app: release-x86
   public void testUpdateSelectedVariantWithNdkModule() {
-    // variant display name for ndk module contains both of variant and abi.
-    String variantToSelect = "release-x86";
+    String appVariant = "debug";
+    String appNdkVariant = "debug-x86";
+    String appAbi = "x86";
 
     // setup ndk facet and NdkModuleModel.
-    when(myNdkDebugVariant.getName()).thenReturn("debug-x86");
-    when(myNdkModel.getAbiName("debug-x86")).thenReturn("x86");
+    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
+    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
+    when(myNdkModel.getVariantName(appNdkVariant)).thenReturn(appVariant);
     when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
-    when(myNdkModel.variantExists(variantToSelect)).thenReturn(true);
-    when(myNdkModel.getVariantName(variantToSelect)).thenReturn("release");
-    when(myNdkModel.getAbiName(variantToSelect)).thenReturn("x86");
+
+    String ndkVariantToSelect = "release-x86";
+    String variantToSelect = "release";
+    String abiToSelect = "x86";
+
+    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
+    when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
     NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
     ndkFacet.setNdkModuleModel(myNdkModel);
 
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
-    when(myAndroidModel.variantExists("release")).thenReturn(true);
+    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
 
     when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
     // invoke method to test.
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
+
+    verify(myNdkSetupStepToInvoke).setUpModule(myModuleSetupContext, myNdkModel);
+    verify(myNdkSetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myNdkModel);
+    verify(myVariantSelectionChangeListener).selectionChanged();
+
+    // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
+    // See http://b/64069792
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.cleanProjectAfterSync = false;
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+  }
+
+
+  // Initial variant/ABI selection:
+  //    app: debug-x86      (native module)
+  // The user is changing the ABI of app to "armeabi-v7a".
+  //
+  // Target variants/ABIs have already been synced, and are served from cache.
+  //
+  // Expected final Variant/ABI selection:
+  //    app: debug-armeabi-v7a
+  public void testUpdateSelectedAbiWithNdkModule() {
+    String appVariant = "debug";
+    String appNdkVariant = "debug-x86";
+    String appAbi = "x86";
+
+    // setup ndk facet and NdkModuleModel.
+    when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
+    when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
+    when(myNdkModel.getVariantName(appNdkVariant)).thenReturn(appVariant);
+    when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
+
+    String ndkVariantToSelect = "debug-armeabi-v7a";
+    String variantToSelect = "debug";
+    String abiToSelect = "armeabi-v7a";
+
+    when(myNdkModel.variantExists(ndkVariantToSelect)).thenReturn(true);
+    when(myNdkModel.getVariantName(ndkVariantToSelect)).thenReturn(variantToSelect);
+    when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
+    NdkFacet ndkFacet = createAndAddNdkFacet(myModule);
+    ndkFacet.setNdkModuleModel(myNdkModel);
+
+    when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
+    when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
+
+    when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
+
+    // invoke method to test.
+    myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), abiToSelect);
 
     verify(myNdkSetupStepToInvoke).setUpModule(myModuleSetupContext, myNdkModel);
     verify(myNdkSetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myNdkModel);
@@ -179,7 +251,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
 
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel, never()).setSelectedVariantName(variantToSelect);
     verify(mySetupStepToInvoke, never()).setUpModule(myModuleSetupContext, myAndroidModel);
@@ -215,7 +287,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
     when(myAndroidModel.variantExists(variantToSelect)).thenReturn(true);
 
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
     verify(syncInvoker).requestProjectSyncAndSourceGeneration(eq(myProject), any(), any());
@@ -249,7 +321,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
       when(myAndroidModel.variantExists(variantToSelect)).thenReturn(false);
       when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
-      myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+      myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
       // Check the BuildAction has its property set to generate sources and the sync request not
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
@@ -282,7 +354,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
       when(myAndroidModel.variantExists(variantToSelect)).thenReturn(false);
       when(myModuleSetupContextFactory.create(myModule, myModifiableModelsProvider)).thenReturn(myModuleSetupContext);
 
-      myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+      myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
       // Check the BuildAction has its property set to not generate sources and the sync request does
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
@@ -356,7 +428,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(libraryAndroidModel.variantExists(variantToSelect)).thenReturn(true);
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
@@ -379,7 +451,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   // Initial variant/ABI selection:
   //    app: debug-x86  (native module)
   //    library: debug  (non-native module)
-  // The user is changing the variant/ABi of app to "release-x86".
+  // The user is changing the variant of app to "release".
   //
   // Target variants/ABIs have already been synced, and are served from cache.
   //
@@ -449,7 +521,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myNdkModel.getAbiName(ndkVariantToSelect)).thenReturn(abiToSelect);
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), ndkVariantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
@@ -553,8 +625,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
       add("release-x86");
     }});
 
-    // Invoke method to test. (note: We are passing non-ndk variant name)
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), variantToSelect);
+    // Invoke method to test.
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
@@ -578,7 +650,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   // Initial variant/ABI selection:
   //    app: debug-x86      (native module)
   //    library: debug-x86  (native module)
-  // The user is changing the variant of app to "release-x86".
+  // The user is changing the build variant of app to "release".
   //
   // Target variants/ABIs have already been synced, and are served from cache.
   //
@@ -674,7 +746,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     }});
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), ndkVariantToSelect);
+    myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
@@ -699,14 +771,15 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   // Initial variant/ABI selection:
   //    app: debug-x86      (native module)
   //    library: debug-x86  (native module)
-  // The user is changing the variant of app to "release-armeabi-v7a" (i.e., both variant and ABI change)
+  // The user is changing the ABI of app to "armeabi-v7a".
   //
   // Target variants/ABIs have already been synced, and are served from cache.
   //
   // Expected final Variant/ABI selection:
-  //    app: release-armeabi-v7a
-  //    library: release-armeabi-v7a
+  //    app: debug-armeabi-v7a
+  //    library: debug-armeabi-v7a
   public void testNdkModuleDependsOnNdkModuleWithAbiChange() {
+    String appVariant = "debug";
     String appNdkVariant = "debug-x86";
     String appAbi = "x86";
     String libraryVariant = "debug";
@@ -717,6 +790,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
 
     // Setup expectations for app.
     when(myNdkDebugVariant.getName()).thenReturn(appNdkVariant);
+    when(myNdkModel.getVariantName(appNdkVariant)).thenReturn(appVariant);
     when(myNdkModel.getAbiName(appNdkVariant)).thenReturn(appAbi);
     when(myNdkModel.getSelectedVariant()).thenReturn(myNdkDebugVariant);
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
@@ -765,17 +839,17 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     NdkFacet libraryNdkFacet = createAndAddNdkFacet(libraryModule);
     libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
 
-    // Register "library" into gradle so that "app:release" depends on "library:release".
+    // Register "library" into gradle so that "app:debug" depends on "library:debug".
     when(library.getType()).thenReturn(Library.LIBRARY_MODULE);
-    when(library.getVariant()).thenReturn("release");
+    when(library.getVariant()).thenReturn("debug");
     when(library.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(library);
     when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
     ProjectStructure.getInstance(myProject).getModuleFinder().addModule(libraryModule, ":library");
 
     // Selected variants (and ABI) for NDK and non-NDK modules.
-    String ndkVariantToSelect = "release-armeabi-v7a";
-    String variantToSelect = "release";
+    String ndkVariantToSelect = "debug-armeabi-v7a";
+    String variantToSelect = "debug";
     String abiToSelect = "armeabi-v7a";
 
     // Selected variant related expectations.
@@ -796,7 +870,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     }});
 
     // Invoke method to test.
-    myVariantUpdater.updateSelectedVariant(myProject, myModule.getName(), ndkVariantToSelect);
+    myVariantUpdater.updateSelectedAbi(myProject, myModule.getName(), abiToSelect);
 
     // Verify that variants are selected as expected.
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
