@@ -21,7 +21,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDE
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.mock.MockProgressIndicator;
 import java.util.HashMap;
 import java.util.List;
