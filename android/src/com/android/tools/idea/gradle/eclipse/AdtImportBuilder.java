@@ -20,12 +20,14 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_ADT_MODULE;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -177,7 +179,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       GradleProjectImporter importer = GradleProjectImporter.getInstance();
       if (myCreateProject) {
         GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-        importer.importProject(project.getName(), destDir, request, syncListener);
+        Project newProject = importer.importProjectNoSync(project.getName(), destDir, request);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, syncListener);
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
