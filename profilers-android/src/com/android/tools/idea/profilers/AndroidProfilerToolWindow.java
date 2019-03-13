@@ -102,6 +102,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     myProject = project;
 
     myIdeProfilerServices = new IntellijProfilerServices(myProject);
+    Disposer.register(myProject, myIdeProfilerServices);
     myPanel = new JPanel(new BorderLayout());
     if (!tryInitializeProfilers()) {
       myIdeProfilerServices.getFeatureTracker().trackProfilerInitializationFailed();
