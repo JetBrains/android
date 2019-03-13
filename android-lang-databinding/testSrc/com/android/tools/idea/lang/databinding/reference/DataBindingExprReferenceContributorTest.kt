@@ -76,7 +76,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbIdRefererencesXmlVariable() {
+  fun dbIdReferencesXmlVariable() {
     fixture.addClass("""
       package test.langdb;
 
@@ -102,7 +102,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbFieldRefererencesClassField() {
+  fun dbFieldReferencesClassField() {
     fixture.addClass("""
       package test.langdb;
 
@@ -129,7 +129,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbMethodRefererencesClassMethod() {
+  fun dbMethodReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
 
@@ -154,7 +154,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbPropertyRefererencesClassMethod() {
+  fun dbPropertyReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
 
@@ -179,7 +179,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbIdRefererencesXmlImport() {
+  fun dbIdReferencesXmlImport() {
     fixture.addClass("""
       package test.langdb;
 
@@ -207,7 +207,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbStaticMethodReferenceRefererencesClassMethod() {
+  fun dbStaticMethodReferenceReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
 
@@ -234,7 +234,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbInstanceMethodReferenceRefererencesClassMethod() {
+  fun dbInstanceMethodReferenceReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
 
@@ -261,7 +261,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbMethodCallRefererencesClassMethod() {
+  fun dbMethodCallReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
 
