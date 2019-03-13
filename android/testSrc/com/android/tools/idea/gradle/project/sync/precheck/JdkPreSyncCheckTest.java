@@ -55,7 +55,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   public void testDoCheckCanSyncWithNullJdk() throws Exception {
     when(myMockIdeSdks.getJdk()).thenReturn(null);
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSync(getProject());
+    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
     verifyCheckFailure(result);
   }
 
@@ -65,7 +65,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(null);
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSync(getProject());
+    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
     verifyCheckFailure(result);
   }
 

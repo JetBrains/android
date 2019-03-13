@@ -214,12 +214,15 @@ public class GradleSyncInvoker {
     }
 
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeProjectMessages());
-    PreSyncCheckResult checkResult = runPreSyncChecks(project);
-    if (!checkResult.isSuccess()) {
-      // User should have already warned that something is not right and sync cannot continue.
-      String cause = nullToEmpty(checkResult.getFailureCause());
-      handlePreSyncCheckFailure(project, cause, listener, request);
-      return;
+    // Do not sync Sdk/Jdk when running from tests, these will be set up by the test infra.
+    if (!request.skipPreSyncChecks) {
+      PreSyncCheckResult checkResult = runPreSyncChecks(project);
+      if (!checkResult.isSuccess()) {
+        // User should have already warned that something is not right and sync cannot continue.
+        String cause = nullToEmpty(checkResult.getFailureCause());
+        handlePreSyncCheckFailure(project, cause, listener, request);
+        return;
+      }
     }
 
     // Do clean up tasks before calling sync started.
@@ -257,7 +260,7 @@ public class GradleSyncInvoker {
   @VisibleForTesting
   @NotNull
   PreSyncCheckResult runPreSyncChecks(@NotNull Project project) {
-    return myPreSyncChecks.canSync(project);
+    return myPreSyncChecks.canSyncAndTryToFix(project);
   }
 
   private static void handlePreSyncCheckFailure(@NotNull Project project,
@@ -338,6 +341,7 @@ public class GradleSyncInvoker {
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
     public boolean forceFullVariantsSync;
+    public boolean skipPreSyncChecks;
     // Perform a variant-only sync if not null.
     @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
@@ -365,30 +369,35 @@ public class GradleSyncInvoker {
         return false;
       }
       Request request = (Request)o;
-      return runInBackground == request.runInBackground &&
-             cleanProject == request.cleanProject &&
+      return trigger == request.trigger &&
+             runInBackground == request.runInBackground &&
              generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
+             cleanProject == request.cleanProject &&
              useCachedGradleModels == request.useCachedGradleModels &&
              skipAndroidPluginUpgrade == request.skipAndroidPluginUpgrade &&
-             trigger == request.trigger &&
+             forceFullVariantsSync == request.forceFullVariantsSync &&
+             skipPreSyncChecks == request.skipPreSyncChecks &&
              Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, skipAndroidPluginUpgrade, trigger,
-                          variantOnlySyncOptions);
+      return Objects
+        .hash(trigger, runInBackground, generateSourcesOnSuccess, cleanProject, useCachedGradleModels, skipAndroidPluginUpgrade,
+              forceFullVariantsSync, skipPreSyncChecks, variantOnlySyncOptions);
     }
 
     @Override
     public String toString() {
       return "RequestSettings{" +
-             "runInBackground=" + runInBackground +
-             ", cleanProject=" + cleanProject +
+             "trigger=" + trigger +
+             ", runInBackground=" + runInBackground +
              ", generateSourcesOnSuccess=" + generateSourcesOnSuccess +
+             ", cleanProject=" + cleanProject +
              ", useCachedGradleModels=" + useCachedGradleModels +
              ", skipAndroidPluginUpgrade=" + skipAndroidPluginUpgrade +
-             ", trigger=" + trigger +
+             ", forceFullVariantsSync=" + forceFullVariantsSync +
+             ", skipPreSyncChecks=" + skipPreSyncChecks +
              ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }
