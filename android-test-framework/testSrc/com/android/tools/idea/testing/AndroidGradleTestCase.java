@@ -476,8 +476,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       try {
         // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
         // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-        request.project = project;
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
         request.generateSourcesOnSuccess = false;
         GradleProjectImporter.getInstance().importProject(projectName, projectRoot, request, listener);
       }

@@ -86,7 +86,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    myProjectImporter.importProject(myProjectName, myProjectFolderPath, GradleProjectImporter.Request.EMPTY_REQUEST, syncListener);
+    myProjectImporter.importProject(myProjectName, myProjectFolderPath, new GradleProjectImporter.Request(), syncListener);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
@@ -100,7 +100,6 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   public void testImportProjectWithNullProject() throws Exception {
     GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
-    importSettings.project = null;
     importSettings.javaLanguageLevel = JDK_1_8;
 
     Project newProject = getProject();
@@ -120,8 +119,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
   }
 
   public void testImportProjectWithNonNullProject() throws Exception {
-    GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
-    importSettings.project = getProject();
+    GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request(getProject());
     importSettings.javaLanguageLevel = JDK_1_8;
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
