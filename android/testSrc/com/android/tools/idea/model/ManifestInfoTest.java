@@ -39,7 +39,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     assertThat(manifestFile.refresh()).isFalse();
 
     // Make it look like the project has been synced
-    myModule.getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
+    getProject().getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
 
     // Syncing should have changed the timestamp, making a refresh necessary
     assertThat(manifestFile.refresh()).isTrue();
