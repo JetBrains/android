@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -33,6 +34,9 @@ internal class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, te
     this(expr, method, expr.refExpr.id.textRange.shiftRight(-expr.startOffsetInParent))
 
   constructor(expr: PsiDbRefExpr, method: PsiMethod)
+    : this(expr, method, expr.id.textRange.shiftRight(-expr.startOffsetInParent))
+
+  constructor(expr: PsiDbFunctionRefExpr, method: PsiMethod)
     : this(expr, method, expr.id.textRange.shiftRight(-expr.startOffsetInParent))
 
   override val resolvedType: PsiModelClass?
