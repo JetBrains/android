@@ -24,6 +24,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
+import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
@@ -2132,6 +2133,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    myFixture.openFileInEditor(file1);
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
@@ -2164,11 +2166,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf("MyCustomView");
-      document.insertString(offset + 8, "r");
-      documentManager.commitDocument(document);
-    });
+    type("MyCustom|View", "r");
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
@@ -2180,11 +2178,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Now try another edit, where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf("MyCustomrView");
-      document.insertString(offset + 8, "e");
-      documentManager.commitDocument(document);
-    });
+    type("MyCustom|rView", "e");
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomerView"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
@@ -2197,6 +2191,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(watchType);
     assertEquals(2, watchType.getAttributeValues().size());
     assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
+
+    long generation3 = resources.getModificationCount();
+    type("watch|Type", "Change");
+    assertTrue(generation3 < resources.getModificationCount());
+
+    assertSame(style, getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomerView"));
+    assertNotSame(srv, style.getResourceValue());
+    srv = (StyleableResourceValue)style.getResourceValue();
+    assertNull(findAttr(srv.getAllAttributes(), "watchType"));
+    assertNotNull(findAttr(srv.getAllAttributes(), "watchChangeType"));
 
     // Shouldn't have done any full file rescans during the above edits.
     ensureIncremental();
@@ -4015,5 +4019,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private static void checkDefinedItems(@NotNull StyleResourceValue style, @NotNull String... attributes) {
     assertSameElements(Collections2.transform(style.getDefinedItems(), StyleItemResourceValue::getAttrName), attributes);
+  }
+
+  private void type(@NotNull String place, @NotNull String toType) {
+    moveCaret(myFixture, place);
+    myFixture.type(toType);
+    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
   }
 }

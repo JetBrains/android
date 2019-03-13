@@ -45,8 +45,8 @@ import static com.android.resources.ResourceFolderType.VALUES;
 import static com.android.resources.ResourceFolderType.getFolderType;
 import static com.android.resources.ResourceFolderType.getTypeByName;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -131,7 +131,6 @@ import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -993,7 +992,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         List<PsiResourceItem> items = new ArrayList<>(subTags.length);
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
-          ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+          ResourceType type = getResourceTypeForResourceTag(tag);
           if (type != null && isValidResourceName(name)) {
             PsiResourceItem item = PsiResourceItem.forXmlTag(name, type, myNamespace, tag, false);
             addToResult(result, item);
@@ -1438,7 +1437,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   PsiResourceFile psiResourceFile = (PsiResourceFile)source;
                   String name = tag.getAttributeValue(ATTR_NAME);
                   if (isValidResourceName(name)) {
-                    ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+                    ResourceType type = getResourceTypeForResourceTag(tag);
                     if (type == ResourceType.STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items
                       rescan(psiFile, folderType);
@@ -1460,7 +1459,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
               // See if you just added a new item inside a <style> or <array> or <declare-styleable> etc
               XmlTag parentTag = tag.getParentTag();
-              if (parentTag != null && ResourceType.fromXmlTagName(parentTag.getName()) != null) {
+              if (parentTag != null && getResourceTypeForResourceTag(parentTag) != null) {
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
@@ -1614,7 +1613,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // See if you just removed an item inside a <style> or <array> or <declare-styleable> etc
               if (parent instanceof XmlTag) {
                 XmlTag parentTag = (XmlTag)parent;
-                if (ResourceType.fromXmlTagName(parentTag.getName()) != null) {
+                if (getResourceTypeForResourceTag(parentTag) != null) {
                   if (convertToPsiIfNeeded(psiFile, folderType)) {
                     return;
                   }
@@ -1627,7 +1626,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
                     if (resourceItem.getType() == ResourceType.ATTR) {
                       parentTag = parentTag.getParentTag();
-                      if (parentTag != null && parentTag.getName().equals(SdkConstants.TAG_DECLARE_STYLEABLE)) {
+                      if (parentTag != null && getResourceTypeForResourceTag(parentTag) == ResourceType.STYLEABLE) {
                         ResourceItem declareStyleable = findValueResourceItem(parentTag, psiFile);
                         if (declareStyleable instanceof PsiResourceItem) {
                           if (((PsiResourceItem)declareStyleable).recomputeValue()) {
@@ -1662,7 +1661,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     name = tag.getAttributeValue(ATTR_NAME);
                   }
                   if (name != null) {
-                    ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+                    ResourceType type = getResourceTypeForResourceTag(tag);
                     if (type != null) {
                       synchronized (ITEM_MAP_LOCK) {
                         ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
@@ -1950,7 +1949,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // See if you just removed an item inside a <style> or <array> or <declare-styleable> etc
               if (parent instanceof XmlTag) {
                 XmlTag parentTag = (XmlTag)parent;
-                if (ResourceType.fromXmlTagName(parentTag.getName()) != null) {
+                if (getResourceTypeForResourceTag(parentTag) != null) {
                   if (convertToPsiIfNeeded(psiFile, folderType)) {
                     return;
                   }
@@ -1995,7 +1994,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 // scenarios.
                 if (isItemElement(xmlTag) && attributeName.equals(ATTR_NAME)) {
                   // Edited the name of the item: replace it.
-                  ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(xmlTag);
+                  ResourceType type = getResourceTypeForResourceTag(xmlTag);
                   if (type != null) {
                     String oldName = event.getOldChild().getText();
                     String newName = event.getNewChild().getText();
@@ -2035,7 +2034,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       // Invalidate surrounding declare styleable if any
                       if (type == ResourceType.ATTR) {
                         XmlTag parentTag = xmlTag.getParentTag();
-                        if (parentTag != null && parentTag.getName().equals(ResourceType.STYLEABLE.getName())) {
+                        if (parentTag != null && getResourceTypeForResourceTag(parentTag) == ResourceType.STYLEABLE) {
                           ResourceItem style = findValueResourceItem(parentTag, psiFile);
                           if (style instanceof PsiResourceItem) {
                             ((PsiResourceItem)style).recomputeValue();
@@ -2047,7 +2046,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     }
                   } else {
                     XmlTag parentTag = xmlTag.getParentTag();
-                    if (parentTag != null && ResourceType.fromXmlTagName(parentTag.getName()) != null) {
+                    if (parentTag != null && getResourceTypeForResourceTag(parentTag) != null) {
                       // <style>, or <plurals>, or <array>, or <string-array>, ...
                       // Edited the attribute value of an item that is wrapped in a <style> tag: invalidate parent cached value
                       if (convertToPsiIfNeeded(psiFile, folderType)) {
@@ -2527,7 +2526,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Nullable
   private ResourceItem findValueResourceItem(XmlTag tag, @NotNull PsiFile file, String name) {
-    ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+    ResourceType type = getResourceTypeForResourceTag(tag);
     return findResourceItem(type, file, name, tag);
   }
 
