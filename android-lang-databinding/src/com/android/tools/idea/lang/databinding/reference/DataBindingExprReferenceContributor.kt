@@ -24,6 +24,7 @@ import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.res.DataBindingLayoutInfo
@@ -54,6 +55,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbId::class.java), IdReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbRefExpr::class.java), RefExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbCallExpr::class.java), CallExprReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbFunctionRefExpr::class.java), FunctionRefExprReferenceProvider())
   }
 
   /**
@@ -208,6 +210,33 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       return psiModelClass.findMethods(callExpr.refExpr.id.text, staticOnly = false)
         .filterIsInstance<PsiModelMethod>()
         .map { modelMethod -> PsiMethodReference(callExpr, modelMethod.psiMethod) }
+        .toTypedArray()
+    }
+  }
+
+  /**
+   * Provide references for when the user's caret is pointing at PSI for a method reference
+   * expression.
+   *
+   * From db.bnf:
+   *
+   * ```
+   * functionRefExpr ::= expr '::' id
+   * ```
+   *
+   * Example: `Model::do<caret>StaticSomething`
+   * Example: `modelInstance::do<caret>Something`
+   */
+  private class FunctionRefExprReferenceProvider : PsiReferenceProvider() {
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      val funRefExpr = element as PsiDbFunctionRefExpr
+      val classExpr = funRefExpr.expr
+      val methodExpr = funRefExpr.id
+      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType ?: return PsiReference.EMPTY_ARRAY
+
+      return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
+        .filterIsInstance<PsiModelMethod>()
+        .map { modelMethod -> PsiMethodReference(element, modelMethod.psiMethod) }
         .toTypedArray()
     }
   }

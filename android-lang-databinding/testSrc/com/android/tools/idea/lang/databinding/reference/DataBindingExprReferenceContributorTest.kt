@@ -206,9 +206,8 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     assertThat(element.attributes.find { attr -> attr.name == "type" && attr.value == "test.langdb.Model" }).isNotNull()
   }
 
-  @Ignore // TODO(b/127958342)
   @Test
-  fun dbMethodReferenceRefererencesClassMethod() {
+  fun dbStaticMethodReferenceRefererencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
 
@@ -226,6 +225,33 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
           <import type="test.langdb.Model" />
         </data>
         <TextView android:onClick="@{Model::handle<caret>Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val element = fixture.elementAtCaret as PsiMethod
+    assertThat(element.name).isEqualTo("handleClick")
+  }
+
+  @Test
+  fun dbInstanceMethodReferenceRefererencesClassMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ClickHandler {
+        public void handleClick(View v) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="clickHandler" type="test.langdb.ClickHandler" />
+        </data>
+        <TextView android:onClick="@{clickHandler::handle<caret>Click}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
