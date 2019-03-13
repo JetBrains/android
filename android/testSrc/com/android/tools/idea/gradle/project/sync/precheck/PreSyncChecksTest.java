@@ -35,16 +35,16 @@ public class PreSyncChecksTest extends AndroidGradleTestCase {
     PreSyncChecks checks = new PreSyncChecks(strategy1, strategy2);
 
     Project project = getProject();
-    when(strategy1.canSync(project)).thenReturn(SUCCESS);
+    when(strategy1.checkCanSyncAndTryToFix(project)).thenReturn(SUCCESS);
 
     PreSyncCheckResult failure = PreSyncCheckResult.failure("Just kidding");
-    when(strategy2.canSync(project)).thenReturn(failure);
+    when(strategy2.checkCanSyncAndTryToFix(project)).thenReturn(failure);
 
-    PreSyncCheckResult actualResult = checks.canSync(project);
+    PreSyncCheckResult actualResult = checks.canSyncAndTryToFix(project);
     assertSame(failure, actualResult);
 
-    verify(strategy1).canSync(project);
-    verify(strategy2).canSync(project);
+    verify(strategy1).checkCanSyncAndTryToFix(project);
+    verify(strategy2).checkCanSyncAndTryToFix(project);
   }
 
   public void testGetChecks() {
