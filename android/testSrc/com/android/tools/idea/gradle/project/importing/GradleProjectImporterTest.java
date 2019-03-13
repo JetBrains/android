@@ -86,7 +86,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    myProjectImporter.importProject(myProjectName, myProjectFolderPath, new GradleProjectImporter.Request(), syncListener);
+    myProjectImporter.importProjectCore(myProjectName, myProjectFolderPath, new GradleProjectImporter.Request(), syncListener);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
@@ -106,7 +106,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    myProjectImporter.importProject(myProjectName, myProjectFolderPath, importSettings, syncListener);
+    myProjectImporter.importProjectCore(myProjectName, myProjectFolderPath, importSettings, syncListener);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
@@ -123,7 +123,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     importSettings.javaLanguageLevel = JDK_1_8;
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    myProjectImporter.importProject(myProjectName, myProjectFolderPath, importSettings, syncListener);
+    myProjectImporter.importProjectCore(myProjectName, myProjectFolderPath, importSettings, syncListener);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
@@ -154,12 +154,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   private void verifyGradleSyncInvocation(@NotNull GradleProjectImporter.Request importSettings,
                                           @Nullable GradleSyncListener syncListener) {
-    GradleSyncInvoker.Request syncRequest = new GradleSyncInvoker.Request(TRIGGER_PROJECT_NEW);
-
-    syncRequest.generateSourcesOnSuccess = importSettings.generateSourcesOnSuccess;
-    syncRequest.runInBackground = true;
-
-    verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), syncRequest, syncListener);
+    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_NEW, syncListener);
     verifyProjectWasMarkedAsImported();
   }
 
