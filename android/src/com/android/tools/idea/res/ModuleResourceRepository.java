@@ -87,6 +87,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
    *
+   * <p>The returned repository needs to be registered with a {@link com.intellij.openapi.Disposable} parent.
+   *
    * @param facet the facet for the module
    * @return the resource repository
    */
@@ -102,7 +104,10 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       if (primaryResourceDir == null) {
         return new EmptyRepository(namespace);
       }
-      return resourceFolderRegistry.get(facet, primaryResourceDir);
+      return new ModuleResourceRepository(facet,
+                                          namespace,
+                                          Collections.singletonList(resourceFolderRegistry.get(facet, primaryResourceDir)),
+                                          SourceSet.MAIN);
     }
 
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
@@ -122,6 +127,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
   /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
+   *
+   * <p>The returned repository needs to be registered with a {@link com.intellij.openapi.Disposable} parent.
    *
    * @param facet the facet for the module
    * @return the resource repository
