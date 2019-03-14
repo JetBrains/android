@@ -15,7 +15,16 @@
  */
 package com.android.tools.idea.npw.model;
 
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_KT;
+import static com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfoKt.ACTIVITY_TEMPLATE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
+
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
@@ -23,7 +32,14 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Template;
@@ -44,20 +60,14 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.DOT_JAVA;
-import static com.android.SdkConstants.DOT_KT;
-import static com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfoKt.ACTIVITY_TEMPLATE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
+import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A model responsible for instantiating a FreeMarker {@link Template} into the current project
@@ -244,6 +254,7 @@ public final class RenderTemplateModel extends WizardModel {
       }
       else {
         templateInjector.setFacet(myFacet);
+        templateInjector.setLanguage(myLanguageSet.get()); // Note: For new projects/modules we have a different UI.
 
         // Register application-wide settings
         String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
@@ -371,8 +382,8 @@ public final class RenderTemplateModel extends WizardModel {
    * If it *does* have a Kotlin facet, then remember the previous selection (if there was no previous selection yet, default to Kotlin)
    */
   @NotNull
-  private static Language getInitialSourceLanguage(@Nullable Project project) {
-    if (project != null && JavaToKotlinHandler.hasKotlinFacet(project)) {
+  static Language getInitialSourceLanguage(@Nullable Project project) {
+    if (project != null && AndroidStudioKotlinPluginUtils.hasAnyKotlinModules(project)) {
       return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN);
     }
     return Language.JAVA;

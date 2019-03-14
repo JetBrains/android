@@ -18,7 +18,6 @@ package org.jetbrains.android;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
-import com.android.ide.common.util.DisjointUnionMap;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.psi.TagToClassMapper;
@@ -47,7 +46,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 class TagToClassMapperImpl implements TagToClassMapper {
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
@@ -76,15 +74,17 @@ class TagToClassMapperImpl implements TagToClassMapper {
    */
   @Override
   @NotNull
-  public Map<String, PsiClass> getClassMap(@NotNull String frameworkClass, @Nullable AndroidxName androidXClass) {
+  public Map<String, PsiClass> getFrameworkClassMap(@NotNull String frameworkClass) {
     Map<String, PsiClass> frameworkClasses = getClassMap(frameworkClass);
-    if (androidXClass == null) {
-      return Collections.unmodifiableMap(frameworkClasses);
-    }
+    return Collections.unmodifiableMap(frameworkClasses);
+  }
 
-    Map<String, PsiClass> libClasses = getClassMap(MigrateToAndroidxUtil.getNameInProject(androidXClass, myModule.getProject()));
-    return libClasses.isEmpty() ? Collections.unmodifiableMap(frameworkClasses)
-                                : new DisjointUnionMap<>(frameworkClasses, libClasses);
+  @NotNull
+  @Override
+  public Map<String, PsiClass> getAndroidXClassMap(@NotNull AndroidxName androidXClass) {
+    String qualifiedName = MigrateToAndroidxUtil.getNameInProject(androidXClass, myModule.getProject());
+    Map<String, PsiClass> libClasses = getClassMap(qualifiedName);
+    return Collections.unmodifiableMap(libClasses);
   }
 
   private Map<String, PsiClass> getClassMap(String className) {

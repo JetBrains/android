@@ -38,8 +38,10 @@ public class CodeSwapAction extends BaseAction {
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift R" : "control alt F10"), null);
 
+  private static final String DESC = "Attempt to apply only code changes without restarting anything.";
+
   public CodeSwapAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT);
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT, DESC);
   }
 }
 

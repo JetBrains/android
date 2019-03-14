@@ -34,6 +34,7 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.property.panel.api.ActionIconButton
@@ -176,6 +177,7 @@ open class NelePropertyItem(
     override val completion = { getCompletionValues() }
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
+    override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
   }
 
   private fun browseToValue() {
@@ -328,17 +330,24 @@ open class NelePropertyItem(
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
+      // Resources may contain multiple entries for the same name
+      val valueSet = mutableSetOf<String>()
+
       // Local resources.
       for (type in types) {
         // TODO(namespaces): Exclude non-public resources from library modules.
-        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(values, toName)
+        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(valueSet, toName)
       }
+
+      // Sort and add to the result list:
+      values.addAll(valueSet.sorted())
+      valueSet.clear()
 
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
           if (resourceItem is AarResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
-            values.add(toName(resourceItem))
+            valueSet.add(toName(resourceItem))
           }
           return ResourceVisitor.VisitResult.CONTINUE
         }
@@ -348,10 +357,17 @@ open class NelePropertyItem(
         }
       })
 
+      // Sort and add to the result list:
+      values.addAll(valueSet.sorted())
+      valueSet.clear()
+
       // Framework resources.
       for (type in types) {
-        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
+        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(valueSet, toName)
       }
+
+      // Sort and add to the result list:
+      values.addAll(valueSet.sorted())
     }
     if (type == NelePropertyType.FONT) {
       values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)

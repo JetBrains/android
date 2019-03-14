@@ -33,6 +33,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -304,6 +305,12 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_SDK_DIR, sdkLocation.getPath());
     }
 
+    return this;
+  }
+
+  public TemplateValueInjector setLanguage(Language language) {
+    myTemplateValues.put(ATTR_LANGUAGE, language.getName());
+    myTemplateValues.put(ATTR_KOTLIN_SUPPORT, language == Language.KOTLIN);
     return this;
   }
 

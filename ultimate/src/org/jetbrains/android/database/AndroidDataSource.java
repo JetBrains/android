@@ -1,3 +1,7 @@
+/*
+ * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+ */
+
 package org.jetbrains.android.database;
 
 import com.intellij.database.dataSource.LocalDataSource;
@@ -9,7 +13,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
-import icons.AndroidIcons;
+import icons.AndroidArtworkIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,8 +31,8 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   private State myState = new State();
 
-  public AndroidDataSource() {
-    super("", "org.sqlite.JDBC", "", null, null);
+  AndroidDataSource() {
+    setDriverClass("org.sqlite.JDBC");
   }
 
   @NotNull
@@ -117,8 +121,9 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   @Override
   @NotNull
-  public AndroidDataSource copy() {
+  public AndroidDataSource copy(boolean temporary) {
     AndroidDataSource newSource = new AndroidDataSource();
+    newSource.myTemporary = temporary;
     newSource.setName(getName());
     newSource.setDatabaseDriver(getDatabaseDriver());
     State newState = newSource.getState();
@@ -145,7 +150,7 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   @Override
   public Icon getBaseIcon() {
-    return AndroidIcons.Android;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Override

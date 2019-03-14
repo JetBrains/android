@@ -161,6 +161,12 @@ public final class StudioFlags {
     "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
     true);
 
+  public static final Flag<Boolean> PROFILER_USE_PERFETTO = Flag.create(
+    PROFILER, "perfetto", "Allows importing and recording of perfetto traces.",
+    "Toggles if we check for perfetto traces when importing. This also sets a flag on the agent config to toggle perfetto" +
+    "based recording on device.",
+    false);
+
   public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
     PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
     "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",

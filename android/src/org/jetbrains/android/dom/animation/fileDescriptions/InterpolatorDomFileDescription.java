@@ -17,14 +17,14 @@ package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.ImmutableMap;
-import org.jetbrains.android.dom.AbstractMultiRootFileDescription;
+import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class InterpolatorDomFileDescription extends AbstractMultiRootFileDescription<InterpolatorElement> {
+public class InterpolatorDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<InterpolatorElement> {
   /**
    * Map contains name of a styleable with attributes by a tag name.
    * If key maps to {@link Optional#empty()} it means that such tag exists but doesn't have any attributes.

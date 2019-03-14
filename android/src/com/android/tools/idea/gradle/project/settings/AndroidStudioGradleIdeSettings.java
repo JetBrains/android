@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.settings;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.*;
-import org.jetbrains.annotations.NotNull;
-
 import static com.intellij.util.xmlb.XmlSerializerUtil.copyBean;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Android Studio-specific Gradle project settings.
@@ -56,7 +59,7 @@ public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<
   }
 
   @Override
-  public void loadState(AndroidStudioGradleIdeSettings state) {
+  public void loadState(@NotNull AndroidStudioGradleIdeSettings state) {
     copyBean(state, this);
   }
 

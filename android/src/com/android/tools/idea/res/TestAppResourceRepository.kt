@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.RecursiveResourceFolder
@@ -36,6 +37,7 @@ class TestAppResourceRepository private constructor(
 
   companion object {
     @JvmStatic
+    @Slow
     fun create(
       facet: AndroidFacet,
       moduleTestResources: LocalResourceRepository,
@@ -51,9 +53,10 @@ class TestAppResourceRepository private constructor(
             .mapNotNull { it.projectPath }
             .mapNotNull { GradleUtil.findModuleByGradlePath(project, it) }
             .mapNotNull { it.androidFacet }
-            .map(ModuleResourceRepository::forMainResources)
+            .map { ResourceRepositoryManager.getModuleResources(it) }
         )
       }
+
       val aarCache = AarResourceRepositoryCache.getInstance()
       val libraryRepositories: Collection<AarResourceRepository> = dependencies?.androidLibraries.orEmpty().asSequence()
         .map {

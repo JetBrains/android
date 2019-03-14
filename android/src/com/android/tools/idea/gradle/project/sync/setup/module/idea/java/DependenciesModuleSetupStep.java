@@ -29,6 +29,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,6 +97,10 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
 
     ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {
+      // Skip if dependency module is the current module and it's in TEST scope.
+      if (isSelfDependencyByTest(dependency, module, found)) {
+        return;
+      }
       AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
         ModuleOrderEntry entry = moduleModel.addModuleOrderEntry(found);
@@ -108,6 +113,16 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       return;
     }
     setupIssues.addMissingModule(moduleName, module.getName(), null);
+  }
+
+  /**
+   * @return true if the module dependency is in test scope, and it is the current module.
+   */
+  static boolean isSelfDependencyByTest(@NotNull JavaModuleDependency dependency,
+                                        @NotNull Module module,
+                                        @Nullable Module dependencyModule) {
+    return module.equals(dependencyModule) &&
+           StringUtil.compare(dependency.getScope(), "TEST", true) == 0;
   }
 
   private void updateDependency(@NotNull Module module,

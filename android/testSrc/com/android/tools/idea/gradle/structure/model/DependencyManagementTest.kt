@@ -566,6 +566,30 @@ class DependencyManagementTest : DependencyTestCase() {
     }
   }
 
+  fun testChangeLibraryDependencyScope() {
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), nullValue())
+
+    module.setLibraryDependencyConfiguration(
+      PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, configurationName = "implementation", newConfigurationName = "compile")
+
+    assertThat(module.isModified, equalTo(true))
+    assertThat(project.isModified, equalTo(true))
+
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), notNullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("mainModule") as PsAndroidModule
+
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), notNullValue())
+  }
+
   fun testEditLibraryDependencyVersion() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
     var jModule = project.findModuleByName("jModuleM") as PsJavaModule

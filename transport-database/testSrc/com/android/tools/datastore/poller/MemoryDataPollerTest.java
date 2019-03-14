@@ -25,6 +25,7 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
@@ -76,7 +77,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private static final ByteString DUMP_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
 
   private static final MemoryData.MemorySample DEFAULT_MEMORY_SAMPLE = MemoryData.MemorySample
-    .newBuilder().setJavaMem(1024).setTimestamp(BASE_TIME_NS).build();
+    .newBuilder().setMemoryUsage(Memory.MemoryUsageData.newBuilder().setJavaMem(1024)).setTimestamp(BASE_TIME_NS).build();
 
   private static final MemoryData.AllocStatsSample DEFAULT_ALLOC_STATS = MemoryData.AllocStatsSample
     .newBuilder().setTimestamp(BASE_TIME_NS).build();

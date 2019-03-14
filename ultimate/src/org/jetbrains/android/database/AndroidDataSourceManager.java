@@ -72,7 +72,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
     if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
     return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
       @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
+      public void actionPerformed(AnActionEvent e) {
         AndroidDataSource result = new AndroidDataSource();
         result.setName(getTemplatePresentation().getText());
         result.resolveDriver();
@@ -84,7 +84,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   @NotNull
   @Override
   public AndroidDataSource copyDataSource(@NotNull String newName, @NotNull AndroidDataSource copyFrom) {
-    AndroidDataSource result = copyFrom.copy();
+    AndroidDataSource result = copyFrom.copy(false);
     result.setName(newName);
     result.resolveDriver();
     return result;

@@ -18,12 +18,20 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
 
 public class DetailedMemoryUsage extends MemoryUsage {
+  private static final String JAVA_MEM = "Java";
+  private static final String NATIVE_MEM = "Native";
+  private static final String GRAPHICS_MEM = "Graphics";
+  private static final String STACK_MEM = "Stack";
+  private static final String CODE_MEM = "Code";
+  private static final String OTHERS_MEM = "Others";
+  private static final String ALLOCATED = "Allocated";
+
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Range myObjectsRange;
   @NotNull private final RangedContinuousSeries myJavaSeries;
@@ -42,17 +50,44 @@ public class DetailedMemoryUsage extends MemoryUsage {
     myProfilers = profilers;
     myObjectsRange = new Range(0, 0);
 
-    myJavaSeries = createRangedSeries(profilers, "Java", getMemoryRange(), MemorySample::getJavaMem);
-    myNativeSeries = createRangedSeries(profilers, "Native", getMemoryRange(), MemorySample::getNativeMem);
-    myGraphicsSeries = createRangedSeries(profilers, "Graphics", getMemoryRange(), MemorySample::getGraphicsMem);
-    myStackSeries = createRangedSeries(profilers, "Stack", getMemoryRange(), MemorySample::getStackMem);
-    myCodeSeries = createRangedSeries(profilers, "Code", getMemoryRange(), MemorySample::getCodeMem);
-    myOtherSeries = createRangedSeries(profilers, "Others", getMemoryRange(), MemorySample::getOthersMem);
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      myJavaSeries = createRangedSeries(profilers, JAVA_MEM, getMemoryRange(),
+                                        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                        UnifiedEventDataSeries.fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getJavaMem()));
+      myNativeSeries = createRangedSeries(profilers, NATIVE_MEM, getMemoryRange(),
+                                          UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                          UnifiedEventDataSeries.fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getNativeMem()));
+      myGraphicsSeries = createRangedSeries(profilers, GRAPHICS_MEM, getMemoryRange(),
+                                            UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                            UnifiedEventDataSeries
+                                              .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getGraphicsMem()));
+      myStackSeries = createRangedSeries(profilers, STACK_MEM, getMemoryRange(),
+                                         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                         UnifiedEventDataSeries.fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getStackMem()));
+      myCodeSeries = createRangedSeries(profilers, CODE_MEM, getMemoryRange(),
+                                        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                        UnifiedEventDataSeries.fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getCodeMem()));
+      myOtherSeries = createRangedSeries(profilers, OTHERS_MEM, getMemoryRange(),
+                                         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                         UnifiedEventDataSeries.fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getOthersMem()));
+    }
+    else {
+      myJavaSeries = createLegacyRangedSeries(profilers, JAVA_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getJavaMem());
+      myNativeSeries =
+        createLegacyRangedSeries(profilers, NATIVE_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getNativeMem());
+      myGraphicsSeries =
+        createLegacyRangedSeries(profilers, GRAPHICS_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getGraphicsMem());
+      myStackSeries =
+        createLegacyRangedSeries(profilers, STACK_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getStackMem());
+      myCodeSeries = createLegacyRangedSeries(profilers, CODE_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getCodeMem());
+      myOtherSeries =
+        createLegacyRangedSeries(profilers, OTHERS_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getOthersMem());
+    }
 
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
     AllocStatsDataSeries series = new AllocStatsDataSeries(myProfilers, client,
                                                            sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
-    myObjectsSeries = new RangedContinuousSeries("Allocated", profilers.getTimeline().getViewRange(), getObjectsRange(), series);
+    myObjectsSeries = new RangedContinuousSeries(ALLOCATED, profilers.getTimeline().getViewRange(), getObjectsRange(), series);
 
     myGcDurations = memoryProfilerStage.getGcStatsModel();
     myAllocationSamplingRateDurations = memoryProfilerStage.getAllocationSamplingRateDurations();

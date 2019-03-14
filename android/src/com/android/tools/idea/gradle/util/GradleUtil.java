@@ -37,6 +37,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -87,6 +88,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -338,21 +340,48 @@ public final class GradleUtil {
 
   /**
    * Returns the build.gradle file in the given module. This method first checks if the Gradle model has the path of the build.gradle
-   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory.
+   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory (folder with .iml
+   * file). If it is a root module without sources, it looks inside project's base path before looking in the module's root directory.
    *
    * @param module the given module.
    * @return the build.gradle file in the given module, or {@code null} if it cannot be found.
    */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    if (gradleFacet != null && gradleFacet.getGradleModuleModel() != null) {
-      return gradleFacet.getGradleModuleModel().getBuildFile();
+    GradleModuleModel moduleModel = getGradleModuleModel(module);
+    if (moduleModel != null) {
+      return moduleModel.getBuildFile();
     }
+
+    if (isGradleProjectModule(module)) {
+      VirtualFile buildFile = getGradleBuildFileFromProjectModule(module);
+      if (buildFile != null) {
+        return buildFile;
+      }
+    }
+
     // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
     File moduleFilePath = new File(module.getModuleFilePath());
     File parentFile = moduleFilePath.getParentFile();
     return parentFile != null ? getGradleBuildFile(parentFile) : null;
+  }
+
+  @Nullable
+  private static GradleModuleModel getGradleModuleModel(Module module) {
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
+    if (gradleFacet == null) {
+      return null;
+    }
+    return gradleFacet.getGradleModuleModel();
+  }
+
+  @Nullable
+  private static VirtualFile getGradleBuildFileFromProjectModule(@NotNull Module module) {
+    String basePath = module.getProject().getBasePath();
+    if (isEmptyOrSpaces(basePath)) {
+      return null;
+    }
+    return getGradleBuildFile(new File(basePath));
   }
 
   /**

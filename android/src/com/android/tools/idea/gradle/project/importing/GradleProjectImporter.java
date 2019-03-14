@@ -29,10 +29,8 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
@@ -89,18 +87,19 @@ public class GradleProjectImporter {
    *
    * @param selectedFile the selected build.gradle or the project's root directory.
    */
-  public void importProject(@NotNull VirtualFile selectedFile) {
+  @Nullable
+  public Project importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
     }
     catch (IOException e) {
-      return;
+      return null;
     }
     try {
       String projectName = projectFolder.getName();
-      importProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder));
+      return importProjectCore(projectName, projectFolderPath, new Request(), createNewProjectListener(projectFolder));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -109,6 +108,7 @@ public class GradleProjectImporter {
       showErrorDialog(e.getMessage(), "Project Import");
       getLogger().error(e);
     }
+    return null;
   }
 
   @NotNull
@@ -153,10 +153,21 @@ public class GradleProjectImporter {
    * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
    * storage to force their re-import.
    */
-  public void importProject(@NotNull String projectName,
-                            @NotNull File projectFolderPath,
-                            @NotNull Request request,
-                            @Nullable GradleSyncListener listener) throws IOException {
+  @NotNull
+  @VisibleForTesting
+  public Project importProjectCore(@NotNull String projectName,
+                                   @NotNull File projectFolderPath,
+                                   @NotNull Request request,
+                                   @Nullable GradleSyncListener listener) throws IOException {
+    Project newProject = importProjectNoSync(projectName, projectFolderPath, request);
+    myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, listener);
+    return newProject;
+  }
+
+  @NotNull
+  public Project importProjectNoSync(@NotNull String projectName,
+                                      @NotNull File projectFolderPath,
+                                      @NotNull Request request) throws IOException {
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
@@ -189,26 +200,20 @@ public class GradleProjectImporter {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
-
-    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request), listener);
-  }
-
-  @NotNull
-  private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest) {
-    GradleSyncStats.Trigger trigger = TRIGGER_PROJECT_NEW;
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    request.generateSourcesOnSuccess = importProjectRequest.generateSourcesOnSuccess;
-    request.useCachedGradleModels = false;
-    return request;
+    return newProject;
   }
 
   public static class Request {
-    @NotNull public static final Request EMPTY_REQUEST = new Request();
-
-    @Nullable public Project project;
+    @Nullable public final Project project;
     @Nullable public LanguageLevel javaLanguageLevel;
-
-    public boolean generateSourcesOnSuccess = true;
     public boolean isNewProject;
+
+    public Request() {
+      this.project = null;
+    }
+
+    public Request(@Nullable Project project) {
+      this.project = project;
+    }
   }
 }

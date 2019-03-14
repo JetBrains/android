@@ -38,7 +38,6 @@ import java.util.Collections;
 import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;

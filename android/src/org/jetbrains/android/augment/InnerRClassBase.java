@@ -19,6 +19,7 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.ArrayUtil;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -129,7 +130,8 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
+          PsiField[] fields = doGetFields();
+          return CachedValueProvider.Result.create(fields, ArrayUtil.mergeArrays(getFieldsDependencies(), fields));
         });
     }
     return myFieldsCache.getValue();

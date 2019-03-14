@@ -55,7 +55,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
-import static icons.StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE;
+import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.api.DragType;
@@ -306,7 +306,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     // noinspection unchecked
     actions
-      .add(new NestedViewActionMenu("Guidelines", VERTICAL_GUIDE, Lists.<List<ViewAction>>newArrayList(
+      .add(new NestedViewActionMenu("Guidelines", GUIDELINE_VERTICAL, Lists.<List<ViewAction>>newArrayList(
         ConstraintViewActions.HELPER_ACTIONS)));
 
     ViewActionSeparator.setupFollowingActions(actions);
@@ -364,7 +364,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
     actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
-    actions.add(new DisappearingActionMenu("Helpers", VERTICAL_GUIDE, ConstraintViewActions.HELPER_ACTIONS));
+    actions.add(new DisappearingActionMenu("Helpers", GUIDELINE_VERTICAL, ConstraintViewActions.HELPER_ACTIONS));
 
     if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
       actions.add(new ConvertToMotionLayoutComponentsAction());
@@ -1671,10 +1671,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
       new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
-                           VERTICAL_GUIDE,
+                           GUIDELINE_VERTICAL,
                            "Add Vertical Guideline"),
       new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
-                           StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE,
+                           StudioIcons.LayoutEditor.Toolbar.GUIDELINE_HORIZONTAL,
                            "Add Horizontal Guideline"),
       new AddElementAction(AddElementAction.VERTICAL_BARRIER,
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_VERTICAL,

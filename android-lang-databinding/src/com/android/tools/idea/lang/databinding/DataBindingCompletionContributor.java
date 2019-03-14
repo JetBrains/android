@@ -29,7 +29,7 @@ import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker;
-import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor.ResolvesToModelClass;
+import com.android.tools.idea.lang.databinding.model.ModelClassResolvable;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelField;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
@@ -63,7 +63,7 @@ import org.jetbrains.annotations.NotNull;
  * This handles completion in the data binding expressions (inside {@code @{}}).
  * <p/>
  * Completion for everything under {@code <data>} tag is in
- * {@link org.jetbrains.android.AndroidCompletionContributor#completeDataBindingTypeAttr}.
+ * {@link org.jetbrains.android.AndroidXmlCompletionContributor#completeDataBindingTypeAttr}.
  */
 public class DataBindingCompletionContributor extends CompletionContributor {
   public DataBindingCompletionContributor() {
@@ -166,7 +166,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
     PsiReference[] childReferences = referenceExpression.getReferences();
     for (PsiReference reference : childReferences) {
-      ResolvesToModelClass ref = (ResolvesToModelClass)reference;
+      ModelClassResolvable ref = (ModelClassResolvable)reference;
       PsiModelClass resolvedType = ref.getResolvedType();
       if (resolvedType != null) {
         for (ModelField modelField : resolvedType.getDeclaredFields()) {
@@ -203,8 +203,8 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
     PsiReference[] childReferences = referenceExpression.getReferences();
     for (PsiReference reference : childReferences) {
-      if (reference instanceof ResolvesToModelClass) {
-        ResolvesToModelClass ref = (ResolvesToModelClass)reference;
+      if (reference instanceof ModelClassResolvable) {
+        ModelClassResolvable ref = (ModelClassResolvable)reference;
         PsiModelClass resolvedType = ref.getResolvedType();
         if (resolvedType == null) {
           continue;

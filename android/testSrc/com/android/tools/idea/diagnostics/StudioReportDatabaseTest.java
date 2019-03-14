@@ -142,6 +142,17 @@ public class StudioReportDatabaseTest {
   }
 
   @Test
+  public void testEmptyFreezeReport() throws IOException {
+    db.appendReport(new FreezeReport(null, new TreeMap<>(), false, null, null));
+    FreezeReport report = (FreezeReport) db.reapReportDetails().get(0);
+
+    assertNull(report.getThreadDumpPath());
+    assertEquals(0, report.getReportParts().size());
+    assertNull(report.getTotalDuration());
+    assertNull(report.getDescription());
+  }
+
+  @Test
   public void testPerformanceThreadDumpContent() throws IOException {
     Path t1 = createTempFileWithThreadDump("T1");
 

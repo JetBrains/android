@@ -38,8 +38,7 @@ public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
       List<NotificationHyperlink> hyperlinks = new ArrayList<>();
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
       hyperlinks.add(syncProjectHyperlink);
-      String newText = text + syncProjectHyperlink.toHtml();
-      GradleSyncMessages.getInstance(project).updateNotification(notification, newText, hyperlinks);
+      GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }
     return false;
@@ -51,7 +50,7 @@ public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
     if (isNotEmpty(text) && text.contains("error in opening zip file")) {
       updateUsageTracker(project);
       return "Failed to open zip file.\n" +
-             "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n";
+             "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)";
     }
     return null;
   }

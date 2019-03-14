@@ -1,5 +1,6 @@
 package org.jetbrains.android.augment;
 
+import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.google.common.base.MoreObjects;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.ItemPresentation;
@@ -55,7 +56,7 @@ import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
-  private static final boolean KOTLIN_PLUGIN_AVAILABLE = isKotlinPluginAvailable();
+  private static final boolean KOTLIN_PLUGIN_AVAILABLE = AndroidStudioKotlinPluginUtils.isKotlinPluginAvailable();
 
   private final LightModifierList myPsiModifierList;
 
@@ -404,17 +405,6 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   @NotNull
   public String toString() {
     return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
-  }
-
-  private static boolean isKotlinPluginAvailable() {
-    try {
-      // Check if Kotlin IDE plugin classes can be loaded.
-      Class.forName("org.jetbrains.kotlin.idea.UserDataModuleInfoKt");
-      return true;
-    }
-    catch (ClassNotFoundException | LinkageError e) {
-      return false;
-    }
   }
 
   /**

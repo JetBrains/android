@@ -16,29 +16,39 @@
 
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.AAPT_PREFIX;
+import static com.android.SdkConstants.AAPT_URI;
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.DIST_PREFIX;
+import static com.android.SdkConstants.DIST_URI;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.android.SdkConstants.XLIFF_PREFIX;
+import static com.android.SdkConstants.XLIFF_URI;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.collect.ImmutableSet;
+import com.intellij.lang.xml.XMLLanguage;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NotNullLazyKey;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.xml.XmlSchemaProvider;
-import com.google.common.collect.ImmutableSet;
-import gnu.trove.THashMap;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
-import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -46,77 +56,50 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URL;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
+/**
+ * Provides namespaces and their standard prefix names commonly used in Android XML files.
+ *
+ * <p>Additionally it resolves all namespace URLs to a dummy file, which effectively opts out of standard IntelliJ mechanism for validating
+ * XML files. This is because Android doesn't provide XSD schemas and verifying their are correct is a complicated task that we handle in
+ * code in this package. See the README.md file for details.
+ */
 public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
-  private static final Key<Map<String, CachedValue<XmlFile>>> DESCRIPTORS_MAP_IN_MODULE = Key.create("ANDROID_DESCRIPTORS_MAP_IN_MODULE");
+
+  private static final NotNullLazyKey<XmlFile, Project> DUMMY_XSD = NotNullLazyKey.create(
+    AndroidXmlSchemaProvider.class.getName(),
+    project ->
+      (XmlFile)PsiFileFactory.getInstance(project)
+        .createFileFromText("android.xsd", XMLLanguage.INSTANCE,
+                            "<dummy />", false, false));
 
   @Override
   public XmlFile getSchema(@NotNull @NonNls String url, @Nullable final Module module, @NotNull PsiFile baseFile) {
-    if (module == null || AndroidFacet.getInstance(module) == null) return null;
-
-    Map<String, CachedValue<XmlFile>> descriptors = module.getUserData(DESCRIPTORS_MAP_IN_MODULE);
-    if (descriptors == null) {
-      descriptors = new THashMap<>();
-      module.putUserData(DESCRIPTORS_MAP_IN_MODULE, descriptors);
-    }
-    CachedValue<XmlFile> reference = descriptors.get(url);
-    if (reference != null) {
-      return reference.getValue();
-    }
-    CachedValuesManager manager = CachedValuesManager.getManager(module.getProject());
-    reference = manager.createCachedValue(() -> {
-      final URL resource = AndroidXmlSchemaProvider.class.getResource("android.xsd");
-      final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
-      XmlFile result = (XmlFile)PsiManager.getInstance(module.getProject()).findFile(fileByURL).copy();
-      return new CachedValueProvider.Result<>(result, PsiModificationTracker.MODIFICATION_COUNT);
-    }, false);
-
-    descriptors.put(url, reference);
-    return reference.getValue();
+    return module == null ? null : DUMMY_XSD.getValue(module.getProject());
   }
 
   @Override
   public boolean isAvailable(@NotNull final XmlFile file) {
-    final PsiFile f = file.getOriginalFile();
+    PsiFile f = file.getOriginalFile();
     if (!(f instanceof XmlFile)) {
       return false;
     }
     final XmlFile originalFile = (XmlFile)f;
 
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      if (isXmlResourceFile(originalFile) || ManifestDomFileDescription.isManifestFile(originalFile) ||
-          RawDomFileDescription.isRawFile(originalFile)) {
-        return AndroidFacet.getInstance(originalFile) != null;
+    return ReadAction.compute(() -> {
+      if (AndroidResourceUtil.isInResourceSubdirectory(originalFile, null)) {
+        PsiDirectory parent = originalFile.getParent();
+        if (parent == null) {
+          return false;
+        }
+
+        ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
+
+        // Don't run on custom XML files with defined namespaces. Users may want to validate them.
+        return resType != ResourceFolderType.XML || XmlResourceDomFileDescription.isXmlResourceFile(originalFile);
       }
-      return false;
+
+      return ManifestDomFileDescription.isManifestFile(originalFile);
     });
-  }
-
-  private static boolean isXmlResourceFile(XmlFile file) {
-    if (!AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
-      return false;
-    }
-
-    final PsiDirectory parent = file.getParent();
-    if (parent == null) {
-      return false;
-    }
-
-    final ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
-    if (resType == null) {
-      return false;
-    }
-    if (resType == ResourceFolderType.XML) {
-      return XmlResourceDomFileDescription.isXmlResourceFile(file);
-    }
-    return resType != ResourceFolderType.RAW;
   }
 
   @NotNull

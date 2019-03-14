@@ -73,21 +73,16 @@ public class NewKotlinModuleTest {
 
   private void addNewKotlinModule() {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
-    newModuleWizardFixture
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Phone & Tablet Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
-      .enterModuleName(NEW_KOTLIN_MDULE_NAME);
-
-    newModuleWizardFixture
+      .enterModuleName(NEW_KOTLIN_MDULE_NAME)
+      .setSourceLanguage("Kotlin")
+      .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
-      .getConfigureActivityStep()
-      .setSourceLanguage("Kotlin");
-
-    newModuleWizardFixture
       .clickFinish();
 
     ideFrame

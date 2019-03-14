@@ -443,6 +443,7 @@ public class RenderService implements Disposable {
     private boolean showDecorations = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
+    private boolean isShadowEnabled = true;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -529,6 +530,12 @@ public class RenderService implements Disposable {
       return this;
     }
 
+    @NotNull
+    public RenderTaskBuilder disableShadow() {
+      this.isShadowEnabled = false;
+      return this;
+    }
+
     /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
@@ -609,11 +616,13 @@ public class RenderService implements Disposable {
             task.setXmlFile((XmlFile)myPsiFile);
           }
 
-          task.setDecorations(showDecorations);
+          task
+            .setDecorations(showDecorations)
+            .setShadowEnabled(isShadowEnabled);
+
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
           }
-
           return task;
         } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
           // Ignore the exception if it was generated when the facet is being disposed (project is being closed)

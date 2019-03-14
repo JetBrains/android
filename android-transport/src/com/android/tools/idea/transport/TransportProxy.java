@@ -68,7 +68,8 @@ public final class TransportProxy {
       throw new IllegalStateException("Proxy server has not been built");
     }
     myProxyServices.forEach(ServiceProxy::disconnect);
-    myProxyServer.shutdownNow();
+    // Shutdown instead of shutdown now so that the proxy services have a chance to finish sending through their data.
+    myProxyServer.shutdown();
   }
 
   @NotNull

@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static java.util.Collections.emptyList;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
@@ -22,15 +28,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static java.util.Collections.emptyList;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link GradleUtil}.

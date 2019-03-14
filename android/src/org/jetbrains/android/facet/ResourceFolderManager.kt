@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.base.Splitter
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -70,8 +71,8 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
   @GuardedBy("lock") private val listeners = mutableListOf<ResourceFolderListener>()
   @Volatile private var generation: Long = 0
 
-  fun addListener(listener: ResourceFolderListener) = lock.withLock { listeners.add(listener) }
-  fun removeListener(listener: ResourceFolderListener) = lock.withLock { listeners.remove(listener) }
+  fun addListener(listener: ResourceFolderListener) = lock.withLockAndReadAccess { listeners.add(listener) }
+  fun removeListener(listener: ResourceFolderListener) = lock.withLockAndReadAccess { listeners.remove(listener) }
   override fun getModificationCount() = generation
   override fun onServiceDisposal(facet: AndroidFacet) = facet.putUserData(KEY, null)
 
@@ -81,7 +82,7 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
    *
    * @see IdeaSourceProvider.getCurrentSourceProviders
    */
-  val folders get() = lock.withLock { mainAndTestFolders.main }
+  val folders get() = lock.withLockAndReadAccess { mainAndTestFolders.main }
 
   /**
    * Returns test resource directories, in the overlay order.
@@ -108,10 +109,10 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
   val primaryFolder get() = folders.firstOrNull()
 
   /** Notifies the resource folder manager that the resource folder set may have changed.  */
-  fun invalidate() = lock.withLock {
+  fun invalidate() = lock.withLockAndReadAccess {
     val before = foldersCache
     if (before == null || isDisposed) {
-      return
+      return@withLockAndReadAccess
     }
     foldersCache = null
     val after = mainAndTestFolders
@@ -239,6 +240,16 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       .trimResults()
       .split(this)
       .mapNotNull(manager::findFileByUrl)
+  }
+
+  /**
+   * Runs the specified [action] with the IDE read lock (obtained first) as well as the [ReentrantLock] (obtained second), to prevent
+   * deadlocks when some callers are already in a read/write action and some are not.
+   *
+   * Fix for b/128355384.
+   */
+  private inline fun <T> ReentrantLock.withLockAndReadAccess(crossinline action: () -> T): T {
+    return runReadAction { this.withLock(action) }
   }
 
   companion object {

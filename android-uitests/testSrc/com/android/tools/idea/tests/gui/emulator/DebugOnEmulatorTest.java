@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 @RunWith(GuiTestRemoteRunner.class)
 public class DebugOnEmulatorTest {
 
-  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() -> {
     // TODO avoid API 24 due to b/92112542

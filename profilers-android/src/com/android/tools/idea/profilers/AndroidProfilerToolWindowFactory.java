@@ -194,7 +194,8 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
         .setCpuConfig(
           Agent.AgentConfig.CpuConfig.newBuilder()
             .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
-            .setSimpleperfHost(StudioFlags.PROFILER_SIMPLEPERF_HOST.get()))
+            .setSimpleperfHost(StudioFlags.PROFILER_SIMPLEPERF_HOST.get())
+            .setUsePerfetto(StudioFlags.PROFILER_USE_PERFETTO.get()))
         .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get());
     }
 

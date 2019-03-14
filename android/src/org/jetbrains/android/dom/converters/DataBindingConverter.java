@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.AndroidResolveScopeEnlarger;
+import org.jetbrains.android.AndroidXmlCompletionContributor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -304,7 +305,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
 
     /**
      * Don't care about variants here since completion by
-     * {@link org.jetbrains.android.AndroidCompletionContributor#completeDataBindingTypeAttr}.
+     * {@link AndroidXmlCompletionContributor#completeDataBindingTypeAttr}.
      */
     @Override
     @NotNull

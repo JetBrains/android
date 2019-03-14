@@ -18,15 +18,15 @@ package org.jetbrains.android.dom.menu;
 
 import com.android.resources.ResourceFolderType;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.ResourceFolderTypeDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-public class MenuDomFileDescription extends AndroidResourceDomFileDescription<Menu> {
+public class MenuDomFileDescription extends ResourceFolderTypeDomFileDescription<Menu> {
   public MenuDomFileDescription() {
-    super(Menu.class, "menu", ResourceFolderType.MENU);
+    super(Menu.class, ResourceFolderType.MENU, "menu");
   }
 
   public static boolean isMenuFile(@NotNull XmlFile file) {
-    return doIsMyFile(file, ResourceFolderType.MENU);
+    return isFileInResourceFolderType(file, ResourceFolderType.MENU);
   }
 }

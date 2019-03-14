@@ -15,6 +15,7 @@
  */
 package com.intellij.testGuiFramework.launcher
 
+import com.android.testutils.TestUtils
 import java.io.File
 
 enum class RestartPolicy {
@@ -37,8 +38,10 @@ object GuiTestOptions {
   fun getDebugPort(): Int = getSystemProperty("idea.gui.test.debug.port", 5005)
   fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
 
-  fun getAspectsAgentJar(): String = getSystemProperty("aspects.agent.jar", "")
-  fun getAspectsAgentRules(): String = getSystemProperty("aspects.agent.rules", "")
+  fun getAspectsAgentJar(): String =
+    getSystemProperty("aspects.agent.jar", "${TestUtils.getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
+  fun getAspectsAgentRules(): String =
+    getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.txt")
 
   //used for restarted and resumed test to qualify from what point to start
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)

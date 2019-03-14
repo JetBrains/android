@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
+import static com.intellij.openapi.application.PathManager.getJarPathForClass;
+import static com.intellij.openapi.util.io.FileUtil.createTempFile;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
+
 import com.android.ide.common.repository.GoogleMavenRepositoryKt;
 import com.android.java.model.JavaProject;
 import com.android.java.model.builder.JavaLibraryPlugin;
@@ -24,23 +31,19 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import kotlin.reflect.KType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
-import static com.intellij.openapi.application.PathManager.getJarPathForClass;
-import static com.intellij.openapi.util.io.FileUtil.createTempFile;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
+import kotlin.Unit;
+import kotlin.reflect.KType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.gradle.AbstractKotlinGradleModelBuilder;
+import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
 
 public class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
@@ -103,10 +106,28 @@ public class GradleInitScripts {
     }
   }
 
+  public void addApplyKaptModelBuilderInitScript(@NotNull List<String> allArgs) {
+    try {
+      File initScriptFile = createKaptModelBuilderInitScriptFile();
+      addInitScriptCommandLineArg(initScriptFile, allArgs);
+    }
+    catch (IOException e) {
+      // if the init script cannot be created, sync won't succeed. Unlikely to happen, but better fail now than later.
+      // No need for checked exception. Client code won't be able to recover from this.
+      throw new RuntimeException("Failed to create init script that applies the Kapt model builder plugin", e);
+    }
+  }
+
   @NotNull
   private File createApplyJavaLibraryPluginInitScriptFile() throws IOException {
     String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
     return createInitScriptFile("sync.java.lib", content);
+  }
+
+  @NotNull
+  private File createKaptModelBuilderInitScriptFile() throws IOException {
+    String content = myContentCreator.createKaptModelBuilderInitScriptContent();
+    return createInitScriptFile("sync.ng.kapt", content);
   }
 
   @NotNull
@@ -162,10 +183,10 @@ public class GradleInitScripts {
         return null;
       }
 
-      String paths = "";
-      for (String path: repoPaths) {
+      StringBuilder paths = new StringBuilder();
+      for (String path : repoPaths) {
         path = escapeGroovyStringLiteral(path);
-        paths += "      maven { url '" + path + "'}\n";
+        paths.append("      maven { url '").append(path).append("'}\n");
       }
       return "allprojects {\n" +
              "  buildscript {\n" +
@@ -180,6 +201,65 @@ public class GradleInitScripts {
     @NotNull
     String createApplyJavaLibraryPluginInitScriptContent() {
       List<String> paths = myJavaLibraryPluginJars.getJarPaths();
+      return "initscript {\n" +
+             "    dependencies {\n" +
+             "        " + createClassPathString(paths) + "\n" +
+             "    }\n" +
+             "}\n" +
+             "allprojects {\n" +
+             "    apply plugin: " + JavaLibraryPlugin.class.getName() + "\n" +
+             "}\n";
+    }
+
+    @NotNull
+    String createKaptModelBuilderInitScriptContent() {
+      Class kaptModelBuilderClass = KaptModelBuilderService.class;
+      List<String> paths =  new ArrayList<>();
+      paths.add(getJarPathForClass(kaptModelBuilderClass));
+      paths.add(getJarPathForClass(Unit.class));
+      paths.add(getJarPathForClass(AbstractKotlinGradleModelBuilder.class));
+      paths.add(getJarPathForClass(ModelBuilderService.class));
+      return "import javax.inject.Inject\n" +
+             "import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry\n" +
+             "import org.gradle.tooling.provider.model.ToolingModelBuilder\n" +
+             "initscript {\n" +
+             "  dependencies {\n" +
+             "      " +
+             createClassPathString(paths) +
+             "\n" +
+             "  }\n" +
+             "}\n" +
+             "allprojects {\n" +
+             "  apply plugin: KaptModelBuilderPlugin\n" +
+             "}\n" +
+             "class KaptModelBuilder implements ToolingModelBuilder {\n" +
+             "  public " + kaptModelBuilderClass.getName() + " builder;" +
+             "\n" +
+             "  public KaptModelBuilder() {\n" +
+             "    builder = new " + kaptModelBuilderClass.getName() + "();\n" +
+             "  }\n" +
+             "  public boolean canBuild(String modelName) {\n" +
+             "    return builder.canBuild(modelName);\n" +
+             "  }\n" +
+             "  public Object buildAll(String modelName, Project project) {\n" +
+             "    return builder.buildAll(modelName, project);\n" +
+             "  }\n" +
+             "}\n" +
+             "class KaptModelBuilderPlugin implements Plugin<Project>{ \n" +
+             "  ToolingModelBuilderRegistry registry\n" +
+             "  @Inject KaptModelBuilderPlugin(ToolingModelBuilderRegistry registry) {\n" +
+             "    this.registry = registry" +
+             "  }\n" +
+             "\n" +
+             "\n" +
+             "  void apply(Project project) {\n" +
+             "    registry.register(new KaptModelBuilder())\n" +
+             "  }\n" +
+             "}";
+    }
+
+    @NotNull
+    String createClassPathString(@NotNull List<String> paths) {
       StringBuilder classpath = new StringBuilder();
       classpath.append("classpath files([");
       int pathCount = paths.size();
@@ -191,14 +271,7 @@ public class GradleInitScripts {
         }
       }
       classpath.append("])");
-      return "initscript {\n" +
-             "    dependencies {\n" +
-             "        " + classpath.toString() + "\n" +
-             "    }\n" +
-             "}\n" +
-             "allprojects {\n" +
-             "    apply plugin: " + JavaLibraryPlugin.class.getName() + "\n" +
-             "}\n";
+      return classpath.toString();
     }
   }
 

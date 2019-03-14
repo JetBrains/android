@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import org.jetbrains.annotations.NotNull;
+import trebuchet.io.BufferProducer;
 import trebuchet.model.*;
 import trebuchet.model.base.SliceGroup;
 import trebuchet.task.ImportTask;
@@ -128,10 +129,17 @@ public class AtraceParser implements TraceParser {
    * Parses the input file and caches off the model to prevent parsing multiple times.
    */
   private void parseModelIfNeeded(@NotNull File file) throws IOException {
+    assert AtraceProducer.verifyFileHasAtraceHeader(file) || PerfettoProducer.verifyFileHasPerfettoTraceHeader(file);
     if (myModel == null) {
-      AtraceProducer reader = new AtraceProducer(file);
+      BufferProducer producer;
+      if (AtraceProducer.verifyFileHasAtraceHeader(file)) {
+        producer = new AtraceProducer(file);
+      } else {
+        producer = new PerfettoProducer(file);
+      }
+
       ImportTask task = new ImportTask(new PrintlnImportFeedback());
-      myModel = task.importBuffer(reader);
+      myModel = task.importBuffer(producer);
       // We check if we have a parent timestamp. If not this could be from an imported trace.
       // In the case it is 0, we use the first timestamp of our capture as a reference point.
       if (Double.compare(myModel.getParentTimestamp(),0.0) == 0) {

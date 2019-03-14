@@ -54,4 +54,9 @@ class TestBuildOutputInstantReader(input: String) : BuildOutputInstantReader {
   override fun getCurrentLine(): String {
     throw UnsupportedOperationException()
   }
+
+  override fun append(csq: CharSequence?): BuildOutputInstantReader = this
+  override fun append(csq: CharSequence?, start: Int, end: Int): BuildOutputInstantReader = this
+  override fun append(c: Char): BuildOutputInstantReader = this
+  override fun close() = Unit
 }

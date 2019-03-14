@@ -21,14 +21,14 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
-public class FontFamilyDomFileDescription extends AbstractSingleRootFileDescription<FontFamily> {
+public class FontFamilyDomFileDescription extends SingleRootResourceDomFileDescription<FontFamily> {
   public static final String TAG_NAME = "font-family";
 
   public FontFamilyDomFileDescription() {
@@ -36,7 +36,7 @@ public class FontFamilyDomFileDescription extends AbstractSingleRootFileDescript
   }
 
   public static boolean isFontFamilyFile(@NotNull XmlFile file) {
-    return doIsMyFile(file, ResourceFolderType.FONT);
+    return isFileInResourceFolderType(file, ResourceFolderType.FONT);
   }
 
   @NotNull

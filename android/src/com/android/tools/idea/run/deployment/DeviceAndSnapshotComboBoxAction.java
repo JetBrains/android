@@ -16,11 +16,17 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunProfile;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -320,6 +326,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     presentation.setVisible(true);
+    updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
     myDevices = myDevicesGetterGetter.apply(project).get();
     myDevices.sort(new DeviceComparator());
@@ -343,6 +350,41 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setText(mySelectedSnapshot == null ? device.getName() : device + " - " + mySelectedSnapshot);
 
     updateExecutionTargetManager(project, device);
+  }
+
+  @VisibleForTesting
+  static void updatePresentation(@NotNull Presentation presentation, @Nullable RunnerAndConfigurationSettings settings) {
+    if (settings == null) {
+      presentation.setDescription("Add a run/debug configuration");
+      presentation.setEnabled(false);
+
+      return;
+    }
+
+    RunProfile configuration = settings.getConfiguration();
+
+    if (!(configuration instanceof AndroidRunConfiguration || configuration instanceof AndroidTestRunConfiguration)) {
+      presentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
+      presentation.setEnabled(false);
+
+      return;
+    }
+
+    if (configuration instanceof AndroidTestRunConfiguration &&
+        isFirebaseTestLabDeviceMatrixTargetSelected((AndroidRunConfigurationBase)configuration)) {
+      presentation.setDescription("Not applicable for the Firebase test lab device matrix target");
+      presentation.setEnabled(false);
+
+      return;
+    }
+
+    presentation.setDescription(null);
+    presentation.setEnabled(true);
+  }
+
+  private static boolean isFirebaseTestLabDeviceMatrixTargetSelected(@NotNull AndroidRunConfigurationBase configuration) {
+    Object id = TargetSelectionMode.FIREBASE_DEVICE_MATRIX.name();
+    return configuration.getDeployTargetContext().getCurrentDeployTargetProvider().getId().equals(id);
   }
 
   private void updateSelectedSnapshot(@NotNull Project project) {
@@ -383,9 +425,15 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
     // So we'll just make sure the following gets run on the EDT thread and wait for its result.
     ApplicationManager.getApplication().invokeAndWait(() -> {
+      RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+
+      if (settings == null) {
+        return;
+      }
+
       ExecutionTargetManager manager = ExecutionTargetManager.getInstance(project);
-      List<ExecutionTarget> availableTargets = manager.getTargetsFor(RunManager.getInstance(project).getSelectedConfiguration());
-      for (ExecutionTarget availableTarget : availableTargets) {
+
+      for (ExecutionTarget availableTarget : manager.getTargetsFor(settings.getConfiguration())) {
         if (availableTarget instanceof DeviceAndSnapshotExecutionTargetProvider.Target) {
           manager.setActiveTarget(availableTarget);
           break;

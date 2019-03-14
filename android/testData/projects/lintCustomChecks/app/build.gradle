@@ -1,0 +1,18 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+    }
+}
+
+repositories {
+    maven { url '../localRepo' }
+}
+
+dependencies {
+    implementation project(':library')
+    lintChecks project(':lint')
+}

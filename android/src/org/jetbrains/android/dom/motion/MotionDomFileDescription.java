@@ -16,9 +16,17 @@
 package org.jetbrains.android.dom.motion;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
+import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 
-public class MotionDomFileDescription extends AndroidResourceDomFileDescription<MotionScene> {
+/**
+ * Describes motion files.
+ *
+ * Being a {@link SingleRootResourceDomFileDescription} gives it precedence over {@link XmlResourceDomFileDescription}.
+ *
+ * @see XmlResourceDomFileDescription
+ */
+public class MotionDomFileDescription extends SingleRootResourceDomFileDescription<MotionScene> {
   public MotionDomFileDescription() {
     super(MotionScene.class, "MotionScene", ResourceFolderType.XML);
   }

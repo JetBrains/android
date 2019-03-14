@@ -32,10 +32,12 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+import java.util.function.Supplier
 import javax.swing.ImageIcon
 import kotlin.math.min
 
@@ -80,8 +82,9 @@ class DrawableIconProvider(
     val file = designAsset.file
     val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file)
     return if (psiFile is XmlFile) {
-      val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
-      LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration)
+      CompletableFuture.supplyAsync(
+        Supplier { ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file) }, PooledThreadExecutor.INSTANCE)
+        .thenCompose { configuration -> LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration) }
     }
     else null
   }

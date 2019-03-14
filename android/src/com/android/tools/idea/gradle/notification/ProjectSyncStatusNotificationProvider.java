@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
@@ -61,40 +62,34 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
-public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
-    implements DumbAware {
-
+public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
   private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
-  @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
 
-  public ProjectSyncStatusNotificationProvider(@NotNull Project project,
-                                               @NotNull GradleProjectInfo projectInfo,
-                                               @NotNull GradleSyncState syncState) {
-    myProject = project;
+  public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo, @NotNull GradleSyncState syncState) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
   }
 
   @Override
   @NotNull
-  public Key<EditorNotificationPanel> getKey() {
+  public final Key<EditorNotificationPanel> getKey() {
     return KEY;
   }
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(getKey());
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull FileEditor fileEditor,
+                                                         @NotNull Project project) {
+    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(KEY);
     NotificationPanel.Type newPanelType = notificationPanelType();
 
     if (oldPanel != null) {
@@ -106,7 +101,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       }
     }
 
-    return newPanelType.create(myProject, file, myProjectInfo);
+    NotificationPanel panel = newPanelType.create(project, file, myProjectInfo);
+    if (panel instanceof Disposable) {
+      Disposer.register(fileEditor, (Disposable)panel);
+    }
+    return panel;
   }
 
   @VisibleForTesting
@@ -207,11 +206,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
   }
 
-  // Notification panel which may contain actions which we don't want to be executed during indexing (e.g.,
-  // retrying sync itself)
+  /** Notification panel which may contain actions which we don't want to be executed during indexing (e.g., retrying sync itself). */
   @VisibleForTesting
   static class IndexingSensitiveNotificationPanel extends NotificationPanel implements Disposable {
-    private final DumbService myDumbService;
 
     IndexingSensitiveNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       this(project, type, text, DumbService.getInstance(project));
@@ -224,9 +221,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                                        @NotNull DumbService dumbService) {
       super(type, text);
 
-      myDumbService = dumbService;
-
-      Disposer.register(project, this);
       MessageBusConnection connection = project.getMessageBus().connect(this);
       connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
         @Override
@@ -240,8 +234,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         }
       });
 
-      // First subscribe, then update visibility
-      setVisible(!myDumbService.isDumb());
+      // First subscribe, then update visibility.
+      setVisible(!dumbService.isDumb());
     }
 
     @Override
@@ -272,7 +266,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
-        final ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
+        ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
         if (tw != null && !tw.isActive()) {
           tw.activate(null, false);
         }
@@ -287,15 +281,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @VisibleForTesting
   static class ProjectStructureNotificationPanel extends NotificationPanel {
-    private Project myProject;
-
     ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text, @NotNull Module module) {
       super(type, text);
 
-      myProject = project;
-
       createActionLabel("Open Project Structure", () -> {
-        ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(myProject);
+        ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(project);
         if (projectSettingsService instanceof AndroidProjectSettingsService) {
           projectSettingsService.openModuleSettings(module);
         }
