@@ -48,6 +48,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Container
 import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.InputEvent
@@ -64,6 +65,7 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
+import javax.swing.LayoutFocusTraversalPolicy
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -263,6 +265,12 @@ class ResourceExplorerView(
     add(headerPanel, BorderLayout.NORTH)
     add(sectionList)
     add(footerPanel, BorderLayout.SOUTH)
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+      override fun getFirstComponent(p0: Container?): Component {
+        return sectionList.getLists().firstOrNull() ?: this@ResourceExplorerView
+      }
+    }
   }
 
   private fun getSelectedAssets(): List<DesignAsset> {
