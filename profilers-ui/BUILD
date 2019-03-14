@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -51,5 +52,35 @@ iml_module(
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+    ],
+)
+
+kotlin_test(
+    name = "intellij.android.profilers.ui.performance",
+    srcs = ["testSrc/com/android/tools/profilers/performance"],
+    data = glob(["testData/**"]),
+    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.ui.performance.jar"],
+    test_class = "com.android.testutils.JarTestSuite",
+    runtime_deps = [
+        ":intellij.android.profilers.ui_testlib",
+    ],
+    deps = [
+        ":intellij.android.profilers.ui",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
+        "//tools/adt/idea/android-transport:intellij.android.transport",
+        "//tools/adt/idea/profilers:intellij.android.profilers",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:JUnit4",
+        "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
+        "//tools/idea/.idea/libraries:truth",
+        "//tools/idea/platform/core-api:intellij.platform.core",
+        "//tools/idea/platform/util:intellij.platform.util",
+        "//tools/idea/platform/util-rt:intellij.platform.util.rt",
     ],
 )
