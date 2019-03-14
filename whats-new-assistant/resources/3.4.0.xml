@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="3402">
+    version="3408">
   <feature
       name="What's New in 3.4">
     <tutorial
         key="whats-new"
         label=" What's New in 3.4"
-        icon="preview/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
+        icon="stable/whats_new_icon.png"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes.html"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -38,40 +38,141 @@
           from the main menu.
           ]]>
       </description>
-      <step label="Updated Project Structure Dialog">
+      <step label="New Project Structure Dialog">
         <stepElement>
           <section>
             <![CDATA[
            <br>
-           <img src="https://d.android.com/studio/releases/assistant/3.3.0/new-psd.gif"
+           <img src="https://d.android.com/studio/releases/assistant/3.4.0/new-psd.gif"
            width="428"
-           height="296"
-           alt="The new project structure dialog lets you, for example, manage build types,
-                product flavors, and their properties.">
+           height="387"
+           alt="An image of the Variables section of thte PSD, which allows you to create, manage,
+                customize build variables.">
 
            <br><br>
-           Click <b>File &gt; Project Structure</b> to use the improved Project Structure dialog,
-           which now allows you to better manage build variants and their properties, visualize the
-           dependency graph of each module, verify that dependencies are up-to-date, and more.
-           <a href="https://d.android.com/r/studio-wna/3.3.0/new-psd">
-           Learn more</a></li>
+           The New Project Structure Dialog (PSD) makes it easier to keep dependencies updated
+           and configure different aspects of your project, such as modules, build variants and
+           variables, signing configurations, and build variables. Open the PSD by selecting
+           <b>File &gt; Project Structure</b> from the menu bar.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/new-psd">
+           Learn more</a>
            ]]>
           </section>
         </stepElement>
       </step>
-      <step label="Re-import Gradle project">
+      <step label="New Resource Manager">
         <stepElement>
           <section>
             <![CDATA[
-           If Android Studio fails to download dependencies you've added to your project through
-           Gradle, you can attempt to fix the issue and re-import the Gradle project by selecting
-           <b>File &gt; Re-Import Gradle Project</b> from the menu bar.
-           <a href="https://d.android.com/r/studio-wna/3.4.0/reimport_gradle">
-           Learn more</a></li>
+           <br>
+           <img src="https://d.android.com/studio/releases/assistant/3.4.0/resource_manager.gif"
+           width="428"
+           height="257"
+           alt="The new Resource Manager helps you create, manage, and drop resources into your app.">
 
-          <br><br><hr><br>
-          <em>Last updated 11/14/2018</em>
-          <br><br>
+           <br><br>
+           The <b>Resource Manager</b> is a new tool window for importing, creating, managing, and
+           applying resources to your app's layouts. You can open the tool window by selecting
+           <b>View &gt; Tool Windows &gt; Resource Manager</b> from the menu bar.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/resource_manager">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="R8 enabled by default">
+        <stepElement>
+          <section>
+            <![CDATA[
+           <br>
+           <img src="https://d.android.com/studio/releases/assistant/3.4.0/r8.png"
+           width="428"
+           height="112"
+           alt="With R8, desugaring, shrinking, obfuscating, optimizing, and dexing (D8) are all
+                completed in one step">
+
+           <br><br>
+           R8 integrates desugaring, shrinking, obfuscating, optimizing, and dexing all in one
+           step—resulting in noticeable build performance improvements. R8 was introduced in Android
+           Gradle plugin 3.3.0 and is now enabled by default for both app and Android library
+           projects using plugin 3.4.0 and higher.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/r8">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Android Gradle plugin 3.4.0 updates">
+        <stepElement>
+          <section>
+            <![CDATA[
+           In addition to enabling R8 by default, the latest version of the Android Gradle plugin
+           includes build performance improvements, a new lint check dependency configuration, and
+           more.
+           <a href="https://d.android.com/r/studio-ui/whats-new-assistant/agp-stable-release-notes">
+           Release notes</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Navigation Editor supports all argument types">
+        <stepElement>
+          <section>
+            <![CDATA[
+           All argument types supported by the Navigation Jetpack component are now supported in the
+           Navigation Editor.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/navigation-args">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Layout Editor improvements">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The <b>Attributes</b> pane in the Layout Editor has been streamlined into a single page
+           with expandable sections that reveal attributes you can configure.
+           <br><br>
+           This pane also includes new UI elements that indicate when attributes reference
+           resources, and flag errors and warnings, such as invalid or hard-coded values.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/layout-editor">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="New intention for quickly importing dependencies">
+        <stepElement>
+          <section>
+            <![CDATA[
+           <br>
+           <img src="https://d.android.com/studio/releases/assistant/3.4.0/import-intention.gif"
+           width="428"
+           height="151"
+           alt="A new intention action let's you quickly import dependencies for certain Android
+                Jetpack and Firebase classes.">
+
+           <br><br>
+           If you start using certain Jetpack and Firebase classes in your code, a new intention
+           action suggests adding the required Gradle library dependency to your project, if you
+           haven’t already done so.
+           <a href="https://d.android.com/r/studio-wna/3.4.0/import-intention">
+           Learn more</a>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="IntelliJ IDEA 2018.3.4">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The core Android Studio IDE has been updated with improvements from IntelliJ IDEA through
+           the <a href="https://blog.jetbrains.com/idea/2019/01/intellij-idea-2018-3-4-is-released/">
+           2018.3.4 release</a>.
+           <br><br><hr><br>
+           <em>Last updated 3/25/2019</em>
+           <br><br>
            ]]>
           </section>
         </stepElement>
