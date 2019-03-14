@@ -18,6 +18,8 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
+import com.intellij.ui.speedSearch.SpeedSearch
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -46,11 +48,15 @@ interface ResourceExplorerViewModel {
 
   val assetPreviewManager: AssetPreviewManager
 
+  var facet: AndroidFacet
+
+  val speedSearch: SpeedSearch
+
   /**
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the
    * one containing the resource of the current module.
    */
-  fun getResourcesLists(): CompletableFuture<List<ResourceSection>>?
+  fun getResourcesLists(): CompletableFuture<List<ResourceSection>>
 
   /**
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
@@ -61,4 +67,6 @@ interface ResourceExplorerViewModel {
    * Opens an editor to display the [asset].
    */
   fun openFile(asset: DesignAsset)
+
+  fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet)
 }
