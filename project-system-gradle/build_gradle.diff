@@ -5,10 +5,11 @@ diff --git a/build.gradle b/build.gradle
 -  id "com.jfrog.bintray" version "1.8.4"
 @@ -16,0 +16,1 @@
 +def gradleApiVersion = GradleVersion.current().getVersion()
-@@ -61,6 +62,7 @@ task setupGradleApiDeps(dependsOn: configurations.gradleApiDeps, type: Sync) {
+@@ -61,6 +62,8 @@ task setupGradleApiDeps(dependsOn: configurations.gradleApiDeps, type: Sync) {
  
      def connection = GradleConnector.newConnector()
        .useGradleVersion(gradleApiVersion)
++      .useDistribution(new File("tools/external/gradle/gradle-" + gradleApiVersion + "-bin.zip").toURI())
 +      .useGradleUserHomeDir(gradle.getGradleUserHomeDir())
        .forProjectDirectory(projectDir)
        .connect()
