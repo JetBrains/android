@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.TreeSpeedSearch;
@@ -179,7 +180,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
    * the XML declaration.
    */
   private void overrideCtrlClick() {
-    MouseShortcut ctrlClickShortcut = new MouseShortcut(MouseEvent.BUTTON1, InputEvent.CTRL_MASK, 1);
+    int modifier = SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
+    MouseShortcut ctrlClickShortcut = new MouseShortcut(MouseEvent.BUTTON1, modifier, 1);
 
     // Get all the action registered for this component
     List<AnAction> actions = ImmutableList.copyOf(ActionUtil.getActions(this));
