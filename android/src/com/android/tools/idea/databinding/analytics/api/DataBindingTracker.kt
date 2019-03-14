@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
  */
 interface DataBindingTracker {
   companion object {
+    @JvmStatic
     /**
      * This will always return data binding module's implementation of [DataBindingTracker] if data binding module is enabled.
      * Otherwise return a default dummy [DataBindingDefaultTracker] that returns a default (negative) proto.
