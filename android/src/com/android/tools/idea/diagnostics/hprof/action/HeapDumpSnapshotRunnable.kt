@@ -17,6 +17,9 @@ package com.android.tools.idea.diagnostics.hprof.action
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
+import com.android.tools.idea.diagnostics.report.HeapReportProperties
+import com.android.tools.idea.diagnostics.report.MemoryReportReason
+import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
 import com.android.tools.idea.ui.GuiTestingService
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
@@ -35,11 +38,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.concurrent.TimeUnit
-import javax.swing.SwingUtilities
+import java.util.Locale
 
 class HeapDumpSnapshotRunnable(
-  private val invokedByUser: Boolean,
+  private val reason: MemoryReportReason,
   private val analysisOption: AnalysisOption) : Runnable {
 
   companion object {
@@ -55,10 +57,11 @@ class HeapDumpSnapshotRunnable(
   }
 
   override fun run() {
-    LOG.info("HeapDumpSnapshotRunnable started: invokedByUser=$invokedByUser, analysisOption=$analysisOption")
+    LOG.info("HeapDumpSnapshotRunnable started: reason=$reason, analysisOption=$analysisOption")
 
-    if (!invokedByUser) {
+    val userInvoked = reason.isUserInvoked()
 
+    if (!userInvoked) {
       if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
         LOG.info("Disabled for tests.")
         return
@@ -84,6 +87,15 @@ class HeapDumpSnapshotRunnable(
         LOG.info("Heap dump too small: $usedMemoryMB MB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB MB")
         return
       }
+
+      val nextCheckPropertyMs = PropertiesComponent.getInstance().getOrInitLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
+      val currentTimestampMs = System.currentTimeMillis()
+
+      if (nextCheckPropertyMs > currentTimestampMs) {
+        val nextCheckDateString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date(nextCheckPropertyMs))
+        LOG.info("Don't ask for snapshot until $nextCheckDateString.")
+        return
+      }
     }
 
     val hprofPath = AndroidStudioSystemHealthMonitor.ourHProfDatabase.createHprofTemporaryFilePath()
@@ -95,7 +107,7 @@ class HeapDumpSnapshotRunnable(
     if (spaceInMB < estimatedRequiredMB) {
       LOG.info("Not enough space for heap dump: $spaceInMB MB < $estimatedRequiredMB MB")
       // If invoked by the user action, show a message why a heap dump cannot be captured.
-      if (invokedByUser) {
+      if (userInvoked) {
         val message = AndroidBundle.message("heap.dump.snapshot.no.space", hprofPath.parent.toString(),
                                             estimatedRequiredMB, spaceInMB)
         Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
@@ -103,40 +115,11 @@ class HeapDumpSnapshotRunnable(
       return
     }
 
-    var offerRestart = true
-    if (!invokedByUser) {
-      val nextCheckPropertyMs = PropertiesComponent.getInstance().getOrInitLong(NEXT_CHECK_TIMESTAMP_KEY, 0)
-      val currentTimestampMs = System.currentTimeMillis()
-
-      if (nextCheckPropertyMs > currentTimestampMs) {
-        val nextCheckDateString = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z").format(Date(nextCheckPropertyMs))
-        LOG.info("Don't ask for snapshot until $nextCheckDateString.")
-        return
-      }
-
-      // Ask user for permission to capture a heap dump
-      val productName = ApplicationNamesInfo.getInstance().fullProductName
-      val result = Messages.showYesNoCancelDialog(
-        AndroidBundle.message("heap.dump.snapshot.dialog.text", productName),
-        AndroidBundle.message("heap.dump.snapshot.title"),
-        AndroidBundle.message("heap.dump.snapshot.capture.restart"),
-        AndroidBundle.message("heap.dump.snapshot.capture"),
-        AndroidBundle.message("heap.dump.snapshot.skip"),
-        Messages.getWarningIcon())
-      if (result == Messages.CANCEL) {
-        // Don't capture a heap dump for a week if user selected 'skip'
-        val nextCheckMs = currentTimestampMs + TimeUnit.DAYS.toMillis(7)
-        PropertiesComponent.getInstance().setValue(NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
-        LOG.info("Aborted by the user.")
-        return
-      }
-      offerRestart = result == Messages.YES
-    }
-
     LOG.info("Capturing heap dump.")
 
-    // Start heap capture as a modal task
-    CaptureHeapDumpTask(hprofPath, analysisOption, offerRestart).queue()
+    // Start heap capture as a modal task.
+    // Offer restart only if explicitly invoked by user action.
+    CaptureHeapDumpTask(hprofPath, reason, analysisOption, userInvoked).queue()
   }
 
   private fun estimateRequiredFreeSpaceInMB(): Long {
@@ -144,6 +127,7 @@ class HeapDumpSnapshotRunnable(
   }
 
   class CaptureHeapDumpTask(private val hprofPath: Path,
+                            private val reason: MemoryReportReason,
                             private val analysisOption: AnalysisOption,
                             private val restart: Boolean)
     : Task.Modal(null,
@@ -165,7 +149,12 @@ class HeapDumpSnapshotRunnable(
 
     override fun run(indicator: ProgressIndicator) {
       indicator.isIndeterminate = true
-      indicator.text = AndroidBundle.message("heap.dump.snapshot.indicator.text")
+
+      val productName = ApplicationNamesInfo.getInstance().fullProductName
+      if (reason.isUserInvoked())
+        indicator.text = AndroidBundle.message("heap.dump.snapshot.indicator.text", productName)
+      else
+        indicator.text = AndroidBundle.message("heap.dump.snapshot.indicator.low.memory.text", productName)
 
       // TODO: Rewrite to remove this delay. Task.queue() shows progress dialog with 300ms delay currently without
       //   an API to lower this or get notified the window is shown. Creating a heap dump is a long-running operation
@@ -175,24 +164,27 @@ class HeapDumpSnapshotRunnable(
       // Freezes JVM (and whole UI) while heap dump is created.
       captureSnapshot()
 
+      val report = UnanalyzedHeapReport(hprofPath, HeapReportProperties(reason))
+
       when (analysisOption) {
         AnalysisOption.SCHEDULE_ON_NEXT_START -> {
-          AndroidStudioSystemHealthMonitor.addHProfToDatabase(hprofPath)
-          SwingUtilities.invokeLater {
-            val productName = ApplicationNamesInfo.getInstance().fullProductName
+          AndroidStudioSystemHealthMonitor.getInstance()?.addHeapReportToDatabase(report)
+          ApplicationManager.getApplication().invokeLater {
             val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
+              AndroidBundle.message("heap.dump.analysis.notification.title"),
               AndroidBundle.message("heap.dump.snapshot.created", hprofPath.toString(), productName),
-              NotificationType.INFORMATION)
+              NotificationType.INFORMATION, null)
             notification.notify(null)
           }
         }
         AnalysisOption.IMMEDIATE -> {
-          SwingUtilities.invokeLater(AnalysisRunnable(hprofPath, true))
+          ApplicationManager.getApplication().invokeLater(AnalysisRunnable(report, true))
         }
         AnalysisOption.NO_ANALYSIS -> {
           val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
+            AndroidBundle.message("heap.dump.analysis.notification.title"),
             AndroidBundle.message("heap.dump.snapshot.created.no.analysis", hprofPath.toString()),
-            NotificationType.INFORMATION)
+            NotificationType.INFORMATION, null)
           notification.notify(null)
         }
       }

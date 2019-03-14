@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.google.common.base.Charsets;
 import java.io.File;
@@ -87,9 +88,9 @@ public class StudioReportDatabaseTest {
     Path h3 = createTempFileWithThreadDump("H3");
     Path t3 = createTempFileWithThreadDump("T3");
 
-    db.appendReport(new HistogramReport(t1, h1, "test"));
+    db.appendReport(new HistogramReport(t1, h1, MemoryReportReason.LowMemory, "test"));
     db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
-    db.appendReport(new HistogramReport(t3, h3, "test"));
+    db.appendReport(new HistogramReport(t3, h3, MemoryReportReason.LowMemory, "test"));
 
     List<DiagnosticReport> reports = db.reapReportDetails();
 
@@ -103,13 +104,14 @@ public class StudioReportDatabaseTest {
     Path h1 = createTempFileWithThreadDump("H1");
     Path t1 = createTempFileWithThreadDump("T1");
 
-    db.appendReport(new HistogramReport(t1, h1, "Histogram description"));
+    db.appendReport(new HistogramReport(t1, h1, MemoryReportReason.LowMemory, "Histogram description"));
 
     DiagnosticReport details = db.reapReportDetails().get(0);
 
     assertThat(details, CoreMatchers.is(instanceOf(HistogramReport.class)));
     HistogramReport report = (HistogramReport) details;
     assertEquals("Histogram", details.getType());
+    assertEquals("LowMemory", report.getReason().toString());
     assertEquals(t1, report.getThreadDumpPath());
     assertEquals(h1, report.getHistogramPath());
     assertEquals("Histogram description", report.getDescription());
@@ -169,7 +171,7 @@ public class StudioReportDatabaseTest {
   public void testCorruptedDatabaseFile() throws IOException {
     Path t1 = createTempFileWithThreadDump("T1");
     db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
-    Files.write(databaseFile.toPath(), "Corrupted json".getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
+    Files.write(databaseFile.toPath(), "Corrupted json".getBytes(Charsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
     List<DiagnosticReport> details = db.reapReportDetails();
 
     // If the db file contains corrupted of malformed json, return no reports.
@@ -196,7 +198,7 @@ public class StudioReportDatabaseTest {
       "1.2.3.4", //studio version
       "9.8.7.6" // kotlin version
     );
-    db.appendReport(new HistogramReport(t1, t2, "", properties));
+    db.appendReport(new HistogramReport(t1, t2, MemoryReportReason.LowMemory, "", properties));
     List<DiagnosticReport> reports = db.reapReportDetails();
     HistogramReport report = (HistogramReport) reports.get(0);
     assertNotSame(properties, report.getProperties());
