@@ -22,6 +22,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,11 +92,15 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
-    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    String path = "plugins/android/resources/profilers-transform.jar";
+    File file = new File(PathManager.getHomePath(), path);
     if (file.exists()) {
       return file;
     }
-
+    File dir = AndroidProfilerDownloader.getHostDir(path);
+    if (dir.exists()) {
+      return dir;
+    }
     // Development build
     String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
