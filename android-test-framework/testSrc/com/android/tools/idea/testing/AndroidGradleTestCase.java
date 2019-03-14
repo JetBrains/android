@@ -281,7 +281,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                              @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
 
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertTrue(androidProjectInfo.requiresAndroidModel());
@@ -455,8 +455,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void importProject(@NotNull String projectName,
-                               @NotNull File projectRoot,
-                               @Nullable GradleSyncListener listener) throws Exception {
+                               @NotNull File projectRoot) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
     Disposable subscriptionDisposable = Disposer.newDisposable();
@@ -476,7 +475,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
           GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
           syncRequest.generateSourcesOnSuccess = false;
-          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, listener);
+          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
         }
         catch (Throwable e) {
           throwableRef.set(e);
@@ -501,7 +500,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     finally {
       Disposer.dispose(subscriptionDisposable);
     }
-    if (syncListener.failureMessage != null && listener == null) {
+    if (syncListener.failureMessage != null) {
       fail(syncListener.failureMessage);
     }
   }

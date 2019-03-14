@@ -1615,7 +1615,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     refreshProjectFiles();
     if (syncProject) {
-      importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot, null);
+      importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot);
     }
   }
 
