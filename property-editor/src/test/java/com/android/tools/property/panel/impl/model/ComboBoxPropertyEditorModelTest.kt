@@ -25,11 +25,10 @@ import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -42,7 +41,7 @@ import javax.swing.event.ListDataListener
 class ComboBoxPropertyEditorModelTest {
 
   @JvmField @Rule
-  val appRule = ApplicationRule()
+  val appRule = PropertyAppRule()
 
   private fun createModel(): ComboBoxPropertyEditorModel {
     return createModel(FakeEnumSupport("visible", "invisible", "gone"))
@@ -148,7 +147,6 @@ class ComboBoxPropertyEditorModelTest {
     verify(listener).valueChanged()
   }
 
-  @Ignore("b/128037083")
   @Test
   fun testEnterInPopupOnAction() {
     // setup
