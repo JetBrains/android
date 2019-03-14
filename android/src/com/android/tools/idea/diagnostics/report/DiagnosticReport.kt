@@ -99,6 +99,7 @@ constructor(val type: String,
                                                      format)
           "PerformanceThreadDump" -> PerformanceThreadDumpReport.deserialize(
             baseReportProperties, properties, format)
+          "UnanalyzedHeap" -> UnanalyzedHeapReport.deserialize(baseReportProperties, properties, format)
           else -> null
         }
       }

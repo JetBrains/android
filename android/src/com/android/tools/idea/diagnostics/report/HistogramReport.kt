@@ -31,6 +31,7 @@ class HistogramReport
 @JvmOverloads
 constructor(val threadDumpPath: Path?,
             val histogramPath: Path?,
+            val reason: MemoryReportReason?,
             val description: String?,
             baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
   : DiagnosticReport("Histogram", baseProperties) {
@@ -53,13 +54,14 @@ constructor(val threadDumpPath: Path?,
                        ?: EMPTY_OOM_STACKTRACE
 
         builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
+        reason?.let {
+          builder.addTextBody("reason", it.name)
+        }
         histogram?.let {
-          builder.addTextBody("histogram", histogram,
-                              ContentType.create("text/plain", Charsets.UTF_8))
+          builder.addTextBody("histogram", it, ContentType.create("text/plain", Charsets.UTF_8))
         }
         threadDump?.let {
-          builder.addTextBody("threadDump", threadDump,
-                              ContentType.create("text/plain", Charsets.UTF_8))
+          builder.addTextBody("threadDump", it, ContentType.create("text/plain", Charsets.UTF_8))
         }
       }
 
@@ -69,6 +71,7 @@ constructor(val threadDumpPath: Path?,
   override fun serializeReportProperties(writer: JsonWriter) {
     if (threadDumpPath != null) writer.name("threadDumpPath").value(threadDumpPath.toString())
     if (histogramPath != null) writer.name("histogramPath").value(histogramPath.toString())
+    if (reason != null) writer.name("reason").value(reason.name)
     if (description != null) writer.name("description").value(description)
   }
 
@@ -86,6 +89,7 @@ constructor(val threadDumpPath: Path?,
             fixDirectoryPathAndCheckIfReadable(
               Paths.get(it))
           },
+          properties["reason"]?.let { MemoryReportReason.valueOf(it) },
           properties["description"],
           baseProperties)
       }

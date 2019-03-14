@@ -59,6 +59,11 @@
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
 
+    <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedHeapDumpSnapshotAction" id="UserInvokedHeapDumpSnapshot"
+            text="Analyze Memory Use">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="CollectTroubleshootingInformation" />
+    </action>
+
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
       <add-to-group group-id="BuildMenu" anchor="first"/>
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
@@ -107,11 +112,9 @@
     </action>
 
     <group id="Internal.HeapAnalysis" text="Android Studio Heap Analysis" popup="true" internal="true">
-      <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
+      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalUserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
               text="Create And Immediately Analyze Heap Dump" internal="true"/>
-      <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedHeapDumpSnapshotAction" id="UserInvokedHeapDumpSnapshot"
-              text="Create And Schedule Heap Dump Analysis" internal="true"/>
-      <action class="com.android.tools.idea.diagnostics.hprof.action.NonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
+      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
               text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true"/>
       <add-to-group group-id="Internal"/>
     </group>
