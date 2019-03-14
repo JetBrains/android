@@ -17,12 +17,18 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerViewModel
+import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -30,6 +36,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
+import javax.swing.JComponent
+import javax.swing.JPanel
+import kotlin.test.assertEquals
 
 class ResourceExplorerViewTest {
 
@@ -52,14 +62,7 @@ class ResourceExplorerViewTest {
   fun searchIntegration() {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
-    val view = ResourceExplorerView(viewModel,
-                                    ResourceImportDragTarget(projectRule.module.androidFacet!!, ImportersProvider()))
-    Disposer.register(disposable, view)
-
-    val waitForAssetListToBeCreated = object : WaitFor(1000) {
-      public override fun condition() = UIUtil.findComponentOfType(view, AssetListView::class.java) != null
-    }
-    assertThat(waitForAssetListToBeCreated.isConditionRealized).isEqualTo(true)
+    val view = createResourceExplorerView(viewModel)
     assertThat(UIUtil.findComponentOfType(view, AssetListView::class.java)!!.model.size).isEqualTo(2)
 
     viewModel.filterOptions.searchString = "png"
@@ -77,5 +80,60 @@ class ResourceExplorerViewTest {
 
     Disposer.register(disposable, viewModel)
     return viewModel
+  }
+
+  @Test
+  fun openOnEnter() {
+    // Setup the test with an image for two configuration
+    // so the detail view can be shown.
+    val resDir = projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    runInEdtAndWait {
+      runWriteAction {
+        val hdpiDir = resDir.createChildDirectory(this, "drawable-hdpi")
+        resDir.findFileByRelativePath("drawable/png.png")!!.copy(this, hdpiDir, "png.png")
+      }
+    }
+
+    var openedFile = "" // Variable used to check the opened file name
+
+    // Dummy implementation of a ViewModel to record the opened file
+    val viewModel = object : ResourceExplorerViewModel by createViewModel(projectRule.module) {
+      override fun openFile(asset: DesignAsset) {
+        openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, asset.file.path, '/').orEmpty();
+      }
+    }
+
+    // A parent used to swap the ResourceExplorerView and the DetailView
+    val view = createResourceExplorerView(viewModel)
+    val parent = JPanel()
+    parent.add(view)
+    val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
+    // End of the setup
+
+    list.selectedIndex = 0
+    simulatePressEnter(list)
+    val detailView = UIUtil.findComponentOfType(parent, ResourceDetailView::class.java)!!
+    val assetView = UIUtil.findComponentsOfType(detailView, AssetView::class.java)[0]
+    simulatePressEnter(assetView)
+    assertEquals("res/drawable/png.png", openedFile)
+  }
+
+  private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel): ResourceExplorerView {
+    val view = ResourceExplorerView(viewModel,
+                                    ResourceImportDragTarget(projectRule.module.androidFacet!!, ImportersProvider()))
+    Disposer.register(disposable, view)
+
+    val waitForAssetListToBeCreated = object : WaitFor(1000) {
+      public override fun condition() = UIUtil.findComponentOfType(view, AssetListView::class.java) != null
+    }
+    assertThat(waitForAssetListToBeCreated.isConditionRealized).isEqualTo(true)
+    return view
+  }
+
+  private fun simulatePressEnter(component: JComponent) {
+    val keyEvent = KeyEvent(component, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED)
+    component.keyListeners.forEach {
+      it.keyPressed(keyEvent)
+    }
   }
 }
