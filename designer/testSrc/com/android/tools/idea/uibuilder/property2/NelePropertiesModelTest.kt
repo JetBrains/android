@@ -25,7 +25,7 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
@@ -35,6 +35,7 @@ import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import java.util.EnumSet
 
 class NelePropertiesModelTest: LayoutTestCase() {
 
@@ -119,8 +120,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     waitUntilEventsProcessed(model)
     model.addListener(listener)
 
-    nlModel.notifyModified(NlModel.ChangeType.EDIT)
-    UIUtil.dispatchAllInvocationEvents()
+    nlModel.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
     verify(listener).propertyValuesChanged(model)
   }
 
