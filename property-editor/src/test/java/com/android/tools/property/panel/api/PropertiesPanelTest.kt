@@ -19,7 +19,7 @@ import com.android.tools.property.panel.impl.model.util.FakeInspectorBuilder
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePropertyModel
 import com.android.tools.property.panel.impl.ui.WatermarkPanel
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import org.junit.After
@@ -33,7 +33,7 @@ import javax.swing.JTabbedPane
 class PropertiesPanelTest {
 
   @JvmField @Rule
-  val appRule = ApplicationRule()
+  val appRule = PropertyAppRule()
 
   private var model1: FakePropertyModel? = null
   private var model2: FakePropertyModel? = null
