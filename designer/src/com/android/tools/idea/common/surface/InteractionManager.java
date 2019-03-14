@@ -442,6 +442,10 @@ public class InteractionManager {
         mySurface.getActionManager().showPopup(event, selected);
         return;
       }
+      else if (interceptPanInteraction(event)) {
+        setPanning(false);
+        return;
+      }
       else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
         // mouse release from a popup click (the popup menu was posted on
         // the mousePressed event
@@ -451,11 +455,6 @@ public class InteractionManager {
       int x = event.getX();
       int y = event.getY();
       int modifiers = event.getModifiers();
-
-      if (interceptPanInteraction(event)) {
-        handlePanInteraction(x, y);
-        return;
-      }
 
       if (myCurrentInteraction == null) {
         boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
@@ -1030,11 +1029,11 @@ public class InteractionManager {
   void handlePanInteraction(int x, int y) {
     DesignSurface surface = getSurface();
     Point position = surface.getScrollPosition();
+    setPanning(true);
     // position can be null in tests
     if (position != null) {
       position.translate(myLastMouseX - x, myLastMouseY - y);
       surface.setScrollPosition(position);
-      mySurface.setCursor(AdtUiCursors.GRABBING);
     }
   }
 
