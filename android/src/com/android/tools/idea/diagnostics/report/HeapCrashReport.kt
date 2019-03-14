@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.diagnostics.report
 
-import com.android.tools.analytics.crash.CrashReport
-import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
-import com.google.gson.stream.JsonWriter
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
-abstract class HeapReport
-@JvmOverloads
-constructor(type: String,
-            val heapProperties: HeapReportProperties,
-            baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport(type, baseProperties) {
-
-  override fun serializeReportProperties(writer: JsonWriter) {
-    writer.name("reason").value(heapProperties.reason.toString())
+open class HeapCrashReport(type: String,
+                           private val heapProperties: HeapReportProperties,
+                           properties: DiagnosticReportProperties) :
+  DiagnosticCrashReport(type, properties)
+{
+  override fun serialize(builder: MultipartEntityBuilder) {
+    super.serialize(builder)
+    builder.addTextBody("reason", heapProperties.reason.toString())
   }
 }
