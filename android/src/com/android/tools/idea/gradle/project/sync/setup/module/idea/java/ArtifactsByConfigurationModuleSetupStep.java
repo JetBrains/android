@@ -15,32 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.SdkConstants.DOT_JAR;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
+
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.LibraryOrderEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.libraries.Library;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.SdkConstants.DOT_JAR;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep {
+  @NotNull private final JavaModuleDependenciesSetup myDependenciesSetup;
+
+  public ArtifactsByConfigurationModuleSetupStep() {
+    myDependenciesSetup = new JavaModuleDependenciesSetup();
+  }
+
   @Override
   protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull JavaModuleModel javaModuleModel) {
-    ModifiableRootModel moduleModel = context.getModifiableRootModel();
     Module module = context.getModule();
     IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
 
@@ -63,17 +62,8 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             continue;
           }
           String libraryName = module.getName() + "." + artifactName;
-          Library library = ideModelsProvider.getLibraryByName(libraryName);
-          if (library == null) {
-            // Create library.
-            library = ideModelsProvider.createLibrary(libraryName);
-            Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
-            String url = pathToIdeaUrl(artifact);
-            libraryModel.addRoot(url, CLASSES);
-          }
-          LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
-          orderEntry.setScope(COMPILE);
-          orderEntry.setExported(true);
+          myDependenciesSetup
+            .setUpLibraryDependency(module, ideModelsProvider, libraryName, COMPILE, artifact, null, null, true/* exported */);
         }
       }
     }
