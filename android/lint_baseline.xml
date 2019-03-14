@@ -109,24 +109,8 @@
         id="SimpleDateFormat"
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
-            file="src/com/android/tools/idea/diagnostics/AndroidStudioSystemHealthMonitor.java"
-            line="205"/>
-    </issue>
-
-    <issue
-        id="SimpleDateFormat"
-        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
-        <location
             file="src/com/android/tools/idea/profiling/capture/CaptureService.java"
             line="113"/>
-    </issue>
-
-    <issue
-        id="SimpleDateFormat"
-        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
-        <location
-            file="src/com/android/tools/idea/diagnostics/hprof/action/HeapDumpSnapshotRunnable.kt"
-            line="112"/>
     </issue>
 
     <issue
@@ -405,14 +389,6 @@
         id="CommonForkJoinPool"
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
-            file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
-            line="141"/>
-    </issue>
-
-    <issue
-        id="CommonForkJoinPool"
-        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
-        <location
             file="src/com/android/tools/swing/layoutlib/AndroidPreviewPanel.java"
             line="228"/>
     </issue>
@@ -455,30 +431,6 @@
         <location
             file="src/com/android/tools/idea/run/deployment/VirtualDevicesWorkerDelegate.java"
             line="26"/>
-    </issue>
-
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/diagnostics/hprof/action/HeapDumpSnapshotRunnable.kt"
-            line="181"/>
-    </issue>
-
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/diagnostics/hprof/action/HeapDumpSnapshotRunnable.kt"
-            line="190"/>
-    </issue>
-
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/stats/LowMemoryReporter.kt"
-            line="44"/>
     </issue>
 
     <issue

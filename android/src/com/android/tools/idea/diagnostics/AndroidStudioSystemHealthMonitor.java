@@ -19,9 +19,12 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
+import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
+import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
@@ -76,9 +79,11 @@ import com.sun.tools.attach.VirtualMachine;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -173,15 +178,24 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  public static void addHProfToDatabase(@NotNull Path hprofPath) {
-    ourHProfDatabase.appendHProfPath(hprofPath);
+  public void addHeapReportToDatabase(@NotNull UnanalyzedHeapReport report) {
+    try {
+      myReportsDatabase.appendReport(report);
+    } catch (IOException e) {
+      LOG.warn("Exception when adding heap report to database", e);
+    }
   }
 
   public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
     return ourInstance;
   }
 
-  public void addHistogramToDatabase(@Nullable String description) {
+  public void lowMemoryDetected(MemoryReportReason reason) {
+    addHistogramToDatabase(reason, "LowMemoryWatcher");
+    ApplicationManager.getApplication().invokeLater(new HeapDumpSnapshotRunnable(reason, HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START));
+  }
+
+  public void addHistogramToDatabase(MemoryReportReason reason, @Nullable String description) {
     try {
       Path histogramDirPath = createHistogramPath();
       if (java.nio.file.Files.exists(histogramDirPath)) {
@@ -190,19 +204,19 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
       java.nio.file.Files.createDirectories(histogramDirPath);
       Path histogramFilePath = histogramDirPath.resolve("histogram.txt");
-      java.nio.file.Files.write(histogramFilePath, getHistogram().getBytes(), StandardOpenOption.CREATE);
+      java.nio.file.Files.write(histogramFilePath, getHistogram().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
 
       Path threadDumpFilePath = histogramDirPath.resolve("threadDump.txt");
       FileUtil.writeToFile(threadDumpFilePath.toFile(), ThreadDumper.dumpThreadsToString());
 
-      myReportsDatabase.appendReport(new HistogramReport(threadDumpFilePath, histogramFilePath, description));
+      myReportsDatabase.appendReport(new HistogramReport(threadDumpFilePath, histogramFilePath, reason, description));
     } catch (IOException e) {
       LOG.info("Exception while creating histogram", e);
     }
   }
 
   private static Path createHistogramPath() {
-    String datePart = new SimpleDateFormat("yyyyMMdd-HHmmss").format(System.currentTimeMillis());
+    String datePart = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(System.currentTimeMillis());
     String dirName = "threadDumps-histogram-" + datePart;
     return Paths.get(PathManager.getLogPath(), dirName);
   }
@@ -230,7 +244,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
       HotSpotVirtualMachine hotSpotVM = (HotSpotVirtualMachine) vm;
       char[] chars = new char[1024];
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(hotSpotVM.heapHisto("-live")))) {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(hotSpotVM.heapHisto("-live"), Charsets.UTF_8))) {
         int read;
         while ((read = reader.read(chars)) != -1) {
           sb.append(chars, 0, read);
@@ -314,7 +328,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
     trackStudioReports(myReportsDatabase.reapReportDetails());
-    startHProfAnalysis(ourHProfDatabase.getPathsAndCleanupDatabase());
 
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
@@ -349,11 +362,15 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     ThreadSamplingReport.startCollectingThreadSamplingReports(this::tryAppendReportToDatabase);
   }
 
-  private static void startHProfAnalysis(List<Path> paths) {
-    if (paths.isEmpty()) return;
+  /**
+   * @return List of paths to hprof files to be analyzed
+   */
+  private static List<Path> startHeapReportsAnalysis(List<UnanalyzedHeapReport> reports) {
+    if (reports.isEmpty()) return Collections.emptyList();
 
     // Start only one analysis, even if there are more hprof files captured.
-    final Path path = paths.get(0);
+    final UnanalyzedHeapReport report = reports.get(0);
+    final Path path = report.getHprofPath();
 
     MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
 
@@ -367,7 +384,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
         }
         connection.disconnect();
         StartupManager.getInstance(project).runWhenProjectIsInitialized(
-          () -> new AnalysisRunnable(path, true).run());
+          () -> new AnalysisRunnable(report, true).run());
       }
     });
     connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
@@ -377,9 +394,10 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
           return;
         }
         connection.disconnect();
-        new AnalysisRunnable(path, true).run();
+        new AnalysisRunnable(report, true).run();
       }
     });
+    return Collections.singletonList(path);
   }
 
   private boolean tryAppendReportToDatabase(DiagnosticReport report) {
@@ -608,6 +626,15 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       sendDiagnosticReportsOfTypeWithLimit("Histogram", reports, MAX_HISTOGRAM_REPORTS_COUNT);
       sendDiagnosticReportsOfTypeWithLimit("Freeze", reports, MAX_FREEZE_REPORTS_COUNT);
     });
+
+
+    List<Path> hprofsToBeAnalyzed = startHeapReportsAnalysis(reports
+                         .stream()
+                         .filter(r -> r.getType().equals("UnanalyzedHeap"))
+                         .filter(r -> r instanceof UnanalyzedHeapReport)
+                         .map(r -> (UnanalyzedHeapReport) r)
+                         .collect(Collectors.toList()));
+    ourHProfDatabase.cleanupHProfFiles(hprofsToBeAnalyzed);
   }
 
   private static void sendDiagnosticReportsOfTypeWithLimit(String type,
@@ -820,7 +847,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
    * Resets invocation counts by clearing the map.
    */
   private static void reportActionInvocations() {
-    Map<String, Multiset<InvocationKind>> currentInvocations = null;
+    Map<String, Multiset<InvocationKind>> currentInvocations;
     synchronized (ACTION_INVOCATIONS_LOCK) {
       currentInvocations = ourActionInvocations;
       ourActionInvocations = new HashMap<>();
