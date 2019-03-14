@@ -274,20 +274,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, null);
-  }
-
-  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName) throws Exception {
-
-    loadProject(relativePath, null, chosenModuleName);
+    loadProject(relativePath, null);
   }
 
   protected void loadProject(@NotNull String relativePath,
-                             @Nullable GradleSyncListener listener,
                              @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), listener);
+    importProject(project.getName(), getBaseDirPath(project), null);
 
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertTrue(androidProjectInfo.requiresAndroidModel());
