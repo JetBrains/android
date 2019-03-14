@@ -15,25 +15,21 @@
  */
 package com.android.tools.property.testing
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestLoggerFactory
-import com.intellij.testFramework.registerServiceInstance
 import org.junit.rules.ExternalResource
 
 /**
  * An Application rule that sets up a test [com.intellij.openapi.application.Application].
  *
- * The application instance is based on [FakeActionManager] which is much lighter and faster
+ * The application instance is based on [MockApplication] which is much lighter and faster
  * than using [com.intellij.idea.IdeaTestApplication].
  */
-class ApplicationRule : ExternalResource() {
+open class ApplicationRule : ExternalResource() {
 
   private var rootDisposable: Disposable? = Disposer.newDisposable()
   private var application: MockApplication? = MockApplication(rootDisposable!!)
@@ -54,8 +50,6 @@ class ApplicationRule : ExternalResource() {
    * Setup a test Application instance with a few common services needed for property tests.
    */
   override fun before() {
-    application!!.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
-    application!!.registerServiceInstance(ActionManager::class.java, FakeActionManager())
     ApplicationManager.setApplication(application!!, rootDisposable!!)
   }
 

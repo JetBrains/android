@@ -17,8 +17,6 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -31,6 +29,8 @@ import com.android.tools.property.panel.impl.model.GenericInspectorLineModel
 import com.android.tools.property.panel.impl.model.SeparatorLineModel
 import com.android.tools.property.panel.impl.model.TitleLineModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -45,7 +45,7 @@ import javax.swing.JLabel
 
 class PropertiesPageTest {
   @JvmField @Rule
-  val appRule = ApplicationRule()
+  val appRule = PropertyAppRule()
 
   private var disposable: Disposable? = null
   private var page: PropertiesPage? = null
