@@ -24,6 +24,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -33,6 +34,7 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
@@ -153,7 +155,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bind(myProjectModel.projectLocation(), locationText);
     myListeners.receive(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
-    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
+    OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     if (StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
@@ -190,6 +192,19 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
       myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
+    });
+
+    myListeners.listenAndFire(androidSdkInfo, sender -> {
+      VersionItem androidVersion = androidSdkInfo.getValueOrNull();
+      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
+      if (isAndroidxOnly) {
+        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
+        myUseAndroidxCheck.setSelected(true);
+        myUseAndroidxCheck.setEnabled(false);
+      }
+      else {
+        myUseAndroidxCheck.setEnabled(true);
+      }
     });
   }
 
