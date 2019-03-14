@@ -21,9 +21,6 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.property.panel.api.PropertiesModel
-import com.android.tools.property.panel.api.PropertiesModelListener
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
@@ -34,6 +31,9 @@ import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.AccessoryPanelListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
@@ -340,7 +340,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   }
 
   private inner class NlModelListener : ModelListener {
-    override fun modelChanged(model: NlModel) {
+    override fun modelDerivedDataChanged(model: NlModel) {
       // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
