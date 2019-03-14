@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -53,9 +54,14 @@ import org.jetbrains.annotations.Nullable;
  * <p>The repositories are stored using weak references, so can be garbage collected once no module uses them anymore. The repositories are
  * strongly referenced from {@link MultiResourceRepository} as children of the module resources repository.
  */
-public class ResourceFolderRegistry {
+public class ResourceFolderRegistry implements Disposable {
   private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
   private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
+
+  @Override
+  public void dispose() {
+    reset();
+  }
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
@@ -85,7 +91,12 @@ public class ResourceFolderRegistry {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
-    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
+    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> {
+      ResourceFolderRepository newRepository = ResourceFolderRepository.create(facet, dir, namespace);
+      Disposer.register(this, newRepository);
+      return newRepository;
+    });
+
     assert repository.getNamespace().equals(namespace);
     assert !Disposer.isDisposed(repository);
 
