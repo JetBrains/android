@@ -49,6 +49,7 @@ import org.apache.commons.io.FileUtils
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.objectweb.asm.ClassReader
@@ -188,11 +189,10 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       get() = Lists.newArrayList(TestParameters(DataBindingMode.SUPPORT), TestParameters(DataBindingMode.ANDROIDX))
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
-  val edtRule = EdtRule()
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   class TestParameters(val mode: DataBindingMode) {
     val projectName: String =
