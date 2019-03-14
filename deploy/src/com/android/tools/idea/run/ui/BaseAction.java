@@ -41,6 +41,9 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.concurrent.Future;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,8 +64,9 @@ public abstract class BaseAction extends AnAction {
                     @NotNull String name,
                     @NotNull Key<Boolean> key,
                     @NotNull Icon icon,
-                    @NotNull Shortcut shortcut) {
-    super(name, name, icon);
+                    @NotNull Shortcut shortcut,
+                    @NotNull String description) {
+    super(name, description, icon);
     myName = name;
     myKey = key;
     myIcon = icon;
@@ -71,7 +75,23 @@ public abstract class BaseAction extends AnAction {
     if (manager != null) {
       final Keymap keymap = manager.getActiveKeymap();
       if (keymap != null) {
-        keymap.addShortcut(id, shortcut);
+        List<Shortcut> shortcuts = Arrays.asList(keymap.getShortcuts(id));
+        if (shortcuts.isEmpty()) {
+          // Add the shortcut for the first time.
+          // TODO: figure out how to not add it back if the user deliberately removes the action hotkey.
+          keymap.addShortcut(id, shortcut);
+          shortcuts = Collections.singletonList(shortcut);
+        }
+
+        // Remove conflicting shortcuts stemming from UpdateRunningApplication only,
+        // and leave the remaining conflicts intact, since that's what the user intends.
+        final String updateRunningApplicationId = "UpdateRunningApplication";
+        Shortcut[] uraShortcuts = keymap.getShortcuts(updateRunningApplicationId);
+        for (Shortcut uraShortcut : uraShortcuts) {
+          if (shortcuts.contains(uraShortcut)) {
+            keymap.removeShortcut(updateRunningApplicationId, uraShortcut);
+          }
+        }
       }
     }
   }

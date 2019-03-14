@@ -15,6 +15,7 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:ndk-bundle",
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:platform-tools",
+    "//prebuilts/tools/common/aspects-agent:aspects_agent",
     "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
     "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
     "//prebuilts/tools:bazel-dist",
@@ -50,7 +51,6 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/platform/platform-main:intellij.platform.main",
-        "//tools/idea/plugins/cvs/cvs-plugin:intellij.vcs.cvs",
         "//tools/idea/plugins/github:intellij.vcs.github",
         "//tools/idea/platform/remote-servers/impl:intellij.platform.remoteServers.impl",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
@@ -85,7 +85,7 @@ iml_module(
         "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
         "//tools/idea:intellij.java.impl[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
-        "//tools/idea/platform/xdebugger-impl:intellij.platform.debugger.impl[module, test]",
+        "//tools/idea:intellij.platform.debugger.impl_and_others[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
@@ -403,6 +403,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
+        "qa_unreliable",  # b/128547019
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -557,6 +558,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
+        "qa_unreliable",  # b/128547019
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

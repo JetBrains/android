@@ -22,7 +22,7 @@ import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
-import icons.StudioIcons.NavEditor.Toolbar.DEEPLINK
+import icons.StudioIcons.NavEditor.Properties.DEEPLINK
 import org.jetbrains.annotations.TestOnly
 
 class NavDeeplinkInspectorProvider(

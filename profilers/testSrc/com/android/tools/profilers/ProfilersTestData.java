@@ -20,6 +20,7 @@ import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWOR
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -121,6 +122,12 @@ public final class ProfilersTestData {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestStartTimeUs());
     return Common.Event.newBuilder().setGroupId(data.getId()).setKind(Common.Event.Kind.NETWORK_HTTP_THREAD).setTimestamp(timestampNs)
       .setNetworkHttpThread(Network.NetworkHttpThreadData.newBuilder().setId(thread.getId()).setName(thread.getName()));
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateMemoryUsageData(long timestampUs, Memory.MemoryUsageData memoryUsageData) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_USAGE).setMemoryUsage(memoryUsageData);
   }
 
   @NotNull

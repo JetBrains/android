@@ -147,10 +147,9 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
   private SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
     super("SampleData");
 
-    Disposer.register(androidFacet, this);
-
     LeafRepository predefinedItemsRepository =
         new LeafRepository("Predefined SampleData", androidFacet, ResourceNamespace.TOOLS);
+    Disposer.register(this, predefinedItemsRepository);
     predefinedItemsRepository.addPredefinedItems();
 
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(androidFacet);
@@ -182,7 +181,7 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
 
   private static class LeafRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
     private final ResourceTable myFullTable = new ResourceTable();
-    private AndroidFacet myAndroidFacet;
+    private final AndroidFacet myAndroidFacet;
     private final ResourceNamespace myNamespace;
 
     LeafRepository(@NotNull String displayName, @NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
@@ -218,12 +217,6 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
     @Nullable
     public String getPackageName() {
       return ResourceRepositoryImplUtil.getPackageName(myNamespace, myAndroidFacet);
-    }
-
-    @Override
-    public void dispose() {
-      myAndroidFacet = null;
-      super.dispose();
     }
 
     @Override
@@ -310,6 +303,11 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
       super(facet);
     }
 
+    @Override
+    protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+      // No additional logic needed, the repository is registered with Disposer as a child of this object.
+    }
+
     @NotNull
     public SampleDataResourceRepository getRepository() {
       if (isDisposed()) {
@@ -318,12 +316,7 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
       synchronized (repositoryLock) {
         if (repository == null) {
           repository = new SampleDataResourceRepository(getFacet());
-
-          Disposer.register(repository, () -> {
-            synchronized (repositoryLock) {
-              repository = null;
-            }
-          });
+          Disposer.register(this, repository);
         }
         return repository;
       }
@@ -335,10 +328,17 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
       }
     }
 
-    @Override
-    public void onServiceDisposal(@NotNull AndroidFacet facet) {
+    /**
+     * Drops the existing repository, forcing it to be recreated next time it's needed.
+     */
+    public void reset() {
+      SampleDataResourceRepository localRepository;
       synchronized (repositoryLock) {
+        localRepository = repository;
         repository = null;
+      }
+      if (!Disposer.isDisposed(localRepository)) {
+        Disposer.dispose(localRepository);
       }
     }
   }

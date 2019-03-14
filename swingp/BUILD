@@ -6,11 +6,11 @@ iml_module(
     name = "intellij.android.adt.swingp",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.swingp.iml"],
+    test_coverage = True,
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/idea/.idea/libraries:ASM",
         "//tools/idea/.idea/libraries:gson",
         "//tools/idea/.idea/libraries:Guava",
@@ -42,7 +42,6 @@ java_binary(
         "//tools/idea/.idea/libraries:ASM",
         "//tools/idea/.idea/libraries:http-client",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
-        "//tools/idea/platform/util:intellij.platform.util",
     ],
 )
 

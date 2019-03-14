@@ -61,7 +61,7 @@ public class TestGrpcFile {
       try {
         Marshaller marshaller = JAXBContext.newInstance(GrpcCallStack.class).createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders",
+        marshaller.setProperty("com.sun.xml.bind.xmlHeaders",
                                "\n<!-- Auto generated with transport-database test via flag -Dtest.export.grpc=True -->");
         marshaller.marshal(myGrpcCalls, myFile);
       }

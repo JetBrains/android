@@ -68,6 +68,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myAtraceEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enablePerfetto(boolean)}, but each test starts with this defaulted to false. Enabling this flag
+   * assumes that {@link #myAtraceEnabled} is true.
+   */
+  private boolean myPerfettoEnabled = false;
+
+  /**
    * Toggle for including an energy profiler in our profiler view.
    */
   private boolean myEnergyProfilerEnabled = false;
@@ -294,6 +300,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isPerfettoEnabled() { return myPerfettoEnabled; }
+
+      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }
@@ -432,6 +441,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableAtrace(boolean enabled) {
     myAtraceEnabled = enabled;
+  }
+
+  public void enablePerfetto(boolean enabled) {
+    myPerfettoEnabled = enabled;
   }
 
   public void enableEnergyProfiler(boolean enabled) {

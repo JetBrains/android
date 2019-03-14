@@ -89,7 +89,6 @@ public class NewInstantAppModuleTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("base1", null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
     addNewFeatureModule("feature1", null);
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
@@ -99,14 +98,16 @@ public class NewInstantAppModuleTest {
     assertNotNull(ideFrame.getModule("instantapp"));
 
     // Verify application attributes are in feature1 (the base feature) and not in feature2
-    ideFrame.getEditor()
+    String baseManifest = ideFrame.getEditor()
       .open("base/src/main/AndroidManifest.xml")
-      .moveBetween("android:label=", "")
-      .moveBetween("android:theme=", "");
+      .getCurrentFileContents();
+    assertThat(baseManifest).contains("android:label=");
+    assertThat(baseManifest).contains("android:theme=");
 
-    ideFrame.getEditor()
+    String featureManifest = ideFrame.getEditor()
       .open("feature/src/main/AndroidManifest.xml")
-      .moveBetween("<application>", "");
+      .getCurrentFileContents();
+    assertThat(featureManifest).contains("<application>");
   }
 
   @Test
@@ -117,7 +118,6 @@ public class NewInstantAppModuleTest {
     addNewFeatureModule("feature2", "Add No Activity");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
-
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {

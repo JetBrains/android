@@ -7,6 +7,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.Collection;
+import org.jetbrains.plugins.gradle.settings.TestRunner;
 
 public class AndroidStudioGradleSettings extends GradleSettings{
   public AndroidStudioGradleSettings(@NotNull Project project) {
@@ -17,8 +18,8 @@ public class AndroidStudioGradleSettings extends GradleSettings{
   @Override
   public GradleProjectSettings getLinkedProjectSettings(@NotNull String linkedProjectPath) {
     GradleProjectSettings projectSettings = super.getLinkedProjectSettings(linkedProjectPath);
-    if (projectSettings != null && projectSettings.isResolveModulePerSourceSet()) {
-      projectSettings.setResolveModulePerSourceSet(false);
+    if (projectSettings != null) {
+      configureForAndroidStudio(projectSettings);
     }
     return projectSettings;
   }
@@ -28,11 +29,18 @@ public class AndroidStudioGradleSettings extends GradleSettings{
   public Collection<GradleProjectSettings> getLinkedProjectsSettings() {
     Collection<GradleProjectSettings> linkedProjectsSettings = super.getLinkedProjectsSettings();
     for (GradleProjectSettings projectSettings : linkedProjectsSettings) {
-      if(projectSettings.isResolveModulePerSourceSet()){
-        projectSettings.setResolveModulePerSourceSet(false);
-      }
+      configureForAndroidStudio(projectSettings);
     }
 
     return linkedProjectsSettings;
+  }
+
+  private static void configureForAndroidStudio(@NotNull GradleProjectSettings projectSettings) {
+    if (projectSettings.isResolveModulePerSourceSet()) {
+      projectSettings.setResolveModulePerSourceSet(false);
+    }
+    if (projectSettings.getTestRunner() != TestRunner.PLATFORM) {
+      projectSettings.setTestRunner(TestRunner.PLATFORM);
+    }
   }
 }

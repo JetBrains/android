@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.facet;
+
+import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
@@ -36,10 +37,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
@@ -47,10 +55,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
-import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
 public class AndroidResourceFilesListener implements Disposable, BulkFileListener {
   private static final Key<String> CACHED_PACKAGE_KEY = Key.create("ANDROID_RESOURCE_LISTENER_CACHED_PACKAGE");
@@ -68,7 +72,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
   @Override
   public void after(@NotNull List<? extends VFileEvent> events) {
-    final Set<VirtualFile> filesToProcess = getFilesToProcess(events);
+    Set<VirtualFile> filesToProcess = getFilesToProcess(events);
 
     if (!filesToProcess.isEmpty()) {
       myQueue.queue(new MyUpdate(filesToProcess));
@@ -77,10 +81,10 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
   @NotNull
   private static Set<VirtualFile> getFilesToProcess(@NotNull List<? extends VFileEvent> events) {
-    final Set<VirtualFile> result = new HashSet<>();
+    Set<VirtualFile> result = new HashSet<>();
 
     for (VFileEvent event : events) {
-      final VirtualFile file = event.getFile();
+      VirtualFile file = event.getFile();
 
       if (file != null && shouldScheduleUpdate(file)) {
         result.add(file);
@@ -99,24 +103,23 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     // - Renderscript files
     // - AndroidManifest.xml
 
-    final String extension = file.getExtension();
+    String extension = file.getExtension();
     if (StringUtil.isEmpty(extension)) {
       return false;
     }
 
     if (StdFileTypes.XML.getDefaultExtension().equals(extension)) {
-      final VirtualFile parent = file.getParent();
+      VirtualFile parent = file.getParent();
 
       if (parent != null && parent.isDirectory()) {
-        final ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
+        ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
         return ResourceFolderType.VALUES == resType;
       }
     }
 
-    final String fileName = file.getName();
+    String fileName = file.getName();
 
-    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension) ||
-        SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName)) {
+    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension) || SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName)) {
       return true;
     }
 
@@ -134,7 +137,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
   private class MyUpdate extends Update {
     private final Set<VirtualFile> myFiles;
 
-    public MyUpdate(@NotNull Set<VirtualFile> files) {
+    MyUpdate(@NotNull Set<VirtualFile> files) {
       super(files);
       myFiles = files;
     }
@@ -145,16 +148,16 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         return;
       }
 
-      final MultiMap<Module, AndroidAutogeneratorMode> map =
-        ApplicationManager.getApplication().runReadAction(
-          (Computable<MultiMap<Module, AndroidAutogeneratorMode>>)() -> computeCompilersToRunAndInvalidateLocalAttributesMap());
+      MultiMap<Module, AndroidAutogeneratorMode> map =
+          ApplicationManager.getApplication().runReadAction(
+              (Computable<MultiMap<Module, AndroidAutogeneratorMode>>)() -> computeCompilersToRunAndInvalidateLocalAttributesMap());
 
       if (map.isEmpty()) {
         return;
       }
 
       for (Map.Entry<Module, Collection<AndroidAutogeneratorMode>> entry : map.entrySet()) {
-        final Module module = entry.getKey();
+        Module module = entry.getKey();
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet == null) {
           continue;
@@ -178,33 +181,35 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       if (myProject.isDisposed()) {
         return MultiMap.emptyInstance();
       }
-      final MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
-      final Set<Module> modulesToInvalidateAttributeDefs = new HashSet<>();
+      MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
+      Set<Module> modulesToInvalidateAttributeDefs = new HashSet<>();
 
       for (VirtualFile file : myFiles) {
-        final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+        Module module = ModuleUtilCore.findModuleForFile(file, myProject);
 
         if (module == null || module.isDisposed()) {
           continue;
         }
-        final AndroidFacet facet = AndroidFacet.getInstance(module);
+        AndroidFacet facet = AndroidFacet.getInstance(module);
 
         if (facet == null) {
           continue;
         }
-        final VirtualFile parent = file.getParent();
-        final VirtualFile gp = parent != null ? parent.getParent() : null;
-        final VirtualFile resourceDir = AndroidRootUtil.getResourceDir(facet);
+        VirtualFile parent = file.getParent();
+        VirtualFile gp = parent != null ? parent.getParent() : null;
 
-        if (gp != null &&
-            Comparing.equal(gp, resourceDir) &&
-            ResourceFolderType.VALUES == ResourceFolderType.getFolderType(parent.getName())) {
-          modulesToInvalidateAttributeDefs.add(module);
-        }
-        final List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
+        List<VirtualFile> resourceDirs = ResourceFolderManager.getInstance(facet).getFolders();
+        for (VirtualFile resourceDir : resourceDirs) {
+          if (gp != null &&
+              Comparing.equal(gp, resourceDir) &&
+              ResourceFolderType.VALUES == ResourceFolderType.getFolderType(parent.getName())) {
+            modulesToInvalidateAttributeDefs.add(module);
+          }
+          List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
 
-        if (!modes.isEmpty()) {
-          result.putValues(module, modes);
+          if (!modes.isEmpty()) {
+            result.putValues(module, modes);
+          }
         }
       }
       invalidateAttributeDefinitions(modulesToInvalidateAttributeDefs);
@@ -213,19 +218,19 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
     @NotNull
     private List<AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap(AndroidFacet facet, VirtualFile file) {
-      final VirtualFile parent = file.getParent();
+      VirtualFile parent = file.getParent();
 
       if (parent == null) {
         return Collections.emptyList();
       }
-      final Module module = facet.getModule();
-      final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
-      final List<AndroidAutogeneratorMode> modes = new ArrayList<>();
+      Module module = facet.getModule();
+      VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
+      List<AndroidAutogeneratorMode> modes = new ArrayList<>();
 
       if (Comparing.equal(manifestFile, file)) {
-        final Manifest manifest = facet.getManifest();
-        final String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
-        final String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
+        Manifest manifest = facet.getManifest();
+        String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
+        String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
 
         if (cachedPackage != null && !cachedPackage.equals(aPackage)) {
           String aptGenDirPath = AndroidRootUtil.getAptGenSourceRootPath(facet);
@@ -242,7 +247,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         }
       }
       else if (file.getFileType() == AndroidRenderscriptFileType.INSTANCE) {
-        final VirtualFile sourceRoot = findSourceRoot(module, file);
+        VirtualFile sourceRoot = findSourceRoot(module, file);
         if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getRenderscriptGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.RENDERSCRIPT);
         }
@@ -252,7 +257,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
     private void invalidateAttributeDefinitions(@NotNull Collection<Module> modules) {
       for (Module module : AndroidUtils.getSetWithBackwardDependencies(modules)) {
-        final AndroidFacet facet = AndroidFacet.getInstance(module);
+        AndroidFacet facet = AndroidFacet.getInstance(module);
 
         if (facet != null) {
           ModuleResourceManagers.getInstance(facet).getLocalResourceManager().invalidateAttributeDefinitions();

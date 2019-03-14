@@ -2381,7 +2381,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 PsiDirectory parent = psiFile.getParent();
                 String oldName = (String)oldValue;
                 if (parent != null && parent.findFile(oldName) == null) {
-                  removeFile(findSource(parent.getName(), oldName));
+                  ResourceItemSource<? extends ResourceItem> source;
+
+                  // Depending on the implementation of ResourceItemSource, the underlying
+                  // resource file might either have the old file name or the new file name.
+                  // Resources converted to PSI use PsiResourceFile and thus PsiFile which already
+                  // has the new name by now, as opposed to ResourceFileAdapter, ResourceFile and File.
+                  // So we first try to find the cached source using the old name and if we can't
+                  // find one, we use the new name, which is the current name of the psiFile
+                  // (psiFile.getName())
+                  source = findSource(parent.getName(), oldName);
+                  if (source == null) {
+                    source = findSource(parent.getName(), psiFile.getName());
+                  }
+                  removeFile(source);
                 }
               }
             }

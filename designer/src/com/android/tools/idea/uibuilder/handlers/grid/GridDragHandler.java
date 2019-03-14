@@ -48,7 +48,11 @@ final class GridDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+  public void commit(@AndroidCoordinate int x,
+                     @AndroidCoordinate int y,
+                     int modifiers,
+                     @NotNull InsertType insertType,
+                     @Nullable Runnable callback) {
     NlComponent layoutComponent = layout.getNlComponent();
 
     // Without this case the children array is empty and the array access throws an ArrayIndexOutOfBoundsException

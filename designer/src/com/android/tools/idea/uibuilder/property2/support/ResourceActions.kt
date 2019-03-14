@@ -90,6 +90,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val defaultResourceType = getDefaultResourceType(propertyName)
     val isImageViewDrawable = hasImageTag.isPresent &&
                               (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
+    val showSampleData = SdkConstants.TOOLS_URI == property.namespace
     val dialog = ChooseResourceDialog.builder()
       .setModule(module)
       .setTypes(property.type.resourceTypes)
@@ -97,6 +98,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
       .setTag(tag)
       .setDefaultType(defaultResourceType)
       .setFilterColorStateLists(isImageViewDrawable)
+      .setShowSampleDataPicker(showSampleData)
       .build()
     dialog.title = PICK_A_RESOURCE
     return if (dialog.showAndGet()) dialog.resourceName else null

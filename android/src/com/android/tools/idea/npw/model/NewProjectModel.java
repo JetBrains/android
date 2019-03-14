@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfoBuilder;
@@ -38,6 +39,7 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -75,6 +77,7 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
@@ -470,15 +473,15 @@ public class NewProjectModel extends WizardModel {
           }
         }
 
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request(project().getValue());
         request.isNewProject = true;
         request.javaLanguageLevel = initialLanguageLevel;
-        request.project = project().getValue();
 
         // The GradleSyncListener will take care of creating the Module top level module and opening Android Studio if gradle sync fails,
         // otherwise the project will be created but Android studio will not open - http://b.android.com/335265
-        projectImporter.importProject(applicationName().get(), rootLocation, request, new GradleSyncListener() {
-        });
+        Project newProject = projectImporter.importProjectNoSync(applicationName().get(), rootLocation, request);
+
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW);
       }
       catch (IOException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));

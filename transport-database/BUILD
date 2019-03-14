@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.transportDatabase",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.transportDatabase.iml"],
+    test_coverage = True,
     test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [

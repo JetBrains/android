@@ -50,8 +50,8 @@ class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
     val LOG = Logger.getInstance(LoadOverlayAction::class.java)
   }
 
-  override fun createCustomComponent(presentation: Presentation): JComponent {
-    return ActionButtonWithText(this, presentation, "Toolbar", ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    return ActionButtonWithText(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 
   override fun update(e: AnActionEvent) {

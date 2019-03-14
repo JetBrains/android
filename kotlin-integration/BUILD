@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["kotlin-integration-tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
+    test_coverage = True,
     # keep sorted
     test_data = [
         ":test_deps.zip",
@@ -31,7 +32,6 @@ iml_module(
     test_runtime_deps = [
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_srcs = ["testSrc"],
     test_tags = [

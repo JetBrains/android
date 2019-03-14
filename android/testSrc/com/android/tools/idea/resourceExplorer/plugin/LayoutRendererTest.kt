@@ -66,9 +66,6 @@ class LayoutRendererTest {
     // Test the size
     assertThat(image.width).isEqualTo(768)
     assertThat(image.height).isEqualTo(1024)
-
-    // Check that the returned image is the same, which means that the image was cached
-    assertThat(layoutRenderer.getLayoutRender(psiFile, configuration).get(5, TimeUnit.SECONDS)).isSameAs(image)
   }
 
   @Test
@@ -133,6 +130,6 @@ private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, confi
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .disableSecurityManager()
-    .buildSynchronously()
+    .build()
 
 private fun Image.toBufferedImage() = ImageUtil.toBufferedImage(this)

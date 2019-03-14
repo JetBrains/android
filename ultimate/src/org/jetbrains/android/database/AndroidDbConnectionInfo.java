@@ -12,7 +12,7 @@ class AndroidDbConnectionInfo {
   private final String myDbName;
   private final boolean myExternal;
 
-  public AndroidDbConnectionInfo(@NotNull IDevice device, @NotNull String packageName, @NotNull String dbName, boolean external) {
+  AndroidDbConnectionInfo(@NotNull IDevice device, @NotNull String packageName, @NotNull String dbName, boolean external) {
     myDevice = device;
     myPackageName = packageName;
     myDbName = dbName;

@@ -31,8 +31,8 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 
-class AndroidModuleProcessor {
-  static Key<GradleModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
+public class AndroidModuleProcessor {
+  public static final Key<GradleModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
 
   @NotNull private final Project myProject;
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;

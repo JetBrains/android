@@ -25,6 +25,7 @@ iml_module(
     name = "intellij.android.resources-aar.tests",
     iml_files = ["intellij.android.resources-aar.tests.iml"],
     test_class = "com.android.tools.idea.resources.aar.ResourcesAarTestSuite",
+    test_coverage = True,
     # keep sorted
     test_data = [
         ":framework_res",

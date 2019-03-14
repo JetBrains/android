@@ -32,10 +32,10 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
       return super.getIcon(component)
     }
     return if (isVertical(component)) {
-      StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE
+      StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL
     }
     else {
-      StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE
+      StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL
     }
   }
 

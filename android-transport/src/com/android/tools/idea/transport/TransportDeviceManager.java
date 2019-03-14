@@ -151,11 +151,18 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
   private Runnable getDisconnectRunnable(@NotNull String serialNumber) {
     return () -> mySerialToDeviceContextMap.compute(serialNumber, (unused, context) -> {
       assert context != null;
+      // Disconnect both the proxy -> device and datastore -> proxy connections.
       TransportProxy proxy = context.myLastKnownTransportProxy;
       if (proxy != null) {
         proxy.disconnect();
       }
       context.myLastKnownTransportProxy = null;
+
+      if (context.myDevice != null) {
+        myDataStoreService.disconnect(context.myDevice.getDeviceId());
+      }
+      context.myDevice = null;
+
       return context;
     });
   }
@@ -358,6 +365,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
         assert context != null;
         context.myLastKnownTransportProxy = myTransportProxy;
+        context.myDevice = transportDevice;
         return context;
       });
 
@@ -423,6 +431,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
                                                                               TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     @Nullable public TransportProxy myLastKnownTransportProxy;
     @Nullable public Future<?> myLastKnownTransportThreadFuture;
+    @Nullable public Common.Device myDevice;
   }
 
   public interface TransportDeviceManagerListener {

@@ -49,6 +49,7 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
+    test_coverage = True,
     test_data = [
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/studio/jdk",
@@ -73,6 +74,7 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/vendor/intellij/cidr/cidr-common-testFramework:intellij.cidr.common.testFramework",
         "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_srcs = ["testSrc"],

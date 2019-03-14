@@ -68,6 +68,10 @@ class AndroidGradleProjectRule : NamedExternalResource() {
     delegateTestCase.loadProject(projectPath)
   }
 
+  fun requestSyncAndWait() {
+    delegateTestCase.requestSyncAndWait()
+  }
+
   /**
    * Given a project with Gradle support, invoke one or more tasks, e.g. "assembleDebug"
    */

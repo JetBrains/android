@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 24
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 24
+
+    }
+}
+
+dependencies {
+    lintPublish project(':lintpublish')
+}
+

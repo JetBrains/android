@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.util.text.StringUtil;
@@ -94,7 +95,7 @@ public final class RegexFilterComponent extends FilterComponent {
       }
     };
 
-    Component component = regexToggle.createCustomComponent(regexToggle.getTemplatePresentation());
+    Component component = regexToggle.createCustomComponent(regexToggle.getTemplatePresentation(), ActionPlaces.UNKNOWN);
     assert (component instanceof JCheckBox);
     myCheckBox = (JCheckBox)component;
     add(myCheckBox, BorderLayout.EAST);

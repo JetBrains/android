@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.BUNDLE;
+import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+import static com.intellij.openapi.ui.Messages.CANCEL;
+import static com.intellij.openapi.ui.Messages.NO;
+import static com.intellij.openapi.ui.Messages.YES;
+import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
+
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
@@ -33,7 +51,11 @@ import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
-import com.intellij.build.events.impl.*;
+import com.intellij.build.events.impl.FinishBuildEventImpl;
+import com.intellij.build.events.impl.OutputBuildEventImpl;
+import com.intellij.build.events.impl.SkippedResultImpl;
+import com.intellij.build.events.impl.StartBuildEventImpl;
+import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.build.output.JavacOutputParser;
@@ -63,24 +85,22 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
 import com.intellij.xdebugger.XDebugSession;
-import org.gradle.tooling.BuildAction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
-
-import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
-import static com.intellij.openapi.ui.Messages.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import org.gradle.tooling.BuildAction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -319,6 +339,7 @@ public class GradleBuildInvoker {
   /**
    * @deprecated use {@link GradleBuildInvoker#executeTasks(File, List)}
    */
+  @Deprecated
   public void executeTasks(@NotNull List<String> gradleTasks) {
     File path = getBaseDirPath(myProject);
     executeTasks(path, gradleTasks, myOneTimeGradleOptions);
@@ -384,11 +405,11 @@ public class GradleBuildInvoker {
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     List<BuildOutputParser> buildOutputParsers =
-      Arrays.asList(new AndroidGradlePluginOutputParser(),
+      Arrays.asList(new GradleBuildOutputParser(),
+                    new AndroidGradlePluginOutputParser(),
                     new DataBindingOutputParser(),
                     new JavacOutputParser(),
-                    new KotlincOutputParser(),
-                    new GradleBuildOutputParser());
+                    new KotlincOutputParser());
 
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
@@ -412,7 +433,6 @@ public class GradleBuildInvoker {
             public void actionPerformed(@NotNull AnActionEvent e) {
               // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
               myReader.close();
-              // noinspection resource, IOResourceOpenedButNotSafelyClosed
               myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
               executeTasks(request);
             }
@@ -473,9 +493,9 @@ public class GradleBuildInvoker {
         }
       };
     }
-    catch (Exception ignored) {
+    catch (Exception exception) {
       buildOutputInstantReader.close();
-      throw ignored;
+      throw exception;
     }
   }
 

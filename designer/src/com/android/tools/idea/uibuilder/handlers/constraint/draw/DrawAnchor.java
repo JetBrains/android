@@ -31,6 +31,10 @@ import java.awt.*;
  * Draws an Anchor
  */
 public class DrawAnchor extends DrawRegion {
+  // Percent values relative to the size of the anchor.
+  private static final int PAINT_BACKGROUND_SIZE_PERCENT = 20;
+  private static final int PAINT_HOVER_SIZE_PERCENT = 40;
+  private static final int PAINT_INNER_CIRCLE_SIZE_PERCENT = 10;
 
   public enum Type {
     NORMAL,
@@ -54,7 +58,6 @@ public class DrawAnchor extends DrawRegion {
   private final Mode myMode;
   private final boolean myIsConnected;
   private final Type myType;
-  private final boolean myIsComponentSelected;
 
   public DrawAnchor(@SwingCoordinate int x,
                     @SwingCoordinate int y,
@@ -62,13 +65,11 @@ public class DrawAnchor extends DrawRegion {
                     @SwingCoordinate int height,
                     Type type,
                     boolean isConnected,
-                    Mode mode,
-                    boolean isComponentSelected) {
+                    Mode mode) {
     super(x, y, width, height);
     myMode = mode;
     myIsConnected = isConnected;
     myType = type;
-    myIsComponentSelected = isComponentSelected;
   }
 
   private static int getPulseAlpha(int deltaT) {
@@ -85,16 +86,8 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
-    Shape originalClip = null;
-    if (myIsComponentSelected) {
-      originalClip = g.getClip();
-      g.setClip(sceneContext.getRenderableBounds());
-    }
     if (myType == Type.BASELINE) {
       paintBaseline(g, sceneContext);
-      if (originalClip != null) {
-        g.setClip(originalClip);
-      }
       return;
     }
 
@@ -103,27 +96,28 @@ public class DrawAnchor extends DrawRegion {
     Color color = colorSet.getSelectedFrames();
 
     if (myMode == Mode.OVER) {
-      if (myIsConnected) {
-        g.setColor(colorSet.getAnchorDisconnectionCircle());
-      }
-      else {
-        g.setColor(colorSet.getAnchorConnectionCircle());
-      }
-      int delta = width / 3;
-      int delta2 = delta * 2;
-      g.fillRoundRect(x - delta, y - delta, width + delta2, height + delta2, width + delta2, height + delta2);
-      g.drawRoundRect(x - delta, y - delta, width + delta2, height + delta2, width + delta2, height + delta2);
+      // Draw a ring around the anchor Should go a bit over the white background.
+      int overRingOffset = width * PAINT_HOVER_SIZE_PERCENT / 100;
+      int overRingWidth = width + (overRingOffset * 2);
+      g.setColor(color);
+      g.fillRoundRect(x - overRingOffset, y - overRingOffset, overRingWidth, overRingWidth, overRingWidth, overRingWidth);
     }
 
+    // The background of the anchor. Goes 20% extra width over the actual size (~2dp).
     g.setColor(background);
-    g.fillRoundRect(x, y, width, height, width, height);
+    int whiteSpaceOffset = width * PAINT_BACKGROUND_SIZE_PERCENT / 100;
+    int whiteSpaceWidth = width + (whiteSpaceOffset * 2);
+    g.fillRoundRect(x - whiteSpaceOffset, y - whiteSpaceOffset, whiteSpaceWidth, whiteSpaceWidth, whiteSpaceWidth, whiteSpaceWidth);
+
+    // The fill circle of an anchor.
     g.setColor(color);
-    g.drawRoundRect(x, y, width, height, width, height);
-    int delta = width / 4;
-    int delta2 = delta * 2;
-    if (myIsConnected) {
-      g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
-      g.drawRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
+    g.fillRoundRect(x, y, width, width, width, width);
+    if (!myIsConnected) {
+      // Add a "hole" for non-connected anchors.
+      int innerCircleOffset = width * PAINT_INNER_CIRCLE_SIZE_PERCENT / 100;
+      int innerCircleWidth = width - (innerCircleOffset * 2);
+      g.setColor(background);
+      g.fillRoundRect(x + innerCircleOffset, y + innerCircleOffset, innerCircleWidth, innerCircleWidth, innerCircleWidth, innerCircleWidth);
     }
 
     if (myMode == Mode.CAN_CONNECT) {
@@ -135,6 +129,7 @@ public class DrawAnchor extends DrawRegion {
       sceneContext.repaint();
       g.setComposite(comp);
     }
+
     if (myMode == Mode.CANNOT_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
@@ -158,10 +153,6 @@ public class DrawAnchor extends DrawRegion {
       g.fillRoundRect(x, y, width, height, width, height);
       sceneContext.repaint();
       g.setComposite(comp);
-    }
-
-    if (originalClip != null) {
-      g.setClip(originalClip);
     }
   }
 
@@ -222,16 +213,14 @@ public class DrawAnchor extends DrawRegion {
                          @AndroidDpCoordinate float y,
                          Type type,
                          boolean isConnected,
-                         Mode mode,
-                         boolean isComponentSelected) {
+                         Mode mode) {
     assert type != Type.BASELINE;
     @SwingCoordinate int swingX = transform.getSwingXDip(x);
     @SwingCoordinate int swingY = transform.getSwingYDip(y);
 
     int l = swingX - AnchorTarget.ANCHOR_SIZE;
     int t = swingY - AnchorTarget.ANCHOR_SIZE;
-    int size = AnchorTarget.ANCHOR_SIZE * 2;
-    list.add(new DrawAnchor(l, t, size, size, type, isConnected, mode, isComponentSelected));
+    list.add(new DrawAnchor(l, t, AnchorTarget.ANCHOR_SIZE * 2, AnchorTarget.ANCHOR_SIZE * 2, type, isConnected, mode));
   }
 
   public static void addBaseline(@NotNull DisplayList list,
@@ -241,8 +230,7 @@ public class DrawAnchor extends DrawRegion {
                                  @AndroidDpCoordinate float componentWidth,
                                  Type type,
                                  boolean isConnected,
-                                 Mode mode,
-                                 boolean isComponentSelected) {
+                                 Mode mode) {
     assert type == Type.BASELINE;
     @SwingCoordinate int swingX = transform.getSwingXDip(x);
     @SwingCoordinate int swingY = transform.getSwingYDip(y);
@@ -251,6 +239,6 @@ public class DrawAnchor extends DrawRegion {
     int l = swingX - swingWidth / 2 + AnchorTarget.ANCHOR_SIZE;
     int t = swingY - AnchorTarget.ANCHOR_SIZE / 2;
     int w = swingWidth - 2 * AnchorTarget.ANCHOR_SIZE;
-    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE, type, isConnected, mode, isComponentSelected));
+    list.add(new DrawAnchor(l, t, w, AnchorTarget.ANCHOR_SIZE, type, isConnected, mode));
   }
 }

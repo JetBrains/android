@@ -458,12 +458,18 @@ public final class NlComponentTest extends LayoutTestCase {
     ViewEditor mockEditor =  mock(ViewEditor.class);
     setupMockViewEditorWithMockSurface(mockEditor);
 
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        assertNull(NlComponentHelperKt.createChild(relativeLayout, mockEditor, "TextView", null, InsertType.CREATE));
-      }
-    });
+    boolean errorCaught = false;
+    try {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          NlComponentHelperKt.createChild(relativeLayout, mockEditor, "TextView", null, InsertType.CREATE);
+        }
+      });
+    } catch (AssertionError expected) {
+      errorCaught = true;
+    }
+    assertTrue(errorCaught);
 
     UIUtil.dispatchAllInvocationEvents();
   }
@@ -475,13 +481,6 @@ public final class NlComponentTest extends LayoutTestCase {
                       "\n" +
                       "    <RelativeLayout />\n" +
                       "</layout>\n";
-    String textViewText = "<TextView" +
-                          " xmlns:android=\"" + ANDROID_URI + "\"" +
-                          " xmlns:tools=\"" + TOOLS_URI + "\"" +
-                          " android:text=\"Initial\"" +
-                          " tools:text=\"ToolText\"" +
-                          " android:layout_width=\"wrap_content\"" +
-                          " android:layout_height=\"wrap_content\" />";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
     XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
     NlComponent relativeLayout = createComponent(rootTag);
@@ -489,7 +488,13 @@ public final class NlComponentTest extends LayoutTestCase {
     ViewEditor mockEditor =  mock(ViewEditor.class);
     setupMockViewEditorWithMockSurface(mockEditor);
 
-    assertNull(NlComponentHelperKt.createChild(relativeLayout, mockEditor, "", null, InsertType.CREATE));
+    boolean errorCaught = false;
+    try {
+      NlComponentHelperKt.createChild(relativeLayout, mockEditor, "", null, InsertType.CREATE);
+    } catch (AssertionError expected) {
+      errorCaught = true;
+    }
+    assertTrue(errorCaught);
 
     UIUtil.dispatchAllInvocationEvents();
   }

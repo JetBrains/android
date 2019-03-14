@@ -32,7 +32,7 @@ public abstract class LabeledComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @Override
-  public JComponent createCustomComponent(@NotNull Presentation presentation) {
+  public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
     JPanel panel = new JPanel(new BorderLayout());
     JLabel label = new JLabel(myLabel);
     panel.add(label, BorderLayout.WEST);

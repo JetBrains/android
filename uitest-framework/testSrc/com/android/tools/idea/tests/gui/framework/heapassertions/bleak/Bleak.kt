@@ -60,6 +60,8 @@ private fun Signature.isWhitelisted(): Boolean =
   entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
   entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
   entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
+  entry(-3) == "com.intellij.openapi.fileEditor.impl.EditorWindow#myRemovedTabs" ||
+  first() == "sun.java2d.Disposer#records" ||
   first() == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
   first() == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315
 

@@ -358,8 +358,7 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
 /**
  * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
  * Note: This operation can only be called when the caller is already holding a write lock. This will be the
- * case from [ViewHandler] callbacks such as [ViewHandler.onCreate]
- * and [DragHandler.commit].
+ * case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and [DragHandler.commit].
 
  * @param editor     The editor showing the component
  * @param fqcn       The fully qualified name of the widget to insert, such as `android.widget.LinearLayout`
@@ -398,8 +397,8 @@ fun NlComponent.createChild(tagName: String,
                             insertType: InsertType = InsertType.CREATE
 ): NlComponent? {
   if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
-    Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
-      "Unable to create child NlComponent ${tagName}. createChild must be called within a write action.")
+    Logger.getInstance(NlWriteCommandActionUtil::class.java).error(
+        Throwable("Unable to create child NlComponent ${tagName}. The createChild method must be called within a write action."))
     return null
   }
 

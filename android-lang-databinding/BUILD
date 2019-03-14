@@ -46,6 +46,7 @@ iml_module(
         "no_test_windows",
     ],  # b/113099009
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
+    test_coverage = True,
     test_data = [
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/studio/jdk",

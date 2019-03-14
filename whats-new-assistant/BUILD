@@ -39,6 +39,7 @@ iml_module(
     iml_files = ["whats-new-assistant-test.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewAssistantTestSuite",
+    test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
