@@ -44,7 +44,7 @@ public class GotoComponentAction extends DumbAwareAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     InputEvent inputEvent = e.getInputEvent();
-    if (inputEvent instanceof MouseEvent && !mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent)) {
+    if (inputEvent instanceof MouseEvent && mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent)) {
       // We don't want to perform navigation if we are panning
       return;
     }
