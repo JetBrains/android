@@ -42,6 +42,7 @@ import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -137,6 +138,7 @@ class ResourceDetailView(
     }
     registerBackOnEscape()
     registerFocusOnClick()
+    getComponent(0).requestFocusInWindow()
   }
 
   init {
@@ -200,6 +202,13 @@ class ResourceDetailView(
         e.consume()
       }
     })
+    addKeyListener(object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (KeyEvent.VK_ENTER == e.keyCode) {
+          openFile(asset)
+        }
+      }
+    })
 
     registerBackOnEscape()
     isFocusable = true
@@ -218,7 +227,7 @@ class ResourceDetailView(
   }
 
   override fun requestFocusInWindow(): Boolean {
-    return content.requestFocusInWindow()
+    return content.getComponent(0).requestFocusInWindow()
   }
 }
 

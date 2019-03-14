@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
@@ -50,6 +51,8 @@ import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.InputEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
@@ -103,7 +106,7 @@ private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
  * It uses an [ProjectResourcesBrowserViewModel] to populates the views
  */
 class ResourceExplorerView(
-  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel,
+  private val resourcesBrowserViewModel: ResourceExplorerViewModel,
   private val resourceImportDragTarget: ResourceImportDragTarget
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
@@ -191,7 +194,7 @@ class ResourceExplorerView(
   /**
    * A mouse listener that opens a [ResourceDetailView] when double clicking
    * on an item from the list.
-   * @see showDetailView
+   * @see openAssets
    */
   private val doubleClickListener = object : MouseAdapter() {
     override fun mouseClicked(e: MouseEvent) {
@@ -202,7 +205,16 @@ class ResourceExplorerView(
       val index = assetListView.locationToIndex(e.point)
       if (index >= 0) {
         val designAssetSet = assetListView.model.getElementAt(index)
-        showDetailView(designAssetSet)
+        openAssets(designAssetSet)
+      }
+    }
+  }
+
+  private val keyListener = object : KeyAdapter() {
+    override fun keyPressed(e: KeyEvent) {
+      if (KeyEvent.VK_ENTER == e.keyCode) {
+        val assetListView = e.source as AssetListView
+        openAssets(assetListView.selectedValue)
       }
     }
   }
@@ -210,15 +222,27 @@ class ResourceExplorerView(
   /**
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
+  private fun openAssets(designAssetSet: DesignAssetSet) {
+    if (designAssetSet.designAssets.size == 1) {
+      val asset = designAssetSet.designAssets.first()
+      ResourceManagerTracking.logAssetOpened(asset.type)
+      resourcesBrowserViewModel.openFile(asset)
+      return
+    }
+    showDetailView(designAssetSet)
+  }
+
   private fun showDetailView(designAssetSet: DesignAssetSet) {
     val parent = parent
     parent.remove(this)
+    val previousSelectedValue = sectionList.selectedValue
 
     val detailView = ResourceDetailView(designAssetSet, resourcesBrowserViewModel) { detailView ->
       parent.remove(detailView)
       parent.add(this@ResourceExplorerView)
       parent.revalidate()
       parent.repaint()
+      sectionList.selectedValue = previousSelectedValue
     }
 
     parent.add(detailView)
@@ -325,6 +349,7 @@ class ResourceExplorerView(
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
       addMouseListener(doubleClickListener)
+      addKeyListener(keyListener)
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
     })
