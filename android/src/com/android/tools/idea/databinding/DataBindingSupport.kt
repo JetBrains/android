@@ -24,6 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 interface DataBindingSupport {
   companion object {
+    @JvmField
     val EP_NAME = ExtensionPointName<DataBindingSupport>("com.android.tools.idea.databinding.dataBindingSupport")
   }
   /**
