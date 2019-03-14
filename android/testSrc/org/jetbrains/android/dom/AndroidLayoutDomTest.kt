@@ -481,7 +481,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestCompletionVariants("ctn1.xml", "p2.LabelView", "p2.LabelView1")
   }
 
-  fun testCustomTagCompletion2() {
+  // b/128621277
+  fun ignore_testCustomTagCompletion2() {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
     val file = copyFileToProject("ctn2.xml")
     myFixture.configureFromExistingVirtualFile(file)
@@ -731,7 +732,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     TestCase.assertTrue(myFixture.lookupElementStrings!!.contains("widget.Button"))
   }
 
-  fun testTagNameCompletion9() {
+  // b/128621277
+  fun ignore_testTagNameCompletion9() {
     toTestCompletion("tn9.xml", "tn9_after.xml")
   }
 
@@ -759,7 +761,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   // Completion by simple class name in layouts should work, inserting fully-qualified names
   // http://b.android.com/179380
-  fun testTagNameCompletionBySimpleName() {
+  // b/128621277
+  fun ignore_testTagNameCompletionBySimpleName() {
     toTestCompletion("tn13.xml", "tn13_after.xml")
   }
 
@@ -914,7 +917,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestCompletion()
   }
 
-  fun testMerge2() {
+  // b/128621277
+  fun ignore_testMerge2() {
     doTestCompletion()
   }
 
