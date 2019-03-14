@@ -15,39 +15,53 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
-import com.android.tools.adtui.model.FpsTimer
-import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.transport.poller.TransportEventListener
+import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.layoutinspector.proto.LayoutInspector
 import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.common.util.concurrent.MoreExecutors
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedList
+import java.util.concurrent.TimeUnit
 
-// TODO: This will be simplified with ag/6471450
-object DefaultInspectorClient: InspectorClient {
+object DefaultInspectorClient : InspectorClient {
   private var client = TransportClient(TransportService.getInstance().channelName)
+  private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
+                                                                  TimeUnit.MILLISECONDS.toNanos(100),
+                                                                  Comparator.comparing(Common.Event::getTimestamp).reversed())
+
   private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
-  private var lastResponseTime = Long.MIN_VALUE
-  private val callbacks = mutableMapOf<Int, (LayoutInspector.LayoutInspectorEvent) -> Unit>()
   private var agentConnected = false
   private var captureStarted = false
-  private var updater = Updater(FpsTimer(10))
 
-  init {
-    // TODO: detect when a connection is dropped
-    // TODO: move all communication with the agent off the UI thread
-    updater.register(::update)
-  }
+  private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
+
+  // TODO: detect when a connection is dropped
+  // TODO: move all communication with the agent off the UI thread
 
   override fun register(groupId: Common.Event.EventGroupIds, callback: (LayoutInspector.LayoutInspectorEvent) -> Unit) {
-    callbacks[groupId.number] = callback
+    // TODO: unregister listeners
+    transportPoller.registerListener(TransportEventListener(
+      eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
+      executor = MoreExecutors.directExecutor(),
+      streamId = selectedStream::getStreamId,
+      groupId = { groupId.number.toLong() },
+      processId = selectedProcess::getPid) {
+      if (selectedStream != Common.Stream.getDefaultInstance() &&
+          selectedProcess != Common.Process.getDefaultInstance() && agentConnected &&
+          it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, 0)) {
+        callback(it.layoutInspectorEvent)
+        lastResponseTimePerGroup[it.groupId] = it.timestamp
+      }
+    })
   }
 
   override fun execute(command: LayoutInspector.LayoutInspectorCommand) {
@@ -140,63 +154,24 @@ object DefaultInspectorClient: InspectorClient {
       .setAttachAgent(
         Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.abiCpuArch)))
       .build()
+
+    lateinit var listener: TransportEventListener
+    listener = TransportEventListener(
+      eventKind = Common.Event.Kind.AGENT,
+      executor = MoreExecutors.directExecutor(),
+      streamId = stream::getStreamId,
+      processId = process::getPid,
+      filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
+    ) {
+      agentConnected = true
+      execute(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START).build())
+      // TODO: verify that capture started successfully
+
+      transportPoller.unregisterListener(listener)
+    }
+    transportPoller.registerListener(listener)
+
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
-  }
-
-  private fun tryToStartCapture() {
-    if (selectedStream == Common.Stream.getDefaultInstance() ||
-        selectedProcess == Common.Process.getDefaultInstance()) {
-      return
-    }
-
-    // Get agent data for requested session.
-    val agentRequest = Transport.GetEventGroupsRequest.newBuilder()
-      .setKind(Common.Event.Kind.AGENT)
-      .setStreamId(selectedStream.streamId)
-      .setPid(selectedProcess.pid)
-      .build()
-    val response = client.transportStub.getEventGroups(agentRequest)
-    for (group in response.groupsList) {
-      if (group.getEvents(group.eventsCount - 1).agentData.status == Common.AgentData.Status.ATTACHED) {
-        agentConnected = true
-        if (!captureStarted) {
-          captureStarted = true
-          execute(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START).build())
-          // TODO: verify that capture started successfully
-        }
-        break
-      }
-    }
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  private fun update(elapsedNs: Long) {
-    if (!agentConnected) {
-      tryToStartCapture()
-      return
-    }
-    val eventRequest = Transport.GetEventGroupsRequest.newBuilder()
-      .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
-      .setFromTimestamp(lastResponseTime)
-      .setToTimestamp(Long.MAX_VALUE)
-      .build()
-    val eventResponse = client.transportStub.getEventGroups(eventRequest)
-    if (eventResponse == Transport.GetEventGroupsResponse.getDefaultInstance()) {
-      return
-    }
-    val events = ArrayList<Common.Event>()
-    val handled = mutableSetOf<Int>()
-    eventResponse.groupsList.forEach { group -> events.addAll(group.eventsList) }
-    events.sortByDescending { it.timestamp }
-    events.forEach { event ->
-      lastResponseTime = Math.max(lastResponseTime, event.timestamp + 1)
-      val groupId = event.groupId.toInt()
-      val callback = callbacks[groupId]
-      if (callback != null && !handled.contains(groupId)) {
-        handled.add(groupId)
-        callback.invoke(event.layoutInspectorEvent)
-      }
-    }
   }
 
   /**
