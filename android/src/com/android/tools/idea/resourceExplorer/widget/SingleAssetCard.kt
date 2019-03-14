@@ -37,6 +37,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.border.Border
 import kotlin.properties.Delegates
 
 // Graphic constant for the view
@@ -49,7 +50,13 @@ private const val THUMBNAIL_HEIGHT_WIDTH_RATIO = 23 / 26f
 
 private val LARGE_MAIN_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(10),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(), 4, 2)
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), 4, 2)
+)
+
+
+private val LARGE_MAIN_CELL_BORDER_UNFOCUSED = BorderFactory.createCompoundBorder(
+  JBUI.Borders.empty(10),
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), 4, 2)
 )
 
 private var PREVIEW_BORDER_COLOR: Color = border
@@ -63,7 +70,12 @@ private val ROW_CELL_BORDER = JBUI.Borders.empty(4)
 
 private val ROW_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   JBUI.Borders.empty(2),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(), 4, 2)
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), 4, 2)
+)
+
+private val ROW_CELL_BORDER_UNFOCUSED = BorderFactory.createCompoundBorder(
+  JBUI.Borders.empty(2),
+  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), 4, 2)
 )
 
 private val BOTTOM_PANEL_BORDER = JBUI.Borders.empty(5, 8, 10, 10)
@@ -146,6 +158,8 @@ abstract class AssetView : JPanel(BorderLayout()) {
 
   abstract var selected: Boolean
 
+  abstract var focused: Boolean
+
   protected var contentWrapper = ChessBoardPanel(BorderLayout()).apply {
     showChessboard = withChessboard
   }
@@ -192,6 +206,8 @@ abstract class AssetView : JPanel(BorderLayout()) {
    * desired [width]
    */
   protected abstract fun computeThumbnailSize(width: Int): Dimension
+
+  protected abstract fun getBorder(selected: Boolean, focused: Boolean): Border
 }
 
 /**
@@ -200,7 +216,11 @@ abstract class AssetView : JPanel(BorderLayout()) {
  */
 class SingleAssetCard : AssetView() {
   override var selected by Delegates.observable(false) { _, _, selected ->
-    border = if (selected) LARGE_MAIN_CELL_BORDER_SELECTED else LARGE_MAIN_CELL_BORDER
+    border = getBorder(selected, focused)
+  }
+
+  override var focused: Boolean by Delegates.observable(false) { _, _, focused ->
+    border = getBorder(selected, focused)
   }
 
   override fun computeThumbnailSize(width: Int) = Dimension(width, (width * THUMBNAIL_HEIGHT_WIDTH_RATIO).toInt())
@@ -225,6 +245,11 @@ class SingleAssetCard : AssetView() {
     }
     viewWidth = DEFAULT_WIDTH
   }
+
+  override fun getBorder(selected: Boolean, focused: Boolean): Border = if (selected) {
+    if (focused) LARGE_MAIN_CELL_BORDER_SELECTED else LARGE_MAIN_CELL_BORDER_UNFOCUSED
+  }
+  else LARGE_MAIN_CELL_BORDER
 }
 
 /**
@@ -236,9 +261,20 @@ class RowAssetView : AssetView() {
   private val CENTER_PANEL_BORDER_SELECTED = JBUI.Borders.empty(0, 10, 1, 1)
 
   override var selected by Delegates.observable(false) { _, _, selected ->
-    border = if (selected) ROW_CELL_BORDER_SELECTED else ROW_CELL_BORDER
+    border = getBorder(selected, focused)
     centerPanel.border = if (selected) CENTER_PANEL_BORDER_SELECTED else CENTER_PANEL_BORDER_UNSELECTED
   }
+
+  override var focused: Boolean by Delegates.observable(false) { _, _, focused ->
+    border = getBorder(selected, focused)
+    centerPanel.border = if (selected) CENTER_PANEL_BORDER_SELECTED else CENTER_PANEL_BORDER_UNSELECTED
+  }
+
+  override fun getBorder(selected: Boolean, focused: Boolean): Border =
+    if (selected) {
+      if (focused) ROW_CELL_BORDER_SELECTED else ROW_CELL_BORDER_UNFOCUSED
+    }
+    else ROW_CELL_BORDER
 
   private val CENTER_PANEL_BORDER_UNSELECTED = BorderFactory.createCompoundBorder(
     JBUI.Borders.empty(0, 10, 0, 1),
