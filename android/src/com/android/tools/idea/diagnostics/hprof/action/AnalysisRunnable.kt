@@ -76,7 +76,7 @@ class AnalysisRunnable(private val hprofPath: Path,
 
     override fun onFinished() {
       val nextCheckMs = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)
-      PropertiesComponent.getInstance().getOrInitLong(HeapDumpSnapshotRunnable.NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs)
+      PropertiesComponent.getInstance().setValue(HeapDumpSnapshotRunnable.NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
     }
 
     private fun deleteHprofFileAsync() {

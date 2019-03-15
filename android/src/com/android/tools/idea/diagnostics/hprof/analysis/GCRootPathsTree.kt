@@ -22,6 +22,7 @@ import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
 import gnu.trove.TIntArrayList
 import gnu.trove.TIntHashSet
 import gnu.trove.TIntObjectHashMap
+import java.util.ArrayDeque
 import java.util.HashMap
 
 class GCRootPathsTree(
@@ -49,8 +50,8 @@ class GCRootPathsTree(
     }
   }
 
-  fun printTree(headLimit: Int, tailCount: Int): String {
-    return topNode.createHotPathReport(nav, headLimit, tailCount)
+  fun printTree(headLimit: Int, tailLimit: Int): String {
+    return topNode.createHotPathReport(nav, headLimit, tailLimit)
   }
 
   interface Node {
@@ -107,7 +108,14 @@ class GCRootPathsTree(
       return result
     }
 
-    fun createHotPathReport(nav: ObjectNavigator, limit: Int, tailCount: Int): String {
+    data class StackEntry(
+      val classDefinition: ClassDefinition,
+      val node: RegularNode,
+      val indent: String,
+      val nextIndent: String
+    )
+
+    fun createHotPathReport(nav: ObjectNavigator, headLimit: Int, tailLimit: Int): String {
       val rootList = mutableListOf<Triple<Int, RegularNode, ClassDefinition>>()
       val result = StringBuilder()
       edges.forEachEntry { objectId, (node, classDef) ->
@@ -116,44 +124,92 @@ class GCRootPathsTree(
       rootList.sortByDescending { it.second.pathsCount }
       val totalInstanceCount = calculateTotalInstanceCount()
 
-      // Show paths from roots that have at least 20% or MINIMUM_OBJECT_COUNT_FOR_REPORT objects (whichever is more).
-      // Always show at least one path.
-      val minimumObjectsForReport = Math.max(MINIMUM_OBJECT_COUNT_FOR_REPORT, totalInstanceCount / 100 * MINIMUM_OBJECT_COUNT_PERCENT)
+      val minimumObjectsForReport = Math.min(
+        MINIMUM_OBJECT_COUNT_FOR_REPORT,
+        (Math.ceil(totalInstanceCount / 100.0) * MINIMUM_OBJECT_COUNT_PERCENT).toInt())
+
+      // Show paths from roots that have at least MINIMUM_OBJECT_COUNT_PERCENT or MINIMUM_OBJECT_COUNT_FOR_REPORT objects.
+      // Always show at least two paths.
       rootList.filterIndexed { index, (_, node, _) ->
-        index == 0 || node.pathsCount >= minimumObjectsForReport
-      }.forEach { (rootObjectId, rootObjectNode, rootObjectClass) ->
+        index <= 1 || node.pathsCount >= minimumObjectsForReport
+      }.forEach { (rootObjectId, rootNode, rootObjectClass) ->
         val printFunc = { s: String -> result.appendln(s); Unit }
 
-        val rootReasonString = (nav.getRootReasonForObjectId(rootObjectId.toLong())?.description
-                                ?: "<Couldn't find root description>")
-        val rootPercent = (100.0 * rootObjectNode.pathsCount / totalInstanceCount).toInt()
-        result.appendln("ROOT: $rootReasonString: ${rootObjectNode.pathsCount} objects ($rootPercent%)")
+        val rootReasonString =
+          (nav.getRootReasonForObjectId(rootObjectId.toLong())?.description
+           ?: "<Couldn't find root description>")
 
-        TruncatingPrintBuffer(limit, tailCount, printFunc).use { buffer ->
+        val rootPercent = (100.0 * rootNode.pathsCount / totalInstanceCount).toInt()
+
+        result.appendln("ROOT: $rootReasonString: ${rootNode.pathsCount} objects ($rootPercent%)")
+
+        TruncatingPrintBuffer(headLimit, tailLimit, printFunc).use { buffer ->
           // Iterate over the hot path
-          var currentNode = rootObjectNode
-          var currentClassDefinition = rootObjectClass
-          while (true) {
-            val pathsCountString = currentNode.pathsCount.toString().padStart(10)
-            val instanceCountString = currentNode.instances.size().toString().padStart(10)
+          val stack = ArrayDeque<StackEntry>()
+          stack.push(StackEntry(rootObjectClass, rootNode, "", ""))
 
-            val percent = (100.0 * currentNode.pathsCount / totalInstanceCount).toInt().toString().padStart(3)
-            buffer.println("$pathsCountString $percent% $instanceCountString ${currentClassDefinition.prettyName}")
+          while (!stack.isEmpty()) {
+            val (classDefinition, node, indent, nextIndent) = stack.pop()
 
-            val currentNodeEdges = currentNode.edges ?: break
-            val (classDefinition, node) = currentNodeEdges.entries.maxBy { it.value.pathsCount } ?: break
-            currentNode = node
-            currentClassDefinition = classDefinition
+            printReportLine(buffer::println,
+                            node.pathsCount,
+                            (100.0 * node.pathsCount / totalInstanceCount).toInt(),
+                            node.instances.size(),
+                            node.edges == null,
+                            indent,
+                            classDefinition.prettyName)
+
+            val currentNodeEdges = node.edges ?: continue
+            val childrenToReport =
+              currentNodeEdges
+                .entries
+                .sortedByDescending { it.value.pathsCount }
+                .filterIndexed { index, e ->
+                  index == 0 || e.value.pathsCount >= minimumObjectsForReport
+                }
+                .asReversed()
+
+            if (childrenToReport.size == 1) {
+              // No indentation for a single child
+              stack.push(StackEntry(childrenToReport[0].key, childrenToReport[0].value, nextIndent, nextIndent))
+            }
+            else {
+              // Don't report too deep paths
+              if (nextIndent.length >= MAX_INDENT)
+                printReportLine(buffer::println, null, null, null, true, nextIndent, "\\-[...]")
+              else {
+                // Add indentation only if there are 2+ children
+                childrenToReport.forEachIndexed { index, e ->
+                  if (index == 0) stack.push(StackEntry(e.key, e.value, "$nextIndent\\-", "$nextIndent  "))
+                  else stack.push(StackEntry(e.key, e.value, "$nextIndent+-", "$nextIndent| "))
+                }
+              }
+            }
           }
         }
       }
       return result.toString()
     }
 
+    private fun printReportLine(printFunc: (String) -> Any,
+                                pathsCount: Int?,
+                                percent: Int?,
+                                instanceCount: Int?,
+                                lastInPath: Boolean,
+                                indent: String,
+                                text: String) {
+      val pathsCountString = (pathsCount ?: "").toString().padStart(10)
+      val percentString = (percent?.let { "$it%" } ?: "").padStart(4)
+      val instanceCountString = (instanceCount ?: "").toString().padStart(10)
+      val lastInPathString = if (lastInPath) "*" else " "
+
+      printFunc("$pathsCountString $percentString $instanceCountString $lastInPathString $indent$text")
+    }
+
     companion object {
-      private const val MINIMUM_OBJECT_COUNT_FOR_REPORT = 5_000
-      private const val MINIMUM_OBJECT_COUNT_PERCENT = 20
+      private const val MINIMUM_OBJECT_COUNT_FOR_REPORT = 10_000
+      private const val MINIMUM_OBJECT_COUNT_PERCENT = 10
+      private const val MAX_INDENT = 40
     }
   }
 }
-
