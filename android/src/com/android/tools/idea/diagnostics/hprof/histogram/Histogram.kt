@@ -25,7 +25,7 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Int) {
   fun print(headLimit: Int = Int.MAX_VALUE): String {
     val result = StringBuilder()
     val appendToResult = { s: String -> result.appendln(s); Unit }
-    var counter = 0
+    var counter = 1
     var totalInstances = 0L
     var totalBytes = 0L
     TruncatingPrintBuffer(headLimit, 1, appendToResult).use { buffer ->
@@ -48,7 +48,7 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Int) {
   }
 
   private fun formatEntryLine(counter: Int, entry: HistogramEntry) =
-    String.format("%5d: %15d %15d %s", counter + 1, entry.totalInstances, entry.totalBytes, entry.classDefinition.prettyName)
+    String.format("%5d: %15d %15d %s", counter, entry.totalInstances, entry.totalBytes, entry.classDefinition.prettyName)
 
   companion object {
     fun create(parser: HProfEventBasedParser, classStore: ClassStore): Histogram {

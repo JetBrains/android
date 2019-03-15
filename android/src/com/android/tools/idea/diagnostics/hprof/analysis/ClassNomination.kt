@@ -20,6 +20,7 @@ import com.android.tools.idea.diagnostics.hprof.histogram.HistogramEntry
 
 class ClassNomination(private val histogram: Histogram,
                       private val classLimitPerCategory: Int) {
+
   fun nominateClasses(): Set<HistogramEntry> {
     val resultClasses = HashSet<HistogramEntry>()
     val entries = histogram.entries
@@ -39,26 +40,29 @@ class ClassNomination(private val histogram: Histogram,
   }
 
   private fun isInterestingClass(name: String): Boolean {
+    var localName = name
+
     // Flatten the type of multi-dimensional array
-    var name = name
-    while (name.startsWith("[[")) {
-      name = name.substring(1)
+    val lastBracketIndex = localName.lastIndexOf('[')
+    if (lastBracketIndex >= 1) {
+      // Keep one bracket
+      localName = localName.substring(lastBracketIndex)
     }
 
     // Filter out arrays of primitives
-    if (name.length == 2 && name[0] == '[') {
+    if (localName.length == 2 && localName[0] == '[') {
       return false
     }
 
     // Get inner type of object arrays
-    if (name.startsWith("[L")) {
-      assert(name.last() == ';')
-      name = name.substring(2, name.length - 1)
+    if (localName.startsWith("[L")) {
+      assert(localName.last() == ';')
+      localName = localName.substring(2, localName.length - 1)
     }
 
-    return !name.startsWith("java.") &&
-           !name.startsWith("com.google.common.") &&
-           !name.startsWith("kotlin.") &&
-           !name.startsWith("com.intellij.util.")
+    return !localName.startsWith("java.") &&
+           !localName.startsWith("com.google.common.") &&
+           !localName.startsWith("kotlin.") &&
+           !localName.startsWith("com.intellij.util.")
   }
 }
