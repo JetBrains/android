@@ -27,15 +27,17 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHy
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep {
   public static final ExtensionPointName<ForcedPluginVersionUpgradeStep>
@@ -68,8 +70,10 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     syncState.syncEnded(); // Update the sync state before starting a new one.
 
-    boolean userAcceptsForcedUpgrade = invokeAndWaitIfNeeded(
-      () -> new ForcedPluginPreviewVersionUpgradeDialog(project, pluginInfo).showAndGet());
+    final Ref<Boolean> result = Ref.create();
+    final ForcedPluginPreviewVersionUpgradeDialog dialog = new ForcedPluginPreviewVersionUpgradeDialog(project, pluginInfo);
+    ApplicationManager.getApplication().invokeAndWait(() -> result.set(dialog.showAndGet()), ModalityState.NON_MODAL);
+    boolean userAcceptsForcedUpgrade = result.get();
 
     if (userAcceptsForcedUpgrade) {
       AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(project);
