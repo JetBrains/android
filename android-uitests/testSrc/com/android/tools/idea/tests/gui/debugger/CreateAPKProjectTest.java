@@ -32,6 +32,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -39,12 +44,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateAPKProjectTest extends DebuggerTestBase {
@@ -220,9 +219,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     String debugConfigName = "app-x86-debug";
 
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
-    ideFrame.debugApp(debugConfigName)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.debugApp(debugConfigName, emulator.getDefaultAvdName());
 
     String debugWindowJava = "app-x86-debug-java";
     DebugToolWindowFixture debugWindow = ideFrame.getDebugToolWindow();
