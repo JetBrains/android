@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWORK_RX_VALUE;
 import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWORK_TX_VALUE;
 
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
@@ -139,5 +140,29 @@ public final class ProfilersTestData {
       .setGroupId(tid)
       .setIsEnded(state == Cpu.CpuThreadData.State.DEAD)
       .setCpuThread(Cpu.CpuThreadData.newBuilder().setTid(tid).setName(name).setState(state));
+  }
+
+  public static void populateThreadData(@NotNull FakeTransportService service, long streamId) {
+    service.addEventToEventGroup(streamId, 1,
+                                 ProfilersTestData.generateCpuThreadEvent(1, 1, "Thread 1", Cpu.CpuThreadData.State.RUNNING)
+                                   .build());
+    service.addEventToEventGroup(streamId, 1,
+                                 ProfilersTestData.generateCpuThreadEvent(8, 1, "Thread 1", Cpu.CpuThreadData.State.DEAD)
+                                   .build());
+    service.addEventToEventGroup(streamId, 2,
+                                 ProfilersTestData.generateCpuThreadEvent(6, 2, "Thread 2", Cpu.CpuThreadData.State.RUNNING)
+                                   .build());
+    service.addEventToEventGroup(streamId, 2,
+                                 ProfilersTestData.generateCpuThreadEvent(8, 2, "Thread 2", Cpu.CpuThreadData.State.STOPPED)
+                                   .build());
+    service.addEventToEventGroup(streamId, 2,
+                                 ProfilersTestData.generateCpuThreadEvent(10, 2, "Thread 2", Cpu.CpuThreadData.State.SLEEPING)
+                                   .build());
+    service.addEventToEventGroup(streamId, 2,
+                                 ProfilersTestData.generateCpuThreadEvent(12, 2, "Thread 2", Cpu.CpuThreadData.State.WAITING)
+                                   .build());
+    service.addEventToEventGroup(streamId, 2,
+                                 ProfilersTestData.generateCpuThreadEvent(15, 2, "Thread 2", Cpu.CpuThreadData.State.DEAD)
+                                   .build());
   }
 }

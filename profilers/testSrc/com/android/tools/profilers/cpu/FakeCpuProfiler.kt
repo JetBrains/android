@@ -23,10 +23,10 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse
 import com.android.tools.profiler.proto.CpuProfiler.TraceInfo
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.rules.ExternalResource
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 /**
  * A JUnit rule for simulating CPU profiler events.
  */
-class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
+class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketransport.FakeGrpcChannel,
                       val cpuService: FakeCpuService) : ExternalResource() {
 
   lateinit var ideServices: FakeIdeProfilerServices
@@ -46,7 +46,7 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
     ideServices = FakeIdeProfilerServices()
     timer = FakeTimer()
 
-    val profilers = StudioProfilers(grpcChannel.client, ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)

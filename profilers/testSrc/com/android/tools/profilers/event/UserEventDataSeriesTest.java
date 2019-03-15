@@ -20,8 +20,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.EventProfiler.SystemData;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,7 +44,7 @@ public class UserEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new UserEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA);
+    mySeries = new UserEventDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA);
   }
 
   @Test

@@ -9,11 +9,8 @@ iml_module(
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
-        "//tools/idea/images:intellij.platform.images",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
-        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -53,5 +50,6 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
     ],
 )

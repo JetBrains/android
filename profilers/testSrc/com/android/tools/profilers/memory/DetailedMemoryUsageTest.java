@@ -19,10 +19,11 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
@@ -50,7 +51,7 @@ public class DetailedMemoryUsageTest {
   public void setup() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.enableEventsPipeline(true);
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
     myStage = new MemoryProfilerStage(myProfilers);
 
     // insert memory data for new pipeline.

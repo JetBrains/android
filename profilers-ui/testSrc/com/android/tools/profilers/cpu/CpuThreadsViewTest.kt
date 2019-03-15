@@ -23,12 +23,13 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.DragAndDropList
 import com.android.tools.profilers.FakeFeatureTracker
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel
@@ -48,7 +49,8 @@ class CpuThreadsViewTest {
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer),
+  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService,
+                                    FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private lateinit var stage: CpuProfilerStage
@@ -57,7 +59,7 @@ class CpuThreadsViewTest {
   @Before
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(grpcChannel.client, ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 

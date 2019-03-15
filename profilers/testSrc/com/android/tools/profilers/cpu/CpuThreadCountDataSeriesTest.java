@@ -22,8 +22,10 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,13 +59,14 @@ public class CpuThreadCountDataSeriesTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      myTransportService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
-      myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getTransportClient(),
+      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
+
+      myDataSeries = new CpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
                                                   ProfilersTestData.SESSION_DATA.getStreamId(),
                                                   ProfilersTestData.SESSION_DATA.getPid());
     }
     else {
-      myDataSeries = new LegacyCpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA);
+      myDataSeries = new LegacyCpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA);
     }
   }
 
