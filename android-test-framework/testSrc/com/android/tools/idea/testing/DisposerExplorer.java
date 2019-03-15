@@ -19,9 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -94,6 +96,43 @@ public class DisposerExplorer {
   public static boolean hasChildren(@NotNull Disposable disposable) {
     Object objectNode = getObjectNode(disposable);
     return objectNode != null && !getObjectNodeChildren(objectNode).isEmpty();
+  }
+
+  /**
+   * Returns all objects in the tree that satisfy the given filter.
+   *
+   * @param filter the predicate determining what objects are returned
+   * @return the objects, for which the {@code filter.test} method returned true
+   */
+  @NotNull
+  public static List<Disposable> findAll(@NotNull Predicate<Disposable> filter) {
+    List<Disposable> result = new ArrayList<>();
+    visitTree(disposable -> {
+      if (filter.test(disposable)) {
+        result.add(disposable);
+      }
+      return VisitResult.CONTINUE;
+    });
+    return result;
+  }
+
+  /**
+   * Returns the first encountered object in the tree that satisfies the given filter.
+   *
+   * @param filter the predicate determining whether an object should be returned or not
+   * @return the first object, for which the {@code filter.test} method returned true, or null if there are no such objects
+   */
+  @Nullable
+  public static Disposable findFirst(@NotNull Predicate<Disposable> filter) {
+    Disposable[] result = new Disposable[1];
+    visitTree(disposable -> {
+      if (filter.test(disposable)) {
+        result[0] = disposable;
+        return VisitResult.ABORT;
+      }
+      return VisitResult.CONTINUE;
+    });
+    return result[0];
   }
 
   /**
