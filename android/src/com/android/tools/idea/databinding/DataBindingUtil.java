@@ -173,7 +173,7 @@ public class DataBindingUtil {
 
   @Nullable
   static PsiType parsePsiType(@NotNull String text, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
-    PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
+    PsiElementFactory instance = PsiElementFactory.getInstance(facet.getModule().getProject());
     try {
       PsiType type = instance.createTypeFromText(text, context);
       if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {
