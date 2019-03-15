@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_bitmaps"
+    app:startDestination="@id/imageGridFragment">
+    <fragment
+        android:id="@+id/imageGridFragment"
+        android:name="test.langdb.bitmaps.ImageGridFragment"
+        android:label="fragment_image_grid"
+        tools:layout="@layout/fragment_image_grid" >
+        <action
+            android:id="@+id/action_nav_to_image_detail"
+            app:destination="@id/imageDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/imageDetailFragment"
+        android:name="test.langdb.bitmaps.ImageDetailFragment"
+        android:label="fragment_image_detail"
+        tools:layout="@layout/fragment_image_detail" />
+</navigation>
