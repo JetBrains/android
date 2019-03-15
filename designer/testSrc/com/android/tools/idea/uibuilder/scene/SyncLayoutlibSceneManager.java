@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static junit.framework.TestCase.fail;
-
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -28,19 +26,11 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandEvent;
-import com.intellij.openapi.command.CommandListener;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.util.Ref;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,75 +49,27 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   @NotNull
   @Override
   protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    return runAfterCommandIfNecessary(() -> CompletableFuture.completedFuture(super.render(trigger).join()));
+    return CompletableFuture.completedFuture(super.render(trigger).join());
   }
 
   @NotNull
   @Override
   public CompletableFuture<Void> requestRender() {
-    return runAfterCommandIfNecessary(() -> CompletableFuture.completedFuture(super.requestRender().join()));
+    return CompletableFuture.completedFuture(super.requestRender().join());
   }
 
   @Override
   protected CompletableFuture<Void> updateModel() {
-    return runAfterCommandIfNecessary(() -> CompletableFuture.completedFuture(super.updateModel().join()));
+    return CompletableFuture.completedFuture(super.updateModel().join());
   }
 
   @Override
   protected void requestModelUpdate() {
     updateModel();
+
+    // Note: this probably doesn't belong here, but several tests rely on the UI event queue being emptied so keep it for now:
+    UIUtil.dispatchAllInvocationEvents();
   }
-
-  @Override
-  protected void notifyListenersModelLayoutComplete(boolean animate) {
-    ForkJoinTask<?> task = ForkJoinPool.commonPool().submit(() -> super.notifyListenersModelLayoutComplete(animate));
-    // Since we are the sync version of LayoutlibSceneManager, we add a wait in the UI thread for the asynchronous listeners
-    // to finish.
-    ApplicationManager.getApplication().invokeLater(() -> task.quietlyJoin());
-  }
-
-  @Override
-  protected void notifyListenersModelUpdateComplete() {
-    ForkJoinTask<?> task = ForkJoinPool.commonPool().submit(() -> super.notifyListenersModelUpdateComplete());
-    // Since we are the sync version of LayoutlibSceneManager, we add a wait in the UI thread for the asynchronous listeners
-    // to finish.
-    ApplicationManager.getApplication().invokeLater(() -> task.quietlyJoin());
-  }
-
-  private static <T> T runAfterCommandIfNecessary(Callable<T> runnable) {
-    Ref<T> result = new Ref<>();
-
-    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      CommandProcessor.getInstance().addCommandListener(new CommandListener() {
-        @Override
-        public void commandFinished(CommandEvent event) {
-          try {
-            result.set(runnable.call());
-          }
-          catch (Exception e) {
-            fail(e.getMessage());
-          }
-          CommandProcessor.getInstance().removeCommandListener(this);
-          // Dispatch any events created by the runnable execution
-          UIUtil.dispatchAllInvocationEvents();
-        }
-      });
-
-      return result.get();
-    }
-
-    try {
-      T runnableResult = runnable.call();
-      // Dispatch any events created by the runnable execution
-      UIUtil.dispatchAllInvocationEvents();
-      return runnableResult;
-    }
-    catch (Exception e) {
-      fail(e.getMessage());
-    }
-    throw new IllegalStateException("Not reachable");
-  }
-
 
   @Override
   @NotNull
