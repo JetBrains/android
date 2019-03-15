@@ -19,6 +19,8 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
@@ -48,6 +50,7 @@ public class DependenciesTest {
     StudioFlags.NEW_PSD_ENABLED.clearOverride();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/128436786
   @Test
   public void createNewFlavors() throws Exception {
     String projPath = guiTest.importSimpleApplication()
