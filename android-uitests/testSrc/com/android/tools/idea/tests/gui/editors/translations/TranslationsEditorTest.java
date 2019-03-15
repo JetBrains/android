@@ -157,6 +157,7 @@ public final class TranslationsEditorTest {
     dialog.getCancelButton().click();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/127948531
   @Test
   public void removeLocale() throws IOException {
     importSimpleApplication();
