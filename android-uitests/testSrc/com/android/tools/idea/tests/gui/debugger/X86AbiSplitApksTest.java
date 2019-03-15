@@ -27,18 +27,16 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.Arrays;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class X86AbiSplitApksTest extends DebuggerTestBase {
@@ -124,9 +122,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
     String expectedApkName = "app-x86-debug.apk";
 
-    ideFrame.debugApp("app")
-      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
-      .clickOk();
+    ideFrame.debugApp("app", "Google Nexus 5X");
 
     // Wait for build to complete:
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TIMEOUT_SECONDS));
@@ -135,7 +131,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
     // Currently, cannot reproduce this issue locally to get the screenshot with the "Application Installation Failed" dialog shows up.
 
     File projectRoot = ideFrame.getProjectPath();
-    File expectedPathOfApk = new File(projectRoot, "app/build/intermediates/instant-run-apk/debug/" + expectedApkName);
+    File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
     Wait.seconds(30).expecting("Apk file to be generated.")
       .until(() -> expectedPathOfApk.exists());
   }
