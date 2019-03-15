@@ -24,7 +24,6 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
-import com.intellij.util.ImageLoader;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.JBUI;
@@ -33,6 +32,7 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -133,14 +133,22 @@ public class ImageUtils {
 
   @Nullable
   public static BufferedImage convertToRetina(@NotNull BufferedImage image) {
+    return convertToRetina(image, null);
+  }
+
+  /**
+   * Scale the input image to be displayed on a HiDPI screen with scaling specified by ScaleContext ctx.
+   * If ctx is null, get the scale from the system.
+   */
+  @Nullable
+  public static BufferedImage convertToRetina(@NotNull BufferedImage image, @Nullable JBUI.ScaleContext ctx) {
     if (image.getWidth() < RETINA_SCALE || image.getHeight() < RETINA_SCALE) {
       // Can't convert to Retina; see issue 65676
       return null;
     }
 
     try {
-      Image retina = RetinaImage.createFrom(image, JBUI.sysScale(), null);
-
+      Image retina = RetinaImage.createFrom(image, JBUI.sysScale(ctx), null);
 
       if (!(retina instanceof BufferedImage)) {
         // Don't try this again
