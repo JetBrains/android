@@ -16,13 +16,14 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -54,7 +55,7 @@ class CpuProfilerContextMenuInstallerTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up

@@ -16,10 +16,11 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
@@ -40,7 +41,7 @@ class AtraceDataSeriesTest {
 
   @Before
   fun setup() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
     myStage = CpuProfilerStage(profilers)
     val parser = AtraceParser(1)
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 2)

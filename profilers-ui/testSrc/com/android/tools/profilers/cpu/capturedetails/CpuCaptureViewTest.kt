@@ -23,10 +23,10 @@ import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.SIMPLEPERF
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ReferenceWalker
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStage
@@ -60,7 +60,8 @@ class CpuCaptureViewTest {
 
   init {
     val cpuService = FakeCpuService()
-    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService, FakeTransportService(timer), FakeProfilerService(timer),
+    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService,
+                                  FakeTransportService(timer), FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
     cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)

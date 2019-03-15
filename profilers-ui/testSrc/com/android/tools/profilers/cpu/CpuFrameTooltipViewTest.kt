@@ -20,11 +20,12 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.atrace.AtraceFrame
@@ -54,7 +55,7 @@ class CpuFrameTooltipViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).build()
     fakeTransportService.addDevice(device)
     fakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
-    val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     stage = CpuProfilerStage(profilers)
     val capture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0)
     stage.capture = capture

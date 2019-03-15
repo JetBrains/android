@@ -19,13 +19,14 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.legend.LegendComponentModel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.NullMonitorStage
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -63,7 +64,7 @@ class EnergyMonitorTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    profilers = StudioProfilers(grpcChannel.client, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
     monitor = EnergyMonitor(profilers)
   }
 

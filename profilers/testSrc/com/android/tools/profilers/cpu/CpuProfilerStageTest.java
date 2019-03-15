@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_DATA_FILE;
 import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_MISSING_DATA_FILE;
 import static com.google.common.truth.Truth.assertThat;
@@ -29,16 +29,17 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeFeatureTracker;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilersTestData;
@@ -84,6 +85,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myFakeTransportService, new FakeProfilerService(myTimer),
                         myMemoryService, new FakeEventService(), FakeNetworkService.newBuilder().build());
+  private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
 
   private CpuProfilerStage myStage;
 
@@ -94,7 +96,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Before
   public void setUp() {
     myServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -116,13 +118,13 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void testCpuUsageDataSource() {
     // When unified pipeline is disabled, we use custom CpuUsageDataSeries.
     myServices.enableEventsPipeline(false);
-    myStage = new CpuProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer));
+    myStage = new CpuProfilerStage(new StudioProfilers(myProfilerClient, myServices, myTimer));
     assertThat(myStage.getCpuUsage().getCpuSeries().getDataSeries()).isInstanceOf(CpuUsageDataSeries.class);
     assertThat(myStage.getCpuUsage().getThreadsCountSeries().getDataSeries()).isInstanceOf(LegacyCpuThreadCountDataSeries.class);
 
     // When unified pipeline is enabled, we use UnifiedEventDataSeries.
     myServices.enableEventsPipeline(true);
-    myStage = new CpuProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer));
+    myStage = new CpuProfilerStage(new StudioProfilers(myProfilerClient, myServices, myTimer));
     assertThat(myStage.getCpuUsage().getCpuSeries().getDataSeries()).isInstanceOf(UnifiedEventDataSeries.class);
     assertThat(myStage.getCpuUsage().getThreadsCountSeries().getDataSeries()).isInstanceOf(CpuThreadCountDataSeries.class);
   }
@@ -1139,7 +1141,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
     myStage.exit();
 
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);
@@ -1161,7 +1163,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.exit();
 
     // Enter CpuProfilerStage again.
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);
@@ -1180,7 +1182,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.exit();
 
     // Enter CpuProfilerStage again.
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);

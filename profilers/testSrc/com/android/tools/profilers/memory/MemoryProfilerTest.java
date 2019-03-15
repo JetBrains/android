@@ -15,24 +15,25 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_ID;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static org.junit.Assert.assertArrayEquals;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -64,7 +65,7 @@ public class MemoryProfilerTest {
   @Before
   public void setUp() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myStudioProfiler = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer);
+    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
   }
 
   @Test

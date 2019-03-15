@@ -18,11 +18,12 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
@@ -40,11 +41,12 @@ class CpuUsageTooltipViewTest {
   private lateinit var usageTooltipView: FakeCpuUsageTooltipView
   @Rule
   @JvmField
-  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
+  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService,
+                                      FakeTransportService(timer), FakeProfilerService(timer))
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), timer)
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage
