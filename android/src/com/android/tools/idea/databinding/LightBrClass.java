@@ -64,7 +64,7 @@ public class LightBrClass extends AndroidLightClassBase {
           @Override
           PsiField[] doCompute() {
             Project project = facet.getModule().getProject();
-            PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
+            PsiElementFactory elementFactory = PsiElementFactory.getInstance(project);
             LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(false);
             if (moduleResources == null) {
               return defaultValue();
@@ -96,7 +96,7 @@ public class LightBrClass extends AndroidLightClassBase {
           @Override
           PsiField[] defaultValue() {
             Project project = facet.getModule().getProject();
-            return new PsiField[]{createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all")};
+            return new PsiField[]{createPsiField(project, PsiElementFactory.getInstance(project), "_all")};
           }
         }, false);
     setModuleInfo(facet.getModule(), false);

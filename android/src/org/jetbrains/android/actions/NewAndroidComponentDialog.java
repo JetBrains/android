@@ -228,7 +228,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       new WriteCommandAction(project, body.getContainingFile()) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
-          final PsiStatement newStatement = PsiElementFactory.SERVICE.getInstance(project).createStatementFromText(
+          final PsiStatement newStatement = PsiElementFactory.getInstance(project).createStatementFromText(
             "return inflater.inflate(" + layoutFieldRef + ", container, false);", body);
           statement.replace(newStatement);
 
@@ -247,7 +247,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       new WriteCommandAction(project, body.getContainingFile()) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
-          final PsiStatement newStatement = PsiElementFactory.SERVICE.getInstance(project).createStatementFromText(
+          final PsiStatement newStatement = PsiElementFactory.getInstance(project).createStatementFromText(
             "setContentView(" + layoutFieldRef + ");", body);
           body.addAfter(newStatement, lastBodyElement);
 
