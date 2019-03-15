@@ -22,17 +22,25 @@ import com.android.resources.ResourceType;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.ConvertContext;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.ElementPresentationManager;
+import com.intellij.util.xml.EnumConverter;
+import com.intellij.util.xml.GenericDomValue;
+import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.xml.WrappingConverter;
 import com.intellij.util.xml.impl.ConvertContextFactory;
 import com.intellij.util.xml.impl.DomCompletionContributor;
+import com.intellij.util.xml.impl.DomManagerImpl;
+import com.intellij.util.xml.impl.GenericDomValueReference;
+import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author coyote
@@ -51,7 +59,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
   @Override
   @NotNull
   public Object[] getVariants() {
-    final Converter converter = WrappingConverter.getDeepestConverter(myValue.getConverter(), myValue);
+    final Converter converter = getConverter();
     if (converter instanceof EnumConverter || converter == AndroidDomUtil.BOOLEAN_CONVERTER) {
       if (DomCompletionContributor.isSchemaEnumerated(getElement())) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
@@ -97,8 +105,36 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
         newValue = ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), value.getResourceType(), newResName);
       }
 
-      myValue.setValue(newValue);
+      Converter converter = getConverter();
+
+      if (converter != null) {
+        @SuppressWarnings("unchecked") // These references are only created by converters that can handle ResourceValues.
+        String newText = converter.toString(newValue, createConvertContext());
+        if (newText != null) {
+          return super.handleElementRename(newText);
+        }
+      }
     }
     return myValue.getXmlTag();
+  }
+
+  /**
+   * Gets the {@link Converter} for {@link #myValue}.
+   *
+   * @see GenericDomValueReference#getConverter()
+   */
+  @Nullable
+  private Converter getConverter() {
+    return WrappingConverter.getDeepestConverter(myValue.getConverter(), myValue);
+  }
+
+  /**
+   * Creates a {@link ConvertContext} for {@link #myValue}.
+   *
+   * @see GenericDomValueReference#getConvertContext()
+   */
+  @NotNull
+  private ConvertContext createConvertContext() {
+    return ConvertContextFactory.createConvertContext(DomManagerImpl.getDomInvocationHandler(myValue));
   }
 }
