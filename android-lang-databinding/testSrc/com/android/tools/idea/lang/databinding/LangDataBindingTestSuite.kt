@@ -31,6 +31,7 @@ class LangDataBindingTestSuite : IdeaTestSuiteBase() {
         "tools/adt/idea/android/annotations",
         "tools/adt/idea/android-lang-databinding/testData",
         "tools/base/templates",
+        "tools/idea/build.txt",
         "tools/idea/java") // For the mock JDK.
 
       IdeaTestSuiteBase.setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
