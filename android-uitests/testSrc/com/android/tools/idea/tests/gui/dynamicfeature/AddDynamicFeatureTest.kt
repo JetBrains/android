@@ -437,29 +437,33 @@ class AddDynamicFeatureTest {
       .open("MyDynamicFeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
 
-        val expected =
-"""<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dist="http://schemas.android.com/apk/distribution"
-    package="com.example.mydynamicfeature">
-
-    <dist:module
-        dist:instant="false"
-        dist:title="@string/title_mydynamicfeature">
-        <dist:delivery>
-            <dist:install-time>
-                <dist:conditions>
-                    <dist:device-feature dist:name="test" />
-                    <dist:device-feature
-                        dist:name="android.hardware.opengles.version"
-                        dist:version="0x2000000" />
-                </dist:conditions>
-            </dist:install-time>
-        </dist:delivery>
-        <dist:fusing dist:include="false" />
-    </dist:module>
-</manifest>
-
-"""
+      val expected = """|<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                        |    xmlns:dist="http://schemas.android.com/apk/distribution"
+                        |    package="com.example.mydynamicfeature">
+                        |
+                        |    <dist:module
+                        |        dist:instant="false"
+                        |        dist:title="@string/title_mydynamicfeature">
+                        |        <dist:delivery>
+                        |            <dist:install-time>
+                        |                <dist:conditions>
+                        |                    <!-- To include or exclude this module by user countries, uncomment and update this section. -->
+                        |                    <!-- Learn more @ [https://d.android.com/r/studio-ui/dynamic-delivery/conditional-delivery] -->
+                        |                    <!--   <dist:user-countries dist:exclude="false"> -->
+                        |                    <!--     <dist:country dist:code="US" /> -->
+                        |                    <!--   </dist:user-countries> -->
+                        |                    <dist:device-feature dist:name="test" />
+                        |                    <dist:device-feature
+                        |                        dist:name="android.hardware.opengles.version"
+                        |                        dist:version="0x2000000" />
+                        |                </dist:conditions>
+                        |            </dist:install-time>
+                        |        </dist:delivery>
+                        |        <dist:fusing dist:include="false" />
+                        |    </dist:module>
+                        |</manifest>
+                        |
+                        |""".trimMargin()
       assertEquals(expected, this)
     }
 
