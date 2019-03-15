@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.android.testutils.truth.FileSubject.assertThat;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
@@ -26,20 +28,16 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.Arrays;
-
-import static com.android.testutils.truth.FileSubject.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AbiSplitApksTest extends DebuggerTestBase {
@@ -124,15 +122,13 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86_64-debug.apk";
-    ideFrame.debugApp("app")
-      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
-      .clickOk();
+    ideFrame.debugApp("app", "Google Nexus 5X");
 
     // Wait for build to complete
     guiTest.waitForBackgroundTasks();
 
     File projectRoot = ideFrame.getProjectPath();
-    File expectedPathOfApk = new File(projectRoot, "app/build/intermediates/instant-run-apk/debug/" + expectedApkName);
+    File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
 
     assertThat(expectedPathOfApk).exists();
   }
