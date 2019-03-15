@@ -84,6 +84,11 @@ public class DisposerExplorerTest {
     Collector v3 = new Collector();
     DisposerExplorer.visitDescendants(root1, v3);
     assertThat(v3.visited).containsExactly(a, a1, a2, b, b1, b2).inOrder();
+
+    assertThat(DisposerExplorer.findAll(d -> d.toString().endsWith("2"))).containsExactly(root2, a2, b2);
+
+    assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("a"))).isSameAs(a);
+    assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("x"))).isNull();
   }
 
   private static class TestDisposable implements Disposable {
