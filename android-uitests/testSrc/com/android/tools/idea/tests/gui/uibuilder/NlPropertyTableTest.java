@@ -241,6 +241,7 @@ public class NlPropertyTableTest {
       .requireContent("layout_width", "wrap_content");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/128642816
   @Test
   public void testNavigation() {
     NlEditorFixture layout = myFrame.getEditor()
