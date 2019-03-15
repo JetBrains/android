@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE;
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_ID;
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.TreeWalker;
@@ -26,6 +26,8 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -73,7 +75,7 @@ public class StudioProfilersViewTest {
   @Before
   public void setUp() {
     myProfilerServices.enableEnergyProfiler(true);
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     // We setup and profile a process, we assume that process has an agent attached by default.
     myService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
@@ -232,7 +234,7 @@ public class StudioProfilersViewTest {
 
     // Fake a collapse action and re-create the StudioProfilerView, the session UI should now remain collapsed.
     myView.getSessionsView().getCollapseButton().doClick();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isTrue();
 
@@ -244,7 +246,7 @@ public class StudioProfilersViewTest {
     FakeUi ui = new FakeUi(splitter);
     myUi.mouse.drag(splitter.getFirstSize(), 0, 10, 0);
 
-    profilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
     profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isFalse();
     assertThat(((ThreeComponentsSplitter)profilersView.getComponent().getComponent(0)).getFirstSize()).isEqualTo(splitter.getFirstSize());

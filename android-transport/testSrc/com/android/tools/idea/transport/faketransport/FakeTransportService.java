@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.idea.transport.faketransport;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -22,13 +22,12 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.commands.BeginSession;
-import com.android.tools.profilers.commands.CommandHandler;
-import com.android.tools.profilers.commands.EndSession;
+import com.android.tools.idea.transport.faketransport.commands.BeginSession;
+import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
+import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
@@ -300,35 +299,6 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     else {
       groups.add(Transport.EventGroup.newBuilder().setGroupId(groupId).addEvents(event));
     }
-  }
-
-  /**
-   * Helper method for populating thread data.
-   * <p>
-   * Thread1 is alive from 1s to 8s, while thread2 is alive from 6s to 15s.
-   */
-  public void populateThreads(long streamId) {
-    addEventToEventGroup(streamId, 1,
-                         ProfilersTestData.generateCpuThreadEvent(1, 1, "Thread 1", Cpu.CpuThreadData.State.RUNNING)
-                           .build());
-    addEventToEventGroup(streamId, 1,
-                         ProfilersTestData.generateCpuThreadEvent(8, 1, "Thread 1", Cpu.CpuThreadData.State.DEAD)
-                           .build());
-    addEventToEventGroup(streamId, 2,
-                         ProfilersTestData.generateCpuThreadEvent(6, 2, "Thread 2", Cpu.CpuThreadData.State.RUNNING)
-                           .build());
-    addEventToEventGroup(streamId, 2,
-                         ProfilersTestData.generateCpuThreadEvent(8, 2, "Thread 2", Cpu.CpuThreadData.State.STOPPED)
-                           .build());
-    addEventToEventGroup(streamId, 2,
-                         ProfilersTestData.generateCpuThreadEvent(10, 2, "Thread 2", Cpu.CpuThreadData.State.SLEEPING)
-                           .build());
-    addEventToEventGroup(streamId, 2,
-                         ProfilersTestData.generateCpuThreadEvent(12, 2, "Thread 2", Cpu.CpuThreadData.State.WAITING)
-                           .build());
-    addEventToEventGroup(streamId, 2,
-                         ProfilersTestData.generateCpuThreadEvent(15, 2, "Thread 2", Cpu.CpuThreadData.State.DEAD)
-                           .build());
   }
 
   /**

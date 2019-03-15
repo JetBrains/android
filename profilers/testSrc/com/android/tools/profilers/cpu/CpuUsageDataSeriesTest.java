@@ -17,7 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void thisProcessCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA,
+    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
                                       dataList -> CpuUsage.extractData(dataList, false));
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
@@ -75,7 +76,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void otherProcessesCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA,
+    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
                                       dataList -> CpuUsage.extractData(dataList, true));
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
@@ -106,7 +107,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void emptyData() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA,
+    mySeries = new CpuUsageDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA,
                                       dataList -> CpuUsage.extractData(dataList, false));
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForXRange(ANY_RANGE).isEmpty());

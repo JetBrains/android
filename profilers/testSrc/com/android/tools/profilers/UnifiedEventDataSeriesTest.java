@@ -21,6 +21,8 @@ import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWOR
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.truth.Truth;
 import java.util.List;
@@ -44,7 +46,7 @@ public class UnifiedEventDataSeriesTest {
     myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(4, 40).build());
     myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(6, 60).build());
 
-    UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getTransportClient(),
+    UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
                                                                 STREAM_ID,
                                                                 0,
                                                                 Common.Event.Kind.NETWORK_SPEED,
@@ -55,7 +57,7 @@ public class UnifiedEventDataSeriesTest {
     Truth.assertThat(data1.stream().map(data -> data.x).collect(Collectors.toList())).containsExactly(1L, 3L, 5L);
     Truth.assertThat(data1.stream().map(data -> data.value).collect(Collectors.toList())).containsExactly(10L, 30L, 50L);
 
-    UnifiedEventDataSeries series2 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getTransportClient(),
+    UnifiedEventDataSeries series2 = new UnifiedEventDataSeries(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
                                                                 STREAM_ID,
                                                                 0,
                                                                 Common.Event.Kind.NETWORK_SPEED,
@@ -73,7 +75,7 @@ public class UnifiedEventDataSeriesTest {
     myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(2, 20).build());
 
     // Querying a multiple-group data kind without a group id triggers an assert.
-    UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getTransportClient(),
+    UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
                                                                 STREAM_ID,
                                                                 0,
                                                                 Common.Event.Kind.NETWORK_SPEED,

@@ -18,7 +18,8 @@ package com.android.tools.profilers.energy
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.ProfilerClient
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -37,11 +38,12 @@ class EnergyEventsFetcherTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("EnergyEventsFetcherTest", energyService)
+  val myProfilerClient = ProfilerClient(grpcChannel.name)
 
   @Test
   fun expectCreateFetcherInitialFetchData() {
     val session = Common.Session.newBuilder().setSessionId(1234L).build()
-    val fetcher = EnergyEventsFetcher(grpcChannel.client.energyClient, session, Range(1000.0, 2000.0))
+    val fetcher = EnergyEventsFetcher(myProfilerClient.energyClient, session, Range(1000.0, 2000.0))
     var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)
@@ -51,7 +53,7 @@ class EnergyEventsFetcherTest {
   @Test
   fun expectListenerDataAreCategorizedById() {
     val session = Common.Session.newBuilder().setSessionId(1234L).build()
-    val fetcher = EnergyEventsFetcher(grpcChannel.client.energyClient, session, Range(1000.0, 2000.0))
+    val fetcher = EnergyEventsFetcher(myProfilerClient.energyClient, session, Range(1000.0, 2000.0))
     var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)
@@ -72,7 +74,7 @@ class EnergyEventsFetcherTest {
   @Test
   fun testFetchCompleteDurations() {
     val session = Common.Session.newBuilder().setSessionId(1234L).build()
-    val fetcher = EnergyEventsFetcher(grpcChannel.client.energyClient, session, Range(1299.0, 2000.0))
+    val fetcher = EnergyEventsFetcher(myProfilerClient.energyClient, session, Range(1299.0, 2000.0))
     var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)

@@ -19,7 +19,8 @@ import com.google.common.truth.Truth.assertThat
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.MemoryProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
@@ -31,6 +32,7 @@ class AllocationSamplingRateDataSeriesTest {
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myService)
+  private val myProfilerClient = ProfilerClient(myGrpcChannel.name)
 
   @Test
   fun testGetDataForXRange() {
@@ -48,7 +50,7 @@ class AllocationSamplingRateDataSeriesTest {
       .build()
     myService.setMemoryData(memoryData)
 
-    val series = AllocationSamplingRateDataSeries(myGrpcChannel.client.memoryClient, ProfilersTestData.SESSION_DATA)
+    val series = AllocationSamplingRateDataSeries(myProfilerClient.memoryClient, ProfilersTestData.SESSION_DATA)
     val dataList = series.getDataForXRange(Range(0.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(3)
@@ -87,11 +89,11 @@ class AllocationSamplingRateDataSeriesTest {
       .build()
     myService.setMemoryData(memoryData)
 
-    val series = AllocationSamplingRateDataSeries(myGrpcChannel.client.memoryClient, ProfilersTestData.SESSION_DATA)
+    val series = AllocationSamplingRateDataSeries(myProfilerClient.memoryClient, ProfilersTestData.SESSION_DATA)
     val dataList = series.getDataForXRange(Range(4.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(1)
-    var data = dataList[0]
+    val data = dataList[0]
     assertThat(data.x).isEqualTo(TimeUnit.NANOSECONDS.toMicros(3000))
     assertThat(data.value.durationUs).isEqualTo(TimeUnit.NANOSECONDS.toMicros(java.lang.Long.MAX_VALUE))
     assertThat(data.value.previousRateEvent!!.samplingRate.samplingNumInterval).isEqualTo(2)

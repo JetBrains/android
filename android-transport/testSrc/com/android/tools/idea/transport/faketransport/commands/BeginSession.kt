@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.commands
+package com.android.tools.idea.transport.faketransport.commands
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common

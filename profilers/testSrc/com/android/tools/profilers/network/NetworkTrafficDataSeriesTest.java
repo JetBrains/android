@@ -18,11 +18,12 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,7 +51,7 @@ public class NetworkTrafficDataSeriesTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), new FakeTimer());
     mySentSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA,
                                                 NetworkTrafficDataSeries.Type.BYTES_SENT);
     myReceivedSeries = new NetworkTrafficDataSeries(profilers.getClient().getNetworkClient(),
