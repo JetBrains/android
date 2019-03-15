@@ -126,19 +126,21 @@ equal to the default ones (created by `DefaultXmlTagNameProvider`) to replace th
 completion, one with the wrong insert handler.  
 > **TODO:** Add more lookup strings in other file types, e.g. preferences.  
 > **TODO:** Class names in tags are provided by DOM, `getVariants` in `AndroidXmlReferenceProvider.MyClassOrPackageReference`,
-`AndroidXmlCompletionContributor` and `AndroidLayoutXmlTagNameProvider`.  
+        `AndroidXmlCompletionContributor` and `AndroidLayoutXmlTagNameProvider`.  
 > **TODO:** Remove the "namespace prefix" completion from `AndroidXmlCompletionContributor`, since all attributes are suggested anyway.  
 > **TODO:** Can we make `AndroidXmlCompletionContributor` not specialized to only work on layouts?
 
-When a new tag is inserted, `AndroidXmlTagDescriptor.getContentType` is called to determine if it should be collapsed or not, depending on
-whether we expect the tag to have children or not.
+When a new tag is inserted, `XmlTagInsertHandler` uses information from `AndroidXmlTagDescriptor` to add required attributes and subtags
+to the inserted template (this can be turned off in settings, but it enabled by default). `AndroidXmlTagDescriptor` is an adapter around
+`DomElementXmlDescriptor`, so the easiest way to mark an attribute as required is with the `@Required` annotation. `getContentType` is
+called on the descriptor to determine if the new tag should be closed or not, depending on whether we expect the tag to have children.
 
-> **TODO:** handle more cases, e.g. manifest, preference groups. Base this on static DOM information?
+> **TODO:** handle more cases in `getContentType`, e.g. manifest, preference groups. Base this on static DOM information?
 
 ## Documentation providers
 
 While editing Android XML files, users can use the "quick documentation" feature to see details about the referenced resources (including
-attr resources "referenced" by using XML attributes with matching names). The documentation HTML comes from 
+attr resources "referenced" by using XML attributes with matching names). The documentation HTML comes from
 `AndroidXmlDocumentationProvider`.
 
 > **TODO:** Documentation on attribute code lookup items is broken.  
