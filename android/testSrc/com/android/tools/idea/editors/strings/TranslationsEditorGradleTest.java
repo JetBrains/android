@@ -24,13 +24,13 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -38,10 +38,9 @@ public final class TranslationsEditorGradleTest {
   @Rule
   public final AndroidGradleProjectRule myRule = new AndroidGradleProjectRule();
 
-  @Ignore("b/127948531")
   @Test
   public void removeLocale() throws IOException {
-    // Arrange
+    // Arrange.
     myRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
     myRule.load("stringsEditor/MyApplication");
 
@@ -65,9 +64,11 @@ public final class TranslationsEditorGradleTest {
     TestFileUtils.writeFileAndRefreshVfs(debugRes.resolve(Paths.get("values-ab", "strings.xml")), debugContents);
 
     Module module = myRule.getModules().getAppModule();
-    StringResourceViewPanel panel = new StringResourceEditor(StringsVirtualFile.getStringsVirtualFile(module)).getPanel();
+    StringResourceEditor stringResourceEditor = new StringResourceEditor(StringsVirtualFile.getStringsVirtualFile(module));
+    Disposer.register(module, stringResourceEditor);
+    StringResourceViewPanel panel = stringResourceEditor.getPanel();
 
-    // Act
+    // Act.
     Application application = ApplicationManager.getApplication();
     Runnable loadResources = () -> Utils.loadResources(panel, Arrays.asList(mainRes, debugRes));
 
@@ -75,7 +76,7 @@ public final class TranslationsEditorGradleTest {
     StringsWriteUtils.removeLocale(Locale.create("ab"), AndroidFacet.getInstance(module), this);
     application.invokeAndWait(loadResources);
 
-    // Assert
+    // Assert.
     assertEquals(0, panel.getTable().getRowCount());
   }
 }
