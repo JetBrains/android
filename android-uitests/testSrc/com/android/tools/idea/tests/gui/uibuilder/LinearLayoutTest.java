@@ -60,6 +60,7 @@ public final class LinearLayoutTest {
     myMainStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "styles.xml");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/127956498
   @Test
   public void resolveAttributeInStyle() throws IOException {
     // @formatter:off
@@ -105,6 +106,7 @@ public final class LinearLayoutTest {
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
+  @RunIn(TestGroup.UNRELIABLE)  // b/127956498
   @Test
   public void resolveAttributeStyleReference() throws IOException {
     // @formatter:off
