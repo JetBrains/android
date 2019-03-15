@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -24,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -32,10 +35,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class SwitchDebuggersTest extends DebuggerTestBase {
@@ -95,9 +94,7 @@ public class SwitchDebuggersTest extends DebuggerTestBase {
                              MAIN2_JAVA_BKPT1,
                              MAIN2_JAVA_BKPT2);
 
-    ideFrame.runApp(RUN_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.runApp(RUN_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
