@@ -939,6 +939,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
+    <applicationConfigurable parentId="preferences.general"
+                             displayName="Memory Settings"
+                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
+                             id="memory.settings"/>
   </extensions>
 
   <module-components>

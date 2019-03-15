@@ -523,5 +523,11 @@ public final class StudioFlags {
     "If enabled, C/C++ projects will have NDK side by side support",
     true);
 
+  private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
+  public static final Flag<Integer> IDE_XMX_CAP_IN_GB = Flag.create(
+    MEMORY_SETTINGS, "memory.settings.ide.xmx.cap", "IDE Xmx cap in memory settings",
+    "Cap of IDE Xmx in the memory settings configuration dialog",
+    4);
+
   private StudioFlags() { }
 }
