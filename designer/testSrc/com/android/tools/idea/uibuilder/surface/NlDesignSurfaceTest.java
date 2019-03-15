@@ -138,7 +138,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
 
-    mySurface.requestRender();
+    mySurface.requestRender().join();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertFalse(mySurface.getIssueModel().getIssues()
                   .stream()
