@@ -325,18 +325,7 @@ class VariablesTable private constructor(
         return
       }
     }
-    val isCollapseKey = e?.keyCode == KeyEvent.VK_LEFT || e?.keyCode == KeyEvent.VK_MINUS
-    val isExpandKey = e?.keyCode == KeyEvent.VK_RIGHT || e?.keyCode == KeyEvent.VK_PLUS
-    fun currentNodeCanExpand() = (tree.selectionPath.lastPathComponent as? VariablesBaseNode)?.isLeaf == false
-    val toBeExpandedOrCollapsed =
-      !isEditing && selectedColumn == 0 &&
-      (isCollapseKey && tree.isExpanded(selectedRow) ||
-       (isExpandKey && !tree.isExpanded(selectedRow) && currentNodeCanExpand()))
-    setProcessCursorKeys(toBeExpandedOrCollapsed)
     super.processKeyEvent(e)
-    if (toBeExpandedOrCollapsed) {
-      columnModel.selectionModel.setSelectionInterval(0, 0)
-    }
   }
 
   override fun prepareEditor(editor: TableCellEditor?, row: Int, column: Int): Component? {
