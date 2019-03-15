@@ -17,13 +17,14 @@ package com.android.tools.profilers.sessions
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.MemoryProfiler
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.NullMonitorStage
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -51,10 +52,12 @@ class SessionItemTest {
     FakeNetworkService.newBuilder().build()
   )
 
+  private val myProfilerClient = ProfilerClient(myGrpcChannel.name)
+
   @Test
   fun testNavigateToStudioMonitorStage() {
     val profilers = StudioProfilers(
-      myGrpcChannel.client,
+      myProfilerClient,
       FakeIdeProfilerServices(),
       FakeTimer()
     )
@@ -77,7 +80,7 @@ class SessionItemTest {
   @Test
   fun testAvoidRedundantNavigationToMonitorStage() {
     val profilers = StudioProfilers(
-      myGrpcChannel.client,
+      myProfilerClient,
       FakeIdeProfilerServices(),
       FakeTimer()
     )
@@ -98,7 +101,7 @@ class SessionItemTest {
   @Test
   fun testNonFullSessionNavigation() {
     val profilers = StudioProfilers(
-      myGrpcChannel.client,
+      myProfilerClient,
       FakeIdeProfilerServices(),
       FakeTimer()
     )
@@ -119,7 +122,7 @@ class SessionItemTest {
 
   @Test
   fun testImportedHprofSessionName() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    val profilers = StudioProfilers(myProfilerClient, FakeIdeProfilerServices(), FakeTimer())
     val sessionsManager = profilers.sessionsManager
     sessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     sessionsManager.update()
@@ -136,7 +139,7 @@ class SessionItemTest {
   @Test
   fun testDurationUpdates() {
     val profilers = StudioProfilers(
-      myGrpcChannel.client,
+      myProfilerClient,
       FakeIdeProfilerServices(),
       FakeTimer()
     )

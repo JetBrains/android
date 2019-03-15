@@ -32,11 +32,12 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
@@ -89,7 +90,7 @@ public class MemoryClassifierViewTest {
     loader.setReturnImmediateFuture(true);
     myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices, new FakeTimer()), loader);
+    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myFakeIdeProfilerServices, new FakeTimer()), loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
   }
 
@@ -762,7 +763,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -857,7 +858,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
@@ -984,7 +985,7 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),

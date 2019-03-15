@@ -19,11 +19,12 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -42,11 +43,13 @@ class CpuThreadsTooltipViewTest {
   private lateinit var cpuThreadsTooltip: CpuThreadsTooltip
   private lateinit var cpuThreadsTooltipView: FakeCpuThreadsTooltipView
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
+  val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService,
+                                      FakeTransportService(timer), FakeProfilerService(timer))
+  val myProfilerClient = ProfilerClient(myGrpcChannel.name)
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(myProfilerClient, FakeIdeProfilerServices(), timer)
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage
@@ -73,7 +76,7 @@ class CpuThreadsTooltipViewTest {
 
   @Test
   fun textUpdateOnThreadChange() {
-    var threadSeries = LegacyCpuThreadStateDataSeries(myGrpcChannel.client.cpuClient,
+    var threadSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient,
                                                       ProfilersTestData.SESSION_DATA, 1)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
@@ -94,7 +97,7 @@ class CpuThreadsTooltipViewTest {
     assertThat(labels[2].text).isEqualTo("Dead")
     assertThat(labels[3].text).isEqualTo("Details Unavailable")
 
-    threadSeries = LegacyCpuThreadStateDataSeries(myGrpcChannel.client.cpuClient,
+    threadSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient,
                                                   ProfilersTestData.SESSION_DATA, 3)
     tooltipTime = TimeUnit.SECONDS.toMicros(3) // Should be a captured state.
     cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())

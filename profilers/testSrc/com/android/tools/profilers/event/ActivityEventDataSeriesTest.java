@@ -20,8 +20,9 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.LifecycleEvent;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.EventProfiler;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,10 +48,11 @@ public class ActivityEventDataSeriesTest {
 
   @Before
   public void setUp() {
+    ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getName());
     myActivitySeries =
-      new LifecycleEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, false);
+      new LifecycleEventDataSeries(profilerClient, ProfilersTestData.SESSION_DATA, false);
     myFragmentSeries =
-      new LifecycleEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, true);
+      new LifecycleEventDataSeries(profilerClient, ProfilersTestData.SESSION_DATA, true);
   }
 
   @Test

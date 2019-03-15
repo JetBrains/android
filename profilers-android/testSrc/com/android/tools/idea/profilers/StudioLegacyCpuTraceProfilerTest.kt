@@ -20,7 +20,8 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -33,10 +34,11 @@ class StudioLegacyCpuTraceProfilerTest {
   @Rule
   @JvmField
   var myGrpcChannel = FakeGrpcChannel("StudioLegacyCpuTraceProfilerTest", myCpuService)
+  val myProfilerClient = ProfilerClient(myGrpcChannel.name)
 
   @Test
   fun startProfilingNullClientName() {
-    val profiler = StudioLegacyCpuTraceProfiler(createMockDevice(null), myGrpcChannel.client.cpuClient)
+    val profiler = StudioLegacyCpuTraceProfiler(createMockDevice(null), myProfilerClient.cpuClient)
     val response = profiler.startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest.getDefaultInstance())
     assertThat(response.errorMessage).isNotEmpty()
     assertThat(response.status).isEqualTo(CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE)
@@ -45,7 +47,7 @@ class StudioLegacyCpuTraceProfilerTest {
   @Test
   fun startStopProfilingAtrace() {
     val session = Common.Session.newBuilder().setPid(1)
-    val profiler = StudioLegacyCpuTraceProfiler(createMockDevice("Test"), myGrpcChannel.client.cpuClient)
+    val profiler = StudioLegacyCpuTraceProfiler(createMockDevice("Test"), myProfilerClient.cpuClient)
     val startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder().setSession(session)
       .setConfiguration(CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE))
       .build()
@@ -54,7 +56,7 @@ class StudioLegacyCpuTraceProfilerTest {
     // Validate initial state is not set to recorded
     var checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isFalse()
-    checkStatusResponse = myGrpcChannel.client.cpuClient.checkAppProfilingState(statusRequest)
+    checkStatusResponse = myProfilerClient.cpuClient.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isFalse()
 
     val startResponse = profiler.startProfilingApp(startRequest)
@@ -64,7 +66,7 @@ class StudioLegacyCpuTraceProfilerTest {
     assertThat(checkStatusResponse.beingProfiled).isTrue()
     assertThat(checkStatusResponse.configuration.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE)
     // Also check the state of the service for systrace this should be true
-    checkStatusResponse = myGrpcChannel.client.cpuClient.checkAppProfilingState(statusRequest)
+    checkStatusResponse = myProfilerClient.cpuClient.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isTrue()
     assertThat(checkStatusResponse.configuration.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE)
     val stopResponse = profiler.stopProfilingApp(stopRequest)

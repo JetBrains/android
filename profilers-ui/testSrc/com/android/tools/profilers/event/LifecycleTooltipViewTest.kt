@@ -16,6 +16,7 @@
 package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
@@ -23,7 +24,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Font
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -41,7 +41,7 @@ class LifecycleTooltipViewTest {
   @Before
   fun setup() {
     myIdeProfilerServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(myGrpcChannel.client, myIdeProfilerServices, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeProfilerServices, myTimer)
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
