@@ -23,6 +23,7 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.AnyThread;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
@@ -58,6 +59,8 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +72,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
+
+  /** The values are disposable notification panels created last for the editors. */
+  @NotNull private static final ConcurrentMap<FileEditor, Disposable> ourDisposablePanels = new ConcurrentHashMap<>();
 
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
@@ -84,28 +90,30 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     return KEY;
   }
 
+  @AnyThread
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project) {
-    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(KEY);
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor editor, @NotNull Project project) {
     NotificationPanel.Type newPanelType = notificationPanelType();
-
-    if (oldPanel != null) {
-      if (oldPanel.type == newPanelType) {
-        return oldPanel;
-      }
-      if (oldPanel instanceof Disposable) {
-        Disposer.dispose((Disposable)oldPanel);
-      }
-    }
-
     NotificationPanel panel = newPanelType.create(project, file, myProjectInfo);
-    if (panel instanceof Disposable) {
-      Disposer.register(fileEditor, (Disposable)panel);
-    }
+    // Keep track of the last disposable panel created for the editor to dispose it when a new panel for the same editor is created.
+    // We cannot rely on editor.getUserData(KEY) because the panels created by this method are not necessarily stored there.
+    registerDisposablePanel(editor, panel);
+
     return panel;
+  }
+
+  private static void registerDisposablePanel(@NotNull FileEditor editor, @Nullable NotificationPanel panel) {
+    Disposable newDisposablePanel = panel instanceof Disposable ? (Disposable)panel : null;
+    Disposable oldDisposablePanel =
+        newDisposablePanel == null ? ourDisposablePanels.remove(editor) : ourDisposablePanels.put(editor, newDisposablePanel);
+    if (oldDisposablePanel != null) {
+      Disposer.dispose(oldDisposablePanel);
+    }
+    if (newDisposablePanel != null) {
+      Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
+      Disposer.register(editor, newDisposablePanel);
+    }
   }
 
   @VisibleForTesting
