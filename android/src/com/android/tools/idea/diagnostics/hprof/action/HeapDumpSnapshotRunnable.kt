@@ -126,7 +126,7 @@ class HeapDumpSnapshotRunnable(
       if (result == Messages.CANCEL) {
         // Don't capture a heap dump for a week if user selected 'skip'
         val nextCheckMs = currentTimestampMs + TimeUnit.DAYS.toMillis(7)
-        PropertiesComponent.getInstance().getOrInitLong(NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs)
+        PropertiesComponent.getInstance().setValue(NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
         LOG.info("Aborted by the user.")
         return
       }

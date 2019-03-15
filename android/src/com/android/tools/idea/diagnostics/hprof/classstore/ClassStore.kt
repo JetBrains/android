@@ -34,7 +34,17 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
 
   init {
     classes.forEachValue { classDefinition ->
-      stringToClassDefinition[classDefinition.name] = classDefinition
+      if (stringToClassDefinition.containsKey(classDefinition.name)) {
+        var i = 1
+        var newName: String
+        do {
+          i++
+          newName = classDefinition.name + "($i)"
+        } while (stringToClassDefinition.containsKey(newName))
+        stringToClassDefinition[newName] = classDefinition.copyWithName(newName)
+      } else {
+        stringToClassDefinition[classDefinition.name] = classDefinition
+      }
       true
     }
 
@@ -64,7 +74,7 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
         }
       }
       else {
-        shortNameToClassDefinition.put(shortPrettyName, it)
+        shortNameToClassDefinition[shortPrettyName] = it
       }
       true
     }

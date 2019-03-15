@@ -53,58 +53,176 @@ Histogram. Top 50 by instance count (Note: counts/bytes include soft-ref objects
 Total:           12115          775595 278 classes (Total instances: 12115)
 
 Top 10 by bytes count:
-    2:            3451          248900 char[]
-    3:             425          134550 byte[]
-    4:            3435           96180 java.lang.String
-    5:             632           64272 java.lang.Object[]
-    6:             622           37320 java.util.LinkedHashMap$Entry
-    7:             290           21288 java.lang.String[]
-    8:              24           16640 java.util.HashMap$Node[]
-    9:             358           15752 java.util.HashMap$Node
-   10:             109           12317 java.lang.reflect.Field
-   11:             711           12204 java.lang.Class
+    1:            3451          248900 char[]
+    2:             425          134550 byte[]
+    3:            3435           96180 java.lang.String
+    4:             632           64272 java.lang.Object[]
+    5:             622           37320 java.util.LinkedHashMap$Entry
+    6:             290           21288 java.lang.String[]
+    7:              24           16640 java.util.HashMap$Node[]
+    8:             358           15752 java.util.HashMap$Node
+    9:             109           12317 java.lang.reflect.Field
+   10:             711           12204 java.lang.Class
 
 Nominated classes:
  --> 425 byte[] (0MB)
  --> 3451 char[] (0MB)
+ --> 632 java.lang.Object[] (0MB)
+ --> 711 java.lang.Class (0MB)
  --> 3435 java.lang.String (0MB)
+ --> 622 java.util.LinkedHashMap$Entry (0MB)
  --> 35 sun.misc.URLClassPath$JarLoader (0MB)
+ --> 17 sun.nio.cs.UTF_8$Encoder (0MB)
+ --> 19 sun.util.locale.BaseLocale (0MB)
+ --> 19 sun.util.locale.BaseLocale$Key (0MB)
  --> 39 sun.util.locale.LocaleObjectCache$CacheEntry (0MB)
 
 =============== OBJECT GRAPH ===============
 Roots count: 1172
 Classes count: 702
 
+CLASS: sun.nio.cs.UTF_8$Encoder (14 objects)
+ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader: 9 objects (64%)
+         9  64%          1   sun.misc.Launcher$AppClassLoader
+         8  57%          1   sun.misc.URLClassPath
+         8  57%          1   java.util.ArrayList
+         8  57%          1   java.lang.Object[]
+         8  57%          8   sun.misc.URLClassPath$JarLoader
+         8  57%          8   java.util.jar.JarFile
+         8  57%          8   java.util.zip.ZipCoder
+         8  57%          8 * sun.nio.cs.UTF_8$Encoder
+ROOT: Static field: java.lang.ref.Reference.pending: 2 objects (14%)
+         2  14%          1   java.lang.ref.Finalizer
+         2  14%          1   java.lang.ref.Finalizer
+         1   7%          1   java.util.jar.JarFile
+         1   7%          1   java.util.zip.ZipCoder
+         1   7%          1 * sun.nio.cs.UTF_8$Encoder
+
+CLASS: java.lang.Object[] (335 objects)
+ROOT: Static field: java.nio.charset.Charset.standardProvider: 292 objects (87%)
+       292  87%          1   sun.nio.cs.StandardCharsets
+       212  63%          1   +-sun.nio.cs.StandardCharsets$Aliases
+       212  63%          1   | java.lang.Object[]
+       211  62%        193   | java.lang.Object[]
+        18   5%         17   | java.lang.Object[]
+         1   0%          1 * | java.lang.Object[]
+        40  11%          1   +-sun.nio.cs.StandardCharsets$Cache
+        40  11%          1   | java.lang.Object[]
+        39  11%         24   | java.lang.Object[]
+        15   4%         11   | java.lang.Object[]
+         4   1%          4 * | java.lang.Object[]
+        40  11%          1   \-sun.nio.cs.StandardCharsets$Classes
+        40  11%          1     java.lang.Object[]
+        39  11%         24     java.lang.Object[]
+        15   4%         11     java.lang.Object[]
+         4   1%          4 *   java.lang.Object[]
+ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader: 20 objects (5%)
+        20   5%          1   sun.misc.Launcher$AppClassLoader
+        11   3%          1   sun.misc.URLClassPath
+        10   2%          2   java.util.ArrayList
+        10   2%          2   java.lang.Object[]
+         8   2%          8   sun.misc.URLClassPath$JarLoader
+         8   2%          8   java.util.jar.JarFile
+         8   2%          8   java.util.ArrayDeque
+         8   2%          8 * java.lang.Object[]
+
 CLASS: byte[] (422 objects)
 ROOT: Static field: sun.util.calendar.ZoneInfoFile.ruleArray: 385 objects (91%)
-       385  91%          1 byte[][]
-       385  91%        385 byte[]
+       385  91%          1   byte[][]
+       385  91%        385 * byte[]
+ROOT: Static field: java.lang.ref.Finalizer.unfinalized: 10 objects (2%)
+        10   2%          1   java.lang.ref.Finalizer
+        10   2%          1   java.lang.ref.Finalizer
+        10   2%          2   java.lang.ref.Finalizer
+         6   1%          1   java.lang.ref.Finalizer
+         3   0%          1   java.util.zip.ZipFile$ZipFileInflaterInputStream
+         3   0%          3 * byte[]
 
 CLASS: java.lang.String (1916 objects)
 ROOT: Static field: sun.util.calendar.ZoneInfoFile.regions: 600 objects (31%)
-       600  31%          1 java.lang.String[]
-       600  31%        600 java.lang.String
+       600  31%          1   java.lang.String[]
+       600  31%        600 * java.lang.String
+ROOT: Static field: java.nio.charset.Charset.standardProvider: 137 objects (7%)
+       137   7%          1   sun.nio.cs.StandardCharsets
+        87   4%          1   sun.nio.cs.StandardCharsets$Aliases
+        87   4%          1   java.lang.Object[]
+        87   4%         74   java.lang.Object[]
+        81   4%         81 * java.lang.String
 
 CLASS: char[] (1932 objects)
 ROOT: Static field: sun.util.calendar.ZoneInfoFile.regions: 600 objects (31%)
-       600  31%          1 java.lang.String[]
-       600  31%        600 java.lang.String
-       600  31%        600 char[]
+       600  31%          1   java.lang.String[]
+       600  31%        600   java.lang.String
+       600  31%        600 * char[]
+ROOT: Static field: java.nio.charset.Charset.standardProvider: 137 objects (7%)
+       137   7%          1   sun.nio.cs.StandardCharsets
+        87   4%          1   sun.nio.cs.StandardCharsets$Aliases
+        87   4%          1   java.lang.Object[]
+        87   4%         74   java.lang.Object[]
+        81   4%         81   java.lang.String
+        81   4%         81 * char[]
 
 CLASS: sun.util.locale.LocaleObjectCache$CacheEntry (39 objects)
 ROOT: Static field: java.util.Locale.LOCALECACHE: 19 objects (48%)
-        19  48%          1 java.util.Locale$Cache
-        19  48%          1 java.util.concurrent.ConcurrentHashMap
-        19  48%          1 java.util.concurrent.ConcurrentHashMap$Node[]
-        19  48%         16 java.util.concurrent.ConcurrentHashMap$Node
-        16  41%         16 sun.util.locale.LocaleObjectCache$CacheEntry
+        19  48%          1   java.util.Locale$Cache
+        19  48%          1   java.util.concurrent.ConcurrentHashMap
+        19  48%          1   java.util.concurrent.ConcurrentHashMap$Node[]
+        19  48%         16   java.util.concurrent.ConcurrentHashMap$Node
+        16  41%         16 * sun.util.locale.LocaleObjectCache$CacheEntry
+ROOT: Static field: sun.util.locale.BaseLocale.CACHE: 19 objects (48%)
+        19  48%          1   sun.util.locale.BaseLocale$Cache
+        19  48%          1   java.util.concurrent.ConcurrentHashMap
+        19  48%          1   java.util.concurrent.ConcurrentHashMap$Node[]
+        19  48%         12   java.util.concurrent.ConcurrentHashMap$Node
+        12  30%         12 * sun.util.locale.LocaleObjectCache$CacheEntry
+
+CLASS: sun.util.locale.BaseLocale$Key (19 objects)
+ROOT: Static field: sun.util.locale.BaseLocale.CACHE: 19 objects (100%)
+        19 100%          1   sun.util.locale.BaseLocale$Cache
+        19 100%          1   java.util.concurrent.ConcurrentHashMap
+        19 100%          1   java.util.concurrent.ConcurrentHashMap$Node[]
+        19 100%         12   java.util.concurrent.ConcurrentHashMap$Node
+        12  63%         12 * sun.util.locale.BaseLocale$Key
 
 CLASS: sun.misc.URLClassPath$JarLoader (35 objects)
 ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader: 30 objects (85%)
-        30  85%          1 sun.misc.Launcher$AppClassLoader
-        20  57%          1 sun.misc.URLClassPath
-        20  57%          1 java.util.ArrayList
-        20  57%          1 java.lang.Object[]
-        20  57%         20 sun.misc.URLClassPath$JarLoader
+        30  85%          1   sun.misc.Launcher$AppClassLoader
+        20  57%          1   +-sun.misc.URLClassPath
+        20  57%          1   | java.util.ArrayList
+        20  57%          1   | java.lang.Object[]
+        20  57%         20 * | sun.misc.URLClassPath$JarLoader
+        10  28%          1   \-sun.misc.Launcher$ExtClassLoader
+        10  28%          1     sun.misc.URLClassPath
+        10  28%          1     java.util.ArrayList
+        10  28%          1     java.lang.Object[]
+        10  28%         10 *   sun.misc.URLClassPath$JarLoader
+ROOT: Static field: sun.misc.Launcher$BootClassPathHolder.bcp: 5 objects (14%)
+         5  14%          1   sun.misc.URLClassPath
+         5  14%          1   java.util.ArrayList
+         5  14%          1   java.lang.Object[]
+         5  14%          5 * sun.misc.URLClassPath$JarLoader
+
+CLASS: java.util.LinkedHashMap$Entry (34 objects)
+ROOT: Static field: java.io.File.fs: 34 objects (100%)
+        34 100%          1   java.io.UnixFileSystem
+        34 100%          2   java.io.ExpiringCache
+        34 100%          2   java.io.ExpiringCache$1
+        27  79%          1   java.util.HashMap$Node[]
+        27  79%         22   java.util.LinkedHashMap$Entry
+         5  14%          5 * java.util.LinkedHashMap$Entry
+
+CLASS: sun.util.locale.BaseLocale (19 objects)
+ROOT: Static field: java.util.Locale.KOREA: 1 objects (5%)
+         1   5%          1   java.util.Locale
+         1   5%          1 * sun.util.locale.BaseLocale
+ROOT: Static field: java.util.Locale.JAPANESE: 1 objects (5%)
+         1   5%          1   java.util.Locale
+         1   5%          1 * sun.util.locale.BaseLocale
+
+CLASS: java.lang.Class (711 objects)
+ROOT: Static field: java.lang.Void.TYPE: 1 objects (0%)
+         1   0%          1 * java.lang.Class
+ROOT: Static field: java.lang.Short.TYPE: 1 objects (0%)
+         1   0%          1 * java.lang.Class
 ============== DISPOSER TREE ===============
 ============= DISPOSED OBJECTS =============

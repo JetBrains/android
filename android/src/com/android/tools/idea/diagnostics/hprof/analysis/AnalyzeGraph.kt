@@ -137,7 +137,7 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
         referenceRegistry.registerObject(objectId)
         true
       }
-      result.append(referenceRegistry.printTree(45, 25))
+      result.append(referenceRegistry.printTree(100, 25))
       if (includeMetaInfo) {
         result.appendln("Report for ${classDefinition.prettyName} created in $stopwatch")
       }
