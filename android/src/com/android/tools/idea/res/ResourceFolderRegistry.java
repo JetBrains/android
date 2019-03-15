@@ -20,6 +20,7 @@ import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -65,7 +66,8 @@ public class ResourceFolderRegistry implements Disposable {
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
-    return CacheBuilder.newBuilder().weakValues().build();
+    RemovalListener<VirtualFile, ResourceFolderRepository> removalListener = notification -> Disposer.dispose(notification.getValue());
+    return CacheBuilder.newBuilder().weakValues().removalListener(removalListener).build();
   }
 
   @NotNull

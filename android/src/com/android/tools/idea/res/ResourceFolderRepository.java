@@ -47,6 +47,7 @@ import static com.android.resources.ResourceFolderType.getTypeByName;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -93,6 +94,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -114,6 +121,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -121,6 +129,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -129,7 +138,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -210,6 +218,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (!app.isUnitTestMode()) {
       myInitialScanState = null;
     }
+
+    // ResourceFolderRepository is always created inside a read action. This guarantees that
+    // no file-related VFS events may possibly arrive during repository initialization.
+    MessageBusConnection messageBusConnection = myModule.getProject().getMessageBus().connect(this);
+    messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, new VfsListener());
   }
 
   @NotNull
@@ -1389,7 +1402,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return myListener;
   }
 
-  /** PSI listener which keeps the repository up to date */
+  /** PSI listener which together with VfsListener keeps the repository up to date. */
+  // TODO: Reduce reliance on PsiListener as much as possible and use VfsListener instead. See the description of PsiTreeChangeEvent.
   private final class PsiListener extends PsiTreeChangeAdapter {
     private boolean myIgnoreChildrenChanged;
 
@@ -1551,52 +1565,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     @Override
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
       PsiFile psiFile = event.getFile();
-      if (psiFile == null) {
-        // Called when you've removed a file
-        PsiElement child = event.getChild();
-        if (child instanceof PsiFile) {
-          psiFile = (PsiFile)child;
-          if (PsiProjectListener.isRelevantFile(psiFile)) {
-            removeFile(psiFile);
-          }
-        } else if (child instanceof PsiDirectory) {
-          // We can't iterate the children here because the dir is already empty.
-          // Instead, try to locate the files
-          String dirName = ((PsiDirectory)child).getName();
-          ResourceFolderType folderType = getFolderType(dirName);
-
-          if (folderType != null) {
-            // Make sure it's really a resource folder. We can't look at the directory
-            // itself since the file no longer exists, but make sure the parent directory is
-            // a resource directory root
-            PsiDirectory parentDirectory = ((PsiDirectory)child).getParent();
-            if (parentDirectory != null) {
-              VirtualFile dir = parentDirectory.getVirtualFile();
-              if  (!ModuleResourceManagers.getInstance(myFacet).getLocalResourceManager().isResourceDir(dir)) {
-                return;
-              }
-            } else {
-              return;
-            }
-            int index = dirName.indexOf('-');
-            String qualifiers;
-            if (index == -1) {
-              qualifiers = "";
-            } else {
-              qualifiers = dirName.substring(index + 1);
-            }
-
-            // Copy file map so we can delete while iterating
-            Collection<ResourceItemSource<? extends ResourceItem>> sources = new ArrayList<>(ResourceFolderRepository.this.sources.values());
-            for (ResourceItemSource<? extends ResourceItem> source : sources) {
-              ResourceFolderType resFolderType = source.getFolderType();
-              if (folderType == resFolderType && qualifiers.equals(source.getFolderConfiguration().getQualifierString())) {
-                removeFile(source);
-              }
-            }
-          }
-        }
-      } else if (PsiProjectListener.isRelevantFile(psiFile)) {
+      if (psiFile != null && PsiProjectListener.isRelevantFile(psiFile)) {
         if (isScanPending(psiFile)) {
           return;
         }
@@ -1724,46 +1693,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       setModificationCount(ourModificationCounter.incrementAndGet());
       invalidateParentCaches();
       removeItemsFromSource(source);
-    }
-
-    private void removeFile(@NotNull PsiFile psiFile) {
-      assert !psiFile.isValid() || PsiProjectListener.isRelevantFile(psiFile);
-
-      ResourceItemSource<? extends ResourceItem> source = sources.get(psiFile.getVirtualFile());
-      if (source == null) {
-        // No resources for this file
-        return;
-      }
-      sources.remove(psiFile.getVirtualFile());
-      setModificationCount(ourModificationCounter.incrementAndGet());
-      invalidateParentCaches();
-
-      ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
-      // Check if there may be multiple items to remove.
-      if (folderType == VALUES ||
-          (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML)) {
-        removeItemsFromSource(source);
-      } else if (folderType != null) {
-        // Simpler: remove the file item
-        if (folderType == DRAWABLE) {
-          FileType fileType = psiFile.getFileType();
-          if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
-            bitmapUpdated();
-          }
-        }
-
-        if (folderType == FONT) {
-          clearFontCache(psiFile.getVirtualFile());
-        }
-
-        List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-        for (ResourceType type : resourceTypes) {
-          if (type != ResourceType.ID) {
-            String name = ResourceHelper.getResourceName(psiFile);
-            removeItems(source, type, name, false);  // no need since we're discarding the file
-          }
-        }
-      } // else: not a resource folder
     }
 
     private void addFile(PsiFile psiFile) {
@@ -2108,14 +2037,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       } else {
         PsiElement parent = event.getParent();
         if (isResourceFolder(parent)) {
-          PsiElement oldChild = event.getOldChild();
           PsiElement newChild = event.getNewChild();
-          if (oldChild instanceof PsiFile) {
-            PsiFile oldFile = (PsiFile)oldChild;
-            if (PsiProjectListener.isRelevantFile(oldFile)) {
-              removeFile(oldFile);
-            }
-          }
+          // File removals are handled by VfsListener.
           if (newChild instanceof PsiFile) {
             PsiFile newFile = (PsiFile)newChild;
             if (PsiProjectListener.isRelevantFile(newFile)) {
@@ -2341,31 +2264,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    // There are cases where a file is renamed, and I don't get a pre-notification. Use this flag
-    // to detect those scenarios, and in that case, do proper cleanup.
-    // (Note: There are also cases where *only* beforePropertyChange is called, not propertyChange.
-    // One example is the unit test for the raw folder, where we're renaming a file, and we get
-    // the beforePropertyChange notification, followed by childReplaced on the PsiDirectory, and
-    // nothing else.
-    private boolean mySeenPrePropertyChange;
-
-    @Override
-    public final void beforePropertyChange(@NotNull PsiTreeChangeEvent event) {
-      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.getPropertyName()) {
-        // This is called when you rename a file (before the file has been renamed)
-        PsiElement child = event.getChild();
-        if (child instanceof PsiFile) {
-          PsiFile psiFile = (PsiFile)child;
-          if (PsiProjectListener.isRelevantFile(psiFile) && isResourceFolder(event.getParent())) {
-            removeFile(psiFile);
-          }
-        }
-        // The new name will be added in the post hook (propertyChanged rather than beforePropertyChange)
-      }
-
-      mySeenPrePropertyChange = true;
-    }
-
     @Override
     public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
       if (PsiTreeChangeEvent.PROP_FILE_NAME == event.getPropertyName() && isResourceFolder(event.getParent())) {
@@ -2374,27 +2272,31 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         if (child instanceof PsiFile) {
           PsiFile psiFile = (PsiFile)child;
           if (PsiProjectListener.isRelevantFile(psiFile) && isResourceFolder(event.getParent())) {
-            if (!mySeenPrePropertyChange) {
-              Object oldValue = event.getOldValue();
-              if (oldValue instanceof String) {
-                PsiDirectory parent = psiFile.getParent();
-                String oldName = (String)oldValue;
-                if (parent != null && parent.findFile(oldName) == null) {
-                  ResourceItemSource<? extends ResourceItem> source;
+            // There are cases where a file is renamed, and I don't get a pre-notification. Use this flag
+            // to detect those scenarios, and in that case, do proper cleanup.
+            // (Note: There are also cases where *only* beforePropertyChange is called, not propertyChange.
+            // One example is the unit test for the raw folder, where we're renaming a file, and we get
+            // the beforePropertyChange notification, followed by childReplaced on the PsiDirectory, and
+            // nothing else.
+            Object oldValue = event.getOldValue();
+            if (oldValue instanceof String) {
+              PsiDirectory parent = psiFile.getParent();
+              String oldName = (String)oldValue;
+              if (parent != null && parent.findFile(oldName) == null) {
+                ResourceItemSource<? extends ResourceItem> source;
 
-                  // Depending on the implementation of ResourceItemSource, the underlying
-                  // resource file might either have the old file name or the new file name.
-                  // Resources converted to PSI use PsiResourceFile and thus PsiFile which already
-                  // has the new name by now, as opposed to ResourceFileAdapter, ResourceFile and File.
-                  // So we first try to find the cached source using the old name and if we can't
-                  // find one, we use the new name, which is the current name of the psiFile
-                  // (psiFile.getName())
-                  source = findSource(parent.getName(), oldName);
-                  if (source == null) {
-                    source = findSource(parent.getName(), psiFile.getName());
-                  }
-                  removeFile(source);
+                // Depending on the implementation of ResourceItemSource, the underlying
+                // resource file might either have the old file name or the new file name.
+                // Resources converted to PSI use PsiResourceFile and thus PsiFile which already
+                // has the new name by now, as opposed to ResourceFileAdapter, ResourceFile and File.
+                // So we first try to find the cached source using the old name and if we can't
+                // find one, we use the new name, which is the current name of the psiFile
+                // (psiFile.getName())
+                source = findSource(parent.getName(), oldName);
+                if (source == null) {
+                  source = findSource(parent.getName(), psiFile.getName());
                 }
+                removeFile(source);
               }
             }
 
@@ -2405,29 +2307,82 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       // TODO: Do we need to handle PROP_DIRECTORY_NAME for users renaming any of the resource folders?
       // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something else?
-
-      mySeenPrePropertyChange = false;
     }
 
-
     /**
-     * Checks if changes in the given attribute affects data binding
+     * Checks if changes in the given attribute affects data binding.
+     *
      * @param attribute The XML attribute
      * @return true if changes in this element would affect data binding
      */
-    private boolean affectsDataBinding(XmlAttribute attribute) {
+    private boolean affectsDataBinding(@NotNull XmlAttribute attribute) {
       return ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
              && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING);
     }
 
     /**
      * Checks if changes in the given XmlTag affects data binding.
-     * @param xmlTag
+     *
+     * @param xmlTag the tag to check
      * @return true if changes in the xml tag would affect data binding info, false otherwise
      */
-    private boolean affectsDataBinding(XmlTag xmlTag) {
+    private boolean affectsDataBinding(@NotNull XmlTag xmlTag) {
       return ArrayUtil.contains(xmlTag.getLocalName(), TAGS_DATA_BINDING);
     }
+  }
+
+  private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
+    if (file.isDirectory()) {
+      if (VfsUtilCore.isAncestor(myResourceDir, file, false)) {
+        for (Iterator<Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>>> iterator = sources.entrySet().iterator();
+             iterator.hasNext(); ) {
+          Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>> entry = iterator.next();
+          iterator.remove();
+          VirtualFile sourceFile = entry.getKey();
+          if (VfsUtilCore.isAncestor(file, sourceFile, true)) {
+            onSourceRemoved(sourceFile, entry.getValue());
+          }
+        }
+      }
+    }
+    else {
+      ResourceItemSource<? extends ResourceItem> source = sources.remove(file);
+      if (source != null) {
+        onSourceRemoved(file, source);
+      }
+    }
+  }
+
+  private void onSourceRemoved(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
+    setModificationCount(ourModificationCounter.incrementAndGet());
+    invalidateParentCaches();
+
+    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    // Check if there may be multiple items to remove.
+    if (folderType == VALUES ||
+        (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) && file.getFileType() == StdFileTypes.XML)) {
+      removeItemsFromSource(source);
+    } else if (folderType != null) {
+      // Simpler: remove the file item.
+      if (folderType == DRAWABLE) {
+        FileType fileType = file.getFileType();
+        if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
+          bitmapUpdated();
+        }
+      }
+
+      if (folderType == FONT) {
+        clearFontCache(file);
+      }
+
+      List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+      for (ResourceType type : resourceTypes) {
+        if (type != ResourceType.ID) {
+          String name = ResourceHelper.getResourceName(file);
+          removeItems(source, type, name, false);  // No need since we're discarding the file.
+        }
+      }
+    } // else: not a resource folder
   }
 
   private void rescanJustDataBinding(@NotNull PsiFile psiFile) {
@@ -2687,5 +2642,24 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     // Only compare the keys.
     return myDataBindingResourceFiles.keySet().equals(other.myDataBindingResourceFiles.keySet());
+  }
+
+  private class VfsListener implements BulkFileListener {
+    @UiThread
+    @Override
+    public void before(@NotNull List<? extends VFileEvent> events) {
+      for (VFileEvent event : events) {
+        if (event instanceof VFileDeleteEvent) {
+          onFileOrDirectoryRemoved(((VFileDeleteEvent)event).getFile());
+        }
+        else if (event instanceof VFileMoveEvent) {
+          onFileOrDirectoryRemoved(((VFileMoveEvent)event).getFile());
+        }
+        else if (event instanceof VFilePropertyChangeEvent &&
+                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+          onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
+        }
+      }
+    }
   }
 }
