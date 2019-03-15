@@ -113,8 +113,10 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.9.png"));
   }
 
-  // Regression test for http://b.android.com/174014
-  // Bug: when mipmap resource was renamed, new reference contained ".png" file extension.
+  /**
+   * Regression test for http://b.android.com/174014
+   * Bug: when mipmap resource was renamed, new reference contained ".png" file extension.
+   */
   public void testXmlReferenceToFileResource2() throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/mipmap/pic.png");
     myFixture.configureFromExistingVirtualFile(
@@ -124,7 +126,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertNotNull(myFixture.findFileInTempDir("res/mipmap/app_icon.png"));
   }
 
-  // Regression test for raw resources renaming, http://b.android.com/183128
+  /** Regression test for raw resources renaming, http://b.android.com/183128 */
   public void testXmlReferenceToFileResource3() throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "styles.xml", "res/raw/raw_resource.txt");
     myFixture
@@ -134,7 +136,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertNotNull(myFixture.findFileInTempDir("res/raw/new_raw_resource.txt"));
   }
 
-  // Regression test for transition resources renaming, http://b.android.com/183128
+  /** Regression test for transition resources renaming, http://b.android.com/183128 */
   public void testXmlReferenceToFileResource4() throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "transition.xml", "res/transition/great.xml");
     myFixture.configureFromExistingVirtualFile(myFixture.copyFileToProject(BASE_PATH + "styles12.xml", "res/values/styles.xml"));
@@ -374,7 +376,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.png"));
   }
 
-  // Regression test for http://b.android.com/135180
+  /** Regression test for http://b.android.com/135180 */
   public void testJavaReferenceToFileResourceWithUnderscores() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR12.java", "src/p1/p2/RefR.java");
@@ -817,7 +819,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "layout15_after.xml");
   }
 
-  // Regression test for http://b.android.com/185634
+  /** Regression test for http://b.android.com/185634 */
   public void testThemeReferenceRename() throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_theme_before.xml", "AndroidManifest.xml");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "themes.xml", "res/values/themes.xml");
@@ -827,7 +829,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_theme_after.xml", true);
   }
 
-  // Regression test for http://b.android.com/205527
+  /** Regression test for http://b.android.com/205527 */
   public void testRenameLocalisedResourceFromUsage() throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values/dimens.xml");
     myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values-en/dimens.xml");
@@ -855,6 +857,42 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertEquals("icon_with_new_name.xml", iconXml.getName());
     assertEquals("icon_with_new_name.png", iconPng.getName());
     assertEquals("icon.xml", iconInValue.getName());
+  }
+
+  /**
+   * Checks that two references to the same resource on the same tag don't invalidate each other's state. Changing value of one attribute
+   * will make the DOM layer create new handlers for other attributes, which invalidates {@link com.intellij.util.xml.GenericDomValue}s
+   * stored in e.g. references being rewritten during the same refactoring.
+   *
+   * <p>Regression for b/128436102
+   */
+  public void testMultipleReferencesSameTag() {
+    //noinspection CheckTagEmptyBody
+    myFixture.addFileToProject("res/layout/my_layout.xml",
+                               // language=XML
+                               "<LinearLayout xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                               "  android:layout_width='@dimen/foo'\n" +
+                               "  android:layout_height='@dimen/foo'>" +
+                               "</LinearLayout>");
+
+    PsiFile dimens =
+      myFixture.addFileToProject("res/values/dimens.xml",
+                                 // language=XML
+                                 "<resources>" +
+                                 "  <dimen name='<caret>foo'>10dp</dimen>" +
+                                 "</resources>");
+
+    myFixture.configureFromExistingVirtualFile(dimens.getVirtualFile());
+    checkAndRename("bar");
+
+    //noinspection CheckTagEmptyBody
+    myFixture.checkResult("res/layout/my_layout.xml",
+                          // language=XML
+                          "<LinearLayout xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                          "  android:layout_width='@dimen/bar'\n" +
+                          "  android:layout_height='@dimen/bar'>" +
+                          "</LinearLayout>",
+                          true);
   }
 
   private void doMovePackageTest(String packageName, String newPackageName) throws Exception {

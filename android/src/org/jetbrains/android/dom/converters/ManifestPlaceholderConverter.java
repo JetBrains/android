@@ -35,12 +35,14 @@ import java.util.regex.Pattern;
 /**
  * {@link CustomReferenceConverter} used to resolve
  * <a href="https://developer.android.com/studio/build/manifest-build-variables.html">manifest merger placeholders</a>.
- * <p/>This Converter provides the completion options when it detects that there are placeholders in the reference and delegates to a delegate
- * converter otherwise.
+ *
+ * <p>This Converter provides the completion options when it detects that there are placeholders in the reference and delegates to a
+ * delegate converter otherwise.
  */
 public class ManifestPlaceholderConverter extends ResolvingConverter implements CustomReferenceConverter<Object> {
   /**
-   * Placeholder detector pattern. This pattern has an optional closing bracket to allow detection of placeholders that are not yet complete (the user is still typing it).
+   * Placeholder detector pattern. This pattern has an optional closing bracket to allow detection of placeholders that are not yet complete
+   * (the user is still typing it).
    */
   private static Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{(\\w+)\\}?");
 
