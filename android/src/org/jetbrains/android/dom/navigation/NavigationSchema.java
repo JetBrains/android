@@ -437,19 +437,6 @@ public class NavigationSchema implements Disposable {
 
     Map<PsiClass, String> navigatorToTag = new HashMap<>();
     Map<PsiClass, PsiClass> navigatorToDestinationClass = new HashMap<>();
-    // TODO: Right now we have to add these root classes in manually, but in the release after alpha04 they'll be defined by the TypeName
-    //       annotation and so this can be removed.
-    // We assume only one of the new and old versions will be present. For that one the class will be found and so will be added to the map.
-    navigatorToDestinationClass.put(getClass(ROOT_ACTIVITY_NAVIGATOR), getClass(SdkConstants.CLASS_ACTIVITY));
-    PsiClass oldFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
-    if (oldFragment != null) {
-      navigatorToDestinationClass.put(getClass(ROOT_FRAGMENT_NAVIGATOR), oldFragment);
-    }
-    PsiClass newFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.newName());
-    if (newFragment != null) {
-      navigatorToDestinationClass.put(getClass(ROOT_FRAGMENT_NAVIGATOR), newFragment);
-    }
-    // end TODO
 
     // This one currently has to be added manually no matter what, since there's no destination type for subnavs per se
     navigatorToDestinationClass.put(getClass(ROOT_NAV_GRAPH_NAVIGATOR), getClass(NAV_GRAPH_DESTINATION));
