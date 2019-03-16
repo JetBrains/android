@@ -21,8 +21,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Locale;
+import com.intellij.util.concurrency.SwingWorker;
 import java.util.function.Consumer;
-import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +62,7 @@ public class IconGenerationProcessor {
       myRunningRequest = null;
       processNextRequest();
     });
-    worker.execute();
+    worker.start();
   }
 
   @NotNull
@@ -77,7 +77,7 @@ public class IconGenerationProcessor {
     @Nullable private IconGeneratorResult myGeneratorResult;
     private boolean isCanceled;
 
-    public Request(@NotNull IconGenerator iconGenerator,
+    Request(@NotNull IconGenerator iconGenerator,
                    @NotNull IconGenerator.Options options,
                    @NotNull Consumer<IconGeneratorResult> onDone) {
       myIconGenerator = iconGenerator;
@@ -106,17 +106,17 @@ public class IconGenerationProcessor {
     }
   }
 
-  private static class Worker extends SwingWorker<Void, Void> {
+  private static class Worker extends SwingWorker {
     @NotNull private final Request myRequest;
     @NotNull private final Runnable myOnDone;
 
-    public Worker(@NotNull Request request, @NotNull Runnable onDone) {
+    Worker(@NotNull Request request, @NotNull Runnable onDone) {
       myRequest = request;
       myOnDone = onDone;
     }
 
     @Override
-    protected Void doInBackground() {
+    public Object construct() {
       long start = System.currentTimeMillis();
       myRequest.run();
       long end = System.currentTimeMillis();
@@ -125,7 +125,7 @@ public class IconGenerationProcessor {
     }
 
     @Override
-    protected void done() {
+    public void finished() {
       ApplicationManager.getApplication().assertIsDispatchThread();
       try {
         myRequest.done();
