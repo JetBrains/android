@@ -62,7 +62,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.concurrency.SwingWorker;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -79,7 +79,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
-import javax.swing.SwingWorker;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -170,7 +169,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JPanel myLeftPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myRightPanel;
-  private JBScrollPane myScrollPane;
 
   public NewVectorAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Vector Asset");
@@ -375,8 +373,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    * Call {@link #enqueueUpdate()} in order to kick-start the generation of a new preview.
    */
   private final class VectorPreviewUpdater {
-    @Nullable private SwingWorker<Void, Void> myCurrentWorker;
-    @Nullable private SwingWorker<Void, Void> myEnqueuedWorker;
+    @Nullable private SwingWorker myCurrentWorker;
+    @Nullable private SwingWorker myEnqueuedWorker;
 
     /**
      * Starts parsing the current file in {@link #myActiveAsset} and, if it's valid, updates the UI
@@ -393,19 +391,19 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
       if (myCurrentWorker == null) {
         myCurrentWorker = createWorker();
-        myCurrentWorker.execute();
+        myCurrentWorker.start();
       }
       else if (myEnqueuedWorker == null) {
         myEnqueuedWorker = createWorker();
       }
     }
 
-    private SwingWorker<Void, Void> createWorker() {
-      return new SwingWorker<Void, Void>() {
+    private SwingWorker createWorker() {
+      return new SwingWorker() {
         VectorAsset.ParseResult myParseResult;
 
         @Override
-        protected Void doInBackground() {
+        public Object construct() {
           try {
             myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
           } catch (Throwable t) {
@@ -416,7 +414,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         }
 
         @Override
-        protected void done() {
+        public void finished() {
           assert myParseResult != null;
           myAssetValidityState.set(myParseResult.getValidityState());
           if (myParseResult.isValid()) {
@@ -434,7 +432,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           if (myEnqueuedWorker != null) {
             myCurrentWorker = myEnqueuedWorker;
             myEnqueuedWorker = null;
-            ApplicationManager.getApplication().invokeLater(() -> myCurrentWorker.execute(), ModalityState.any());
+            ApplicationManager.getApplication().invokeLater(() -> myCurrentWorker.start(), ModalityState.any());
           }
         }
       };
