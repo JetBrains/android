@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
@@ -166,6 +167,14 @@ public class SdkSync {
   }
 
   private void syncIdeAndProjectAndroidNdk(@NotNull LocalProperties localProperties) {
+    if (StudioFlags.NDK_SIDE_BY_SIDE_ENABLED.get()) {
+      // When side-by-side NDK is enabled, don't force ndk.dir. Instead, the more
+      // recent gradle plugin will decide what the correct NDK folder is.
+      // If this is an older plugin that doesn't support side-by-side NDK then
+      // there may be a sync error about missing NDK. This should be fixed up after
+      // the sync failure with error handlers.
+      return;
+    }
     File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
     File ideAndroidNdkPath = myIdeSdks.getAndroidNdkPath();
 

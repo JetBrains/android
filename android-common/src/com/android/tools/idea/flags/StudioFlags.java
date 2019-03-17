@@ -513,5 +513,11 @@ public final class StudioFlags {
     "If enabled, a visual editor will be available for Android themes.",
     false);
 
+  private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
+  public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
+    NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
+    "If enabled, C/C++ projects will have NDK side by side support",
+    false);
+
   private StudioFlags() { }
 }
