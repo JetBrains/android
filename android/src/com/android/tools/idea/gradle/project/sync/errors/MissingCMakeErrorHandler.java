@@ -21,10 +21,15 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallCMakeHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SetCmakeDirHyperlink;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +73,8 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
         updateUsageTracker(project);
         return "Failed to find CMake.";
       }
-      else if (matchesCannotFindCmake(firstLine) || matchesTriedInstall(message)) {
+      else if (matchesCannotFindCmake(firstLine) || matchesTriedInstall(message)
+               || matchesCmakeWithVersion(message)) {
         updateUsageTracker(project);
         return message;
       }
@@ -80,14 +86,13 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     String firstLine = getFirstLineMessage(text);
-    if (matchesCannotFindCmake(firstLine)) {
-      // The user requested a specific version of CMake (or anything above it).
-      RevisionOrHigher requestedCmake = extractCmakeVersionFromError(firstLine);
+    String version = extractCmakeVersionFromError(firstLine);
+    if (version != null) {
+      RevisionOrHigher requestedCmake = parseRevisionOrHigher(version, firstLine);
       if (requestedCmake == null) {
         // Cannot find the CMake version in the error string.
         return Collections.emptyList();
       }
-
       RepoManager sdkManager = getSdkManager();
       Collection<RemotePackage> remoteCmakePackages = sdkManager.getPackages().getRemotePackagesForPrefix(FD_CMAKE);
       Revision foundCmakeVersion = findBestMatch(remoteCmakePackages, requestedCmake);
@@ -98,18 +103,50 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
       }
 
       Collection<LocalPackage> localCmakePackages = sdkManager.getPackages().getLocalPackagesForPrefix(FD_CMAKE);
-      if (isAlreadyInstalled(localCmakePackages, foundCmakeVersion)) {
-        // Failed sanity check. The package is already installed.
-        return Collections.emptyList();
+      File alreadyInstalledCmake = getAlreadyInstalled(localCmakePackages, foundCmakeVersion);
+      if (alreadyInstalledCmake != null) {
+        // A suitable CMake was already installed.
+        try {
+          File cmakeDir = getLocalPropertiesCMakeDir(project);
+          if (cmakeDir == null) {
+            // There is no cmake.dir setting in local.properties, prompt the user to set one
+            return Collections.singletonList(new SetCmakeDirHyperlink(
+              alreadyInstalledCmake,
+              String.format("Set cmake.dir in local.properties to %s", alreadyInstalledCmake)));
+          }
+          // If the cmakeDirPath is the same as the path we found then there's no
+          // point in offering a hyperlink.
+          if (cmakeDir.getPath() == alreadyInstalledCmake.getPath()) {
+            return Collections.emptyList();
+          }
+          // There is a cmake.dir setting in local.properties, prompt the user replace it with
+          // the one we found.
+          return Collections.singletonList(new SetCmakeDirHyperlink(
+            alreadyInstalledCmake,
+            String.format("Replace cmake.dir in local.properties with %s", alreadyInstalledCmake)));
+        }
+        catch (IOException e) {
+          // Couldn't access local.properties for some reason. Don't show a link because we
+          // likely won't be able to write to that file.
+          return Collections.emptyList();
+        }
       }
 
       // Version-specific install of CMake.
       return Collections.singletonList(new InstallCMakeHyperlink(foundCmakeVersion));
-    }
-    else {
+    } else {
       // Generic install of CMake.
       return Collections.singletonList(new InstallCMakeHyperlink());
     }
+  }
+
+  /**
+   * @param firstLine the first line of the error message returned by gradle sync.
+   * @return true if input looks like it is an error from Android Gradle Plugin 3.2.1
+   *         about not finding a particular version of CMake.
+   **/
+  private static boolean matchesCmakeWithVersion(@NotNull String firstLine) {
+    return firstLine.startsWith("Unable to find CMake with version:");
   }
 
   /**
@@ -135,18 +172,18 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
    * @return The cmake version included in the error message, null if it's not found or cannot be parsed as a valid revision.
    **/
   @Nullable
-  static RevisionOrHigher extractCmakeVersionFromError(@NotNull String firstLine) {
-    int startPos = firstLine.indexOf('\'');
-    if (startPos == -1) {
-      return null;
+  @VisibleForTesting
+  static String extractCmakeVersionFromError(@NotNull String firstLine) {
+    String revision = extractCmakeVersionFromErrorInTicks(firstLine);
+    if (revision != null) {
+      return revision;
     }
+    return extractCmakeVersionFromErrorInVersionWithin(firstLine);
+  }
 
-    int endPos = firstLine.indexOf('\'', startPos + 1);
-    if (endPos == -1) {
-      return null;
-    }
-
-    String version = firstLine.substring(startPos + 1, endPos);
+  @Nullable
+  @VisibleForTesting
+  static RevisionOrHigher parseRevisionOrHigher(String version, String firstLine) {
     try {
       return new RevisionOrHigher(
         Revision.parseRevision(version),
@@ -158,6 +195,36 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
     }
   }
 
+  @Nullable
+  private static String extractCmakeVersionFromErrorInTicks(@NotNull String firstLine) {
+    int startPos = firstLine.indexOf('\'');
+    if (startPos == -1) {
+      return null;
+    }
+
+    int endPos = firstLine.indexOf('\'', startPos + 1);
+    if (endPos == -1) {
+      return null;
+    }
+
+    return firstLine.substring(startPos + 1, endPos);
+  }
+
+  @Nullable
+  private static String extractCmakeVersionFromErrorInVersionWithin(@NotNull String firstLine) {
+    int startPos = firstLine.indexOf("version: ");
+    if (startPos == -1) {
+      return null;
+    }
+
+    int endPos = firstLine.indexOf(" within", startPos + 1);
+    if (endPos == -1) {
+      return null;
+    }
+
+    return firstLine.substring(startPos + 9, endPos);
+  }
+
   /**
    * Finds whether the requested cmake version can be installed from the SDK.
    *
@@ -166,6 +233,7 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
    * @return The version that best matches the requested version, null if no match was found.
    */
   @Nullable
+  @VisibleForTesting
   static Revision findBestMatch(@NotNull Collection<RemotePackage> cmakePackages, @NotNull RevisionOrHigher requestedCmake) {
     Revision foundVersion = null;
     for (RemotePackage remotePackage : cmakePackages) {
@@ -201,6 +269,7 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
    * @return true if the version represented by candidateCmake is a good match for the version represented by requestedCmake. The preview
    * version (i.e., 4th component) is always ignored when performing the matching.
    */
+  @VisibleForTesting
   static boolean versionSatisfies(@NotNull Revision candidateCmake, @NotNull RevisionOrHigher requestedCmake) {
     int result = candidateCmake.compareTo(requestedCmake.revision, Revision.PreviewComparison.IGNORE);
     return (result == 0) || (requestedCmake.orHigher && result >= 0);
@@ -209,16 +278,16 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   /**
    * @param cmakePackages local CMake installations available in the SDK.
    * @param cmakeVersion  the cmake version that we are looking for.
-   * @return true if a package with the given version exists in cmakePackages.
+   * @return path to CMake if already installed.
    */
-  private static boolean isAlreadyInstalled(@NotNull Collection<LocalPackage> cmakePackages, @NotNull Revision cmakeVersion) {
+  @Nullable
+  private static File getAlreadyInstalled(@NotNull Collection<LocalPackage> cmakePackages, @NotNull Revision cmakeVersion) {
     for (LocalPackage localCmakePackage : cmakePackages) {
       if (localCmakePackage.getVersion().equals(cmakeVersion)) {
-        return true;
+        return localCmakePackage.getLocation();
       }
     }
-
-    return false;
+    return null;
   }
 
   /**
@@ -229,5 +298,10 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
     return sdkHandler.getSdkManager(progressIndicator);
+  }
+
+  @Nullable
+  protected File getLocalPropertiesCMakeDir(Project project) throws IOException {
+      return new LocalProperties(project).getAndroidCmakePath();
   }
 }
