@@ -36,7 +36,8 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public enum Statements {
     // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
     INSERT_EVENT(
-      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, CommandId, Timestamp, Data) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?)"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]"),
     INSERT_BYTES("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Data) VALUES (?, ?, ?)"),
@@ -75,11 +76,13 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "ProcessId INTEGER NOT NULL", // Optional filter, not required for data (eg device/process).
                   "GroupId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
+                  "CommandId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
+      createTable(  "BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
       createUniqueIndex("UnifiedEventsTable", "StreamId", "ProcessId", "GroupId", "Kind", "Timestamp");
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "Kind", "Timestamp");
+      createIndex("UnifiedEventsTable", 1, "StreamId", "Kind", "Timestamp");
+      createIndex("UnifiedEventsTable", 2, "StreamId", "Kind", "CommandId", "Timestamp");
       createUniqueIndex("BytesTable", "StreamId", "Id");
     }
     catch (SQLException ex) {
@@ -93,6 +96,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
             event.getPid(),
             event.getGroupId(),
             event.getKind().getNumber(),
+            event.getCommandId(),
             event.getTimestamp(),
             event.toByteArray());
   }
@@ -165,6 +169,11 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     if (request.getGroupId() != 0) {
       filter.append(" AND GroupId = ?");
       baseParams.add(request.getGroupId());
+    }
+
+    if (request.getCommandId() != 0) {
+      filter.append(" AND CommandId = ?");
+      baseParams.add(request.getCommandId());
     }
 
     String sqlBefore = String.format(sql, ", MAX(Timestamp), MAX(ROWID)", filter.toString() + " AND Timestamp < ? GROUP BY GroupId");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore.poller;
+package com.android.tools.datastore.service;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -25,13 +25,11 @@ import static org.mockito.Mockito.when;
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
-import com.android.tools.datastore.service.ProfilerService;
-import com.android.tools.datastore.service.TransportService;
+import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
 import com.android.tools.profiler.proto.Transport.ExecuteResponse;
@@ -74,7 +72,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    when(myDataStore.getTransportClient(anyLong())).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
+    when(myDataStore.getTransportClient(TEST_DEVICE_ID)).thenReturn(TransportServiceGrpc.newBlockingStub(myService.getChannel()));
     myChannel = myService.getChannel();
     myTransportService.connectToChannel(STREAM, myChannel);
   }
@@ -157,17 +155,19 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   @Test
   public void executeRedirectsProperly() {
     StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
-    Command sentCommand = Command.newBuilder().setStreamId(TEST_DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1).build();
+    Command sentCommand = Command.newBuilder().setStreamId(
+      TEST_DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1).build();
     myTransportService.execute(
       ExecuteRequest.newBuilder().setCommand(sentCommand).build(),
       observer);
-    assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
+    Command expectedCommand = sentCommand.toBuilder().setCommandId(myTransportService.myNextCommandId.get()).build();
+    assertThat(expectedCommand).isEqualTo(myFakeService.getLastCommandReceived());
     // Test executing a command on an invalid stream.
     myTransportService.execute(
       ExecuteRequest.newBuilder()
-        .setCommand(Command.newBuilder().setStreamId(TEST_DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1)).build(),
+        .setCommand(Command.newBuilder().setStreamId(0xDEADBEEF).setType(Command.CommandType.BEGIN_SESSION).setPid(1)).build(),
       observer);
-    assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
+    assertThat(expectedCommand).isEqualTo(myFakeService.getLastCommandReceived());
   }
 
   private void validateEventNoTimestamp(Event expected, Event actual) {
