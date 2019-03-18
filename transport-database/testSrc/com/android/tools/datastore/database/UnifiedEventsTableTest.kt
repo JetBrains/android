@@ -38,16 +38,16 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   }
 
   // List of events to generate in the database. This list is broken up by event id to make things easier to validate.
-  val events = mutableListOf(eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 1),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 2),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 3),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 2, 1, 5),
-                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 1, 6),
-                             eventBuilder(Common.Event.Kind.PROCESS, true, 2, 1, 10),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 2, 7),
-                             eventBuilder(Common.Event.Kind.SESSION, false, 2, 2, 8),
-                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 9))
+  val events = mutableListOf(eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 1),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 2),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 3),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4, 4),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 2, 1, 5, 5),
+                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 1, 5, 6),
+                             eventBuilder(Common.Event.Kind.PROCESS, true, 2, 1, -1, 10),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 1, 2, 6, 7),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 2, 2, 7, 8),
+                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 7, 9))
 
   override fun createTable(): UnifiedEventsTable {
     return UnifiedEventsTable()
@@ -74,6 +74,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                                false,
                                1,
                                if (!incrementGroupId) 1L else i + 1L,
+                               1,
                                i + 1L)
       events.add(event)
       table.insertUnifiedEvent(1, event)
@@ -253,6 +254,15 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   }
 
   @Test
+  fun filterKindCommandId() {
+    validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setCommandId(4).build(),
+                   SESSION_1_1_1,
+                   SESSION_1_1_2,
+                   SESSION_1_1_3,
+                   SESSION_1_1_4)
+  }
+
+  @Test
   fun queryReturnsSameStatement() {
     val results = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
     val repeatedResults = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
@@ -285,13 +295,15 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   private fun eventBuilder(kind: Common.Event.Kind,
                            isEnded: Boolean,
                            pid: Int,
-                           eventId: Long,
+                           groupId: Long,
+                           commandId: Int,
                            timestamp: Long): Common.Event {
     return Common.Event.newBuilder()
       .setKind(kind)
       .setIsEnded(isEnded)
       .setPid(pid)
-      .setGroupId(eventId)
+      .setGroupId(groupId)
+      .setCommandId(commandId)
       .setTimestamp(timestamp)
       .build()
   }
