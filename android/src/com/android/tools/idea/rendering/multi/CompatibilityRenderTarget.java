@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import java.io.File;
 import java.util.List;
