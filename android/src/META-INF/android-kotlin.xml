@@ -33,6 +33,13 @@
                          level="WEAK WARNING"
                          language="kotlin" />
 
+        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IncorrectScopeInspection"
+                         displayName="Unresolved reference, in wrong test scope"
+                         groupName="Kotlin Android"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         language="kotlin" />
+
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="org.jetbrains.kotlin.android.KotlinAndroidLineMarkerProvider"/>
 
         <intentionAction>

@@ -515,6 +515,12 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS = Flag.create(
+    TESTING, "kotlin.incorrect.scope.check", "Checks the scope of classes being used in kotlin test files",
+    "If enabled, an inspection will run that shows an error when a class is used in a kotlin test file that is not is scope.",
+    false
+  );
+
   private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
   public static final Flag<Boolean> THEME_EDITOR_ENABLED = Flag.create(
     THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
