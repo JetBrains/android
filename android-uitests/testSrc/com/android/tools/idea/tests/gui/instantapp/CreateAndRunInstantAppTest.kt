@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.util.StringTextMatcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -50,7 +49,7 @@ class CreateAndRunInstantAppTest {
      */
     val startCmdHandler = object: ActivityManagerCommandHandler.ProcessStarter {
       override fun startProcess(deviceState: DeviceState): String {
-        deviceState.startClient(1234, 1235, "${projectApplicationId}.app", false)
+        deviceState.startClient(1234, 1235, projectApplicationId, false)
         return "Starting: Intent { act=android.intent.action.VIEW cat=[android.intent.category.BROWSABLE] dat=https://example.com/... }"
       }
     }
@@ -93,7 +92,7 @@ class CreateAndRunInstantAppTest {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/79937083
   fun createAndRun() {
-    val runConfigName = "instantapp"
+    val runConfigName = "app"
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -109,9 +108,7 @@ class CreateAndRunInstantAppTest {
     // TODO remove the following workaround wait for http://b/72666461
     ideFrame.waitForGradleProjectSyncToFinish()
 
-    ideFrame.runApp(runConfigName)
-      .selectDevice(StringTextMatcher("Google Nexus 5X"))
-      .clickOk()
+    ideFrame.runApp(runConfigName, "Google Nexus 5X")
 
     val runWindow = ideFrame.runToolWindow
     runWindow.activate()
