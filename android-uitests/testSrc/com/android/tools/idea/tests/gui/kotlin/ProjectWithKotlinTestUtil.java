@@ -98,9 +98,7 @@ public class ProjectWithKotlinTestUtil {
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
-    ideFrameFixture.runApp(APP)
-                   .selectDevice(emulator.getDefaultAvdName())
-                   .clickOk();
+    ideFrameFixture.runApp(APP, emulator.getDefaultAvdName());
 
     // Check app successfully builds and deploys on emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP)
