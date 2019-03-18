@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
@@ -103,7 +104,14 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertTrue(isRecyclerViewResolved());
   }
 
-  public void testAddDependencyWithoutSync() throws Exception {
+  @SuppressWarnings("unused")
+  public void ignore_testAddDependencyWithoutSync() throws Exception {
+    if (!CHECK_DIRECT_GRADLE_DEPENDENCIES) {
+      // TODO: b/129297171
+      // For now: We are not checking direct dependencies.
+      // Re-enable this test when removing this variable.
+      return;
+    }
     loadSimpleApplication();
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
