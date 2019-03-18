@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.panel.impl.support.TextEditorFocusListener
+import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.DataProvider
@@ -43,6 +44,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     HelpSupportBinding.registerHelpKeyActions(this, { editorModel.property })
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
+    putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
   }
 

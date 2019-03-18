@@ -115,8 +115,8 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       // Avoid flickering: Only update if value is different from current value
       if (!text.equals(super.getText())) {
         super.setText(text)
-        UIUtil.resetUndoRedoActions(this)
       }
+      UIUtil.resetUndoRedoActions(this)
     }
     finally {
       documentChangeFromSetText = false
