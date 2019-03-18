@@ -16,14 +16,19 @@
 package com.android.tools.idea.transport;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Transport;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,14 +38,17 @@ public final class TransportProxy {
 
   private Server myProxyServer;
   @NotNull private final List<ServiceProxy> myProxyServices;
+  @NotNull private final Map<Commands.Command.CommandType, Function<Commands.Command, Transport.ExecuteResponse>> myProxyHandlers;
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
+  @NotNull private final TransportServiceProxy myProxyService;
 
   public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device tranportDevice, @NotNull ManagedChannel transportChannel) {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
-    myProxyServices.add(new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel));
+    myProxyHandlers = new HashMap<>();
+    myProxyService = new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel);
   }
 
   public void registerProxyService(ServiceProxy proxyService) {
@@ -48,10 +56,20 @@ public final class TransportProxy {
   }
 
   /**
+   * Registers to handle specific command types in the proxy layer, useful for supporting workflows that are otherwise unavailable
+   * from the device directly. e.g. pre-O memory allocation tracking and cpu traces.
+   */
+  public void registerProxyCommandHandler(Commands.Command.CommandType commandType,
+                                          Function<Commands.Command, Transport.ExecuteResponse> handler) {
+    myProxyService.registerCommandHandler(commandType, handler);
+  }
+
+  /**
    * Must be called as the last step of initializing the proxy server, after registering proxy services
    */
   public void initializeProxyServer(String channelName) {
     ServerBuilder builder = InProcessServerBuilder.forName(channelName);
+    myProxyServices.add(myProxyService);
     myProxyServices.forEach(service -> builder.addService(service.getServiceDefinition()));
     myProxyServer = builder.build();
   }
