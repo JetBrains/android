@@ -339,7 +339,8 @@ public class NewProjectModel extends WizardModel {
       return false;
     });
     if (couldEnsureLocationExists) {
-      Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
+      Project project = ProjectManager.getInstance().createProject(projectName, projectLocation);
+      assert project != null;
       project().setValue(project);
       myMultiTemplateRenderer.setProject(project);
     }
