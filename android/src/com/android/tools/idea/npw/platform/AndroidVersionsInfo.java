@@ -494,6 +494,16 @@ public class AndroidVersionsInfo {
       return myLabel;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof VersionItem && ((VersionItem) obj).getLabel().equals(getLabel());
+    }
+
+    @Override
+    public int hashCode() {
+      return getLabel().hashCode();
+    }
+
     @NotNull
     private String getLabel(@NotNull AndroidVersion version, @Nullable IdDisplay tag, @Nullable IAndroidTarget target) {
       int featureLevel = version.getFeatureLevel();
