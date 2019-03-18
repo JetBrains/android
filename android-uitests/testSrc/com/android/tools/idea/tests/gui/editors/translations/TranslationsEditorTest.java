@@ -44,7 +44,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -155,30 +154,6 @@ public final class TranslationsEditorTest {
 
     dialog.waitUntilErrorLabelFound(".*" + toResourceName("action_settings already exists in app/src/main/res") + ".*");
     dialog.getCancelButton().click();
-  }
-
-  @RunIn(TestGroup.UNRELIABLE)  // b/127948531
-  @Test
-  public void removeLocale() throws IOException {
-    importSimpleApplication();
-
-    IdeFrameFixture frame = myGuiTest.ideFrame();
-    VirtualFile debugValuesEn = frame.findFileByRelativePath("app/src/debug/res/values-en", false);
-    VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
-    TranslationsEditorFixture translationsEditor = frame.getEditor().getTranslationsEditor();
-
-    translationsEditor.getTable().showHeaderPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
-
-    Object expected = Arrays.asList(
-      "Chinese (zh) in China (CN)",
-      "English (en) in United Kingdom (GB)",
-      "Hebrew (iw)",
-      "Tamil (ta)");
-
-    assertEquals(expected, translationsEditor.locales());
-
-    assertFalse(debugValuesEn.exists());
-    assertFalse(mainValuesEn.exists());
   }
 
   @Test
