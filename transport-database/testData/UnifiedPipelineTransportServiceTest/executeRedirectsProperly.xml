@@ -36,6 +36,7 @@ timestamp: 100
   stream_id: 1234
   type: BEGIN_SESSION
   pid: 1
+  command_id: 1
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Transport$ExecuteRequest</clazz>
@@ -44,28 +45,7 @@ timestamp: 100
   stream_id: 1234
   type: BEGIN_SESSION
   pid: 1
-}
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.TransportService/Execute" Class="class com.android.tools.profiler.proto.Transport$ExecuteResponse">
-        <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.Transport$ExecuteResponse</clazz>
-        <functionCalled>profiler.proto.TransportService/Execute</functionCalled>
-        <message></message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.TransportService/Execute" Class="class com.android.tools.profiler.proto.Transport$ExecuteRequest">
-        <Message>command {
-  stream_id: 1234
-  type: BEGIN_SESSION
-  pid: 1
-}
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Transport$ExecuteRequest</clazz>
-        <functionCalled>profiler.proto.TransportService/Execute</functionCalled>
-        <message>command {
-  stream_id: 1234
-  type: BEGIN_SESSION
-  pid: 1
+  command_id: 1
 }
 </message>
     </GrpcCall>
