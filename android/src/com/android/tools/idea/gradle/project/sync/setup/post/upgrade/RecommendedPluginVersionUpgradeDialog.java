@@ -113,14 +113,18 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessagePane);
     String msg = "To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
-                 "that you update the Android Gradle plugin to version " + recommended + " and Gradle to version " +
-                 GRADLE_LATEST_VERSION + ". " +
-                 "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a><br/><br/>" +
-                 "Android plugin 3.2.0 and higher now support building the <i>Android App Bundle</i>—" +
-                 "a new upload format that defers APK generation and signing to compatible app stores, " +
-                 "such as Google Play. With app bundles, you no longer have to build, sign, and manage multiple APKs, " +
-                 "and users get smaller, more optimized downloads. " +
-                 "<a href='http://d.android.com/r/studio-ui/dynamic-delivery/overview'>Learn more</a>";
+                 "that you update the Android Gradle plugin from the current version " + current
+                 + " to version " + recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ". " +
+                 "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a>";
+
+    if (current.compareTo("3.2.0") < 0) {
+      msg += "<br/><br/>" +
+             "Android plugin 3.2.0 and higher now support building the <i>Android App Bundle</i>—" +
+             "a new upload format that defers APK generation and signing to compatible app stores, " +
+             "such as Google Play. With app bundles, you no longer have to build, sign, and manage multiple APKs, " +
+             "and users get smaller, more optimized downloads. " +
+             "<a href='http://d.android.com/r/studio-ui/dynamic-delivery/overview'>Learn more</a>";
+    }
     myMessagePane.setText(msg);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
