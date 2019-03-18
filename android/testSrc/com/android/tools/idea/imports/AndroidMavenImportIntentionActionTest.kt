@@ -26,13 +26,14 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 
 class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
+
   fun testUnresolvedSymbolInKotlin() {
     // In a project not using AndroidX, add a new file which contains an unresolved
     // symbol "RecyclerView"; check that the unresolved action applies to it, has
     // the right label and when invoked adds a com.android.support:recyclerview
     // dependency
 
-    loadProject(TestProjectPaths.MIGRATE_TO_ANDROID_X) // project not using AndroidX
+    loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT) // project not using AndroidX
     assertBuildGradle { !it.contains("com.android.support:recyclerview-v7:") } // not already using recyclerview
 
     myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.kt", """
@@ -68,7 +69,7 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
 
   fun testUnresolvedSymbolInJava() {
     // Like testUnresolvedSymbolInKotlin but in a Java file
-    loadProject(TestProjectPaths.MIGRATE_TO_ANDROID_X)
+    loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT)
     assertBuildGradle { !it.contains("com.android.support:recyclerview-v7:") }
     myFixture.loadNewFile("/app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
