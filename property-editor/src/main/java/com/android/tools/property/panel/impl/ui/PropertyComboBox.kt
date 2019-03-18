@@ -24,6 +24,7 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.panel.impl.support.TextEditorFocusListener
+import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.BorderLayout
@@ -78,6 +79,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
     textField.background = secondaryPanelBackground
+    textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)
