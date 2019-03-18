@@ -20,6 +20,7 @@ import com.android.jarutils.SignedJarBuilder;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.PkgProps;
 import com.android.tools.idea.io.BufferingFileWrapper;
@@ -364,8 +365,8 @@ public class AndroidCommonUtils {
 
     builder = new StringBuilder(quotePath(target.getPath(IAndroidTarget.ANDROID_JAR)));
 
-    List<IAndroidTarget.OptionalLibrary> libraries = target.getAdditionalLibraries();
-    for (IAndroidTarget.OptionalLibrary lib : libraries) {
+    List<OptionalLibrary> libraries = target.getAdditionalLibraries();
+    for (OptionalLibrary lib : libraries) {
       builder.append(File.pathSeparatorChar);
       builder.append(quotePath(lib.getJar().getAbsolutePath()));
     }

@@ -20,6 +20,7 @@ import com.android.internal.util.Preconditions;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.annotations.VisibleForTesting;
