@@ -31,6 +31,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -45,6 +46,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.plaf.basic.BasicSliderUI;
@@ -63,9 +65,17 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final Color STROKE_COLOR = JBColor.namedColor("UIDesigner.stroke.acceleratorForeground", new JBColor(0x8A8A8A, 0x808080));
   private static final Color HIGH_STROKE_COLOR = JBColor.namedColor("UIDesigner.highStroke.foreground", new JBColor(0xB0B0B0, 0x6F7171));
   private static final Color THUMB_CIRCLE_COLOR = JBColor.namedColor("UIDesigner.percent.foreground", new JBColor(Gray._192, Gray._128));
+
+  /**
+   * Wrapper of panel to have separator.
+   */
+  private final AdtSecondaryPanel myCustomPanel = new AdtSecondaryPanel(new BorderLayout());
+
   @NotNull private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
+  private final WidgetConstraintSection myConstraintSection;
+
   private final InspectorColorSet mColorSet = new InspectorColorSet();
 
   private static final int UNCONNECTED = -1;
@@ -91,6 +101,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     super(null);
     mMain = new SingleWidgetView(mColorSet, myWidgetModel);
     mMain.setOpaque(false);
+
+    myConstraintSection = new WidgetConstraintSection(myWidgetModel);
+    myConstraintSection.setOpaque(false);
+
     setPreferredSize(PANEL_DIMENSION);
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
@@ -121,6 +135,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mHorizontalSlider.addMouseListener(mDoubleClickListener);
     mVerticalSlider.addMouseListener(mDoubleClickListener);
     configureUI();
+
+    myCustomPanel.add(this, BorderLayout.NORTH);
+    myCustomPanel.add(myConstraintSection, BorderLayout.CENTER);
+    myCustomPanel.add(new MySeparator(), BorderLayout.SOUTH);
   }
 
   @Override
@@ -152,7 +170,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   @Override
   @NotNull
   public JPanel getPanel() {
-    return this;
+    return myCustomPanel;
   }
 
   @Override
@@ -221,7 +239,18 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     int widthValue = myWidgetModel.convertFromNL(SdkConstants.ATTR_LAYOUT_WIDTH);
     int heightValue = myWidgetModel.convertFromNL(SdkConstants.ATTR_LAYOUT_HEIGHT);
     mMain.configureUi(bottom, top, left, right, baseline, widthValue, heightValue, ratioString);
+    myConstraintSection.configureUi();
   }
+
+  private static class MySeparator extends AdtSecondaryPanel {
+    MySeparator() {
+      super(new BorderLayout());
+      add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.CENTER);
+      setBorder(JBUI.Borders.empty(4));
+    }
+  }
+
+
   /*-----------------------------------------------------------------------*/
   //Look and Feel for the sliders
   /*-----------------------------------------------------------------------*/
