@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.transport;
 
+import static com.android.tools.profiler.proto.Commands.Command.CommandType.BEGIN_SESSION;
+import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,6 +30,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -164,6 +167,41 @@ public class TransportServiceProxyTest {
       .isEqualTo(1);
   }
 
+  @Test
+  public void testProxyCommandHandlers() throws Exception {
+    Client client = createMockClient(1, "test", "testClientDescription");
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client});
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    FakeTransportService thruService = new FakeTransportService();
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice,
+                                startNamedChannel("testProxyCommandHandlers", thruService));
+
+    CountDownLatch latch = new CountDownLatch(1);
+    proxy.registerCommandHandler(ECHO, cmd -> {
+      latch.countDown();
+      return Transport.ExecuteResponse.getDefaultInstance();
+    });
+
+    StreamObserver<Transport.ExecuteResponse> observer = mock(StreamObserver.class);
+    proxy.execute(
+      Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder().setType(BEGIN_SESSION))
+        .build(),
+      observer);
+    assertThat(thruService.myLastCommandType).isEqualTo(BEGIN_SESSION);
+
+    proxy.execute(
+      Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder().setType(ECHO))
+        .build(),
+      observer);
+    try {
+      latch.await();
+    }
+    catch (InterruptedException ignored) {
+    }
+    assertThat(thruService.myLastCommandType).isEqualTo(BEGIN_SESSION);
+  }
+
   /**
    * @param uniqueName Name should be unique across tests.
    */
@@ -212,6 +250,7 @@ public class TransportServiceProxyTest {
   private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
     final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
     @Nullable private Thread myEventThread;
+    @Nullable private Commands.Command.CommandType myLastCommandType;
 
     @Override
     public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
@@ -235,6 +274,13 @@ public class TransportServiceProxyTest {
         responseObserver.onCompleted();
       });
       myEventThread.start();
+    }
+
+    @Override
+    public void execute(Transport.ExecuteRequest request, StreamObserver<Transport.ExecuteResponse> responseObserver) {
+      myLastCommandType = request.getCommand().getType();
+      responseObserver.onNext(Transport.ExecuteResponse.getDefaultInstance());
+      responseObserver.onCompleted();
     }
 
     void addEvents(@NotNull Common.Event... events) {
