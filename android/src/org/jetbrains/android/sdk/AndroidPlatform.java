@@ -18,7 +18,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.IAndroidTarget.OptionalLibrary;
+import com.android.sdklib.OptionalLibrary;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
