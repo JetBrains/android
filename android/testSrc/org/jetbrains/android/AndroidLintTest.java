@@ -26,7 +26,6 @@ import com.android.tools.analytics.AnalyticsSettingsData;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection;
 import com.android.tools.idea.lint.AndroidLintAllowBackupInspection;
 import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection;
@@ -512,10 +511,6 @@ public class AndroidLintTest extends AndroidTestCase {
     myFixture.copyFileToProject(getGlobalTestDir() + "/MainActivity.java",
                                 "src/p1/pkg/MainActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
-
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
-    }
 
     // No highlighting test: the error markers are physically present in the PSI File
     // and confuses the manifest merger, which sees them. (The <caret> tag on the

@@ -39,12 +39,6 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     return true;
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    copyRJavaToGeneratedSources();
-  }
-
   public void testActivityToLayout() throws Exception {
     createManifest();
     VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");

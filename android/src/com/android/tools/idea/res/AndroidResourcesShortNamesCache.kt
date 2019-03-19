@@ -51,7 +51,6 @@ sealed class OnlyClassesShortNamesCache(private vararg val classNames: String) :
 class AndroidResourcesShortNamesCache(private val project: Project) : OnlyClassesShortNamesCache(SdkConstants.R_CLASS) {
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return PsiClass.EMPTY_ARRAY
     if (name != SdkConstants.R_CLASS) return PsiClass.EMPTY_ARRAY
 
     return project.getProjectSystem()
@@ -71,7 +70,6 @@ class AndroidManifestShortNamesCache(
 ) : OnlyClassesShortNamesCache(SdkConstants.FN_MANIFEST_BASE) {
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return PsiClass.EMPTY_ARRAY
     if (name != SdkConstants.FN_MANIFEST_BASE) return PsiClass.EMPTY_ARRAY
 
     return facetManager.getFacets(AndroidFacet.ID)

@@ -18,7 +18,6 @@ package org.jetbrains.android;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -49,7 +48,6 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(BASE_PATH + "picture3.gif", "res/drawable/picture3.gif");
-    copyRJavaToGeneratedSources();
   }
 
   public List<UsageInfo> findCodeUsages(String path, String pathInProject) throws Throwable {
@@ -389,30 +387,13 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
 
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
-    }
-
     Collection<UsageInfo> references = findCodeUsages("MyView1.java", "src/p1/p2/MyView.java");
-    //noinspection SpellCheckingInspection
     String expected = "MyView.java:13:\n" +
                       "  TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
                       "                                                                   |~~~~~~ \n" +
                       "MyView.java:14:\n" +
                       "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
                       "                                    |~~~~~~~~~~~~~    \n";
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      expected = expected +
-                 "R.java:46:\n" +
-                 "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
-                 "                        |~~~~~~~~~~~~~                                       \n" +
-                 "R.java:48:\n" +
-                 "  @see #MyView_answer\n" +
-                 "        |~~~~~~~~~~~~\n" +
-                 "R.java:55:\n" +
-                 "  attribute's value can be found in the {@link #MyView} array.\n" +
-                 "                                                |~~~~~~       \n";
-    }
     assertEquals(expected,
                  // Note: the attrs.xml occurence of "MyView" is not a *reference* to the *field*,
                  // the field is a reference to the XML:
@@ -430,9 +411,6 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
   public void testStyleableAttr() throws Throwable {
     createManifest();
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
-    }
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
     Collection<UsageInfo> references = findCodeUsages("MyView2.java", "src/p1/p2/MyView.java");
     String expected = "MyView.java:12:\n" +
@@ -441,18 +419,6 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                       "MyView.java:14:\n" +
                       "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
                       "                                    |~~~~~~~~~~~~~    \n";
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      expected +=
-        "R.java:46:\n" +
-        "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
-        "                        |~~~~~~~~~~~~~                                       \n" +
-        "R.java:48:\n" +
-        "  @see #MyView_answer\n" +
-        "        |~~~~~~~~~~~~\n" +
-        "R.java:54:\n" +
-        "  <p>This symbol is the offset where the {@link p1.p2.R.attr#answer}\n" +
-        "                                                             |~~~~~~\n";
-    }
     assertEquals(expected, describeUsages(references));
   }
 

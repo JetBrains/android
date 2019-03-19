@@ -71,7 +71,6 @@ public class AndroidExtractDimensionActionTest extends AndroidTestCase {
                                            @NotNull String dimensAfter,
                                            @NotNull VirtualFile editedFile) {
     myFixture.copyFileToProject(BASE_PATH + stringsXml, "res/values/dimens.xml");
-    copyRJavaToGeneratedSources();
     myFixture.configureFromExistingVirtualFile(editedFile);
     final PsiFile editedPsiFile = myFixture.getFile();
     assertTrue(new AndroidExtractDimensionAction().isAvailable(myFixture.getProject(), myFixture.getEditor(), editedPsiFile));

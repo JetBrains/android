@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -26,7 +25,6 @@ import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
-import org.jetbrains.android.augment.AndroidPsiAugmentProvider;
 import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.augment.ManifestInnerClass;
 import org.jetbrains.android.augment.ResourceRepositoryInnerRClass;
@@ -45,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
  * <p>This is used when trying to find the class using {@link JavaPsiFacade} and also by Kotlin IDE plugin when resolving references to
  * inner classes.
  *
- * @see AndroidPsiAugmentProvider
  * @see ResourceRepositoryRClass
  * @see ResourceRepositoryInnerRClass
  * @see ManifestClass
@@ -82,7 +79,7 @@ public class AndroidInnerClassFinder extends PsiElementFinder {
     }
     List<PsiClass> result = new SmartList<>();
     for (PsiClass parentClass : JavaPsiFacade.getInstance(project).findClasses(parentName, scope)) {
-      if (StudioFlags.IN_MEMORY_R_CLASSES.get() && !(parentClass instanceof AndroidLightClassBase)) {
+      if (!(parentClass instanceof AndroidLightClassBase)) {
         continue;
       }
       ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));

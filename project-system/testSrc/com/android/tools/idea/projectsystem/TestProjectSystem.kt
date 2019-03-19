@@ -181,8 +181,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
-  override fun getAugmentRClasses() = true
-
   override fun getLightResourceClassService(): LightResourceClassService {
     return object : LightResourceClassService {
       override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()

@@ -78,7 +78,6 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
   }
 
   fun testGetAnnotations() {
-    copyRJavaToGeneratedSources()
     val javaFile = myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}")
     val handler = AndroidOverrideAnnotationsHandler()
     assertTrue(handler.getAnnotations(javaFile).contains("androidx.annotation.Nullable"))
@@ -96,7 +95,6 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
    * class has the expected source contents.
    */
   private fun check(setup: () -> Unit, @Language("JAVA") after: String) {
-    copyRJavaToGeneratedSources()
     addNullnessAnnotation("androidx.annotation", "RecentlyNullable")
     setup.invoke()
 

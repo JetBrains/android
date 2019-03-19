@@ -439,12 +439,6 @@ public final class StudioFlags {
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
-  public static final Flag<Boolean> IN_MEMORY_R_CLASSES = Flag.create(
-    EDITOR,
-    "in.memory.r.classes",
-    "Generate R classes fully in memory",
-    "If enabled, R classes are generated in memory", true);
-
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
     EDITOR,
     "collapse.android.namespace",

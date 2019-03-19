@@ -70,7 +70,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
@@ -103,18 +102,15 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.XmlElementFactory;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiElementProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -125,13 +121,11 @@ import com.intellij.util.Processor;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -143,8 +137,6 @@ import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -272,43 +264,10 @@ public class AndroidResourceUtil {
       return Collections.emptySet();
     }
 
+    LightResourceClassService resourceClassService =
+      ProjectSystemUtil.getProjectSystem(facet.getModule().getProject()).getLightResourceClassService();
 
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      LightResourceClassService resourceClassService =
-        ProjectSystemUtil.getProjectSystem(facet.getModule().getProject()).getLightResourceClassService();
-
-      return resourceClassService.getLightRClassesContainingModuleResources(module);
-    }
-    else {
-      Set<Module> dependentModules = new HashSet<>();
-      ModuleUtilCore.collectModulesDependsOn(module, dependentModules);
-      Set<PsiClass> rClasses = new HashSet<>();
-      JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
-
-      String targetPackage = onlyInOwnPackages ? null : AndroidManifestUtils.getPackageName(facet);
-      if (targetPackage != null) {
-        GlobalSearchScope[] scopes = new GlobalSearchScope[dependentModules.size()];
-        int i = 0;
-        for (Module dependentModule : dependentModules) {
-          scopes[i++] = dependentModule.getModuleScope();
-        }
-        rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(targetPackage), GlobalSearchScope.union(scopes))));
-      }
-
-      for (Module dependentModule : dependentModules) {
-        AndroidFacet dependentFacet = AndroidFacet.getInstance(dependentModule);
-        if (dependentFacet == null) {
-          continue;
-        }
-        String dependentPackage = AndroidManifestUtils.getPackageName(dependentFacet);
-        if (dependentPackage == null || dependentPackage.equals(targetPackage)) {
-          continue;
-        }
-        rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
-      }
-
-      return rClasses;
-    }
+    return resourceClassService.getLightRClassesContainingModuleResources(module);
   }
 
   @NotNull
@@ -776,66 +735,11 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isRJavaClass(@NotNull PsiClass psiClass) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      return psiClass instanceof AndroidRClassBase;
-    }
-    PsiFile file = psiClass.getContainingFile();
-    if (file == null) {
-      return false;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(psiClass);
-    if (facet == null) {
-      return false;
-    }
-
-    if (!AndroidUtils.R_CLASS_NAME.equals(psiClass.getName())) {
-      return false;
-    }
-
-    if (file.getName().equals(AndroidCommonUtils.R_JAVA_FILENAME) && file instanceof PsiJavaFile) {
-      final PsiJavaFile javaFile = (PsiJavaFile)file;
-
-      final Manifest manifest = facet.getManifest();
-      if (manifest != null) {
-        final String manifestPackage = manifest.getPackage().getValue();
-        if (manifestPackage != null && javaFile.getPackageName().equals(manifestPackage)) {
-          return true;
-        }
-      }
-
-      for (String aPackage : AndroidUtils.getDepLibsPackages(facet.getModule())) {
-        if (javaFile.getPackageName().equals(aPackage)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return psiClass instanceof AndroidRClassBase;
   }
 
   public static boolean isManifestClass(@NotNull PsiClass psiClass) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      return psiClass instanceof ManifestClass;
-    }
-
-    PsiFile file = psiClass.getContainingFile();
-    if (file == null) {
-      return false;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(psiClass);
-    if (facet == null) {
-      return false;
-    }
-
-    if (!AndroidUtils.MANIFEST_CLASS_NAME.equals(psiClass.getName())) {
-      return false;
-    }
-
-    if (file.getName().equals(AndroidCommonUtils.MANIFEST_JAVA_FILE_NAME) && file instanceof PsiJavaFile) {
-      final Manifest manifest = facet.getManifest();
-      final PsiJavaFile javaFile = (PsiJavaFile)file;
-      return manifest != null && javaFile.getPackageName().equals(manifest.getPackage().getValue());
-    }
-    return false;
+    return psiClass instanceof ManifestClass;
   }
 
   public static boolean createValueResource(@NotNull Project project,

@@ -18,13 +18,17 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -77,18 +81,12 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
 
   override fun getPsiElementFinders(): List<PsiElementFinder> {
-    return if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      listOf(
-        AndroidInnerClassFinder.INSTANCE,
-        AndroidManifestClassPsiElementFinder.getInstance(project),
-        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
-      )
-    } else {
-      listOf(AndroidInnerClassFinder.INSTANCE)
-    }
+    return listOf(
+      AndroidInnerClassFinder.INSTANCE,
+      AndroidManifestClassPsiElementFinder.getInstance(project),
+      AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+    )
   }
-
-  override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

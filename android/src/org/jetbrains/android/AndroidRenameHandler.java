@@ -3,7 +3,6 @@ package org.jetbrains.android;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -168,7 +167,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false);
       if (resourceFields.length == 1) {
         PsiElement element = resourceFields[0];
-        if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+        if (element instanceof AndroidLightField) {
           element = new ResourceFieldElementWrapper((AndroidLightField)element);
         }
         RenameDialog.showRenameDialog(dataContext, new ResourceRenameDialog(project, element, null, editor));
