@@ -332,9 +332,9 @@ public class WidgetConstraintModel {
    *
    * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
    *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
-   * @param margin the margin value in dp.
+   * @param margin the margin value in dp (e.g. "0") or resource (e.g. "@dimen/left_margin")
    */
-  public void setMargin(int type, int margin) {
+  public void setMargin(int type, String margin) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
@@ -554,21 +554,34 @@ public class WidgetConstraintModel {
     return ConstraintUtilities.getDpValue(myComponent, v);
   }
 
-  private void setDimension(@Nullable String attribute, int currentValue) {
+  private void setDimension(@Nullable String attribute, String currentValue) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
+
     attribute = ConstraintComponentUtilities.mapStartEndStrings(myComponent, attribute);
+    boolean isCurrentValueReference = currentValue.startsWith("@");
+    if (isCurrentValueReference) {
+      setAttribute(ANDROID_URI, attribute, currentValue);
+      return;
+    }
+
+    int currentValueInInt = 0;
+    try {
+      currentValueInInt = Integer.parseInt(currentValue);
+    } catch (NumberFormatException nfe) {
+    }
+
     String marginString = myComponent.getLiveAttribute(ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
       marginValue = ConstraintComponentUtilities.getDpValue(myComponent, myComponent.getLiveAttribute(ANDROID_URI, attribute));
     }
-    if (marginValue != -1 && marginValue == currentValue) {
+    if (marginValue != -1 && marginValue == currentValueInInt) {
       setAttribute(ANDROID_URI, attribute, marginString);
     }
     else {
-      String marginY = String.format(VALUE_N_DP, currentValue);
+      String marginY = String.format(VALUE_N_DP, currentValueInInt);
       setAttribute(ANDROID_URI, attribute, marginY);
     }
   }
