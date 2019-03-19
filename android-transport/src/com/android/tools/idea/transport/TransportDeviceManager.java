@@ -232,7 +232,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       }
       catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException | SyncException e) {
         myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
-        throw new RuntimeException(e);
+        getLogger().error("Error when trying to spawn Transport daemon", e);
       }
       catch (AdbCommandRejectedException | IOException e) {
         // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
@@ -290,8 +290,8 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
             getLogger().info(String.format("TransportProxy successfully created for device: %s", myDevice));
           }
           catch (AdbCommandRejectedException | IOException | TimeoutException e) {
-            getLogger().warn(String.format("TransportProxy failed for device: %s", myDevice), e);
             myMessageBus.syncPublisher(TOPIC).onTransportProxyCreationFail(transportDevice, e);
+            getLogger().error(String.format("TransportProxy failed for device: %s", myDevice), e);
           }
         }
 
