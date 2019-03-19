@@ -71,6 +71,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
@@ -1752,37 +1753,17 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     if (oldChild instanceof XmlAttributeValue && newChild instanceof XmlAttributeValue) {
                       XmlAttributeValue oldValue = (XmlAttributeValue)oldChild;
                       XmlAttributeValue newValue = (XmlAttributeValue)newChild;
-                      String oldName = stripIdPrefix(oldValue.getValue());
-                      String newName = stripIdPrefix(newValue.getValue());
-                      if (oldName.equals(newName)) {
+                      ResourceUrl oldResourceUrl = ResourceUrl.parse(oldValue.getValue());
+                      ResourceUrl newResourceUrl = ResourceUrl.parse(newValue.getValue());
+
+                      // Make sure to compare name as well as urlType, e.g. if both have @+id or not.
+                      if (Objects.equals(oldResourceUrl, newResourceUrl)) {
                         // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
                         return;
                       }
-                      if (source instanceof PsiResourceFile) {
-                        PsiResourceFile psiResourceFile = (PsiResourceFile)source;
-                        ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
-                        synchronized (ITEM_MAP_LOCK) {
-                          if (item != null) {
-                            ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
-                            if (map != null) {
-                              // Found the relevant item: delete it and create a new one in a new location
-                              map.remove(oldName, item);
 
-                              if (psiResourceFile.isSourceOf(item)) {
-                                psiResourceFile.removeItem((PsiResourceItem)item);
-                              }
-
-                              if (newValue.getValue().startsWith(NEW_ID_PREFIX) && isValidResourceName(newName)) {
-                                PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
-                                map.put(newName, newItem);
-                                psiResourceFile.addItem(newItem);
-                              }
-                              setModificationCount(ourModificationCounter.incrementAndGet());
-                              invalidateParentCaches(myNamespace, ResourceType.ID);
-                              return;
-                            }
-                          }
-                        }
+                      if (handleIdChange(psiFile, source, xmlTag, newResourceUrl, stripIdPrefix(oldValue.getValue()))) {
+                        return;
                       }
                     }
                   }
@@ -1806,35 +1787,17 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     XmlTag xmlTag = attribute.getParent();
                     PsiElement oldChild = event.getOldChild();
                     PsiElement newChild = event.getNewChild();
-                    String oldName = stripIdPrefix(oldChild.getText());
-                    String newName = stripIdPrefix(newChild.getText());
-                    if (oldName.equals(newName)) {
+                    ResourceUrl oldResourceUrl = ResourceUrl.parse(oldChild.getText());
+                    ResourceUrl newResourceUrl = ResourceUrl.parse(newChild.getText());
+
+                    // Make sure to compare name as well as urlType, e.g. if both have @+id or not.
+                    if (Objects.equals(oldResourceUrl, newResourceUrl)) {
                       // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
                       return;
                     }
-                    if (resFile instanceof PsiResourceFile) {
-                      PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
-                        ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
-                        if (item != null) {
-                          synchronized (ITEM_MAP_LOCK) {
-                            ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
-                            if (map != null) {
-                              // Found the relevant item: delete it and create a new one in a new location
-                              map.remove(oldName, item);
-                              if (psiResourceFile.isSourceOf(item)) {
-                                psiResourceFile.removeItem((PsiResourceItem)item);
-                              }
-                              if (newChild.getText().startsWith(NEW_ID_PREFIX) && !StringUtil.isEmpty(newName)) {
-                                PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
-                                map.put(newName, newItem);
-                                psiResourceFile.addItem(newItem);
-                              }
-                              setModificationCount(ourModificationCounter.incrementAndGet());
-                              invalidateParentCaches(myNamespace, ResourceType.ID);
-                              return;
-                            }
-                          }
-                        }
+
+                    if (handleIdChange(psiFile, resFile, xmlTag, newResourceUrl, stripIdPrefix(oldChild.getText()))) {
+                      return;
                     }
                   }
 
@@ -2049,6 +2012,54 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
 
       myIgnoreChildrenChanged = true;
+    }
+
+    /**
+     * Tries to handle changes to an {@code android:id} tag incrementally.
+     *
+     * @return true if incremental change succeeded, false otherwise (i.e. a rescan is necessary).
+     */
+    private boolean handleIdChange(@NotNull PsiFile psiFile,
+                                   @NotNull ResourceItemSource<? extends ResourceItem> resFile,
+                                   @NotNull XmlTag xmlTag,
+                                   @Nullable ResourceUrl newResourceUrl,
+                                   @NotNull String oldName) {
+      if (resFile instanceof PsiResourceFile) {
+        PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
+        ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
+        synchronized (ITEM_MAP_LOCK) {
+          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
+          if (map != null) {
+            boolean madeChanges = false;
+
+            if (item != null) {
+              // Found the relevant item: delete it and create a new one in a new location
+              map.remove(oldName, item);
+              if (psiResourceFile.isSourceOf(item)) {
+                psiResourceFile.removeItem((PsiResourceItem)item);
+              }
+              madeChanges = true;
+            }
+
+            if (newResourceUrl != null) {
+              String newName = newResourceUrl.name;
+              if (newResourceUrl.urlType == ResourceUrl.UrlType.CREATE && isValidResourceName(newName)) {
+                PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
+                map.put(newName, newItem);
+                psiResourceFile.addItem(newItem);
+                madeChanges = true;
+              }
+            }
+
+            if (madeChanges) {
+              setModificationCount(ourModificationCounter.incrementAndGet());
+              invalidateParentCaches(myNamespace, ResourceType.ID);
+            }
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     private void handleValueXmlTextEdit(@Nullable PsiElement parent, @NotNull PsiFile psiFile) {
