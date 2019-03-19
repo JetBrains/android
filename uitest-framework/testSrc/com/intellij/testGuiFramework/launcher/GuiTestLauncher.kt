@@ -121,7 +121,7 @@ object GuiTestLauncher {
    */
   private fun getVmOptions(port: Int): List<String> {
     // TODO(b/77341383): avoid having to sync manually with studio64.vmoptions
-    var options = listOf(
+    val options = mutableListOf(
       /* studio64.vmoptions */
       "-Xms256m",
       "-Xmx1280m",
