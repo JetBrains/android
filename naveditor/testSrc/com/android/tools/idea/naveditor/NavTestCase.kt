@@ -50,10 +50,6 @@ abstract class NavTestCase : AndroidTestCase() {
     myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/res", "res")
     myFixture.copyFileToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
 
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/gen", "gen")
-    }
-
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
       val aar = File(PathManager.getHomePath(), prebuilt)

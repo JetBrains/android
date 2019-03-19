@@ -193,10 +193,6 @@ class MigrateToResourceNamespacesProcessor(
   private val invokingFacet: AndroidFacet
 ) : BaseRefactoringProcessor(invokingFacet.module.project) {
 
-  init {
-    require(StudioFlags.IN_MEMORY_R_CLASSES.get()) { "IN_MEMORY_R_CLASSES has to be enabled for the refactoring to work." }
-  }
-
   public override fun getCommandName() = "Migrate to resource namespaces"
 
   private val allFacets = AndroidUtils.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet

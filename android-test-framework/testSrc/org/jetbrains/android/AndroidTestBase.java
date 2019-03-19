@@ -16,7 +16,6 @@
 package org.jetbrains.android;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.Sdks;
@@ -249,17 +248,5 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       sb.append(":?");
     }
     sb.append('\n');
-  }
-
-  protected void copyRJavaToGeneratedSources() {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
-    }
-  }
-
-  protected void copyManifestJavaToGeneratedSources() {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java");
-    }
   }
 }

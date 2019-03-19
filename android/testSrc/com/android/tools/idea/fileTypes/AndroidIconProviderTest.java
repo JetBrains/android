@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fileTypes;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,11 +28,6 @@ import javax.swing.*;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
   public void testFlagIcons() throws Exception {
-    copyRJavaToGeneratedSources();
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      checkIcon("gen/p1/p2/R.java", null);
-    }
-
     checkIcon("res/wrong/path.xml", null);
     checkIcon("res/layout/file.xml", null);
     checkIcon("res/layout-land/file.xml", null);

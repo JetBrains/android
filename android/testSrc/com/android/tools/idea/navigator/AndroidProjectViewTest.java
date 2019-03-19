@@ -25,7 +25,6 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.testFramework.PlatformTestUtil.createComparator;
 import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
@@ -330,16 +329,28 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertSameElements(fileNames, ImmutableList.of("j.png", "j.xml"));
   }
 
-  public void testGeneratedSourceFiles_aaptClasses() throws Exception {
-    doTestGeneratedSourceFiles(false, false);
-  }
+  public void testGeneratedSourceFiles_lightClasses() throws Exception {
+    loadSimpleApplication();
 
-  public void testGeneratedSourceFiles_lightClasses_oldModel() throws Exception {
-    doTestGeneratedSourceFiles(false, true);
-  }
+    // Create BuildConfig.java in one of the generated source folders.
+    Module appModule = myModules.getAppModule();
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    assertNotNull(androidModel);
+    Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
+    assertThat(generatedFolders).isNotEmpty();
 
-  public void testGeneratedSourceFiles_lightClasses_newModel() throws Exception {
-    doTestGeneratedSourceFiles(true, true);
+    File buildConfigFolder = generatedFolders.stream().filter(f -> f.getPath().contains("buildConfig")).findFirst().orElse(null);
+    assertNotNull(buildConfigFolder);
+    writeToFile(new File(buildConfigFolder, join("com", "application", "BuildConfig.java")),
+                "package com.application; public final class BuildConfig {}");
+
+    refreshProjectFiles();
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    Set<List<String>> allNodes = getAllNodes(structure);
+    assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
   }
 
   public void testGeneratedResources() throws Exception {
@@ -383,51 +394,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "res (generated)", "raw", "sample_raw_resource"));
-  }
-
-  // Test that the generated source files are displayed under app/generatedJava.
-  private void doTestGeneratedSourceFiles(boolean preSyncValue, boolean postSyncValue) throws Exception {
-    try {
-      // Setting the IDE flag results in a new property being passed to Gradle, which will cause the folder to not be in the model. But the
-      // property is only recognized by new versions of AGP, so we need to also make sure that if the directories are in the model we ignore
-      // them in the UI.
-      StudioFlags.IN_MEMORY_R_CLASSES.override(preSyncValue);
-      loadSimpleApplication();
-      StudioFlags.IN_MEMORY_R_CLASSES.override(postSyncValue);
-
-      // Create BuildConfig.java in one of the generated source folders.
-      Module appModule = myModules.getAppModule();
-      AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
-      assertNotNull(androidModel);
-      Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
-      assertThat(generatedFolders).isNotEmpty();
-
-      File buildConfigFolder = generatedFolders.stream().filter(f -> f.getPath().contains("buildConfig")).findFirst().orElse(null);
-      assertNotNull(buildConfigFolder);
-      writeToFile(new File(buildConfigFolder, join("com", "application", "BuildConfig.java")),
-                  "package com.application; public final class BuildConfig {}");
-
-      if (!preSyncValue) {
-        File rClassesFolder = generatedFolders.stream().filter(f -> f.getName().equals("r")).findFirst().orElse(null);
-        assertNotNull(rClassesFolder);
-        // Here we simulate an old AGP version that creates R.java despite being asked not to.
-        writeToFile(new File(rClassesFolder, join("com", "application", "R.java")),
-                    "package com.application; public final class R {}");
-      }
-      refreshProjectFiles();
-
-      myPane = createPane();
-      TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
-
-      Set<List<String>> allNodes = getAllNodes(structure);
-      assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
-
-      // The R class should only be displayed if we're using R.java from aapt, not light PSI.
-      assertEquals(!postSyncValue, allNodes.contains(Arrays.asList("app (Android)", "java (generated)", "application", "R")));
-    }
-    finally {
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride();
-    }
   }
 
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {
