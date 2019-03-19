@@ -32,21 +32,18 @@ public class ManifestInfoTest extends AndroidTestCase {
   public void testLastSyncTimestamp() throws Exception {
     ManifestInfo.ManifestFile manifestFile = ManifestInfo.ManifestFile.create(myFacet);
 
-    // The first call to refresh will always be successful, so get that out of the way
-    manifestFile.refresh();
-
     // No refresh necessary
-    assertThat(manifestFile.refresh()).isFalse();
+    assertThat(manifestFile.isUpToDate()).isTrue();
 
     // Make it look like the project has been synced
     getProject().getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
 
     // Syncing should have changed the timestamp, making a refresh necessary
-    assertThat(manifestFile.refresh()).isTrue();
+    assertThat(manifestFile.isUpToDate()).isFalse();
   }
 
   public void testGetLibManifests() throws Exception {
-    List<VirtualFile> libManifests = ManifestInfo.ManifestFile.getLibManifests(myFacet);
+    List<VirtualFile> libManifests = ManifestInfo.MergedManifestContributors.determineFor(myFacet).libraryManifests;
     // TODO: add external library dependency to local library module and check to make sure libManifests lists the local one first.
   }
 

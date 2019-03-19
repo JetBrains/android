@@ -68,20 +68,22 @@ public class MergedManifestManager {
   }
 
   /**
-   * If {@link ManifestInfo.ManifestFile} is out-of-date, returns a new {@link MergedManifestSnapshot} loaded from disk or null
-   * if is up-to-date.
+   * If {@link ManifestInfo.ManifestFile} is out-of-date or null, returns a new {@link MergedManifestSnapshot} loaded from disk.
+   * Returns null otherwise.
+   *
    * @param facet the {@link AndroidFacet}
    * @param manifestFile the source {@link ManifestInfo.ManifestFile}
    * @param forceLoad if true, the snapshot will be returned even if the manifestFile is up-to-date
    */
   @VisibleForTesting
+  @Slow
   @Nullable
   static MergedManifestSnapshot readSnapshotFromDisk(@NotNull AndroidFacet facet,
-                                                     @NotNull ManifestInfo.ManifestFile manifestFile,
+                                                     @Nullable ManifestInfo.ManifestFile manifestFile,
                                                      boolean forceLoad) {
     return ReadAction.compute(() -> {
-      if (manifestFile.refresh() || forceLoad) {
-        return MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, manifestFile);
+      if (forceLoad || manifestFile == null || !manifestFile.isUpToDate()) {
+        return MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, ManifestInfo.ManifestFile.create(facet));
       }
       return null;
     });
@@ -137,9 +139,7 @@ public class MergedManifestManager {
 
     MergedManifestSnapshot cachedManifest = getCachedSnapshot(facet);
     if (forceRefresh || cachedManifest == null) {
-      ManifestInfo.ManifestFile file = cachedManifest != null && cachedManifest.getManifestFile() != null ?
-                                       cachedManifest.getManifestFile() :
-                                       ManifestInfo.ManifestFile.create(facet);
+      ManifestInfo.ManifestFile file = cachedManifest != null ? cachedManifest.getManifestFile() : null;
       cachedManifest = readSnapshotFromDisk(facet, file, forceRefresh);
       if (cachedManifest != null) {
         module.putUserData(KEY, cachedManifest);
