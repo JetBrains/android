@@ -5,7 +5,13 @@ filegroup(
     srcs = ["default_aspect_rules.txt"],
 )
 
+filegroup(
+    name = "aspects_baseline",
+    srcs = ["aspects_baseline.txt"],
+)
+
 COMMON_DATA = [
+    "//tools/adt/idea/android-uitests:aspects_baseline",
     "//tools/adt/idea/android-uitests:aspect_rules",
     "//tools/base/aspects_agent:aspects_agent",
     "//tools/adt/idea/android:test_deps.zip",
@@ -1427,6 +1433,7 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest",
         "-Daspects.agent.jar=$(location //tools/base/aspects_agent:aspects_agent)",
         "-Daspects.agent.rules=$(location //tools/adt/idea/android-uitests:aspect_rules)",
+        "-Daspects.agent.baseline=$(location //tools/adt/idea/android-uitests:aspects_baseline)",
     ],
     tags = COMMON_TAGS + [
         "no_psq",
