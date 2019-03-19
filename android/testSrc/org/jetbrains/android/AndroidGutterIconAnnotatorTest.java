@@ -112,8 +112,6 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-
-    copyRJavaToGeneratedSources();
   }
 
   public void testDrawableInManifest() throws IOException {

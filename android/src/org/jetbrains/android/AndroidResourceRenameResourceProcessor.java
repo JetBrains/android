@@ -32,7 +32,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -170,7 +169,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   @Nullable
   @Override
   public PsiElement substituteElementToRename(@NotNull PsiElement element, @Nullable Editor editor) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+    if (element instanceof AndroidLightField) {
       return new ResourceFieldElementWrapper((AndroidLightField)element);
     }
 

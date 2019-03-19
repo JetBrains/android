@@ -1,14 +1,11 @@
 package org.jetbrains.android.augment;
 
-import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceRepositoryRClass;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiType;
-import java.util.List;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
@@ -69,8 +66,7 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   @Override
   public PsiField findFieldByName(String name, boolean checkBases) {
     // bail if this is a scenario we don't fully support
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()  // only works with full in memory R classes, not for example with "augmented" classes
-        || myResourceType == ResourceType.STYLEABLE // styleables require further modification of the name to handle sub attributes
+    if (myResourceType == ResourceType.STYLEABLE // styleables require further modification of the name to handle sub attributes
         || !myFacet.getConfiguration().isLibraryProject()) { // app projects use final ids, which requires assigning ids to all fields
       return super.findFieldByName(name, checkBases);
     }

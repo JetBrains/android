@@ -92,11 +92,6 @@ interface AndroidProjectSystem {
   fun getPsiElementFinders(): Collection<PsiElementFinder>
 
   /**
-   * Whether R classes found in the PSI should additionally be augmented to reflect current state of resources.
-   */
-  fun getAugmentRClasses(): Boolean
-
-  /**
    * [LightResourceClassService] instance used by this project system (if used at all).
    */
   fun getLightResourceClassService(): LightResourceClassService
