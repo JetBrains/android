@@ -243,6 +243,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  public void troubleshootDeviceConnections(@NotNull String appName) {
+    new DeviceSelectorFixture(robot()).troubleshootDeviceConnections(this, appName);
+  }
+
   @NotNull
   public IdeFrameFixture recordEspressoTest(@NotNull String device) {
     new DeviceSelectorFixture(robot()).recordEspressoTest(this, device);
