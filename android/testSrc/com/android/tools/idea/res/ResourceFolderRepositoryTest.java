@@ -3982,6 +3982,53 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(item.getResourceValue());
   }
 
+  public void testAddingPlusToId() {
+    PsiFile layout = myFixture.addFileToProject("res/layout/my_layout.xml",
+                                              // language=XML
+                                              "<LinearLayout xmlns:android='http://schemas.android.com/apk/res/android'>" +
+                                              "  <TextView android:id='@id/aaa' />" +
+                                              "  <TextView android:id='@id/bbb' />" +
+                                              "  <TextView android:id='@id/ccc' />" +
+                                              "</LinearLayout>");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+
+    ResourceFolderRepository resources = createRepository();
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    long timestamp = resources.getModificationCount();
+
+    type("@|id/aaa", "+");
+    assertTrue(resources.isScanPending(layout));
+    UIUtil.dispatchAllInvocationEvents();
+
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+
+    timestamp = resources.getModificationCount();
+    type("@|id/bbb", "+");
+    assertFalse(resources.isScanPending(layout)); // Should be incremental
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+
+    // Now try setAttribute which triggers a different PsiEvent, similar to pasting.
+    timestamp = resources.getModificationCount();
+    XmlTag cccTag = findTagById(layout, "ccc");
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      cccTag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/ccc");
+    });
+
+    assertFalse(resources.isScanPending(layout)); // Should be incremental
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+  }
+
   @Nullable
   private static XmlTag findTagById(@NotNull PsiFile file, @NotNull String id) {
     assertFalse(id.startsWith(PREFIX_RESOURCE_REF)); // Just the id.
