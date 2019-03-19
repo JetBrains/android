@@ -77,7 +77,6 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     ensureWebserverAccess();
-    copyRJavaToGeneratedSources();
     //noinspection unchecked
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,

@@ -20,7 +20,6 @@ import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidImportFilterTest extends AndroidTestCase {
   public void testShouldUseFullName() {
-    copyRJavaToGeneratedSources();
     PsiFile javaFile =
       myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
     PsiFile file = myFixture.getJavaFacade().findClass("p1.p2.R", javaFile.getResolveScope()).getContainingFile();

@@ -22,7 +22,6 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
 import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
 import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_SEPARATE_R_CLASS_COMPILATION;
 import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
@@ -113,12 +112,6 @@ public class CommandLineArgs {
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
         args.add(createProjectProperty(PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL, refreshExternalNativeModels));
       }
-    }
-
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      // Explicitly request R.java files to be generated and put in the model. Older versions of AGP do it always, newer may not by default.
-      // See GradleTaskExecutorImpl.invokeGradleTasks for flags passed at build time.
-      args.add(createProjectProperty(PROPERTY_SEPARATE_R_CLASS_COMPILATION, false));
     }
 
     Application application = ApplicationManager.getApplication();
