@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,6 +108,7 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/ic_tick.xml", "res/drawable/ic_tick.xml");
     myFixture.copyFileToProject("annotator/layer_list.xml", "res/drawable/layer_list.xml");
     myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
+    myFixture.copyFileToProject("annotator/shape.xml", "res/drawable/shape.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -218,6 +220,12 @@ public abstract class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     // Reference to a layer-list drawable from a layout file.
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/layer_list", XmlAttributeValue.class);
     checkHighlightInfoImage(highlightInfo, "annotator/ic_layer_list_thumbnail.png");
+  }
+
+  public void testShape() throws Exception {
+    // Reference to a layer-list drawable from a layout file.
+    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/shape", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_shape_thumbnail.png");
   }
 
   public void testFrameworkDrawable() throws Exception {
