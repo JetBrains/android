@@ -16,7 +16,8 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.Immutable;
+import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.*;
 import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
@@ -31,18 +32,19 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -70,10 +72,12 @@ import static com.android.SdkConstants.ANDROID_URI;
  * @see com.android.xml.AndroidManifest
  */
 final class ManifestInfo {
+  private static final Logger LOG = Logger.getInstance(ManifestInfo.class);
 
   private ManifestInfo() {
   }
 
+  @Slow
   @NotNull
   static MergingReport getMergedManifest(@NotNull AndroidFacet facet,
                                          @NotNull VirtualFile primaryManifestFile,
@@ -261,139 +265,75 @@ final class ManifestInfo {
       return config.getVersionNameSuffix();
     }
     catch (UnsupportedOperationException e) {
-      Logger.getInstance(ManifestInfo.class).warn("Method 'getVersionNameSuffix' not found", e);
+      LOG.warn("Method 'getVersionNameSuffix' not found", e);
       return null;
     }
   }
 
-  static class ManifestFile {
-    private final @NotNull AndroidFacet myFacet;
-    private @Nullable Document myDocument;
-    private @Nullable List<VirtualFile> myManifestFiles;
-    private @Nullable Map<Object, Long> myLastModifiedMap;
-
-    private @Nullable ImmutableList<MergingReport.Record> myLoggingRecords;
-    private @Nullable Actions myActions;
-
+  /**
+   * Immutable data object responsible for determining all the files that contribute to
+   * the merged manifest of a particular AndroidFacet at a particular moment in time.
+   */
+  @Immutable
+  static class MergedManifestContributors {
     private static final Pattern NAV_DIR_PATTERN = Pattern.compile("^navigation(-.*)?$");
 
-    private ManifestFile(@NotNull AndroidFacet facet) {
-      myFacet = facet;
+    @NotNull final ImmutableList<VirtualFile> allFiles;
+    @Nullable final VirtualFile primaryManifest;
+    @NotNull final ImmutableList<VirtualFile> flavorAndBuildTypeManifests;
+    @NotNull final ImmutableList<VirtualFile> libraryManifests;
+    @NotNull final ImmutableList<VirtualFile> navigationFiles;
+
+    private MergedManifestContributors(@Nullable VirtualFile primaryManifest,
+                                       @NotNull ImmutableList<VirtualFile> flavorAndBuildTypeManifests,
+                                       @NotNull ImmutableList<VirtualFile> libraryManifests,
+                                       @NotNull ImmutableList<VirtualFile> navigationFiles,
+                                       @NotNull ImmutableList<VirtualFile> allFiles) {
+      this.primaryManifest = primaryManifest;
+      this.flavorAndBuildTypeManifests = flavorAndBuildTypeManifests;
+      this.libraryManifests = libraryManifests;
+      this.navigationFiles = navigationFiles;
+      this.allFiles = allFiles;
     }
 
     @NotNull
-    public static ManifestFile create(@NotNull AndroidFacet facet) {
-      return new ManifestFile(facet);
+    public static MergedManifestContributors determineFor(@NotNull AndroidFacet facet) {
+      ImmutableList.Builder<VirtualFile> allBuilder = ImmutableList.builder();
+
+      VirtualFile primaryManifest = AndroidRootUtil.getPrimaryManifestFile(facet);
+      if (primaryManifest != null) {
+        allBuilder.add(primaryManifest);
+      }
+
+      ImmutableList<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(facet);
+      allBuilder.addAll(flavorAndBuildTypeManifests);
+
+      ImmutableList<VirtualFile> libraryManifests = facet.getConfiguration().isAppOrFeature() ? getLibManifests(facet) : ImmutableList.of();
+      allBuilder.addAll(libraryManifests);
+
+      ImmutableList<VirtualFile> navigationFiles = getNavigationFiles(facet);
+      allBuilder.addAll(navigationFiles);
+
+      // We want to track changes in these files, but we do not actually use them directly.
+      allBuilder.addAll(getFlavorAndBuildTypeManifestsOfLibs(facet));
+
+      return new MergedManifestContributors(primaryManifest, flavorAndBuildTypeManifests, libraryManifests, navigationFiles, allBuilder.build());
     }
 
-    @Nullable
-    private Document parseManifest(@NotNull final VirtualFile primaryManifestFile,
-                                   @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
-                                   @NotNull List<VirtualFile> libManifests,
-                                   @NotNull List<VirtualFile> navigationFiles) {
-      ApplicationManager.getApplication().assertReadAccessAllowed();
-
-      Project project = myFacet.getModule().getProject();
-      if (project.isDisposed()) {
-        return null;
-      }
-
-      try {
-        MergingReport mergingReport =
-          getMergedManifest(myFacet, primaryManifestFile, flavorAndBuildTypeManifests, libManifests, navigationFiles);
-        myLoggingRecords = mergingReport.getLoggingRecords();
-        myActions = mergingReport.getActions();
-
-        XmlDocument doc = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED);
-        if (doc != null) {
-          return doc.getXml();
-        }
-        else {
-          Logger.getInstance(ManifestInfo.class).warn("getMergedManifest failed " + mergingReport.getReportString());
-        }
-      }
-      catch (ManifestMerger2.MergeFailureException ex) {
-        // action cancelled
-        if (ex.getCause() instanceof ProcessCanceledException) {
-          return null;
-        }
-        // user is in the middle of editing the file
-        if (ex.getCause() instanceof SAXParseException) {
-          return null;
-        }
-        Logger.getInstance(ManifestInfo.class).warn("getMergedManifest exception", ex);
-      }
-
-      PsiFile psiFile = PsiManager.getInstance(project).findFile(primaryManifestFile);
-      if (psiFile != null) {
-        String text = psiFile.getText();
-        return XmlUtils.parseDocumentSilently(text, true);
-      }
-
-      return null;
-    }
-
-    public synchronized boolean refresh() {
-      Map<Object, Long> lastModifiedMap = new HashMap<>();
-
-      VirtualFile primaryManifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
-      if (primaryManifestFile == null) {
-        return false;
-      }
-
-      lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
-      lastModifiedMap.put("sync", SyncTimestampUtil.getLastSyncTimestamp(myFacet.getModule().getProject()));
-
-      List<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(myFacet);
-      trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
-
-      List<VirtualFile> libraryManifests = Collections.emptyList();
-      if (myFacet.getConfiguration().isAppOrFeature()) {
-        libraryManifests = getLibManifests(myFacet);
-        trackChanges(lastModifiedMap, libraryManifests);
-      }
-
-      List<VirtualFile> navigationFiles = getNavigationFiles(myFacet);
-      trackChanges(lastModifiedMap, navigationFiles);
-
-      // we want to track changes in these files, but we do not actually use them directly
-      List<VirtualFile> flavorAndBuildTypeManifestsOfLibs = new ArrayList<>();
-      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true);
+    @NotNull
+    static ImmutableList<VirtualFile> getFlavorAndBuildTypeManifestsOfLibs(@NotNull AndroidFacet facet) {
+      ImmutableList.Builder<VirtualFile> flavorAndBuildTypeManifestsOfLibs = ImmutableList.builder();
+      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
       for (AndroidFacet dependency : dependencies) {
         flavorAndBuildTypeManifestsOfLibs.addAll(getFlavorAndBuildTypeManifests(dependency));
       }
-      trackChanges(lastModifiedMap, flavorAndBuildTypeManifestsOfLibs);
-
-      if (myDocument == null || !lastModifiedMap.equals(myLastModifiedMap)) {
-        myDocument = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests, navigationFiles);
-        if (myDocument == null) {
-          myManifestFiles = null;
-          return false;
-        }
-
-        myManifestFiles = Lists.newArrayList();
-        myManifestFiles.add(primaryManifestFile);
-        myManifestFiles.addAll(flavorAndBuildTypeManifests);
-        myManifestFiles.addAll(libraryManifests);
-        myManifestFiles.addAll(navigationFiles);
-
-        myLastModifiedMap = lastModifiedMap;
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    private void trackChanges(@NotNull Map<Object, Long> lastModifiedMap, @NotNull List<VirtualFile> files) {
-      for (VirtualFile libraryManifest : files) {
-        lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
-      }
+      return flavorAndBuildTypeManifestsOfLibs.build();
     }
 
     @NotNull
-    private static List<VirtualFile> getFlavorAndBuildTypeManifests(@NotNull AndroidFacet facet) {
+    private static ImmutableList<VirtualFile> getFlavorAndBuildTypeManifests(@NotNull AndroidFacet facet) {
       // get all other manifests for this module, (NOT including the default one)
-      List<VirtualFile> flavorAndBuildTypeManifests = new ArrayList<>();
+      ImmutableList.Builder<VirtualFile> flavorAndBuildTypeManifests = ImmutableList.builder();
       IdeaSourceProvider defaultSourceProvider = facet.getMainIdeaSourceProvider();
       for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
         if (!defaultSourceProvider.equals(provider)) {
@@ -403,13 +343,12 @@ final class ManifestInfo {
           }
         }
       }
-      return flavorAndBuildTypeManifests;
+      return flavorAndBuildTypeManifests.build();
     }
 
-    @VisibleForTesting
     @NotNull
-    static List<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
-      List<VirtualFile> libraryManifests = new ArrayList<>();
+    private static ImmutableList<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
+      ImmutableList.Builder<VirtualFile> libraryManifests = ImmutableList.builder();
 
       List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
 
@@ -436,14 +375,14 @@ final class ManifestInfo {
         }
       }
 
-      return libraryManifests;
+      return libraryManifests.build();
     }
 
     /** get all navigation files for this module, ordered from higher precedence to lower precedence */
     // b/70815924 - Change implementation to use resource repository API
     @NotNull
-    private static List<VirtualFile> getNavigationFiles(@NotNull AndroidFacet facet) {
-      List<VirtualFile> navigationFiles = new ArrayList<>();
+    private static ImmutableList<VirtualFile> getNavigationFiles(@NotNull AndroidFacet facet) {
+      ImmutableList.Builder<VirtualFile> navigationFiles = ImmutableList.builder();
 
       List<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
       // iterate over providers in reverse order so higher precedence navigation files are first
@@ -473,7 +412,7 @@ final class ManifestInfo {
           }
         }
       }
-      return navigationFiles;
+      return navigationFiles.build();
     }
 
     private static void addAarManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result, @NotNull List<AndroidFacet> moduleDeps) {
@@ -496,23 +435,202 @@ final class ManifestInfo {
         }
       }
     }
+  }
 
-    private long getFileModificationStamp(@NotNull VirtualFile file) {
+  /**
+   * Immutable data object encapsulating the result of merging all of the manifest files related to a particular
+   * Android module, including the merged manifest itself, a record of the actions the merger took, and logs related
+   * to the merge that the user might find useful.
+   *
+   * A ManifestFile is also capable of detecting when the merged manifest needs to be updated, as reported by
+   * the {@link #isUpToDate} method.
+   */
+  @Immutable
+  static class ManifestFile {
+    @NotNull private final AndroidFacet myFacet;
+    /**
+     * The Java DOM document corresponding to the merged manifest (not an IntelliJ {@link com.intellij.openapi.editor.Document}).
+     * If the merge failed, then this may reference the module's primary manifest instead. If the merge fails and we couldn't
+     * find or parse the primary manifest, then myDomDocument will be null.
+     */
+    @Nullable private final Document myDomDocument;
+    @Nullable private final ImmutableList<VirtualFile> myFiles;
+    @NotNull private final TObjectLongHashMap<VirtualFile> myLastModifiedMap;
+    private final long mySyncTimestamp;
+    @Nullable private final ImmutableList<MergingReport.Record> myLoggingRecords;
+    @Nullable private final Actions myActions;
+
+    /**
+     * Relevant information extracted from the result of running the manifest merger,
+     * including a DOM representation of the merged manifest, the actions taken by the
+     * merger to produce the manifest, and any logs related to the merge that the user
+     * might find useful.
+     *
+     * A null document indicates that the merge was unsuccessful.
+     */
+    private static class ParsedMergeResult {
+      @Nullable final Document document;
+      @NotNull final ImmutableList<MergingReport.Record> loggingRecords;
+      @NotNull final Actions actions;
+
+      ParsedMergeResult(@Nullable Document document,
+                        @NotNull ImmutableList<MergingReport.Record> loggingRecords,
+                        @NotNull Actions actions) {
+        this.document = document;
+        this.loggingRecords = loggingRecords;
+        this.actions = actions;
+      }
+    }
+
+    private ManifestFile(@NotNull AndroidFacet facet,
+                         @Nullable Document domDocument,
+                         @NotNull TObjectLongHashMap<VirtualFile> lastModifiedMap,
+                         long syncTimestamp,
+                         @Nullable ImmutableList<MergingReport.Record> loggingRecords,
+                         @Nullable Actions actions) {
+      myFacet = facet;
+      myDomDocument = domDocument;
+      myLastModifiedMap = lastModifiedMap;
+      mySyncTimestamp = syncTimestamp;
+      myLoggingRecords = loggingRecords;
+      myActions = actions;
+
+      ImmutableList.Builder<VirtualFile> files = ImmutableList.builder();
+      lastModifiedMap.forEachKey(file -> {
+        files.add(file);
+        return true;
+      });
+      myFiles = files.build();
+    }
+
+    /**
+     * Must be called from within a read action.
+     */
+    @Slow
+    @NotNull
+    public static ManifestFile create(@NotNull AndroidFacet facet) {
+      Project project = facet.getModule().getProject();
+      long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
+
+      MergedManifestContributors manifests = MergedManifestContributors.determineFor(facet);
+      TObjectLongHashMap<VirtualFile> lastModified = getFileModificationStamps(project, manifests.allFiles);
+
+      Document document = null;
+      ImmutableList<MergingReport.Record> loggingRecords = null;
+      Actions actions = null;
+
+      ParsedMergeResult result = mergeManifests(facet, manifests);
+      if (result != null) {
+        document = result.document;
+        loggingRecords = result.loggingRecords;
+        actions = result.actions;
+      }
+
+      // If the merge failed, try parsing just the primary manifest. This won't be totally correct, but it's better than nothing.
+      // Even if parsing the primary manifest fails, we return a ManifestFile with a null document instead of just returning null
+      // to expose the logged errors and so that callers can use isUpToDate() to see if there's been any changes that might make
+      // the merge succeed if we try again.
+      if (document == null && manifests.primaryManifest != null) {
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(manifests.primaryManifest);
+        if (psiFile != null) {
+          document = XmlUtils.parseDocumentSilently(psiFile.getText(), true);
+        }
+      }
+
+      return new ManifestFile(facet, document, lastModified, syncTimestamp, loggingRecords, actions);
+    }
+
+    @Slow
+    @Nullable
+    private static ParsedMergeResult mergeManifests(@NotNull AndroidFacet facet, @NotNull MergedManifestContributors manifests) {
+      ApplicationManager.getApplication().assertReadAccessAllowed();
+
+      Project project = facet.getModule().getProject();
+      if (project.isDisposed() || manifests.primaryManifest == null) {
+        return null;
+      }
+
       try {
-        PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
+        MergingReport mergingReport = getMergedManifest(facet,
+                                                        manifests.primaryManifest,
+                                                        manifests.flavorAndBuildTypeManifests,
+                                                        manifests.libraryManifests,
+                                                        manifests.navigationFiles);
+        XmlDocument doc = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED);
+        if (doc != null) {
+          return new ParsedMergeResult(doc.getXml(), mergingReport.getLoggingRecords(), mergingReport.getActions());
+        }
+        else {
+          LOG.warn("getMergedManifest failed " + mergingReport.getReportString());
+          return new ParsedMergeResult(null, mergingReport.getLoggingRecords(), mergingReport.getActions());
+        }
+      }
+      catch (ManifestMerger2.MergeFailureException ex) {
+        // action cancelled
+        if (ex.getCause() instanceof ProcessCanceledException) {
+          return null;
+        }
+        // user is in the middle of editing the file
+        if (ex.getCause() instanceof SAXParseException) {
+          return null;
+        }
+        LOG.warn("getMergedManifest exception", ex);
+      }
+      return null;
+    }
+
+    /**
+     * Must be called from within a read action.
+     * @return false if the merged manifest needs to be re-computed due to changes to the set of relevant manifests
+     */
+    public boolean isUpToDate() {
+      ApplicationManager.getApplication().assertReadAccessAllowed();
+      if (Disposer.isDisposed(myFacet)) {
+        return true;
+      }
+      MergedManifestContributors manifests = MergedManifestContributors.determineFor(myFacet);
+      if (manifests.primaryManifest == null) {
+        return true;
+      }
+      long lastSyncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(myFacet.getModule().getProject());
+      if (myDomDocument == null || mySyncTimestamp != lastSyncTimestamp) {
+        return false;
+      }
+      // TODO(b/128854237): We should use something backed with an iterator here so that we can early
+      //  return without computing all the files we might care about first.
+      return myLastModifiedMap.equals(getFileModificationStamps(myFacet.getModule().getProject(), manifests.allFiles));
+    }
+
+    @NotNull
+    private static TObjectLongHashMap<VirtualFile> getFileModificationStamps(@NotNull Project project, @NotNull Iterable<VirtualFile> files) {
+      TObjectLongHashMap<VirtualFile> modificationStamps = new TObjectLongHashMap<>();
+      for (VirtualFile file: files) {
+        modificationStamps.put(file, getFileModificationStamp(project, file));
+      }
+      return modificationStamps;
+    }
+
+    private static long getFileModificationStamp(@NotNull Project project, @NotNull VirtualFile file) {
+      try {
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         return psiFile == null ? file.getModificationStamp() : psiFile.getModificationStamp();
       } catch (ProcessCanceledException ignore) {
         return 0L;
       }
     }
 
+    /**
+     * Returns the merged manifest as a Java DOM document if available, the primary manifest if the merge was unsuccessful,
+     * or null if the merge failed and we were also unable to parse the primary manifest.
+     */
+    @Nullable
     public Document getXmlDocument() {
-      return myDocument;
+      return myDomDocument;
     }
 
     @Nullable
-    public List<VirtualFile> getManifestFiles() {
-      return myManifestFiles;
+    public ImmutableList<VirtualFile> getFiles() {
+      return myFiles;
     }
 
     @NotNull
