@@ -383,9 +383,9 @@ public class ScoutArrangeTest2 extends SceneTest {
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
-                 "        android:layout_width=\"984dp\"\n" +
+                 "        android:layout_width=\"998dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"8dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"1dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
@@ -401,9 +401,9 @@ public class ScoutArrangeTest2 extends SceneTest {
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
-                 "        android:layout_height=\"984dp\"\n" +
+                 "        android:layout_height=\"998dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"8dp\" />");
+                 "        tools:layout_editor_absoluteY=\"1dp\" />");
   }
 
   public void testDistributeVertically() {
