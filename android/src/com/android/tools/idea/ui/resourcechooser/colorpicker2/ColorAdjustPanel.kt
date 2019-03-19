@@ -74,7 +74,7 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
       val rgb = Color.HSBtoRGB(hue, hsbValues[1], hsbValues[2])
       val argb = (model.color.alpha shl 24) or (rgb and 0x00FFFFFF)
       val newColor = Color(argb, true)
-      (if (commit) model::setColor else model::setPickingColor).invoke(newColor, this@ColorAdjustPanel)
+      (if (commit) model::setColor else model::setPickingColor).invoke(newColor, this)
     }
   }
 
@@ -85,7 +85,7 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
 
     addListener { it, commit ->
       val newColor = Color(model.color.red, model.color.green, model.color.blue, it)
-      (if (commit) model::setColor else model::setPickingColor).invoke(newColor, this@ColorAdjustPanel)
+      (if (commit) model::setColor else model::setPickingColor).invoke(newColor, this)
     }
   }
 
@@ -127,6 +127,11 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
   override fun colorChanged(color: Color, source: Any?) {
     if (colorIndicator.color != color) {
       colorIndicator.color = color
+    }
+
+    if (source == hueSlider || source == alphaSlider) {
+      // These two components do not effect each other.
+      return
     }
 
     val hue = Color.RGBtoHSB(color.red, color.green, color.blue, null)[0]
