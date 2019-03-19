@@ -20,5 +20,6 @@
     <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
                         serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
                         overrides="true"/>
+    <feedbackDescriptionProvider implementation="com.android.tools.idea.actions.AndroidFeedbackDescriptionProvider"/>
   </extensions>
 </idea-plugin>
