@@ -15,32 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.JavaArtifact;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
-import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.google.common.collect.*;
-import com.intellij.execution.configurations.JavaParameters;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.PathsList;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.testutils.TestUtils.getLatestAndroidPlatform;
@@ -50,6 +24,35 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.normalize;
 import static com.intellij.util.ArrayUtil.contains;
 import static com.intellij.util.containers.ContainerUtil.map;
+
+import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.JavaArtifact;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.PathsList;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link AndroidJunitPatcher}.
@@ -113,7 +116,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     // Sanity check. These should be fixed by the patcher.
     assertThat(exampleClassPath).containsAllOf(myRealAndroidJar, myMockableAndroidJar);
     assertDoesntContain(exampleClassPath, myResourcesDirs);
-    assertFalse(Iterables.getLast(exampleClassPath).equals(myMockableAndroidJar));
+    assertThat(Iterables.getLast(exampleClassPath)).isNotEqualTo(myMockableAndroidJar);
 
     return exampleClassPath;
   }
@@ -126,7 +129,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     }
   }
 
-  public void testPathChanges() throws Exception {
+  public void testPathChanges() {
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
     List<String> result = map(myJavaParameters.getClassPath().getPathList(), FileUtil::normalize);
     Set<String> resultSet = ImmutableSet.copyOf(result);
@@ -140,7 +143,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     assertThat(Sets.difference(resultSet, myExampleClassPathSet)).containsAllIn(myResourcesDirs);
   }
 
-  public void testCaseInsensitivity() throws Exception {
+  public void testCaseInsensitivity() {
     if (!SystemInfo.isWindows) {
       // This test only makes sense on Windows.
       System.out.println("Skipping AndroidJunitPatcherTest#testCaseInsensitivity: not running on Windows.");
@@ -157,7 +160,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     assertThat(result).containsNoneOf(alsoRealAndroidJar, myRealAndroidJar);
   }
 
-  public void testMultipleMockableJars_oldModel() throws Exception {
+  public void testMultipleMockableJars_oldModel() {
     String jar22 = myRoot + "lib1/build/intermediates/mockable-android-22.jar";
     String jar15 = myRoot + "lib2/build/intermediates/mockable-android-15.jar";
     PathsList classPath = myJavaParameters.getClassPath();
@@ -171,7 +174,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     assertThat(pathList).containsNoneOf(jar15, jar22);
   }
 
-  public void testMultipleMockableJars_newModel() throws Exception {
+  public void testMultipleMockableJars_newModel() {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
 
     JavaArtifactStub testArtifact = getUnitTestArtifact();
@@ -184,7 +187,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     assertEquals(normalize(myMockableAndroidJar), normalize(Iterables.getLast(myJavaParameters.getClassPath().getPathList())));
   }
 
-  public void testKotlinClasses() throws Exception {
+  public void testKotlinClasses() {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
 
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
@@ -201,6 +204,16 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
     assertThat(myJavaParameters.getClassPath().getPathList()).contains(testKotlinClassesDir.getPath());
+  }
+
+  public void testRuntimeClasspath() {
+    String runtimeJar = "/tmp/runtime.jar";
+    JavaArtifactStub testArtifact = getUnitTestArtifact();
+    testArtifact.getDependencies().getRuntimeOnlyClasses().add(new File(runtimeJar));
+    createAndSetAndroidModel();
+    myPatcher.patchJavaParameters(myModule, myJavaParameters);
+    List<String> result = map(myJavaParameters.getClassPath().getPathList(), FileUtil::normalize);
+    assertThat(result).contains(runtimeJar);
   }
 
   @Nullable
