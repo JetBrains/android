@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.testFramework.IdeaTestCase;
 
 /**
@@ -27,6 +28,6 @@ public class GradleProjectSystemFlagsTest extends IdeaTestCase {
   }
 
   public void testNewPsdEnabledTest() {
-    assertTrue(StudioFlags.NEW_PSD_ENABLED.get());
+    assertFalse(ProjectStructureConfigurable.isNewPsdEnabled());
   }
 }
