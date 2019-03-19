@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.util.PropertiesComponent;
@@ -147,7 +148,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (StudioFlags.NEW_PSD_ENABLED.get() &&
+          if (ProjectStructureConfigurable.isNewPsdEnabled() &&
               (System.currentTimeMillis() -
                Long.parseLong(
                  PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >

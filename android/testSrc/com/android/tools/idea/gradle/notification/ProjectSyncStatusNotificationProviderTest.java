@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationP
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
@@ -87,7 +88,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     assertEquals(Type.NONE, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
     }
     else {
@@ -118,7 +119,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     assertEquals(Type.NONE, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
     }
     else {

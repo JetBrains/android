@@ -16,6 +16,8 @@
 package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
@@ -513,6 +515,9 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     fun putPath(place: Place, configurable: Configurable) {
       place.putPath(CATEGORY_NAME, configurable.displayName)
     }
+
+    @JvmStatic
+    fun isNewPsdEnabled(): Boolean = StudioFlags.NEW_PSD_ENABLED.get() && GradleExperimentalSettings.getInstance().USE_NEW_PSD;
 
     private fun createPlaceFor(configurable: Configurable): Place = Place().putPath(CATEGORY_NAME, configurable.displayName)
   }
