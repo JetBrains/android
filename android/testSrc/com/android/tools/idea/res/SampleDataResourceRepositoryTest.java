@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.ide.common.rendering.api.ResourceNamespace.TOOLS;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -381,15 +382,14 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
   }
 
-  // Temporarily disabled to debug the failed leak test
-  public void ignorePredefinedSources() {
+  public void testPredefinedSources() {
     // No project sources defined so only predefined sources should be available
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
-    assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).isEmpty());
+    assertFalse(repo.getMap(TOOLS, ResourceType.SAMPLE_DATA, false).isEmpty());
 
     // Check that none of the items are empty or fail
-    assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).values().stream()
+    assertFalse(repo.getMap(TOOLS, ResourceType.SAMPLE_DATA, false).values().stream()
         .anyMatch(item -> item.getResourceValue().getValue().isEmpty()));
   }
 }
