@@ -667,6 +667,10 @@ public class ScoutArrange {
    * @param apply
    */
   public static void expandVertically(ScoutWidget[] list, ScoutWidget parent, int margin, boolean apply) {
+    // TODO: b/129000498. Expand doesn't work in 0 margin.
+    if (margin <= 0) {
+      margin = 1;
+    }
 
     ScoutWidget[] pears = ScoutWidget.create(parent.mNlComponent.getChildren(), parent);
 
@@ -719,6 +723,11 @@ public class ScoutArrange {
    * @param apply
    */
   public static void expandHorizontally(ScoutWidget[] list, ScoutWidget parent, int margin, boolean apply) {
+    // TODO: b/129000498. Expand doesn't work in 0 margin.
+    if (margin <= 0) {
+      margin = 1;
+    }
+
     ScoutWidget[] pears = ScoutWidget.create(parent.mNlComponent.getChildren(), parent);
     Rectangle selectBounds = getBoundingBox(list);
 

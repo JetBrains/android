@@ -32,6 +32,9 @@ import static com.android.SdkConstants.*;
  * TODO support Stash / merge constraints ourConverts etc.
  */
 public class Scout {
+
+  public static final int DEFAULT_MARGIN = 0;
+
   private static final String[] ourAttrsToDelete = {
     ATTR_PADDING,
     ATTR_PADDING_LEFT,
@@ -53,7 +56,7 @@ public class Scout {
     ChainInsertHorizontal, ChainInsertVertical,
   }
 
-  private static int sMargin = 8;
+  private static int sMargin = DEFAULT_MARGIN;
 
   public static int getMargin() {
     return sMargin;

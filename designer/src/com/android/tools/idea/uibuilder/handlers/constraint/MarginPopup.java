@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -40,7 +41,7 @@ public class MarginPopup extends JPanel {
   private int[] myDefaultValues = {0, 8, 16, 24};
   private int[] myHistoryValues = {-1, -1, -1, -1};
   ActionListener myListener;
-  private int myValue = 8;
+  private int myValue = Scout.DEFAULT_MARGIN;
   private JBPopup myPopup;
 
   public int getValue() {
