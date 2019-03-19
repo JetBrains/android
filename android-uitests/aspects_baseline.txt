@@ -39,6 +39,9 @@ com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly|co
 com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade.isForcedUpgradable|com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.setUpProject
 com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep.checkUpgradable|com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade.lambda$isForcedUpgradable$0
 com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep.checkUpgradable|com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade.lambda$isRecommendedUpgradable$1
+com.android.tools.idea.model.ManifestInfo.getMergedManifest|com.android.tools.idea.model.ManifestInfo$ManifestFile.mergeManifests
+com.android.tools.idea.model.ManifestInfo$ManifestFile.create|com.android.tools.idea.model.MergedManifestManager.lambda$readSnapshotFromDisk$0
+com.android.tools.idea.model.ManifestInfo$ManifestFile.mergeManifests|com.android.tools.idea.model.ManifestInfo$ManifestFile.create
 com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot|com.android.tools.idea.model.MergedManifestManager.getSnapshot
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.AndroidImportFilter.getApplicationPackage
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.manifest.ManifestEditor.reload
@@ -49,6 +52,8 @@ com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManagerKt.createResourceResolver
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.run.util.LaunchUtils.isWatchFeatureRequired
+com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot
+com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getSnapshot
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.common.model.NlModel.getIds
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.configurations.Configuration.computeBestDevice
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.configurations.ConfigurationMatcher.getBetterMatch

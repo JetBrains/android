@@ -389,9 +389,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
 
     ManifestInfo.ManifestFile file = ManifestInfo.ManifestFile.create(myFacet);
 
-    // On the first load, the manifest is out of date and it will load even with forceLoad = false
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
-    // Now, it's up to date, so the next call will return null
+    // The manifest is up-to-date, so the next call will return null
     assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
     assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, true));
     updateManifestContents(originalContent.replace("unittest", "unittest2"));

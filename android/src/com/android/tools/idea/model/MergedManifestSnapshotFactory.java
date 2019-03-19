@@ -70,8 +70,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -307,7 +305,7 @@ class MergedManifestSnapshotFactory {
       return new MergedManifestSnapshot(facet.getModule(), packageName, appId, versionCode, manifestTheme,
                                         activityAttributesMapBuilder.build(),
                                         manifestFile, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
-                                        ImmutableList.copyOf(manifestFile.getManifestFiles()),
+                                        ImmutableList.copyOf(manifestFile.getFiles()),
                                         permissionHolder, appHasCode,
                                         ImmutableList.copyOf(activities),
                                         ImmutableList.copyOf(activityAliases),
