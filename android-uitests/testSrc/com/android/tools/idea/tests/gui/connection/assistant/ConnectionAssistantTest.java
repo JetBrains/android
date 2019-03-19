@@ -13,19 +13,18 @@
 // limitations under the License.
 package com.android.tools.idea.tests.gui.connection.assistant;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ConnectionAssistantTest {
@@ -54,7 +53,7 @@ public class ConnectionAssistantTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void launchConnectionAssistantViaDeployTargetDialog() throws Exception {
     assertThat(ToolWindowManager.getInstance(guiTest.ideFrame().getProject()).getToolWindow("Assistant")).isNull();
-    guiTest.ideFrame().runApp("app").clickHelp();
+    guiTest.ideFrame().troubleshootDeviceConnections("app");
     guiTest.waitForBackgroundTasks();
     assertThat(ToolWindowManager.getInstance(guiTest.ideFrame().getProject()).getToolWindow("Assistant").isVisible()).isTrue();
   }
