@@ -97,6 +97,7 @@ public class EmbeddedDistributionPaths {
     if (file.exists()) {
       return file;
     }
+    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
     File dir = AndroidProfilerDownloader.getHostDir(path);
     if (dir.exists()) {
       return dir;
