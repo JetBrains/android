@@ -836,6 +836,35 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "DualDebuggerBreakpointsTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.DualDebuggerBreakpointsTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_unreliable",  # b/128932526
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",
