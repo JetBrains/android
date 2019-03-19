@@ -15,20 +15,32 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.SdkConstants;
+import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JComboBox<String> {
-  private static final String[] str = new String[]{"0", "8", "16", "24", "32"};
+  private static final String POPUP_MENU = "...";
+  private static final String DEFAULT = "0";
+  private static final String PICK_A_DIMENSION = "Pick a Dimension";
+  private static final String[] MENU_LIST = new String[]{DEFAULT, "8", "16", "24", "32", POPUP_MENU};
 
   public enum Show {
     IN_WIDGET,
@@ -37,7 +49,7 @@ public class MarginWidget extends JComboBox<String> {
   }
 
   public MarginWidget(@NotNull String name) {
-    super(new CollectionComboBoxModel<>(Arrays.asList(str)));
+    super(new CollectionComboBoxModel<>(Arrays.asList(MENU_LIST)));
     setBackground(StudioColorsKt.getSecondaryPanelBackground());
     setEditable(true);
     JTextField textField = (JTextField)getEditor().getEditorComponent();
@@ -59,14 +71,42 @@ public class MarginWidget extends JComboBox<String> {
     setSelectedItem(marginText);
   }
 
-  public int getMargin() {
-    try {
-      String item = (String)getSelectedItem();
-      return item != null ? Integer.parseInt(item) : 0;
+  /**
+   * @return margin either in DP (e.g. "0") or resource (e.g. "@dimen/left_margin")
+   */
+  public String getMargin(@Nullable NlComponent component) {
+    String item = (String)getSelectedItem();
+    if (POPUP_MENU.equals(item)) {
+      return selectFromResourceDialog(component);
     }
-    catch (NumberFormatException e) {
-      return 0;
+    return item != null ? item : DEFAULT;
+  }
+
+  private String selectFromResourceDialog(NlComponent component) {
+    Module module = component.getModel().getModule();
+    XmlTag tag = component.getBackend().getTag();
+    if (tag == null) {
+      return DEFAULT;
     }
+
+    Set<ResourceType> types = new HashSet<>();
+    types.add(ResourceType.DIMEN);
+
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(types)
+      .setCurrentValue(DEFAULT)
+      .setTag(tag)
+      .setDefaultType(ResourceType.DIMEN)
+      .build();
+
+    dialog.setTitle(PICK_A_DIMENSION);
+    if (dialog.showAndGet()) {
+      String resName = dialog.getResourceName();
+      return resName;
+    }
+
+    return DEFAULT;
   }
 
   @Override

@@ -264,10 +264,10 @@ public class SingleWidgetView extends JPanel {
     add(mLeftMargin);
     add(mRightMargin);
     add(mBottomMargin);
-    mTopMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_TOP, mTopMargin.getMargin()));
-    mLeftMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_LEFT, mLeftMargin.getMargin()));
-    mRightMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_RIGHT, mRightMargin.getMargin()));
-    mBottomMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_BOTTOM, mBottomMargin.getMargin()));
+    mTopMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_TOP, mTopMargin.getMargin(myWidgetModel.getComponent())));
+    mLeftMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_LEFT, mLeftMargin.getMargin(myWidgetModel.getComponent())));
+    mRightMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_RIGHT, mRightMargin.getMargin(myWidgetModel.getComponent())));
+    mBottomMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_BOTTOM, mBottomMargin.getMargin(myWidgetModel.getComponent())));
     add(mTopKill);
     add(mLeftKill);
     add(mRightKill);
