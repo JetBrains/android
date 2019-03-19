@@ -155,14 +155,15 @@ public class AndroidAnnotatorUtil {
           source = parser.getAttributeValue(ANDROID_URI, ATTR_DRAWABLE);
           break;
 
-        case "selector":
-        case "level-list":
         case "layer-list":
+        case "level-list":
+        case "selector":
+        case "shape":
         case "transition":
           return file;
 
         default:
-          // <shape> etc - no bitmap to be found.
+          // <set>, <drawable> etc - no bitmap to be found.
           return null;
       }
       if (source == null) {
@@ -347,7 +348,7 @@ public class AndroidAnnotatorUtil {
       }
       return new AnAction() {
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
           if (editor != null) {
             if (StudioFlags.NELE_NEW_COLOR_PICKER.get()) {
