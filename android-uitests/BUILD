@@ -812,7 +812,7 @@ java_test(
         "requires-fakeroot",
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_sanity_emu",
         "requires_emulator",
         "cpu:100",
     ],
