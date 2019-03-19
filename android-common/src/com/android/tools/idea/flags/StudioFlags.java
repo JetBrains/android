@@ -517,7 +517,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
     NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
     "If enabled, C/C++ projects will have NDK side by side support",
-    false);
+    true);
 
   private StudioFlags() { }
 }
