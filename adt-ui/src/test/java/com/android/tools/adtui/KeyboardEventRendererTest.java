@@ -37,7 +37,6 @@ public class KeyboardEventRendererTest {
 
   private KeyboardEventRenderer myRenderer;
 
-  @Mock private Icon myIcon;
   @Mock private Graphics2D myGraphics2D;
 
   @Before
@@ -63,6 +62,6 @@ public class KeyboardEventRendererTest {
     JPanel panel = new JPanel();
     myRenderer.draw(panel, myGraphics2D, new AffineTransform(), 0,false,
                     new KeyboardAction(0, 0,  new KeyboardData("KEYCODE_BACK")));
-    verify(myGraphics2D).drawImage(any(Image.class), anyInt(), anyInt(), eq(panel));
+    verify(myGraphics2D).drawImage(any(Image.class), anyInt(), anyInt(), anyInt(), anyInt(), eq(panel));
   }
 }

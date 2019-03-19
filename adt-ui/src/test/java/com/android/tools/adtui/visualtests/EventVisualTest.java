@@ -16,6 +16,8 @@
 
 package com.android.tools.adtui.visualtests;
 
+import static icons.StudioIcons.Profiler.Events.ROTATE_EVENT;
+
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.AxisComponent;
@@ -71,7 +73,7 @@ public class EventVisualTest extends VisualTest {
   static {
     MOCK_RENDERERS = new HashMap<>();
     MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer<>());
-    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer<>("/icons/events/rotate-event.png"));
+    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer<>(ROTATE_EVENT));
     MOCK_RENDERERS.put(ActionType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
