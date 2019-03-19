@@ -374,6 +374,13 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals("Lorem ipsum dolor sit amet, consectetur.", resolver.dereference(sampledLorem).getValue());
   }
 
+  public void testResetWithNoRepo() {
+    @SuppressWarnings("unused") SampleDataResourceRepository.SampleDataRepositoryManager manager =
+      SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet);
+
+    ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
+  }
+
   // Temporarily disabled to debug the failed leak test
   public void ignorePredefinedSources() {
     // No project sources defined so only predefined sources should be available
