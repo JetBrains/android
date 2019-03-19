@@ -85,6 +85,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
      */
     public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
       Wait.seconds(secondsToWait).
+        // TODO We're not waiting on logcat. This message should be updated
         expecting("LogCat tool window output check for package name")
         .until(() -> outputMatches(matcher));
     }
