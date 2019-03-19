@@ -84,6 +84,11 @@ public final class StudioFlags {
     "before it becomes stable.",
     false);
 
+  public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
+    NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
+    "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
+    false);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(

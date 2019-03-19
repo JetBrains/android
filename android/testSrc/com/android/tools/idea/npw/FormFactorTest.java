@@ -18,6 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.sdklib.repository.targets.SystemImage;
 import org.junit.Test;
 
+import static com.android.tools.idea.npw.FormFactor.AUTOMOTIVE;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 public final class FormFactorTest {
   private final static int KITKAT_WATCH = 20;
   private final static int LOLLIPOP = 21;
+  private final static int PIE = 28;
 
   @Test
   public void mobileSupportedOnLollipopApi() {
@@ -41,5 +43,16 @@ public final class FormFactorTest {
   public void mobileNotSupportedOnWatchApi() {
     // Tests that mobile is on the black-list for the watch API
     assertFalse(MOBILE.isSupported(SystemImage.DEFAULT_TAG, KITKAT_WATCH));
+  }
+
+  @Test
+  public void automotiveSupportedOnPieApi() {
+    assertTrue(AUTOMOTIVE.isSupported(SystemImage.AUTOMOTIVE_TAG, PIE));
+  }
+
+  @Test
+  public void automotiveNotSupportedOnWhiteList() {
+    assertFalse(AUTOMOTIVE.isSupported(SystemImage.WEAR_TAG, PIE));
+    assertFalse(AUTOMOTIVE.isSupported(null, LOLLIPOP));
   }
 }
