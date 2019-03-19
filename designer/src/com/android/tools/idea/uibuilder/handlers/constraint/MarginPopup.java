@@ -36,10 +36,13 @@ import javax.swing.text.DocumentFilter;
 import org.jetbrains.annotations.Nullable;
 
 public class MarginPopup extends JPanel {
-  private JBTextField myTextField = new JBTextField();
-  private JButton[] myHistoryButtons = new JButton[4];
-  private int[] myDefaultValues = {0, 8, 16, 24};
-  private int[] myHistoryValues = {-1, -1, -1, -1};
+
+  private final JBTextField DEFAULT_MARGIN = new JBTextField("Default Margin : ");
+  private final JBTextField myTextField = new JBTextField();
+  private final JButton[] myHistoryButtons = new JButton[4];
+  private final int[] myDefaultValues = {0, 8, 16, 24};
+  private final int[] myHistoryValues = {-1, -1, -1, -1};
+
   ActionListener myListener;
   private int myValue = Scout.DEFAULT_MARGIN;
   private JBPopup myPopup;
@@ -124,9 +127,21 @@ public class MarginPopup extends JPanel {
     super(new GridBagLayout());
     setBackground(JBColor.background());
     GridBagConstraints gc = new GridBagConstraints();
+    DEFAULT_MARGIN.setEditable(false);
+    DEFAULT_MARGIN.setFocusable(false);
+    DEFAULT_MARGIN.setBorder(BorderFactory.createEmptyBorder());
+
     gc.gridx = 0;
     gc.gridy = 0;
-    gc.gridwidth = 3;
+    gc.gridwidth = 2;
+    gc.insets = JBUI.insets(10, 5, 5, 0);
+    gc.fill = GridBagConstraints.BOTH;
+    DEFAULT_MARGIN.setHorizontalAlignment(SwingConstants.RIGHT);
+    add(DEFAULT_MARGIN, gc);
+
+    gc.gridx = 2;
+    gc.gridy = 0;
+    gc.gridwidth = 1;
     gc.insets = JBUI.insets(10, 5, 5, 0);
     gc.fill = GridBagConstraints.BOTH;
     myTextField.setHorizontalAlignment(SwingConstants.RIGHT);
