@@ -16,6 +16,11 @@
 package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
+import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBImageIcon;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,32 +69,32 @@ public interface EventRenderer<E> {
    * @param margin      Thickness of the icon's border. The returned ImageIcon is 2*margin larger than then original
    *                    icon in height and width to reserve space to draw the border.
    * @param borderColor Color of the icon's border.
+   * @param g2d Graphics object to be used for painting the icon, used to get the appropriate scaling.
    */
-  static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor) {
-    BufferedImage originalImage = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+  static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor, Graphics2D g2d) {
+    BufferedImage originalImage = ImageUtil.toBufferedImage(IconUtil.toImage(icon, JBUI.ScaleContext.create(g2d)));
     // Border image has a bigger size to fit the extra border
-    BufferedImage borderImage =
-      new BufferedImage(icon.getIconWidth() + margin * 2, icon.getIconHeight() + margin * 2, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2d = originalImage.createGraphics();
+    BufferedImage borderImage = UIUtil.createImage(g2d, icon.getIconWidth() + margin * 2,icon.getIconHeight() + margin * 2,
+                                                   BufferedImage.TYPE_INT_ARGB);
 
-    icon.paintIcon(null, g2d, 0, 0);
+    int scaledMargin = (borderImage.getHeight() - originalImage.getHeight()) / 2;
     for (int y = 0; y < originalImage.getHeight(); ++y) {
       for (int x = 0; x < originalImage.getWidth(); ++x) {
         Color color = new Color(originalImage.getRGB(x, y), true);
         if (color.getAlpha() > 0) {
-          for (int ny = y - margin; ny <= y + margin; ++ny) {
-            for (int nx = x - margin; nx <= x + margin; ++nx) {
-              if ((x - nx) * (x - nx) + (y - ny) * (y - ny) <= margin * margin) {
+          for (int ny = y - scaledMargin; ny <= y + scaledMargin; ++ny) {
+            for (int nx = x - scaledMargin; nx <= x + scaledMargin; ++nx) {
+              if ((x - nx) * (x - nx) + (y - ny) * (y - ny) <= scaledMargin * scaledMargin) {
                 // Shift original image right and down to keep it centered in the border image
-                borderImage.setRGB(nx + margin, ny + margin, borderColor.getRGB());
+                borderImage.setRGB(nx + scaledMargin, ny + scaledMargin, borderColor.getRGB());
               }
             }
           }
         }
       }
     }
-    g2d = borderImage.createGraphics();
-    icon.paintIcon(null, g2d, margin, margin);
-    return new ImageIcon(borderImage);
+    Graphics2D borderGraphics = borderImage.createGraphics();
+    icon.paintIcon(null, borderGraphics, margin, margin);
+    return new JBImageIcon(borderImage);
   }
 }

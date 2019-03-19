@@ -15,9 +15,12 @@
  */
 package com.android.tools.adtui.eventrenderer;
 
+import static icons.StudioIcons.Profiler.Events.BACK_BUTTON;
+import static icons.StudioIcons.Profiler.Events.VOLUME_DOWN;
+import static icons.StudioIcons.Profiler.Events.VOLUME_UP;
+
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBFont;
@@ -44,15 +47,10 @@ public class KeyboardEventRenderer<E> implements EventRenderer<E> {
 
   static {
     Map<String, Icon> keyboardIcons = new HashMap<>();
-    keyboardIcons.put("KEYCODE_BACK", load("/icons/events/back-button.png"));
-    keyboardIcons.put("KEYCODE_VOLUME_DOWN", load("/icons/events/volume-down.png"));
-    keyboardIcons.put("KEYCODE_VOLUME_UP", load("/icons/events/volume-up.png"));
+    keyboardIcons.put("KEYCODE_BACK", BACK_BUTTON);
+    keyboardIcons.put("KEYCODE_VOLUME_DOWN", VOLUME_DOWN);
+    keyboardIcons.put("KEYCODE_VOLUME_UP", VOLUME_UP);
     KEYBOARD_ICON_LOOKUP = keyboardIcons;
-  }
-
-  @NotNull
-  private static Icon load(String path) {
-    return IconLoader.getIcon(path, KeyboardEventRenderer.class);
   }
 
   @Override
@@ -123,7 +121,7 @@ public class KeyboardEventRenderer<E> implements EventRenderer<E> {
       .computeIfAbsent(new KeyboardIconCacheKey(action.getData().toString(), parent.getBackground(), BORDER_MARGIN),
                        key -> EventRenderer
                          .createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN,
-                                                              parent.getBackground()));
+                                                              parent.getBackground(), g2d));
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -icon.getIconWidth() / 2, 0);

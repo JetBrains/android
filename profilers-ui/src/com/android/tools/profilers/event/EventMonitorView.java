@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.event;
 
+import static icons.StudioIcons.Profiler.Events.ROTATE_EVENT;
+
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.eventrenderer.EventIconRenderer;
 import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
@@ -41,7 +43,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   static {
     RENDERERS = new HashMap<>();
     RENDERERS.put(UserEvent.TOUCH, new TouchEventRenderer<>());
-    RENDERERS.put(UserEvent.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
+    RENDERERS.put(UserEvent.ROTATION, new EventIconRenderer<>(ROTATE_EVENT));
     RENDERERS.put(UserEvent.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
