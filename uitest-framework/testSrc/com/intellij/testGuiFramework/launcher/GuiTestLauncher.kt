@@ -149,14 +149,10 @@ object GuiTestLauncher {
       "-Ddisable.android.analytics.consent.dialog.for.test=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
-      "-Didea.gui.test.port=$port")
-    /* aspects agent options */
-    val aspectsAgentJar = GuiTestOptions.getAspectsAgentJar()
-    // TODO(b/124110538): set a default rule when we don't specify one, so we don't need to check if this is empty
-    val aspectsAgentRules = GuiTestOptions.getAspectsAgentRules()
-    if (aspectsAgentJar.isNotEmpty() && aspectsAgentRules.isNotEmpty()) {
-      options+="-javaagent:${aspectsAgentJar}=${aspectsAgentRules}"
-    }
+      "-Didea.gui.test.port=$port",
+      /* aspects agent options */
+      "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
+    )
     /* options for BLeak */
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
