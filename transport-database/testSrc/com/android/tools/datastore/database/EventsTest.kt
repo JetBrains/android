@@ -17,6 +17,7 @@ package com.android.tools.datastore.database
 
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EventProfiler
+import com.android.tools.profiler.proto.Interaction
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.function.Consumer
@@ -93,7 +94,6 @@ class EventsTest : DatabaseTest<EventsTable>() {
     private val MAIN_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).build()
     private val NO_END_SYSTEM_DATA = EventProfiler.SystemData
       .newBuilder()
-      .setPid(TEST_APP_ID)
       .setActionId(ACTION_ID)
       .setStartTimestamp(0)
       .setEndTimestamp(0)
@@ -101,7 +101,6 @@ class EventsTest : DatabaseTest<EventsTable>() {
       .build()
     private val LONG_SYSTEM_DATA = EventProfiler.SystemData
       .newBuilder()
-      .setPid(TEST_APP_ID)
       .setActionId(ACTION_ID)
       .setStartTimestamp(0)
       .setEndTimestamp(100)
@@ -109,30 +108,28 @@ class EventsTest : DatabaseTest<EventsTable>() {
       .build()
     private val SIMPLE_ACTIVITY_DATA = EventProfiler.ActivityData
       .newBuilder()
-      .setPid(TEST_APP_ID)
       .setName("Test")
       .setHash("Test".hashCode().toLong())
       .addStateChanges(
         EventProfiler.ActivityStateData
-          .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.CREATED).setTimestamp(0).build()
+          .newBuilder().setState(Interaction.ViewData.State.CREATED).setTimestamp(0).build()
       ).build()
     private val ACTIVITY_DATA_UPDATE = EventProfiler.ActivityData
       .newBuilder()
-      .setPid(TEST_APP_ID)
       .setName("Test")
       .setHash("Test".hashCode().toLong())
       .addStateChanges(
         EventProfiler.ActivityStateData
-          .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.STARTED).setTimestamp(10).build())
+          .newBuilder().setState(Interaction.ViewData.State.STARTED).setTimestamp(10).build())
       .addStateChanges(
         EventProfiler.ActivityStateData
-          .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.PAUSED).setTimestamp(20).build())
+          .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(20).build())
       .addStateChanges(
         EventProfiler.ActivityStateData
-          .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.RESUMED).setTimestamp(30).build())
+          .newBuilder().setState(Interaction.ViewData.State.RESUMED).setTimestamp(30).build())
       .addStateChanges(
         EventProfiler.ActivityStateData
-          .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.PAUSED).setTimestamp(40).build())
+          .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(40).build())
       .build()
   }
 }

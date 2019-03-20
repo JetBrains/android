@@ -15,23 +15,23 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.event.LifecycleAction;
-import com.android.tools.adtui.model.event.EventAction;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.EventProfiler;
+import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ActivityEventDataSeriesTest {
 
@@ -60,9 +60,9 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
                          },
                          0
@@ -81,13 +81,13 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_END_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                           new ActivityStateData(Interaction.ViewData.State.DESTROYED,
                                                  TEST_END_TIME_NS),
                          },
                          0
@@ -99,7 +99,7 @@ public class ActivityEventDataSeriesTest {
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
-      String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
+      String.format("%s - %s", ACTIVITY_NAME, Interaction.ViewData.State.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
@@ -107,15 +107,15 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_END_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.STOPPED,
+                           new ActivityStateData(Interaction.ViewData.State.STOPPED,
                                                  TEST_END_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                           new ActivityStateData(Interaction.ViewData.State.DESTROYED,
                                                  TEST_END_TIME_NS),
                          },
                          0
@@ -127,8 +127,8 @@ public class ActivityEventDataSeriesTest {
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
-      String.format("%s - %s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.STOPPED.toString().toLowerCase(),
-                    EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
+      String.format("%s - %s - %s", ACTIVITY_NAME, Interaction.ViewData.State.STOPPED.toString().toLowerCase(),
+                    Interaction.ViewData.State.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
@@ -136,23 +136,23 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                           new ActivityStateData(Interaction.ViewData.State.DESTROYED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.REMOVED,
+                           new ActivityStateData(Interaction.ViewData.State.REMOVED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_END_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                           new ActivityStateData(Interaction.ViewData.State.DESTROYED,
                                                  TEST_END_TIME_NS),
                          },
                          0
@@ -164,42 +164,42 @@ public class ActivityEventDataSeriesTest {
     verifyActivity(event, TEST_START_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
-      String.format("%s - %s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase(),
-                    EventProfiler.ActivityStateData.ActivityState.REMOVED.toString().toLowerCase()));
+      String.format("%s - %s - %s", ACTIVITY_NAME, Interaction.ViewData.State.DESTROYED.toString().toLowerCase(),
+                    Interaction.ViewData.State.REMOVED.toString().toLowerCase()));
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
-      String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
+      String.format("%s - %s", ACTIVITY_NAME, Interaction.ViewData.State.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
   public void testActivityDestroyedDisplayString() {
     myEventService.addActivityEvent(buildActivityEvent(ACTIVITY_NAME,
-                         new ActivityStateData[] {
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED, TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED, TEST_START_TIME_NS),
-                         },
-                         0
-      ));
+                                                       new ActivityStateData[]{
+                                                         new ActivityStateData(Interaction.ViewData.State.CREATED, TEST_START_TIME_NS),
+                                                         new ActivityStateData(Interaction.ViewData.State.DESTROYED, TEST_START_TIME_NS),
+                                                       },
+                                                       0
+    ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
-      String.format("%s - %s", ACTIVITY_NAME, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
+      String.format("%s - %s", ACTIVITY_NAME, Interaction.ViewData.State.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
   public void testDestroyedEventOutOfOrder() {
     myEventService.addActivityEvent(buildActivityEvent(ACTIVITY_NAME,
-                         new ActivityStateData[] {
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED, TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED, TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED, TEST_START_TIME_NS),
-                         },
-                         0
+                                                       new ActivityStateData[]{
+                                                         new ActivityStateData(Interaction.ViewData.State.CREATED, TEST_START_TIME_NS),
+                                                         new ActivityStateData(Interaction.ViewData.State.DESTROYED, TEST_START_TIME_NS),
+                                                         new ActivityStateData(Interaction.ViewData.State.PAUSED, TEST_START_TIME_NS),
+                                                       },
+                                                       0
     ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
@@ -214,22 +214,22 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
                          },
                          0));
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME_2,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                           new ActivityStateData(Interaction.ViewData.State.CREATED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_END_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                           new ActivityStateData(Interaction.ViewData.State.DESTROYED,
                                                  TEST_END_TIME_NS),
                          },
                          0
@@ -245,7 +245,7 @@ public class ActivityEventDataSeriesTest {
     verifyActivity(event, TEST_END_TIME_NS);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
-      String.format("%s - %s", ACTIVITY_NAME_2, EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString().toLowerCase()));
+      String.format("%s - %s", ACTIVITY_NAME_2, Interaction.ViewData.State.DESTROYED.toString().toLowerCase()));
   }
 
   @Test
@@ -253,9 +253,9 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(FRAGMENT_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_END_TIME_NS),
                          },
                          1234
@@ -263,9 +263,9 @@ public class ActivityEventDataSeriesTest {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
                          new ActivityStateData[]{
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                           new ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                  TEST_START_TIME_NS),
-                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                           new ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                  TEST_END_TIME_NS),
                          },
                          0
@@ -287,10 +287,9 @@ public class ActivityEventDataSeriesTest {
 
   private static EventProfiler.ActivityData buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
     EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
-    builder.setPid(ProfilersTestData.SESSION_DATA.getPid())
-      .setName(name)
+    builder.setName(name)
       .setHash(name.hashCode())
-      .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash));
+      .setActivityContextHash(contextHash);
     for (ActivityStateData state : states) {
       builder.addStateChanges(EventProfiler.ActivityStateData.newBuilder()
                                 .setState(state.activityState)
@@ -301,10 +300,10 @@ public class ActivityEventDataSeriesTest {
   }
 
   private static final class ActivityStateData {
-    public EventProfiler.ActivityStateData.ActivityState activityState;
+    public Interaction.ViewData.State activityState;
     public long activityStateTime;
 
-    private ActivityStateData(EventProfiler.ActivityStateData.ActivityState state, long time) {
+    private ActivityStateData(Interaction.ViewData.State state, long time) {
       activityState = state;
       activityStateTime = time;
     }
