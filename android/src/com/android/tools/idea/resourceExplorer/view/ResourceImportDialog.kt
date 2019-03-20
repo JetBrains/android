@@ -23,7 +23,9 @@ import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.DocumentAdapter
@@ -31,6 +33,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
+import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -40,10 +43,12 @@ import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
 import java.beans.PropertyChangeListener
 import java.util.IdentityHashMap
+import java.util.function.Supplier
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
 
 private const val DIALOG_TITLE = "Import drawables"
@@ -167,8 +172,16 @@ class ResourceImportDialog(
       document.addDocumentListener(object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           performRename(e.document.getText(0, document.length))
+          ComponentValidator.getInstance(this@apply).ifPresent(ComponentValidator::revalidate)
         }
       })
+      installValidator()
+    }
+
+    private fun JTextField.installValidator() {
+      ComponentValidator(disposable).withValidator(Supplier { dialogViewModel.validateName(this.text, this) })
+        .installOn(this)
+        .revalidate()
     }
 
     val itemNumberLabel = JBLabel(dialogViewModel.getItemNumberString(assetSet),
@@ -251,6 +264,10 @@ class ResourceImportDialog(
       }
     }
   }
+
+  override fun doValidate() = dialogViewModel.getValidationInfo()
+
+  override fun getValidationThreadToUse(): Alarm.ThreadToUse = Alarm.ThreadToUse.POOLED_THREAD
 
   override fun dispose() {
     super.dispose()
