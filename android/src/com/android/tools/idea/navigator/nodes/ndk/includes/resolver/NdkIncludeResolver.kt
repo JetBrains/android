@@ -20,13 +20,14 @@ import java.io.File
 import org.apache.commons.io.FilenameUtils
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType.NdkComponent
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType.NdkSxsComponent
 import java.util.regex.Pattern
 
 /**
  * Resolver that matches various well-known NDK folder patterns.
  */
 class NdkIncludeResolver(ndkFolder: File?) : IncludeResolver() {
-  private val FULL_REVISION_PATTERN = ".*/ndk/[0-9]+(?:\\.[0-9]+(?:\\.[0-9]+)?)?(?:[\\s-]*)?(?:rc|alpha|beta|\\.[0-9]+)?"
+  private val FULL_REVISION_PATTERN = ".*/ndk/(?<ndk>[0-9]+(?:\\.[0-9]+(?:\\.[0-9]+)?)?(?:[\\s-]*)?(?:rc|alpha|beta|\\.[0-9]+)?)"
   private val resolvers: List<IncludeResolver>
 
   init {
@@ -37,21 +38,23 @@ class NdkIncludeResolver(ndkFolder: File?) : IncludeResolver() {
     }
     resolvers = listOf(
       // Contains NDK platform header files
-      leafNamed("^({NDKFOLDER})(/platforms/(android-.*?)/arch-.*?(/.*))$", ndk),
+      leafNamed("^(?<home>{NDKFOLDER})(?<relative>/platforms/(?<library>android-.*?)/arch-.*?(/.*))$", ndk),
       // Contains STL/runtime header files
-      leafNamed("^({NDKFOLDER})(/sources/cxx-stl/(.*?)(/.*))$", ndk),
+      leafNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/cxx-stl/(?<library>.*?)(/.*))$", ndk),
       // Contains third party header files in the NDK like GoogleTest
-      leafNamed("^({NDKFOLDER})(/sources/third_party/(.*?)(/.*))$", ndk),
-      // Contains specialize toolchains like Rend Script
-      leafNamed("^({NDKFOLDER})(/toolchains/(.*?)(/.*))$", ndk),
+      leafNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/third_party/(?<library>.*?)(/.*))$", ndk),
+      // Contains LLVM
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/toolchains/llvm(/.*))$", "LLVM", ndk),
+      // Contains specialize toolchains like RenderScript
+      leafNamed("^(?<home>{NDKFOLDER})(?<relative>/toolchains/(?<library>.*?)(/.*))$", ndk),
       // Contains NDK CPU Features header files
-      literalNamed("^({NDKFOLDER})(/sources/android/cpufeatures(/.*))$", "CPU Features", ndk),
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/cpufeatures(/.*))$", "CPU Features", ndk),
       // Contains NDK native app glue header files
-      literalNamed("^({NDKFOLDER})(/sources/android/native_app_glue(/.*))$", "Native App Glue", ndk),
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/native_app_glue(/.*))$", "Native App Glue", ndk),
       // Contains NDK helper files
-      literalNamed("^({NDKFOLDER})(/sources/android/ndk_helper(/.*))$", "NDK Helper", ndk),
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/ndk_helper(/.*))$", "NDK Helper", ndk),
       // Contains header files for Android sysroot
-      literalNamed("^({NDKFOLDER})(/sysroot(/.*))$", "Android Sysroot", ndk))
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sysroot(/.*))$", "Android Sysroot", ndk))
       .flatten()
   }
 
@@ -70,10 +73,11 @@ class NdkIncludeResolver(ndkFolder: File?) : IncludeResolver() {
    */
   private fun literalNamed(pattern: String, name: String, ndk : String?): List<IncludeResolver> {
     val result = mutableListOf<IncludeResolver>()
+    // NDK SxS resolver should come first because ndk.dir may have the path to a side-by-side NDK.
+    result += IndexedRegularExpressionIncludeResolver(NdkSxsComponent,  concreteNdkFolder(pattern, FULL_REVISION_PATTERN), name)
     if (ndk != null) {
       result += IndexedRegularExpressionIncludeResolver(NdkComponent, concreteNdkFolder(pattern, ndk), name)
     }
-    result += IndexedRegularExpressionIncludeResolver(NdkComponent,  concreteNdkFolder(pattern, FULL_REVISION_PATTERN), name)
     return result
   }
 
@@ -82,10 +86,12 @@ class NdkIncludeResolver(ndkFolder: File?) : IncludeResolver() {
    */
   private fun leafNamed(pattern: String, ndk : String?): List<IncludeResolver> {
     val result = mutableListOf<IncludeResolver>()
+    // NDK SxS resolver should come first because ndk.dir may have the path to a side-by-side NDK.
+    result += IndexedRegularExpressionIncludeResolver(NdkSxsComponent, concreteNdkFolder(pattern, FULL_REVISION_PATTERN), null)
     if (ndk != null) {
-      result += IndexedRegularExpressionIncludeResolver(NdkComponent, concreteNdkFolder(pattern, ndk))
+      result += IndexedRegularExpressionIncludeResolver(NdkComponent, concreteNdkFolder(pattern, ndk), null)
     }
-    result += IndexedRegularExpressionIncludeResolver(NdkComponent, concreteNdkFolder(pattern, FULL_REVISION_PATTERN))
+
     return result
   }
 

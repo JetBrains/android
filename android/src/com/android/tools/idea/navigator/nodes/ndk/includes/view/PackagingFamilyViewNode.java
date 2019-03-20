@@ -73,7 +73,7 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
 
   @Override
   final void writeDescription(@NotNull PresentationDataWrapper presentation) {
-    presentation.addText(getPackageFamilyValue().getPackageType().myDescription, REGULAR_ATTRIBUTES);
+    presentation.addText(getPackageFamilyValue().myKey.getDescription(), REGULAR_ATTRIBUTES);
     presentation.addText(String.format(" (%s)", getPackageFamilyValue().getPackagingFamilyBaseFolderNameRelativeToHome()), GRAY_ATTRIBUTES);
   }
 

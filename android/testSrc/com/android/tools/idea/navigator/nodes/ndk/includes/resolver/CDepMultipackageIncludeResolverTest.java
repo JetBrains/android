@@ -33,8 +33,8 @@ public class CDepMultipackageIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.CDepPackage);
-    assertThat(resolution.mySimplePackageName).isEqualTo("firebase/app");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("firebase/app");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/com.github.jomof/firebase/app/2.1.3-rev22/firebase-app-header.zip/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/jomof/.cdep/exploded");

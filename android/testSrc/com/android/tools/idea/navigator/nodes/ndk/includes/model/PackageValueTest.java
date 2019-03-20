@@ -29,8 +29,8 @@ public class PackageValueTest {
   public void testNoSharedCommonFolder() {
     PackageKey key = new PackageKey(PackageType.CDepPackage, "package name", new File("."));
     List<SimpleIncludeValue> includes = Lists.newArrayList();
-    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, "package name", "x1", new File("."), new File(".")));
-    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, "package name", "x2", new File("."), new File(".")));
+    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "x1", new File("."), new File(".")));
+    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "x2", new File("."), new File(".")));
     PackageValue value = new PackageValue(key, includes);
     assertThat(value.getDescriptiveText()).isEqualTo("2 include paths");
     assertThat(value.toString()).isEqualTo("package name (CDep Packages, 2 include paths)");
@@ -40,8 +40,8 @@ public class PackageValueTest {
   public void testSharedCommonFolder() {
     PackageKey key = new PackageKey(PackageType.CDepPackage, "package name", new File("."));
     List<SimpleIncludeValue> includes = Lists.newArrayList();
-    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, "package name", "root-folder/x1", new File("."), new File(".")));
-    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, "package name", "root-folder/x2", new File("."), new File(".")));
+    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "root-folder/x1", new File("."), new File(".")));
+    includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "root-folder/x2", new File("."), new File(".")));
     PackageValue value = new PackageValue(key, includes);
     assertThat(value.getDescriptiveText()).isEqualTo("root-folder");
     assertThat(value.toString()).isEqualTo("package name (CDep Packages, root-folder)");
