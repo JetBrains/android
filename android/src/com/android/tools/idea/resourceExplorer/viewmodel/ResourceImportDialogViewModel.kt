@@ -16,6 +16,8 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.res.IdeResourceNameValidator
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.chooseDesignAssets
@@ -23,12 +25,14 @@ import com.android.tools.idea.resourceExplorer.importer.groupIntoDesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.js.inline.util.toIdentitySet
 import java.awt.Image
 import java.util.concurrent.CompletableFuture
+import javax.swing.JTextField
 
 /**
  * Maximum number of files to import at a time.
@@ -63,6 +67,20 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   var updateCallback: () -> Unit = {}
 
   private val fileViewModels = mutableMapOf<DesignAsset, FileImportRowViewModel>()
+
+  /**
+   * We use a a separate validator for duplicate because if a duplicate is found, we just
+   * want to show a warning - a user can override an existing resource.
+   */
+  private val resourceDuplicateValidator = IdeResourceNameValidator.forFilename(
+    ResourceFolderType.DRAWABLE,
+    null,
+    ResourceRepositoryManager.getAppResources(facet))
+
+  /**
+   * This validator only check for the name
+   */
+  private val resourceNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE, null)
 
   fun doImport() {
     designAssetImporter.importDesignAssets(assetSetsToImport, facet)
@@ -180,4 +198,46 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
     fileViewModels[asset] = fileImportRowViewModel
     return fileImportRowViewModel
   }
+
+  fun validateName(newName: String, field: JTextField? = null): ValidationInfo? {
+    val errorText = resourceNameValidator.getErrorText(newName)
+    when {
+      errorText != null -> return ValidationInfo(errorText, field)
+      hasDuplicate(newName) -> return createDuplicateValidationInfo(field)
+      checkIfNameUnique(newName) -> return getSameNameIsImportedValidationInfo(field)
+      else -> return null
+    }
+  }
+
+  private fun hasDuplicate(newName: String) = resourceDuplicateValidator.doesResourceExist(newName)
+
+  private fun createDuplicateValidationInfo(field: JTextField?) =
+    ValidationInfo("A resource with this name already exists and might be overridden if the qualifiers are the same.",
+                   field).asWarning()
+
+  private fun getSameNameIsImportedValidationInfo(field: JTextField?) =
+    ValidationInfo("A resource with the same name is also being imported.", field)
+      .asWarning()
+
+  private fun checkIfNameUnique(newName: String?): Boolean {
+    var nameSeen = false
+    return assetSetsToImport
+      .asSequence()
+      .any {
+        if (it.name == newName) {
+          if (nameSeen) return@any true
+          nameSeen = true
+        }
+        false
+      }
+  }
+
+  fun getValidationInfo(): ValidationInfo? = assetSetsToImport.asSequence()
+    .mapNotNull { asset -> validateName(asset.name)?.let { validationInfo -> asset to validationInfo } }
+    .filter { (_, info) -> !info.warning }
+    .map {
+      val (asset, error) = it
+      ValidationInfo("${asset.name}: ${error.message}")
+    }
+    .firstOrNull()
 }
