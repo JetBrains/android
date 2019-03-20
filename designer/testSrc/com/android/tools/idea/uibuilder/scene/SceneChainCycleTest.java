@@ -81,8 +81,17 @@ public class SceneChainCycleTest extends SceneTest {
   }
 
   public void testHorizontalCycle() {
+    myInteraction.select("button", "button2");
+    performHorizontalCycleAction();
+  }
+
+  public void testHorizontalCycleWithMultipleSelection() {
     myInteraction.select("button", true);
-  myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
+    performHorizontalCycleAction();
+  }
+
+  private void performHorizontalCycleAction() {
+    myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -92,7 +101,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
-  myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
+    myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -102,7 +111,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
-  myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
+    myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -112,7 +121,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
-  myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
+    myInteraction.performViewAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -125,6 +134,16 @@ public class SceneChainCycleTest extends SceneTest {
   }
 
   public void testVerticalCycle() {
+    myInteraction.select("button3", true);
+    performVerticalCycleAction();
+  }
+
+  public void testVerticalCycleWithMultipleSelection() {
+    myInteraction.select("button3", "button4");
+    performVerticalCycleAction();
+  }
+
+  private void performVerticalCycleAction() {
     myInteraction.select("button3", true);
     myInteraction.performViewAction("button3", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button4")
