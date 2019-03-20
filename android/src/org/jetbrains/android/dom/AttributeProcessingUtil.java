@@ -77,7 +77,6 @@ import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -441,7 +440,7 @@ public class AttributeProcessingUtil {
   }
 
   /**
-   * Returns a styleable name that is mistakeely used for the layout attributes defined by the
+   * Returns a styleable name that is mistakenly used for the layout attributes defined by the
    * specified PsiClass of the layout.
    */
   @Nullable
