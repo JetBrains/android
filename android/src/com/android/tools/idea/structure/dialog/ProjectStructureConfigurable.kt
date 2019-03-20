@@ -165,7 +165,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     myToFocus = toFocus
     if (myToFocus != null) {
       @Suppress("DEPRECATION")
-      requestFocus(myToFocus!!)
+      if (requestFocus) requestFocus(myToFocus!!)
     }
 
     val result = ActionCallback()

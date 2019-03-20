@@ -792,7 +792,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       Object path = place.getPath(SDKS_PLACE);
       if (path instanceof String) {
         Component c = myComponentsById.get(path);
-        if (c != null) {
+        if (requestFocus && c != null) {
           c.requestFocusInWindow();
         }
       }
