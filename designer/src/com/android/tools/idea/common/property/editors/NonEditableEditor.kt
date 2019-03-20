@@ -36,7 +36,6 @@ class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseCom
   val textField = object: EditorTextField("", project, FileTypes.PLAIN_TEXT) {
     override fun addNotify() {
       super.addNotify()
-      editor?.document?.putUserData(UndoConstants.DONT_RECORD_UNDO, true)
       editor?.setBorder(
         CommonBorder(1f, DefaultCommonBorderModel(),
                      Insets(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING,
@@ -61,6 +60,7 @@ class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseCom
     component.add(textField, BorderLayout.CENTER)
     setEnabled(false)
     textField.isEnabled = false
+    textField.document.putUserData(UndoConstants.DONT_RECORD_UNDO, true)
   }
 
   override fun getComponent(): JComponent = component
