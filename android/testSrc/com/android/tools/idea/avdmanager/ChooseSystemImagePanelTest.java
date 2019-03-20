@@ -52,6 +52,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private SystemImageDescription myGapi29ImageDescription;
   private SystemImageDescription myPsImageDescription;
   private SystemImageDescription myWearImageDescription;
+  private SystemImageDescription myWear29ImageDescription;
   private SystemImageDescription myWearCnImageDescription;
   private Device myBigPhone;
   private Device myFoldable;
@@ -118,6 +119,19 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     pkgWear.setInstalledPath(new File(SDK_LOCATION, "25-wear-x86"));
     fileOp.recordExistingFile(new File(pkgWear.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
+    // Android Wear API29 image
+    String wear29Path = "system-images;android-29;android-wear;x86";
+    FakePackage.FakeLocalPackage pkgWear29 = new FakePackage.FakeLocalPackage(wear29Path);
+    DetailsTypes.SysImgDetailsType detailsWear29 =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsWear29.setTag(IdDisplay.create("android-wear", "Android Wear"));
+    detailsWear29.setAbi("x86");
+    detailsWear29.setVendor(IdDisplay.create("google", "Google"));
+    detailsWear29.setApiLevel(29);
+    pkgWear29.setTypeDetails((TypeDetails)detailsWear29);
+    pkgWear29.setInstalledPath(new File(SDK_LOCATION, "29-wear-x86"));
+    fileOp.recordExistingFile(new File(pkgWear29.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
     // Android Wear for China image
     String wearCnPath = "system-images;android-25;android-wear-cn;x86";
     FakePackage.FakeLocalPackage pkgCnWear = new FakePackage.FakeLocalPackage(wearCnPath);
@@ -131,7 +145,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     pkgCnWear.setInstalledPath(new File(SDK_LOCATION, "25-wear-cn-x86"));
     fileOp.recordExistingFile(new File(pkgCnWear.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgPs, pkgWear, pkgCnWear));
+    packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgPs, pkgWear, pkgWear29, pkgCnWear));
 
     RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
 
@@ -149,6 +163,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(psPath, progress).getLocation());
     ISystemImage wearImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(wearPath, progress).getLocation());
+    ISystemImage wear29Image = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(wear29Path, progress).getLocation());
     ISystemImage wearCnImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(wearCnPath, progress).getLocation());
 
@@ -156,6 +172,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     myGapi29ImageDescription = new SystemImageDescription(gapi29Image);
     myPsImageDescription = new SystemImageDescription(playStoreImage);
     myWearImageDescription = new SystemImageDescription(wearImage);
+    myWear29ImageDescription = new SystemImageDescription(wear29Image);
     myWearCnImageDescription = new SystemImageDescription(wearCnImage);
 
     // Make a phone device that does not support Google Play
@@ -213,6 +230,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   }
 
   public void testImageChosenForDevice() {
+      assertFalse(systemImageMatchesDevice(myWearImageDescription, myFoldable));
+      assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFoldable));
       assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFoldable));
       assertTrue(systemImageMatchesDevice(myGapi29ImageDescription, myFoldable));
   }

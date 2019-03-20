@@ -166,13 +166,14 @@ public class ChooseSystemImagePanel extends JPanel
       return false;
     }
 
-    // Foldable device requires Q preview or API29 and above
-    if (device.getDefaultHardware().getScreen().isFoldable()) {
-      return (image.getVersion().getFeatureLevel() >= MIN_FOLDABLE_DEVICE_API);
-    }
-
     String deviceTagId = device.getTagId();
     IdDisplay imageTag = image.getTag();
+
+    // Foldable device requires Q preview or API29 and above.
+    if (device.getDefaultHardware().getScreen().isFoldable() &&
+        image.getVersion().getFeatureLevel() < MIN_FOLDABLE_DEVICE_API) {
+        return false;
+    }
 
     // Unknown/generic device?
     if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
