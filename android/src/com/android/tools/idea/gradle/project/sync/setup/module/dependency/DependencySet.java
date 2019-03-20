@@ -28,10 +28,11 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.dependency
  * Collection of an IDEA module's dependencies.
  */
 public class DependencySet {
-  @NotNull public static DependencySet EMPTY = new DependencySet();
+  @NotNull public static final DependencySet EMPTY = new DependencySet();
 
-  private final Multimap<String, LibraryDependency> myLibrariesByName = ArrayListMultimap.create();
-  private final Map<String, ModuleDependency> myModulesByPath = Maps.newHashMap();
+  // Use linked list to maintain insertion order.
+  private final Multimap<String, LibraryDependency> myLibrariesByName = LinkedListMultimap.create();
+  private final Map<String, ModuleDependency> myModulesByPath = Maps.newLinkedHashMap();
 
   DependencySet() {
   }
@@ -84,6 +85,7 @@ public class DependencySet {
 
   /**
    * Adds all the dependencies in other DependencySet to this
+   *
    * @param other DependencySet to be added to this
    */
   public void addAll(DependencySet other) {
@@ -123,11 +125,11 @@ public class DependencySet {
 
   @NotNull
   public ImmutableCollection<LibraryDependency> onLibraries() {
-    return ImmutableSet.copyOf(myLibrariesByName.values());
+    return ImmutableList.copyOf(myLibrariesByName.values());
   }
 
   @NotNull
   public ImmutableCollection<ModuleDependency> onModules() {
-    return ImmutableSet.copyOf(myModulesByPath.values());
+    return ImmutableList.copyOf(myModulesByPath.values());
   }
 }
