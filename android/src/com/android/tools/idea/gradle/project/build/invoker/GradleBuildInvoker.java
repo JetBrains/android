@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOut
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
 import com.android.tools.idea.gradle.project.build.output.DataBindingOutputParser;
 import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
+import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -408,6 +409,7 @@ public class GradleBuildInvoker {
     List<BuildOutputParser> buildOutputParsers =
       Arrays.asList(new GradleBuildOutputParser(),
                     new CmakeOutputParser(),
+                    new XmlErrorOutputParser(),
                     new AndroidGradlePluginOutputParser(),
                     new DataBindingOutputParser(),
                     new JavacOutputParser(),
