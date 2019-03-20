@@ -28,8 +28,8 @@ public class PlainFolderRegularExpressionIncludeResolverTest {
     IncludeResolver resolver = PlainFolderRegularExpressionIncludeResolver.include("^.*/cocos2d[^//]*/external/$");
     SimpleIncludeValue result = resolver.resolve(new File("/path/to/cocos2d/external"));
     assertThat(result).isNotNull();
-    assertThat(result.mySimplePackageName).isEqualTo("external");
-    assertThat(result.myRelativeIncludeSubFolder).isEqualTo("/");
-    assertThat(result.myIncludeFolder).isEqualTo(new File("/path/to/cocos2d/external"));
+    assertThat(result.getSimplePackageName()).isEqualTo("external");
+    assertThat(result.getRelativeIncludeSubFolder()).isEqualTo("/");
+    assertThat(result.getIncludeFolder()).isEqualTo(new File("/path/to/cocos2d/external"));
   }
 }

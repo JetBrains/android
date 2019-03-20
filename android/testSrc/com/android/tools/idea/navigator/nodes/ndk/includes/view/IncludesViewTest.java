@@ -87,7 +87,7 @@ public class IncludesViewTest extends IdeaTestCase {
     SimpleIncludeViewNode package1 = (SimpleIncludeViewNode)children.iterator().next();
     assertThat(package1.getChildren()).hasSize(1);
     SimpleIncludeValue package1Value = package1.getValue();
-    assertThat(package1Value.mySimplePackageName).isEqualTo("my-sdk-1");
+    assertThat(package1Value.getSimplePackageName()).isEqualTo("my-sdk-1");
     List<? extends AbstractTreeNode> grandChildren = Lists.newArrayList(package1.getChildren());
     assertThat(((PsiFileNode)grandChildren.get(0)).getVirtualFile().getName()).isEqualTo("foo.h");
     checkPresentationDataHasOsSpecificSlashes(package1, "my-sdk-1 (third_party{os-slash}my-sdk-1)");
