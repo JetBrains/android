@@ -39,6 +39,7 @@ import java.awt.FlowLayout
 import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
 import java.beans.PropertyChangeListener
+import java.util.IdentityHashMap
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
@@ -68,7 +69,7 @@ class ResourceImportDialog(
   constructor(facet: AndroidFacet, assetSets: Sequence<DesignAsset>) :
     this(ResourceImportDialogViewModel(facet, assetSets))
 
-  private val assetSetToView = mutableMapOf<String, DesignAssetSetView>()
+  private val assetSetToView = IdentityHashMap<DesignAssetSet, DesignAssetSetView>()
 
   private val content = JPanel(VerticalLayout(0)).apply {
     border = CONTENT_PANEL_BORDER
@@ -125,7 +126,7 @@ class ResourceImportDialog(
   private fun addDesignAssetSet(assetSet: DesignAssetSet) {
     val view = DesignAssetSetView(assetSet)
     content.add(view)
-    assetSetToView[assetSet.name] = view
+    assetSetToView[assetSet] = view
   }
 
   /**
@@ -134,7 +135,7 @@ class ResourceImportDialog(
    */
   private fun addAssets(designAssetSet: DesignAssetSet,
                         newDesignAssets: List<DesignAsset>) {
-    val existingView = assetSetToView[designAssetSet.name]
+    val existingView = assetSetToView[designAssetSet]
     if (existingView != null) {
       newDesignAssets.forEach(existingView::addAssetView)
     }
@@ -211,9 +212,10 @@ class ResourceImportDialog(
     }
 
     private fun performRename(assetName: String) {
-      dialogViewModel.rename(assetSet, assetName) { oldName, renamedAssetSet ->
-        val assetSetView = assetSetToView.remove(oldName)!!
-        assetSetToView[renamedAssetSet.name] = assetSetView
+      dialogViewModel.rename(assetSet, assetName) { renamedAssetSet ->
+        val assetSetView = assetSetToView.remove(assetSet)!!
+        assetSet = renamedAssetSet
+        assetSetToView[renamedAssetSet] = assetSetView
       }
     }
 
@@ -221,7 +223,7 @@ class ResourceImportDialog(
       dialogViewModel.removeAsset(it)
       itemNumberLabel.text = dialogViewModel.getItemNumberString(assetSet)
       if (fileViewContainer.componentCount == 0) {
-        assetSetToView.remove(this.assetSet.name, this)
+        assetSetToView.remove(this.assetSet, this)
         parent.remove(this)
         root.revalidate()
         root.repaint()
