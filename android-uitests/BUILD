@@ -871,6 +871,38 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "RunInstrumentationTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunInstrumentationTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_sanity_emu",
+        "qa_unreliable",  # b/80421743
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",
