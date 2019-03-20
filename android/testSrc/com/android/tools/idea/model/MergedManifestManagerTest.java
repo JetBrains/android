@@ -387,14 +387,14 @@ public class MergedManifestManagerTest extends AndroidTestCase {
                                    "        android:protectionLevel=\"dangerous\" />\n" +
                                    "</manifest>\n";
 
-    ManifestInfo.ManifestFile file = ManifestInfo.ManifestFile.create(myFacet);
+    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(myFacet);
 
     // The manifest is up-to-date, so the next call will return null
-    assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, true));
+    assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, false));
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, true));
     updateManifestContents(originalContent.replace("unittest", "unittest2"));
     // Even with forceLoad == false, now we should refresh from disk since we've changed the manifest
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, false));
 
   }
 

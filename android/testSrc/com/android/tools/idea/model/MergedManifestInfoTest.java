@@ -28,22 +28,22 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 
-public class ManifestInfoTest extends AndroidTestCase {
+public class MergedManifestInfoTest extends AndroidTestCase {
   public void testLastSyncTimestamp() throws Exception {
-    ManifestInfo.ManifestFile manifestFile = ManifestInfo.ManifestFile.create(myFacet);
+    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(myFacet);
 
     // No refresh necessary
-    assertThat(manifestFile.isUpToDate()).isTrue();
+    assertThat(mergedManifestInfo.isUpToDate()).isTrue();
 
     // Make it look like the project has been synced
     getProject().getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
 
     // Syncing should have changed the timestamp, making a refresh necessary
-    assertThat(manifestFile.isUpToDate()).isFalse();
+    assertThat(mergedManifestInfo.isUpToDate()).isFalse();
   }
 
   public void testGetLibManifests() throws Exception {
-    List<VirtualFile> libManifests = ManifestInfo.MergedManifestContributors.determineFor(myFacet).libraryManifests;
+    List<VirtualFile> libManifests = MergedManifestInfo.MergedManifestContributors.determineFor(myFacet).libraryManifests;
     // TODO: add external library dependency to local library module and check to make sure libManifests lists the local one first.
   }
 
