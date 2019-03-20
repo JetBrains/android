@@ -38,7 +38,7 @@ public class TestMergedManifestSnapshotBuilder {
   @Nullable private Integer myVersionCode;
   @Nullable private String myTheme;
   @Nullable private ImmutableMap<String, ActivityAttributesSnapshot> myAttributes;
-  @Nullable private ManifestInfo.ManifestFile myFile;
+  @Nullable private MergedManifestInfo myMergedManifestInfo;
   @Nullable private AndroidVersion myTargetSdk;
   @Nullable private ResourceValue myIcon;
   @Nullable private ResourceValue myLabel;
@@ -108,8 +108,8 @@ public class TestMergedManifestSnapshotBuilder {
   }
 
   @NotNull
-  public TestMergedManifestSnapshotBuilder setManifestFile(ManifestInfo.ManifestFile file) {
-    myFile = file;
+  public TestMergedManifestSnapshotBuilder setMergedManifestInfo(MergedManifestInfo mergedManifestInfo) {
+    myMergedManifestInfo = mergedManifestInfo;
     return this;
   }
 
@@ -196,7 +196,7 @@ public class TestMergedManifestSnapshotBuilder {
     return new MergedManifestSnapshot(myModule,
                                       myName, myId, myVersionCode, myTheme,
                                       myAttributes != null ? myAttributes : ImmutableMap.of(),
-                                      myFile,
+                                      myMergedManifestInfo,
                                       myMinSdk != null ? myMinSdk : AndroidVersion.DEFAULT,
                                       myTargetSdk != null ? myTargetSdk : AndroidVersion.DEFAULT,
                                       myIcon, myLabel, myRtl,
