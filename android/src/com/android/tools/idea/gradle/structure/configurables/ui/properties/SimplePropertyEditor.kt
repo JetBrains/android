@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.continueOnEdt
@@ -33,10 +32,12 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.util.ui.accessibility.ScreenReader
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -51,6 +52,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.KeyStroke
 import javax.swing.table.TableCellEditor
 
 /**
@@ -159,7 +161,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         }
       }
 
-    internal fun reloadValue(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>) {
+    fun reloadValue(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>) {
       setValue(annotatedPropertyValue.value.parsedValue.let { annotatedParsedValue ->
         if (annotatedParsedValue.annotation != null && knownValueRenderers.containsKey(annotatedParsedValue.value))
           annotatedParsedValue.value.annotated()
@@ -169,7 +171,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       updateModified()
     }
 
-    internal fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
+    fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
       property.setParsedValue(annotatedValue.value)
     }
 
@@ -226,31 +228,44 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
   inner class EditorWrapper(private val property: ModelPropertyT) : JPanel(BorderLayout()) {
     init {
+      isFocusable = false
       add(renderedComboBox)
       add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
     }
 
-    private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>?): JComponent =
-        JLabel().apply {
-          if (extensionAction != null) {
-            icon = StudioIcons.Common.PROPERTY_UNBOUND
-            toolTipText = extensionAction.tooltip
-            addMouseListener(object : MouseAdapter() {
-              override fun mousePressed(event: MouseEvent) {
-                extensionAction.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
-              }
-            })
-          }
-          else {
-            if (isPropertyContext) {
-              icon = object : Icon {
-                override fun getIconHeight(): Int = 20
-                override fun getIconWidth(): Int = 15
-                override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
-              }
+    private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>?): JComponent {
+      fun invokeAction() = extensionAction?.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+      return JLabel().apply {
+        if (extensionAction != null) {
+          isFocusable = ScreenReader.isActive()
+          icon = StudioIcons.Common.PROPERTY_UNBOUND
+          toolTipText = extensionAction.tooltip
+          addFocusListener(object : FocusListener {
+            override fun focusLost(e: FocusEvent) {
+              icon = StudioIcons.Common.PROPERTY_UNBOUND
+
+            }
+
+            override fun focusGained(e: FocusEvent) {
+              icon = StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
+            }
+          })
+          addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(event: MouseEvent) { invokeAction() }
+          })
+          registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("SPACE"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+        }
+        else {
+          if (isPropertyContext) {
+            icon = object : Icon {
+              override fun getIconHeight(): Int = 20
+              override fun getIconWidth(): Int = 15
+              override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
             }
           }
         }
+      }
+    }
 
     override fun requestFocus() {
       renderedComboBox.requestFocus()
