@@ -24,6 +24,7 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil.getListSelectionBackground
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -48,7 +49,9 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   private val logValueEdited: () -> Unit
 ) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesScope) {
 
-  override val component: JPanel = JPanel(BorderLayout())
+  override val component: JPanel = JPanel(BorderLayout()).apply {
+    isFocusable = false
+  }
   val statusComponent: JComponent? = null
 
   private var beingLoaded = false
@@ -128,7 +131,10 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
                                                column: Int): Component {
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
-      return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers) }
+      return SimpleColoredComponent().also {
+        parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers)
+        if (isSelected) it.background = getListSelectionBackground(hasFocus)
+      }
     }
   }
 
