@@ -83,11 +83,10 @@ class ResourceImportDialogViewModelTest {
     val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
     val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset))
     val designAssetSet = viewModel.assetSets.first()
-    viewModel.rename(designAssetSet, "newName") { oldName, newAsset ->
+    viewModel.rename(designAssetSet, "newName") { newAsset ->
       assertThat(newAsset).isNotEqualTo(designAssetSet)
       assertThat(newAsset).isNotSameAs(designAssetSet)
       assertThat(newAsset.name).isEqualTo("newName")
-      assertThat(oldName).isEqualTo("icon_category_entertainment")
     }
     viewModel.doImport()
     assertThat(File(first, "drawable/newName.png").exists()).isTrue()
