@@ -37,8 +37,6 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +60,7 @@ public final class MergedManifestSnapshot {
   @NotNull private final ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private String myManifestTheme;
   @NotNull private final ImmutableMap<String, ActivityAttributesSnapshot> myAttributes;
-  @Nullable private final ManifestInfo.ManifestFile myManifestFile;
+  @Nullable private final MergedManifestInfo myMergedManifestInfo;
   @NotNull private final AndroidVersion myMinSdk;
   @NotNull private final AndroidVersion myTargetSdk;
   @Nullable private final ResourceValue myAppIcon;
@@ -85,7 +83,7 @@ public final class MergedManifestSnapshot {
                          @Nullable Integer versionCode,
                          @Nullable String manifestTheme,
                          @NotNull ImmutableMap<String, ActivityAttributesSnapshot> activityAttributes,
-                         @Nullable ManifestInfo.ManifestFile manifestFile,
+                         @Nullable MergedManifestInfo mergedManifestInfo,
                          @NotNull AndroidVersion minSdk,
                          @NotNull AndroidVersion targetSdk,
                          @Nullable ResourceValue appIcon,
@@ -107,7 +105,7 @@ public final class MergedManifestSnapshot {
     myVersionCode = versionCode;
     myManifestTheme = manifestTheme;
     myAttributes = activityAttributes;
-    myManifestFile = manifestFile;
+    myMergedManifestInfo = mergedManifestInfo;
     myMinSdk = minSdk;
     myTargetSdk = targetSdk;
     myAppIcon = appIcon;
@@ -143,8 +141,8 @@ public final class MergedManifestSnapshot {
   }
 
   @Nullable
-  ManifestInfo.ManifestFile getManifestFile() {
-    return myManifestFile;
+  MergedManifestInfo getMergedManifestInfo() {
+    return myMergedManifestInfo;
   }
 
   @Nullable
@@ -323,7 +321,7 @@ public final class MergedManifestSnapshot {
 
   @NotNull
   public ImmutableList<MergingReport.Record> getLoggingRecords() {
-    return myManifestFile != null ? myManifestFile.getLoggingRecords() : ImmutableList.of();
+    return myMergedManifestInfo != null ? myMergedManifestInfo.getLoggingRecords() : ImmutableList.of();
   }
 
   @Nullable
