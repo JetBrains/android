@@ -15,16 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -33,18 +40,38 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class RunInstrumentationTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
-  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() ->
+    new AvdSpec.Builder()
+  );
   @Rule public final RuleChain emulatorRules = RuleChain
-    .outerRule(new DeleteAvdsRule())
-    .around(emulator);
+    .outerRule(avdRule)
+    .around(guiTest);
 
   private static final String APP_NAME = "app";
   private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
   private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
     ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
+
+  /**
+   * The SDK used for this test requires the emulator and the system images to be
+   * available. The emulator and system images are not available in the prebuilts
+   * SDK. The AvdTestRule should generate such an SDK for us, but we need to set
+   * the generated SDK as the SDK to use for our test.
+   *
+   * Unfortunately, GuiTestRule can overwrite the SDK we set in AvdTestRule, so
+   * we need to set this in a place after GuiTestRule has been applied.
+   */
+  @Before
+  public void setupSpecialSdk() {
+    GuiTask.execute(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
+      });
+    });
+  }
 
   /**
    * To verify that instrumentation tests can be added and executed.
@@ -69,28 +96,27 @@ public class RunInstrumentationTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/80421743
+  @RunIn(TestGroup.SANITY_BAZEL) // b/80421743
   @Test
   public void runInstrumentationTest() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
-
     ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
     EditConfigurationsDialogFixture.find(guiTest.robot())
-                                   .clickAddNewConfigurationButton()
-                                   .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
-                                   .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
-                                   .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
-                                   .clickOk();
+      .clickAddNewConfigurationButton()
+      .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
+      .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
+      .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
+      .clickOk();
 
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME, avdName);
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME, avdRule.getMyAvd().getName());
 
     // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
 
-    ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
-                   .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);
+    ideFrameFixture.getRunToolWindow()
+      .findContent(INSTRUMENTED_TEST_CONF_NAME)
+      .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);
   }
 }
