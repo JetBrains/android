@@ -486,17 +486,9 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseHover(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    if (myLastHoverConstraintComponent != null) {
+    if (myLastHoverConstraintComponent != null) { // clear hover constraint
       myLastHoverConstraintComponent.putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, null);
       myLastHoverConstraintComponent = null;
-      needsRebuildList();
-    }
-    Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
-    if (obj != null && obj instanceof SecondarySelector) {
-      SecondarySelector ss = (SecondarySelector)obj;
-      myLastHoverConstraintComponent = ss.getComponent();
-      ss.getComponent().putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, ss.getConstraint());
-
       needsRebuildList();
     }
     if (myRoot != null) {
@@ -549,6 +541,17 @@ public class Scene implements SelectionListener, Disposable {
       }
       needsRebuildList();
     }
+
+    if (closestComponent == null || closestComponent.getNlComponent().isRoot()) {
+      Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
+      if (obj != null && obj instanceof SecondarySelector) {
+        SecondarySelector ss = (SecondarySelector)obj;
+        myLastHoverConstraintComponent = ss.getComponent();
+        ss.getComponent().putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, ss.getConstraint());
+        needsRebuildList();
+      }
+    }
+
     transform.setToolTip(tooltip);
     setCursor(transform, x, y);
   }
@@ -671,10 +674,6 @@ public class Scene implements SelectionListener, Disposable {
       return;
     }
 
-    if (findSelectionOfCurve(transform, x, y)){
-      return;
-    }
-
     myNewSelectedComponentsOnDown.clear();
     myHitListener.setTargetFilter(it -> {
       if (it instanceof AnchorTarget) {
@@ -695,6 +694,9 @@ public class Scene implements SelectionListener, Disposable {
     else if (myHitComponent != null && !inCurrentSelection(myHitComponent)) {
       myNewSelectedComponentsOnDown.add(myHitComponent);
       select(myNewSelectedComponentsOnDown);
+    }
+    else if (findSelectionOfCurve(transform, x, y)) {
+      return;
     }
     myHitListener.setTargetFilter(null);
   }
@@ -777,16 +779,12 @@ public class Scene implements SelectionListener, Disposable {
       myDesignSurface.getSelectionModel().setSecondarySelection(comp, sub);
       return true;
     }
-   return false;
+    return false;
   }
 
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-
-    if (findSelectionOfCurve(transform, x, y)){
-       return; // TODO consider moving below other hit targets
-    }
 
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
@@ -810,8 +808,13 @@ public class Scene implements SelectionListener, Disposable {
         myNewSelectedComponentsOnRelease.addAll(changed);
       }
     }
-    if (!sameSelection() && (myHitTarget == null || myHitTarget.canChangeSelection())) {
+
+    boolean same = sameSelection();
+    if (!same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
+    }
+    else if (same) {
+      findSelectionOfCurve(transform, x, y);
     }
     myHitTarget = null;
     checkRequestLayoutStatus();

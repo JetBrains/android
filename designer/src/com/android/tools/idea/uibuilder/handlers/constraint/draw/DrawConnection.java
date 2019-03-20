@@ -58,6 +58,8 @@ public class DrawConnection implements DrawCommand {
   public static final int MODE_VIEW_SELECTED = DecoratorUtilities.ViewStates.SELECTED_VALUE;
   public static final int MODE_CONSTRAINT_SELECTED = DecoratorUtilities.ViewStates.SECONDARY_VALUE;
   public static final int MODE_DELETING = DecoratorUtilities.ViewStates.WILL_DESTROY_VALUE;
+  public static final int HOVER_FLAG = 0x100;
+  public static final int HOVER_MASK = ~0x100;
 
   public static final int TOTAL_MODES = 3;
   private static int[] ourModeLookup = null;
@@ -97,6 +99,7 @@ public class DrawConnection implements DrawCommand {
   static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, scale(2.5f), scale(9), 1);
   static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, scale(2.5f), scale(9), 1);
   static Stroke myNormalStroke = new BasicStroke(scale(1));
+  static Stroke myHoverStroke = new BasicStroke(scale(12), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
 
   static Stroke myThickDashStroke =
     new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
@@ -262,7 +265,7 @@ public class DrawConnection implements DrawCommand {
       case MODE_CONSTRAINT_SELECTED:
         return color.getSelectedConstraints();
       case MODE_WILL_HOVER:
-        return color.getCreatedConstraints();
+        return color.getLassoSelectionFill();
     }
     return color.getConstraints();
   }
@@ -337,6 +340,8 @@ public class DrawConnection implements DrawCommand {
     Color constraintColor = modeGetConstraintsColor(modeTo, color);
     Color marginColor = modeGetMarginColor(modeTo, color);
     long timeSince = System.nanoTime() - stateChange;
+    boolean hover = (HOVER_FLAG & modeTo) > 0;
+    modeTo &= HOVER_MASK;
     if (timeSince < TRANSITION_TIME) {
       float t = (float)((timeSince) / (double)TRANSITION_TIME);
       Color fromColor = modeGetConstraintsColor(modeFrom, color);
@@ -347,7 +352,8 @@ public class DrawConnection implements DrawCommand {
     }
 
     if (connectionType == TYPE_BASELINE) {
-      drawBaseLine(g, source, dest, constraintColor);
+      Color hoverColor = modeGetConstraintsColor(MODE_WILL_HOVER, color);
+      drawBaseLine(g, source, dest, constraintColor, hoverColor, picker, secondarySelector, hover);
       return animate;
     }
     int startx = getConnectionX(sourceDirection, source);
@@ -419,6 +425,8 @@ public class DrawConnection implements DrawCommand {
       DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
       g.fillPolygon(xPoints, yPoints, 3);
       g.draw(ourPath);
+      ourPath.reset();
+      ourPath.moveTo(startx, starty);
     }
     defaultStroke = g.getStroke();
     g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
@@ -427,6 +435,21 @@ public class DrawConnection implements DrawCommand {
         boolean flip_chain = (endx + endy > startx + starty);
         if (flip_chain) {
           float x1, y1, x2, y2, x3, y3, x4, y4;
+          if (hover) {
+            GeneralPath hoverPath =  new GeneralPath(ourPath);
+            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+            Stroke tmpStroke = g.getStroke();
+            g.setStroke(myHoverStroke);
+            hoverPath.moveTo(x1 = startx, y1 = starty);
+            hoverPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection],
+                            y2 = starty + scale_source * dirDeltaY[sourceDirection],
+                            x3 = endx + scale_dest * dirDeltaX[destDirection],
+                            y3 = endy + scale_dest * dirDeltaY[destDirection],
+                            x4 = endx, y4 = endy);
+            g.draw(hoverPath);
+            hoverPath.reset();
+            g.setStroke(tmpStroke);
+          }
           ourPath.moveTo(x1 = startx, y1 = starty);
           ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection],
                           y2 = starty + scale_source * dirDeltaY[sourceDirection],
@@ -439,7 +462,21 @@ public class DrawConnection implements DrawCommand {
         }
         else {
           float x1, y1, x2, y2, x3, y3, x4, y4;
-
+          if (hover) {
+            GeneralPath hoverPath =  new GeneralPath(ourPath);
+            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+            Stroke tmpStroke = g.getStroke();
+            g.setStroke(myHoverStroke);
+            hoverPath.moveTo(x1 = endx, y1 = endy);
+            hoverPath.curveTo(x2 = endx + scale_source * dirDeltaX[destDirection],
+                            y2 = endy + scale_source * dirDeltaY[destDirection],
+                            x3 = startx + scale_dest * dirDeltaX[sourceDirection],
+                            y3 = starty + scale_dest * dirDeltaY[sourceDirection],
+                            x4 = startx, y4 = starty);
+            g.draw(hoverPath);
+            hoverPath.reset();
+            g.setStroke(tmpStroke);
+          }
           ourPath.moveTo(x1 = endx, y1 = endy);
           ourPath.curveTo(x2 = endx + scale_source * dirDeltaX[destDirection],
                           y2 = endy + scale_source * dirDeltaY[destDirection],
@@ -494,6 +531,13 @@ public class DrawConnection implements DrawCommand {
 
               int marginX = endx - ((endx > startx) ? gap : -gap);
               int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+              if (hover) {
+                g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+                Stroke tmpStroke = g.getStroke();
+                g.setStroke(myHoverStroke);
+                g.drawLine(marginX, endy, endx - arrow, endy);
+                g.setStroke(tmpStroke);
+              }
               g.setColor(constraintColor);
               g.drawLine(marginX, endy, endx - arrow, endy);
               DrawConnectionUtils.drawHorizontalMarginString(g, marginColor, marginString, isMarginReference, marginX, endx - arrow, endy);
@@ -509,6 +553,13 @@ public class DrawConnection implements DrawCommand {
 
               int marginY = endy - ((endy > starty) ? gap : -gap);
               int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
+              if (hover) {
+                g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+                Stroke tmpStroke = g.getStroke();
+                g.setStroke(myHoverStroke);
+                g.drawLine(endx, marginY, endx, endy - arrow);
+                g.setStroke(tmpStroke);
+              }
               g.setColor(constraintColor);
               g.drawLine(endx, marginY, endx, endy - arrow);
               DrawConnectionUtils.drawVerticalMarginString(g, marginColor, marginString, isMarginReference, endx, marginY, endy - arrow);
@@ -517,6 +568,14 @@ public class DrawConnection implements DrawCommand {
           }
 
           if (endx == startx) {
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              g.drawLine(startx, starty, startx, springEndY);
+              g.setStroke(tmpStroke);
+            }
+
             g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, springEndY);
             if (picker != null && secondarySelector != null) {
@@ -525,6 +584,13 @@ public class DrawConnection implements DrawCommand {
             g.fillRect(startx - rectGap, springEndY, rectDim, 1);
           }
           else {
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              g.drawLine(startx, endy, springEndX, endy);
+              g.setStroke(tmpStroke);
+            }
             g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, springEndX, endy);
             if (picker != null && secondarySelector != null) {
@@ -539,10 +605,24 @@ public class DrawConnection implements DrawCommand {
           int rectGap = scale(2);
           int rectDim = scale(5);
           if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              g.drawLine(startx, starty, endx, starty);
+              g.setStroke(tmpStroke);
+            }
             g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, endx, starty);
             if (picker != null && secondarySelector != null) {
               picker.addLine(secondarySelector, 8, startx, starty, endx, starty, 4);
+            }
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              g.drawLine(endx, starty, endx, endy);
+              g.setStroke(tmpStroke);
             }
             g.setStroke(getStroke(StrokeType.SPRING, false, modeTo));
             drawArrow = false;
@@ -550,10 +630,24 @@ public class DrawConnection implements DrawCommand {
             g.fillRoundRect(endx - rectGap, endy - rectGap, rectDim, rectDim, rectGap, rectGap);
           }
           else {
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              g.drawLine(startx, starty, startx, endy);
+              g.setStroke(tmpStroke);
+            }
             g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, endy);
             if (picker != null && secondarySelector != null) {
               picker.addLine(secondarySelector, 8, startx, starty, startx, endy, 4);
+            }
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              g.drawLine(startx, endy, endx, endy);
+              g.setStroke(tmpStroke);
             }
             g.setStroke(getStroke(StrokeType.SPRING, false, modeTo));
             drawArrow = false;
@@ -595,6 +689,14 @@ public class DrawConnection implements DrawCommand {
             vline_y2 = dest.y;
           }
           if (vline_y1 != -1) {
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              int xpos = source.x + source.width / 2;
+              g.drawLine(xpos, vline_y1, xpos, vline_y2);
+              g.setStroke(tmpStroke);
+            }
             g.setStroke(getStroke(StrokeType.DASH, false, modeTo));
             int xpos = source.x + source.width / 2;
             g.setColor(constraintColor);
@@ -620,6 +722,15 @@ public class DrawConnection implements DrawCommand {
             vline_x2 = dest.x;
           }
           if (vline_x1 != -1) {
+            if (hover) {
+              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+              Stroke tmpStroke = g.getStroke();
+              g.setStroke(myHoverStroke);
+              int ypos = source.y + source.height / 2;
+              g.drawLine(vline_x1, ypos, vline_x2, ypos);
+              g.draw(ourPath);
+              g.setStroke(tmpStroke);
+            }
             g.setStroke(getStroke(StrokeType.DASH, false, modeTo));
             int ypos = source.y + source.height / 2;
             g.setColor(constraintColor);
@@ -641,15 +752,23 @@ public class DrawConnection implements DrawCommand {
         py[4] = endy + 2 * dir2_y * GAP;
         px[5] = endx;
         py[5] = endy;
-        g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
-        g.setColor(constraintColor);
+
         if (TYPE_CENTER_WIDGET == connectionType) {
           len = DrawConnectionUtils.removeZigZag(px, py, len, 50);
         }
         DrawConnectionUtils.drawRound(ourPath, px, py, len, GAP);
+        if (hover) {
+          g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+          Stroke tmpStroke = g.getStroke();
+          g.setStroke(myHoverStroke);
+          g.draw(ourPath);
+          g.setStroke(tmpStroke);
+        }
         if (picker != null && secondarySelector != null) {
           DrawConnectionUtils.drawPick(picker, secondarySelector, px, py, len, GAP);
         }
+        g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
+        g.setColor(constraintColor);
         DrawConnectionUtils.getArrow(destDirection, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
@@ -665,6 +784,13 @@ public class DrawConnection implements DrawCommand {
               int constraintX = (destDirection == DIR_LEFT) ? dest.x : dest.x + dest.width;
               g.setStroke(getStroke(StrokeType.DASH, false, modeTo));
               int overlap = (above) ? -OVER_HANG : OVER_HANG;
+              if (hover) {
+                g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+                Stroke tmpStroke = g.getStroke();
+                g.setStroke(myHoverStroke);
+                g.drawLine(constraintX, line_y + overlap, constraintX, above ? dest.y : dest.y + dest.height);
+                g.setStroke(tmpStroke);
+              }
               g.setColor(constraintColor);
               g.drawLine(constraintX, line_y + overlap, constraintX, above ? dest.y : dest.y + dest.height);
             }
@@ -678,8 +804,16 @@ public class DrawConnection implements DrawCommand {
             if (myDestType != DEST_PARENT || (line_x < dest.x || line_x > dest.x + dest.width)) {
               int constraint_y = (destDirection == DIR_TOP) ? dest.y : dest.y + dest.height;
               g.setStroke(getStroke(StrokeType.DASH, false, modeTo));
-              g.setColor(constraintColor);
               int overlap = (left) ? -OVER_HANG : OVER_HANG;
+              if (hover) {
+                g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+                Stroke tmpStroke = g.getStroke();
+                g.setStroke(myHoverStroke);
+                g.drawLine(line_x + overlap, constraint_y,
+                           left ? dest.x : dest.x + dest.width, constraint_y);
+                g.setStroke(tmpStroke);
+              }
+              g.setColor(constraintColor);
               g.drawLine(line_x + overlap, constraint_y,
                          left ? dest.x : dest.x + dest.width, constraint_y);
             }
@@ -690,12 +824,23 @@ public class DrawConnection implements DrawCommand {
           scale_dest = 0;
         }
         g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
-        g.setColor(constraintColor);
         if (sourceDirection == destDirection && margin == 0) {
           scale_source /= 3;
           scale_dest /= 2;
           float x1 = startx, y1 = starty, x2, y2, x3, y3, x4, y4;
-
+          if (hover) {
+            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+            Stroke tmpStroke = g.getStroke();
+            g.setStroke(myHoverStroke);
+            GeneralPath hoverPath = new GeneralPath(ourPath);
+            hoverPath
+              .curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
+                       x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
+                       x4 = endx + dx, y4 = endy + dy);
+            g.draw(hoverPath);
+            g.setStroke(tmpStroke);
+          }
+          g.setColor(constraintColor);
           ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
                           x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
                           x4 = endx + dx, y4 = endy + dy);
@@ -715,6 +860,19 @@ public class DrawConnection implements DrawCommand {
             scale_source = 0;
           }
           float x1 = startx, y1 = starty, x2, y2, x3, y3, x4, y4;
+          if (hover) {
+            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+            Stroke tmpStroke = g.getStroke();
+            g.setStroke(myHoverStroke);
+            GeneralPath tmpPath = new GeneralPath(ourPath);
+            tmpPath
+              .curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
+                       x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
+                       x4 = endx + dx, y4 = endy + dy);
+            g.draw(tmpPath);
+            g.setStroke(tmpStroke);
+          }
+          g.setColor(constraintColor);
           ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
                           x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
                           x4 = endx + dx, y4 = endy + dy);
@@ -738,13 +896,35 @@ public class DrawConnection implements DrawCommand {
 
   private static void drawBaseLine(Graphics2D g,
                                    @SwingCoordinate Rectangle source,
-                                   @SwingCoordinate Rectangle dest, Color color) {
+                                   @SwingCoordinate Rectangle dest,
+                                   Color color,
+                                   Color hoverColor, ScenePicker picker,
+                                   SecondarySelector secondarySelector, boolean hover) {
+
+    if (hover) {
+      GeneralPath hoverPath = new GeneralPath(ourPath);
+      g.setColor(hoverColor);
+      Stroke tmpStroke = g.getStroke();
+      g.setStroke(myHoverStroke);
+      hoverPath.moveTo(source.x + source.width / 2., source.y);
+      hoverPath.curveTo(source.x + source.width / 2., source.y - 40,
+                      dest.x + dest.width / 2., dest.y + 40,
+                      dest.x + dest.width / 2., dest.y);
+      g.draw(hoverPath);
+      g.setStroke(tmpStroke);
+    }
     g.setColor(color);
     ourPath.reset();
     ourPath.moveTo(source.x + source.width / 2., source.y);
     ourPath.curveTo(source.x + source.width / 2., source.y - 40,
                     dest.x + dest.width / 2., dest.y + 40,
                     dest.x + dest.width / 2., dest.y);
+    if (picker != null && secondarySelector != null) {
+      picker.addCurveTo(secondarySelector, 4, (int)(source.x + source.width / 2.), (int)(source.y),
+                        (int)(source.x + source.width / 2.), (int)(source.y - 40),
+                        (int)(dest.x + dest.width / 2.), (int)(dest.y + 40),
+                        (int)(dest.x + dest.width / 2.), (int)(dest.y), 4);
+    }
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
     DrawConnectionUtils.getArrow(DIR_BOTTOM, dest.x + dest.width / 2, dest.y, xPoints, yPoints);
