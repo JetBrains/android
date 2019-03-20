@@ -261,16 +261,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     new DeviceSelectorFixture(robot()).runApp(this, appName, deviceName);
   }
 
-  /**
-   * @deprecated Use {@link #runApp(String, String)}
-   */
-  @Deprecated
-  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
-    selectApp(appName);
-    findRunApplicationButton().waitUntilEnabledAndShowing().click();
-    return DeployTargetPickerDialogFixture.find(robot());
-  }
-
   @NotNull
   public IdeFrameFixture stopApp() {
     return invokeMenuPath("Run", "Stop \'app\'");
