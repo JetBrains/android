@@ -297,17 +297,16 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                        boolean anyViewSelected,
                        boolean hoverConnection) {
       int ret = DrawConnection.MODE_NORMAL;
-      if (hoverConnection) {
-        return DrawConnection.MODE_WILL_HOVER;
-      }
+      int hoverFlag = hoverConnection ? DrawConnection.HOVER_FLAG : 0x0;
+
       if (thisConstraintSelected) {
-        return DrawConnection.MODE_CONSTRAINT_SELECTED;
+        return hoverFlag|DrawConnection.MODE_CONSTRAINT_SELECTED;
       }
       else if (anyConstraintSelected) {
-        return DrawConnection.MODE_SUBDUED;
+        return hoverFlag|DrawConnection.MODE_SUBDUED;
       }
       else if (anyViewSelected && !mMyViewSelected) {
-        return DrawConnection.MODE_SUBDUED;
+        return hoverFlag|DrawConnection.MODE_SUBDUED;
       }
 
       if (mStartTime[direction] == -1) {
@@ -319,7 +318,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       if (ret == DrawConnection.MODE_NORMAL && fade) {
         ret = DrawConnection.MODE_SUBDUED;
       }
-      return ret;
+      return hoverFlag|ret;
     }
 
     long getTime(int direction) {
