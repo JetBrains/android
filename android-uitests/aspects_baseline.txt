@@ -39,9 +39,9 @@ com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly|co
 com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade.isForcedUpgradable|com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.setUpProject
 com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep.checkUpgradable|com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade.lambda$isForcedUpgradable$0
 com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep.checkUpgradable|com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade.lambda$isRecommendedUpgradable$1
-com.android.tools.idea.model.ManifestInfo.getMergedManifest|com.android.tools.idea.model.ManifestInfo$ManifestFile.mergeManifests
-com.android.tools.idea.model.ManifestInfo$ManifestFile.create|com.android.tools.idea.model.MergedManifestManager.lambda$readSnapshotFromDisk$0
-com.android.tools.idea.model.ManifestInfo$ManifestFile.mergeManifests|com.android.tools.idea.model.ManifestInfo$ManifestFile.create
+com.android.tools.idea.model.MergedManifestInfo.getMergedManifest|com.android.tools.idea.model.MergedManifestInfo.mergeManifests
+com.android.tools.idea.model.MergedManifestInfo.create|com.android.tools.idea.model.MergedManifestManager.lambda$readSnapshotFromDisk$0
+com.android.tools.idea.model.MergedManifestInfo.mergeManifests|com.android.tools.idea.model.MergedManifestInfo.create
 com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot|com.android.tools.idea.model.MergedManifestManager.getSnapshot
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.AndroidImportFilter.getApplicationPackage
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.manifest.ManifestEditor.reload
