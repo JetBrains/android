@@ -33,6 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil.findComponentsOfType
 import org.junit.After
@@ -107,7 +108,42 @@ class ResourceImportDialogTest {
     assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
 
     // Check that a label with the assetSet name is still present.
-    assertEquals(1, findComponentsOfType(content, JLabel::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
+    assertEquals(1, findComponentsOfType(content, JBTextField::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
+
+    // Click all remove button for the reset of the label.
+    var removeLabel1: LinkLabel<*>?
+    do {
+      removeLabel1 = findComponentsOfType(parent, LinkLabel::class.java).firstOrNull { it.text.equals("Do not import", true) }
+      removeLabel1?.doClick()
+    }
+    while (removeLabel1 != null)
+
+    // Check that the DesignAssetSet has been removed from the model.
+    assertFalse(dialogViewModel.assetSets.contains(firstAssetSet))
+
+    // Check that the DesignAssetSet name is not present anymore.
+    assertNull(findComponentsOfType(content, JLabel::class.java).firstOrNull { it.text.equals(firstAssetSet.name, true) })
+  }
+
+  @Test
+  fun addAssets() {
+    val content = resourceImportDialog.root.viewport.view as JPanel
+    val fileRows = findComponentsOfType(content, FileImportRow::class.java)
+    val firstAssetSet = dialogViewModel.assetSets.first()
+    val firstAsset = firstAssetSet.designAssets.first()
+
+    val row0 = fileRows[0]
+    val parent = row0.parent as JPanel
+    // Click the remove button on the fist asset to be imported.
+    val removeLabel = findComponentsOfType(row0, LinkLabel::class.java).first { it.text.equals("Do not import", true) }
+    removeLabel.doClick()
+
+    // Check that the view has been removed and that the asset has been removed from the model.
+    assertFalse(parent.components.contains(row0))
+    assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
+
+    // Check that a label with the assetSet name is still present.
+    assertEquals(1, findComponentsOfType(content, JBTextField::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
 
     // Click all remove button for the reset of the label.
     var removeLabel1: LinkLabel<*>?

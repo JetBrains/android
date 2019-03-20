@@ -16,9 +16,6 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.gradle.stubs.FileStructure
-import com.android.tools.idea.gradle.stubs.android.SourceProviderStub
-import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.resourceExplorer.createFakeResDirectory
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
@@ -33,11 +30,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.util.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
 import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ResourceImportDialogViewModelTest {
 
@@ -90,6 +89,32 @@ class ResourceImportDialogViewModelTest {
     }
     viewModel.doImport()
     assertThat(File(first, "drawable/newName.png").exists()).isTrue()
+  }
+
+  @Test
+  fun nameValidation() {
+    val invalidName = "inv@lid"
+    val expected = "'@' is not a valid file-based resource name character: File-based resource names must contain only lowercase a-z, 0-9, or underscore"
+    val newName = "name2"
+
+    val testFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
+    val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
+    val designAsset2 = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE, newName)
+    val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset, designAsset2))
+    var designAssetSet = viewModel.assetSets.first { it.name == "icon_category_entertainment" }
+
+    // Check invalidName
+    viewModel.rename(designAssetSet, invalidName) { designAssetSet = it }
+    assertEquals(expected, viewModel.validateName(invalidName)!!.message)
+    assertEquals("$invalidName: $expected", viewModel.getValidationInfo()!!.message)
+
+    // Check valid name duplicated
+    assertNull(viewModel.validateName(newName))
+    viewModel.rename(designAssetSet, newName) {}
+    val validationInfo = viewModel.validateName(newName)!!
+    assertEquals("A resource with the same name is also being imported.", validationInfo.message)
+    assertTrue(validationInfo.warning)
+    assertNull(viewModel.getValidationInfo())
   }
 
   private fun getTestFiles(vararg path: String): List<VirtualFile> {
