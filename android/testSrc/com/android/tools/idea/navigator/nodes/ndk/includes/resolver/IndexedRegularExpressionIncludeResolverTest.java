@@ -39,19 +39,19 @@ public class IndexedRegularExpressionIncludeResolverTest {
   public void testLibraryVariationMatch() {
     IndexedRegularExpressionIncludeResolver resolver =
       new IndexedRegularExpressionIncludeResolver(PackageType.NdkComponent,
-                                                  "^(/path/to/ndk-bundle)(/sources/android/native_app_glue(/.*))$",
+                                                  "^(?<home>/path/to/ndk-bundle)(?<relative>/sources/android/native_app_glue(/.*))$",
                                                   "Native App Glue");
     SimpleIncludeValue result = resolver.resolve(new File("/path/to/ndk-bundle/sources/android/native_app_glue"));
     assertThat(result).isNotNull();
-    assertThat(result.mySimplePackageName).isEqualTo("Native App Glue");
-    assertThat(result.myRelativeIncludeSubFolder).isEqualTo("/sources/android/native_app_glue/");
-    assertThat(result.myIncludeFolder).isEqualTo(new File("/path/to/ndk-bundle/sources/android/native_app_glue"));
+    assertThat(result.getSimplePackageName()).isEqualTo("Native App Glue");
+    assertThat(result.getRelativeIncludeSubFolder()).isEqualTo("/sources/android/native_app_glue/");
+    assertThat(result.getIncludeFolder()).isEqualTo(new File("/path/to/ndk-bundle/sources/android/native_app_glue"));
   }
 
   @Test
   public void testNoLibraryVariationNoMatch() {
     IndexedRegularExpressionIncludeResolver resolver =
-      new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(.*)(/third[_-]party/(.*?)/.*)$");
+      new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(.*)(/third[_-]party/(.*?)/.*)$", null);
     SimpleIncludeValue result = resolver.resolve(new File("."));
     assertThat(result).isNull();
   }
@@ -59,11 +59,11 @@ public class IndexedRegularExpressionIncludeResolverTest {
   @Test
   public void testNoLibraryVariationMatch() {
     IndexedRegularExpressionIncludeResolver resolver =
-      new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(.*)(/third[_-]party/(.*?)/.*)$");
+      new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(?<home>.*)(?<relative>/third[_-]party/(?<library>.*?)/.*)$", null);
     SimpleIncludeValue result = resolver.resolve(new File("/path/to/third_party/include"));
     assertThat(result).isNotNull();
-    assertThat(result.mySimplePackageName).isEqualTo("include");
-    assertThat(result.myRelativeIncludeSubFolder).isEqualTo("/third_party/include/");
-    assertThat(result.myIncludeFolder).isEqualTo(new File("/path/to/third_party/include"));
+    assertThat(result.getSimplePackageName()).isEqualTo("include");
+    assertThat(result.getRelativeIncludeSubFolder()).isEqualTo("/third_party/include/");
+    assertThat(result.getIncludeFolder()).isEqualTo(new File("/path/to/third_party/include"));
   }
 }

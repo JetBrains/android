@@ -39,7 +39,7 @@ class CDepMultipackageIncludeResolver extends IncludeResolver {
       String artifactId = match.group(4);
       String subArtifactId = match.group(5);
       String simplePackageName = String.format("%s/%s", artifactId, subArtifactId);
-      return new SimpleIncludeValue(PackageType.CDepPackage, simplePackageName, relativeFolderName,
+      return new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, simplePackageName, relativeFolderName,
                                     includeFolder, new File(homeFolder));
     }
     return null;

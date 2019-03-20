@@ -30,6 +30,11 @@ abstract public class ClassifiedIncludeValue extends IncludeValue {
   @NotNull
   public abstract PackageType getPackageType();
 
+  @NotNull
+  public String getPackageDescription() {
+    return getPackageType().myDescription;
+  }
+
   /**
    * The home folder for the packaging system that owns this include expression.
    * For example, this is the NDK root folder for NDK components.
