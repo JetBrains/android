@@ -72,7 +72,6 @@ public class TextEditor extends BaseComponentEditor {
         @Override
         public void addNotify() {
           super.addNotify();
-          getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
           if (drawBorder) {
             getEditor().setBorder(
               new CommonBorder(1f, new DefaultCommonBorderModel(), JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING)));
@@ -89,6 +88,8 @@ public class TextEditor extends BaseComponentEditor {
           removeAll();
         }
       };
+
+    myTextEditor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
 
     myPanel.add(myTextEditor, BorderLayout.CENTER);
     myTextEditor.registerKeyboardAction(event -> stopEditing(getText()),
