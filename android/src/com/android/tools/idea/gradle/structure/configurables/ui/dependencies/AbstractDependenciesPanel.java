@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -207,9 +208,11 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
         popup.show(new RelativePoint(actionsPanel, new Point(0, actionsPanel.getHeight() - 1)));
       }
     };
+    addDependencyAction
+      .registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_NEW_ELEMENT).getShortcutSet(), myContentsPanel);
 
     actions.add(addDependencyAction);
-    List<AnAction> extraToolbarActions = getExtraToolbarActions();
+    List<AnAction> extraToolbarActions = getExtraToolbarActions(myContentsPanel);
     if (!extraToolbarActions.isEmpty()) {
       actions.addSeparator();
       actions.addAll(extraToolbarActions);
@@ -224,7 +227,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   @NotNull
-  protected List<AnAction> getExtraToolbarActions() {
+  protected List<AnAction> getExtraToolbarActions(@NotNull JComponent focusComponent) {
     return Collections.emptyList();
   }
 
