@@ -172,7 +172,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     //Get a big phone, a bigger foldable, and a small tablet
     myBigPhone = devMgr.getDevice("pixel_3_xl", "Google");
-    myFoldable = devMgr.getDevice("Foldable_A", "Generic");
+    myFoldable = devMgr.getDevice("7.3in Foldable", "Generic");
     mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
   }
 
