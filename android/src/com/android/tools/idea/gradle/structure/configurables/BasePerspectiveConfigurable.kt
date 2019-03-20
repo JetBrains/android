@@ -30,8 +30,10 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -284,60 +286,67 @@ abstract class BasePerspectiveConfigurable protected constructor(
     assert(configurable is BaseNamedConfigurable<*>)
   }
 
-  override fun createActions(fromPopup: Boolean): List<AnAction> =
-    listOf(
-      object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
-        override fun actionPerformed(e: AnActionEvent) {
-          if (!context.project.isModified ||
-              Messages.showYesNoDialog(
+  override fun createActions(fromPopup: Boolean): List<AnAction> {
+    val addNewModuleAction = object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
+      override fun actionPerformed(e: AnActionEvent) {
+        if (!context.project.isModified ||
+            Messages.showYesNoDialog(
                 e.project,
                 "Pending changes will be applied to the project. Continue?",
                 "Add Module",
                 Messages.getQuestionIcon()) == Messages.YES
-          ) {
-            context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
-            var synced = false
-            val chooseModuleTypeStep =
+        ) {
+          context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
+          var synced = false
+          val chooseModuleTypeStep =
               ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject) { synced = true }
-            context.applyRunAndReparse {
-              StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
+          context.applyRunAndReparse {
+            StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
                 .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
                 .build()
                 .show()
-              synced  // Tells whether the context needs to reparse the config.
-            }
-          }
-        }
-      },
-      object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
-        override fun update(e: AnActionEvent) {
-          if (uiDisposed) return
-          super.update(e)
-          e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
-        }
-
-        override fun actionPerformed(e: AnActionEvent) {
-          val module = (selectedObject as? PsModule) ?: return
-          if (Messages.showYesNoDialog(
-              e.project,
-              buildString {
-                append(when {
-                         module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
-                         else -> "Remove module '${module.name}' from the project?"
-                       })
-                append("\n")
-                append("No files will be deleted on disk.")
-              },
-              "Remove Module",
-              Messages.getQuestionIcon()
-            ) == Messages.YES) {
-            context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
-            module.parent.removeModule(module.gradlePath!!)
+            synced  // Tells whether the context needs to reparse the config.
           }
         }
       }
+    }
+    val removeModuleAction = object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
+      override fun update(e: AnActionEvent) {
+        if (uiDisposed) return
+        super.update(e)
+        e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
+      }
 
+      override fun actionPerformed(e: AnActionEvent) {
+        val module = (selectedObject as? PsModule) ?: return
+        if (Messages.showYesNoDialog(
+                e.project,
+                buildString {
+                  append(when {
+                           module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
+                           else -> "Remove module '${module.name}' from the project?"
+                         })
+                  append("\n")
+                  append("No files will be deleted on disk.")
+                },
+                "Remove Module",
+                Messages.getQuestionIcon()
+            ) == Messages.YES) {
+          context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
+          module.parent.removeModule(module.gradlePath!!)
+        }
+      }
+    }
+
+    fun AnAction.withShortcuts(action: String) = apply {
+      registerCustomShortcutSet(ActionManager.getInstance().getAction(action).shortcutSet, tree)
+    }
+
+    return listOf(
+        addNewModuleAction.withShortcuts(IdeActions.ACTION_NEW_ELEMENT),
+        removeModuleAction.withShortcuts(IdeActions.ACTION_DELETE)
     )
+  }
 
   override fun disposeUIResources() {
     if (uiDisposed) return
