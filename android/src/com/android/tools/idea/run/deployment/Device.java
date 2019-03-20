@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.deployable.Deployable;
@@ -27,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -151,12 +151,16 @@ public abstract class Device {
   final IDevice getDdmlibDevice() {
     AndroidDevice device = getAndroidDevice();
 
-    // TODO(b/122324579) Add a getDevice method to AndroidDevice
-    if (!(device instanceof ConnectedAndroidDevice)) {
+    if (!device.isRunning()) {
       return null;
     }
 
-    return ((ConnectedAndroidDevice)device).getDevice();
+    try {
+      return device.getLaunchedDevice().get();
+    }
+    catch (InterruptedException | ExecutionException exception) {
+      throw new AssertionError(exception);
+    }
   }
 
   abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot);
