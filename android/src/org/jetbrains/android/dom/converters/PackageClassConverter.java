@@ -39,6 +39,7 @@ import com.intellij.util.*;
 import com.intellij.util.xml.*;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.jetbrains.android.dom.CompleteLibraryClasses;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -86,7 +87,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
      * @param classNames list of the classes that the searched class can extend
      */
     public Builder withExtendClassNames(String... classNames) {
-      myExtendClassesNames = classNames;
+      // Names coming from AndroidX will be use $ for inner classes whereas IntelliJ works with dots.
+      myExtendClassesNames = Stream.of(classNames).map(jvmName -> jvmName.replace('$', '.')).toArray(String[]::new);
       return this;
     }
 
@@ -112,7 +114,6 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
   /**
    * Constructs a new {@link PackageClassConverter}.
-   *
    *
    * @see CompleteLibraryClasses
    */
@@ -378,7 +379,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     private final boolean myCompleteLibraryClasses;
     private final boolean myIncludeTests;
 
-    public MyReference(PsiElement element,
+    private MyReference(PsiElement element,
                        TextRange range,
                        String manifestPackage,
                        String[] extraBasePackages,
@@ -462,7 +463,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     }
 
     @NotNull
-    public Collection<PsiClass> findInheritors(@NotNull final String className) {
+    private Collection<PsiClass> findInheritors(@NotNull final String className) {
       Project project = myElement.getProject();
       PsiClass base = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project));
       if (base == null) {
