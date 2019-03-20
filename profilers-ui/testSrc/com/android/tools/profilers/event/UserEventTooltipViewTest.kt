@@ -18,7 +18,13 @@ package com.android.tools.profilers.event
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.EventProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profiler.proto.Interaction
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StageView
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -55,20 +61,20 @@ class UserEventTooltipViewTest {
 
   @Test
   fun testTouchEventLongPressDuration() {
-    validateSimpleEvents(1, "Touch Event - Press", EventProfiler.SystemData.SystemEventType.TOUCH)
+    validateSimpleEvents(1, "Touch Event - Press", Interaction.InteractionData.Type.TOUCH)
   }
 
   @Test
   fun testRotationEventNoDuration() {
-    validateSimpleEvents(2, "Rotation Event", EventProfiler.SystemData.SystemEventType.ROTATION)
+    validateSimpleEvents(2, "Rotation Event", Interaction.InteractionData.Type.ROTATION)
   }
 
   @Test
   fun testKeyEventLongPressDuration() {
-    validateSimpleEvents(1, "Key Event - Press", EventProfiler.SystemData.SystemEventType.KEY)
+    validateSimpleEvents(1, "Key Event - Press", Interaction.InteractionData.Type.KEY)
   }
 
-  private fun validateSimpleEvents(durationSeconds: Long, title: String, type: EventProfiler.SystemData.SystemEventType) {
+  private fun validateSimpleEvents(durationSeconds: Long, title: String, type: Interaction.InteractionData.Type) {
     myEventService.addSystemEvent(EventProfiler.SystemData.newBuilder()
         .setType(type)
         .setStartTimestamp(TEST_START_TIME_NS)

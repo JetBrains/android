@@ -24,6 +24,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EventProfiler
+import com.android.tools.profiler.proto.Interaction
 import com.android.tools.profilers.*
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.google.common.truth.Truth.assertThat
@@ -112,17 +113,17 @@ class EventMonitorTest {
   @Test
   fun simpleEvents() {
     // Populate the service with some events
-    val rotation = EventProfiler.SystemData.newBuilder().setEventId(1).setType(EventProfiler.SystemData.SystemEventType.ROTATION).build()
+    val rotation = EventProfiler.SystemData.newBuilder().setEventId(1).setType(Interaction.InteractionData.Type.ROTATION).build()
     eventService.addSystemEvent(rotation)
-    val touch = EventProfiler.SystemData.newBuilder().setEventId(2).setType(EventProfiler.SystemData.SystemEventType.TOUCH).build()
+    val touch = EventProfiler.SystemData.newBuilder().setEventId(2).setType(Interaction.InteractionData.Type.TOUCH).build()
     eventService.addSystemEvent(touch)
     val key = EventProfiler.SystemData.newBuilder()
       .setEventId(3)
-      .setType(EventProfiler.SystemData.SystemEventType.KEY)
+      .setType(Interaction.InteractionData.Type.KEY)
       .setEventData("Some Text")
       .build()
     eventService.addSystemEvent(key)
-    val unspecified = EventProfiler.SystemData.newBuilder().setEventId(4).setType(EventProfiler.SystemData.SystemEventType.UNSPECIFIED).build()
+    val unspecified = EventProfiler.SystemData.newBuilder().setEventId(4).setType(Interaction.InteractionData.Type.UNSPECIFIED).build()
     eventService.addSystemEvent(unspecified)
 
     val series = monitor.userEvents.rangedSeries.series
@@ -145,20 +146,20 @@ class EventMonitorTest {
     val activity1 = EventProfiler.ActivityData.newBuilder()
       .setName("activity 1")
       .setHash(1)
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.ADDED))
+      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.ADDED))
       .build()
     eventService.addActivityEvent(activity1)
     val fragment = EventProfiler.ActivityData.newBuilder()
       .setName("fragment 1")
       .setHash(2)
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.ADDED))
-      .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(1).build())
+      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.ADDED))
+      .setActivityContextHash(1)
       .build()
     eventService.addActivityEvent(fragment)
     val activity2 = EventProfiler.ActivityData.newBuilder()
       .setName("activity 2")
       .setHash(3)
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.ADDED))
+      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.ADDED))
       .build()
     eventService.addActivityEvent(activity2)
 
@@ -178,20 +179,20 @@ class EventMonitorTest {
     val activity1 = EventProfiler.ActivityData.newBuilder()
       .setName("activity 1")
       .setHash(1)
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.ADDED))
+      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.ADDED))
       .build()
     eventService.addActivityEvent(activity1)
     val fragment = EventProfiler.ActivityData.newBuilder()
       .setName("fragment 1")
       .setHash(2)
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.ADDED))
-      .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(1).build())
+      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.ADDED))
+      .setActivityContextHash(1)
       .build()
     eventService.addActivityEvent(fragment)
     val activity2 = EventProfiler.ActivityData.newBuilder()
       .setName("activity 2")
       .setHash(3)
-      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.ADDED))
+      .addStateChanges(EventProfiler.ActivityStateData.newBuilder().setState(Interaction.ViewData.State.ADDED))
       .build()
     eventService.addActivityEvent(activity2)
 

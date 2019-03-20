@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.event;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
@@ -22,16 +24,14 @@ import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.EventProfiler.SystemData;
+import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
 
 public class UserEventDataSeriesTest {
 
@@ -112,30 +112,27 @@ public class UserEventDataSeriesTest {
   private SystemData buildTouchEvent(int eventId) {
     return SystemData.newBuilder()
       .setEventId(eventId)
-      .setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_END_TIME_NS)
-      .setType(SystemData.SystemEventType.TOUCH)
+      .setType(Interaction.InteractionData.Type.TOUCH)
       .build();
   }
 
   private SystemData buildRotationEvent(int eventId) {
     return SystemData.newBuilder()
       .setEventId(eventId)
-      .setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
-      .setType(SystemData.SystemEventType.ROTATION)
+      .setType(Interaction.InteractionData.Type.ROTATION)
       .build();
   }
 
   private SystemData buildKeyEvent(int eventId) {
     return SystemData.newBuilder()
       .setEventId(eventId)
-      .setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
-      .setType(SystemData.SystemEventType.KEY)
+      .setType(Interaction.InteractionData.Type.KEY)
       .setEventData("Hello")
       .build();
   }

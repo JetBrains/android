@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profilers.ProfilerClient;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +60,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
       long actionEnd = 0;
       // If we are listening to only fragments filter non-fragment types.
       // If we only want non-fragment types then filter fragments.
-      boolean isFragment = !data.getFragmentData().equals(EventProfiler.FragmentData.getDefaultInstance());
+      boolean isFragment = data.getActivityContextHash() != 0;
       if (myFragmentsOnly != isFragment) {
         continue;
       }
@@ -105,7 +106,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
         //we want to get the state the activity is currently in to set the name properly.
         while (haveEvent && ++i < data.getStateChangesCount()) {
           state = data.getStateChanges(i);
-          EventProfiler.ActivityStateData.ActivityState activityState = state.getState();
+          Interaction.ViewData.State activityState = state.getState();
           if (getComponentInStartingOrRunningState(activityState)) {
             i--;
             break;
@@ -142,7 +143,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
    * in the "stopping", or "teardown" states. We align timings of UI events to the RESUME and PAUSED state as those are the states that
    * the user can directly associate with the visuals, as well as where sometimes users erroneously put initialization logic.
    */
-  private boolean getComponentInStartingOrRunningState(EventProfiler.ActivityStateData.ActivityState state) {
+  private boolean getComponentInStartingOrRunningState(Interaction.ViewData.State state) {
     switch (state) {
       case ADDED:
       case ATTACHED:
