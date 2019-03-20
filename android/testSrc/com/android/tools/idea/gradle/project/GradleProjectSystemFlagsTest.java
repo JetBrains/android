@@ -28,6 +28,6 @@ public class GradleProjectSystemFlagsTest extends IdeaTestCase {
   }
 
   public void testNewPsdEnabledTest() {
-    assertFalse(ProjectStructureConfigurable.isNewPsdEnabled());
+    assertTrue(ProjectStructureConfigurable.isNewPsdEnabled());
   }
 }
