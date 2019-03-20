@@ -100,11 +100,6 @@
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
-
-    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction" text="Open AVD Manager">
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
-    </action>
-
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
@@ -927,8 +922,27 @@
     <renderErrorContributor implementation="com.android.tools.idea.gradle.rendering.GradleRenderErrorContributor$GradleProvider"/>
   </extensions>
 
+  <!-- Begin new deployment target selection -->
+
+  <actions>
+    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
+            text="Select Device">
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
+    </action>
+  </actions>
+
   <extensions defaultExtensionNs="com.android.run">
     <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
+  </extensions>
+
+  <!-- End new deployment target selection -->
+
+  <extensions defaultExtensionNs="com.android.run">
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider"/>
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider"/>
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider"/>
@@ -937,8 +951,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
     <applicationConfigurable parentId="preferences.general"
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
