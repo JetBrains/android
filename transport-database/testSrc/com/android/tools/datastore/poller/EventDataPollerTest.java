@@ -26,6 +26,7 @@ import com.android.tools.datastore.service.EventService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.profiler.proto.Interaction;
 import io.grpc.stub.StreamObserver;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -44,7 +45,6 @@ public class EventDataPollerTest extends DataStorePollerTest {
   private static final long ONE_SECOND = TimeUnit.SECONDS.toNanos(1);
   private static final EventProfiler.SystemData NO_END_SYSTEM_DATA = EventProfiler.SystemData
     .newBuilder()
-    .setPid(TEST_APP_ID)
     .setActionId(ACTION_ID)
     .setStartTimestamp(START_TIME + ONE_SECOND)
     .setEndTimestamp(0)
@@ -52,7 +52,6 @@ public class EventDataPollerTest extends DataStorePollerTest {
     .build();
   private static final EventProfiler.SystemData LONG_SYSTEM_DATA = EventProfiler.SystemData
     .newBuilder()
-    .setPid(TEST_APP_ID)
     .setActionId(ACTION_ID)
     .setStartTimestamp(START_TIME - ONE_SECOND)
     .setEndTimestamp(START_TIME)
@@ -60,30 +59,28 @@ public class EventDataPollerTest extends DataStorePollerTest {
     .build();
   private static final EventProfiler.ActivityData SIMPLE_ACTIVITY_DATA = EventProfiler.ActivityData
     .newBuilder()
-    .setPid(TEST_APP_ID)
     .setName(ACTIVITY_NAME)
     .setHash(ACTIVITY_HASH)
     .addStateChanges(
       EventProfiler.ActivityStateData
-        .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.CREATED).setTimestamp(START_TIME).build()
+        .newBuilder().setState(Interaction.ViewData.State.CREATED).setTimestamp(START_TIME).build()
     ).build();
   private static final EventProfiler.ActivityData ACTIVITY_DATA_UPDATE = EventProfiler.ActivityData
     .newBuilder()
-    .setPid(TEST_APP_ID)
     .setName(ACTIVITY_NAME)
     .setHash(ACTIVITY_HASH)
     .addStateChanges(
       EventProfiler.ActivityStateData
-        .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.STARTED).setTimestamp(START_TIME + ONE_SECOND).build())
+        .newBuilder().setState(Interaction.ViewData.State.STARTED).setTimestamp(START_TIME + ONE_SECOND).build())
     .addStateChanges(
       EventProfiler.ActivityStateData
-        .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 2).build())
+        .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 2).build())
     .addStateChanges(
       EventProfiler.ActivityStateData
-        .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.RESUMED).setTimestamp(START_TIME + ONE_SECOND * 3).build())
+        .newBuilder().setState(Interaction.ViewData.State.RESUMED).setTimestamp(START_TIME + ONE_SECOND * 3).build())
     .addStateChanges(
       EventProfiler.ActivityStateData
-        .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 4).build())
+        .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 4).build())
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
@@ -188,7 +185,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
       .build();
     EventProfiler.ActivityDataResponse expectedResponse = EventProfiler.ActivityDataResponse
       .newBuilder()
-      .addData(SIMPLE_ACTIVITY_DATA.toBuilder().setFragmentData(EventProfiler.FragmentData.getDefaultInstance()).build())
+      .addData(SIMPLE_ACTIVITY_DATA.toBuilder().build())
       .build();
 
     StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);
@@ -208,8 +205,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
       .newBuilder()
       .addData(SIMPLE_ACTIVITY_DATA.toBuilder().addStateChanges(
         EventProfiler.ActivityStateData
-          .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.STARTED).setTimestamp(START_TIME + ONE_SECOND).build())
-                 .setFragmentData(EventProfiler.FragmentData.getDefaultInstance()).build())
+          .newBuilder().setState(Interaction.ViewData.State.STARTED).setTimestamp(START_TIME + ONE_SECOND)))
       .build();
 
     StreamObserver<EventProfiler.ActivityDataResponse> observer = mock(StreamObserver.class);
@@ -234,17 +230,16 @@ public class EventDataPollerTest extends DataStorePollerTest {
           .clearStateChanges()
           .addStateChanges(
             EventProfiler.ActivityStateData
-              .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 2)
+              .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 2)
               .build())
           .addStateChanges(
             EventProfiler.ActivityStateData
-              .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.RESUMED).setTimestamp(START_TIME + ONE_SECOND * 3)
+              .newBuilder().setState(Interaction.ViewData.State.RESUMED).setTimestamp(START_TIME + ONE_SECOND * 3)
               .build())
           .addStateChanges(
             EventProfiler.ActivityStateData
-              .newBuilder().setState(EventProfiler.ActivityStateData.ActivityState.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 4)
+              .newBuilder().setState(Interaction.ViewData.State.PAUSED).setTimestamp(START_TIME + ONE_SECOND * 4)
               .build())
-          .setFragmentData(EventProfiler.FragmentData.getDefaultInstance())
           .build())
       .build();
 

@@ -47,7 +47,6 @@ end_timestamp: 9223372036854775807
         <Message>data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86400000000000
     state: CREATED
@@ -56,7 +55,6 @@ end_timestamp: 9223372036854775807
 data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86401000000000
     state: STARTED
@@ -80,7 +78,6 @@ data {
         <message>data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86400000000000
     state: CREATED
@@ -89,7 +86,6 @@ data {
 data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86401000000000
     state: STARTED
@@ -133,14 +129,12 @@ end_timestamp: 9223372036854775807
         <Message>data {
   action_id: 4321
   start_timestamp: 86401000000000
-  pid: 5678
   event_id: 1
 }
 data {
   action_id: 4321
   start_timestamp: 86399000000000
   end_timestamp: 86400000000000
-  pid: 5678
   event_id: 2
 }
 </Message>
@@ -149,14 +143,12 @@ data {
         <message>data {
   action_id: 4321
   start_timestamp: 86401000000000
-  pid: 5678
   event_id: 1
 }
 data {
   action_id: 4321
   start_timestamp: 86399000000000
   end_timestamp: 86400000000000
-  pid: 5678
   event_id: 2
 }
 </message>
@@ -185,7 +177,6 @@ end_timestamp: 9223372036854775807
         <Message>data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86400000000000
     state: CREATED
@@ -194,7 +185,6 @@ end_timestamp: 9223372036854775807
 data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86401000000000
     state: STARTED
@@ -218,7 +208,6 @@ data {
         <message>data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86400000000000
     state: CREATED
@@ -227,7 +216,6 @@ data {
 data {
   name: "ActivityOne"
   hash: 750574775
-  pid: 5678
   state_changes {
     timestamp: 86401000000000
     state: STARTED
@@ -271,14 +259,12 @@ end_timestamp: 9223372036854775807
         <Message>data {
   action_id: 4321
   start_timestamp: 86401000000000
-  pid: 5678
   event_id: 1
 }
 data {
   action_id: 4321
   start_timestamp: 86399000000000
   end_timestamp: 86400000000000
-  pid: 5678
   event_id: 2
 }
 </Message>
@@ -287,14 +273,12 @@ data {
         <message>data {
   action_id: 4321
   start_timestamp: 86401000000000
-  pid: 5678
   event_id: 1
 }
 data {
   action_id: 4321
   start_timestamp: 86399000000000
   end_timestamp: 86400000000000
-  pid: 5678
   event_id: 2
 }
 </message>
