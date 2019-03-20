@@ -35,6 +35,7 @@ public class DrawAnchor extends DrawRegion {
   private static final int PAINT_BACKGROUND_SIZE_PERCENT = 20;
   private static final int PAINT_HOVER_SIZE_PERCENT = 40;
   private static final int PAINT_INNER_CIRCLE_SIZE_PERCENT = 10;
+  private static final int PAINT_DELETE_ICON_SIZE_PERCENT = 40;
 
   public enum Type {
     NORMAL,
@@ -93,7 +94,9 @@ public class DrawAnchor extends DrawRegion {
 
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getComponentObligatoryBackground();
-    Color color = colorSet.getSelectedFrames();
+    // TODO: Consider making deletion a mode.
+    boolean willDelete = myMode == Mode.OVER && myIsConnected;
+    Color color = willDelete ? colorSet.getAnchorDisconnectionCircle() : colorSet.getSelectedFrames();
 
     if (myMode == Mode.OVER) {
       // Draw a ring around the anchor Should go a bit over the white background.
@@ -112,6 +115,11 @@ public class DrawAnchor extends DrawRegion {
     // The fill circle of an anchor.
     g.setColor(color);
     g.fillRoundRect(x, y, width, width, width, width);
+    if (willDelete) {
+      g.setColor(background);
+      paintDeleteConstraintIcon(g);
+    }
+
     if (!myIsConnected) {
       // Add a "hole" for non-connected anchors.
       int innerCircleOffset = width * PAINT_INNER_CIRCLE_SIZE_PERCENT / 100;
@@ -119,7 +127,45 @@ public class DrawAnchor extends DrawRegion {
       g.setColor(background);
       g.fillRoundRect(x + innerCircleOffset, y + innerCircleOffset, innerCircleWidth, innerCircleWidth, innerCircleWidth, innerCircleWidth);
     }
+  }
 
+  /** Paints a little "x" over the anchor. Used when the constraint is about to be deleted. */
+  public void paintDeleteConstraintIcon(Graphics2D g) {
+    int iconSizeOffset = width * PAINT_DELETE_ICON_SIZE_PERCENT / 100;
+    int iconX = x + iconSizeOffset;
+    int iconY = y + iconSizeOffset;
+    int iconSize = width - 1 - iconSizeOffset;
+    g.drawLine(iconX, iconY, x + iconSize, y + iconSize);
+    g.drawLine(iconX, y + iconSize, x + iconSize, iconY);
+  }
+
+  public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
+    int inset = width / 10;
+    ColorSet colorSet = sceneContext.getColorSet();
+    Color background = colorSet.getComponentObligatoryBackground();
+    Color color = colorSet.getFrames();
+    g.setColor(color);
+    g.fillRect(x, y + height / 2, width, 1);
+    int ovalX = x + inset;
+    int ovalW = width - 2 * inset;
+    g.setColor(background);
+    g.fillRoundRect(ovalX, y, ovalW, height, height, height);
+    g.setColor(color);
+    g.drawRoundRect(ovalX, y, ovalW, height, height, height);
+    int delta = 3;
+    int delta2 = delta * 2;
+    if (myIsConnected) {
+      g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
+      g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
+    }
+    paintPulsingBaselineAnchor(g, sceneContext, ovalX, ovalW);
+  }
+
+  /**
+   * Adds a pulsing effect to the anchor. Used to highlight a particular mode of the anchor.
+   */
+  private void paintPulsingAnchor(Graphics2D g, SceneContext sceneContext) {
+    ColorSet colorSet = sceneContext.getColorSet();
     if (myMode == Mode.CAN_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
@@ -156,25 +202,11 @@ public class DrawAnchor extends DrawRegion {
     }
   }
 
-  public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
-    int inset = width / 10;
+  /**
+   * Adds a pulsing effect to a baseline anchor. Used to highlight a particular mode of the anchor.
+   */
+  private void paintPulsingBaselineAnchor(Graphics2D g, SceneContext sceneContext, int ovalX, int ovalW) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getComponentObligatoryBackground();
-    Color color = colorSet.getFrames();
-    g.setColor(color);
-    g.fillRect(x, y + height / 2, width, 1);
-    int ovalX = x + inset;
-    int ovalW = width - 2 * inset;
-    g.setColor(background);
-    g.fillRoundRect(ovalX, y, ovalW, height, height, height);
-    g.setColor(color);
-    g.drawRoundRect(ovalX, y, ovalW, height, height, height);
-    int delta = 3;
-    int delta2 = delta * 2;
-    if (myIsConnected) {
-      g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
-      g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
-    }
     if (myMode == Mode.CAN_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
