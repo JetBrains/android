@@ -39,7 +39,7 @@ public class CDepSimplePackageIncludeResolver extends IncludeResolver {
       String homeFolder = match.group(1);
       String relativeFolderName = match.group(2);
       String simplePackageName = match.group(4);
-      return new SimpleIncludeValue(PackageType.CDepPackage, simplePackageName, relativeFolderName,
+      return new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, simplePackageName, relativeFolderName,
                                     includeFolder, new File(homeFolder));
     }
     return null;

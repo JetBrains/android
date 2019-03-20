@@ -58,7 +58,7 @@ abstract public class IncludeResolver {
    */
   @NotNull
   static IncludeResolver thirdParty() {
-    return new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(.*)(/third[_-]party/(.*?)/.*)$");
+    return new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(?<home>.*)(?<relative>/third[_-]party/(?<library>.*?)/.*)$", null);
   }
 
   /**
@@ -66,7 +66,7 @@ abstract public class IncludeResolver {
    */
   @NotNull
   static IncludeResolver externals() {
-    return new IndexedRegularExpressionIncludeResolver(PackageType.Externals, "^(.*)(/(?:E|e)xternals?/(.*?)/.*)$");
+    return new IndexedRegularExpressionIncludeResolver(PackageType.Externals, "^(?<home>.*)(?<relative>/(?:E|e)xternals?/(?<library>.*?)/.*)$", null);
   }
 
   @Nullable

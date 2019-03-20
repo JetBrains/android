@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
+import com.android.repository.Revision;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
@@ -31,32 +32,27 @@ public class IndexedRegularExpressionIncludeResolver extends RegularExpressionIn
   @NotNull private final PackageType myKind;
   @NotNull private final String myPattern;
   @Nullable private final String myLibraryName;
-  private final int myLibraryNameIndex;
-  private final int myRelativeFolderIndex;
-  private final int myHomeFolderIndex;
 
-  IndexedRegularExpressionIncludeResolver(@NotNull PackageType kind, @NotNull String pattern) {
-    myKind = kind;
-    myPattern = pattern;
-    myLibraryName = null;
-    myLibraryNameIndex = 3;
-    myRelativeFolderIndex = 2;
-    myHomeFolderIndex = 1;
-  }
-
-  IndexedRegularExpressionIncludeResolver(@NotNull PackageType kind, @NotNull String pattern, @NotNull String libraryName) {
-    myKind = kind;
-    myPattern = pattern;
-    myLibraryName = libraryName;
-    myLibraryNameIndex = 0;
-    myRelativeFolderIndex = 2;
-    myHomeFolderIndex = 1;
+  IndexedRegularExpressionIncludeResolver(
+    @NotNull PackageType kind,
+    @NotNull String pattern,
+    @Nullable String libraryName) {
+    this.myKind = kind;
+    this.myPattern = pattern;
+    this.myLibraryName = libraryName;
   }
 
   @Override
   @NotNull
   String getMatchRegexTemplate() {
     return myPattern;
+  }
+
+  private String groupOrNull(Matcher match, String name) {
+    if (myPattern.contains(String.format("?<%s>", name))) {
+      return match.group(name);
+    }
+    return null;
   }
 
   @Override
@@ -66,12 +62,24 @@ public class IndexedRegularExpressionIncludeResolver extends RegularExpressionIn
     if (!match.find()) {
       return null;
     }
-    String relativeFolder = match.group(myRelativeFolderIndex);
-    String libraryName = myLibraryName;
-    if (libraryName == null) {
-      libraryName = match.group(myLibraryNameIndex);
+    try {
+      String relativeFolder = match.group("relative");
+      String libraryName = myLibraryName;
+      if (libraryName == null) {
+        libraryName = match.group("library");
+      }
+      String homeFolder = match.group("home");
+      String description = myKind.myDescription;
+      String version = groupOrNull(match, "ndk");
+      if (version != null) {
+        // Convert NDK revision like 19.2.5345600 to standard NDK release name like r19c
+        Revision revision = Revision.parseRevision(version);
+        char minor = (char)((int)'a' + revision.getMinor());
+        description += String.format(" r%s%s", revision.getMajor(), minor);
+      }
+      return new SimpleIncludeValue(myKind, description, libraryName, relativeFolder, includeFolder, new File(homeFolder));
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException(String.format("Pattern %s is missing a group name", myPattern), e);
     }
-    String homeFolder = match.group(myHomeFolderIndex);
-    return new SimpleIncludeValue(myKind, libraryName, relativeFolder, includeFolder, new File(homeFolder));
   }
 }

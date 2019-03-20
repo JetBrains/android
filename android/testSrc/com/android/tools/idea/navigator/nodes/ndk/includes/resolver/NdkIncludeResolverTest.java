@@ -49,7 +49,6 @@ public class NdkIncludeResolverTest {
     }
   }
 
-
   @Test
   public void testNdkPackageSysroot() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
@@ -59,8 +58,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("Android Sysroot");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("Android Sysroot");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sysroot/usr/include/aarch64-linux-android/");
 
     // Figure out the path for the current OS
@@ -84,8 +83,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("CPU Features");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("CPU Features");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sources/android/cpufeatures/");
 
     // Figure out the path for the current OS
@@ -105,8 +104,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("android-21");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/platforms/android-21/arch-arm64/usr/include/");
+    assertThat(resolution.getSimplePackageName()).isEqualTo("android-21");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo("/platforms/android-21/arch-arm64/usr/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
 
@@ -118,9 +117,9 @@ public class NdkIncludeResolverTest {
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
-    assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("android-21");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/platforms/android-21/arch-arm64/usr/include/");
+    assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkSxsComponent);
+    assertThat(resolution.getSimplePackageName()).isEqualTo("android-21");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo("/platforms/android-21/arch-arm64/usr/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_SIDE_BY_SIDE_NDK);
   }
 
@@ -133,8 +132,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("stlport");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/sources/cxx-stl/stlport/stlport/");
+    assertThat(resolution.getSimplePackageName()).isEqualTo("stlport");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo("/sources/cxx-stl/stlport/stlport/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
 
@@ -147,8 +146,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("gnu-libstdc++");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include/");
+    assertThat(resolution.getSimplePackageName()).isEqualTo("gnu-libstdc++");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo("/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
 
@@ -161,8 +160,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("googletest");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo("/sources/third_party/googletest/googletest/include/");
+    assertThat(resolution.getSimplePackageName()).isEqualTo("googletest");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo("/sources/third_party/googletest/googletest/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
 
@@ -175,8 +174,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("renderscript");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("renderscript");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/toolchains/renderscript/prebuilt/android-21-x86_64/lib/clang/3.5/include/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
@@ -190,8 +189,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("CPU Features");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("CPU Features");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sources/android/cpufeatures/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
@@ -205,8 +204,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("Native App Glue");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("Native App Glue");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sources/android/native_app_glue/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }
@@ -220,8 +219,8 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.mySimplePackageName).isEqualTo("NDK Helper");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("NDK Helper");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sources/android/ndk_helper/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
   }

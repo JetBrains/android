@@ -79,8 +79,8 @@ public class IncludeValues {
    */
   @NotNull
   private static List<ClassifiedIncludeValue> simplifyPackageWithSingleIncludeFolder(List<PackageValue> includes) {
-    return includes.stream().map(expression -> expression.myIncludes.size() == 1
-                                               ? expression.myIncludes.get(0)
+    return includes.stream().map(expression -> expression.getIncludes().size() == 1
+                                               ? expression.getIncludes().get(0)
                                                : expression).collect(Collectors.toList());
   }
 
@@ -108,7 +108,7 @@ public class IncludeValues {
    * Instead, these are simplified so they are held at the parent level instead.
    */
   private static List<ClassifiedIncludeValue> simplifyPackageFamilyWithSinglePackage(List<PackageFamilyValue> families) {
-    return families.stream().map(family -> family.myIncludes.size() == 1
+    return families.stream().map(family -> family.myIncludes.size() == 1 && family.myKey.getPackageType().myIsCollapsibleFamily
                                            ? family.myIncludes.get(0)
                                            : family).collect(Collectors.toList());
   }
@@ -117,14 +117,14 @@ public class IncludeValues {
    * Get a PackageKey from a SimpleIncludeValue.
    */
   private static PackageKey toPackageKey(@NotNull SimpleIncludeValue include) {
-    return new PackageKey(include.getPackageType(), include.mySimplePackageName, include.getPackageFamilyBaseFolder());
+    return new PackageKey(include.getPackageType(), include.getSimplePackageName(), include.getPackageFamilyBaseFolder());
   }
 
   /**
    * Get a PackageFamilyKey from an AbstractClassifiedIncludeValue.
    */
   private static PackageFamilyKey toPackageFamilyKey(@NotNull ClassifiedIncludeValue include) {
-    return new PackageFamilyKey(include.getPackageType(), include.getPackageFamilyBaseFolder());
+    return new PackageFamilyKey(include.getPackageType(), include.getPackageDescription(), include.getPackageFamilyBaseFolder());
   }
 
   /**

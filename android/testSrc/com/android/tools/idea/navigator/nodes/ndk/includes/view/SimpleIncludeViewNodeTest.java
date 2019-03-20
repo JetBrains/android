@@ -51,8 +51,8 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
     List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
     assertThat(nodes).hasSize(2);
-    assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
-    assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+    assertThat(nodes.get(0).getValue().getIncludeFolder().getName()).isEqualTo("ndk_helper");
+    assertThat(nodes.get(1).getValue().getIncludeFolder().getName()).isEqualTo("native_app_glue");
 
     // Check the children of the simple include view nodes
     List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
@@ -82,8 +82,8 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
     List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
     assertThat(nodes).hasSize(2);
-    assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
-    assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+    assertThat(nodes.get(0).getValue().getIncludeFolder().getName()).isEqualTo("ndk_helper");
+    assertThat(nodes.get(1).getValue().getIncludeFolder().getName()).isEqualTo("native_app_glue");
 
     // Check the children of the simple include view nodes
     List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
@@ -114,8 +114,8 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
     List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
     assertThat(nodes).hasSize(2);
-    assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
-    assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+    assertThat(nodes.get(0).getValue().getIncludeFolder().getName()).isEqualTo("ndk_helper");
+    assertThat(nodes.get(1).getValue().getIncludeFolder().getName()).isEqualTo("native_app_glue");
     checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
     checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
 
