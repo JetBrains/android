@@ -34,11 +34,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
 class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type, isParent) {
 
   /**
-   * If this Anchor is dragging.
-   * Note that this doesn't mean the associated component is dragging. This means Anchor itself is dragging.
-   */
-  private var isDragging = false
-  /**
    * Used to record the aligned component ids.
    */
   private val alignedComponentIds = mutableSetOf<String>()
@@ -66,7 +61,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (!isParent) {
       super.render(list, sceneContext)
 
-      if (isDragging) {
+      if (myIsDragging) {
         list.addConnection(sceneContext, centerX, centerY, myLastX.toFloat(), myLastY.toFloat(), type.ordinal)
       }
     }
@@ -147,7 +142,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (isParent) {
       return
     }
-    isDragging = false
+    myIsDragging = false
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
@@ -157,7 +152,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       return
     }
 
-    isDragging = true
+    myIsDragging = true
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
@@ -177,7 +172,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       }
     }
 
-    isDragging = false
+    myIsDragging = false
   }
 
   private fun handleConstraintDeletion(attributesTransaction: AttributesTransaction) {
