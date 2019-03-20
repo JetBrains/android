@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
@@ -24,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.util.ui.JBUI;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -37,26 +37,55 @@ import org.jetbrains.annotations.Nullable;
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JComboBox<String> {
-  private static final String POPUP_MENU = "...";
+  private static final String POPUP_MENU = "@ ...";
   private static final String DEFAULT = "0";
   private static final String PICK_A_DIMENSION = "Pick a Dimension";
   private static final String[] MENU_LIST = new String[]{DEFAULT, "8", "16", "24", "32", POPUP_MENU};
+  private final String myBaseToolTipText;
 
+  private final JTextField myTextField;
   public enum Show {
     IN_WIDGET,
     OUT_WIDGET,
     OUT_PANEL
   }
 
-  public MarginWidget(@NotNull String name) {
+  public MarginWidget(@NotNull String name, String tooltip) {
     super(new CollectionComboBoxModel<>(Arrays.asList(MENU_LIST)));
     setBackground(StudioColorsKt.getSecondaryPanelBackground());
     setEditable(true);
-    JTextField textField = (JTextField)getEditor().getEditorComponent();
-    textField.setFont(textField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
-    textField.addFocusListener(new ScrollToViewFocusListener(this));
+    myTextField = (JTextField)getEditor().getEditorComponent();
+    myTextField.setFont(myTextField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
+    myTextField.addFocusListener(new ScrollToViewFocusListener(this));
     initComboBox(name);
     setName(name);
+    setToolTipText(tooltip);
+    myBaseToolTipText = tooltip;
+  }
+
+  private void italicFont() {
+    Font font = myTextField.getFont();
+    int style = font.getStyle();
+    style |= Font.ITALIC;
+    font = font.deriveFont(style);
+    myTextField.setFont(font);
+  }
+
+  private void normalFont() {
+    Font font = myTextField.getFont();
+    int style = font.getStyle();
+    style &= ~Font.ITALIC;
+    font = font.deriveFont(style);
+    myTextField.setFont(font);
+  }
+
+  private void updateToolTip(@Nullable String resourceName) {
+    if (resourceName == null) {
+      setToolTipText(myBaseToolTipText);
+      return;
+    }
+
+    setToolTipText(myBaseToolTipText + " (" + resourceName + ")");
   }
 
   private void initComboBox(@NotNull String name) {
@@ -76,13 +105,31 @@ public class MarginWidget extends JComboBox<String> {
    */
   public String getMargin(@Nullable NlComponent component) {
     String item = (String)getSelectedItem();
-    if (POPUP_MENU.equals(item)) {
-      return selectFromResourceDialog(component);
+    String toReturn = item != null ? item : DEFAULT;
+
+    if (POPUP_MENU.equals(toReturn)) {
+      toReturn = selectFromResourceDialog(component);
     }
-    return item != null ? item : DEFAULT;
+
+    if (toReturn.startsWith("@")) {
+      italicFont();
+      updateToolTip(toReturn);
+    } else {
+      normalFont();
+      updateToolTip(null);
+    }
+
+    return toReturn;
   }
 
-  private String selectFromResourceDialog(NlComponent component) {
+  /**
+   * @return Launch resource dialog, and return the chosen value (e.g. "@dimen/left_margin". {@link DEFAULT} if cancelled or tag invalid.
+   */
+  private String selectFromResourceDialog(@Nullable NlComponent component) {
+    if (component == null) {
+      return DEFAULT;
+    }
+
     Module module = component.getModel().getModule();
     XmlTag tag = component.getBackend().getTag();
     if (tag == null) {
@@ -102,8 +149,7 @@ public class MarginWidget extends JComboBox<String> {
 
     dialog.setTitle(PICK_A_DIMENSION);
     if (dialog.showAndGet()) {
-      String resName = dialog.getResourceName();
-      return resName;
+      return dialog.getResourceName();
     }
 
     return DEFAULT;
