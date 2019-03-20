@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom.converters
 
+import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.util.androidFacet
@@ -41,5 +42,19 @@ class StyleItemConverter : WrappingConverter() {
     val attrDefinition = resourceManager.attributeDefinitions?.getAttrDefinition(reference) ?: return null
 
     return AndroidDomUtil.getConverter(attrDefinition)
+  }
+}
+
+/**
+ * Adapts a given [Converter] to treat any string starting with '@' as a string resource reference.
+ */
+class StringResourceAdapterConverter(private val innerConverter: Converter<*>) : WrappingConverter() {
+  override fun getConverter(domElement: GenericDomValue<*>): Converter<*> {
+    return if (domElement.rawText?.startsWith('@') == true) {
+      ResourceReferenceConverter(ResourceType.STRING, true, true)
+    }
+    else {
+      innerConverter
+    }
   }
 }
