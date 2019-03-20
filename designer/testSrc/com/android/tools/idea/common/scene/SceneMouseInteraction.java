@@ -439,6 +439,11 @@ public class SceneMouseInteraction {
     select(myScene.getSceneComponent(componentId), selected);
   }
 
+  public void select(String... componentIds) {
+    SceneComponent[] components = Arrays.stream(componentIds).map(id -> myScene.getSceneComponent(id)).toArray(SceneComponent[]::new);
+    select(components);
+  }
+
   /**
    * Regenerate the display list
    */
