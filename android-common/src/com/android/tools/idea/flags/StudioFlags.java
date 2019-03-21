@@ -296,6 +296,11 @@ public final class StudioFlags {
     "Enable the shadow rendering in Layout Editor",
     true);
 
+  public static final Flag<Boolean> NELE_SIMPLER_RESIZE = Flag.create(
+    NELE, "simpler.resize", "Simplify resize",
+    "Simplify design surface resize",
+    false);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
