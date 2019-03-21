@@ -137,7 +137,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     isPreviewSurface = designSurface.isPreviewSurface();
     myOrientationLayer = new OrientationLayer(myDesignSurface, myScreenView, myConfiguration);
     mySizeBucketLayer = new SizeBucketLayer();
-    myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 25, true, null, myDesignSurface);
+    myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 100, true, null, myDesignSurface);
     myUpdateQueue.setRestartTimerOnAdd(true);
 
     myOriginalDevice = configuration.getDevice();
