@@ -120,19 +120,9 @@ public class IdeaGradleSync implements GradleSync {
     // and a linked gradle project can be located not in the IDE Project.baseDir
     Set<String> androidProjectCandidatesPaths = new LinkedHashSet<>();
     if (myProjectInfo.isImportedProject()) {
-      GradleSettings gradleSettings = GradleSettings.getInstance(myProject);
-      Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
-      if (projectsSettings.isEmpty()) {
-        GradleProjectOpenProcessor projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleProjectOpenProcessor.class);
-        if (myProject.getBasePath() != null && projectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
-          GradleProjectSettings projectSettings = new GradleProjectSettings();
-          String externalProjectPath = toCanonicalPath(myProject.getBasePath());
-          projectSettings.setExternalProjectPath(externalProjectPath);
-          gradleSettings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));
-          androidProjectCandidatesPaths.add(externalProjectPath);
-        }
-      }
-      else if (projectsSettings.size() == 1) {
+      createGradleProjectSettingsIfNotExist(myProject);
+      Collection<GradleProjectSettings> projectsSettings = GradleSettings.getInstance(myProject).getLinkedProjectsSettings();
+      if (projectsSettings.size() == 1) {
         androidProjectCandidatesPaths.add(projectsSettings.iterator().next().getExternalProjectPath());
       }
     }
@@ -166,6 +156,21 @@ public class IdeaGradleSync implements GradleSync {
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
                      executionMode, true /* always report import errors */);
+    }
+  }
+
+  public static void createGradleProjectSettingsIfNotExist(@NotNull Project project) {
+    GradleSettings gradleSettings = GradleSettings.getInstance(project);
+    Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
+    if (projectsSettings.isEmpty()) {
+      GradleProjectOpenProcessor
+        projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleProjectOpenProcessor.class);
+      if (project.getBasePath() != null && projectOpenProcessor.canOpenProject(project.getBaseDir())) {
+        GradleProjectSettings projectSettings = new GradleProjectSettings();
+        String externalProjectPath = toCanonicalPath(project.getBasePath());
+        projectSettings.setExternalProjectPath(externalProjectPath);
+        gradleSettings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+      }
     }
   }
 
