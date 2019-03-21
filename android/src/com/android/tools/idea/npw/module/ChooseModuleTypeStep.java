@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
  * This step allows the user to select which type of module they want to create.
  */
 public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
+  public static final String ANDROID_AUTOMOTIVE_MODULE_NAME = "Automotive Module";
   public static final String ANDROID_WEAR_MODULE_NAME = "Wear OS Module";
   public static final String ANDROID_TV_MODULE_NAME = "Android TV Module";
   public static final String ANDROID_THINGS_MODULE_NAME = "Android Things Module";
@@ -158,7 +159,8 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
       message("android.wizard.module.new.dynamic.module"),
       message("android.wizard.module.new.dynamic.module.instant"),
       message("android.wizard.module.new.instant.app"),
-      message("android.wizard.module.new.feature.module"), ANDROID_WEAR_MODULE_NAME, ANDROID_TV_MODULE_NAME,
+      message("android.wizard.module.new.feature.module"), ANDROID_AUTOMOTIVE_MODULE_NAME,
+      ANDROID_WEAR_MODULE_NAME, ANDROID_TV_MODULE_NAME,
       ANDROID_THINGS_MODULE_NAME, message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.import.title"),
       JAVA_LIBRARY_MODULE_NAME, GOOGLE_CLOUD_MODULE_NAME,
