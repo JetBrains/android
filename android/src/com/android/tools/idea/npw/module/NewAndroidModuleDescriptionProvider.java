@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw.module;
 
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
+import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -23,21 +29,14 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
-import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.Icon;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
@@ -77,8 +76,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     return res;
   }
 
-  private static Image getModuleTypeIcon(@NotNull File templateFile) {
-    return getTemplateImage(new TemplateHandle(templateFile), false);
+  private static Icon getModuleTypeIcon(@NotNull File templateFile) {
+    return getTemplateIcon(new TemplateHandle(templateFile), false);
   }
 
   private static class AndroidModuleTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
@@ -86,12 +85,12 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     private final FormFactor myFormFactor;
     private final int myMinSdkLevel;
     private final boolean myIsLibrary;
-    private final Image myIcon;
+    private final Icon myIcon;
     private final String myName;
     private final String myDescription;
 
     AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary,
-                                      Image icon, String name, String description) {
+                                      Icon icon, String name, String description) {
       this.myTemplateFile = templateFile;
       this.myFormFactor = formFactor;
       this.myMinSdkLevel = minSdkLevel;
@@ -125,7 +124,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
 
     @Nullable
     @Override
-    public Image getIcon() {
+    public Icon getIcon() {
       return myIcon;
     }
 

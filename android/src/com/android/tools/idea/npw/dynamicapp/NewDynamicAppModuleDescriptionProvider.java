@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -32,9 +32,9 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import java.awt.Image;
 import java.io.File;
 import java.util.Collection;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,8 +75,8 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
     @Nullable
     @Override
-    public Image getIcon() {
-      return getTemplateImage(myTemplateHandle, false);
+    public Icon getIcon() {
+      return getTemplateIcon(myTemplateHandle, false);
     }
 
     @NotNull
