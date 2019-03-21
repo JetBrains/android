@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.npw.ui;
 
+import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
+
 import com.android.tools.adtui.ASGallery;
 import com.google.common.base.Function;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
+import java.awt.Dimension;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 
 /**
  * The Wizard gallery widget for displaying a collection of images and labels.
@@ -33,9 +33,9 @@ import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUM
  */
 public final class WizardGallery<E> extends ASGallery<E> {
   public WizardGallery(@NotNull String title,
-                       @NotNull Function<? super E, Image> imageProvider,
+                       @NotNull Function<? super E, Icon> iconProvider,
                        @NotNull Function<? super E, String> labelProvider) {
-    super(JBList.createDefaultListModel(), imageProvider, labelProvider, DEFAULT_GALLERY_THUMBNAIL_SIZE, null, false);
+    super(JBList.createDefaultListModel(), iconProvider, labelProvider, DEFAULT_GALLERY_THUMBNAIL_SIZE, null, false);
 
     setBorder(BorderFactory.createLineBorder(JBColor.border()));
     getAccessibleContext().setAccessibleDescription(title);
