@@ -348,11 +348,6 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         if (ext != null) {
           results.putAll(ext.getPropertyElements());
         }
-        // Add properties file properties if it exists.
-        GradleDslFile propertiesFile = file.getSiblingDslFile();
-        if (propertiesFile != null) {
-          results.putAll(propertiesFile.getPropertyElements());
-        }
         // Add BuildScriptExt properties.
         BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
         if (buildScriptElement != null) {
