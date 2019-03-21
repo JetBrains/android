@@ -97,6 +97,11 @@ class LinearLayoutDecorator : SceneDecorator() {
     val paint = if (vertical) GradientPaint(0f, 0f, transparent1, 0f, GRADIENT_SIZE, transparent2)
     else GradientPaint(0f, 0f, transparent1, GRADIENT_SIZE, 0f, transparent2)
     list.add(LinearLayoutDecorator.DrawLinearLayout(l, t, w, h, paint, vertical))
+
+    // Draw the regular background for hover only.
+    if (component.drawState == SceneComponent.DrawState.HOVER) {
+      super.addBackground(list, sceneContext, component)
+    }
   }
 
   companion object {

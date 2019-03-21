@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scout;
 
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,7 +121,57 @@ public class Scout {
     ConnectToParentTop,
     ConnectToParentBottom,
     ConnectToParentStart,
-    ConnectToParentEnd,
+    ConnectToParentEnd;
+
+    /** Returns the equivalent {@link AnchorTarget.Type} for the source of this connection. */
+    public AnchorTarget.Type getSrcAnchorType() {
+      switch (this) {
+        case ConnectTopToTop:
+        case ConnectTopToBottom:
+        case ConnectToParentTop:
+          return AnchorTarget.Type.TOP;
+        case ConnectBottomToTop:
+        case ConnectBottomToBottom:
+        case ConnectToParentBottom:
+          return AnchorTarget.Type.BOTTOM;
+        case ConnectStartToStart:
+        case ConnectStartToEnd:
+        case ConnectToParentStart:
+          return AnchorTarget.Type.LEFT;
+        case ConnectEndToStart:
+        case ConnectEndToEnd:
+        case ConnectToParentEnd:
+          return AnchorTarget.Type.RIGHT;
+        case ConnectBaseLineToBaseLine:
+          return AnchorTarget.Type.BASELINE;
+      }
+      return null;
+    }
+
+    /** Returns the equivalent {@link AnchorTarget.Type} for the destination of this connection. */
+    public AnchorTarget.Type getDstAnchorType() {
+      switch (this) {
+        case ConnectTopToTop:
+        case ConnectBottomToTop:
+        case ConnectToParentTop:
+          return AnchorTarget.Type.TOP;
+        case ConnectTopToBottom:
+        case ConnectBottomToBottom:
+        case ConnectToParentBottom:
+          return AnchorTarget.Type.BOTTOM;
+        case ConnectStartToStart:
+        case ConnectEndToStart:
+        case ConnectToParentStart:
+          return AnchorTarget.Type.LEFT;
+        case ConnectStartToEnd:
+        case ConnectEndToEnd:
+        case ConnectToParentEnd:
+          return AnchorTarget.Type.RIGHT;
+        case ConnectBaseLineToBaseLine:
+          return AnchorTarget.Type.BASELINE;
+      }
+      return null;
+    }
   }
 
   public static void connect(List<NlComponent> widgets, Connect action, boolean reverse, boolean margin) {

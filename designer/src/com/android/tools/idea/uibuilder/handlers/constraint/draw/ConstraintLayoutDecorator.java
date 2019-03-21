@@ -170,13 +170,6 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     child.myCache.put(dirType, ConnectionType.SAME);
   }
 
-  @Override
-  protected void addBackground(@NotNull DisplayList list,
-                               @NotNull SceneContext sceneContext,
-                               @NotNull SceneComponent component) {
-    // no background
-  }
-
   /**
    * This is responsible for setting the clip and building the list for this component's children
    *
