@@ -215,7 +215,9 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
     init {
       if (cellEditor != null) {
-        registerTableCellEditor(cellEditor)
+        // Do not call registerTableCellEditor(cellEditor) which registers "JComboBox.isTableCellEditor" property which
+        // breaks property editors.
+        putClientProperty(TABLE_CELL_EDITOR_PROPERTY, cellEditor)
       }
       setEditable(true)
 
