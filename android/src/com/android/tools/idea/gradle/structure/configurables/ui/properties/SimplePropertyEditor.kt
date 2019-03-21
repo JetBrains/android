@@ -201,6 +201,18 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
      */
     fun isEditorChanged() = lastValueSet != null && getValue().value != lastValueSet?.value
 
+    private var delayedActionPending = false
+
+    override fun setPopupVisible(visible: Boolean) {
+      super.setPopupVisible(visible)
+      if (!visible && delayedActionPending) {
+        delayedActionPending = false
+        if (!disposed && !beingLoaded) {
+          onEditorChanged()
+        }
+      }
+    }
+
     init {
       if (cellEditor != null) {
         registerTableCellEditor(cellEditor)
@@ -209,7 +221,12 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
       addActionListener {
         if (!disposed && !beingLoaded) {
-          onEditorChanged()
+          if (super.isPopupVisible()) {
+            delayedActionPending = true
+          }
+          else {
+            onEditorChanged()
+          }
         }
       }
 
