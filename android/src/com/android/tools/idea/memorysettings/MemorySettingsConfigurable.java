@@ -147,10 +147,10 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       return myIDEXmxSlider.getValue() != MemorySettingsUtil.getCurrentXmx();
     }
 
-    // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and IDE_XMX_CAP_IN_GB
+    // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and a hard cap (4GB or 8GB)
     private static int getMaxXmx(int machineMem) {
-      return Math.min((Math.round(machineMem * MAX_PERCENT_OF_AVAILABLE_RAM) >> 8) << 8,
-                      StudioFlags.IDE_XMX_CAP_IN_GB.get() << 10);
+      int ideXmxCap = MemorySettingsUtil.getIdeXmxCapInGB();
+      return Math.min((Math.round(machineMem * MAX_PERCENT_OF_AVAILABLE_RAM) >> 8) << 8, ideXmxCap << 10);
     }
 
     private static String memSizeText(int size) {
