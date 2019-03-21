@@ -43,7 +43,7 @@ class AndroidLintCustomCheckTest {
       myProjectRule.load("projects/lintCustomChecks")
 
       // Publish the library-remote module to a local maven repository so we can get custom Lint checks from its AAR.
-      myProjectRule.invokeTasks(myProjectRule.fixture.project, ":library-remote:uploadArchives")
+      myProjectRule.invokeTasks(":library-remote:uploadArchives")
 
       // We are required (above) to run Gradle sync prior to running :library-remote:uploadArchives, but that means that the app
       // module cannot yet have had a dependency on the remote library (otherwise Gradle sync would fail!). So,
@@ -60,7 +60,7 @@ class AndroidLintCustomCheckTest {
       // From AndroidGradleTestCase:
       //   "When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously."
       // So, we have to invoke the generateDebugSources target manually; we need it in order to trigger the setup of custom Lint checks.
-      myProjectRule.invokeTasks(myProjectRule.fixture.project, "generateDebugSources")
+      myProjectRule.invokeTasks("generateDebugSources")
     }
   }
 

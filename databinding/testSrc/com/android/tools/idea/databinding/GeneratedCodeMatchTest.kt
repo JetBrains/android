@@ -231,7 +231,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   @RunsInEdt
   fun testGeneratedCodeMatchesExpected() {
     // temporary fix until test model can detect dependencies properly
-    val assembleDebug = projectRule.invokeTasks(projectRule.project, "assembleDebug")
+    val assembleDebug = projectRule.invokeTasks("assembleDebug")
     assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
       .that(assembleDebug.isBuildSuccessful).isTrue()
 

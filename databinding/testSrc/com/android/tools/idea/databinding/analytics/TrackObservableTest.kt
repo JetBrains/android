@@ -50,7 +50,7 @@ class TrackObservableTest {
   @Test
   @RunsInEdt
   fun testTrackObservables() {
-    val assembleDebug = projectRule.invokeTasks(projectRule.project, "assembleDebug")
+    val assembleDebug = projectRule.invokeTasks("assembleDebug")
     assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
       .that(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
