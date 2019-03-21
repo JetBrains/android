@@ -15,25 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallErrorHandler.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN;
+import static com.android.tools.idea.gradle.project.sync.idea.ProjectImportErrorHandler.createErrorMessage;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.splitByLines;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.regex.Matcher;
+import org.gradle.tooling.GradleConnectionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import static com.android.tools.idea.gradle.project.sync.idea.ProjectImportErrorHandler.createErrorMessage;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.splitByLines;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 class ErrorAndLocation {
   @NotNull private final ExternalSystemException myError;
@@ -66,6 +64,15 @@ class ErrorAndLocation {
           VirtualFile errorFile = findFileByIoFile(new File(ex.getFilePath()), true);
           if (errorFile != null) {
             return new ErrorAndLocation(createErrorToReport(rootCause), new PositionInFile(errorFile, ex.getLine(), ex.getColumn()));
+          }
+        }
+        // Handle errors when installing distribution differently, otherwise will be treated as an error with a zip file
+        if (rootCause instanceof GradleConnectionException) {
+          String msg = rootCause.getMessage();
+          Matcher matcher = COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN.matcher(msg);
+          if (matcher.matches()) {
+            location = getLocationFrom(rootCause);
+            break;
           }
         }
         if (location == null) {
