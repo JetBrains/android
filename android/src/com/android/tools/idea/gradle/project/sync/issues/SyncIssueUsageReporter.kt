@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecate
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink
@@ -155,6 +156,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is UpgradeAppenginePluginVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.UPGRADE_APPENGINE_PLUGIN_VERSION_HYPERLINK
       is UseJavaHomeAsJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
+      is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 

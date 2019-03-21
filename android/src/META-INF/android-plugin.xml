@@ -868,6 +868,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Jdk8RequiredErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.CachedDependencyNotFoundErrorHandler"/>

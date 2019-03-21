@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
+import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallErrorHandler.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
@@ -101,6 +102,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.zip.ZipException;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -524,6 +526,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
           UsageTracker.log(event);
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
+        }
+      }
+      else if (rootCause instanceof ZipException) {
+        if (COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN.matcher(msg).matches()) {
+          return new ExternalSystemException(msg);
         }
       }
     }
