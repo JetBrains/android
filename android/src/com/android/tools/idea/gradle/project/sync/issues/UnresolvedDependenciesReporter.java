@@ -16,20 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
-import static com.android.ide.common.repository.SdkMavenRepository.findBestPackageMatching;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
-import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
@@ -39,16 +34,12 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallArtifactHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -144,25 +135,9 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       List<VirtualFile> buildFiles = affectedModules.stream().map(m -> buildFileMap.get(m)).collect(Collectors.toList());
       Module module = affectedModules.get(0);
 
-      RepoPackage constraintPackage = null;
-      if (coordinate != null) {
-        ProgressIndicator indicator = new StudioLoggerProgressIndicator(getClass());
-        reloadRemoteSdkWithModalProgress();
-        Collection<RemotePackage> remotePackages = getRemotePackages(indicator);
-        constraintPackage = findBestPackageMatching(coordinate, remotePackages);
-      }
-
-      if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !isSupportedInSdkManager(module)) {
-        quickFixes.add(new FixAndroidGradlePluginVersionHyperlink());
-      }
-      else if (constraintPackage != null) {
-        quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
-      }
-      else if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")) {
+      if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")
+          || dependency.startsWith("com.google.android")) {
         addGoogleMavenRepositoryHyperlink(project, buildFiles, quickFixes);
-      }
-      else if (dependency.startsWith("com.google.android")) {
-        quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
       }
       else {
         if (isOfflineBuildModeEnabled(project)) {
