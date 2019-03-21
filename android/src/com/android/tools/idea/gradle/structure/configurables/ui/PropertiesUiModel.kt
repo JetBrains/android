@@ -80,7 +80,7 @@ typealias
 
 typealias
   PropertyEditorCoreFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
-  (ModelPropertyCoreT, ModelPropertyContextT, PsVariablesScope?) -> ModelPropertyEditor<PropertyT>
+  (ModelPropertyCoreT, ModelPropertyContextT, PsVariablesScope?, cellEditor: TableCellEditor?) -> ModelPropertyEditor<PropertyT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
@@ -158,14 +158,14 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   model: ModelT,
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
-  cellEditor: TableCellEditor?,
+  unusedCellEditor: TableCellEditor?,
   logValueEdited: () -> Unit
 ): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return ListPropertyEditor(
+  return ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>>(
       boundProperty, boundContext,
-      { propertyCore, _, variables ->
+      { propertyCore, _, variables, cellEditor: TableCellEditor? ->
         simplePropertyEditor(
             propertyCore,
             boundContext,
@@ -186,14 +186,14 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   model: ModelT,
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
-  cellEditor: TableCellEditor?,
+  unusedCellEditor: TableCellEditor?,
   logValueEdited: () -> Unit
 ): MapPropertyEditor<ValueT, ModelMapPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return MapPropertyEditor(
       boundProperty, boundContext,
-      { propertyCore, _, variables ->
+      { propertyCore, _, variables, cellEditor ->
         simplePropertyEditor(
             propertyCore,
             boundContext,
