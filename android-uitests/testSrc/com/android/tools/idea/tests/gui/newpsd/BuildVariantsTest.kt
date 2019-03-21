@@ -110,7 +110,7 @@ class BuildVariantsTest {
             clickOk()
           }
           minSdkVersion().enterText("27")
-          targetSdkVersion().selectItem("27 (API 27: Android 8.1 (Oreo))")
+          targetSdkVersion().selectItemWithKeyboard("27 (API 27: Android 8.1 (Oreo))")
         }
       }
       clickOk()
