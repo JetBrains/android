@@ -80,7 +80,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
     children.add(new LibraryFileNode(myProject, myLibrary, settings));
 
     // TODO(jomof): This class is called NdkIncludeResolver but it is resolving a source folder here. This class and associated classes should be renamed to *SourceResolver
-    NdkIncludeResolver resolver = new NdkIncludeResolver(IdeSdks.getInstance().getAndroidNdkPath());
+    NdkIncludeResolver resolver = new NdkIncludeResolver();
     List<String> paths = myLibrary.getSourceFolderPaths();
 
     if (!paths.isEmpty()) {
