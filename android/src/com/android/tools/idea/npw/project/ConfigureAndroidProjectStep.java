@@ -25,7 +25,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion.VersionCodes;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -39,6 +38,7 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
+import com.android.tools.idea.npw.ui.TemplateIcon;
 import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -63,10 +63,6 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.util.ui.ImageUtil;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,8 +70,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -278,24 +272,16 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
     boolean isCppTemplate = myProjectModel.enableCppSupport().get();
-    Image image = ActivityGallery.getTemplateImage(templateHandle, isCppTemplate);
-    if (image != null) {
-      // Template Icons have an invisible pixel border that stops them from aligning top and right, as specified by the design
-      BufferedImage buffImg = ImageUtil.toBufferedImage(image);
-      Rectangle imageExtents = ImageUtils.getCropBounds(buffImg, (img, x, y) -> (img.getRGB(x, y) & 0xFF000000) == 0, null);
-
-      if (imageExtents != null) {
-        // Crop away empty space to left and right of the image.
-        buffImg = buffImg.getSubimage(imageExtents.x, 0, imageExtents.width, buffImg.getHeight());
-      }
-      Icon icon = new ImageIcon(buffImg.getScaledInstance((256 * buffImg.getWidth()) / buffImg.getHeight(), 256, Image.SCALE_SMOOTH));
-
+    TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle, isCppTemplate);
+    if (icon != null) {
+      icon.cropBlankWidth();
+      icon.setHeight(256);
       myTemplateIconTitle.setIcon(icon);
       myTemplateIconTitle.setText(ActivityGallery.getTemplateImageLabel(templateHandle, isCppTemplate));
       myTemplateIconDetail.setText("<html>" + ActivityGallery.getTemplateDescription(templateHandle, isCppTemplate) + "</html>");
     }
-    myTemplateIconTitle.setVisible(image != null);
-    myTemplateIconDetail.setVisible(image != null);
+    myTemplateIconTitle.setVisible(icon != null);
+    myTemplateIconDetail.setVisible(icon != null);
   }
 
   private void createUIComponents() {
