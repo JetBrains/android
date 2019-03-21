@@ -73,9 +73,9 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   }
 
   /**
-   * Given a project with Gradle support, invoke one or more tasks, e.g. "assembleDebug"
+   * Invoke one or more tasks, e.g. "assembleDebug"
    */
-  fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
+  fun invokeTasks(vararg tasks: String): GradleInvocationResult {
     return delegateTestCase.invokeTasks(project, *tasks)
   }
 }

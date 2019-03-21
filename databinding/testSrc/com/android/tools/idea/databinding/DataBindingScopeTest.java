@@ -53,7 +53,7 @@ public class DataBindingScopeTest {
     Project project = myProjectRule.getProject();
     AndroidFacet facet = myProjectRule.getAndroidFacet();
     // temporary fix until test model can detect dependencies properly
-    GradleInvocationResult assembleDebug = myProjectRule.invokeTasks(project, "assembleDebug");
+    GradleInvocationResult assembleDebug = myProjectRule.invokeTasks("assembleDebug");
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     assertFalse(syncState.isSyncNeeded().toBoolean());
     assertSame(ModuleDataBinding.getInstance(facet).getDataBindingMode(), DataBindingMode.SUPPORT);
