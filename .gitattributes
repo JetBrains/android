@@ -1,2 +1,2 @@
-# do not perform CRLF -> LF conversion
-* -text
+# keep this the first line in the file
+*	text=auto
