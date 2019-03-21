@@ -18,14 +18,18 @@ package com.android.tools.adtui;
 import com.google.common.base.Function;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.UIUtil;
-
-import javax.accessibility.Accessible;
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
+import javax.accessibility.Accessible;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
 
 public final class ASGalleryTest extends PlatformTestCase {
   public static final Dimension THUMBNAIL_SIZE = new Dimension(128, 128);
@@ -43,7 +47,7 @@ public final class ASGalleryTest extends PlatformTestCase {
     for (int i = 0; i < COLUMNS; i++) {
       objects[i] = new ModelObject(i + 1);
       if (i > 0) {
-        objects[i].myImage = UIUtil.createImage(500, 500, BufferedImage.TYPE_INT_ARGB);
+        objects[i].myIcon = IconUtil.createImageIcon(UIUtil.createImage(500, 500, BufferedImage.TYPE_INT_ARGB));
       }
       objects[i].myLabel = "Model " + i;
     }
@@ -51,10 +55,10 @@ public final class ASGalleryTest extends PlatformTestCase {
     ASGallery<ModelObject> asGallery =
       new ASGallery<>(
         JBList.createDefaultListModel(objects),
-        new Function<ModelObject, Image>() {
+        new Function<ModelObject, Icon>() {
           @Override
-          public Image apply(ModelObject input) {
-            return input.myImage;
+          public Icon apply(ModelObject input) {
+            return input.myIcon;
           }
         },
         new Function<ModelObject, String>() {
@@ -95,7 +99,7 @@ public final class ASGalleryTest extends PlatformTestCase {
       ModelObject model = objects[i];
       Component renderer = gallery.getCellRenderer().getListCellRendererComponent(gallery, model, i, false, false);
       assertNotNull(renderer);
-      if (model.myImage == null) {
+      if (model.myIcon == null) {
         assertTrue(renderer instanceof JLabel);
         assertEquals(((JLabel)renderer).getText(), model.myLabel);
       } else {
@@ -161,7 +165,7 @@ public final class ASGalleryTest extends PlatformTestCase {
   private static final class ModelObject {
     public final int myNumber;
     public String myLabel;
-    public Image myImage;
+    public Icon myIcon;
 
     public ModelObject(int number) {
       myNumber = number;

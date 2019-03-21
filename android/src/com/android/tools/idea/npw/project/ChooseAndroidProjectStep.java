@@ -51,7 +51,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Arrays;
@@ -62,6 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
@@ -264,7 +264,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
     TemplateRenderer[] listItems = templateRenderers.toArray(new TemplateRenderer[0]);
 
-    ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getImage, TemplateRenderer::getImageLabel);
+    ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getIcon, TemplateRenderer::getImageLabel);
     gallery.setModel(JBList.createDefaultListModel((Object[])listItems));
     gallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems));
 
@@ -343,8 +343,8 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
      * Return the image associated with the current template, if it specifies one, or null otherwise.
      */
     @Nullable
-    Image getImage() {
-      return ActivityGallery.getTemplateImage(myTemplate, isCppTemplate());
+    Icon getIcon() {
+      return ActivityGallery.getTemplateIcon(myTemplate, isCppTemplate());
     }
   }
 }
