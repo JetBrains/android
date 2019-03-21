@@ -24,6 +24,7 @@ import java.awt.Color;
 /**
  * Default color set for the "blueprint" UI mode
  */
+@SuppressWarnings("UseJBColor")
 public class BlueprintColorSet extends ColorSet {
 
     public BlueprintColorSet() {
@@ -35,18 +36,17 @@ public class BlueprintColorSet extends ColorSet {
 
         // Base colors
 
-        mBackground = new Color(35, 77, 110);
-        mComponentObligatoryBackground = mBackground;
-        mComponentBackground = new Color(51, 105, 153, 125);
-        mComponentHighlightedBackground = new Color(51, 105, 153, 185);
-        mFrames = new Color(100, 152, 199);
-        mConstraints = new Color(106, 161, 211);
+        mBackground = new Color(0x225C6E);
+        mComponentObligatoryBackground = new Color(0x225C6E);
+        mComponentBackground = new Color(0x3386CFE5, true);
+        mFrames = new Color(0xCC86CFE5, true);
+        mConstraints = new Color(0xCC86CFE5, true);
         mSoftConstraintColor = new Color(102, 129, 204, 80);
-        mButtonBackground  = new Color(51, 105, 153, 160);
-        mMargins = new Color(150, 150, 180);
+        mButtonBackground  = new Color(51, 105, 153, 0);
+        mMargins = new Color(0xCC86CFE5, true);;
         mText = new Color(220, 220, 220);
         mSnapGuides = new Color(220, 220, 220);
-        mFakeUI = new Color(230, 230, 250);
+        mFakeUI = new Color(0x5DA0B5);
         myUnconstrainedColor = new Color(220, 103, 53);
 
         // Subdued colors
@@ -59,17 +59,16 @@ public class BlueprintColorSet extends ColorSet {
         // Light colors
 
         mHighlightedBackground = ColorTheme.updateBrightness(mBackground, 1.3f);
-        mHighlightedFrames = ColorTheme.updateBrightness(mFrames, 1.2f);
+        mHighlightedFrames = mFrames;
         mHighlightedSnapGuides = new Color(220, 220, 220, 128);
-        mHighlightedConstraints = ColorTheme.fadeToColor(
-                ColorTheme.updateBrightness(mConstraints, 1.4f),
-                Color.white, 0.3f);
+        mHighlightedConstraints = new Color(0xEAFAFF);
+        mComponentHighlightedBackground = ColorTheme.updateBrightness(mComponentBackground, 1.0f, 0x66);
 
         // Selected colors
 
         mSelectedBackground = ColorTheme.updateBrightness(mBackground, 1.3f);
         mSelectedConstraints = Color.white;
-        mSelectedFrames = Color.white;
+        mSelectedFrames = new Color(0xEAFAFF);
         mSelectedText = ColorTheme.fadeToColor(mText, mSelectedBackground, 0.7f);
 
         // Anchor colors
