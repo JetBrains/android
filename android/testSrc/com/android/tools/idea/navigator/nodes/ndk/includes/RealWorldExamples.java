@@ -22,10 +22,16 @@ import java.util.List;
 
 public class RealWorldExamples {
 
+
+  public final static String[] NDK_R19_LEGACY_EXAMPLE = {
+    "--sysroot={ndkPath}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+  };
+
+
   // This is an example from r19, there is only a single include header (sysroot)
   // So we need to be careful not to collapse that node. Otherwise, the user receives a
   // giant flat list of folders that makes less sense.
-  public final static String[] NDK_R19_EXAMPLE = {
+  public final static String[] NDK_R19_SXS_EXAMPLE = {
     "--sysroot=/usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"
   };
 
