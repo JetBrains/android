@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">App With Compile Errors</string>
+    <string name="title_activity_main">Main</string>
+</resources>
