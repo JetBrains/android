@@ -89,7 +89,9 @@ class DataBindingOutputParser : BuildOutputParser {
           messageConsumer.accept(MessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))
         }
         else {
-          val sourceFile = File(msg.filePath)
+          // Note: msg.filePath is relative, but the build output window can't seem to find the
+          // file unless we feed it the absolute path directly.
+          val sourceFile = File(msg.filePath).absoluteFile
           val location = msg.locations.first()
           val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
           messageConsumer.accept(
