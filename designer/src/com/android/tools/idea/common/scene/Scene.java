@@ -49,6 +49,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -64,9 +65,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.intellij.lang.annotations.MagicConstant;
@@ -119,6 +122,7 @@ public class Scene implements SelectionListener, Disposable {
   private SceneComponent myHitComponent;
   List<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
   List<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
+  Set<SceneComponent> myHoveredComponents = new HashSet<>();
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
@@ -527,6 +531,9 @@ public class Scene implements SelectionListener, Disposable {
         }
       }
     }
+
+    updateHoveredComponentsDrawState();
+
     SceneComponent closestComponent = myHoverListener.getClosestComponent();
     if (closestComponent != null && tooltip == null) {
       tooltip = closestComponent.getNlComponent().getTooltipText();
@@ -630,6 +637,37 @@ public class Scene implements SelectionListener, Disposable {
       tooltip = "";
     }
     return tooltip;
+  }
+
+  /** Updates the draw state of components being hovered. */
+  private void updateHoveredComponentsDrawState() {
+    List<SceneComponent> hitComponents = myHoverListener.getHitComponents();
+    // Update draw state for currently hovered components.
+    for (SceneComponent component : hitComponents) {
+      // Skip closest/current component. Not handled here.
+      if (component != myCurrentComponent ) {
+        NlComponent nlComponent = component.getAuthoritativeNlComponent();
+        if (DecoratorUtilities.getTryingToConnectState(nlComponent) != null) {
+          // Draw as hovered when creating constraints.
+          component.setDrawState(SceneComponent.DrawState.HOVER);
+        }
+        else {
+          component.setDrawState(SceneComponent.DrawState.NORMAL);
+        }
+      }
+      myHoveredComponents.remove(component);
+    }
+
+    Iterator<SceneComponent> iterator = myHoveredComponents.iterator();
+    // Components not being hovered anymore are set to normal.
+    while(iterator.hasNext()) {
+      SceneComponent component = iterator.next();
+      component.setDrawState(SceneComponent.DrawState.NORMAL);
+      iterator.remove();
+    }
+
+    // Keep current hovered components.
+    myHoveredComponents.addAll(hitComponents);
   }
 
   private void setCursor(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
