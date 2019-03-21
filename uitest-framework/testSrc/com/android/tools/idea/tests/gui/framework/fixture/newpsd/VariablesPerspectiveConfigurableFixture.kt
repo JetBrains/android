@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.variables.VARIABLES_VIEW
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
-import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.treetable.TreeTable
-import org.fest.swing.data.TableCell
 import org.fest.swing.driver.BasicJTableCellReader
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JListFixture
@@ -99,11 +96,13 @@ class VariablesPerspectiveConfigurableFixture(
     waitForIdle()
   }
 
-  fun selectValue(value: String) {
+  fun selectValue(value: String, withKeyboard: Boolean = false) {
     PropertyEditorFixture(
-      ideFrameFixture,
-      robot().finder().findByType<SimplePropertyEditor<*, *>.EditorWrapper>(container)
-    ).selectItem(value)
+        ideFrameFixture,
+        robot().finder().findByType<SimplePropertyEditor<*, *>.EditorWrapper>(container)
+    ).let {
+      if (withKeyboard) it.selectItemWithKeyboard(value) else it.selectItem(value)
+    }
     waitForIdle()
   }
 
