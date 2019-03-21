@@ -43,7 +43,7 @@ public class MergedManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetLibManifests() throws Exception {
-    List<VirtualFile> libManifests = MergedManifestInfo.MergedManifestContributors.determineFor(myFacet).libraryManifests;
+    List<VirtualFile> libManifests = MergedManifestContributors.determineFor(myFacet).libraryManifests;
     // TODO: add external library dependency to local library module and check to make sure libManifests lists the local one first.
   }
 
