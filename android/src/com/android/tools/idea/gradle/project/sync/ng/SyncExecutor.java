@@ -58,6 +58,7 @@ import java.util.List;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.createGradleProjectSettingsIfNotExist;
 import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
@@ -126,6 +127,7 @@ class SyncExecutor {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }
 
+    createGradleProjectSettingsIfNotExist(myProject);
     // TODO: Handle sync cancellation.
 
     GradleExecutionSettings executionSettings = findGradleExecutionSettings();
