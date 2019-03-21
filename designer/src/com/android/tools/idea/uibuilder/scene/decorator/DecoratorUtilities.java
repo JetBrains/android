@@ -193,57 +193,73 @@ public class DecoratorUtilities {
    */
   public static void setTryingToConnectState(NlComponent component, AnchorTarget.Type type, boolean on) {
     List<NlComponent> sisters = component.getParent().getChildren();
-    String id = component.getId();
+    setTryingToConnectState(component, sisters, type, on);
+  }
+
+  /**
+   * Set or clears the "trying to connect" state on a given set of NlComponents and the source component.
+   * The state is a Integer flag, bit 0=top,1=south,2=east,3=west,4=baseline
+   *
+   * @param component
+   * @param dstComponents
+   * @param type
+   * @param on
+   */
+  public static void setTryingToConnectState(NlComponent srcComponent,
+                                             List<NlComponent> dstComponents,
+                                             AnchorTarget.Type type,
+                                             boolean on) {
     HashSet<String> connected;
     Integer mask;
     if (on) {
-      component.putClientProperty(TRY_TO_CONNECT, 0);
+      srcComponent.putClientProperty(TRY_TO_CONNECT, 0);
       switch (type) {
         case TOP:
         case BOTTOM:
           mask = MASK_TOP | MASK_BOTTOM;
-          connected = getConnected(component, sisters,
+          connected = getConnected(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourBottomAttributes,
                                    ConstraintComponentUtilities.ourTopAttributes);
-          for (NlComponent sister : sisters) {
-            if (sister != component && !connected.contains(sister.getId())) {
-              sister.putClientProperty(TRY_TO_CONNECT, mask);
+          for (NlComponent dstComponent : dstComponents) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent.getId())) {
+              dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
           break;
         case RIGHT:
         case LEFT:
           mask = MASK_LEFT | MASK_RIGHT;
-          connected = getConnected(component, sisters,
+          connected = getConnected(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourRightAttributes,
                                    ConstraintComponentUtilities.ourLeftAttributes,
                                    ConstraintComponentUtilities.ourStartAttributes,
                                    ConstraintComponentUtilities.ourEndAttributes);
-          for (NlComponent sister : sisters) {
-            if (sister != component && !connected.contains(sister.getId())) {
-              sister.putClientProperty(TRY_TO_CONNECT, mask);
+          for (NlComponent dstComponent : dstComponents) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent.getId())) {
+              dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
           break;
 
         case BASELINE:
           mask = MASK_BASELINE;
-          connected = getConnected(component, sisters,
+          connected = getConnected(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourBottomAttributes,
                                    ConstraintComponentUtilities.ourTopAttributes,
                                    ConstraintComponentUtilities.ourBaselineAttributes);
-          for (NlComponent sister : sisters) {
-            if (sister != component && !connected.contains(sister.getId())) {
-              sister.putClientProperty(TRY_TO_CONNECT, mask);
+          for (NlComponent dstComponent : dstComponents) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent.getId())) {
+              dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
           break;
       }
     }
     else {
-      for (NlComponent sister : sisters) {
-        sister.removeClientProperty(TRY_TO_CONNECT);
+      for (NlComponent dstComponent : dstComponents) {
+        dstComponent.removeClientProperty(TRY_TO_CONNECT);
       }
+      srcComponent.removeClientProperty(TRY_TO_CONNECT);
     }
   }
 

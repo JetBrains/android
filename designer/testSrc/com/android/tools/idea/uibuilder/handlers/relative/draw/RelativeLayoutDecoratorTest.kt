@@ -64,8 +64,7 @@ class RelativeLayoutDecoratorTest: SceneTest() {
     myScreen.get("@+id/a").expectXml(expectedXml)
 
     val expectedSerializedList =
-"""DrawComponentBackground,0,0,500,500,1
-DrawNlComponentFrame,0,0,500,500,1,1000,1000
+"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
@@ -87,8 +86,7 @@ UNClip
     )
 
     val expectedDrawCommand =
-"""DrawComponentBackground,0,0,500,500,1
-DrawNlComponentFrame,0,0,500,500,1,1000,1000
+"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 UNClip
 """
@@ -123,8 +121,7 @@ UNClip
     )
 
     val expectedDrawCommand =
-"""DrawComponentBackground,0,0,500,500,1
-DrawNlComponentFrame,0,0,500,500,1,1000,1000
+"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
@@ -177,8 +174,7 @@ UNClip
     )
 
     val expectedDrawCommand =
-"""DrawComponentBackground,0,0,500,500,1
-DrawNlComponentFrame,0,0,500,500,1,1000,1000
+"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,265,30,10,1
 DrawImageView,225,265,30,10
@@ -249,8 +245,7 @@ UNClip
     )
 
     val expectedDrawCommand =
-"""DrawComponentBackground,0,0,500,500,1
-DrawNlComponentFrame,0,0,500,500,1,1000,1000
+"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50

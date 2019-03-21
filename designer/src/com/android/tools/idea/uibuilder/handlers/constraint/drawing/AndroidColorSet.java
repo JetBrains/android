@@ -59,6 +59,7 @@ public class AndroidColorSet extends ColorSet {
 
         // Highlight colors
 
+        mComponentHighlightedBackground = new Color(0x591886F7, true);
         mHighlightedBackground = Color.white;
         mHighlightedFrames = new Color(106, 161, 211);
         mHighlightedSnapGuides = Color.orange;
