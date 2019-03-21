@@ -26,6 +26,7 @@ import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Container
+import java.awt.event.KeyEvent
 import javax.swing.JList
 import javax.swing.JTextField
 
@@ -37,16 +38,24 @@ class PropertyEditorFixture(
 ) : IdeFrameContainerFixture {
 
   fun selectItem(text: String) {
-    val comboBoxFixture = JComboBoxFixture(robot(), robot().finder().findByType<ComboBox<*>>(
-      container))
-    comboBoxFixture.replaceCellReader { comboBox, index ->
-      val item = comboBox.getItemAt(index)
-      val renderer = comboBox.renderer
-      val rendererComponent = renderer.getListCellRendererComponent(
-        REFERENCE_JLIST, item, index, true, true)
-      rendererComponent.safeAs<SimpleColoredComponent>()?.toString().orEmpty()
-    }
+    val comboBoxFixture = createComboBoxFicture()
     comboBoxFixture.selectItem(text)
+  }
+
+  fun selectItemWithKeyboard(text: String, andTab: Boolean = false) {
+    val comboBoxFixture = createComboBoxFicture()
+    comboBoxFixture.focus()
+    val contents = comboBoxFixture.contents()
+    val index = contents.indexOf(text)
+    if (index < 0) throw IllegalStateException("'$text' not found. Available items: ${contents.joinToString()}")
+    robot().pressAndReleaseKey(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK)
+    waitForIdle()
+    for (i in 0..index) {
+      robot().pressAndReleaseKey(KeyEvent.VK_DOWN)
+      waitForIdle()
+    }
+    if (andTab) robot().pressAndReleaseKey(KeyEvent.VK_TAB) else robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
+    waitForIdle()
   }
 
   fun enterText(text: String) {
@@ -63,5 +72,18 @@ class PropertyEditorFixture(
       robot().finder().findByType<JTextField>(
         robot().finder().findByType<ComboBox<*>>(container)))
     return textFiexture.text().orEmpty()
+  }
+
+  private fun createComboBoxFicture(): JComboBoxFixture {
+    val comboBoxFixture = JComboBoxFixture(robot(), robot().finder().findByType<ComboBox<*>>(
+        container))
+    comboBoxFixture.replaceCellReader { comboBox, index ->
+      val item = comboBox.getItemAt(index)
+      val renderer = comboBox.renderer
+      val rendererComponent = renderer.getListCellRendererComponent(
+          REFERENCE_JLIST, item, index, true, true)
+      rendererComponent.safeAs<SimpleColoredComponent>()?.toString().orEmpty()
+    }
+    return comboBoxFixture
   }
 }
