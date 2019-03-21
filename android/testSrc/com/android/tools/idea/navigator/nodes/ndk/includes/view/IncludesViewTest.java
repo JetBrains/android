@@ -134,36 +134,20 @@ public class IncludesViewTest extends IdeaTestCase {
 
   public void testNdkLayout() throws IOException {
     IncludeLayout layout = new IncludeLayout()
-      .addRemoteHeaders("my-ndk-folder/sources/android/native_app_glue/foo.h")
-      .addRemoteHeaders("my-ndk-folder/sources/android/ndk_helper/bar.h")
-      .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/native_app_glue")
-      .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/ndk_helper")
+      .addRemoteHeaders("ndk-build/sources/android/native_app_glue/foo.h")
+      .addRemoteHeaders("ndk-build/sources/android/ndk_helper/bar.h")
+      .addRemoteArtifactIncludePaths("my-artifact", "ndk-build/sources/android/native_app_glue")
+      .addRemoteArtifactIncludePaths("my-artifact", "ndk-build/sources/android/ndk_helper")
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
     IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
     assertSame(mockIdeSdks, IdeSdks.getInstance());
-    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-build");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-      List<? extends AbstractTreeNode> nodes =
-        Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
-      assertThat(nodes).hasSize(1);
-
-      PackagingFamilyViewNode child1 = (PackagingFamilyViewNode)nodes.get(0);
-      List<? extends AbstractTreeNode> child1Children = Lists.newArrayList(child1.getChildren());
-      assertThat(child1Children).hasSize(2);
-      SimpleIncludeViewNode child1Child1 = (SimpleIncludeViewNode)child1Children.get(0);
-      SimpleIncludeViewNode child1Child2 = (SimpleIncludeViewNode)child1Children.get(1);
-      List<? extends AbstractTreeNode> child2child1Children = Lists.newArrayList(child1Child1.getChildren());
-      List<? extends AbstractTreeNode> child2child2Children = Lists.newArrayList(child1Child2.getChildren());
-      assertThat(child2child1Children).hasSize(1);
-      assertThat(child2child2Children).hasSize(1);
-      PsiFileNode child2child1child1 = (PsiFileNode)child2child1Children.get(0);
-      PsiFileNode child2child2child1 = (PsiFileNode)child2child2Children.get(0);
-      assertThat(child2child1child1.getVirtualFile().getName()).isEqualTo("bar.h");
-      assertThat(child2child2child1.getVirtualFile().getName()).isEqualTo("foo.h");
-      checkPresentationDataHasOsSpecificSlashes(child1Child1, "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
-
+    List<? extends AbstractTreeNode> nodes =
+      Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
+    assertThat(nodes).hasSize(2);
   }
 }
