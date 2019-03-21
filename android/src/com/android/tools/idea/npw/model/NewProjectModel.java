@@ -79,10 +79,12 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
+  static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
+  static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
+  static final String PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE";
+
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
-  private static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
-  private static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
 
@@ -97,7 +99,7 @@ public class NewProjectModel extends WizardModel {
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final MultiTemplateRenderer myMultiTemplateRenderer;
-  private final ObjectProperty<Language> myLanguage = new ObjectValueProperty<>(getInitialLanguageSupport());
+  private final ObjectProperty<Language> myLanguage = new ObjectValueProperty<>(calculateInitialLanguage(PropertiesComponent.getInstance()));
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
   private final BoolProperty myUseAndroidx = new BoolValueProperty();
 
@@ -273,11 +275,27 @@ public class NewProjectModel extends WizardModel {
   }
 
   /**
-   * Loads saved value for Kotlin support.
+   * Calculates the initial values for the language and updates the {@link PropertiesComponent}
+   * @return If Language was previously saved, just return that saved value.
+   *         If User used the old UI check-box to select "Use Kotlin" or the User is using the Wizard for the first time => Kotlin
+   *         otherwise Java (ie user used the wizards before, and un-ticked the check-box)
    */
-  private static Language getInitialLanguageSupport() {
-    // If the value is not defined, we default to recommended (kotlin as nov-2018)
-    return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_KOTLIN_SUPPORT_KEY), Language.KOTLIN);
+  @NotNull
+  static Language calculateInitialLanguage(@NotNull PropertiesComponent props) {
+    String languageValue = props.getValue(PROPERTIES_NPW_LANGUAGE_KEY);
+    if (languageValue != null) {
+      // We have this value saved already, nothing to do
+      return Language.fromName(languageValue, Language.KOTLIN);
+    }
+
+    boolean selectedOldUseKotlin = props.getBoolean(PROPERTIES_KOTLIN_SUPPORT_KEY);
+    boolean isFirstUsage = !props.isValueSet(PROPERTIES_ANDROID_PACKAGE_KEY);
+    Language res = (selectedOldUseKotlin || isFirstUsage) ? Language.KOTLIN : Language.JAVA;
+
+    // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, res.getName());
+    props.unsetValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
+    return res;
   }
 
   /**
@@ -293,7 +311,7 @@ public class NewProjectModel extends WizardModel {
     if (wizardResult == ModelWizard.WizardResult.FINISHED) {
       // Set the property value
       PropertiesComponent.getInstance().setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-      PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, myLanguage.get().getName());
+      PropertiesComponent.getInstance().setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.get().getName());
     }
   }
 
