@@ -187,12 +187,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
-      myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
+      myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get()
+                                    && myProjectModel.isAndroidxAvailable()
+                                    && formFactor != FormFactor.AUTOMOTIVE); // New automotive projects will use Androidx by default.
     });
 
     myListeners.listenAndFire(androidSdkInfo, sender -> {
       VersionItem androidVersion = androidSdkInfo.getValueOrNull();
-      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
+      boolean isAndroidxOnly = (androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q)
+                               || getModel().formFactor().get() == FormFactor.AUTOMOTIVE; // New automotive projects use Androidx by default
       if (isAndroidxOnly) {
         // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
         myUseAndroidxCheck.setSelected(true);
