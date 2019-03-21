@@ -251,7 +251,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   public void testNdkSxsExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
-      RealWorldExamples.NDK_R19_EXAMPLE);
+      RealWorldExamples.NDK_R19_SXS_EXAMPLE);
     IncludeSet set = new IncludeSet();
     set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
     List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
@@ -263,6 +263,25 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
                           "NDK r19c (/usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600)",
                           "LLVM (NDK r19c, /usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600, " +
                           "/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/usr/include/)");
+  }
+
+  @Test
+  public void testNdkLegacyExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.NDK_R19_LEGACY_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.println(result);
+    assertThat(dependencies).hasSize(1);
+    assertContainsInOrder(result,
+                          "NDK Components (/path/to/ndk-bundle)",
+                          " LLVM (NDK Components, /path/to/ndk-bundle, " +
+                          "/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/)");
   }
 
   @Test

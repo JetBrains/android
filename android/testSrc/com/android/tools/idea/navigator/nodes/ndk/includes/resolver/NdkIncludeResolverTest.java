@@ -38,7 +38,7 @@ public class NdkIncludeResolverTest {
   // them and fire an assert so that the new package can be added and a test written.
   @Test
   public void exerciseRealWorldExamples() {
-    for (ResolverTests.ResolutionResult resolved : ResolverTests.resolveAllRealWorldExamples(new NdkIncludeResolver(new File(PATH_TO_NDK)))) {
+    for (ResolverTests.ResolutionResult resolved : ResolverTests.resolveAllRealWorldExamples(new NdkIncludeResolver())) {
       if (resolved.myResolution == null) {
         if (!resolved.myOriginalPath.contains("/samples/")) {
           assertThat(resolved.myOriginalPath).doesNotContain("ndk-bundle");
@@ -52,7 +52,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkPackageSysroot() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-isystem{ndkPath}/sysroot/usr/include/aarch64-linux-android");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -77,7 +77,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testPackagingGetPackagingFamilyBaseFolderNameRelativeToHome() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/android/cpufeatures");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -98,7 +98,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkPlatformFolderResolves() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/platforms/android-21/arch-arm64/usr/include");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -112,7 +112,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkSideBySidePlatformFolderResolves() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I" + PATH_TO_SIDE_BY_SIDE_NDK + "/platforms/android-21/arch-arm64/usr/include");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -126,7 +126,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkStlportResolves() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/cxx-stl/stlport/stlport");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -140,7 +140,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkGnuLibstdResolves() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -154,7 +154,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkThirdPartyToolsResolve() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/third_party/googletest/googletest/include");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -168,7 +168,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkToolchainResolve() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/toolchains/renderscript/prebuilt/{platform}-x86_64/lib/clang/3.5/include");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -183,7 +183,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkCpuFeaturesResolve() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/android/cpufeatures");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -198,7 +198,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkNativeAppGlueResolve() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/android/native_app_glue");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -213,7 +213,7 @@ public class NdkIncludeResolverTest {
   @Test
   public void testNdkHelperResolve() {
     List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
-      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      new NdkIncludeResolver(),
       "-I{ndkPath}/sources/android/ndk_helper");
     assertThat(resolutions).hasSize(1);
     SimpleIncludeValue resolution = resolutions.get(0);
@@ -232,7 +232,7 @@ public class NdkIncludeResolverTest {
       IncludeSet set = new IncludeSet();
       set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
       for (File include : set.getIncludesInOrder()) {
-        NdkIncludeResolver resolver = new NdkIncludeResolver(new File(PATH_TO_NDK));
+        NdkIncludeResolver resolver = new NdkIncludeResolver();
         SimpleIncludeValue nativeDependency = resolver.resolve(include);
         if (nativeDependency != null) {
           dependencies.add(nativeDependency);
