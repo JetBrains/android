@@ -21,6 +21,7 @@ import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -55,6 +56,9 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
       if (formFactor == FormFactor.CAR) {
         // Auto is not a standalone module (but rather a modification to a mobile module)
+      }
+      else if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
+        // If automotive templates are not enabled, then we just ignore this form factor.
       }
       else if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
         // Hidden if not installed

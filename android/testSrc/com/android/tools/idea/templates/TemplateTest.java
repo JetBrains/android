@@ -881,6 +881,17 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testAutomotiveMediaService() throws Exception {
+    // Note: Automotive is only enabled in the UI for androidx projects
+    checkCreateTemplate("other", "AutomotiveMediaService", false, withAndroidx);
+  }
+
+  @TemplateCheck
+  public void testAutomotiveMediaServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", false, withAndroidxAndKotlin);
+  }
+
+  @TemplateCheck
   public void testAndroidAutoMessagingService() throws Exception {
     checkCreateTemplate("other", "AndroidAutoMessagingService");
   }
