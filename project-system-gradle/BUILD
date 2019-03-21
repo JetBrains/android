@@ -32,6 +32,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
     ],
 )
 
@@ -59,6 +60,7 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
