@@ -19,6 +19,8 @@
         <errorHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsReportSubmitter"/>
         <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidGotoDeclarationHandler"/>
 
+        <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
+
         <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IllegalIdentifierInspection"
                          displayName="Illegal Android Identifier"
                          groupName="Kotlin Android"
