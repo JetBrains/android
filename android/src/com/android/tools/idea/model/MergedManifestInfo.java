@@ -142,14 +142,14 @@ final class MergedManifestInfo {
     Project project = facet.getModule().getProject();
     long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
 
-    MergedManifestContributors manifests = MergedManifestContributors.determineFor(facet);
-    TObjectLongHashMap<VirtualFile> lastModified = getFileModificationStamps(project, manifests.allFiles);
+    MergedManifestContributors contributors = MergedManifestContributors.determineFor(facet);
+    TObjectLongHashMap<VirtualFile> lastModified = getFileModificationStamps(project, contributors.allFiles);
 
     Document document = null;
     ImmutableList<MergingReport.Record> loggingRecords = null;
     Actions actions = null;
 
-    ParsedMergeResult result = mergeManifests(facet, manifests);
+    ParsedMergeResult result = mergeManifests(facet, contributors);
     if (result != null) {
       document = result.document;
       loggingRecords = result.loggingRecords;
@@ -160,8 +160,8 @@ final class MergedManifestInfo {
     // Even if parsing the primary manifest fails, we return a ManifestFile with a null document instead of just returning null
     // to expose the logged errors and so that callers can use isUpToDate() to see if there's been any changes that might make
     // the merge succeed if we try again.
-    if (document == null && manifests.primaryManifest != null) {
-      PsiFile psiFile = PsiManager.getInstance(project).findFile(manifests.primaryManifest);
+    if (document == null && contributors.primaryManifest != null) {
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(contributors.primaryManifest);
       if (psiFile != null) {
         document = XmlUtils.parseDocumentSilently(psiFile.getText(), true);
       }
@@ -273,176 +273,6 @@ final class MergedManifestInfo {
   @Nullable
   public Actions getActions() {
     return myActions;
-  }
-
-  /**
-   * Immutable data object responsible for determining all the files that contribute to
-   * the merged manifest of a particular AndroidFacet at a particular moment in time.
-   */
-  @Immutable
-  static class MergedManifestContributors {
-    private static final Pattern NAV_DIR_PATTERN = Pattern.compile("^navigation(-.*)?$");
-
-    @NotNull final ImmutableList<VirtualFile> allFiles;
-    @Nullable final VirtualFile primaryManifest;
-    @NotNull final ImmutableList<VirtualFile> flavorAndBuildTypeManifests;
-    @NotNull final ImmutableList<VirtualFile> libraryManifests;
-    @NotNull final ImmutableList<VirtualFile> navigationFiles;
-
-    private MergedManifestContributors(@Nullable VirtualFile primaryManifest,
-                                       @NotNull ImmutableList<VirtualFile> flavorAndBuildTypeManifests,
-                                       @NotNull ImmutableList<VirtualFile> libraryManifests,
-                                       @NotNull ImmutableList<VirtualFile> navigationFiles,
-                                       @NotNull ImmutableList<VirtualFile> allFiles) {
-      this.primaryManifest = primaryManifest;
-      this.flavorAndBuildTypeManifests = flavorAndBuildTypeManifests;
-      this.libraryManifests = libraryManifests;
-      this.navigationFiles = navigationFiles;
-      this.allFiles = allFiles;
-    }
-
-    @NotNull
-    public static MergedManifestContributors determineFor(@NotNull AndroidFacet facet) {
-      ImmutableList.Builder<VirtualFile> allBuilder = ImmutableList.builder();
-
-      VirtualFile primaryManifest = AndroidRootUtil.getPrimaryManifestFile(facet);
-      if (primaryManifest != null) {
-        allBuilder.add(primaryManifest);
-      }
-
-      ImmutableList<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(facet);
-      allBuilder.addAll(flavorAndBuildTypeManifests);
-
-      ImmutableList<VirtualFile> libraryManifests = facet.getConfiguration().isAppOrFeature() ? getLibManifests(facet) : ImmutableList.of();
-      allBuilder.addAll(libraryManifests);
-
-      ImmutableList<VirtualFile> navigationFiles = getNavigationFiles(facet);
-      allBuilder.addAll(navigationFiles);
-
-      // We want to track changes in these files, but we do not actually use them directly.
-      allBuilder.addAll(getFlavorAndBuildTypeManifestsOfLibs(facet));
-
-      return new MergedManifestContributors(primaryManifest, flavorAndBuildTypeManifests, libraryManifests, navigationFiles,
-                                            allBuilder.build());
-    }
-
-    @NotNull
-    static ImmutableList<VirtualFile> getFlavorAndBuildTypeManifestsOfLibs(@NotNull AndroidFacet facet) {
-      ImmutableList.Builder<VirtualFile> flavorAndBuildTypeManifestsOfLibs = ImmutableList.builder();
-      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-      for (AndroidFacet dependency : dependencies) {
-        flavorAndBuildTypeManifestsOfLibs.addAll(getFlavorAndBuildTypeManifests(dependency));
-      }
-      return flavorAndBuildTypeManifestsOfLibs.build();
-    }
-
-    @NotNull
-    private static ImmutableList<VirtualFile> getFlavorAndBuildTypeManifests(@NotNull AndroidFacet facet) {
-      // get all other manifests for this module, (NOT including the default one)
-      ImmutableList.Builder<VirtualFile> flavorAndBuildTypeManifests = ImmutableList.builder();
-      IdeaSourceProvider defaultSourceProvider = facet.getMainIdeaSourceProvider();
-      for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
-        if (!defaultSourceProvider.equals(provider)) {
-          VirtualFile flavorOrBuildTypeManifest = provider.getManifestFile();
-          if (flavorOrBuildTypeManifest != null) {
-            flavorAndBuildTypeManifests.add(flavorOrBuildTypeManifest);
-          }
-        }
-      }
-      return flavorAndBuildTypeManifests.build();
-    }
-
-    @NotNull
-    private static ImmutableList<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
-      ImmutableList.Builder<VirtualFile> libraryManifests = ImmutableList.builder();
-
-      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-
-      // add local library manifests to libraryManifests before external library manifests because local manifests have higher priority.
-      for (AndroidFacet dependency : dependencies) {
-        VirtualFile vFile = dependency.getMainIdeaSourceProvider().getManifestFile();
-        if (vFile != null) {
-          libraryManifests.add(vFile);
-        }
-      }
-
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-      if (androidModuleModel != null) {
-        Collection<AndroidLibrary> libraries = androidModuleModel.getSelectedMainCompileDependencies().getLibraries();
-        Set<File> set = new HashSet<>();
-        for (AndroidLibrary dependency : libraries) {
-          addAarManifests(dependency, set, dependencies);
-        }
-        for (File file : set) {
-          VirtualFile libraryManifest = VfsUtil.findFileByIoFile(file, false);
-          if (libraryManifest != null) { // some sort of user error, they don't have a manifest for a lib
-            libraryManifests.add(libraryManifest);
-          } // else the file is specified in the model, but not actually available yet, such as exploded AAR manifests
-        }
-      }
-
-      return libraryManifests.build();
-    }
-
-    /**
-     * get all navigation files for this module, ordered from higher precedence to lower precedence
-     */
-    // b/70815924 - Change implementation to use resource repository API
-    @NotNull
-    private static ImmutableList<VirtualFile> getNavigationFiles(@NotNull AndroidFacet facet) {
-      ImmutableList.Builder<VirtualFile> navigationFiles = ImmutableList.builder();
-
-      List<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
-      // iterate over providers in reverse order so higher precedence navigation files are first
-      for (int n = providers.size() - 1; n >= 0; n--) {
-        Collection<VirtualFile> resDirs = providers.get(n).getResDirectories();
-        for (VirtualFile resDir : resDirs) {
-          if (resDir == null) {
-            continue;
-          }
-          VirtualFile[] resDirFolders = resDir.getChildren();
-          if (resDirFolders == null) {
-            continue;
-          }
-          for (VirtualFile resDirFolder : resDirFolders) {
-            if (resDirFolder == null || !NAV_DIR_PATTERN.matcher(resDirFolder.getName()).matches()) {
-              continue;
-            }
-            VirtualFile[] resFiles = resDirFolder.getChildren();
-            if (resFiles == null) {
-              continue;
-            }
-            for (VirtualFile resFile : resFiles) {
-              if (resFile != null && !resFile.isDirectory()) {
-                navigationFiles.add(resFile);
-              }
-            }
-          }
-        }
-      }
-      return navigationFiles.build();
-    }
-
-    private static void addAarManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result, @NotNull List<AndroidFacet> moduleDeps) {
-      String projectName = lib.getProject();
-      if (projectName != null) {
-        // The model ends up with AndroidLibrary references both to normal, source modules,
-        // as well as AAR dependency wrappers. We don't want to add an AAR reference for
-        // normal libraries (so we find these and just return below), but we *do* want to
-        // include AAR wrappers.
-        for (AndroidFacet f : moduleDeps) {
-          if (projectName.equals(GradleUtil.getGradlePath(f.getModule()))) {
-            return;
-          }
-        }
-      }
-      if (!result.contains(lib.getManifest())) {
-        result.add(lib.getManifest());
-        for (AndroidLibrary dependency : lib.getLibraryDependencies()) {
-          addAarManifests(dependency, result, moduleDeps);
-        }
-      }
-    }
   }
 
   @Slow
