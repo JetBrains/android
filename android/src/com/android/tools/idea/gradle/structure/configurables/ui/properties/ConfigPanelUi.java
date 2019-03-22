@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties;
 
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ public class ConfigPanelUi {
   private int myLastRow = -1;
   private JPanel myPanel;
   protected JPanel myComponentPanel;
+  protected JBScrollPane myScrollPane;
 
   public final JComponent getUiComponent() {
     return myComponentPanel;
