@@ -524,10 +524,10 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
-  public static final Flag<Integer> IDE_XMX_CAP_IN_GB = Flag.create(
-    MEMORY_SETTINGS, "memory.settings.ide.xmx.cap", "IDE Xmx cap in memory settings",
-    "Cap of IDE Xmx in the memory settings configuration dialog",
-    4);
+  public static final Flag<Boolean> LOW_IDE_XMX_CAP = Flag.create(
+    MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
+    "If set, IDE Xmx is capped at 4GB in the configuration dialog. Otherwise, the cap is 8GB",
+    true);
 
   private StudioFlags() { }
 }
