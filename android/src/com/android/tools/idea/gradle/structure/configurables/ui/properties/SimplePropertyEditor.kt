@@ -262,7 +262,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         if (extensionAction != null) {
           isFocusable = ScreenReader.isActive()
           icon = StudioIcons.Common.PROPERTY_UNBOUND
-          toolTipText = extensionAction.tooltip
+          toolTipText = extensionAction.tooltip + " (Shift+Enter)"
           addFocusListener(object : FocusListener {
             override fun focusLost(e: FocusEvent) {
               icon = StudioIcons.Common.PROPERTY_UNBOUND
@@ -277,6 +277,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
             override fun mousePressed(event: MouseEvent) { invokeAction() }
           })
           registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("SPACE"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+          this@EditorWrapper
+              .registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("shift ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
         }
         else {
           if (isPropertyContext) {
