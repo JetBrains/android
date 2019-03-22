@@ -329,6 +329,20 @@ class GradleModuleSystemTest : AndroidTestCase() {
     assertThat(missing).isEmpty()
   }
 
+  fun testAddingKotlinStdlibDependenciesFromMultipleSources() {
+    // We are adding 2 kotlin dependencies which depend on different kotlin stdlib
+    // versions: 1.2.50 and 1.3.0. Make sure the dependencies can be added without errors.
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("androidx.core", "core-ktx", "1.0.0"),
+             GradleCoordinate("androidx.navigation", "navigation-runtime-ktx", "2.0.0")))
+
+    assertThat(warning).isEmpty()
+    assertThat(found).containsExactly(
+      GradleCoordinate.parseCoordinateString("androidx.core:core-ktx:1.0.0"),
+      GradleCoordinate.parseCoordinateString("androidx.navigation:navigation-runtime-ktx:2.0.0"))
+    assertThat(missing).isEmpty()
+  }
+
   private fun toGradleCoordinate(id: GoogleMavenArtifactId, version: String = "+"): GradleCoordinate {
     return GradleCoordinate(id.mavenGroupId, id.mavenArtifactId, version)
   }
