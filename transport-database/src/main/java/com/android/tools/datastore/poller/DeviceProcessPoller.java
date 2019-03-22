@@ -56,6 +56,13 @@ public class DeviceProcessPoller extends PollRunner {
   }
 
   @Override
+  public void stop() {
+    super.stop();
+    // This gets called when connection to the device is lost. Properly clean up the device and processes states.
+    disconnect();
+  }
+
+  @Override
   public void poll() {
     try {
       GetDevicesRequest devicesRequest = GetDevicesRequest.newBuilder().build();
