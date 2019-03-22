@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
@@ -99,10 +101,15 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
         headerValue = "Key"
         cellEditor = MyKeyCellEditor()
         cellRenderer = TableCellRenderer { table, value, isSelected, hasFocus, row, column ->
-          SimpleColoredComponent().also {
-            if (value != null) it.append(value.toString())
-            if (isSelected) it.background = UIUtil.getListSelectionBackground(hasFocus)
-          }
+          SimpleColoredComponent()
+              .also {
+                if (value != null) {
+                  it.toRenderer()
+                      .toSelectedTextRenderer(isSelected && hasFocus)
+                      .append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                }
+                if (isSelected) it.background = UIUtil.getListSelectionBackground(hasFocus)
+              }
         }
       })
       addColumn(TableColumn(1).apply {
@@ -110,6 +117,7 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
         cellEditor = MyCellEditor()
         cellRenderer = MyCellRenderer()
       })
+      columnSelectionAllowed = true
     }
   }
 
