@@ -785,6 +785,13 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     }
   }
 
+  @Override
+  public void mouseCancel() {
+    super.mouseCancel();
+    DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+    revertToPreviousState();
+  }
+
   /**
    * adds a connection to the connection menu list
    *
