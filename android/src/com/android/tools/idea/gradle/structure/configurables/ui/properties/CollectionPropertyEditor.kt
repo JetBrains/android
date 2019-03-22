@@ -137,7 +137,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
       return SimpleColoredComponent().also {
-        parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers)
+        parsedValue.renderTo(it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus), formatter, knownValueRenderers)
         if (isSelected) it.background = getListSelectionBackground(hasFocus)
       }
     }
