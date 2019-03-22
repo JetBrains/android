@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
@@ -37,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -78,9 +80,18 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   }
 
   public static void doPerformAction(@Nullable Project project, @Nullable String extraDescriptionDetails) {
-    com.intellij.ide.actions.SendFeedbackAction.doPerformAction(project, getDescription(project) + extraDescriptionDetails);
+    new Task.Modal(project, "Collecting Data", false) {
+      @Override
+      public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
+        indicator.setText("Collecting feedback information");
+        indicator.setIndeterminate(true);
+        String description = getDescription(project);
+        com.intellij.ide.actions.SendFeedbackAction.doPerformAction(project, description + extraDescriptionDetails);
+      }
+    }.setCancelText("Cancel").queue();
   }
 
+  @Slow
   public static String getDescription(@Nullable Project project) {
     // Use safe call wrapper extensively to make sure that as much as possible version context is collected and
     // that any exceptions along the way do not actually break the feedback sending flow (we're already reporting a bug,
@@ -113,6 +124,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     }
   }
 
+  @Slow
   private static String getGradlePluginDetails(@NotNull Project project) {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
     if (androidPluginInfo != null) {
