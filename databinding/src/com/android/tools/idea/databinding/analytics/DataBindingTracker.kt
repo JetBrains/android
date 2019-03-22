@@ -121,6 +121,7 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
                             .setVariableCount(variableCount)
                             .setExpressionCount(expressionCount)
                             .setObservableMetrics(trackObservableDataTypes(project))
+                            .setBindingAdapterMetrics(trackBindingAdapters(project))
                             .build())
       }
     }
