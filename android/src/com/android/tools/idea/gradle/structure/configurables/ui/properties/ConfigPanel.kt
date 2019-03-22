@@ -28,6 +28,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import javax.swing.JComponent
 
 /**
@@ -61,6 +66,10 @@ open class ConfigPanel<in ModelT>(
       val editor: ModelPropertyEditor<Any> = property.createEditor(context, project, module, model)
       val labelComponent = editor.labelComponent
       addPropertyComponents(labelComponent, editor.component, editor.statusComponent)
+      editor.addFocusListener(object: FocusListener{
+        override fun focusLost(e: FocusEvent?) = Unit
+        override fun focusGained(e: FocusEvent?) = editor.component.scrollRectToVisible(Rectangle(Point(0, 0), editor.component.size))
+      })
       editors.add(editor)
     }
 

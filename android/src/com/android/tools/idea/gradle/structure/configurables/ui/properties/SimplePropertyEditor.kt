@@ -240,6 +240,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     }
   }
 
+  override fun addFocusListener(listener: FocusListener) {
+    renderedComboBox.editor.editorComponent.addFocusListener(listener)
+  }
+
   @VisibleForTesting
   val testRenderedComboBox: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
 
