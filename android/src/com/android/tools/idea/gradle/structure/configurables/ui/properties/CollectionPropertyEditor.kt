@@ -28,6 +28,7 @@ import com.intellij.util.ui.UIUtil.getListSelectionBackground
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.FocusListener
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 import javax.swing.JComponent
@@ -107,6 +108,10 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())
+
+  fun addFocusListener(listener: FocusListener) {
+    table.addFocusListener(listener)
+  }
 
   /**
    * An [Annotated] [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation
