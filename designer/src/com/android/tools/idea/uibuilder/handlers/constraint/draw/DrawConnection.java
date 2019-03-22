@@ -282,6 +282,9 @@ public class DrawConnection implements DrawCommand {
     boolean thick = (mode == MODE_DELETING || mode == MODE_CONSTRAINT_SELECTED || mode == MODE_COMPUTED);
     switch (strokeType) {
       case CHAIN:
+        if (thick) {
+          return flip_chain ? myThickChainStroke1 : myThickChainStroke2;
+        }
         return flip_chain ? myChainStroke1 : myChainStroke2;
       case SPRING:
         return thick ? myThickSpringStroke : mySpringStroke;
@@ -436,16 +439,16 @@ public class DrawConnection implements DrawCommand {
         if (flip_chain) {
           float x1, y1, x2, y2, x3, y3, x4, y4;
           if (hover) {
-            GeneralPath hoverPath =  new GeneralPath(ourPath);
+            GeneralPath hoverPath = new GeneralPath(ourPath);
             g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
             Stroke tmpStroke = g.getStroke();
             g.setStroke(myHoverStroke);
             hoverPath.moveTo(x1 = startx, y1 = starty);
             hoverPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection],
-                            y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                            x3 = endx + scale_dest * dirDeltaX[destDirection],
-                            y3 = endy + scale_dest * dirDeltaY[destDirection],
-                            x4 = endx, y4 = endy);
+                              y2 = starty + scale_source * dirDeltaY[sourceDirection],
+                              x3 = endx + scale_dest * dirDeltaX[destDirection],
+                              y3 = endy + scale_dest * dirDeltaY[destDirection],
+                              x4 = endx, y4 = endy);
             g.draw(hoverPath);
             hoverPath.reset();
             g.setStroke(tmpStroke);
@@ -463,16 +466,16 @@ public class DrawConnection implements DrawCommand {
         else {
           float x1, y1, x2, y2, x3, y3, x4, y4;
           if (hover) {
-            GeneralPath hoverPath =  new GeneralPath(ourPath);
+            GeneralPath hoverPath = new GeneralPath(ourPath);
             g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
             Stroke tmpStroke = g.getStroke();
             g.setStroke(myHoverStroke);
             hoverPath.moveTo(x1 = endx, y1 = endy);
             hoverPath.curveTo(x2 = endx + scale_source * dirDeltaX[destDirection],
-                            y2 = endy + scale_source * dirDeltaY[destDirection],
-                            x3 = startx + scale_dest * dirDeltaX[sourceDirection],
-                            y3 = starty + scale_dest * dirDeltaY[sourceDirection],
-                            x4 = startx, y4 = starty);
+                              y2 = endy + scale_source * dirDeltaY[destDirection],
+                              x3 = startx + scale_dest * dirDeltaX[sourceDirection],
+                              y3 = starty + scale_dest * dirDeltaY[sourceDirection],
+                              x4 = startx, y4 = starty);
             g.draw(hoverPath);
             hoverPath.reset();
             g.setStroke(tmpStroke);
@@ -609,7 +612,11 @@ public class DrawConnection implements DrawCommand {
               g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
               Stroke tmpStroke = g.getStroke();
               g.setStroke(myHoverStroke);
-              g.drawLine(startx, starty, endx, starty);
+              GeneralPath hoverPath = new GeneralPath(ourPath);
+              hoverPath.moveTo(startx, starty);
+              hoverPath.lineTo(endx, starty);
+              hoverPath.lineTo(endx, endy);
+              g.draw(hoverPath);
               g.setStroke(tmpStroke);
             }
             g.setColor(constraintColor);
@@ -617,37 +624,30 @@ public class DrawConnection implements DrawCommand {
             if (picker != null && secondarySelector != null) {
               picker.addLine(secondarySelector, 8, startx, starty, endx, starty, 4);
             }
-            if (hover) {
-              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
-              Stroke tmpStroke = g.getStroke();
-              g.setStroke(myHoverStroke);
-              g.drawLine(endx, starty, endx, endy);
-              g.setStroke(tmpStroke);
-            }
+
             g.setStroke(getStroke(StrokeType.SPRING, false, modeTo));
             drawArrow = false;
             g.drawLine(endx, starty, endx, endy);
             g.fillRoundRect(endx - rectGap, endy - rectGap, rectDim, rectDim, rectGap, rectGap);
           }
           else {
+
             if (hover) {
               g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
               Stroke tmpStroke = g.getStroke();
               g.setStroke(myHoverStroke);
-              g.drawLine(startx, starty, startx, endy);
+              GeneralPath hoverPath = new GeneralPath(ourPath);
+              hoverPath.moveTo(startx, starty);
+              hoverPath.lineTo(startx, endy);
+              hoverPath.lineTo(endx, endy);
+              g.draw(hoverPath);
               g.setStroke(tmpStroke);
             }
+
             g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, endy);
             if (picker != null && secondarySelector != null) {
               picker.addLine(secondarySelector, 8, startx, starty, startx, endy, 4);
-            }
-            if (hover) {
-              g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
-              Stroke tmpStroke = g.getStroke();
-              g.setStroke(myHoverStroke);
-              g.drawLine(startx, endy, endx, endy);
-              g.setStroke(tmpStroke);
             }
             g.setStroke(getStroke(StrokeType.SPRING, false, modeTo));
             drawArrow = false;
@@ -728,7 +728,6 @@ public class DrawConnection implements DrawCommand {
               g.setStroke(myHoverStroke);
               int ypos = source.y + source.height / 2;
               g.drawLine(vline_x1, ypos, vline_x2, ypos);
-              g.draw(ourPath);
               g.setStroke(tmpStroke);
             }
             g.setStroke(getStroke(StrokeType.DASH, false, modeTo));
@@ -908,8 +907,8 @@ public class DrawConnection implements DrawCommand {
       g.setStroke(myHoverStroke);
       hoverPath.moveTo(source.x + source.width / 2., source.y);
       hoverPath.curveTo(source.x + source.width / 2., source.y - 40,
-                      dest.x + dest.width / 2., dest.y + 40,
-                      dest.x + dest.width / 2., dest.y);
+                        dest.x + dest.width / 2., dest.y + 40,
+                        dest.x + dest.width / 2., dest.y);
       g.draw(hoverPath);
       g.setStroke(tmpStroke);
     }
