@@ -86,7 +86,6 @@ public class TransportServiceProxy extends ServiceProxy
 
   private static final String EMULATOR = "Emulator";
   static final String PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported.";
-  static final String Q_FAILURE_REASON = "Q devices are not yet supported";
 
   private final TransportServiceGrpc.TransportServiceBlockingStub myServiceStub;
   @NotNull private final IDevice myDevice;
@@ -168,15 +167,6 @@ public class TransportServiceProxy extends ServiceProxy
       device_id = new Random(System.currentTimeMillis()).nextLong();
     }
 
-    String unsupportedReason = "";
-    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP) {
-      unsupportedReason = PRE_LOLLIPOP_FAILURE_REASON;
-    }
-    else if (device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.Q) {
-      // TODO b/127838161 remove after daemon no longer freezes on Q.
-      unsupportedReason = Q_FAILURE_REASON;
-    }
-
     return Common.Device.newBuilder()
       .setDeviceId(device_id)
       .setSerial(device.getSerialNumber())
@@ -188,7 +178,7 @@ public class TransportServiceProxy extends ServiceProxy
       .setManufacturer(getDeviceManufacturer(device))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
-      .setUnsupportedReason(unsupportedReason)
+      .setUnsupportedReason(getDeviceUnsupportedReason(device))
       .build();
   }
 
@@ -206,6 +196,15 @@ public class TransportServiceProxy extends ServiceProxy
       default:
         return Common.Device.State.UNSPECIFIED;
     }
+  }
+
+  @NotNull
+  private static String getDeviceUnsupportedReason(@NotNull IDevice device) {
+    String unsupportedReason = "";
+    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP) {
+      unsupportedReason = PRE_LOLLIPOP_FAILURE_REASON;
+    }
+    return unsupportedReason;
   }
 
   @NotNull

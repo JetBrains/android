@@ -16,7 +16,6 @@
 package com.android.tools.idea.transport;
 
 import static com.android.tools.idea.transport.TransportServiceProxy.PRE_LOLLIPOP_FAILURE_REASON;
-import static com.android.tools.idea.transport.TransportServiceProxy.Q_FAILURE_REASON;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.BEGIN_SESSION;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 import static com.google.common.truth.Truth.assertThat;
@@ -93,10 +92,6 @@ public class TransportServiceProxyTest {
 
     IDevice mockDevice2 = createMockDevice(AndroidVersion.VersionCodes.Q, new Client[0]);
     profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice2);
-    assertThat(profilerDevice.getUnsupportedReason()).isEqualTo(Q_FAILURE_REASON);
-
-    IDevice mockDevice3 = createMockDevice(AndroidVersion.VersionCodes.P, new Client[0]);
-    profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice3);
     assertThat(profilerDevice.getUnsupportedReason()).isEmpty();
   }
 
