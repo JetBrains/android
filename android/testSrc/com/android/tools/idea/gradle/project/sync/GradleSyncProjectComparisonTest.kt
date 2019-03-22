@@ -109,7 +109,7 @@ abstract class GradleSyncProjectComparisonTest(
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
     val project = this.project
-    importProject(project.name, getBaseDirPath(project), null)
+    importProject(project.name, getBaseDirPath(project))
     val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
     dumper.dump(project)
     return dumper.toString()
@@ -242,6 +242,45 @@ abstract class GradleSyncProjectComparisonTest(
     val textAfterDeleting = syncAndDumpProject()
     // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
     assertIsEqualToSnapshot(textAfterDeleting, ".after_moduleb_deleted")
+  }
+
+  // TODO(b/128873247): Update snapshot files with the bug is fixed and Java-Gradle facet is removed.
+  open fun testPsdDependencyAndroidToJavaModuleAndBack() {
+    val text = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
+      val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+      val testRepositoryPath =
+          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath!!
+      val repositories = """
+      maven {
+        name "test"
+        url "file:$testRepositoryPath"
+      }
+      $localRepositories
+      """
+      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+    }
+    assertIsEqualToSnapshot(text, ".before_android_to_java")
+    val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
+      val jModuleMFile = project.baseDir.findFileByRelativePath("jModuleM/build.gradle")!!
+      val moduleCFile = project.baseDir.findFileByRelativePath("moduleC/build.gradle")!!
+      val moduleCContent = moduleCFile.contentsToByteArray()
+      val jModuleMContent = jModuleMFile.contentsToByteArray()
+      moduleCFile.setBinaryContent(jModuleMContent)
+      moduleCContent
+    }
+    ApplicationManager.getApplication().saveAll()
+    val textAfterChange = syncAndDumpProject()
+    // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
+    assertIsEqualToSnapshot(textAfterChange, ".after_android_to_java")
+
+    WriteAction.run<Throwable> {
+      val moduleCFile = project.baseDir.findFileByRelativePath("moduleC/build.gradle")!!
+      moduleCFile.setBinaryContent(oldModuleCContent)
+    }
+    ApplicationManager.getApplication().saveAll()
+    val textAfterSecondChange = syncAndDumpProject()
+    // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
+    assertIsEqualToSnapshot(textAfterSecondChange, ".after_java_to_android")
   }
 
   open fun testPsdSample() {

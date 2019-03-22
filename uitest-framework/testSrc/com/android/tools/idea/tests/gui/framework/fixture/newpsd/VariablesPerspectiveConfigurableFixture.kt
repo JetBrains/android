@@ -161,6 +161,12 @@ class VariablesPerspectiveConfigurableFixture(
     waitForIdle()
   }
 
+  fun expandWithPlus() {
+    waitForIdle()
+    robot().pressAndReleaseKey(KeyEvent.VK_ADD, 0)
+    waitForIdle()
+  }
+
   fun left() {
     robot().pressAndReleaseKey(KeyEvent.VK_LEFT, 0)
   }

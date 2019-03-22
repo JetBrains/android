@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 public class SyncIssueCleanupTask extends AndroidStudioCleanUpTask {
   @Override
   void doCleanUp(@NotNull Project project) {
-    // If the previous sync crashed, make sure the register is cleared.
-    SyncIssueRegister.getInstance(project).getAndClear();
+    SyncIssueRegister.getInstance(project).unsealAndClear();
   }
 }

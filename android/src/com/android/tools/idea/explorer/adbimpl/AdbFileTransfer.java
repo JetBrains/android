@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.SyncService;
@@ -25,14 +27,12 @@ import com.android.tools.idea.explorer.fs.ThrottledProgress;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.concurrent.Executor;
-
-import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdbFileTransfer {
   @NotNull private static Logger LOGGER = Logger.getInstance(AdbFileTransfer.class);
@@ -138,8 +138,8 @@ public class AdbFileTransfer {
                              localPath.toString(),
                              new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
         long endTime = System.nanoTime();
-        LOGGER.info(String.format("Pull file took %,d ms to execute: \"%s\" -> \"%s\"",
-                                  (endTime - startTime) / 1_000_000, remotePath, localPath));
+        LOGGER.info(String.format(Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
+                                  remotePath, localPath));
         return null;
       }
       finally {
@@ -174,8 +174,9 @@ public class AdbFileTransfer {
                              remotePath,
                              new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
         long endTime = System.nanoTime();
-        LOGGER.info(String.format("Push file took %,d ms to execute: \"%s\" -> \"%s\"",
-                                  (endTime - startTime) / 1_000_000, localPath, remotePath));
+        LOGGER.info(String
+                      .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000, localPath,
+                              remotePath));
         return null;
       }
       finally {

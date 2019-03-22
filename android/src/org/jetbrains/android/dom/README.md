@@ -41,9 +41,8 @@ To disable spellchecking inside a tag's value, use the
 
 ### res/layout DOM
 
-*TODO:* Understand this in detail
-
-*TODO:* Move this to descriptor? Or use @CustomChildren?
+> **TODO:** Understand this in detail  
+> **TODO:** Move this to descriptor? Or use `@CustomChildren`?
 
 ### res/xml DOM
 
@@ -56,7 +55,7 @@ only [AndroidResourceDomFileDescription](AndroidResourceDomFileDescription.java)
 
 Everything is handled dynamically even if some cases are just hardcoded, see e.g. `SubtagsProcessingUtil#registerXmlResourcesSubtags`.
 
-*TODO:* Is there a reason for not breaking this down into multiple DOM definitions, some of them fully static?
+> **TODO:** Is there a reason for not breaking this down into multiple DOM definitions, some of them fully static?
 
 ## Error highlighting
 
@@ -64,12 +63,13 @@ Errors in XML files can come from two sources: lint checkers or code in this pac
 that we prefer writing lint checks when possible, since they can be run by the build system on CI servers etc. Inspections in this package
 are an exception, since they mostly simulate build-time errors reported by aapt (another tool run by the build system).
 
-Following the official DOM docs, we provide [AndroidDomInspection](inspections/AndroidDomInspection.java) to check for unresolved 
+Following the official DOM docs, we provide [AndroidDomInspection](inspections/AndroidDomInspection.java) to check for unresolved
 references and other errors reported by [Converters](../../../../../../../../idea/xml/dom-openapi/src/com/intellij/util/xml/Converter.java).
 
 By default, providing a DOM description applicable to a given file is enough to make
 [XmlHighlightVisitor](../../../../../../../../idea/xml/xml-analysis-impl/src/com/intellij/codeInsight/daemon/impl/analysis/XmlHighlightVisitor.java)
-highlight unrecognized sub-tags and attributes. This works, because IntelliJ comes with [DomDescriptorProvider](../../../../../../../../idea/xml/dom-impl/src/com/intellij/util/xml/impl/DomDescriptorProvider.java), which provides
+highlight unrecognized sub-tags and attributes. This works, because IntelliJ comes with
+[DomDescriptorProvider](../../../../../../../../idea/xml/dom-impl/src/com/intellij/util/xml/impl/DomDescriptorProvider.java), which provides
 [DomElementXmlDescriptor](../../../../../../../../idea/xml/dom-impl/src/com/intellij/xml/impl/dom/DomElementXmlDescriptor.java) instances
 which in turn return null when asked about unknown sub-tags or attributes.
 
@@ -86,8 +86,8 @@ We also have an annotator, which creates gutter icons on lines that reference a 
 We opt-out of the usual IntelliJ mechanisms for validating XML files against schema definitions, by resolving all namespaces to a dummy
 XSD file in `AndroidXmlSchemaProvider`.
 
-*TODO:* AndroidUnknownAttributeInspection ignores non-framework attributes
-*TODO:* Can we replace `AndroidMissingOnClickHandlerInspection` with lint checks?
+> **TODO:** AndroidUnknownAttributeInspection ignores non-framework attributes
+> **TODO:** Can we replace `AndroidMissingOnClickHandlerInspection` with lint checks?
 
 ## References
 
@@ -98,14 +98,19 @@ handles renaming or moving the class.
 this case we create multiple references, one for every package segment and one for the class itself.
 * DOM converters, e.g. `ResourceReferenceConverter` for tag values in `res/values` and attribute values in layouts etc.
 
-*TODO:* `AndroidXmlExtension` should override the tag name extension only in layout, preferences etc., not all files.
+### Resource references
 
-*TODO:* `AndroidXmlExtension` should re-use detection logic from the DOM layer.
+Resource references are handled by `ResourceReferenceConverter`. It uses a strange mixture of `ResolvingConverter` and
+`CustomReferenceConverter` which means methods like `getVariants` are both in the converter itself and in `AndroidResourceReference` and
+depending on circumstances one or both are called. Methods in the converter are called by `GenericDomValueReference` instances which get
+created for every value with a `ResolvingConverter`.
 
-*TODO:* AndroidClassTagNameReference should rewrite to `<view class="...">` if the new name is not valid XML. This is already implemented
-        in `XmlTagInnerClassInsertHandler`.
-
-*TODO:* Insert references in XML attributes to corresponding attr resources.
+> **TODO:** Remove `AndroidResourceReference` and handle everything in the converter.  
+> **TODO:** `AndroidXmlExtension` should override the tag name extension only in layout, preferences etc., not all files.  
+> **TODO:** `AndroidXmlExtension` should re-use detection logic from the DOM layer.  
+> **TODO:** AndroidClassTagNameReference should rewrite to `<view class="...">` if the new name is not valid XML. This is already
+implemented in `XmlTagInnerClassInsertHandler`.  
+> **TODO:** Insert references in XML attributes to corresponding attr resources.
 
 ## Code completion
 
@@ -117,32 +122,29 @@ equal to the default ones (created by `DefaultXmlTagNameProvider`) to replace th
 * Some of the references mentioned above implement `getVariants`
 * There's a custom `AndroidXmlCompletionContributor`.
 
-*TODO:* AndroidLayoutXmlTagNameProvider setting a different insert handler makes the LookupElements not equal, so both appear in completion,
-        one with the wrong insert handler.
+> **TODO:** AndroidLayoutXmlTagNameProvider setting a different insert handler makes the LookupElements not equal, so both appear in
+completion, one with the wrong insert handler.  
+> **TODO:** Add more lookup strings in other file types, e.g. preferences.  
+> **TODO:** Class names in tags are provided by DOM, `getVariants` in `AndroidXmlReferenceProvider.MyClassOrPackageReference`,
+        `AndroidXmlCompletionContributor` and `AndroidLayoutXmlTagNameProvider`.  
+> **TODO:** Remove the "namespace prefix" completion from `AndroidXmlCompletionContributor`, since all attributes are suggested anyway.  
+> **TODO:** Can we make `AndroidXmlCompletionContributor` not specialized to only work on layouts?
 
-*TODO:* Add more lookup strings in other file types, e.g. preferences.
+When a new tag is inserted, `XmlTagInsertHandler` uses information from `AndroidXmlTagDescriptor` to add required attributes and subtags
+to the inserted template (this can be turned off in settings, but it enabled by default). `AndroidXmlTagDescriptor` is an adapter around
+`DomElementXmlDescriptor`, so the easiest way to mark an attribute as required is with the `@Required` annotation. `getContentType` is
+called on the descriptor to determine if the new tag should be closed or not, depending on whether we expect the tag to have children.
 
-*TODO:* Class names in tags are provided by DOM, `getVariants` in `AndroidXmlReferenceProvider.MyClassOrPackageReference`,
-        `AndroidXmlCompletionContributor` and `AndroidLayoutXmlTagNameProvider`.
-        
-*TODO:* Remove the "namespace prefix" completion from `AndroidXmlCompletionContributor`, since all attributes are suggested anyway.
-
-*TODO:* Can we make `AndroidXmlCompletionContributor` not specialized to only work on layouts?
-
-When a new tag is inserted, `AndroidXmlTagDescriptor.getContentType` is called to determine if it should be collapsed or not, depending on
-whether we expect the tag to have children or not.
-
-*TODO:* handle more cases, e.g. manifest, preference groups. Base this on static DOM information?
+> **TODO:** handle more cases in `getContentType`, e.g. manifest, preference groups. Base this on static DOM information?
 
 ## Documentation providers
 
 While editing Android XML files, users can use the "quick documentation" feature to see details about the referenced resources (including
-attr resources "referenced" by using XML attributes with matching names). The documentation HTML comes from 
+attr resources "referenced" by using XML attributes with matching names). The documentation HTML comes from
 `AndroidXmlDocumentationProvider`.
 
-*TODO:* Documentation on attribute code lookup items is broken.
-
-*TODO:* Documentation on class name lookup items is broken for short names.
+> **TODO:** Documentation on attribute code lookup items is broken.  
+> **TODO:** Documentation on class name lookup items is broken for short names.
 
 ## Structure view
 
@@ -152,20 +154,17 @@ for layouts and `res/values` files.
 
 Layout structure view shows icons chosen by `AndroidDomElementDescriptorProvider`.
 
-*TODO:* AndroidDomElementDescriptorProvider potentially loading icons in UI thread. Where else is this used?
-
-*TODO:* Layout structure view doesn't show the root layout name
-
-*TODO:* Values structure view should show attrs within styles
-
-*TODO:* For other files, the default XML structure view is probably better than the broken DOM one.
+> **TODO:** AndroidDomElementDescriptorProvider potentially loading icons in UI thread. Where else is this used?  
+> **TODO:** Layout structure view doesn't show the root layout name  
+> **TODO:** Values structure view should show attrs within styles  
+> **TODO:** For other files, the default XML structure view is probably better than the broken DOM one.
 
 ## Code style settings
 
 We have a set of classes to provide the "standard Android" formatting of XML files. The settings themselves are stored in
 `AndroidXmlCodeStyleSettings` and modified through UI in `AndroidXmlCodeStylePanel`. The most important setting is `USE_CUSTOM_SETTINGS`
 which controls whether Android files should get special treatment. It is checked by `AndroidXmlFormattingModelBuilder` when an XML file
-is reformatted. 
+is reformatted.
 
 We provide a "predefined style" for XML that enables `USE_CUSTOM_SETTINGS` and a notification panel (in
 `AndroidCodeStyleNotificationProvider`) that suggests it is applied.
@@ -179,21 +178,21 @@ versions of IntelliJ.
 `AndroidXmlExtension` implements support for `aapt:attr`, where attributes can be replaced by special sub-tags. See [Inline complex XML
 resources](https://developer.android.com/guide/topics/resources/complex-xml-resources) on DAC.
 
-*TODO:* This seems to also be implemented in AndroidDomInspection, why do we need both?
+> **TODO:** This seems to also be implemented in AndroidDomInspection, why do we need both?
 
 `AndroidXmlCharFilter` changes how pressing `|` behaves during completion, to make typing flags like `android:inputType` easier. This works
 in conjunction with `FlagConverter` and `AndroidCompletionContributor`.
 
-*TODO:* This feature seems unfinished, pressing `|` should insert the current value and open completion again for a second value.
+> **TODO:** This feature seems unfinished, pressing `|` should insert the current value and open completion again for a second value.
 
 `AndroidLineMarkerProvider` adds gutter icons for related Java files.
 
-*TODO:* Use `RelatedItemLineMarkerProvider` instead of two separate classes for related files and icons.
+> **TODO:** Use `RelatedItemLineMarkerProvider` instead of two separate classes for related files and icons.
 
 `AndroidXmlSpellcheckingStrategy` controls which strings are checked for spelling mistakes and how they are tokenized.
 
-*TODO:* Remove check for `generated.xml`, these files have a different name now and are marked as generated.
-*TODO:* It doesn't seem to handle `@NoSpellchecking` that we use in DOM definitions.
+> **TODO:** Remove check for `generated.xml`, these files have a different name now and are marked as generated.  
+> **TODO:** It doesn't seem to handle `@NoSpellchecking` that we use in DOM definitions.
 
 `AndroidXmlnsImplicitUsagesProvider` understands that namespace prefixes can be used by Android resource references in XML attributes and
 marks referenced namespaces as used.

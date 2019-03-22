@@ -25,6 +25,11 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -70,6 +75,17 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
    */
   val sectionsComponent = sectionList
 
+  private val focusListener = object : FocusAdapter() {
+
+    override fun focusGained(focusEvent: FocusEvent?) {
+      val list = focusEvent?.source as JList<*>
+      if (list.selectedIndex == -1) {
+        list.selectedIndex = 0
+        scrollToSelection()
+      }
+    }
+  }
+
   init {
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {
@@ -96,6 +112,21 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
 
     verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
     verticalScrollBar.addAdjustmentListener(createAdjustmentListener())
+    addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(p0: MouseEvent?) {
+        focusInnerList()
+      }
+    })
+  }
+
+  private fun focusInnerList() {
+    getFocusableList().requestFocusInWindow()
+  }
+
+  private fun getFocusableList(): JList<*> {
+    return allInnerLists
+             .firstOrNull { it.selectedIndex != -1 }
+           ?: allInnerLists.first()
   }
 
   /**
@@ -167,6 +198,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
         sectionToComponent[section] = section.header
         allInnerLists += section.list
         section.list.addListSelectionListener(selectionListener)
+        section.list.addFocusListener(focusListener)
         add(section.header)
         add(section.list)
         add(Box.createVerticalStrut(listsGap))

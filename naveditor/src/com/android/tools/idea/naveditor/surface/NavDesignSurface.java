@@ -31,7 +31,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -49,7 +51,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
@@ -117,6 +118,7 @@ import java.util.stream.Collectors;
 import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,6 +142,18 @@ public class NavDesignSurface extends DesignSurface {
   private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
     GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
     GoogleMavenArtifactId.NAVIGATION_UI.getCoordinate("+"));
+
+  private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES_KTX = ImmutableList.of(
+    GoogleMavenArtifactId.NAVIGATION_FRAGMENT_KTX.getCoordinate("+"),
+    GoogleMavenArtifactId.NAVIGATION_UI_KTX.getCoordinate("+"));
+
+  private static final List<GradleCoordinate> ANDROIDX_NAVIGATION_DEPENDENCIES = ImmutableList.of(
+    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT.getCoordinate("+"),
+    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI.getCoordinate("+"));
+
+  private static final List<GradleCoordinate> ANDROIDX_NAVIGATION_DEPENDENCIES_KTX = ImmutableList.of(
+    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT_KTX.getCoordinate("+"),
+    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI_KTX.getCoordinate("+"));
 
   @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
@@ -328,13 +342,25 @@ public class NavDesignSurface extends DesignSurface {
     result.completeExceptionally(new Exception("Failed to add nav library dependency"));
   }
 
-  private static boolean requestAddDependency(@NotNull AndroidFacet facet) {
+  private boolean requestAddDependency(@NotNull AndroidFacet facet) {
+    List<GradleCoordinate> dependencies = getDependencies(facet.getModule());
+
     AtomicBoolean didAdd = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(
       () -> didAdd.set(DependencyManagementUtil.addDependencies(
-        // TODO: check for and add androidx dependency when it's released
-        facet.getModule(), NAVIGATION_DEPENDENCIES, true, false).isEmpty()));
+        facet.getModule(), dependencies, true, false).isEmpty()));
     return didAdd.get();
+  }
+
+  @NotNull
+  public static List<GradleCoordinate> getDependencies(@NotNull Module module) {
+    boolean isKotlin = AndroidStudioKotlinPluginUtils.hasKotlinFacet(module);
+
+    if (MigrateToAndroidxUtil.isAndroidx(module.getProject())) {
+      return isKotlin ? ANDROIDX_NAVIGATION_DEPENDENCIES_KTX : ANDROIDX_NAVIGATION_DEPENDENCIES;
+    }
+
+    return isKotlin ? NAVIGATION_DEPENDENCIES_KTX : NAVIGATION_DEPENDENCIES;
   }
 
   private static boolean tryToCreateSchema(@NotNull AndroidFacet facet) {

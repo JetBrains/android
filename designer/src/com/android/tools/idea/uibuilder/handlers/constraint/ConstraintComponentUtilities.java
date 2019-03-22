@@ -536,11 +536,11 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  private static boolean hasHorizontalConstraints(NlComponent component) {
+  public static boolean hasHorizontalConstraints(NlComponent component) {
     return hasConstraints(component, SHERPA_URI, ourHorizontalAttributes);
   }
 
-  private static boolean hasVerticalConstraints(NlComponent component) {
+  public static boolean hasVerticalConstraints(NlComponent component) {
     return hasConstraints(component, SHERPA_URI, ourVerticalAttributes);
   }
 
@@ -1564,7 +1564,7 @@ public final class ConstraintComponentUtilities {
    * @param sourceDirection direction of chain link
    * @param target          target target to link to
    * @param targetDirection direction of target link
-   * @param attrList        additional attributes to add during transaction
+   * @param attrList        fadingValue attributes to add during transaction
    */
   public static void scoutChainConnect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection,
                                        ArrayList<String[]> attrList) {

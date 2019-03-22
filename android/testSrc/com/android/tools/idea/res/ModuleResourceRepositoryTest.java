@@ -60,11 +60,6 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertSame(ResourceRepositoryManager.getModuleResources(myFacet), ResourceRepositoryManager.getModuleResources(myModule));
   }
 
-  public void testSingleResourceFolder() {
-    LocalResourceRepository repository = ModuleResourceRepository.forMainResources(myFacet);
-    assertTrue(repository instanceof ResourceFolderRepository);
-  }
-
   public void testOverlays() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");

@@ -12,3 +12,5 @@ com.android.tools.idea.common.model.NlDependencyManager.addDependencies=#assertI
 
 # Annotations
 @com.android.annotations.concurrency.UiThread=#assertIsEdt
+# Baseline: b/128894267
+@com.android.annotations.concurrency.Slow=#assertIsNotEdt

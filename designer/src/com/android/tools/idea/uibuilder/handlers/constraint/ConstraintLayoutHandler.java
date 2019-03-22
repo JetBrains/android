@@ -1139,7 +1139,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static class MarginSelector extends DirectViewAction {
     MarginPopup myMarginPopup = new MarginPopup();
-    private int myMarginIconValue;
+    private int myMarginIconValue = -1;
     private Icon myMarginIcon;
 
     public MarginSelector() {

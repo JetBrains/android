@@ -45,6 +45,8 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -98,6 +100,7 @@ public class Scene implements SelectionListener, Disposable {
   private Target myOverTarget;
   private Target mySnapTarget;
   private SceneComponent myCurrentComponent;
+  NlComponent myLastHoverConstraintComponent = null;
 
   private int mNeedsLayout = NO_LAYOUT;
 
@@ -138,14 +141,14 @@ public class Scene implements SelectionListener, Disposable {
 
     myHoverListener.setTargetFilter(target -> {
       if (target instanceof AnchorTarget) {
-        AnchorTarget anchorTarget = (AnchorTarget) target;
+        AnchorTarget anchorTarget = (AnchorTarget)target;
         if (myHitTarget == null) {
           // Not interacting with any Target, avoid to hover to edge AnchorTarget.
           return !anchorTarget.isEdge();
         }
         else if (myHitTarget instanceof AnchorTarget) {
           // Interacting with AnchorTarget, only hovers on connectible AnchorTargets.
-          return ((AnchorTarget) myHitTarget).isConnectible(anchorTarget);
+          return ((AnchorTarget)myHitTarget).isConnectible(anchorTarget);
         }
       }
       return true;
@@ -249,6 +252,11 @@ public class Scene implements SelectionListener, Disposable {
 
   public List<NlComponent> getSelection() {
     return myDesignSurface.getSelectionModel().getSelection();
+  }
+
+  @Nullable
+  public Object getSecondarySelection() {
+    return myDesignSurface.getSelectionModel().getSecondarySelection();
   }
 
   /**
@@ -400,6 +408,14 @@ public class Scene implements SelectionListener, Disposable {
    */
   public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     if (myRoot != null) {
+      // clear the objects and release
+      sceneContext.getScenePicker().foreachObject(o -> {
+        if (o instanceof SecondarySelector) {
+          ((SecondarySelector)o).release();
+        }
+      });
+
+      sceneContext.getScenePicker().reset();
       myRoot.buildDisplayList(time, displayList, sceneContext);
       if (DEBUG) {
         System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
@@ -470,6 +486,11 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseHover(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
+    if (myLastHoverConstraintComponent != null) { // clear hover constraint
+      myLastHoverConstraintComponent.putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, null);
+      myLastHoverConstraintComponent = null;
+      needsRebuildList();
+    }
     if (myRoot != null) {
       myHoverListener.find(transform, myRoot, x, y);
       mySnapListener.find(transform, myRoot, x, y);
@@ -520,6 +541,17 @@ public class Scene implements SelectionListener, Disposable {
       }
       needsRebuildList();
     }
+
+    if (closestComponent == null || closestComponent.getNlComponent().isRoot()) {
+      Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
+      if (obj != null && obj instanceof SecondarySelector) {
+        SecondarySelector ss = (SecondarySelector)obj;
+        myLastHoverConstraintComponent = ss.getComponent();
+        ss.getComponent().putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, ss.getConstraint());
+        needsRebuildList();
+      }
+    }
+
     transform.setToolTip(tooltip);
     setCursor(transform, x, y);
   }
@@ -615,15 +647,15 @@ public class Scene implements SelectionListener, Disposable {
     // update other selected widgets
     NlComponent currentNlComponent = currentComponent.getNlComponent();
     Scene scene = currentComponent.getScene();
-    List<SceneComponent> otherComponents = getSelection().stream().filter( it -> it != currentNlComponent)
-      .map( it -> scene.getSceneComponent(it) )
-      .filter( it -> it != null)
+    List<SceneComponent> otherComponents = getSelection().stream().filter(it -> it != currentNlComponent)
+      .map(it -> scene.getSceneComponent(it))
+      .filter(it -> it != null)
       .collect(Collectors.toList());
 
     for (SceneComponent c : otherComponents) {
       List<Target> targets = c.getTargets();
       for (Target t : targets) {
-        if (t instanceof  MultiComponentTarget) {
+        if (t instanceof MultiComponentTarget) {
           t.mouseCancel();
         }
       }
@@ -641,6 +673,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return;
     }
+
     myNewSelectedComponentsOnDown.clear();
     myHitListener.setTargetFilter(it -> {
       if (it instanceof AnchorTarget) {
@@ -648,6 +681,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       return true;
     });
+
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -656,9 +690,13 @@ public class Scene implements SelectionListener, Disposable {
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
       }
-    } else if (myHitComponent != null && !inCurrentSelection(myHitComponent)) {
+    }
+    else if (myHitComponent != null && !inCurrentSelection(myHitComponent)) {
       myNewSelectedComponentsOnDown.add(myHitComponent);
       select(myNewSelectedComponentsOnDown);
+    }
+    else if (findSelectionOfCurve(transform, x, y)) {
+      return;
     }
     myHitListener.setTargetFilter(null);
   }
@@ -731,9 +769,23 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
+  private boolean findSelectionOfCurve(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    // find selection of curve
+    Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
+    if (obj != null && obj instanceof SecondarySelector) {
+      SecondarySelector ss = (SecondarySelector)obj;
+      NlComponent comp = ss.getComponent();
+      SecondarySelector.Constraint sub = ss.getConstraint();
+      myDesignSurface.getSelectionModel().setSecondarySelection(comp, sub);
+      return true;
+    }
+    return false;
+  }
+
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
+
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
@@ -756,8 +808,13 @@ public class Scene implements SelectionListener, Disposable {
         myNewSelectedComponentsOnRelease.addAll(changed);
       }
     }
-    if (!sameSelection() && (myHitTarget == null || myHitTarget.canChangeSelection())) {
+
+    boolean same = sameSelection();
+    if (!same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
+    }
+    else if (same) {
+      findSelectionOfCurve(transform, x, y);
     }
     myHitTarget = null;
     checkRequestLayoutStatus();
@@ -939,9 +996,9 @@ public class Scene implements SelectionListener, Disposable {
     AndroidFacet facet = model.getFacet();
     RenderLogger logger = renderService.createLogger(facet);
     final RenderTask task = renderService.taskBuilder(facet, model.getConfiguration())
-                                         .withLogger(logger)
-                                         .withPsiFile(xmlFile)
-                                         .buildSynchronously();
+      .withLogger(logger)
+      .withPsiFile(xmlFile)
+      .buildSynchronously();
     if (task == null) {
       return null;
     }
@@ -958,6 +1015,7 @@ public class Scene implements SelectionListener, Disposable {
 
   /**
    * Get the {@link Placeholder}s in the Scene without the ones belong to the {@param requester} and its children.
+   *
    * @param requester the component which request {@link Placeholder}s
    * @return list of the {@link Placeholder}s for requester
    */

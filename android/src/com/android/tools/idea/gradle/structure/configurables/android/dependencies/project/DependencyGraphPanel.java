@@ -245,7 +245,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   @Override
   @NotNull
-  protected List<AnAction> getExtraToolbarActions() {
+  protected List<AnAction> getExtraToolbarActions(@NotNull JComponent focusComponent) {
     List<AnAction> actions = Lists.newArrayList();
 
     actions.add(new SelectNodesMatchingCurrentSelectionAction() {

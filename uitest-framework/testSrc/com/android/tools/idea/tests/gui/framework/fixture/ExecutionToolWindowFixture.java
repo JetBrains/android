@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.base.Verify.verifyNotNull;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static com.intellij.util.ui.UIUtil.findComponentsOfType;
+import static org.fest.reflect.core.Reflection.method;
+
 import com.android.annotations.Nullable;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -25,11 +32,11 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.ComponentWithMnemonics;
 import com.intellij.ui.components.labels.LinkLabel;
-import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
@@ -37,6 +44,18 @@ import com.intellij.ui.tabs.impl.TabLabel;
 import com.intellij.xdebugger.impl.frame.XDebuggerFramesList;
 import com.intellij.xdebugger.impl.ui.tree.XDebuggerTree;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.IllegalComponentStateException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
@@ -47,18 +66,6 @@ import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.google.common.base.Verify.verifyNotNull;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.util.ui.UIUtil.findComponentOfType;
-import static com.intellij.util.ui.UIUtil.findComponentsOfType;
-import static org.fest.reflect.core.Reflection.method;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public static class ContentFixture {
@@ -78,6 +85,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
      */
     public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
       Wait.seconds(secondsToWait).
+        // TODO We're not waiting on logcat. This message should be updated
         expecting("LogCat tool window output check for package name")
         .until(() -> outputMatches(matcher));
     }
@@ -375,11 +383,5 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
   @NotNull
   private ActionButtonFixture findAction(@NotNull String text) {
     return ActionButtonFixture.findByText(text, myRobot, getContentPanel());
-  }
-
-  @NotNull
-  public DeployTargetPickerDialogFixture clickRerunApplication() {
-    findAction("Rerun").waitUntilEnabledAndShowing().click();
-    return DeployTargetPickerDialogFixture.find(myRobot);
   }
 }

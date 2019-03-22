@@ -27,7 +27,6 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.ArrayUtil;
 import java.util.Collection;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NonNls;
@@ -59,7 +58,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
           LOG.debug("Recomputing inner classes of " + this.getClass());
         }
         PsiClass[] innerClasses = doGetInnerClasses();
-        return CachedValueProvider.Result.create(innerClasses, ArrayUtil.mergeArrays(getInnerClassesDependencies(), innerClasses));
+        return CachedValueProvider.Result.create(innerClasses, getInnerClassesDependencies());
       });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(project);

@@ -22,10 +22,13 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import javax.swing.*;
+import org.jetbrains.kotlin.config.KotlinSourceRootType;
 
 enum NonAndroidSourceType {
   JAVA(JavaSourceRootType.SOURCE, "java", AllIcons.Modules.SourceRoot),
-  TESTS(JavaSourceRootType.TEST_SOURCE, "tests", AllIcons.Modules.SourceRoot),
+  JAVA_TESTS(JavaSourceRootType.TEST_SOURCE, "tests", AllIcons.Modules.SourceRoot),
+  KOTLIN(KotlinSourceRootType.Source.INSTANCE, "kotlin", AllIcons.Modules.SourceRoot),
+  KOTLIN_TESTS(KotlinSourceRootType.TestSource.INSTANCE, "tests", AllIcons.Modules.SourceRoot),
   RESOURCES(JavaResourceRootType.RESOURCE, "resources", AllIcons.Modules.ResourcesRoot),
   TEST_RESOURCES(JavaResourceRootType.TEST_RESOURCE, "test-resources", AllIcons.Modules.TestResourcesRoot);
 

@@ -20,5 +20,5 @@ import org.jetbrains.annotations.NotNull;
 
 abstract class SyncCheck {
   @NotNull
-  abstract PreSyncCheckResult canSync(@NotNull Project project);
+  abstract PreSyncCheckResult checkCanSyncAndTryToFix(@NotNull Project project);
 }

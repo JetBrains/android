@@ -104,7 +104,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   @Override
   public void openModuleSettings(Module module) {
     if (isGradleProjectInAndroidStudio()) {
-      if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      if (ProjectStructureConfigurable.isNewPsdEnabled()) {
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
@@ -121,7 +121,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openSigningConfiguration(@NotNull Module module) {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
@@ -136,7 +136,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openSdkSettings() {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
@@ -149,7 +149,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void chooseJdkLocation() {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
@@ -162,7 +162,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
@@ -177,7 +177,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openAndSelectBuildTypesEditor(@NotNull Module module) {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
@@ -192,7 +192,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openAndSelectFlavorsEditor(@NotNull Module module) {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
@@ -207,7 +207,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   public void openAndSelectDependenciesEditor(@NotNull Module module) {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
@@ -303,7 +303,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     if (isGradleProjectInAndroidStudio()) {
       Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleToSelect);
       assert module != null;
-      if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      if (ProjectStructureConfigurable.isNewPsdEnabled()) {
         showNewPsd(
           new Place()
             .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)

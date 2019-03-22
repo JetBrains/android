@@ -73,6 +73,7 @@ import com.intellij.util.Consumer;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.gradle.internal.impldep.org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,8 +103,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   // @formatter:off
   private static final Map<ScreenOrientation, NamedIcon> ORIENTATIONS = ImmutableMap.of(
-    ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", AndroidIcons.Portrait),
-    ScreenOrientation.LANDSCAPE, new NamedIcon("Landscape", AndroidIcons.Landscape));
+    ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", StudioIcons.Avd.PORTRAIT),
+    ScreenOrientation.LANDSCAPE, new NamedIcon("Landscape", StudioIcons.Avd.LANDSCAPE));
   // @formatter:on
 
   final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
@@ -356,7 +357,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     int numNotShown = mySnapshotList.size() - snapshotModel.getSize();
     String finalLine = (mySnapshotList.isEmpty()) ? "(no snapshots)" :
                        (numNotShown == 0) ? "  Details ..." :
-                       String.format("  Details ... (+%d others)", numNotShown);
+                       String.format(Locale.US, "  Details ... (+%d others)", numNotShown);
     snapshotModel.add(finalLine);
     myChosenSnapshotComboBox.setModel(snapshotModel);
     myChosenSnapshotComboBox.setSelectedIndex(0);
@@ -926,7 +927,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         String errorMessage = myModel.isPlayStoreCompatible() ?
                               "Internal storage for Play Store devices must be at least %s." :
                               "Internal storage must be at least %s.";
-        return new Result(Severity.ERROR, String.format(errorMessage, myModel.minInternalMemSize()));
+        return new Result(Severity.ERROR, String.format(Locale.US, errorMessage, myModel.minInternalMemSize()));
       }
     });
 
@@ -1196,7 +1197,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     };
     myOrientationToggle =
       new ASGallery<>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
-                      orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
+                      orientationIconFunction, orientationNameFunction, JBUI.size(48, 48), null);
 
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());

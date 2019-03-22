@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
@@ -27,9 +26,11 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateRe
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +99,9 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
         userAcceptsUpgrade = promptUserTask.compute();
       }
       else {
-        userAcceptsUpgrade = invokeAndWaitIfNeeded(promptUserTask);
+        final Ref<Boolean> result = Ref.create();
+        ApplicationManager.getApplication().invokeAndWait(() -> result.set(promptUserTask.compute()), ModalityState.NON_MODAL);
+        userAcceptsUpgrade = result.get();
       }
 
       if (userAcceptsUpgrade) {

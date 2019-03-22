@@ -50,13 +50,17 @@ constructor(val threadDumpPath: Path?,
         super.serializeTo(builder)
 
         val edtStack = threadDump?.let { ThreadDumper.getEdtStackForCrash(it, EXCEPTION_TYPE) }
+                       ?: EMPTY_OOM_STACKTRACE
 
-        builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,
-                            edtStack ?: EMPTY_OOM_STACKTRACE)
-        builder.addTextBody("histogram", histogram,
-                            ContentType.create("text/plain", Charsets.UTF_8))
-        builder.addTextBody("threadDump", threadDump,
-                            ContentType.create("text/plain", Charsets.UTF_8))
+        builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
+        histogram?.let {
+          builder.addTextBody("histogram", histogram,
+                              ContentType.create("text/plain", Charsets.UTF_8))
+        }
+        threadDump?.let {
+          builder.addTextBody("threadDump", threadDump,
+                              ContentType.create("text/plain", Charsets.UTF_8))
+        }
       }
 
     }

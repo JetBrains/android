@@ -63,7 +63,7 @@ public class NewGradleSyncIntegrationTest extends GradleSyncIntegrationTest {
     gbm.dependencies().addArtifact("testImplementation", "org.mockito:mockito-core:2.7.1");
     WriteCommandAction.runWriteCommandAction(getProject(), () -> pbm.applyChanges());
 
-    importProject(getProject().getName(), getBaseDirPath(getProject()), null);
+    importProject(getProject().getName(), getBaseDirPath(getProject()));
 
 
     Module module = myModules.getAppModule();

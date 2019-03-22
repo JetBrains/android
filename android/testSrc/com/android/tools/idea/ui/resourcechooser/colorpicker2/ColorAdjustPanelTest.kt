@@ -22,6 +22,7 @@ import org.mockito.Mockito
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.MouseEvent
+import kotlin.test.assertNotEquals
 
 class ColorAdjustPanelTest : IdeaTestCase() {
 
@@ -40,7 +41,7 @@ class ColorAdjustPanelTest : IdeaTestCase() {
     val listener = Mockito.mock(ColorPickerListener::class.java)
     model.addListener(listener)
 
-    testColorSlider(panel, slider, initialColor, pressColor, dragColor, releaseColor, model, listener)
+    testColorSlider(slider, initialColor, pressColor, dragColor, releaseColor, model, listener)
   }
 
   @Test
@@ -58,11 +59,10 @@ class ColorAdjustPanelTest : IdeaTestCase() {
     val listener = Mockito.mock(ColorPickerListener::class.java)
     model.addListener(listener)
 
-    testColorSlider(panel, slider, initialColor, pressColor, dragColor, releaseColor, model, listener)
+    testColorSlider(slider, initialColor, pressColor, dragColor, releaseColor, model, listener)
   }
 
-  private fun testColorSlider(panel: ColorAdjustPanel,
-                              slider: SliderComponent<out Number>,
+  private fun testColorSlider(slider: SliderComponent<out Number>,
                               initialColor: Color,
                               pressColor: Color,
                               dragColor: Color,
@@ -82,8 +82,8 @@ class ColorAdjustPanelTest : IdeaTestCase() {
 
     // pressing won't change the color in color model, but just trigger pickingColorChanged callback.
     Assert.assertEquals(initialColor, model.color)
-    Mockito.verify(listener, Mockito.times(0)).colorChanged(pressColor, panel)
-    Mockito.verify(listener, Mockito.times(1)).pickingColorChanged(pressColor, panel)
+    Mockito.verify(listener, Mockito.times(0)).colorChanged(pressColor, slider)
+    Mockito.verify(listener, Mockito.times(1)).pickingColorChanged(pressColor, slider)
 
     slider.dispatchEvent(MouseEvent(slider,
                                     MouseEvent.MOUSE_DRAGGED,
@@ -95,8 +95,8 @@ class ColorAdjustPanelTest : IdeaTestCase() {
                                     false))
     // dragging won't change the color but trigger pickingColorChanged callback neither.
     Assert.assertEquals(initialColor, model.color)
-    Mockito.verify(listener, Mockito.times(0)).colorChanged(dragColor, panel)
-    Mockito.verify(listener, Mockito.times(1)).pickingColorChanged(dragColor, panel)
+    Mockito.verify(listener, Mockito.times(0)).colorChanged(dragColor, slider)
+    Mockito.verify(listener, Mockito.times(1)).pickingColorChanged(dragColor, slider)
 
 
     slider.dispatchEvent(MouseEvent(slider,
@@ -109,10 +109,11 @@ class ColorAdjustPanelTest : IdeaTestCase() {
                                     false))
     // releasing change the color of model but doesn't trigger pickingColorChanged callback.
     Assert.assertEquals(releaseColor, model.color)
-    Mockito.verify(listener, Mockito.times(1)).colorChanged(releaseColor, panel)
-    Mockito.verify(listener, Mockito.times(0)).pickingColorChanged(releaseColor, panel)
+    Mockito.verify(listener, Mockito.times(1)).colorChanged(releaseColor, slider)
+    Mockito.verify(listener, Mockito.times(0)).pickingColorChanged(releaseColor, slider)
   }
 
+  @Test
   fun testChangeModelColorWillUpdateAllComponent() {
     val model = ColorPickerModel()
     val panel = ColorAdjustPanel(model, FakeColorPipetteProvider())
@@ -133,5 +134,67 @@ class ColorAdjustPanelTest : IdeaTestCase() {
     val yellowHue = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)[0]
     assertEquals(Math.round(yellowHue * 360), hueSlide.value)
     assertEquals(Color.YELLOW, alphaSlide.sliderBackgroundColor)
+  }
+
+  @Test
+  fun testHueSliderIsDraggableWhenColorIsWhiteOrBlack() {
+    fun checkColor(c: Color) {
+      val model = ColorPickerModel()
+      val panel = ColorAdjustPanel(model, FakeColorPipetteProvider())
+      val hueSlider = panel.hueSlider
+      val alphaSlider = panel.alphaSlider
+
+      panel.size = Dimension(1000, 300)
+      hueSlider.size = Dimension(300, 300)
+      alphaSlider.size = Dimension(300, 300)
+
+      model.setColor(c)
+
+      val oldHueKnobPosition = hueSlider.knobPosition
+      val oldAlphaKnobPosition = alphaSlider.knobPosition
+
+      simulateDragSlider(hueSlider, hueSlider.x + hueSlider.width / 4, hueSlider.x + hueSlider.width * 3 / 4)
+      assertNotEquals(oldHueKnobPosition, hueSlider.knobPosition)
+      assertEquals(oldAlphaKnobPosition, alphaSlider.knobPosition)
+
+      val newHueKnobPosition = hueSlider.knobPosition
+
+      simulateDragSlider(alphaSlider, alphaSlider.x + alphaSlider.width / 4, alphaSlider.x + alphaSlider.width * 3 / 4)
+      assertEquals(newHueKnobPosition, hueSlider.knobPosition)
+      assertNotEquals(oldAlphaKnobPosition, alphaSlider.knobPosition)
+    }
+
+    checkColor(Color.WHITE)
+    checkColor(Color.BLACK)
+  }
+
+  private fun simulateDragSlider(slider: SliderComponent<out Number>, from: Int, to: Int) {
+    val centerY = slider.y + slider.height / 2
+    slider.dispatchEvent(MouseEvent(slider,
+                                    MouseEvent.MOUSE_PRESSED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    from,
+                                    centerY,
+                                    1,
+                                    false))
+
+    slider.dispatchEvent(MouseEvent(slider,
+                                    MouseEvent.MOUSE_DRAGGED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    (from + to) / 2,
+                                    centerY,
+                                    1,
+                                    false))
+
+    slider.dispatchEvent(MouseEvent(slider,
+                                    MouseEvent.MOUSE_RELEASED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    to,
+                                    centerY,
+                                    1,
+                                    false))
   }
 }

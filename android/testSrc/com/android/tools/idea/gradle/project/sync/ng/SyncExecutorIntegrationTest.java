@@ -520,7 +520,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     @Override
     @NotNull
-    SelectedVariants collectSelectedVariants() {
+    public SelectedVariants collectSelectedVariants() {
       return mySelectedVariants;
     }
 

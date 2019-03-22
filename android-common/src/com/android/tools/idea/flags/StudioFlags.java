@@ -197,6 +197,10 @@ public final class StudioFlags {
     NELE, "animated.motion.editor", "Show motion editor for MotionLayout",
     "Show the motion editor UI for MotionLayout.",
     false);
+  public static final Flag<Boolean> NELE_CONSTRAINT_SELECTOR = Flag.create(
+    NELE, "constraint.selection", "Allow selection of Constraints",
+    "Allow the selection of constraints.",
+    true);
   public static final Flag<Boolean> NELE_MOTION_HORIZONTAL = Flag.create(
     NELE, "animated.motion.horizontal", "Display motion editor horizontally",
     "Controls the placement of the motion editor (horizontal versus vertical).",
@@ -512,6 +516,18 @@ public final class StudioFlags {
     THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
     "If enabled, a visual editor will be available for Android themes.",
     false);
+
+  private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
+  public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
+    NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
+    "If enabled, C/C++ projects will have NDK side by side support",
+    true);
+
+  private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
+  public static final Flag<Integer> IDE_XMX_CAP_IN_GB = Flag.create(
+    MEMORY_SETTINGS, "memory.settings.ide.xmx.cap", "IDE Xmx cap in memory settings",
+    "Cap of IDE Xmx in the memory settings configuration dialog",
+    4);
 
   private StudioFlags() { }
 }

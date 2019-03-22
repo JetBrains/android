@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -61,7 +62,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
 
     // Modify the class path only if we're dealing with the unit test artifact.
-    JavaArtifact testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
+    IdeJavaArtifact testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     if (testArtifact == null) {
       return;
     }
@@ -90,6 +91,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     String originalClassPath = classPath.getPathsString();
     try {
+      addRuntimeJarsToClasspath(testArtifact, classPath);
       replaceAndroidJarWithMockableJar(classPath, platform, testArtifact);
       addFoldersToClasspath(module, testArtifact, classPath);
     }
@@ -217,5 +219,16 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
     classPath.add(folder);
+  }
+
+  /**
+   * Put runtime jars to classpath.
+   * The runtime classpath is artifact-specific, there is no need to apply exclude scope.
+   */
+  private static void addRuntimeJarsToClasspath(@NotNull IdeJavaArtifact testArtifact,
+                                                @NotNull PathsList classPath) {
+    for (File runtimeClasspath : testArtifact.getLevel2Dependencies().getRuntimeOnlyClasses()) {
+      classPath.add(runtimeClasspath);
+    }
   }
 }

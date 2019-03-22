@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
@@ -47,9 +48,12 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Container
 import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.InputEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
@@ -61,6 +65,7 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
+import javax.swing.LayoutFocusTraversalPolicy
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -103,7 +108,7 @@ private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
  * It uses an [ProjectResourcesBrowserViewModel] to populates the views
  */
 class ResourceExplorerView(
-  private val resourcesBrowserViewModel: ProjectResourcesBrowserViewModel,
+  private val resourcesBrowserViewModel: ResourceExplorerViewModel,
   private val resourceImportDragTarget: ResourceImportDragTarget
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
@@ -191,7 +196,7 @@ class ResourceExplorerView(
   /**
    * A mouse listener that opens a [ResourceDetailView] when double clicking
    * on an item from the list.
-   * @see showDetailView
+   * @see openAssets
    */
   private val doubleClickListener = object : MouseAdapter() {
     override fun mouseClicked(e: MouseEvent) {
@@ -202,7 +207,16 @@ class ResourceExplorerView(
       val index = assetListView.locationToIndex(e.point)
       if (index >= 0) {
         val designAssetSet = assetListView.model.getElementAt(index)
-        showDetailView(designAssetSet)
+        openAssets(designAssetSet)
+      }
+    }
+  }
+
+  private val keyListener = object : KeyAdapter() {
+    override fun keyPressed(e: KeyEvent) {
+      if (KeyEvent.VK_ENTER == e.keyCode) {
+        val assetListView = e.source as AssetListView
+        openAssets(assetListView.selectedValue)
       }
     }
   }
@@ -210,15 +224,27 @@ class ResourceExplorerView(
   /**
    * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
    */
+  private fun openAssets(designAssetSet: DesignAssetSet) {
+    if (designAssetSet.designAssets.size == 1) {
+      val asset = designAssetSet.designAssets.first()
+      ResourceManagerTracking.logAssetOpened(asset.type)
+      resourcesBrowserViewModel.openFile(asset)
+      return
+    }
+    showDetailView(designAssetSet)
+  }
+
   private fun showDetailView(designAssetSet: DesignAssetSet) {
     val parent = parent
     parent.remove(this)
+    val previousSelectedValue = sectionList.selectedValue
 
     val detailView = ResourceDetailView(designAssetSet, resourcesBrowserViewModel) { detailView ->
       parent.remove(detailView)
       parent.add(this@ResourceExplorerView)
       parent.revalidate()
       parent.repaint()
+      sectionList.selectedValue = previousSelectedValue
     }
 
     parent.add(detailView)
@@ -239,6 +265,12 @@ class ResourceExplorerView(
     add(headerPanel, BorderLayout.NORTH)
     add(sectionList)
     add(footerPanel, BorderLayout.SOUTH)
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+      override fun getFirstComponent(p0: Container?): Component {
+        return sectionList.getLists().firstOrNull() ?: this@ResourceExplorerView
+      }
+    }
   }
 
   private fun getSelectedAssets(): List<DesignAsset> {
@@ -325,6 +357,7 @@ class ResourceExplorerView(
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
       addMouseListener(doubleClickListener)
+      addKeyListener(keyListener)
       thumbnailWidth = this@ResourceExplorerView.previewSize
       isGridMode = this@ResourceExplorerView.gridMode
     })
@@ -382,7 +415,7 @@ class ResourceExplorerView(
    * Button to enable the list view
    */
   private inner class ListModeButton
-    : ToggleAction(null, null, StudioIcons.LayoutEditor.Palette.LIST_VIEW),
+    : ToggleAction("List mode", "Switch to list mode", StudioIcons.LayoutEditor.Palette.LIST_VIEW),
       DumbAware {
 
     override fun isSelected(e: AnActionEvent) = !gridMode
@@ -400,7 +433,7 @@ class ResourceExplorerView(
    * Button to enable the grid view
    */
   private inner class GridModeButton
-    : ToggleAction(null, null, StudioIcons.LayoutEditor.Palette.GRID_VIEW),
+    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.LayoutEditor.Palette.GRID_VIEW),
       DumbAware {
 
     override fun isSelected(e: AnActionEvent) = gridMode
@@ -417,7 +450,7 @@ class ResourceExplorerView(
   /**
    * Button to scale down the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomMinus : AnAction(StudioIcons.Common.ZOOM_OUT), DumbAware {
+  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", StudioIcons.Common.ZOOM_OUT), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
@@ -431,7 +464,7 @@ class ResourceExplorerView(
   /**
    * Button to scale up the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomPlus : AnAction(StudioIcons.Common.ZOOM_IN), DumbAware {
+  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", StudioIcons.Common.ZOOM_IN), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())

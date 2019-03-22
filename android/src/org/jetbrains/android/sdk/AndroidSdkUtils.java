@@ -16,6 +16,20 @@
 
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.ANDROID_HOME_ENV;
+import static com.android.SdkConstants.FN_ADB;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
+import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static org.jetbrains.android.util.AndroidCommonUtils.platformToolPath;
+import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -53,29 +67,17 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.*;
-import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
-import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.util.AndroidCommonUtils.platformToolPath;
-import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -464,7 +466,7 @@ public final class AndroidSdkUtils {
     }
     AndroidVersion version = target.getVersion();
     if (version.isPreview()) {
-      return String.format("API %d+: %s", target.getVersion().getApiLevel(), target.getName());
+      return String.format(Locale.US, "API %d+: %s", target.getVersion().getApiLevel(), target.getName());
     }
     String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
     if (isNotEmpty(name)) {
@@ -472,9 +474,9 @@ public final class AndroidSdkUtils {
     }
     String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
     if (release != null) {
-      return String.format("API %1$d: Android %2$s", version.getApiLevel(), release);
+      return String.format(Locale.US, "API %1$d: Android %2$s", version.getApiLevel(), release);
     }
-    return String.format("API %1$d", version.getApiLevel());
+    return String.format(Locale.US, "API %1$d", version.getApiLevel());
   }
 
   @Nullable

@@ -96,7 +96,8 @@ public class AttributesTransaction implements NlAttributesHolder {
       }
 
       boolean changed = LayoutParamsManager
-        .setAttribute(layoutParams, StringUtil.trimStart(attribute.name, ATTR_LAYOUT_RESOURCE_PREFIX), value, model);
+        .setAttribute(layoutParams, StringUtil.trimStart(attribute.name, ATTR_LAYOUT_RESOURCE_PREFIX), value, model.getModule(),
+                      model.getConfiguration());
       hasPendingRelayout |= changed;
     }
   }

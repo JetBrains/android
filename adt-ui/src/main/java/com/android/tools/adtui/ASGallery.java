@@ -284,15 +284,7 @@ public class ASGallery<E> extends JBList {
    * as it may change without prior notice.
    */
   public void setImageProvider(@NotNull final Function<? super E, Image> imageProvider) {
-    Function<? super E, Image> scaledImageProvider = (Function<E, Image>)input -> {
-        Image img = imageProvider.apply(input);
-        if (img == null) {
-          return null;
-        }
-        img = ImageUtil.ensureHiDPI(img, JBUI.ScaleContext.create(this));
-        return ImageLoader.scaleImage(img, myThumbnailSize.width, myThumbnailSize.height);
-    };
-    CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledImageProvider));
+    CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(imageProvider));
     myCellRenderers.clear();
     myImagesCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
     repaint(getVisibleRect());
@@ -386,6 +378,7 @@ public class ASGallery<E> extends JBList {
         myCellRenderers.put(element, renderer);
       }
       renderer.setAppearance(isSelected, cellHasFocus);
+      renderer.setScale(JBUI.ScaleContext.create(jlist), myThumbnailSize);
       return renderer.getComponent();
     }
 
@@ -405,6 +398,7 @@ public class ASGallery<E> extends JBList {
   private interface CellRenderer {
     void setAppearance(boolean isSelected, boolean cellHasFocus);
     Component getComponent();
+    void setScale(JBUI.ScaleContext ctx, Dimension thumbnailSize);
   }
 
   private static abstract class AbstractCellRenderer implements CellRenderer {
@@ -423,6 +417,11 @@ public class ASGallery<E> extends JBList {
       myIsSelected = isSelected;
       myCellHasFocus = cellHasFocus;
       updateAppearance();
+    }
+
+    @Override
+    public void setScale(JBUI.ScaleContext ctx, Dimension size) {
+
     }
 
     protected abstract void updateAppearance();
@@ -463,6 +462,9 @@ public class ASGallery<E> extends JBList {
   private static class TextAndImageCellRenderer extends AbstractCellRenderer {
     private JPanel myPanel;
     private JLabel myLabel;
+    private Image myImage;
+    private JBUI.ScaleContext myScaleContext;
+    private ImageIcon myIcon;
 
     public TextAndImageCellRenderer(Font font, String label, Image image) {
       // If there is an image, create a panel with the image at the top and
@@ -475,9 +477,10 @@ public class ASGallery<E> extends JBList {
       // | (label,     |
       // |   bottom)   |
       // +-------------+
-      ImageIcon icon = new JBImageIcon(image);
-      icon.setDescription(label);
-      JLabel imageLabel = new JLabel(icon);
+      myImage = image;
+      myIcon = new JBImageIcon(image);
+      myIcon.setDescription(label);
+      JLabel imageLabel = new JLabel(myIcon);
 
       JLabel textLabel = new JLabel(label, SwingConstants.CENTER);
       textLabel.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -503,6 +506,15 @@ public class ASGallery<E> extends JBList {
       setSelectionBorder(myPanel);
       setLabelBackground(myLabel);
       setLabelForeground(myLabel);
+    }
+
+    @Override
+    public void setScale(@NotNull JBUI.ScaleContext ctx, Dimension size) {
+      if (!ctx.equals(myScaleContext)) {
+        myScaleContext = ctx;
+        Image image = ImageUtil.ensureHiDPI(myImage, myScaleContext);
+        myIcon.setImage(ImageLoader.scaleImage(image, size.width, size.height));
+      }
     }
 
     @Override

@@ -81,6 +81,7 @@ import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import net.jcip.annotations.GuardedBy;
@@ -445,7 +446,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   private String createStatusMessage(@NotNull GradleBuildState buildState, long durationMillis) {
     String message = "Gradle build " + formatBuildStatusFromState(buildState);
     if (myErrorCount > 0) {
-      message += String.format(" with %d error(s)", myErrorCount);
+      message += String.format(Locale.US, " with %d error(s)", myErrorCount);
     }
     message = message + " in " + formatDuration(durationMillis);
     return message;

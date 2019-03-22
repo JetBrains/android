@@ -243,6 +243,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  public void troubleshootDeviceConnections(@NotNull String appName) {
+    new DeviceSelectorFixture(robot()).troubleshootDeviceConnections(this, appName);
+  }
+
   @NotNull
   public IdeFrameFixture recordEspressoTest(@NotNull String device) {
     new DeviceSelectorFixture(robot()).recordEspressoTest(this, device);
@@ -253,28 +257,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     new DeviceSelectorFixture(robot()).debugApp(this, appName, deviceName);
   }
 
-  /**
-   * @deprecated Use {@link #debugApp(String, String)}
-   */
-  @Deprecated
-  public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) {
-    selectApp(appName);
-    findDebugApplicationButton().click();
-    return DeployTargetPickerDialogFixture.find(robot());
-  }
-
   public void runApp(@NotNull String appName, @NotNull String deviceName) {
     new DeviceSelectorFixture(robot()).runApp(this, appName, deviceName);
-  }
-
-  /**
-   * @deprecated Use {@link #runApp(String, String)}
-   */
-  @Deprecated
-  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
-    selectApp(appName);
-    findRunApplicationButton().waitUntilEnabledAndShowing().click();
-    return DeployTargetPickerDialogFixture.find(robot());
   }
 
   @NotNull

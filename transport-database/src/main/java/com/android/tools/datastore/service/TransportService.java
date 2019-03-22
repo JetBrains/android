@@ -25,6 +25,7 @@ import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.DeviceProcessPoller;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
@@ -48,6 +49,7 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
@@ -56,6 +58,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,6 +82,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
    * A map of active channels to unified event streams. This map helps us clean up streams when a channel is closed.
    */
   private final Map<Channel, Stream> myChannelToStream = Maps.newHashMap();
+  @VisibleForTesting final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public TransportService(@NotNull DataStoreService service,
                           Consumer<Runnable> fetchExecutor) {
@@ -244,13 +248,14 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     long streamId = request.getCommand().getStreamId();
     TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(streamId);
     if (client != null) {
+      Commands.Command command = request.getCommand();
+      request = request.toBuilder().setCommand(command.toBuilder().setCommandId(myNextCommandId.incrementAndGet())).build();
       responseObserver.onNext(client.execute(request));
-      responseObserver.onCompleted();
     }
     else {
       responseObserver.onNext(ExecuteResponse.getDefaultInstance());
-      responseObserver.onCompleted();
     }
+    responseObserver.onCompleted();
   }
 
   @Override

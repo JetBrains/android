@@ -43,9 +43,9 @@ public class PreSyncChecks {
   }
 
   @NotNull
-  public PreSyncCheckResult canSync(@NotNull Project project) {
+  public PreSyncCheckResult canSyncAndTryToFix(@NotNull Project project) {
     for (SyncCheck condition : myStrategies) {
-      PreSyncCheckResult result = condition.canSync(project);
+      PreSyncCheckResult result = condition.checkCanSyncAndTryToFix(project);
       if (!result.isSuccess()) {
         return result;
       }

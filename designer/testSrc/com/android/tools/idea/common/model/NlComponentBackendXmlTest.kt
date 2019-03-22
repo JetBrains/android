@@ -267,7 +267,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
   }
 
   private fun createBackend(tag: XmlTag): NlComponentBackendXml {
-    return NlComponentBackendXml(mock<NlModel>(NlModel::class.java), tag, createTagPointer(tag))
+    return NlComponentBackendXml(myFixture.project, tag, createTagPointer(tag))
   }
 
   private fun createTagPointer(tag: XmlTag): SmartPsiElementPointer<XmlTag> {

@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.util.ui.UIUtil;
+import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -81,6 +82,28 @@ public final class DeviceSelectorFixture {
         .map(Device::getName)
         .anyMatch(name -> name.equals(deviceName));
     });
+  }
+
+  public void troubleshootDeviceConnections(@NotNull IdeFrameFixture ide, @NotNull String appName) {
+    ide.selectApp(appName);
+
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      ide.findRunApplicationButton().click();
+
+      // noinspection deprecation
+      DeployTargetPickerDialogFixture.find(myRobot)
+        .clickHelp();
+
+      return;
+    }
+
+    myComboBox.selectItem("Troubleshoot device connections");
+
+    // Without typing Enter the combo box stays open and OpenConnectionAssistantSidePanelAction::actionPerformed never gets called. I wonder
+    // if it's because that action doesn't change the selected device. There's precedent in IdeFrameFixture::selectApp and
+    // BasePerspectiveConfigurableFixture::findMinimizedModuleSelector. I did consider putting the pressAndReleaseKey call in the combo box
+    // fixture itself.
+    myRobot.pressAndReleaseKey(KeyEvent.VK_ENTER);
   }
 
   public void recordEspressoTest(@NotNull IdeFrameFixture ide, @NotNull String deviceName) {

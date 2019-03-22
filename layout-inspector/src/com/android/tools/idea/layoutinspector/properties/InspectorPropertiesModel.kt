@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorEvent
+import com.android.tools.profiler.proto.Common
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
 import kotlin.properties.Delegates
+import kotlin.reflect.KProperty
 
 /**
  * Layout Inspector Properties Model
@@ -38,11 +41,17 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   override var properties: PropertiesTable<InspectorPropertyItem> = PropertiesTable.emptyTable()
     private set
 
-  var inspectorModel by Delegates.observable<InspectorModel?>(null) { _, old, new -> modelChanged(old, new)}
+  // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
+  var layoutInspector by Delegates.observable<LayoutInspector?>(null, ::inspectorChanged)
+  var client: InspectorClient? = null
 
-  private fun modelChanged(oldModel: InspectorModel?, newModel: InspectorModel?) {
-    oldModel?.selectionListeners?.remove(::handleNewSelection)
-    newModel?.selectionListeners?.add(::handleNewSelection)
+  @Suppress("UNUSED_PARAMETER")
+  private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
+    oldInspector?.layoutInspectorModel?.selectionListeners?.remove(::handleNewSelection)
+    newInspector?.layoutInspectorModel?.selectionListeners?.add(::handleNewSelection)
+    // TODO: stop the existing client polling, and detach from agent
+    client = newInspector?.client
+    client?.register(Common.Event.EventGroupIds.PROPERTIES, ::loadProperties)
   }
 
   override fun deactivate() {
@@ -59,11 +68,19 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun handleNewSelection(oldView: InspectorView?, newView: InspectorView?) {
-    val newProperties = provider.getProperties(newView)
-    ApplicationManager.getApplication().invokeLater {
-      properties = newProperties
+    if (newView != null) {
+      provider.requestProperties(newView)
+    }
+    else {
+      properties = PropertiesTable.emptyTable()
       firePropertiesGenerated()
     }
+  }
+
+  private fun loadProperties(event: LayoutInspectorEvent) {
+    val selectedView = layoutInspector?.layoutInspectorModel?.selection
+    properties = provider.loadProperties(event, selectedView)
+    firePropertiesGenerated()
   }
 
   private fun firePropertiesGenerated() {

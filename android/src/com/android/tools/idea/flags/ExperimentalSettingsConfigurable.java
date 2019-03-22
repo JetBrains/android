@@ -46,6 +46,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JSlider myLayoutEditorQualitySlider;
   private TitledSeparator myCreateNewModuleWizardTitledSeparator;
   private JCheckBox myConditionalDeliveryCheckbox;
+  private JCheckBox myNewPsdCheckbox;
+  private TitledSeparator myNewPsdSeparator;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
@@ -73,6 +75,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     myCreateNewModuleWizardTitledSeparator.setVisible(StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
     myConditionalDeliveryCheckbox.setVisible(StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
+
+    myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
+    myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
 
     reset();
   }
@@ -113,7 +118,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
         (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-        myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC != isConditionalDeliverySync()) {
+        myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC != isConditionalDeliverySync() ||
+        mySettings.USE_NEW_PSD != isUseNewPsd()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -139,6 +145,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
     myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = isConditionalDeliverySync();
+    mySettings.USE_NEW_PSD = isUseNewPsd();
   }
 
   @VisibleForTesting
@@ -191,6 +198,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myConditionalDeliveryCheckbox.setSelected(value);
   }
 
+  boolean isUseNewPsd() {
+    return myNewPsdCheckbox.isSelected();
+  }
+
+  @TestOnly
+  void setUseNewPsd(boolean value) {
+    myNewPsdCheckbox.setSelected(value);
+  }
+
   @Override
   public void reset() {
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
@@ -199,6 +215,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myConditionalDeliveryCheckbox.setSelected(myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC);
+    myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
   }
 
   private void createUIComponents() {

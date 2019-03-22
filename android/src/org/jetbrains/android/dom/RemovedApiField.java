@@ -21,6 +21,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.util.IncorrectOperationException;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,12 +90,12 @@ public class RemovedApiField extends ProvidedDocumentationPsiElement implements 
   public String getDocumentation() {
     StringBuilder sb = new StringBuilder();
     sb.append("<HTML>\n");
-    sb.append(String.format("<p><b>%s</b>\n", myName));
-    sb.append(String.format("<p>Added in <a href=\"%s\">API level %d</a>\n", API_LEVELS_URL, mySince));
+    sb.append(String.format(Locale.US, "<p><b>%s</b>\n", myName));
+    sb.append(String.format(Locale.US, "<p>Added in <a href=\"%s\">API level %d</a>\n", API_LEVELS_URL, mySince));
     if (myDeprecatedIn != 0 && myDeprecatedIn < myRemovedIn) {
-      sb.append(String.format("<br>Deprecated in <a href=\"%s\">API level %d</a>\n", API_LEVELS_URL, myDeprecatedIn));
+      sb.append(String.format(Locale.US, "<br>Deprecated in <a href=\"%s\">API level %d</a>\n", API_LEVELS_URL, myDeprecatedIn));
     }
-    sb.append(String.format("<br>Removed in <a href=\"%s\">API level %d</a>\n", API_LEVELS_URL, myRemovedIn));
+    sb.append(String.format(Locale.US, "<br>Removed in <a href=\"%s\">API level %d</a>\n", API_LEVELS_URL, myRemovedIn));
     sb.append("</HTML>\n");
     return sb.toString();
   }

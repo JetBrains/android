@@ -173,7 +173,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("localJarAsModule.local", COMPILE, true);
+    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("Gradle: localJarAsModule.local", COMPILE, true);
   }
 
   public void testWithInterModuleDependencies() throws Exception {

@@ -76,7 +76,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         // such as private members or instance methods on class objects.
         boolean onlyValidCompletions = parameters.getInvocationCount() <= 1;
 
-        DataBindingTracker tracker = DataBindingTracker.Companion.getInstance(parameters.getEditor().getProject());
+        DataBindingTracker tracker = DataBindingTracker.getInstance(parameters.getEditor().getProject());
         DataBindingEvent.DataBindingContext dataBindingContext = UNKNOWN_CONTEXT;
 
         PsiElement position = parameters.getOriginalPosition();
@@ -242,7 +242,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     return LookupElementBuilder.create(lookupObject, lookupString).withInsertHandler(new InsertHandler<LookupElement>() {
       @Override
       public void handleInsert(@NotNull InsertionContext context, @NotNull LookupElement item) {
-        DataBindingTracker tracker = DataBindingTracker.Companion.getInstance(context.getProject());
+        DataBindingTracker tracker = DataBindingTracker.getInstance(context.getProject());
 
         PsiElement childElement = context.getFile().findElementAt(context.getStartOffset());
         PsiElement grandParent = childElement.getParent().getParent();

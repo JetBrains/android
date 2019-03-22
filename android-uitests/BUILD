@@ -5,7 +5,13 @@ filegroup(
     srcs = ["default_aspect_rules.txt"],
 )
 
+filegroup(
+    name = "aspects_baseline",
+    srcs = ["aspects_baseline.txt"],
+)
+
 COMMON_DATA = [
+    "//tools/adt/idea/android-uitests:aspects_baseline",
     "//tools/adt/idea/android-uitests:aspect_rules",
     "//tools/base/aspects_agent:aspects_agent",
     "//tools/adt/idea/android:test_deps.zip",
@@ -248,7 +254,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # Workaround for b/126957955
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -419,7 +424,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",  # fails 2 out of 3000 runs
-        "qa_unreliable",  # b/122276901
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -437,7 +441,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/125934368
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -523,7 +526,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/122276901
+        "qa_unreliable",  # b/128711988
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -722,7 +725,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",  # b/124009800
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -816,7 +818,7 @@ java_test(
         "requires-fakeroot",
         "no_psq",
         "qa_sanity",
-        "qa_unreliable",
+        "qa_sanity_emu",
         "requires_emulator",
         "cpu:100",
     ],
@@ -835,6 +837,67 @@ java_test(
         "no_psq",
         "qa_sanity",
         "qa_unreliable",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "DualDebuggerBreakpointsTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/debugger/BasicCmakeAppForUI/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.DualDebuggerBreakpointsTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_unreliable",  # b/128932526
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "RunInstrumentationTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunInstrumentationTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_sanity_emu",
+        "qa_unreliable",  # b/80421743
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1402,6 +1465,7 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest",
         "-Daspects.agent.jar=$(location //tools/base/aspects_agent:aspects_agent)",
         "-Daspects.agent.rules=$(location //tools/adt/idea/android-uitests:aspect_rules)",
+        "-Daspects.agent.baseline=$(location //tools/adt/idea/android-uitests:aspects_baseline)",
     ],
     tags = COMMON_TAGS + [
         "no_psq",

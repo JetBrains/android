@@ -56,8 +56,10 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
+import java.util.Arrays;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -206,6 +208,28 @@ public class WidgetConstraintModel {
     {SHERPA_URI}
   };
 
+  private static final String[][] ourOverConstrainedAttributes = {
+    {
+      ATTR_LAYOUT_START_TO_START_OF,
+      ATTR_LAYOUT_START_TO_END_OF
+    }, {
+      ATTR_LAYOUT_END_TO_START_OF,
+      ATTR_LAYOUT_END_TO_END_OF
+    }, {
+      ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+      ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+    }, {
+      ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+      ATTR_LAYOUT_RIGHT_TO_RIGHT_OF
+    }, {
+      ATTR_LAYOUT_TOP_TO_TOP_OF,
+      ATTR_LAYOUT_TOP_TO_BOTTOM_OF
+    }, {
+      ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+      ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+    }
+  };
+
   public static final int CONNECTION_LEFT = 0;
   public static final int CONNECTION_RIGHT = 1;
   public static final int CONNECTION_TOP = 2;
@@ -308,9 +332,9 @@ public class WidgetConstraintModel {
    *
    * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
    *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
-   * @param margin the margin value in dp.
+   * @param margin the margin value in dp (e.g. "0") or resource (e.g. "@dimen/left_margin")
    */
-  public void setMargin(int type, int margin) {
+  public void setMargin(int type, String margin) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
@@ -366,6 +390,24 @@ public class WidgetConstraintModel {
     }
     NlComponent parent = component.getParent();
     return parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT);
+  }
+
+  /**
+   * Remove the attribute from NlComponent
+   */
+  public void removeAttributes(@NotNull String namespace, @NotNull String attribute) {
+    final NlComponent component = myComponent;
+    if (component == null || myIsInCallback) {
+      return;
+    }
+    ComponentModification modification = new ComponentModification(component, "Change Widget");
+    modification.setAttribute(namespace, attribute, null);
+
+    ConstraintComponentUtilities.ensureHorizontalPosition(component, modification);
+    ConstraintComponentUtilities.ensureVerticalPosition(component, modification);
+
+    modification.apply();
+    modification.commit();
   }
 
   public void killConstraint(@NotNull ConstraintAnchor.Type type) {
@@ -512,29 +554,48 @@ public class WidgetConstraintModel {
     return ConstraintUtilities.getDpValue(myComponent, v);
   }
 
-  private void setDimension(@Nullable String attribute, int currentValue) {
+  private void setDimension(@Nullable String attribute, String currentValue) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
+
     attribute = ConstraintComponentUtilities.mapStartEndStrings(myComponent, attribute);
+    boolean isCurrentValueReference = currentValue.startsWith("@");
+    if (isCurrentValueReference) {
+      setAttribute(ANDROID_URI, attribute, currentValue);
+      return;
+    }
+
+    int currentValueInInt = 0;
+    try {
+      currentValueInInt = Integer.parseInt(currentValue);
+    } catch (NumberFormatException nfe) {
+    }
+
     String marginString = myComponent.getLiveAttribute(ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
       marginValue = ConstraintComponentUtilities.getDpValue(myComponent, myComponent.getLiveAttribute(ANDROID_URI, attribute));
     }
-    if (marginValue != -1 && marginValue == currentValue) {
+    if (marginValue != -1 && marginValue == currentValueInInt) {
       setAttribute(ANDROID_URI, attribute, marginString);
     }
     else {
-      String marginY = String.format(VALUE_N_DP, currentValue);
+      String marginY = String.format(VALUE_N_DP, currentValueInInt);
       setAttribute(ANDROID_URI, attribute, marginY);
     }
   }
 
+  /**
+   * Set the live android attribute
+   */
   private void setAndroidAttribute(@NotNull String attribute, @Nullable String value) {
     setAttribute(ANDROID_URI, attribute, value);
   }
 
+  /**
+   * Set the live sherpa attribute
+   */
   private void setSherpaAttribute(@NotNull String attribute, @Nullable String value) {
     setAttribute(SHERPA_URI, attribute, value);
   }
@@ -545,6 +606,9 @@ public class WidgetConstraintModel {
     }
   }
 
+  /**
+   * Set the live attribute
+   */
   private void setAttribute(@NotNull NlComponent component, @NotNull String nameSpace, @NotNull String attribute, @Nullable String value) {
     NlModel model = component.getModel();
 
@@ -677,5 +741,42 @@ public class WidgetConstraintModel {
         setAndroidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
         break;
     }
+  }
+
+  public boolean isMissingHorizontalConstrained() {
+    if (myComponent != null) {
+      String tagName = myComponent.getTagName();
+      if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
+          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
+        // Constraint Guideline and Barrier don't need to be constrained
+        return false;
+      }
+      return !ConstraintComponentUtilities.hasHorizontalConstraints(myComponent);
+    }
+    return false;
+  }
+
+  public boolean isMissingVerticalConstrained() {
+    if (myComponent != null) {
+      String tagName = myComponent.getTagName();
+      if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
+          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
+        // Constraint Guideline and Barrier don't need to be constrained
+        return false;
+      }
+      return !ConstraintComponentUtilities.hasVerticalConstraints(myComponent);
+    }
+    return false;
+  }
+
+  public boolean isOverConstrained() {
+    if (myComponent != null) {
+      for (String[] overConstrainedSet: ourOverConstrainedAttributes) {
+        if (Arrays.stream(overConstrainedSet).filter(s -> myComponent.getAttribute(SHERPA_URI, s) != null).count() > 1) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

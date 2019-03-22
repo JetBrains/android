@@ -33,6 +33,7 @@ abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, Val
   val labelComponent: JBLabel by lazy(LazyThreadSafetyMode.NONE) {
     JBLabel(property.description).also {
       it.labelFor = component
+      it.isFocusable = false
     }
   }
 
