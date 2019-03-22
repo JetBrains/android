@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.analytics
 
-import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.DataBindingEvent
