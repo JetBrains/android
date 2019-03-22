@@ -17,8 +17,8 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
@@ -35,8 +35,8 @@ import java.util.Map;
  */
 public class DataBindingClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
-  public DataBindingClassFinder(DataBindingProjectComponent component) {
-    myComponent = component;
+  public DataBindingClassFinder(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
   }
 
   @Nullable

@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
@@ -120,8 +119,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     RunConfiguration runConfiguration = junitRunConfigurations.get(0);
     List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
 
-    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project),
-                                                                           GradleProjectInfo.getInstance(project));
+    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project);
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);

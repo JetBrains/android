@@ -56,10 +56,9 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   private final CachedValue<String[]> myAllMethodNamesCache;
   private final CachedValue<String[]> myAllFieldNamesCache;
 
-  public DataBindingShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
-    myComponent = dataBindingProjectComponent;
+  public DataBindingShortNamesCache(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
     final NameCacheProvider nameCacheProvider = new NameCacheProvider(myComponent);
-    Project project = dataBindingProjectComponent.getProject();
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(project);
     myNameCache = cachedValuesManager.createCachedValue(nameCacheProvider, false);
 
