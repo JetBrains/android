@@ -75,7 +75,7 @@ class PsAnalyzerDaemon(
     UIUtil.invokeAndWaitIfNeeded(Runnable {
       project.forEachModule(Consumer { module ->
         var updatesFound = false
-        if (module is PsAndroidModule) {
+        if ((module is PsAndroidModule) || (module is PsJavaModule)) {
           module.dependencies.forEachLibraryDependency { dependency ->
             val found = checkForUpdates(dependency)
             if (found) {
@@ -83,15 +83,6 @@ class PsAnalyzerDaemon(
             }
           }
         }
-        else if (module is PsJavaModule) {
-          module.dependencies.forEachLibraryDependency { dependency ->
-            val found = checkForUpdates(dependency)
-            if (found) {
-              updatesFound = true
-            }
-          }
-        }
-
         if (updatesFound) {
           resultsUpdaterQueue.queue(IssuesComputed())
         }
