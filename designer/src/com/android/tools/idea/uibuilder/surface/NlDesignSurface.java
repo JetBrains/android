@@ -66,12 +66,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Iterator;
@@ -672,13 +669,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return Math.abs(getScale() - getFitScale(true)) > 0.01;
   }
 
-  public boolean hasCustomDevice() {
+  public boolean isResizeAvailable() {
     Configuration configuration = getConfiguration();
     if (configuration == null) {
       return false;
     }
     Device device = configuration.getDevice();
-    return device != null && Configuration.CUSTOM_DEVICE_ID.equals(device.getId());
+    if (device == null) {
+      return false;
+    }
+
+    if (StudioFlags.NELE_SIMPLER_RESIZE.get()) {
+      return true;
+    }
+
+    return Configuration.CUSTOM_DEVICE_ID.equals(device.getId());
   }
 
   @VisibleForTesting(visibility = Visibility.PROTECTED)
@@ -689,7 +694,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     Dimension size = screenView.getSize();
     Rectangle resizeZone =
       new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(mouseX, mouseY) && hasCustomDevice()) {
+    if (resizeZone.contains(mouseX, mouseY) && isResizeAvailable()) {
       Configuration configuration = getConfiguration();
       assert configuration != null;
 

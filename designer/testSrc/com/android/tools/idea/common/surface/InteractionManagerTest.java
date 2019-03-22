@@ -311,7 +311,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testLinearLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
+    when(((NlDesignSurface)surface).isResizeAvailable()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
@@ -378,7 +378,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testConstraintLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
+    when(((NlDesignSurface)surface).isResizeAvailable()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
