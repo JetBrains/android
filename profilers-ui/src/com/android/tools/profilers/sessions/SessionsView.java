@@ -412,7 +412,8 @@ public class SessionsView extends AspectObserver {
           .filter(process -> process.getState() == Common.Process.State.ALIVE)
           .collect(Collectors.toList());
         if (processes.isEmpty()) {
-          CommonAction noProcessAction = new CommonAction(NO_DEBUGGABLE_PROCESSES, null);
+          String noProcessReason = device.getUnsupportedReason().isEmpty() ? NO_DEBUGGABLE_PROCESSES : device.getUnsupportedReason();
+          CommonAction noProcessAction = new CommonAction(noProcessReason, null);
           noProcessAction.setEnabled(false);
           deviceAction.addChildrenActions(noProcessAction);
         }

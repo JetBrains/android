@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.transport;
 
+import static com.android.tools.idea.transport.TransportServiceProxy.PRE_LOLLIPOP_FAILURE_REASON;
+import static com.android.tools.idea.transport.TransportServiceProxy.Q_FAILURE_REASON;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.BEGIN_SESSION;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 import static com.google.common.truth.Truth.assertThat;
@@ -81,6 +83,21 @@ public class TransportServiceProxyTest {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     Common.Device profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
     assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
+  }
+
+  @Test
+  public void testUnsupportedReason() throws Exception {
+    IDevice mockDevice1 = createMockDevice(AndroidVersion.VersionCodes.KITKAT, new Client[0]);
+    Common.Device profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice1);
+    assertThat(profilerDevice.getUnsupportedReason()).isEqualTo(PRE_LOLLIPOP_FAILURE_REASON);
+
+    IDevice mockDevice2 = createMockDevice(AndroidVersion.VersionCodes.Q, new Client[0]);
+    profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice2);
+    assertThat(profilerDevice.getUnsupportedReason()).isEqualTo(Q_FAILURE_REASON);
+
+    IDevice mockDevice3 = createMockDevice(AndroidVersion.VersionCodes.P, new Client[0]);
+    profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice3);
+    assertThat(profilerDevice.getUnsupportedReason()).isEmpty();
   }
 
   @Test
@@ -219,7 +236,7 @@ public class TransportServiceProxyTest {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");
     when(mockDevice.getName()).thenReturn("Device");
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(version, "API"));
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(version, null));
     when(mockDevice.isOnline()).thenReturn(true);
     when(mockDevice.getClients()).thenReturn(clients);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
