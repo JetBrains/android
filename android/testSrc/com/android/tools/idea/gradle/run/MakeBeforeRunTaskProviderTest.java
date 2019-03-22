@@ -265,8 +265,7 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
     GradleSyncState syncState = new IdeComponents(myProject).mockProjectService(GradleSyncState.class);
     when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
-    MakeBeforeRunTaskProvider provider =
-      new MakeBeforeRunTaskProvider(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject));
+    MakeBeforeRunTaskProvider provider = new MakeBeforeRunTaskProvider(myProject);
 
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, mock(DataContext.class));
@@ -284,8 +283,7 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     GradleSyncState syncState = new IdeComponents(myProject).mockProjectService(GradleSyncState.class);
     when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
 
-    MakeBeforeRunTaskProvider provider =
-      new MakeBeforeRunTaskProvider(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject));
+    MakeBeforeRunTaskProvider provider = new MakeBeforeRunTaskProvider(myProject);
 
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, mock(DataContext.class));

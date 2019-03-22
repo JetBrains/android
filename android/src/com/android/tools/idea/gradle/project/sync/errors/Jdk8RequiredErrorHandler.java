@@ -27,11 +27,6 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
-  @NotNull private final Jdks myJdks;
-
-  public Jdk8RequiredErrorHandler(@NotNull Jdks jdks) {
-    myJdks = jdks;
-  }
 
   @Override
   @Nullable
@@ -53,6 +48,6 @@ public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
   @Override
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
-    return myJdks.getWrongJdkQuickFixes(project);
+    return Jdks.getInstance().getWrongJdkQuickFixes(project);
   }
 }

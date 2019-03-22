@@ -24,17 +24,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunConfigurationSetupStep extends ModuleSetupStep {
-  @NotNull private final AndroidRunConfigurations myRunConfigurations;
-
-  public AndroidRunConfigurationSetupStep(@NotNull AndroidRunConfigurations runConfigurations) {
-    myRunConfigurations = runConfigurations;
-  }
 
   @Override
   public void setUpModule(@NotNull Module module, @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.getConfiguration().isAppProject()) {
-      myRunConfigurations.createRunConfiguration(facet);
+      getConfigurations().createRunConfiguration(facet);
     }
+  }
+
+  @NotNull
+  protected AndroidRunConfigurations getConfigurations() {
+    return AndroidRunConfigurations.getInstance();
   }
 }
