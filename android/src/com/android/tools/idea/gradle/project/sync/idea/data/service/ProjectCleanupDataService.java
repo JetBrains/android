@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,17 +32,15 @@ import java.util.Collection;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 
 public class ProjectCleanupDataService extends AbstractProjectDataService<ProjectCleanupModel, Void> {
-  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final ProjectCleanup myProjectCleanup;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public ProjectCleanupDataService(@NotNull IdeInfo ideInfo) {
-    this(ideInfo, new ProjectCleanup());
+  public ProjectCleanupDataService() {
+    this(new ProjectCleanup());
   }
 
   @VisibleForTesting
-  ProjectCleanupDataService(@NotNull IdeInfo ideInfo, @NotNull ProjectCleanup projectCleanup) {
-    myIdeInfo = ideInfo;
+  ProjectCleanupDataService(@NotNull ProjectCleanup projectCleanup) {
     myProjectCleanup = projectCleanup;
   }
 
