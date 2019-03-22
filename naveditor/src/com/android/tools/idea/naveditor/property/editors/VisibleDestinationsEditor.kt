@@ -18,27 +18,31 @@ package com.android.tools.idea.naveditor.property.editors
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.visibleDestinations
 import com.android.tools.idea.naveditor.model.parentSequence
+import com.android.tools.idea.naveditor.model.visibleDestinations
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
+
+/**
+ * Provides a list of possible destinations in the property inspector for the selected action.
+ */
 class VisibleDestinationsEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, false) {
 
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
   override fun getEnumSupport(property: NlProperty): EnumSupport = DestinationEnumSupport(property) {
-    val destination = if (it.isDestination) it
-    else it.parent ?: throw IllegalStateException()
-
     val result = arrayListOf<NlComponent>()
-    val visibleDestinations = destination.visibleDestinations
+    val destination = it.parent
 
-    destination.parentSequence().forEach {
-      result.add(it)
-      result.addAll(visibleDestinations[it].orEmpty())
+    if (destination != null) {
+      val visibleDestinations = destination.visibleDestinations
+
+      destination.parentSequence().forEach {
+        result.add(it)
+        result.addAll(visibleDestinations[it].orEmpty())
+      }
     }
 
     result.filter { it.id != null }
