@@ -22,8 +22,8 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
-import java.awt.TextField
 import javax.swing.JTable
+import javax.swing.JTextField
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellEditor
@@ -120,20 +120,21 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   inner class MyKeyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
     private var currentKey: String? = null
-    private var lastEditor: TextField? = null
+    private var lastEditor: JTextField? = null
 
-    override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
+    override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
       currentKey = keyAt(row)
-      lastEditor = TextField().apply {
+      lastEditor = JTextField().apply {
         text = currentKey
       }
+      lastEditor?.let { table.addTabKeySupportTo(it) }
       return lastEditor
     }
 
     override fun stopCellEditing(): Boolean {
       return super.stopCellEditing().also {
-        if (it) {
+        if (it && currentKey != null && lastEditor != null) {
           val oldKey = currentKey!!
           val newKey = lastEditor!!.text!!
           property.changeEntryKey(oldKey, newKey)
