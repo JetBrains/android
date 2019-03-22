@@ -61,6 +61,27 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     assertTrue(command.isPresent());
   }
 
+  public void testCancelWhenDragging() {
+    AnchorTarget target = AnchorTarget.findAnchorTarget(myScene.getSceneComponent("button1"), AnchorTarget.Type.RIGHT);
+    final float endX = target.getCenterX();
+    final float endY = target.getCenterY();
+
+    myInteraction.select("button2", true);
+    myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
+    // Drag connection to button1 right anchor.
+    myInteraction.mouseDrag(endX, endY);
+    ConstraintAnchorTarget leftAnchor =
+      (ConstraintAnchorTarget)AnchorTarget.findAnchorTarget(myScene.getSceneComponent("button2"), AnchorTarget.Type.LEFT);
+
+    assertTrue(leftAnchor.isConnected());
+
+    myInteraction.mouseCancel(endX, endY);
+
+    assertFalse(leftAnchor.isConnected());
+    // No change in actual xml.
+    myScreen.get("@id/button2").expectXml("<Button\n" + "    android:id=\"@id/button2\"/>");
+  }
+
   public void testCancelAnchorWhenCreating() {
     myInteraction.select("button2", true);
     myInteraction.mouseDown("button2", AnchorTarget.Type.LEFT);
