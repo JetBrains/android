@@ -46,13 +46,13 @@
            <img src="https://d.android.com/studio/releases/assistant/3.4.0/new-psd.gif"
            width="428"
            height="387"
-           alt="An image of the Variables section of thte PSD, which allows you to create, manage,
-                customize build variables.">
+           alt="An image of the Variables section of the PSD, which allows you to create, manage,
+                and customize build variables.">
 
            <br><br>
-           The New Project Structure Dialog (PSD) makes it easier to keep dependencies updated
+           The new Project Structure Dialog (PSD) makes it easier to keep dependencies updated
            and configure different aspects of your project, such as modules, build variants and
-           variables, signing configurations, and build variables. Open the PSD by selecting
+           variables, and signing configurations. Open the PSD by selecting
            <b>File &gt; Project Structure</b> from the menu bar.
            <a href="https://d.android.com/r/studio-wna/3.4.0/new-psd">
            Learn more</a>
@@ -89,7 +89,7 @@
            width="428"
            height="112"
            alt="With R8, desugaring, shrinking, obfuscating, optimizing, and dexing (D8) are all
-                completed in one step">
+                completed in one step.">
 
            <br><br>
            R8 integrates desugaring, shrinking, obfuscating, optimizing, and dexing all in one
@@ -171,7 +171,7 @@
            the <a href="https://blog.jetbrains.com/idea/2019/01/intellij-idea-2018-3-4-is-released/">
            2018.3.4 release</a>.
            <br><br><hr><br>
-           <em>Last updated 3/25/2019</em>
+           <em>Last updated 4/2/2019</em>
            <br><br>
            ]]>
           </section>
