@@ -20,9 +20,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
@@ -53,8 +53,8 @@ import java.util.Set;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
@@ -62,6 +62,10 @@ import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENT
 
 public class SdksCleanupStep extends ProjectCleanupStep {
   @NotNull private final AndroidSdks myAndroidSdks;
+
+  public SdksCleanupStep() {
+    myAndroidSdks = AndroidSdks.getInstance();
+  }
 
   public SdksCleanupStep(@NotNull AndroidSdks androidSdks) {
     myAndroidSdks = androidSdks;
