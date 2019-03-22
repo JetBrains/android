@@ -21,8 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import java.io.Serializable
 
-const val DEFAULT_QUICK_FIX_TEXT = "[Fix]"
-
 data class PsLibraryDependencyVersionQuickFixPath(
   val moduleName: String,
   val dependency: String,
