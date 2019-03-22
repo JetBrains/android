@@ -519,7 +519,6 @@ class VariablesTable private constructor(
     editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
   fun addVariableAvailable(): Boolean = getSelectedNodes<VariablesBaseNode>().isNotEmpty()

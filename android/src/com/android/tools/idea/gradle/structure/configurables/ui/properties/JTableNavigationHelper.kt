@@ -29,7 +29,6 @@ fun JTable.addTabKeySupportTo(editor: JComponent) {
   editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), TreeTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), TreeTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("ENTER"), TreeTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-  editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed ENTER"), TreeTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 }
 
 private fun JTable.selectCell(row: Int, column: Int) {
