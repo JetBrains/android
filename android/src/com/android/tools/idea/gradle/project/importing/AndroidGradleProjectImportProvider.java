@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.importing;
 
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
@@ -35,10 +34,10 @@ import java.util.List;
  * A {@link ProjectImportProvider} with ability to import Android Gradle projects.
  * This is used by VCS when checking out a project and delegates to our {@link  GradleProjectImporter}.
  */
-public class AndroidGradleProjectImportProvider extends ProjectImportProvider {
-
-  protected AndroidGradleProjectImportProvider(AndroidGradleImportBuilder builder) {
-    super(builder);
+public final class AndroidGradleProjectImportProvider extends ProjectImportProvider {
+  @Override
+  protected ProjectImportBuilder doGetBuilder() {
+    return ProjectImportBuilder.EXTENSIONS_POINT_NAME.findExtensionOrFail(AndroidGradleImportBuilder.class);
   }
 
   public static class AndroidGradleImportBuilder extends ProjectImportBuilder<String> {
@@ -64,7 +63,7 @@ public class AndroidGradleProjectImportProvider extends ProjectImportProvider {
     }
 
     @Override
-    public void setList(List<String> list) throws ConfigurationException {
+    public void setList(List<String> list) {
     }
 
     @Override

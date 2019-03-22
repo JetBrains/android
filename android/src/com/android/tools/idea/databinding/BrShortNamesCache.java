@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
@@ -38,11 +39,11 @@ import java.util.Set;
 
 public class BrShortNamesCache extends PsiShortNamesCache {
   private final DataBindingProjectComponent myComponent;
-  private CachedValue<String[]> myAllFieldNamesCache;
+  private final CachedValue<String[]> myAllFieldNamesCache;
   private static final String[] BR_CLASS_NAME_LIST = new String[]{DataBindingUtil.BR};
-  public BrShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
-    myComponent = dataBindingProjectComponent;
-    myAllFieldNamesCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(() -> {
+  public BrShortNamesCache(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
+    myAllFieldNamesCache = CachedValuesManager.getManager(project).createCachedValue(() -> {
       AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
       String[] result;
       if (facets.length == 0) {
@@ -136,7 +137,6 @@ public class BrShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public void getAllMethodNames(@NotNull HashSet<String> set) {
-
   }
 
   @NotNull
