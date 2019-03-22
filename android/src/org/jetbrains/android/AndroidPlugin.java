@@ -5,15 +5,15 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
-import com.intellij.openapi.components.BaseComponent;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -68,7 +68,12 @@ public class AndroidPlugin implements BaseComponent {
       if (parentGroup instanceof DefaultActionGroup) {
         // Create new "Build Bundle(s) / APK(s)" group
         final String groupId = "Android.BuildApkOrBundle";
-        DefaultActionGroup group = new DefaultActionGroup("Build Bundle(s) / APK(s)", true);
+        DefaultActionGroup group = new DefaultActionGroup("Build Bundle(s) / APK(s)", true) {
+          @Override
+          public void update(@NotNull AnActionEvent e) {
+            e.getPresentation().setEnabledAndVisible(AndroidStudioGradleAction.isAndroidGradleProject(e));
+          }
+        };
         actionManager.registerAction(groupId, group);
         ((DefaultActionGroup)parentGroup).add(group, new Constraints(Anchor.BEFORE, "Android.GenerateSignedApk"));
 
