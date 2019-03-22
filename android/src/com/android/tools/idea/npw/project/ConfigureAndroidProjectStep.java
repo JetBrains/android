@@ -24,6 +24,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -33,6 +34,7 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
@@ -42,11 +44,13 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -68,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -153,7 +158,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bind(myProjectModel.projectLocation(), locationText);
     myListeners.receive(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
-    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
+    OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     if (StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
@@ -162,6 +167,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     else {
       myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
     }
+    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myProjectLanguage)), myProjectModel.language());
     myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
 
 
@@ -178,8 +184,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
-    myProjectLanguage.setSelectedItem(myProjectModel.enableKotlinSupport().get() ? Language.KOTLIN : Language.JAVA);
-
     myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport()).withAndFire(() -> {
       FormFactor formFactor = getModel().formFactor().get();
       boolean isCppTemplate = myProjectModel.enableCppSupport().get();
@@ -190,6 +194,19 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
       myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get() && myProjectModel.isAndroidxAvailable());
+    });
+
+    myListeners.listenAndFire(androidSdkInfo, sender -> {
+      VersionItem androidVersion = androidSdkInfo.getValueOrNull();
+      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
+      if (isAndroidxOnly) {
+        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
+        myUseAndroidxCheck.setSelected(true);
+        myUseAndroidxCheck.setEnabled(false);
+      }
+      else {
+        myUseAndroidxCheck.setEnabled(true);
+      }
     });
   }
 
@@ -205,7 +222,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   @Override
   protected void onProceeding() {
-    myProjectModel.enableKotlinSupport().set(myProjectLanguage.getSelectedItem() == Language.KOTLIN);
     getModel().hasCompanionApp().set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
@@ -254,7 +270,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     // Try appName, appName2, appName3, ...
     int counter = 2;
     while (projectDirectory.exists()) {
-      projectDirectory = new File(baseDirectory, format("%s%d", applicationName, counter++));
+      projectDirectory = new File(baseDirectory, format(Locale.US, "%s%d", applicationName, counter++));
     }
 
     return projectDirectory.getPath();

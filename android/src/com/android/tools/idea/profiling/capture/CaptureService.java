@@ -504,7 +504,7 @@ public class CaptureService {
     String filename = name + extension;
     int i = 1;
     while (captureExists(filename) || (writeToTempFile && captureExists(filename + TEMP_FILE_EXTENSION))) {
-      filename = String.format("%s-%d%s", name, i++, extension);
+      filename = String.format(Locale.US, "%s-%d%s", name, i++, extension);
     }
     return writeToTempFile ? filename + TEMP_FILE_EXTENSION : filename;
   }

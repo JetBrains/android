@@ -77,15 +77,15 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
     List<SimpleIncludeValue> result = new ArrayList<>();
     PackageValue value = getPackageValue();
     for (File folder : myIncludeFolders.getIncludesInOrder()) {
-      for (SimpleIncludeValue simpleIncludeValue : value.myIncludes) {
-        if (FileUtil.filesEqual(simpleIncludeValue.myIncludeFolder, folder)) {
+      for (SimpleIncludeValue simpleIncludeValue : value.getIncludes()) {
+        if (FileUtil.filesEqual(simpleIncludeValue.getIncludeFolder(), folder)) {
           result.add(simpleIncludeValue);
         }
       }
     }
 
     for (SimpleIncludeValue child : result) {
-      folders.add(child.myIncludeFolder);
+      folders.add(child.getIncludeFolder());
     }
 
     return IncludeViewNodes.getIncludeFolderNodesWithShadowing(folders, ImmutableList.of(), true, project, getSettings());
@@ -112,8 +112,8 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
     }
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     PackageValue value = getPackageValue();
-    for (SimpleIncludeValue include : value.myIncludes) {
-      VirtualFile ancestor = fileSystem.findFileByIoFile(include.myIncludeFolder);
+    for (SimpleIncludeValue include : value.getIncludes()) {
+      VirtualFile ancestor = fileSystem.findFileByIoFile(include.getIncludeFolder());
       if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
         return true;
       }

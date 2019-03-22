@@ -25,10 +25,9 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintCol
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.reference.SoftReference;
 import java.awt.Rectangle;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.WeakHashMap;
 
 /**
  * This represents the Transform between dp to screen space.
@@ -36,6 +35,9 @@ import java.util.WeakHashMap;
  */
 public class SceneContext {
   ColorSet myColorSet;
+  // Picker is used to record all graphics drawn to support selection
+  final ScenePicker myGraphicsPicker = new ScenePicker();
+  Object myFoundObject;
   Long myTime;
   @SwingCoordinate private int myMouseX = -1;
   @SwingCoordinate private int myMouseY = -1;
@@ -46,6 +48,9 @@ public class SceneContext {
 
   private SceneContext() {
     myTime = System.currentTimeMillis();
+    myGraphicsPicker.setSelectListener((over, dist)->{
+      myFoundObject = over;
+    });
   }
 
   public void setShowOnlySelection(boolean value) {
@@ -124,6 +129,24 @@ public class SceneContext {
 
   public ColorSet getColorSet() {
     return myColorSet;
+  }
+
+  public ScenePicker getScenePicker() {
+    return myGraphicsPicker;
+  }
+
+  /**
+   * Find objects drawn on the scene.
+   * Objects drawn with this sceneContext can record there shapes
+   * and this find can be used to detect them.
+   * @param x
+   * @param y
+   * @return
+   */
+  public Object findClickedGraphics(@SwingCoordinate int x, @SwingCoordinate int y) {
+    myFoundObject = null;
+    myGraphicsPicker.find(x, y);
+    return myFoundObject;
   }
 
   public double getScale() { return 1; }

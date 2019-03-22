@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
@@ -50,7 +51,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link ArtifactsByConfigurationModuleSetupStep}.
  */
 public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
-
   private ArtifactsByConfigurationModuleSetupStep mySetupStep;
 
   @Override
@@ -84,7 +84,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     File jarFilePath = createTempFile("fake.jar", "");
 
     // Create the library, to ensure that is marked as "used".
-    Library library = createLibrary(jarFilePath);
+    createLibrary(jarFilePath);
 
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
@@ -104,9 +104,9 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertJarIsLibrary(jarFilePath);
   }
 
-  private Library createLibrary(@NotNull File jarFilePath) {
+  private void createLibrary(@NotNull File jarFilePath) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
-    return ApplicationManager.getApplication().runWriteAction((Computable<Library>)() -> {
+    ApplicationManager.getApplication().runWriteAction((Computable<Library>)() -> {
       Library library1 = libraryTable.createLibrary(createLibraryName(jarFilePath));
       Library.ModifiableModel libraryModel = library1.getModifiableModel();
       String url = pathToIdeaUrl(jarFilePath);
@@ -135,7 +135,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
+    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {

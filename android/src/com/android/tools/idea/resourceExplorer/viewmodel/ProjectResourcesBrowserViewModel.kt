@@ -50,7 +50,7 @@ class ProjectResourcesBrowserViewModel(
    */
   override var resourceChangedCallback: (() -> Unit)? = null
 
-  var facet by Delegates.observable(facet) { _, oldFacet, newFacet -> facetUpdated(newFacet, oldFacet) }
+  override var facet by Delegates.observable(facet) { _, oldFacet, newFacet -> facetUpdated(newFacet, oldFacet) }
 
   private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
 
@@ -90,7 +90,7 @@ class ProjectResourcesBrowserViewModel(
 
   override val selectedTabName: String get() = resourceTypes[resourceTypeIndex].displayName
 
-  val speedSearch = SpeedSearch(true)
+  override val speedSearch = SpeedSearch(true)
 
   val filterOptions: FilterOptions = FilterOptions(
     { resourceChangedCallback?.invoke() },
@@ -103,7 +103,7 @@ class ProjectResourcesBrowserViewModel(
 
   override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, imageCache)
 
-  private fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
+  override fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
     assetPreviewManager = AssetPreviewManagerImpl(newFacet, imageCache)
     unsubscribeListener(oldFacet)
     subscribeListener(newFacet)

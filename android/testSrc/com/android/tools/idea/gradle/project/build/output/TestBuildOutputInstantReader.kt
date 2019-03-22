@@ -25,21 +25,18 @@ import com.intellij.build.output.BuildOutputInstantReader
  * which mimics the behavior of [BuildOutputInstantReaderImpl]
  */
 class TestBuildOutputInstantReader(input: String) : BuildOutputInstantReader {
-  private val myLines: Iterator<String>
-
-  init {
-    myLines = Splitter.on("\n").omitEmptyStrings().split(input).iterator()
-  }
+  private val myLines: List<String> = Splitter.on("\n").omitEmptyStrings().split(input).toList()
+  private var currentIndex: Int = 0
 
   override fun getBuildId(): Any {
     return "Dummy Id"
   }
 
   override fun readLine(): String? {
-    return if (!myLines.hasNext()) {
+    return if (currentIndex == myLines.size) {
       null
     }
-    else myLines.next()
+    else myLines[currentIndex++]
 
   }
 
@@ -48,11 +45,11 @@ class TestBuildOutputInstantReader(input: String) : BuildOutputInstantReader {
   }
 
   override fun pushBack(numberOfLines: Int) {
-    throw UnsupportedOperationException()
+    currentIndex -= numberOfLines
   }
 
   override fun getCurrentLine(): String {
-    throw UnsupportedOperationException()
+    return myLines[currentIndex]
   }
 
   override fun append(csq: CharSequence?): BuildOutputInstantReader = this

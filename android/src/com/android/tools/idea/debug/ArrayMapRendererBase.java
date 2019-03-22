@@ -32,6 +32,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiExpression;
 import com.sun.jdi.*;
+import java.util.Locale;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,9 +84,10 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
       // String expression = String.format("new Object[] {this.keyAt(%1$d), this.valueAt(%2$d)}", i, i);
       // But it turns out that this throws "java.lang.ClassNotFoundException: [LObject;"
       // Until we find an alternate scheme, just show the value.
-      String expression = String.format("this.valueAt(%1$d)", i);
+      String expression = String.format(Locale.US, "this.valueAt(%1$d)", i);
       UserExpressionData descriptorData =
-        new UserExpressionData((ValueDescriptorImpl)builder.getParentDescriptor(), myFqn, String.format("value[%1$d]", i),
+        new UserExpressionData((ValueDescriptorImpl)builder.getParentDescriptor(), myFqn,
+                               String.format(Locale.US, "value[%1$d]", i),
                                new TextWithImportsImpl(CodeFragmentKind.EXPRESSION,
                                                        expression,
                                                        "",

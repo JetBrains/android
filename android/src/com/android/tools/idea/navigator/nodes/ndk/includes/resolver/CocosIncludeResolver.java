@@ -28,7 +28,7 @@ import java.io.File;
 class CocosIncludeResolver extends IncludeResolver {
   @NotNull private final IncludeResolver[] myResolvers;
 
-  public CocosIncludeResolver() {
+  CocosIncludeResolver() {
     myResolvers = new IncludeResolver[]{
       PlainFolderRegularExpressionIncludeResolver.include("^.*/cocos2d[^//]*/external/$"),
       PlainFolderRegularExpressionIncludeResolver.include("^.*/cocos2d[^//]*/cocos/editor-support/$"),
@@ -36,26 +36,28 @@ class CocosIncludeResolver extends IncludeResolver {
       PlainFolderRegularExpressionIncludeResolver.include("^.*/cocos2d[^//]*/cocos/$"),
       cocosEditorPackage(),
       cocosPackage(),
-      cocosExternalPackage("^(.*/cocos2d.*?)(/external/(.*?)(/.*))$"),
-      cocosExternalPackage("^(.*/cocos2d.*?)(/(.*?)(/.*))$")
+      cocosExternalPackage("^(?<home>.*/cocos2d.*?)(?<relative>/external/(?<library>.*?)(/.*))$"),
+      cocosExternalPackage("^(?<home>.*/cocos2d.*?)(?<relative>/(?<library>.*?)(/.*))$")
     };
   }
 
   @NotNull
   static IncludeResolver cocosPackage() {
     return new IndexedRegularExpressionIncludeResolver(PackageType.CocosFrameworkModule,
-                                                       "^(.*/cocos2d.*?)(/cocos/(.*?)(/.*))$");
+                                                       "^(?<home>.*/cocos2d.*?)(?<relative>/cocos/(?<library>.*?)(/.*))$",
+                                                       null);
   }
 
   @NotNull
   static IncludeResolver cocosEditorPackage() {
     return new IndexedRegularExpressionIncludeResolver(PackageType.CocosEditorSupportModule,
-                                                       "^(.*/cocos2d.*?)(/cocos/editor-support/(.*?)(/.*))$");
+                                                       "^(?<home>.*/cocos2d.*?)(?<relative>/cocos/editor-support/(?<library>.*?)(/.*))$",
+                                                       null);
   }
 
   @NotNull
   static IncludeResolver cocosExternalPackage(@NotNull String pattern) {
-    return new IndexedRegularExpressionIncludeResolver(PackageType.CocosThirdPartyPackage, pattern);
+    return new IndexedRegularExpressionIncludeResolver(PackageType.CocosThirdPartyPackage, pattern, null);
   }
 
   @Override

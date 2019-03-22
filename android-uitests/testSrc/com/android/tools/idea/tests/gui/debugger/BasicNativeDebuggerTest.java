@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BasicNativeDebuggerTest extends DebuggerTestBase {
@@ -70,10 +68,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     DebugToolWindowFixture debugToolWindowFixture =
       DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
-    projectFrame.findDebugApplicationButton().click();
-
-    DeployTargetPickerDialogFixture deployTargetPicker = DeployTargetPickerDialogFixture.find(guiTest.robot());
-    deployTargetPicker.selectDevice(emulator.getDefaultAvdName()).clickOk();
+    projectFrame.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     waitUntilDebugConsoleCleared(debugToolWindowFixture);
     waitForSessionStart(debugToolWindowFixture);
@@ -169,9 +164,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     checkAppIsPaused(projectFrame, new String[]{});
     stopDebugSession(debugToolWindowFixture);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    projectFrame.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
     debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     waitForSessionStart(debugToolWindowFixture);
 

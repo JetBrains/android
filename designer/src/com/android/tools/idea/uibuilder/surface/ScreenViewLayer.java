@@ -167,7 +167,7 @@ public class ScreenViewLayer extends Layer {
           // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
           // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
 
-          requestHighQualityScaledImage();
+          requestHighQualityScaledImage(JBUI.ScaleContext.create(g));
         }
 
         cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
@@ -217,8 +217,10 @@ public class ScreenViewLayer extends Layer {
    *    delay:      = == ====--->
    *                           | actual call to {@link RescaleRunnable#run()}
    * </pre>
+   * @param ctx ScaleContext used to get the scaling of the physical screen this is displayed on.
+   *            This is to support HiDPI screens with various scalings.
    */
-  private void requestHighQualityScaledImage() {
+  private void requestHighQualityScaledImage(@NotNull JBUI.ScaleContext ctx) {
     if (myLastRenderResult == null) {
       return;
     }
@@ -253,7 +255,7 @@ public class ScreenViewLayer extends Layer {
       return;
     }
 
-    myRescaleRunnable.setSource(imageCopy, xScaleFactor, yScaleFactor);
+    myRescaleRunnable.setSource(imageCopy, xScaleFactor, yScaleFactor, ctx);
     try {
       myScheduledFuture = myScheduledExecutorService.schedule(myRescaleRunnable, REQUEST_SCALE_DEBOUNCE_TIME_IN_MS, TimeUnit.MILLISECONDS);
     }
@@ -274,10 +276,11 @@ public class ScreenViewLayer extends Layer {
   private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original,
                                                     double scaleX,
                                                     double scaleY,
+                                                    @NotNull JBUI.ScaleContext ctx,
                                                     boolean fastScaling) {
     // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
-    double xRetinaScale = JBUI.sysScale() * scaleX;
-    double yRetinaScale = JBUI.sysScale() * scaleY;
+    double xRetinaScale = JBUI.sysScale(ctx) * scaleX;
+    double yRetinaScale = JBUI.sysScale(ctx) * scaleY;
 
     if (fastScaling) {
       original = ImageUtils.lowQualityFastScale(original, xRetinaScale, yRetinaScale);
@@ -286,17 +289,18 @@ public class ScreenViewLayer extends Layer {
       original = ImageUtils.scale(original, xRetinaScale, yRetinaScale);
     }
 
-    return ImageUtils.convertToRetina(original);
+    return ImageUtils.convertToRetina(original, ctx);
   }
 
   @VisibleForTesting
   @NotNull
   static BufferedImage scaleOriginalImage(@NotNull BufferedImage source,
                                           double xScaleFactor,
-                                          double yScaleFactor) {
+                                          double yScaleFactor,
+                                          @NotNull JBUI.ScaleContext ctx) {
     BufferedImage scaledImage = null;
-    if (UIUtil.isJreHiDPI() && ImageUtils.supportsRetina()) {
-      scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, false);
+    if (UIUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
+      scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, ctx, false);
     }
     if (scaledImage == null) {
       scaledImage = ImageUtils.scale(source, 1 / xScaleFactor, 1 / yScaleFactor);
@@ -316,17 +320,19 @@ public class ScreenViewLayer extends Layer {
     private BufferedImage mySourceImage;
     private double myXScaleFactor;
     private double myYScaleFactor;
+    private JBUI.ScaleContext myScaleContext;
 
 
     private RescaleRunnable(@NotNull Consumer<BufferedImage> onReadyCallback) {
       myOnReadyCallback = onReadyCallback;
     }
 
-    public void setSource(@NotNull BufferedImage sourceImage, double xScaleFactor, double yScaleFactor) {
+    public void setSource(@NotNull BufferedImage sourceImage, double xScaleFactor, double yScaleFactor, @NotNull JBUI.ScaleContext ctx) {
       synchronized (lock) {
         mySourceImage = sourceImage;
         myXScaleFactor = xScaleFactor;
         myYScaleFactor = yScaleFactor;
+        myScaleContext = ctx;
       }
     }
 
@@ -335,17 +341,19 @@ public class ScreenViewLayer extends Layer {
       BufferedImage source;
       double xScaleFactor;
       double yScaleFactor;
+      JBUI.ScaleContext ctx;
       synchronized (lock) {
         source = mySourceImage;
         xScaleFactor = myXScaleFactor;
         yScaleFactor = myYScaleFactor;
+        ctx = myScaleContext;
         mySourceImage = null;
       }
 
       if (source == null) {
         return;
       }
-      BufferedImage result = scaleOriginalImage(source, xScaleFactor, yScaleFactor);
+      BufferedImage result = scaleOriginalImage(source, xScaleFactor, yScaleFactor, ctx);
       myOnReadyCallback.accept(result);
     }
   }

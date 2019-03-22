@@ -67,7 +67,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   static DataBindingSupport getDataBindingSupport() {
-    List<DataBindingSupport> extensionList = DataBindingSupport.Companion.getEP_NAME().getExtensionList();
+    List<DataBindingSupport> extensionList = DataBindingSupport.EP_NAME.getExtensionList();
     return extensionList.isEmpty() ? null : extensionList.get(0);
   }
 

@@ -337,7 +337,7 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
         localRepository = repository;
         repository = null;
       }
-      if (!Disposer.isDisposed(localRepository)) {
+      if (localRepository != null) {
         Disposer.dispose(localRepository);
       }
     }

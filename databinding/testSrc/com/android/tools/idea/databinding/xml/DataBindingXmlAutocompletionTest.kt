@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -59,6 +60,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
     ModuleDataBinding.getInstance(androidFacet!!).setMode(dataBindingMode)
   }
 
+  @Ignore("b/128621277")
   @Test
   fun dataBindingXmlCompletion_caretInImportTag() {
     myDomRule.testCompletion(

@@ -44,42 +44,38 @@ public class AddAssetMemoryUseTest {
   @UseBleak
   public void addImageAsset() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    BleakKt.runWithBleak(() -> runAddImageAssetTest(ideFrameFixture));
+    BleakKt.runWithBleak(() -> {
+      ideFrameFixture.getProjectView()
+        .selectAndroidPane()
+        .clickPath(MouseButton.RIGHT_BUTTON, "app")
+        .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset")
+        .setName("imagename")
+        .clickNext()
+        .clickFinish()
+        .getProjectView()
+        .selectAndroidPane()
+        .deletePath("app", "res", "mipmap", "imagename")
+        .getProjectView()
+        .selectAndroidPane()
+        .deletePath("app", "res", "mipmap", "imagename_round");
+    });
   }
 
-  private void runAddImageAssetTest(IdeFrameFixture fixture) {
-    fixture.getProjectView()
-      .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset")
-      .setName("imagename")
-      .clickNext()
-      .clickFinish()
-      .getProjectView()
-      .selectAndroidPane()
-      .deletePath("app","res","mipmap", "imagename")
-      .getProjectView()
-      .selectAndroidPane()
-      .deletePath("app","res","mipmap", "imagename_round");
-  }
-  
   @Test
   @UseBleak
   public void addVectorAsset() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    BleakKt.runWithBleak(() -> runAddVectorAssetTest(ideFrameFixture));
-  }
-
-  private void runAddVectorAssetTest(IdeFrameFixture fixture) {
-    fixture.getProjectView()
-      .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
-      .setName("vectorname")
-      .clickNext()
-      .clickFinish()
-      .getProjectView()
-      .selectAndroidPane()
-      .deletePath("app","res","drawable", "vectorname.xml");
+    BleakKt.runWithBleak(() -> {
+      ideFrameFixture.getProjectView()
+        .selectAndroidPane()
+        .clickPath(MouseButton.RIGHT_BUTTON, "app")
+        .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+        .setName("vectorname")
+        .clickNext()
+        .clickFinish()
+        .getProjectView()
+        .selectAndroidPane()
+        .deletePath("app","res","drawable", "vectorname.xml");
+    });
   }
 }

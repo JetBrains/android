@@ -18,13 +18,16 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.AbstractTableCellEditor
+import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.TextField
 import javax.swing.JTable
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
@@ -95,6 +98,12 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
       addColumn(TableColumn(0, 50).apply {
         headerValue = "Key"
         cellEditor = MyKeyCellEditor()
+        cellRenderer = TableCellRenderer { table, value, isSelected, hasFocus, row, column ->
+          SimpleColoredComponent().also {
+            if (value != null) it.append(value.toString())
+            if (isSelected) it.background = UIUtil.getListSelectionBackground(hasFocus)
+          }
+        }
       })
       addColumn(TableColumn(1).apply {
         headerValue = "Value"

@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
-import com.google.common.collect.Lists
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.Messages
@@ -34,6 +35,7 @@ import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.kotlin.utils.addIfNotNull
 import java.util.ArrayList
 import javax.swing.JComponent
 import javax.swing.event.TreeModelEvent
@@ -90,36 +92,58 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   }
 
   private var myComponent: JComponent? = null
-  override fun getComponent(): JComponent = myComponent ?: super.createComponent().also { myComponent = it }
+
+  override fun getComponent(): JComponent = myComponent ?: super.createComponent().also {
+    myComponent = it
+    // Additionally register some shortcuts to be available while focus is within the component.
+    registerShortcuts(it)
+  }
+
   final override fun createComponent(): Nothing = throw UnsupportedOperationException("Use getComponent() instead.")
 
   override fun dispose() = disposeUIResources()
 
+  private var actionsCreated: Boolean = false
+  private var createActionInstance: AnAction? = null
+  private var removeActionInstance: AnAction? = null
+  private var renameActionInstance: AnAction? = null
+
   override fun createActions(fromPopup: Boolean): ArrayList<AnAction>? {
-    val result = mutableListOf<AnAction>()
+    if (!actionsCreated) {
+      val createActions = getCreateActions()
+      createActionInstance = when {
+        createActions.size == 1 -> createActions[0]
+        createActions.isNotEmpty() ->
+          MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
+            override fun getChildren(e: AnActionEvent?): Array<AnAction> {
+              return createActions.toTypedArray()
+            }
+          })
+        else -> null
+      }
 
-    val createActions = getCreateActions()
-    when {
-      createActions.size == 1 -> result.add(createActions[0])
-      createActions.isNotEmpty() -> result.add(
-        MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
-          override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-            return createActions.toTypedArray()
-          }
-        }))
+      removeActionInstance = getRemoveAction()
+      renameActionInstance = getRenameAction()
+      actionsCreated = true
+      // Register shortcuts for tree (as other components are not yet available). It is enough to make tooltips include them.
+      registerShortcuts(tree)
     }
 
-    val removeAction = getRemoveAction()
-    if (removeAction != null) {
-      result.add(removeAction)
+    return ArrayList<AnAction>().apply {
+      addIfNotNull(createActionInstance)
+      addIfNotNull(removeActionInstance)
+      addIfNotNull(renameActionInstance)
+    }
+  }
+
+  private fun registerShortcuts(focusComponent: JComponent) {
+    fun AnAction.withShortcutsIn(focusComponent: JComponent, action: String) {
+      registerCustomShortcutSet(ActionManager.getInstance().getAction(action).shortcutSet, focusComponent)
     }
 
-    val renameAction = getRenameAction()
-    if (renameAction != null) {
-      result.add(renameAction)
-    }
-
-    return Lists.newArrayList(result)
+    createActionInstance?.withShortcutsIn(focusComponent, IdeActions.ACTION_NEW_ELEMENT)
+    removeActionInstance?.withShortcutsIn(tree, IdeActions.ACTION_DELETE)
+    renameActionInstance?.withShortcutsIn(focusComponent, IdeActions.ACTION_RENAME)
   }
 
   override fun processRemovedItems() {

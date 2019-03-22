@@ -49,8 +49,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.IncludeFolder);
-    assertThat(resolution.mySimplePackageName).isEqualTo("external");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("external");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/cocos2d/external");
@@ -65,8 +65,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.IncludeFolder);
-    assertThat(resolution.mySimplePackageName).isEqualTo("editor-support");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("editor-support");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/cocos2d/cocos/editor-support");
@@ -81,8 +81,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.IncludeFolder);
-    assertThat(resolution.mySimplePackageName).isEqualTo("cocos2d");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("cocos2d");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/cocos2d");
@@ -97,8 +97,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.IncludeFolder);
-    assertThat(resolution.mySimplePackageName).isEqualTo("cocos");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("cocos");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/cocos2d/cocos");
@@ -113,8 +113,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.CocosEditorSupportModule);
-    assertThat(resolution.mySimplePackageName).isEqualTo("some-package");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("some-package");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/cocos/editor-support/some-package/b/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/cocos2d");
@@ -129,8 +129,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.CocosFrameworkModule);
-    assertThat(resolution.mySimplePackageName).isEqualTo("some-package");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("some-package");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/cocos/some-package/b/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/home/cocos2d");
@@ -145,8 +145,8 @@ public class CocosIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.CocosThirdPartyPackage);
-    assertThat(resolution.mySimplePackageName).isEqualTo("tests");
-    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+    assertThat(resolution.getSimplePackageName()).isEqualTo("tests");
+    assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/tests/cpp-empty-test/Classes/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
       "/usr/local/google/someuser/cocos2d-x");

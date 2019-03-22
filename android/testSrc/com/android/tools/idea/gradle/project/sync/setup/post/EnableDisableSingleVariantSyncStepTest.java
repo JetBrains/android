@@ -46,14 +46,14 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
   public void testIsEligibleWithPureJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
     assertEquals(PURE_JAVA, isEligibleForSingleVariantSync(project));
   }
 
   public void testIsEligibleWithNativeProject() throws Exception {
     prepareProjectForImport(HELLO_JNI);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
     assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(project));
   }
 

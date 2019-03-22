@@ -219,7 +219,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Project project = getProject();
     BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
 
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
 
     File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
     Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());

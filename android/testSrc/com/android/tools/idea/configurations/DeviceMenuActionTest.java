@@ -84,7 +84,8 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         5.1\" WVGA (480 \u00d7 800, mdpi)\n" +
       "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
       "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
-      "        Foldable A (1536 \u00d7 2152, 420dpi)\n" +
+      "         7.3\" Foldable (1536 \u00d7 2152, 420dpi)\n" +
+      "         8.0\" Foldable (2200 \u00d7 2480, 420dpi)\n" +
       "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
       "    Add Device Definition...\n";
     Truth.assertThat(actual).isEqualTo(expected);

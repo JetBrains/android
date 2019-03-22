@@ -209,10 +209,17 @@ class PTableImpl(override val tableModel: PTableModel,
    */
   override fun tableChanged(event: TableModelEvent) {
     when (event) {
-      is PTableModelRepaintEvent -> repaint()
+      is PTableModelRepaintEvent -> refresh()
       is PTableModelEvent -> tableChangedWithNextEditedRow(event, event.nextEditedRow)
       else -> tableChangedWithoutNextEditedRow(event)
     }
+  }
+
+  private fun refresh() {
+    if (isEditing) {
+      tableCellEditor.editor.refresh()
+    }
+    repaint()
   }
 
   private fun tableChangedWithoutNextEditedRow(event: TableModelEvent) {

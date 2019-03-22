@@ -53,7 +53,11 @@ public enum PackageType {
   //   NDK Components
   //     Android Platform
   //     CPU Features
-  NdkComponent("NDK Components"),
+  NdkComponent("NDK Components", false),
+  // These are components that are part of a side-by-side NDK. For example,
+  //   NDK r19.1
+  //     LLVM
+  NdkSxsComponent("NDK", false),
   // These are traditional include folders that don't match any other pattern.
   IncludeFolder("Include Folders"),
   // These are include folders that look like they match the traditional pattern of third_party/libname. For example,
@@ -69,7 +73,17 @@ public enum PackageType {
   @NotNull
   public final String myDescription;
 
+  // When true (the default) instances of this family with only one child can be collapsed by removing
+  // the intervening package family node. For some nodes, notable NDK, it's better to not collapse these
+  // since they are well-known and expected.
+  public final boolean myIsCollapsibleFamily;
+
   PackageType(@NotNull String description) {
+    this(description, true);
+  }
+
+  PackageType(@NotNull String description, boolean isCollapsibleFamily) {
     myDescription = description;
+    myIsCollapsibleFamily = isCollapsibleFamily;
   }
 }

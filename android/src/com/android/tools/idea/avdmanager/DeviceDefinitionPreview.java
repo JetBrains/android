@@ -190,7 +190,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         if ((myDeviceData.screenFoldedXOffset().get() + myDeviceData.screenFoldedWidth().get())
             != myDeviceData.screenResolutionWidth().get()) {
           // Show the right boundary
-          g2d.drawLine(foldedX + foldedHeight, foldedY, foldedX + foldedHeight, foldedY + foldedHeight);
+          g2d.drawLine(foldedX + foldedWidth, foldedY, foldedX + foldedWidth, foldedY + foldedHeight);
         }
         if ((myDeviceData.screenFoldedYOffset().get() + myDeviceData.screenFoldedHeight().get())
             != myDeviceData.screenResolutionHeight().get()) {

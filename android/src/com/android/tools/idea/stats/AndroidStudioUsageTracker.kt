@@ -24,12 +24,15 @@ import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
+import com.google.wireless.android.sdk.stats.IdePlugin
+import com.google.wireless.android.sdk.stats.IdePluginInfo
 import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -108,6 +111,7 @@ object AndroidStudioUsageTracker {
 
   @JvmStatic
   fun setup(scheduler: ScheduledExecutorService) {
+    scheduler.submit { runStartupReports() }
     // Send initial report immediately, daily from then on.
     scheduler.scheduleWithFixedDelay({ runDailyReports() }, 0, 1, TimeUnit.DAYS)
     // Send initial report immediately, hourly from then on.
@@ -121,6 +125,32 @@ object AndroidStudioUsageTracker {
     val connection = app.messageBus.connect()
     connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
     connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
+  }
+
+  private fun runStartupReports() {
+    reportEnabledPlugins()
+  }
+
+  private fun reportEnabledPlugins() {
+    val plugins = PluginManagerCore.getLoadedPlugins(null)
+    val pluginInfoProto = IdePluginInfo.newBuilder()
+
+    for (plugin in plugins) {
+      if (!plugin.isEnabled) continue
+      val id = plugin.pluginId?.idString ?: continue
+
+      val pluginProto = IdePlugin.newBuilder()
+      pluginProto.id = id.take(256)
+      plugin.version?.take(256)?.let { pluginProto.version = it }
+      pluginProto.bundled = plugin.isBundled
+
+      pluginInfoProto.addPlugins(pluginProto)
+    }
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.IDE_PLUGIN_INFO)
+        .setIdePluginInfo(pluginInfoProto))
   }
 
   private fun runDailyReports() {

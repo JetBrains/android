@@ -37,7 +37,7 @@ class GetAbiListPropCommandHandler(private val abiList: List<String>) : SimpleSh
     args: String?
   ) {
     // Collect the base properties from the default getprop command handler:
-    GetPropCommandHandler().invoke(fakeAdbServer, responseSocket, device, args)
+    GetPropCommandHandler().execute(fakeAdbServer, responseSocket, device, args)
 
     try {
       val response = responseSocket.getOutputStream()

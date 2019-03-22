@@ -35,7 +35,8 @@ class SyncIssueRegisterTest : IdeaTestCase() {
   fun testRegisterSyncIssues() {
     val syncIssue = mock(SyncIssue::class.java)
     register!!.register(myModule, listOf(syncIssue))
-    val result = register!!.getAndClear()
+    register!!.seal()
+    val result = register!!.get()
     assertThat(result.entries).hasSize(1)
     assertThat(result[myModule]).containsExactly(syncIssue)
   }
@@ -45,7 +46,8 @@ class SyncIssueRegisterTest : IdeaTestCase() {
     val syncIssue = mock(SyncIssue::class.java)
     register!!.register(myModule, listOf(syncIssue))
 
-    register!!.getAndClear()
-    assertThat(register!!.getAndClear()).isEmpty()
+    register!!.unsealAndClear()
+    register!!.seal()
+    assertThat(register!!.get()).isEmpty()
   }
 }

@@ -57,7 +57,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
     XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
-    NlComponentBackend backend = new NlComponentBackendXml(model, tag);
+    NlComponentBackend backend = new NlComponentBackendXml(model.getProject(), tag);
 
     Mockito.when(item.getBackend()).thenReturn(backend);
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
@@ -87,7 +87,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
     XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
-    NlComponentBackend backend = new NlComponentBackendXml(model, tag);
+    NlComponentBackend backend = new NlComponentBackendXml(model.getProject(), tag);
 
     Mockito.when(item.getBackend()).thenReturn(backend);
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);

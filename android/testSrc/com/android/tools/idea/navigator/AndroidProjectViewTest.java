@@ -38,20 +38,26 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.refactoring.RefactoringActionHandler;
+import com.intellij.refactoring.actions.RenameElementAction;
+import com.intellij.refactoring.rename.PsiElementRenameHandler;
+import com.intellij.testFramework.TestActionEvent;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -63,6 +69,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import org.gradle.internal.impldep.com.google.common.io.Files;
+import org.jetbrains.android.AndroidRenameHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,7 +118,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "     ic_launcher.png (mdpi)\n" +
                       "    j (2)\n" +
                       "     j.png (mdpi)\n" +
-                      "     j.xml (xxdpi)\n" +
+                      "     j.xml (xxhdpi)\n" +
                       "   layout\n" +
                       "    activity_main.xml\n" +
                       "   menu\n" +
@@ -180,8 +187,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     // Now make sure that selecting that group node caused the actual files to be selected
     PsiElement[] psiElements = myPane.getSelectedPSIElements();
-    assertThat(psiElements).hasLength(3);
-    for (PsiElement e : psiElements) {
+    assertThat(psiElements).hasLength(1);
+    for (PsiElement e : psiElements[0].getChildren()) {
       assertEquals("dimens.xml", ((XmlFile)e).getName());
     }
   }
@@ -322,12 +329,61 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertNotNull(element);
     myPane.getTreeBuilder().select(element);
 
+    assertNotEmpty(myPane.getTreeBuilder().getSelectedElements());
+
     // Now make sure the virtualFileArray for this node actually contains the 2 files.
     VirtualFile[] files = ((VirtualFile[])myPane.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY.getName()));
     assertNotNull(files);
     assertThat(files).hasLength(2);
     List<String> fileNames = Arrays.stream(files).map(VirtualFile::getName).collect(Collectors.toList());
     assertSameElements(fileNames, ImmutableList.of("j.png", "j.xml"));
+  }
+
+  public void testRenameResourceGroup() throws Exception {
+    loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "j (2)");
+    assertNotNull(element);
+    myPane.getTreeBuilder().select(element);
+
+    assertNotEmpty(myPane.getTreeBuilder().getSelectedElements());
+
+    String newName = "foo";
+    DataContext data = dataId -> {
+      if (PsiElementRenameHandler.DEFAULT_NAME.is(dataId)) return newName;
+      return myPane.getData(dataId);
+    };
+    RenameElementAction action = new RenameElementAction();
+    AnActionEvent e = new TestActionEvent(data, action);
+    action.update(e);
+    RefactoringActionHandler handler = action.getHandler(data);
+    assertInstanceOf(handler, AndroidRenameHandler.class);
+    assertTrue(((AndroidRenameHandler)handler).isAvailableOnDataContext(data));
+    PsiElement psiElement = data.getData(CommonDataKeys.PSI_ELEMENT);
+    assertInstanceOf(psiElement, PsiDirectory.class);
+    VirtualFile expected1 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-xxhdpi/j.xml");
+    VirtualFile expected2 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-mdpi/j.png");
+    assertNotNull(expected1);
+    assertNotNull(expected2);
+    PsiElement[] children = psiElement.getChildren();
+    List<VirtualFile> virtualFiles = Arrays.stream(children)
+      .map(psiFile -> (((PsiFile)psiFile).getVirtualFile()))
+      .collect(Collectors.toList());
+    assertThat(virtualFiles).containsExactly(expected1, expected2);
+    action.actionPerformed(e);
+    VirtualFile expected4 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-mdpi/foo.png");
+    VirtualFile expected3 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-xxhdpi/foo.xml");
+    assertNotNull(expected3);
+    assertNotNull(expected4);
+    PsiElement[] children2 = psiElement.getChildren();
+    List<VirtualFile> virtualFiles2 = Arrays.stream(children2)
+      .map(psiFile -> (((PsiFile)psiFile).getVirtualFile()))
+      .collect(Collectors.toList());
+    assertThat(virtualFiles2).containsExactly(expected3, expected4);
+
   }
 
   public void testGeneratedSourceFiles_aaptClasses() throws Exception {

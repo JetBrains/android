@@ -131,10 +131,7 @@ public class FlavorsExecutionTest {
       .getBuildVariantsWindow()
       .selectVariantForModule("app", "flavor1Debug");
 
-    ideFrameFixture
-      .runApp("app")
-      .selectDevice("Google Nexus 5X")
-      .clickOk();
+    ideFrameFixture.runApp("app", "Google Nexus 5X");
 
     ExecutionToolWindowFixture.ContentFixture flavor1WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor1LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", FIRST_ACTIVITY_NAME);
@@ -149,10 +146,7 @@ public class FlavorsExecutionTest {
       .getBuildVariantsWindow()
       .selectVariantForModule("app", "flavor2Debug");
 
-    ideFrameFixture
-      .runApp("app")
-      .selectDevice("Google Nexus 5X")
-      .clickOk();
+    ideFrameFixture.runApp("app", "Google Nexus 5X");
 
     ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);

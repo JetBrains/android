@@ -21,12 +21,10 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfoBuilder;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.instantapp.InstantApps;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
@@ -39,7 +37,6 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -99,7 +96,7 @@ public class NewProjectModel extends WizardModel {
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final MultiTemplateRenderer myMultiTemplateRenderer;
-  private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
+  private final ObjectProperty<Language> myLanguage = new ObjectValueProperty<>(getInitialLanguageSupport());
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
   private final BoolProperty myUseAndroidx = new BoolValueProperty();
 
@@ -137,7 +134,6 @@ public class NewProjectModel extends WizardModel {
     myApplicationName.addConstraint(String::trim);
 
     myEnableCppSupport.set(getInitialCppSupport());
-    myEnableKotlinSupport.set(getInitialKotlinSupport());
     myUseAndroidx.set(getInitialUseAndroidxSupport());
   }
 
@@ -168,8 +164,8 @@ public class NewProjectModel extends WizardModel {
     return myCppFlags;
   }
 
-  public BoolProperty enableKotlinSupport() {
-    return myEnableKotlinSupport;
+  public ObjectProperty<Language> language() {
+    return myLanguage;
   }
 
   @NotNull
@@ -278,10 +274,9 @@ public class NewProjectModel extends WizardModel {
   /**
    * Loads saved value for Kotlin support.
    */
-  private static boolean getInitialKotlinSupport() {
-    PropertiesComponent props = PropertiesComponent.getInstance();
+  private static Language getInitialLanguageSupport() {
     // If the value is not defined, we default to recommended (kotlin as nov-2018)
-    return !props.isValueSet(PROPERTIES_KOTLIN_SUPPORT_KEY) || props.isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
+    return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_KOTLIN_SUPPORT_KEY), Language.KOTLIN);
   }
 
   /**
@@ -297,7 +292,7 @@ public class NewProjectModel extends WizardModel {
     if (wizardResult == ModelWizard.WizardResult.FINISHED) {
       // Set the property value
       PropertiesComponent.getInstance().setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-      PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, myEnableKotlinSupport.get());
+      PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, myLanguage.get().getName());
     }
   }
 
@@ -344,7 +339,8 @@ public class NewProjectModel extends WizardModel {
       return false;
     });
     if (couldEnsureLocationExists) {
-      Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
+      Project project = ProjectManager.getInstance().createProject(projectName, projectLocation);
+      assert project != null;
       project().setValue(project);
       myMultiTemplateRenderer.setProject(project);
     }
@@ -392,7 +388,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
-      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
+      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myLanguage.get() == Language.KOTLIN);
 
       if (StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
         String offlineReposString = getOfflineReposString();

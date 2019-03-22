@@ -191,7 +191,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testLoadPlainJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
@@ -437,7 +437,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     delete(centralBuildParentDirPath);
 
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
     Module app = myModules.getAppModule();
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to

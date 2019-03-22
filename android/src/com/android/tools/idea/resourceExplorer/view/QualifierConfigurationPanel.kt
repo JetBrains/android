@@ -55,6 +55,8 @@ private val FLOW_LAYOUT_GAP = JBUI.scale(4)
 private val ADD_BUTTON_BORDER = JBUI.Borders.empty(4, 8, 4, 0)
 private val ADD_BUTTON_SIZE = JBUI.size(20)
 
+private const val CLEAR_QUALIFIER_DESC = "Clear qualifier"
+
 /**
  * View to manipulate the [QualifierConfigurationViewModel]. It represents the qualifiers that will be
  * add to a resource.
@@ -187,7 +189,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
     }
 
     private fun createDeleteButton(): ActionButton {
-      val action = object : DumbAwareAction("", "", StudioIcons.Common.CLOSE) {
+      val action = object : DumbAwareAction(CLEAR_QUALIFIER_DESC, CLEAR_QUALIFIER_DESC, StudioIcons.Common.CLOSE) {
 
         override fun actionPerformed(e: AnActionEvent) {
           (qualifierCombo.selectedItem as? ResourceQualifier)?.let { viewModel.deselectQualifier(it) }

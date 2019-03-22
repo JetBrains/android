@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.repository.io.FileOpUtils;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.android.repository.Revision;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -24,9 +27,25 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.*;
+import com.android.sdklib.internal.avd.AvdCamera;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.AvdNetworkLatency;
+import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.EmulatedProperties;
+import com.android.sdklib.internal.avd.GpuMode;
+import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableObject;
+import com.android.tools.idea.observable.core.ObservableString;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -43,17 +62,13 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.hash.HashMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
-import static com.google.common.base.Strings.nullToEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link WizardModel} containing useful configuration settings for defining an AVD image.
@@ -261,7 +276,7 @@ public final class AvdOptionsModel extends WizardModel {
   public static String toIniString(@NotNull Storage storage, boolean convertToMb) {
     Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
     String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
-    return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
+    return String.format(Locale.US, "%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }
 
   /**

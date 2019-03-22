@@ -93,13 +93,13 @@ public class NlComponent implements NlAttributesHolder {
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
-    myBackend = new NlComponentBackendXml(model, tag);
+    myBackend = new NlComponentBackendXml(model.getProject(), tag);
   }
 
   @TestOnly
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull SmartPsiElementPointer<XmlTag> tagPointer) {
     myModel = model;
-    myBackend = new NlComponentBackendXml(model, tag, tagPointer);
+    myBackend = new NlComponentBackendXml(model.getProject(), tag, tagPointer);
   }
 
   @Nullable

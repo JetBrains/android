@@ -41,6 +41,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     }
   }
 
+  // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   override fun setToolContext(toolContext: LayoutInspector?) {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
     layoutInspector?.modelChangeListeners?.remove(this::modelChanged)

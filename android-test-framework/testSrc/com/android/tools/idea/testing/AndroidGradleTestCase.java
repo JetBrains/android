@@ -103,10 +103,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for unit tests that operate on Gradle projects
- *
+ * <p>
  * TODO: After converting all tests over, check to see if there are any methods we can delete or
  * reduce visibility on.
- *
+ * <p>
  * NOTE: If you are writing a new test, consider using JUnit4 with {@link AndroidGradleProjectRule}
  * instead. This allows you to use features introduced in JUnit4 (such as parameterization) while
  * also providing a more compositional approach - instead of your test class inheriting dozens and
@@ -261,8 +261,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected String loadProjectAndExpectSyncError(@NotNull String relativePath) throws Exception {
-    prepareProjectForImport(relativePath);
-    return requestSyncAndGetExpectedFailure();
+    return loadProjectAndExpectSyncError(relativePath, request -> {
+    });
+  }
+
+  protected String loadProjectAndExpectSyncError(@NotNull String relativePath,
+                                                 @NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+    prepareMultipleProjectsForImport(relativePath);
+    return requestSyncAndGetExpectedFailure(requestConfigurator);
   }
 
   protected void loadSimpleApplication() throws Exception {
@@ -274,20 +280,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, null);
-  }
-
-  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName) throws Exception {
-
-    loadProject(relativePath, null, chosenModuleName);
+    loadProject(relativePath, null);
   }
 
   protected void loadProject(@NotNull String relativePath,
-                             @Nullable GradleSyncListener listener,
                              @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), listener);
+    importProject(project.getName(), getBaseDirPath(project));
 
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertTrue(androidProjectInfo.requiresAndroidModel());
@@ -332,7 +332,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   /**
    * Prepares multiple projects for import.
    *
-   * @param relativePath the relative path of the projects from the the test data directory
+   * @param relativePath   the relative path of the projects from the the test data directory
    * @param includedBuilds names of all builds to be included (as well as the main project) these names must
    *                       all be folders within the {@param relativePath}. If empty imports a single project
    *                       with the root given by {@param relativePath}. The first path will be used as the main
@@ -340,7 +340,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * @return root of the imported project or projects.
    */
   @NotNull
-  protected File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String...includedBuilds) throws IOException {
+  protected File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String... includedBuilds) throws IOException {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
@@ -461,15 +461,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void importProject(@NotNull String projectName,
-                               @NotNull File projectRoot,
-                               @Nullable GradleSyncListener listener) throws Exception {
+                               @NotNull File projectRoot) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
     Disposable subscriptionDisposable = Disposer.newDisposable();
     try {
       Project project = getProject();
 
-      runWriteCommandAction(project, () -> {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
         try {
           // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
           // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
@@ -482,7 +481,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
           GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
           syncRequest.generateSourcesOnSuccess = false;
-          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, listener);
+          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
         }
         catch (Throwable e) {
           throwableRef.set(e);
@@ -507,7 +506,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     finally {
       Disposer.dispose(subscriptionDisposable);
     }
-    if (syncListener.failureMessage != null && listener == null) {
+    if (syncListener.failureMessage != null) {
       fail(syncListener.failureMessage);
     }
   }
@@ -544,7 +543,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void requestSyncAndWait() throws Exception {
-    SyncListener syncListener = requestSync();
+    SyncListener syncListener = requestSync(request -> {
+    });
     checkStatus(syncListener);
   }
 
@@ -558,7 +558,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected String requestSyncAndGetExpectedFailure() throws Exception {
-    SyncListener syncListener = requestSync();
+    return requestSyncAndGetExpectedFailure(request -> {
+    });
+  }
+
+  @NotNull
+  protected String requestSyncAndGetExpectedFailure(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+    SyncListener syncListener = requestSync(requestConfigurator);
     assertFalse(syncListener.success);
     String message = syncListener.failureMessage;
     assertNotNull(message);
@@ -566,9 +572,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private SyncListener requestSync() throws Exception {
+  private SyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.generateSourcesOnSuccess = false;
+    requestConfigurator.consume(request);
     return requestSync(request);
   }
 
@@ -645,6 +652,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      success = false;
       failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getCurrentStack();
       myLatch.countDown();
     }

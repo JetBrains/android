@@ -78,6 +78,7 @@ class DesignAssetCellRenderer(
                                       { ScrollingUtil.isIndexFullyVisible(list, index) })
     assetView.withChessboard = iconProvider.supportsTransparency
     assetView.selected = isSelected
+    assetView.focused = cellHasFocus
     with(getAssetData(value, iconProvider)) {
       assetView.title = title
       assetView.subtitle = subtitle

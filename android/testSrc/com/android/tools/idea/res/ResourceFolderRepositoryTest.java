@@ -24,6 +24,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
+import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
@@ -2132,6 +2133,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    myFixture.openFileInEditor(file1);
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
@@ -2164,11 +2166,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf("MyCustomView");
-      document.insertString(offset + 8, "r");
-      documentManager.commitDocument(document);
-    });
+    type("MyCustom|View", "r");
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
@@ -2180,11 +2178,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Now try another edit, where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf("MyCustomrView");
-      document.insertString(offset + 8, "e");
-      documentManager.commitDocument(document);
-    });
+    type("MyCustom|rView", "e");
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomerView"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
@@ -2197,6 +2191,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(watchType);
     assertEquals(2, watchType.getAttributeValues().size());
     assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
+
+    long generation3 = resources.getModificationCount();
+    type("watch|Type", "Change");
+    assertTrue(generation3 < resources.getModificationCount());
+
+    assertSame(style, getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomerView"));
+    assertNotSame(srv, style.getResourceValue());
+    srv = (StyleableResourceValue)style.getResourceValue();
+    assertNull(findAttr(srv.getAllAttributes(), "watchType"));
+    assertNotNull(findAttr(srv.getAllAttributes(), "watchChangeType"));
 
     // Shouldn't have done any full file rescans during the above edits.
     ensureIncremental();
@@ -3978,6 +3982,53 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(item.getResourceValue());
   }
 
+  public void testAddingPlusToId() {
+    PsiFile layout = myFixture.addFileToProject("res/layout/my_layout.xml",
+                                              // language=XML
+                                              "<LinearLayout xmlns:android='http://schemas.android.com/apk/res/android'>" +
+                                              "  <TextView android:id='@id/aaa' />" +
+                                              "  <TextView android:id='@id/bbb' />" +
+                                              "  <TextView android:id='@id/ccc' />" +
+                                              "</LinearLayout>");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+
+    ResourceFolderRepository resources = createRepository();
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    long timestamp = resources.getModificationCount();
+
+    type("@|id/aaa", "+");
+    assertTrue(resources.isScanPending(layout));
+    UIUtil.dispatchAllInvocationEvents();
+
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+
+    timestamp = resources.getModificationCount();
+    type("@|id/bbb", "+");
+    assertFalse(resources.isScanPending(layout)); // Should be incremental
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+
+    // Now try setAttribute which triggers a different PsiEvent, similar to pasting.
+    timestamp = resources.getModificationCount();
+    XmlTag cccTag = findTagById(layout, "ccc");
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      cccTag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/ccc");
+    });
+
+    assertFalse(resources.isScanPending(layout)); // Should be incremental
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
+    assertThat(resources.getModificationCount()).named("New modification count").isGreaterThan(timestamp);
+  }
+
   @Nullable
   private static XmlTag findTagById(@NotNull PsiFile file, @NotNull String id) {
     assertFalse(id.startsWith(PREFIX_RESOURCE_REF)); // Just the id.
@@ -4015,5 +4066,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private static void checkDefinedItems(@NotNull StyleResourceValue style, @NotNull String... attributes) {
     assertSameElements(Collections2.transform(style.getDefinedItems(), StyleItemResourceValue::getAttrName), attributes);
+  }
+
+  private void type(@NotNull String place, @NotNull String toType) {
+    moveCaret(myFixture, place);
+    myFixture.type(toType);
+    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
   }
 }

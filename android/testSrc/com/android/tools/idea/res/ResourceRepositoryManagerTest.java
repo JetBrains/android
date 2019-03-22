@@ -20,10 +20,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
@@ -56,6 +60,38 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
         assertWithMessage("%s has already been disposed but is returned from ResourceRepositoryManager", repository)
           .that(Disposer.isDisposed((Disposable)repository))
           .isFalse();
+      }
+    }
+  }
+
+  public static class AllRepositoriesDisposedTest extends AndroidTestCase {
+    Set<ResourceRepository> repositoriesToDispose = new HashSet<>();
+
+    public void testClosingProject() {
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+      repositoriesToDispose.add(repositoryManager.getAppResources());
+      repositoriesToDispose.add(repositoryManager.getProjectResources());
+      repositoriesToDispose.add(repositoryManager.getModuleResources());
+      repositoriesToDispose.add(repositoryManager.getTestAppResources());
+      repositoriesToDispose.addAll(repositoryManager.getTestAppResources().getLeafResourceRepositories());
+      repositoriesToDispose.addAll(repositoryManager.getAppResources().getLeafResourceRepositories());
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+      Project project;
+      try {
+        project = getProject();
+      } finally {
+        super.tearDown();
+      }
+
+      assertThat(Disposer.isDisposed(project)).isTrue();
+
+      for (ResourceRepository repository : repositoriesToDispose) {
+        if (repository instanceof Disposable) {
+          assertThat(Disposer.isDisposed((Disposable)repository)).named(repository + " disposed").isTrue();
+        }
       }
     }
   }

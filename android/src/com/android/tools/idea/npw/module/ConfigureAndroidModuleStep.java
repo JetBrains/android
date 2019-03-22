@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -54,10 +55,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
@@ -141,8 +144,17 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myRenderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
-    myValidatorPanel.registerValidator(myRenderModel.androidSdkInfo(), value ->
-      value.isPresent() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text")));
+    myValidatorPanel.registerValidator(myRenderModel.androidSdkInfo(), value -> {
+      if (!value.isPresent()) {
+        return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
+      }
+
+      if (value.get().getTargetApiLevel() >= VersionCodes.Q && !isAndroidx(project)) {
+        return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.module.needs.androidx"));
+      }
+
+      return Validator.Result.OK;
+    });
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language());
 
@@ -216,6 +228,12 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @Override
   protected JComponent getPreferredFocusComponent() {
     return myAppName;
+  }
+
+  @TestOnly
+  @NotNull
+  RenderTemplateModel getRenderModel() {
+    return myRenderModel;
   }
 
   private void createUIComponents() {

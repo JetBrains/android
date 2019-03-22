@@ -15,23 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.SystemProperties;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class LaunchAndroidApplicationTest {
@@ -79,28 +82,6 @@ public class LaunchAndroidApplicationTest {
     samplesWizard.clickFinish();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-    // HACK: This is needed until the github project is updated
-    ideFrameFixture
-      .waitForGradleProjectSyncToFail(Wait.seconds(60))
-      .getEditor()
-      .open("build.gradle")
-      .select("com.android.tools.build:gradle:(3.0.1)")
-      .enterText("3.1.0-dev")
-      .open("choreographer-30fps/build.gradle")
-      .select("constraint-layout:1.0.(1)")
-      .enterText("2")
-      .open("classic-teapot/build.gradle")
-      .select("constraint-layout:1.0.(1)")
-      .enterText("2")
-      .open("more-teapots/build.gradle")
-      .select("constraint-layout:1.0.(1)")
-      .enterText("2")
-      .open("gradle/wrapper/gradle-wrapper.properties")
-      .select("gradle-(4.1)-all.zip")
-      .enterText("4.5")
-      .getIdeFrame()
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()
@@ -117,10 +98,7 @@ public class LaunchAndroidApplicationTest {
 
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
-    ideFrameFixture
-      .debugApp("classic-teapot")
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrameFixture.debugApp("classic-teapot", emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
