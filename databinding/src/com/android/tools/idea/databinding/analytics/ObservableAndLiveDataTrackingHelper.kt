@@ -18,6 +18,8 @@ package com.android.tools.idea.databinding.analytics
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.DataBindingEvent
+import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingPollMetadata.LiveDataMetrics
+import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingPollMetadata.ObservableMetrics
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.JavaProjectRootsUtil
@@ -56,16 +58,25 @@ private val OBSERVABLE_COLLECTIONS = setOf(
   "ObservableArrayList",
   "ObservableArrayMap")
 
+private val LIVE_DATA_OBJECTS = setOf(
+  "LiveData",
+  "MutableLiveData",
+  "MediatorLiveData"
+)
 
-fun trackObservableDataTypes(project: Project): DataBindingEvent.DataBindingPollMetadata.ObservableMetrics {
+
+/**
+ * Scans all java and kotlin source files to collect observable data metrics, as defined in the proto [ObservableMetrics].
+ */
+fun trackObservables(project: Project): ObservableMetrics {
   var primitiveCount = 0
   var collectionCount = 0
   var objectCount = 0
   val observableCountingProcessor = PsiElementProcessor<PsiElement> { psiElement ->
     when {
-      isObservablePrimitive(psiElement) -> primitiveCount++
-      isObservableCollection(psiElement) -> collectionCount++
-      isObservableObject(psiElement) -> objectCount++
+      isObservablePrimitive(psiElement) -> primitiveCount ++
+      isObservableCollection(psiElement) -> collectionCount ++
+      isObservableObject(psiElement) -> objectCount ++
     }
     true
   }
@@ -83,10 +94,40 @@ fun trackObservableDataTypes(project: Project): DataBindingEvent.DataBindingPoll
     .map { file -> PsiManager.getInstance(project).findFile(file) }
     .forEach { PsiTreeUtil.processElements(it, observableCountingProcessor) }
 
-  return DataBindingEvent.DataBindingPollMetadata.ObservableMetrics.newBuilder()
+  return ObservableMetrics.newBuilder()
     .setPrimitiveCount(primitiveCount)
     .setCollectionCount(collectionCount)
     .setObservableObjectCount(objectCount)
+    .build()
+}
+
+/**
+ * Scans all java and kotlin source files to collect live data metrics, as defined in the proto [LiveDataMetrics].
+ */
+fun trackLiveData(project: Project): LiveDataMetrics {
+  var liveDataCount = 0
+  val liveDataCountingProcessor = PsiElementProcessor<PsiElement> { psiElement ->
+    if (isLiveData(psiElement)) {
+      liveDataCount ++
+    }
+    true
+  }
+  FileTypeIndex.getFiles(
+    KotlinFileType.INSTANCE,
+    JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project)
+  )
+    .map { file -> PsiManager.getInstance(project).findFile(file) }
+    .forEach { PsiTreeUtil.processElements(it, liveDataCountingProcessor) }
+
+  FileTypeIndex.getFiles(
+    JavaFileType.INSTANCE,
+    JavaProjectRootsUtil.getScopeWithoutGeneratedSources(ProjectScope.getProjectScope(project), project)
+  )
+    .map { file -> PsiManager.getInstance(project).findFile(file) }
+    .forEach { PsiTreeUtil.processElements(it, liveDataCountingProcessor) }
+
+  return LiveDataMetrics.newBuilder()
+    .setLiveDataObjectCount(liveDataCount)
     .build()
 }
 
@@ -100,6 +141,10 @@ private fun isObservableCollection(element: PsiElement): Boolean {
   return OBSERVABLE_COLLECTIONS.contains(type)
 }
 
+private fun isLiveData(element: PsiElement): Boolean {
+  val type = getTypeName(element) ?: return false
+  return LIVE_DATA_OBJECTS.contains(type)
+}
 /**
  * Gets the current type of the target element, if it's a java field or kotlin property. Otherwise return `null`.
  */
