@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
@@ -33,10 +34,10 @@ import java.util.Map;
 
 public class BrClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
-  private CachedValue<Map<String, PsiClass>> myClassByPackageCache;
-  public BrClassFinder(DataBindingProjectComponent component) {
-    myComponent = component;
-    myClassByPackageCache = CachedValuesManager.getManager(component.getProject()).createCachedValue(
+  private final CachedValue<Map<String, PsiClass>> myClassByPackageCache;
+  public BrClassFinder(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
+    myClassByPackageCache = CachedValuesManager.getManager(project).createCachedValue(
       () -> {
         Map<String, PsiClass> classes = new HashMap<>();
         for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
