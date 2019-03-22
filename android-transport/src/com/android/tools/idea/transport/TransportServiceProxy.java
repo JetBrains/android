@@ -18,6 +18,7 @@ package com.android.tools.idea.transport;
 import static com.android.ddmlib.Client.CHANGE_NAME;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
@@ -48,6 +49,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import gnu.trove.TLongObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -65,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -95,6 +98,12 @@ public class TransportServiceProxy extends ServiceProxy
   private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   private Thread myEventsListenerThread;
   private final Map<CommandType, Function<Command, ExecuteResponse>> myCommandHandlers = new HashMap<>();
+
+  // Cache the latest event timestamp we received from the daemon, which is used for closing all still-opened event groups when
+  // the proxy lost connection with the device.
+  private long myLatestEventTimestampNs = Long.MIN_VALUE;
+  @GuardedBy("myOngoingEventGroups")
+  private Map<Event.Kind, TLongObjectHashMap> myOngoingEventGroups = new HashMap<>();
 
   /**
    * @param ddmlibDevice    the {@link IDevice} for retrieving process informatino.
@@ -250,8 +259,27 @@ public class TransportServiceProxy extends ServiceProxy
       catch (StatusRuntimeException ignored) {
         // disconnect handle generally outside of the exception.
       }
-      // Reaching here means that the device side getEvents stream has terminated. We need to clean up any live processes.
-      removeProcesses(ImmutableSet.copyOf(myCachedProcesses.keySet()), Long.MAX_VALUE);
+
+      // Create a generic end event with the input kind and group id.
+      // Note - We will revisit this logic if it turns out we need to insert domain-specific data with the end event.
+      // For the most part, since the device stream is disconnected, we should not have to care.
+      synchronized (myOngoingEventGroups) {
+        for (Event.Kind kind : myOngoingEventGroups.keySet()) {
+          myOngoingEventGroups.get(kind).forEachEntry((groupId, lastEvent) -> {
+            Event event = (Event)lastEvent;
+            Event endEvent = Event.newBuilder()
+              .setKind(kind)
+              .setGroupId(groupId)
+              .setPid(event.getPid())
+              .setTimestamp(myLatestEventTimestampNs + 1)
+              .setIsEnded(true)
+              .build();
+            myEventQueue.offer(endEvent);
+            return true;
+          });
+        }
+      }
+
       if (myEventsListenerThread != null) {
         myEventsListenerThread.interrupt();
         myEventsListenerThread = null;
@@ -266,6 +294,25 @@ public class TransportServiceProxy extends ServiceProxy
         try {
           Event event = myEventQueue.take();
           if (event != null) {
+            myLatestEventTimestampNs = Math.max(myLatestEventTimestampNs, event.getTimestamp());
+
+            // Update the event cache: remove an event group if it has ended, otherwise cache the latest opened event for that group.
+            synchronized (myOngoingEventGroups) {
+              if (event.getIsEnded()) {
+                myOngoingEventGroups.computeIfPresent(event.getKind(), (kind, map) -> {
+                  map.remove(event.getGroupId());
+                  return map.isEmpty() ? null : map;
+                });
+              }
+              else if (event.getGroupId() != 0) {
+                myOngoingEventGroups.compute(event.getKind(), (kind, map) -> {
+                  map = Optional.ofNullable(map).orElseGet(TLongObjectHashMap::new);
+                  map.put(event.getGroupId(), event);
+                  return map;
+                });
+              }
+            }
+
             responseObserver.onNext(event);
           }
         }
