@@ -140,7 +140,9 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   inner class MyCellEditor : PropertyCellEditor<ValueT>() {
     override fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any = toTableModelValue()
-    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> = editor(getPropertyAt(row), propertyContext, variablesScope, this)
+    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> =
+        editor(getPropertyAt(row), propertyContext, variablesScope, this)
+            .also { table.addTabKeySupportTo(it.component) }
   }
 }
 
