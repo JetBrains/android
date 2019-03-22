@@ -35,7 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-class TrackObservableTest {
+class ObservableAndLiveDataTrackingHelperTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
@@ -49,7 +49,7 @@ class TrackObservableTest {
 
   @Test
   @RunsInEdt
-  fun testTrackObservables() {
+  fun testTrackObservablesAndLiveData() {
     val assembleDebug = projectRule.invokeTasks("assembleDebug")
     assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
       .that(assembleDebug.isBuildSuccessful).isTrue()
@@ -60,15 +60,16 @@ class TrackObservableTest {
     try {
       UsageTracker.setWriterForTest(tracker)
       GradleBuildState.getInstance(projectRule.project).buildFinished(BuildStatus.SUCCESS)
-      val observableMetrics = tracker.usages
+      val pollMetadata = tracker.usages
         .map { it.studioEvent }
         .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-        .map { it.dataBindingEvent.pollMetadata.observableMetrics }
+        .map { it.dataBindingEvent.pollMetadata }
         .lastOrNull()!!
 
-      assertThat(observableMetrics.primitiveCount).isEqualTo(3)
-      assertThat(observableMetrics.collectionCount).isEqualTo(1)
-      assertThat(observableMetrics.observableObjectCount).isEqualTo(5)
+      assertThat(pollMetadata.observableMetrics.primitiveCount).isEqualTo(3)
+      assertThat(pollMetadata.observableMetrics.collectionCount).isEqualTo(1)
+      assertThat(pollMetadata.observableMetrics.observableObjectCount).isEqualTo(5)
+      assertThat(pollMetadata.liveDataMetrics.liveDataObjectCount).isEqualTo(1)
     }
     finally {
       tracker.close()
