@@ -109,7 +109,21 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
     val processResponse = myTable.getProcesses(processRequest)
     assertThat(processResponse.processList.size).isEqualTo(3)
     val deadProcessSet = PROCESS_AGENT_MAP.keys.map { p -> p.toBuilder().setState(Common.Process.State.DEAD).build() }
-    assertThat(processResponse.processList).containsAllIn(deadProcessSet)
+    assertThat(processResponse.processList).containsExactlyElementsIn(deadProcessSet)
+  }
+
+  @Test
+  fun testStopUpdateDeadProcessses() {
+    myProfilerService.setProcessAgentMap(PROCESS_AGENT_MAP)
+    myProcessPoller.poll()
+    val processRequest = GetProcessesRequest.newBuilder().setDeviceId(DataStorePollerTest.DEVICE.deviceId).build()
+    var processResponse = myTable.getProcesses(processRequest)
+    assertThat(processResponse.processList).containsExactlyElementsIn(PROCESS_AGENT_MAP.keys)
+
+    myProcessPoller.stop()
+    processResponse = myTable.getProcesses(processRequest)
+    val deadProcessSet = PROCESS_AGENT_MAP.keys.map { p -> p.toBuilder().setState(Common.Process.State.DEAD).build() }
+    assertThat(processResponse.processList).containsExactlyElementsIn(deadProcessSet)
   }
 
   private class FakeTransportService : TransportServiceGrpc.TransportServiceImplBase() {
