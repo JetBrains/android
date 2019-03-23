@@ -59,7 +59,6 @@ import java.util.Set;
  * further leak analysis.
  */
 @RunWith(GuiTestRemoteRunner.class)
-@RunIn(TestGroup.UNRELIABLE)
 public class LayoutEditorMemoryUseTest {
 
   private static final int MAX_LOOP_COUNT = 5;

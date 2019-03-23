@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.npw
 
 import com.android.tools.idea.flags.StudioFlags.NPW_OFFLINE_REPO_CHECKBOX
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat
@@ -29,7 +27,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@RunIn(TestGroup.UNRELIABLE)  // b/113298184
 @RunWith(GuiTestRemoteRunner::class)
 class OfflineRepoTest {
   @JvmField @Rule
