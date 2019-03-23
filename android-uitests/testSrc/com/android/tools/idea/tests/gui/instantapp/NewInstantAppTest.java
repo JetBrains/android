@@ -21,8 +21,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
@@ -146,13 +144,11 @@ public class NewInstantAppTest {
     );
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/116163055
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_NO_UAB() {
     testNoWarningsInDefaultNewInstantAppProjects(false);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/116163055
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_UAB() {
     testNoWarningsInDefaultNewInstantAppProjects(true);

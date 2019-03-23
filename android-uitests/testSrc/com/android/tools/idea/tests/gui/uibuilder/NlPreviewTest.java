@@ -47,7 +47,6 @@ public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -273,7 +272,6 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -355,7 +353,6 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/120809429
   @Test
   public void closeAllFileShouldClosePreview() throws Exception {
     // Regression test for b/73592522
