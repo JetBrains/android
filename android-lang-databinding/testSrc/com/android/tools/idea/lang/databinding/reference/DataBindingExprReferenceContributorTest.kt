@@ -21,16 +21,12 @@ import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -124,8 +120,12 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiField
-    assertThat(element.name).isEqualTo("strValue")
+    val javaStrValue = fixture.findClass("test.langdb.Model").findFieldByName("strValue", false)!!
+    val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
+    assertThat(xmlStrValue.resolve()).isEqualTo(javaStrValue)
   }
 
   @Test
@@ -149,8 +149,12 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiMethod
-    assertThat(element.name).isEqualTo("doSomething")
+    val javaDoSomething = fixture.findClass("test.langdb.Model").findMethodsByName("doSomething")[0].sourceElement!!
+    val xmlDoSomething = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
+    assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
   }
 
   @Test
@@ -174,8 +178,12 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiMethod
-    assertThat(element.name).isEqualTo("getStrValue")
+    val javaStrValue = fixture.findClass("test.langdb.Model").findMethodsByName("getStrValue")[0].sourceElement!!
+    val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
+    assertThat(xmlStrValue.resolve()).isEqualTo(javaStrValue)
   }
 
   @Test
@@ -229,8 +237,12 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiMethod
-    assertThat(element.name).isEqualTo("handleClick")
+    val javaHandleClick = fixture.findClass("test.langdb.Model").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
   }
 
   @Test
@@ -256,8 +268,12 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiMethod
-    assertThat(element.name).isEqualTo("handleClick")
+    val javaHandleClick = fixture.findClass("test.langdb.ClickHandler").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
   }
 
   @Test
@@ -283,8 +299,12 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiMethod
-    assertThat(element.name).isEqualTo("handleClick")
+    val javaHandleClick = fixture.findClass("test.langdb.Model").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
   }
 
   @Test
@@ -307,7 +327,11 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val element = fixture.elementAtCaret as PsiClass
-    assertThat(element.name).isEqualTo("Model")
+    val javaModel = fixture.findClass("test.langdb.Model")
+    val xmlModel = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlModel.isReferenceTo(javaModel)).isTrue()
+    assertThat(xmlModel.resolve()).isEqualTo(javaModel)
   }
 }
