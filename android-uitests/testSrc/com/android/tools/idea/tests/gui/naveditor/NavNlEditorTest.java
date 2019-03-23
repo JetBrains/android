@@ -119,7 +119,6 @@ public class NavNlEditorTest {
     assertEquals(0, selectedComponents.size());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
