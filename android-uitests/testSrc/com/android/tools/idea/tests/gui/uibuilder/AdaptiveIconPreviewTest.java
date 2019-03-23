@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -70,7 +68,6 @@ public class AdaptiveIconPreviewTest {
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff00ff00");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/118004842
   @Test
   public void shapeSelector() throws IOException {
     NlPreviewFixture preview =
