@@ -27,14 +27,11 @@ private fun getElementRange(element: PsiElement): TextRange {
 
 /**
  * A base class for references found within a data binding expression.
- * TODO: Right now this class is only inherited by classes inside [DataBindingExprReferenceContributor].
- *  We might as well move this inside along with them, to keep related code together.
  */
 internal abstract class DbExprReference(private val psiElement: PsiElement,
                                private val resolveTo: PsiElement,
-                               private val textRange: TextRange = getElementRange(psiElement)) :
-  ModelClassResolvable, PsiReference {
-
+                               private val textRange: TextRange = getElementRange(psiElement))
+  : ModelClassResolvable, PsiReference {
 
   override fun getElement(): PsiElement {
     return psiElement
@@ -61,7 +58,7 @@ internal abstract class DbExprReference(private val psiElement: PsiElement,
   }
 
   override fun isReferenceTo(element: PsiElement): Boolean {
-    return element.manager.areElementsEquivalent(resolve(), psiElement)
+    return psiElement.manager.areElementsEquivalent(resolve(), element)
   }
 
   override fun isSoft(): Boolean {
