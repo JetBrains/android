@@ -901,7 +901,7 @@ public class DrawConnection implements DrawCommand {
                                    SecondarySelector secondarySelector, boolean hover) {
 
     if (hover) {
-      GeneralPath hoverPath = new GeneralPath(ourPath);
+      GeneralPath hoverPath = new GeneralPath();
       g.setColor(hoverColor);
       Stroke tmpStroke = g.getStroke();
       g.setStroke(myHoverStroke);
