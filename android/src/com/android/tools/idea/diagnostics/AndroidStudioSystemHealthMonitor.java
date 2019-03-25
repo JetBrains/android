@@ -22,6 +22,7 @@ import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultiset;
@@ -41,7 +42,6 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.ExceptionRegistry;
 import com.intellij.ide.HistogramUtil;
 import com.intellij.ide.IdeBundle;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.StackTrace;
 import com.intellij.ide.actions.*;
 import com.intellij.ide.util.PropertiesComponent;
@@ -284,13 +284,24 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   @Override
   public void initComponent() {
     assert myGroup != null;
+    Application application = ApplicationManager.getApplication();
     registerPlatformEventsListener();
 
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+    application.executeOnPooledThread(() -> {
       checkRuntime();
     });
 
-    if (!ApplicationManager.getApplication().isInternal() && !StatisticsUploadAssistant.isSendAllowed()) {
+    if (SystemInfo.isWindows && StudioFlags.WINDOWS_DEFENDER_CHECK_ENABLED.get()) {
+      application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectOpened(@NotNull Project project) {
+          application.executeOnPooledThread(
+            () -> WindowsPerformanceHintsChecker.checkWindowsDefender(AndroidStudioSystemHealthMonitor.this, project));
+        }
+      });
+    }
+
+    if (!application.isInternal() && !StatisticsUploadAssistant.isSendAllowed()) {
       return;
     }
     ourStudioActionCount.set(myProperties.getOrInitLong(STUDIO_ACTIVITY_COUNT, 0L) + 1);
@@ -305,7 +316,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     trackStudioReports(myReportsDatabase.reapReportDetails());
     startHProfAnalysis(ourHProfDatabase.getPathsAndCleanupDatabase());
 
-    Application application = ApplicationManager.getApplication();
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appClosing() {
@@ -590,9 +600,9 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private void showNotification(@PropertyKey(resourceBundle = "messages.AndroidBundle") String key,
-                                @Nullable NotificationAction action,
-                                Object... params) {
+  void showNotification(@PropertyKey(resourceBundle = "messages.AndroidBundle") String key,
+                        @Nullable NotificationAction action,
+                        Object... params) {
     boolean ignored = myProperties.isValueSet("ignore." + key);
     LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
     if (ignored) return;
@@ -619,7 +629,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  private static NotificationAction detailsAction(String url) {
+  static NotificationAction detailsAction(String url) {
     return new BrowseNotificationAction(IdeBundle.message("sys.health.details"), url);
   }
 
