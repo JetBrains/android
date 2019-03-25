@@ -53,7 +53,7 @@ fun chooseSelectedVariants(
   val allModules = LinkedList<String>()
   val visitedModules = HashSet<String>()
 
-  inputModules.filter { !it.androidProject.variants.isEmpty() }.forEach { module ->
+  inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
     val id = createUniqueModuleId(module.gradleProject)
     modulesById[id] = module
     // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
