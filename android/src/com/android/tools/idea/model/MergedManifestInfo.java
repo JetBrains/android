@@ -195,7 +195,7 @@ final class MergedManifestInfo {
         return new ParsedMergeResult(doc.getXml(), mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
       else {
-        LOG.warn("getMergedManifest failed " + mergingReport.getReportString());
+        LOG.warn("getMergedManifestSupplier failed " + mergingReport.getReportString());
         return new ParsedMergeResult(null, mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
     }
@@ -208,7 +208,7 @@ final class MergedManifestInfo {
       if (ex.getCause() instanceof SAXParseException) {
         return null;
       }
-      LOG.warn("getMergedManifest exception", ex);
+      LOG.warn("getMergedManifestSupplier exception", ex);
     }
     return null;
   }
@@ -399,7 +399,7 @@ final class MergedManifestInfo {
         if (!libManifests.isEmpty()) {
           Module moduleContainingManifest = getAndroidModuleForManifest(vFile);
           if (moduleContainingManifest != null && !module.equals(moduleContainingManifest)) {
-            MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(moduleContainingManifest);
+            MergedManifestSnapshot manifest = MergedManifestManager.getFreshSnapshotInCallingThread(moduleContainingManifest);
 
             Document document = manifest.getDocument();
             if (document != null) { // normally the case, but can fail on merge fail

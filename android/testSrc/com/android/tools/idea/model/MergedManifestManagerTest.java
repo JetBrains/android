@@ -19,9 +19,6 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.resources.ScreenSize.LARGE;
 import static com.android.resources.ScreenSize.NORMAL;
 import static com.android.resources.ScreenSize.XLARGE;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
@@ -31,8 +28,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.PermissionHolder;
+import com.android.utils.concurrency.AsyncSupplier;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -41,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -56,24 +53,6 @@ public class MergedManifestManagerTest extends AndroidTestCase {
       super.tearDown();
     }
 
-  }
-
-  public void testHandleDisposedModule() {
-    Module module = mock(Module.class);
-    when(module.isDisposed()).thenReturn(true);
-    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(module);
-    assertThat(manifest.getActions()).isNull();
-    assertThat(manifest.getActivities()).isEmpty();
-    assertThat(manifest.getMinSdkVersion()).isEqualTo(AndroidVersion.DEFAULT);
-    assertThat(manifest.getTargetSdkVersion()).isEqualTo(AndroidVersion.DEFAULT);
-    assertThat(manifest.getDocument()).isNull();
-    assertThat(manifest.getApplicationIcon()).isNull();
-    assertThat(manifest.getVersionCode()).isNull();
-    assertThat(manifest.getPermissionHolder()).isNotNull();
-    assertThat(manifest.getManifestFiles()).isEmpty();
-    assertThat(manifest.getLoggingRecords()).isEmpty();
-    assertThat(manifest.getPackage()).isNull();
-    assertThat(manifest.findUsedFeature("foo")).isNull();
   }
 
   public void testGetActivityThemes1() throws Exception {
@@ -248,10 +227,9 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     myFixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifestContents);
   }
 
-  private MergedManifestSnapshot getMergedManifest(String manifestContents) {
+  private MergedManifestSnapshot getMergedManifest(String manifestContents) throws Exception {
     updateManifestContents(manifestContents);
-
-    return MergedManifestManager.getSnapshot(myModule, true);
+    return MergedManifestManager.getMergedManifest(myModule).get();
   }
 
   @SuppressWarnings("SpellCheckingInspection")
@@ -304,7 +282,6 @@ public class MergedManifestManagerTest extends AndroidTestCase {
   }
 
   public void testCaching() throws Exception {
-    Clock.setTime(System.currentTimeMillis());
     @Language("xml")
     final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                      "    package='com.android.unittest'>\n" +
@@ -316,87 +293,19 @@ public class MergedManifestManagerTest extends AndroidTestCase {
                                      "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
                                      "        android:protectionLevel=\"dangerous\" />\n" +
                                      "</manifest>\n";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
 
     // We've never loaded a snapshot so that must return null
-    assertNull(MergedManifestManager.getCachedSnapshot(myFacet));
+    assertNull(supplier.getNow());
 
-    getMergedManifest(originalContent);
-    assertEquals("com.android.unittest", MergedManifestManager.getCachedSnapshot(myFacet).getPackage());
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertEquals("com.android.unittest", supplier.getNow().getPackage());
 
+    // Since the file has changed, we should get a new snapshot.
     updateManifestContents(originalContent.replace("unittest", "unittest2"));
-    MergedManifestSnapshot snapshot = MergedManifestManager.getCachedSnapshot(myFacet);
-    assertEquals("com.android.unittest", snapshot.getPackage());
-
-    // We don't ask for a fresh version but since the file has changed, this should return a new one
-    snapshot = MergedManifestManager.getSnapshot(myModule, false);
-    assertEquals("com.android.unittest", snapshot.getPackage());
-
-    // Advance time to make sure the refresh happens
-    Clock.setTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1));
-    snapshot = MergedManifestManager.getSnapshot(myModule, false);
-    assertEquals("com.android.unittest2", snapshot.getPackage());
-  }
-
-  public void testDefaultCaching() {
-    Clock.setTime(System.currentTimeMillis());
-    @Language("xml")
-    final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
-                                   "    package='com.android.unittest'>\n" +
-                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
-                                   "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
-                                   "    <uses-permission\n" +
-                                   "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
-                                   "    <permission\n" +
-                                   "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
-                                   "        android:protectionLevel=\"dangerous\" />\n" +
-                                   "</manifest>\n";
-
-    // We've never loaded a snapshot so that must return null
-    assertNull(MergedManifestManager.getCachedSnapshot(myFacet));
-
-    getMergedManifest(originalContent);
-    assertEquals("com.android.unittest", MergedManifestManager.getCachedSnapshot(myFacet).getPackage());
-
-    updateManifestContents(originalContent.replace("unittest", "unittest2"));
-    MergedManifestSnapshot snapshot = MergedManifestManager.getSnapshot(myFacet);
-    assertEquals("com.android.unittest", snapshot.getPackage());
-
-    snapshot = MergedManifestManager.getSnapshot(myFacet.getModule());
-    assertEquals("com.android.unittest", snapshot.getPackage());
-
-    // Advance time to make sure the refresh happens
-    Clock.setTime(Clock.getTime() + TimeUnit.DAYS.toMillis(1));
-    snapshot = MergedManifestManager.getSnapshot(myModule);
-    assertEquals("com.android.unittest2", snapshot.getPackage());
-
-    updateManifestContents(originalContent.replace("unittest", "unittest3"));
-    Clock.setTime(Clock.getTime() + TimeUnit.DAYS.toMillis(1));
-    snapshot = MergedManifestManager.getSnapshot(myFacet);
-    assertEquals("com.android.unittest3", snapshot.getPackage());
-  }
-
-  public void testLoadFromDisk() {
-    @Language("xml")
-    final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
-                                   "    package='com.android.unittest'>\n" +
-                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
-                                   "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
-                                   "    <uses-permission\n" +
-                                   "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
-                                   "    <permission\n" +
-                                   "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
-                                   "        android:protectionLevel=\"dangerous\" />\n" +
-                                   "</manifest>\n";
-
-    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(myFacet);
-
-    // The manifest is up-to-date, so the next call will return null
-    assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, false));
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, true));
-    updateManifestContents(originalContent.replace("unittest", "unittest2"));
-    // Even with forceLoad == false, now we should refresh from disk since we've changed the manifest
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, false));
-
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertEquals("com.android.unittest2", supplier.getNow().getPackage());
   }
 
   @SuppressWarnings("ConstantConditions")
