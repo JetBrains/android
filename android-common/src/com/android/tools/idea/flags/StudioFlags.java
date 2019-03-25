@@ -538,5 +538,11 @@ public final class StudioFlags {
     "If set, IDE Xmx is capped at 4GB in the configuration dialog. Otherwise, the cap is 8GB",
     true);
 
+  private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
+  public static final Flag<Boolean> WINDOWS_DEFENDER_CHECK_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.defender.check.enabled", "Enable Windows Defender system health check",
+    "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
+    false);
+
   private StudioFlags() { }
 }
