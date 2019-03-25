@@ -314,6 +314,21 @@ class GradleModuleSystemTest : AndroidTestCase() {
     assertThat(missing).isEmpty()
   }
 
+  fun testAddingImcompatibleTestDependenciesFromMultipleSources() {
+    // We are adding 2 dependencies that have conflicting test dependencies.
+    // We should ignore test dependencies with analyzing compatibility issues.
+    // In this case recyclerview and material have conflicting dependencies on mockito,
+    // recyclerview on mockito-core:2.19.0 and material on mockito-core:1.9.5
+    installDependencies(myModule, listOf("androidx.recyclerview:recyclerview:1.2.0"))
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("com.google.android.material", "material", "+")))
+
+    assertThat(warning).isEmpty()
+    assertThat(found).containsExactly(
+      GradleCoordinate.parseCoordinateString("com.google.android.material:material:1.3.0"))
+    assertThat(missing).isEmpty()
+  }
+
   private fun toGradleCoordinate(id: GoogleMavenArtifactId, version: String = "+"): GradleCoordinate {
     return GradleCoordinate(id.mavenGroupId, id.mavenArtifactId, version)
   }
