@@ -482,7 +482,7 @@ class GradleModuleSystem(
         explicitMap[id] = explicitDependency
         moduleMap[id] = fromModule
         mavenRepository
-          .findDependencies(id.groupId, id.artifactId, versionRange.min)
+          .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }
     }
