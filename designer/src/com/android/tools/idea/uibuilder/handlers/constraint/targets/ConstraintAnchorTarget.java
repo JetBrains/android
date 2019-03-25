@@ -665,8 +665,13 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         }
       }
     }
-    revertToPreviousState();
-    myRenderingTemporaryConnection = false;
+    if (myRenderingTemporaryConnection) {
+      revertToPreviousState();
+      myRenderingTemporaryConnection = false;
+      return;
+    }
+
+    myComponent.getScene().needsRebuildList();
   }
 
   /**
