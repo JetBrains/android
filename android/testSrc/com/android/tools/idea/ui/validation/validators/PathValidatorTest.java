@@ -154,15 +154,19 @@ public class PathValidatorTest {
   }
 
   @Test
-  public void pathTooLongMatches() throws Exception {
-    File file = new File(Strings.repeat("/abcdefghij", 11));
-    assertRuleFails(myFileOp, PathValidator.PATH_TOO_LONG, file);
+  public void windowsPathTooLongMatches() throws Exception {
+    Assume.assumeTrue(SystemInfo.isWindows);
+
+    File file = new File("c:\\" + Strings.repeat("\\abcdefghi", 24));
+    assertRuleFails(myFileOp, PathValidator.WINDOWS_PATH_TOO_LONG, file);
   }
 
   @Test
   public void pathTooLongOk() throws Exception {
-    File file = new File("/qrstuvwxyz");
-    assertRulePasses(myFileOp, PathValidator.PATH_TOO_LONG, file);
+    Assume.assumeTrue(SystemInfo.isWindows);
+
+    File file = new File("c:\\" + Strings.repeat("\\abcdefghi", 23));
+    assertRulePasses(myFileOp, PathValidator.WINDOWS_PATH_TOO_LONG, file);
   }
 
   @Test
