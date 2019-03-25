@@ -40,7 +40,7 @@ public final class ProjectImportUtil {
     // Do not instantiate
   }
 
-  @Nullable
+  @NotNull
   public static VirtualFile findImportTarget(@NotNull VirtualFile file) {
     if (file.isDirectory()) {
       VirtualFile target =

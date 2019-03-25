@@ -179,9 +179,6 @@ public class AndroidImportProjectAction extends AnAction {
   @Nullable
   protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
     VirtualFile target = findImportTarget(file);
-    if (target == null) {
-      return null;
-    }
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
 
@@ -228,18 +225,13 @@ public class AndroidImportProjectAction extends AnAction {
   @NotNull
   private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file) {
     VirtualFile target = findImportTarget(file);
-    if (target == null) {
-      return emptyList();
-    }
-    else {
-      List<ProjectImportProvider> available = Lists.newArrayList();
-      for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
-        if (provider.canImport(target, null)) {
-          available.add(provider);
-        }
+    List<ProjectImportProvider> available = Lists.newArrayList();
+    for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
+      if (provider.canImport(target, null)) {
+        available.add(provider);
       }
-      return available;
     }
+    return available;
   }
 
   private static void importAdtProject(@NotNull VirtualFile file) {
