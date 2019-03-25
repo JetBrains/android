@@ -20,6 +20,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
@@ -542,18 +543,93 @@ public class Scene implements SelectionListener, Disposable {
       needsRebuildList();
     }
 
-    if (closestComponent == null || closestComponent.getNlComponent().isRoot()) {
+    if (closestComponent == null
+        || closestComponent.getNlComponent().isRoot()
+           && myHitTarget == null) {
       Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
       if (obj != null && obj instanceof SecondarySelector) {
         SecondarySelector ss = (SecondarySelector)obj;
+        NlComponent component = ss.getComponent();
         myLastHoverConstraintComponent = ss.getComponent();
-        ss.getComponent().putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, ss.getConstraint());
+        tooltip = getConstraintToolTip(ss);
+        component.putClientProperty(ConstraintLayoutDecorator.CONSTRAINT_HOVER, ss.getConstraint());
         needsRebuildList();
       }
     }
 
     transform.setToolTip(tooltip);
     setCursor(transform, x, y);
+  }
+
+  @NotNull
+  private String getConstraintToolTip(@NotNull SecondarySelector ss) {
+    NlComponent component = ss.getComponent();
+    String tooltip;
+    String connect = "", target = "";
+    switch (ss.getConstraint()) {
+
+      case LEFT:
+        connect = SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        connect = SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        break;
+      case RIGHT:
+        connect = SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        connect = SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        break;
+      case TOP:
+        connect = SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        connect = SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        break;
+      case BOTTOM:
+        connect = SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        connect = SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        if (target != null) {
+          break;
+        }
+        break;
+      case BASELINE:
+        connect = SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+        target = component.getAttribute(SdkConstants.SHERPA_URI, connect);
+        break;
+    }
+    try {
+      connect = connect.substring("layout_constraint".length(), connect.length() - 2).replace("_to", " to ").toLowerCase();
+      target = target.substring(target.indexOf("/") + 1);
+      tooltip = component.getTooltipText() + " " + connect + " of " + target;
+    }
+    catch (Exception ex) {
+      tooltip = "";
+    }
+    return tooltip;
   }
 
   private void setCursor(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
