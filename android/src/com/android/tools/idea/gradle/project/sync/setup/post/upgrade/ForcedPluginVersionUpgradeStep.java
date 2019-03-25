@@ -71,8 +71,10 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
     syncState.syncEnded(); // Update the sync state before starting a new one.
 
     final Ref<Boolean> result = Ref.create();
-    final ForcedPluginPreviewVersionUpgradeDialog dialog = new ForcedPluginPreviewVersionUpgradeDialog(project, pluginInfo);
-    ApplicationManager.getApplication().invokeAndWait(() -> result.set(dialog.showAndGet()), ModalityState.NON_MODAL);
+
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> result.set(new ForcedPluginPreviewVersionUpgradeDialog(project, pluginInfo).showAndGet())
+        , ModalityState.NON_MODAL);
     boolean userAcceptsForcedUpgrade = result.get();
 
     if (userAcceptsForcedUpgrade) {
