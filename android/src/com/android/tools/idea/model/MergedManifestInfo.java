@@ -195,7 +195,7 @@ final class MergedManifestInfo {
         return new ParsedMergeResult(doc.getXml(), mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
       else {
-        LOG.warn("getMergedManifest failed " + mergingReport.getReportString());
+        LOG.warn("getMergedManifestSupplier failed " + mergingReport.getReportString());
         return new ParsedMergeResult(null, mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
     }
@@ -208,7 +208,7 @@ final class MergedManifestInfo {
       if (ex.getCause() instanceof SAXParseException) {
         return null;
       }
-      LOG.warn("getMergedManifest exception", ex);
+      LOG.warn("getMergedManifestSupplier exception", ex);
     }
     return null;
   }

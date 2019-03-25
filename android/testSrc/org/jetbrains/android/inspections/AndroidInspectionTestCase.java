@@ -16,6 +16,8 @@
 package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
@@ -39,5 +41,9 @@ public abstract class AndroidInspectionTestCase extends LightInspectionTestCase 
                                "    <uses-sdk android:minSdkVersion=\"" + minApi + "\" />" +
                                "\n" +
                                "</manifest>\n");
+    // Ensure that the MergedManifestManager has picked up the new manifest. Otherwise,
+    // since we're using a shared project from a light project fixture, we might end up
+    // with a stale merged manifest from another test case.
+    Futures.getUnchecked(MergedManifestManager.getMergedManifest(myModule));
   }
 }
