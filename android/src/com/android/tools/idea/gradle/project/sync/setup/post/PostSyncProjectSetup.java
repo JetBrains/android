@@ -238,7 +238,7 @@ public class PostSyncProjectSetup {
         }
       }
 
-      if (MemorySettingsUtil.memorySettingsEnabled()) {
+      if (StudioFlags.RECOMMENDATION_ENABLED.get()) {
         MemorySettingsPostSyncChecker.checkSettings(myProject, new TimeBasedMemorySettingsCheckerReminder());
       }
 
