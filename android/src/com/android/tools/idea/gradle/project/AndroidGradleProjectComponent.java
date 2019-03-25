@@ -173,11 +173,15 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
       if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() || !myGradleProjectInfo.hasGradleFacets()) {
         // Request sync since it was not done when importing
         myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
+        // If sync is requested at this stage there is no need to request it one more time later.
+        myGradleProjectInfo.setSkipStartupActivity(true);
         checkSupported = false;
       }
     }
     else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
       myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
+      // If sync is requested at this stage there is no need to request it one more time later.
+      myGradleProjectInfo.setSkipStartupActivity(true);
       checkSupported = false;
     }
     // Do not check for supported modules if sync was requested, this will be done once sync is successful
