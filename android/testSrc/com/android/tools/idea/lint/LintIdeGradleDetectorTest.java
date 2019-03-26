@@ -120,12 +120,22 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
-  public void testDataBindingWithoutKapt() throws Exception {
+  public void testDataBindingWithoutKaptUsingApplyPlugin() throws Exception {
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
 
-  public void testDataBindingWithKapt() throws Exception {
+  public void testDataBindingWithKaptUsingApplyPlugin() throws Exception {
+    AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDataBindingWithoutKaptUsingPluginsBlock() throws Exception {
+    AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDataBindingWithKaptUsingPluginsBlock() throws Exception {
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
