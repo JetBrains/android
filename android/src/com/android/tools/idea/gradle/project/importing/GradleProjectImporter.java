@@ -92,6 +92,7 @@ public class GradleProjectImporter {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
     Project newProject = importProjectCore(projectFolder);
     if (newProject != null) {
+      GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
       myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
     }
     return newProject;
@@ -188,7 +189,6 @@ public class GradleProjectImporter {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
     projectInfo.setNewProject(request.isNewProject);
     projectInfo.setImportedProject(true);
-    projectInfo.setSkipStartupActivity(true);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
 
