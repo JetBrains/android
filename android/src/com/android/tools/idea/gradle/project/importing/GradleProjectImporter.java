@@ -99,7 +99,9 @@ public class GradleProjectImporter {
     }
     try {
       String projectName = projectFolder.getName();
-      return importProjectCore(projectName, projectFolderPath, new Request(), createNewProjectListener(projectFolder));
+      Project newProject = importProjectNoSync(projectName, projectFolderPath, new Request());
+      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
+      return newProject;
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -147,21 +149,6 @@ public class GradleProjectImporter {
         });
       }
     };
-  }
-
-  /**
-   * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
-   * storage to force their re-import.
-   */
-  @NotNull
-  @VisibleForTesting
-  public Project importProjectCore(@NotNull String projectName,
-                                   @NotNull File projectFolderPath,
-                                   @NotNull Request request,
-                                   @Nullable GradleSyncListener listener) throws IOException {
-    Project newProject = importProjectNoSync(projectName, projectFolderPath, request);
-    myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, listener);
-    return newProject;
   }
 
   @NotNull
