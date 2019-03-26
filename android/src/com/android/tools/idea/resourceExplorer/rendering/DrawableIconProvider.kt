@@ -93,6 +93,7 @@ class DrawableIconProvider(
     alternateImageProvider?.invoke(dimension, designAsset)
     ?: when (designAsset.type) {
       ResourceType.LAYOUT -> getLayoutImage(designAsset)
+      ResourceType.MIPMAP,
       ResourceType.DRAWABLE -> getDrawableImage(dimension, designAsset)
       else -> null
     }
