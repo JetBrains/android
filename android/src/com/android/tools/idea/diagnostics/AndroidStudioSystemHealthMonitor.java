@@ -37,13 +37,14 @@ import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.diagnostic.ThreadDumper;
+import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.ide.ExceptionRegistry;
 import com.intellij.ide.HistogramUtil;
 import com.intellij.ide.IdeBundle;
-import com.intellij.ide.StackTrace;
 import com.intellij.ide.actions.*;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
@@ -60,6 +61,7 @@ import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -77,6 +79,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.HdrHistogram.Histogram;
@@ -103,9 +106,6 @@ import sun.tools.attach.HotSpotVirtualMachine;
 
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
- * <p>
- * Note: The component is initialized only in Android Studio. The code should be in ADT plugin, but it cannot be put there
- *   as there are platform calls into it, e.g. calls to recordEventTime(), reportException().
  */
 public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
@@ -257,7 +257,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     return sb.toString();
   }
 
-  public static void recordWriteLockWaitTime(long durationMs) {
+  public void recordWriteLockWaitTime(long durationMs) {
     myWriteLockWaitTimesMs.recordValueWithCount(Math.min(durationMs, MAX_WRITE_LOCK_WAIT_TIME_MS), 1);
   }
 
@@ -409,32 +409,120 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
 
       @Override
-      public void incrementAndSaveBundledPluginsExceptionCount() {
-        AndroidStudioSystemHealthMonitor.incrementAndSaveBundledPluginsExceptionCount();
-      }
-
-      @Override
-      public void incrementAndSaveExceptionCount() {
-        AndroidStudioSystemHealthMonitor.incrementAndSaveExceptionCount();
-
-      }
-
-      @Override
-      public void incrementAndSaveNonBundledPluginsExceptionCount() {
-        AndroidStudioSystemHealthMonitor.incrementAndSaveNonBundledPluginsExceptionCount();
-      }
-
-      @Override
-      public void reportException(Throwable t, StackTrace trace) {
-        AndroidStudioSystemHealthMonitor.reportException(t, trace);
-      }
-
-      @Override
       public void recordWriteLockWaitTime(long elapsed) {
-        AndroidStudioSystemHealthMonitor.recordWriteLockWaitTime(elapsed);
+        AndroidStudioSystemHealthMonitor.this.recordWriteLockWaitTime(elapsed);
+      }
+
+      @Override
+      public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
+        return AndroidStudioSystemHealthMonitor.this.handleExceptionEvent(event, memoryKind);
       }
     };
     AndroidStudioSystemHealthMonitorAdapter.registerEventsListener(myListener);
+  }
+
+  private AtomicBoolean ourOomOccurred = new AtomicBoolean(false);
+
+  private boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind kind) {
+    Throwable t = event.getThrowable();
+
+    // track exception count
+    if (AnalyticsSettings.getOptedIn()) {
+      if (t != null) {
+        if (isReportableCrash(t)) {
+          incrementAndSaveExceptionCount(t);
+          ErrorReportSubmitter reporter = IdeErrorsDialog.getAndroidErrorReporter();
+          if (reporter != null) {
+            StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
+            IdeaLoggingEvent e = new AndroidStudioExceptionEvent(t.getMessage(), t, stackTrace);
+            reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
+            });
+          }
+        }
+      }
+    }
+
+    try {
+      if (kind != null && !ourOomOccurred.getAndSet(true)) {
+        // TODO: Report histogram and heap report on OOM
+      }
+
+      // if exception should not be shown in the errors UI then report it as handled.
+      boolean showUI = isIdeErrorsDialogReportableCrash(t);
+      return !showUI;
+    } catch (Throwable throwable) {
+      LOG.warn("Exception while handling exception event", throwable);
+      return false;
+    }
+  }
+
+  private static boolean isIdeErrorsDialogReportableCrash(Throwable t) {
+    int maxCauseDepth = 100;
+    while (maxCauseDepth > 0 && t.getCause() != null) {
+      t = t.getCause();
+      maxCauseDepth--;
+    }
+    // Report exceptions with too long cause chains.
+    if (t.getCause() != null) return true;
+
+    // Report all out of memory errors
+    if (t instanceof OutOfMemoryError) return true;
+
+    String className = t.getClass().getName();
+    if (className != null) {
+      if (className.equals("com.intellij.psi.PsiInvalidElementAccessException")) return false;
+      if (className.equals("com.intellij.openapi.project.IndexNotReadyException")) return false;
+      if (className.equals("com.intellij.openapi.util.TraceableDisposable.ObjectNotDisposedException")) return false;
+      if (className.equals("com.intellij.openapi.util.TraceableDisposable$DisposalException")) return false;
+      if (className.equals("com.intellij.openapi.wm.impl.FocusManagerImpl$1")) return false;
+    }
+
+    StackTraceElement[] stackTraceElements = t.getStackTrace();
+    String firstFrame = "";
+    String lastFrame = "";
+    if (stackTraceElements != null && stackTraceElements.length >= 1) {
+      firstFrame = stackTraceElements[0].getClassName() + "#" + stackTraceElements[0].getMethodName();
+      int lastIndex = stackTraceElements.length - 1;
+      lastFrame = stackTraceElements[lastIndex].getClassName() + "#" + stackTraceElements[lastIndex].getMethodName();
+    }
+
+    // Don't show Logger.error in errors dialog.
+    if (firstFrame.equals("com.intellij.openapi.diagnostic.Logger#error") && Objects.equals(t.getClass(), Throwable.class))
+      return false;
+
+    // Report only exceptions on EDT
+    if (!lastFrame.equals("java.awt.EventDispatchThread#run")) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private static boolean isReportableCrash(@NotNull Throwable t) {
+    if (t instanceof ClassNotFoundException) {
+      String cls = t.getMessage();
+      if (cls != null && cls.startsWith("com.sun.jdi.")) {
+        // Running on a JRE. We're already warning about that in the System Health Monitor.
+        // https://code.google.com/p/android/issues/detail?id=225130
+        return false;
+      }
+    }
+
+    return !(t instanceof Logger.EmptyThrowable);
+  }
+
+  private static void incrementAndSaveExceptionCount(@NotNull Throwable t) {
+    incrementAndSaveExceptionCount();
+    PluginId pluginId = IdeErrorsDialog.findPluginId(t);
+    if (pluginId != null) {
+      IdeaPluginDescriptor plugin = PluginManager.getPlugin(pluginId);
+      if (plugin != null && plugin.isBundled()) {
+        incrementAndSaveBundledPluginsExceptionCount();
+      }
+      else {
+        incrementAndSaveNonBundledPluginsExceptionCount();
+      }
+    }
   }
 
   /**
@@ -640,7 +728,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     JobScheduler.getScheduler().scheduleWithFixedDelay(this::reportExceptionsAndActionInvocations, INITIAL_DELAY_MINUTES, INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
   }
 
-  public static void incrementAndSaveExceptionCount() {
+  private static void incrementAndSaveExceptionCount() {
     persistExceptionCount(ourStudioExceptionCount.incrementAndGet(), STUDIO_EXCEPTION_COUNT_FILE);
     if (ApplicationManager.getApplication().isInternal()) {
       // should be 0, but accounting for possible crashes in other threads..
@@ -648,11 +736,11 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
-  public static void incrementAndSaveBundledPluginsExceptionCount() {
+  private static void incrementAndSaveBundledPluginsExceptionCount() {
     persistExceptionCount(ourBundledPluginsExceptionCount.incrementAndGet(), BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE);
   }
 
-  public static void incrementAndSaveNonBundledPluginsExceptionCount() {
+  private static void incrementAndSaveNonBundledPluginsExceptionCount() {
     persistExceptionCount(ourNonBundledPluginsExceptionCount.incrementAndGet(), NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE);
   }
 
@@ -809,19 +897,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       return actionName;
     }
     return currentClass.getCanonicalName();
-  }
-
-  public static void reportException(@NotNull Throwable t, @NotNull StackTrace stackTrace) {
-    if (!AnalyticsSettings.getOptedIn()) {
-      return;
-    }
-
-    ErrorReportSubmitter reporter = IdeErrorsDialog.getAndroidErrorReporter();
-    if (reporter != null) {
-      IdeaLoggingEvent e = new AndroidStudioExceptionEvent(t.getMessage(), t, stackTrace);
-      reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
-      });
-    }
   }
 
   private static void reportCrashes(@NotNull List<StudioCrashDetails> descriptions) {
