@@ -251,6 +251,7 @@ public class DrawConnection implements DrawCommand {
   }
 
   public static Color modeGetConstraintsColor(int mode, ColorSet color) {
+    mode &= HOVER_MASK;
     switch (mode) {
       case MODE_NORMAL:
         return color.getConstraints();
