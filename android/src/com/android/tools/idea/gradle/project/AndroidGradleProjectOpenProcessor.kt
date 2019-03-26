@@ -53,7 +53,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       }
 
       val gradleImporter = GradleProjectImporter.getInstance()
-      return gradleImporter.importProject(virtualFile)
+      return gradleImporter.importProjectCore(virtualFile)
     }
 
     return ProjectUtil.openProject(virtualFile.path, projectToClose, forceOpenInNewFrame)
