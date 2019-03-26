@@ -88,7 +88,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
-  private final Map<Point, Device> myAndroidCoordinatesToDeviceMap = Maps.newHashMapWithExpectedSize(DEVICES_TO_SHOW.length);
+  private final DeviceSizeList myDeviceSizeList = new DeviceSizeList();
   private final MergingUpdateQueue myUpdateQueue;
   private final int myMaxSize;
   private final Update myLayerUpdate = new Update("CanvasResizeLayerUpdate") {
@@ -110,6 +110,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   };
   private int myCurrentX;
   private int myCurrentY;
+  @Nullable private DeviceSizeList.DeviceSize myLastSnappedDevice;
 
   public SimplerCanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
                                  @NotNull ScreenView screenView,
@@ -155,10 +156,12 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       assert device != null;
       Screen screen = device.getDefaultHardware().getScreen();
       double dpiRatio = currentDpi / screen.getPixelDensity().getDpiValue();
-      Point p = new Point((int)(screen.getXDimension() * dpiRatio), (int)(screen.getYDimension() * dpiRatio));
-      myAndroidCoordinatesToDeviceMap.put(p, device);
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, p.x, p.y, device.getDisplayName()));
+      int px = (int)(screen.getXDimension() * dpiRatio);
+      int py = (int)(screen.getYDimension() * dpiRatio);
+      myDeviceSizeList.add(device, px, py);
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, px, py, device.getDisplayName()));
     }
+    myDeviceSizeList.sort();
 
     if (addSmallScreen) {
       myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, (int)(426 * currentDpi / DEFAULT_DENSITY),
@@ -213,21 +216,35 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       }
     }
 
-    super.update(x, y, modifiers);
-    myCurrentX = x;
-    myCurrentY = y;
+    snapToDevice(x, y);
+    super.update(myCurrentX, myCurrentY, modifiers);
 
     JComponent layeredPane = myDesignSurface.getLayeredPane();
     int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
     int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-    if (x < maxX && y < maxY && (x > layeredPane.getWidth() || y > layeredPane.getHeight())) {
+    if (myCurrentX < maxX && myCurrentY < maxY && (myCurrentX > layeredPane.getWidth() || myCurrentY > layeredPane.getHeight())) {
       Dimension d = layeredPane.getPreferredSize();
-      layeredPane.setPreferredSize(new Dimension(Math.max(d.width, x), Math.max(d.height, y)));
+      layeredPane.setPreferredSize(new Dimension(Math.max(d.width, myCurrentX), Math.max(d.height, myCurrentY)));
       layeredPane.revalidate();
       myUpdateQueue.queue(myLayerUpdate);
     }
 
     myUpdateQueue.queue(myPositionUpdate);
+  }
+
+  private void snapToDevice(int x, int y) {
+    int androidX = Coordinates.getAndroidX(myScreenView, x);
+    int androidY = Coordinates.getAndroidY(myScreenView, y);
+    int snapThreshold = Coordinates.getAndroidDimension(myScreenView, MAX_MATCH_DISTANCE);
+    myLastSnappedDevice = myDeviceSizeList.snapToDevice(androidX, androidY, snapThreshold);
+
+    if (myLastSnappedDevice != null) {
+      myCurrentX = Coordinates.getSwingX(myScreenView, myLastSnappedDevice.getX());
+      myCurrentY = Coordinates.getSwingY(myScreenView, myLastSnappedDevice.getY());
+    } else {
+      myCurrentX = x;
+      myCurrentY = y;
+    }
   }
 
   @Override
@@ -244,9 +261,8 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
-      int snapThreshold = Coordinates.getAndroidDimension(myScreenView, MAX_MATCH_DISTANCE);
-      Device deviceToSnap = snapToDevice(androidX, androidY, snapThreshold);
-      if (deviceToSnap != null) {
+      if (myLastSnappedDevice != null) {
+        Device deviceToSnap = myLastSnappedDevice.getDevice();
         State deviceState = deviceToSnap.getState(androidX < androidY ? "Portrait" : "Landscape");
         myConfiguration.setEffectiveDevice(deviceToSnap, deviceState);
       }
@@ -254,21 +270,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
         NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
       }
     }
-  }
-
-  /**
-   * Returns the device to snap to when at (x, y) in Android coordinates.
-   * If there is no such device, returns null.
-   */
-  @Nullable/*null if no device is close enough to snap to*/
-  private Device snapToDevice(@AndroidCoordinate int x, @AndroidCoordinate int y, int threshold) {
-    for (Point p : myAndroidCoordinatesToDeviceMap.keySet()) {
-      if ((Math.abs(x - p.x) < threshold && Math.abs(y - p.y) < threshold)
-          || (Math.abs(y - p.x) < threshold && Math.abs(x - p.y) < threshold)) {
-        return myAndroidCoordinatesToDeviceMap.get(p);
-      }
-    }
-    return null;
   }
 
   @Override
@@ -321,8 +322,8 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     @NotNull private final ScreenView myScreenView;
     @NotNull private final Configuration myConfiguration;
     private final int myNameWidth;
-    private int myBigDimension;
-    private int mySmallDimension;
+    private final int myBigDimension;
+    private final int mySmallDimension;
 
     public DeviceLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
                        int pxWidth, int pxHeight, @NotNull String name) {
