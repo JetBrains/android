@@ -1492,7 +1492,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected MergingUpdateQueue getErrorQueue() {
     synchronized (myErrorQueueLock) {
       if (myErrorQueue == null) {
-        myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, myProject, null,
+        myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, this, null,
                                               Alarm.ThreadToUse.POOLED_THREAD);
       }
       return myErrorQueue;
