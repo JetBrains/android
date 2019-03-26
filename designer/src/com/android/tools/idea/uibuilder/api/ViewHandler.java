@@ -189,4 +189,8 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
     return ImmutableList.of();
   }
+
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of();
+  }
 }
