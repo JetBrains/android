@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.run.ui;
 
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import javax.swing.KeyStroke;
+import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class CodeSwapAction extends BaseAction {
 
@@ -39,6 +46,27 @@ public class CodeSwapAction extends BaseAction {
 
   public CodeSwapAction() {
     super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT, DESC);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    super.update(e);
+
+    Project project = e.getProject();
+    if (project == null) {
+      return;
+    }
+
+    // Disable the button for any test project that is not an Instrumented Test.
+    RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
+    if (runConfig != null) {
+      ConfigurationType type = runConfig.getType();
+      String id = type.getId();
+      if (AndroidCommonUtils.isTestConfiguration(id)) {
+        e.getPresentation().setEnabled(false);
+        return;
+      }
+    }
   }
 }
 
