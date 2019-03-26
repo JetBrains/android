@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
 import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.notification.Notification;
@@ -28,7 +29,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import java.util.Locale;
@@ -66,50 +66,9 @@ public class MemorySettingsPostSyncChecker {
     }
 
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
-    int recommended = getRecommended(project, currentXmx);
+    int recommended = MemorySettingsRecommendation.getRecommended(project, currentXmx);
     if (recommended > 0) {
       showNotification(project, currentXmx, recommended, reminder);
-    }
-  }
-
-  // Returns a new Xmx if a recommendation exists, or -1 otherwise.
-  static int getRecommended(Project project, int currentXmx) {
-    // TODO: check performance to count libraries to see if use it.
-    int basedOnMachine = getRecommendedBasedOnMachine();
-    int basedOnProject = getRecommendedBasedOnModuleCount(project);
-    int recommended = Math.min(basedOnMachine, basedOnProject);
-    if (basedOnMachine >= 2048 && recommended < 2048) {
-      // For machines with at least 8GB RAB, recommend at least 2GB
-      recommended = 2048;
-    }
-    LOG.info(String.format(Locale.US, "recommendation based on machine: %d, on project: %d",
-                           basedOnMachine, basedOnProject));
-    return currentXmx < recommended * 0.9 ? recommended : -1;
-  }
-
-  private static int getRecommendedBasedOnMachine() {
-    int machineMemInGB = MemorySettingsUtil.getMachineMem() >> 10;
-    if (machineMemInGB < 8) {
-      return 1536;
-    } else if (machineMemInGB < 12) {
-      return 2048;
-    } else if (machineMemInGB < 16) {
-      return 3072;
-    } else {
-      return 4096;
-    }
-  }
-
-  private static int getRecommendedBasedOnModuleCount(Project project) {
-    int count = ModuleManager.getInstance(project).getModules().length;
-    if (count < 50) {
-      return 1280;
-    } else if (count < 100) {
-      return 2048;
-    } else if (count < 200) {
-      return 3072;
-    } else {
-      return 4096;
     }
   }
 
