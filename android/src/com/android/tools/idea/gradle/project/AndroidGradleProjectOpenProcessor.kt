@@ -24,6 +24,10 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import javax.swing.Icon
+import com.android.tools.idea.util.toPathString
+import com.android.tools.idea.util.toVirtualFile
+import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
+
 
 /**
  * A project open processor to open Gradle projects in Android Studio.
@@ -39,17 +43,40 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       GradleProjects.canImportAsGradleProject(file)
 
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
-    if (!forceOpenInNewFrame && projectToClose != null) closePreviousProject(projectToClose)
-    return GradleProjectImporter.getInstance().importProject(virtualFile)
+    if (!canOpenProject(virtualFile)) return null
+
+    if (!canOpenAsExistingProject(virtualFile)) {
+      if (!forceOpenInNewFrame) {
+        if (!promptToCloseIfNecessary(projectToClose)) {
+          return null
+        }
+      }
+
+      val gradleImporter = GradleProjectImporter.getInstance()
+      return gradleImporter.importProject(virtualFile)
+    }
+
+    return ProjectUtil.openProject(virtualFile.path, projectToClose, forceOpenInNewFrame)
   }
 
-  private fun closePreviousProject(projectToClose: Project) {
+  private fun promptToCloseIfNecessary(project: Project?): Boolean {
+    var success = true
     val openProjects = ProjectManager.getInstance().openProjects
     if (openProjects.isNotEmpty()) {
-      val exitCode = ProjectUtil.confirmOpenNewProject(true)
+      val exitCode = confirmOpenNewProject(false)
       if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
-        ProjectUtil.closeAndDispose(projectToClose)
+        val toClose = if (project != null && !project.isDefault) project else openProjects[openProjects.size - 1]
+        if (!ProjectUtil.closeAndDispose(toClose)) {
+          success = false
+        }
+      }
+      else if (exitCode != GeneralSettings.OPEN_PROJECT_NEW_WINDOW) {
+        success = false
       }
     }
+    return success
   }
+
+  private fun canOpenAsExistingProject(file: VirtualFile): Boolean =
+      file.toPathString().resolve(Project.DIRECTORY_STORE_FOLDER).toVirtualFile(true) != null
 }
