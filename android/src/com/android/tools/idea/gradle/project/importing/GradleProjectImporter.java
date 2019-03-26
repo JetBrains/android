@@ -90,13 +90,25 @@ public class GradleProjectImporter {
   @Nullable
   public Project importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
+    Project newProject = importProjectCore(projectFolder);
+    if (newProject != null) {
+      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
+    }
+    return newProject;
+  }
+
+  /**
+   * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
+   * storage to force their re-import.
+   */
+  @Nullable
+  public Project importProjectCore(@NotNull VirtualFile projectFolder) {
+    Project newProject;
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
       String projectName = projectFolder.getName();
-      Project newProject = importProjectNoSync(projectName, projectFolderPath, new Request());
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
-      return newProject;
+      newProject = importProjectNoSync(projectName, projectFolderPath, new Request());
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -104,8 +116,9 @@ public class GradleProjectImporter {
       }
       showErrorDialog(e.getMessage(), "Project Import");
       getLogger().error(e);
+      newProject = null;
     }
-    return null;
+    return newProject;
   }
 
   @NotNull
