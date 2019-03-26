@@ -48,7 +48,7 @@ open class SuggestionGroupFixture(val dialog: JDialog,
     return matchingMessageFixtures[0]
   }
 
-  private fun suggestions() =
+  fun suggestions() =
       finder()
           .findAll(container, matcher<JPanel> { it.name == SUGGESTION_VIEWER_NAME })
           .map { SuggestionFixture(ideFrameFixture, it) }
