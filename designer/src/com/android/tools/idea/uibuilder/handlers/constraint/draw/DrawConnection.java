@@ -344,7 +344,7 @@ public class DrawConnection implements DrawCommand {
     Color constraintColor = modeGetConstraintsColor(modeTo, color);
     Color marginColor = modeGetMarginColor(modeTo, color);
     long timeSince = System.nanoTime() - stateChange;
-    boolean hover = (HOVER_FLAG & modeTo) > 0;
+    boolean hover = (HOVER_FLAG & modeTo) > 0 || modeTo == MODE_CONSTRAINT_SELECTED;
     modeTo &= HOVER_MASK;
     if (timeSince < TRANSITION_TIME) {
       float t = (float)((timeSince) / (double)TRANSITION_TIME);
@@ -542,6 +542,9 @@ public class DrawConnection implements DrawCommand {
                 g.drawLine(marginX, endy, endx - arrow, endy);
                 g.setStroke(tmpStroke);
               }
+              if (picker != null && secondarySelector != null) {
+                picker.addLine(secondarySelector, 8, marginX, endy, endx - arrow, endy, 4);
+              }
               g.setColor(constraintColor);
               g.drawLine(marginX, endy, endx - arrow, endy);
               DrawConnectionUtils.drawHorizontalMarginString(g, marginColor, marginString, isMarginReference, marginX, endx - arrow, endy);
@@ -563,6 +566,9 @@ public class DrawConnection implements DrawCommand {
                 g.setStroke(myHoverStroke);
                 g.drawLine(endx, marginY, endx, endy - arrow);
                 g.setStroke(tmpStroke);
+              }
+              if (picker != null && secondarySelector != null) {
+                picker.addLine(secondarySelector, 8, endx, marginY, endx, endy - arrow, 4);
               }
               g.setColor(constraintColor);
               g.drawLine(endx, marginY, endx, endy - arrow);
@@ -624,6 +630,7 @@ public class DrawConnection implements DrawCommand {
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, endx, starty);
             if (picker != null && secondarySelector != null) {
               picker.addLine(secondarySelector, 8, startx, starty, endx, starty, 4);
+              picker.addLine(secondarySelector, 8, endx, starty, endx, endy, 4);
             }
 
             g.setStroke(getStroke(StrokeType.SPRING, false, modeTo));
@@ -649,6 +656,7 @@ public class DrawConnection implements DrawCommand {
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, endy);
             if (picker != null && secondarySelector != null) {
               picker.addLine(secondarySelector, 8, startx, starty, startx, endy, 4);
+              picker.addLine(secondarySelector, 8, startx, endy, endx, endy, 4);
             }
             g.setStroke(getStroke(StrokeType.SPRING, false, modeTo));
             drawArrow = false;
