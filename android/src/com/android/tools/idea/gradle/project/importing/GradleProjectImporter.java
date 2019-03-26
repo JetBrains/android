@@ -93,11 +93,6 @@ public class GradleProjectImporter {
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
-    }
-    catch (IOException e) {
-      return null;
-    }
-    try {
       String projectName = projectFolder.getName();
       Project newProject = importProjectNoSync(projectName, projectFolderPath, new Request());
       myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
