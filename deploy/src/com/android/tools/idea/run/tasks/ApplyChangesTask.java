@@ -58,9 +58,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
   @Override
   protected String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all) {
     if (all) {
-      return "Activity restart successful; no code or resource changes detected.";
+      return "Activity restarted. No code or resource changes detected.";
     } else {
-      return "Activity restart successful without re-installing the following APK(s): " +
+      return "Activity restarted without re-installing the following APK(s): " +
              skippedApkList.stream().collect(Collectors.joining(", "));
     }
   }
