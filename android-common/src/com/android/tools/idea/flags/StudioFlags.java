@@ -305,6 +305,11 @@ public final class StudioFlags {
     "Simplify design surface resize",
     false);
 
+  public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
+    NELE, "property.panel.actionbar", "Property Panel Actionbar",
+    "Support Actionbar in property panel",
+    true);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",

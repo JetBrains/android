@@ -21,10 +21,12 @@ import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.PickTextAppearanceViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
@@ -121,5 +123,10 @@ public class TextViewHandler extends ViewHandler {
     actions.add(new ComponentAssistantViewAction(TextViewHandler::getComponentAssistant));
 
     return cacheable;
+  }
+
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of(new PickTextAppearanceViewAction(ANDROID_URI, ATTR_TEXT_APPEARANCE));
   }
 }
