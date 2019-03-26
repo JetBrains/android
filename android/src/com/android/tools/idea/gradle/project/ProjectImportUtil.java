@@ -36,43 +36,68 @@ public final class ProjectImportUtil {
 
   private static final Logger LOG = Logger.getInstance(ProjectImportUtil.class);
 
+  private static final String[] GRADLE_SUPPORTED_FILES =
+    new String[]{SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_BUILD_GRADLE_KTS, SdkConstants.FN_SETTINGS_GRADLE,
+      SdkConstants.FN_SETTINGS_GRADLE_KTS};
+
   private ProjectImportUtil() {
     // Do not instantiate
   }
 
   @NotNull
   public static VirtualFile findImportTarget(@NotNull VirtualFile file) {
-    if (file.isDirectory()) {
-      VirtualFile target =
-        findMatchingChild(file, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_BUILD_GRADLE_KTS, SdkConstants.FN_SETTINGS_GRADLE,
-                          SdkConstants.FN_SETTINGS_GRADLE_KTS);
-      if (target != null) {
-        return target;
-      }
-      target = findMatchingChild(file, GradleImport.ECLIPSE_DOT_PROJECT);
-      if (target != null) {
-        return findImportTarget(target);
-      }
+    VirtualFile gradleTarget = findGradleTarget(file);
+    if (gradleTarget != null) {
+      return gradleTarget;
     }
-    else {
-      if (GradleImport.ECLIPSE_DOT_PROJECT.equals(file.getName()) && hasAndroidNature(file)) {
-        return file;
-      }
-      if (GradleImport.ECLIPSE_DOT_CLASSPATH.equals(file.getName())) {
-        return findImportTarget(file.getParent());
-      }
+
+    VirtualFile eclipseTarget = findEclipseTarget(file);
+    if (eclipseTarget != null) {
+      return eclipseTarget;
     }
+
     return file;
   }
 
   @Nullable
-  private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String... validNames) {
-    if (parent.isDirectory()) {
-      for (VirtualFile child : parent.getChildren()) {
+  private static VirtualFile findEclipseTarget(@NotNull VirtualFile file) {
+    VirtualFile target;
+    VirtualFile result = null;
+    if (file.isDirectory()) {
+      target = findMatch(file, GradleImport.ECLIPSE_DOT_PROJECT);
+      if (target != null) {
+        result = findImportTarget(target);
+      }
+    }
+    else {
+      if (GradleImport.ECLIPSE_DOT_PROJECT.equals(file.getName()) && hasAndroidNature(file)) {
+        result = file;
+      } else if (GradleImport.ECLIPSE_DOT_CLASSPATH.equals(file.getName())) {
+        result = findImportTarget(file.getParent());
+      }
+    }
+    return result;
+  }
+
+  private static VirtualFile findGradleTarget(@NotNull VirtualFile file) {
+    return findMatch(file, GRADLE_SUPPORTED_FILES);
+  }
+
+  @Nullable
+  private static VirtualFile findMatch(@NotNull VirtualFile location, @NotNull String... validNames) {
+    if (location.isDirectory()) {
+      for (VirtualFile child : location.getChildren()) {
         for (String name : validNames) {
           if (name.equals(child.getName())) {
             return child;
           }
+        }
+      }
+    }
+    else {
+      for (String name : validNames) {
+        if (name.equals(location.getName())) {
+          return location;
         }
       }
     }

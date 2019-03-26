@@ -45,7 +45,12 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
     if (!canOpenProject(virtualFile)) return null
 
-    if (!canOpenAsExistingProject(virtualFile)) {
+    val importTarget = ProjectImportUtil.findImportTarget(virtualFile)
+    val adjustedOpenTarget =
+        if (importTarget.isDirectory)importTarget
+        else importTarget.parent
+
+    if (!canOpenAsExistingProject(adjustedOpenTarget)) {
       if (!forceOpenInNewFrame) {
         if (!promptToCloseIfNecessary(projectToClose)) {
           return null
@@ -56,7 +61,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       return gradleImporter.importProjectCore(virtualFile)
     }
 
-    return ProjectUtil.openProject(virtualFile.path, projectToClose, forceOpenInNewFrame)
+    return ProjectUtil.openProject(adjustedOpenTarget.path, projectToClose, forceOpenInNewFrame)
   }
 
   private fun promptToCloseIfNecessary(project: Project?): Boolean {
