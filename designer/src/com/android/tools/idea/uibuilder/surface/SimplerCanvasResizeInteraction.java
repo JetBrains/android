@@ -118,7 +118,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       int androidX = Coordinates.getAndroidX(myScreenView, myCurrentX);
       int androidY = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if (androidX > 0 && androidY > 0 && androidX < myMaxSize && androidY < myMaxSize) {
-        NlModelHelperKt.overrideConfigurationScreenSize(myScreenView.getModel(), androidX, androidY);
+        NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
         if (isPreviewSurface) {
           updateUnavailableLayer(false);
         }
@@ -397,7 +397,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
         myConfiguration.setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {
-        NlModelHelperKt.overrideConfigurationScreenSize(myScreenView.getModel(), androidX, androidY);
+        NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
       }
     }
   }
