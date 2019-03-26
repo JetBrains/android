@@ -20,10 +20,10 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -246,7 +246,7 @@ public class DeviceMenuAction extends DropDownAction {
         boolean selected = current != null && current.getId().equals(device.getId());
 
         String avdDisplayName = "AVD: " + device.getDisplayName();
-        Icon icon = selected ? AllIcons.Actions.Checked : null;
+        Icon icon = selected ? LafIconLookup.getIcon("checkmark") : null;
         add(new SetAvdAction(myRenderContext, device, avdDisplayName, icon));
       }
       addSeparator();
@@ -325,7 +325,7 @@ public class DeviceMenuAction extends DropDownAction {
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
       getTemplatePresentation().setText(title, false);
       if (select) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
       else if (ConfigurationAction.isBetterMatchLabel(title)) {
         getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
@@ -382,7 +382,7 @@ public class DeviceMenuAction extends DropDownAction {
       super(renderContext, CUSTOM_DEVICE_NAME);
       myDevice = device;
       if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
     }
 
