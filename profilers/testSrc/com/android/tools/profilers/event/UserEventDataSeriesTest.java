@@ -15,41 +15,65 @@
  */
 package com.android.tools.profilers.event;
 
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler.SystemData;
 import com.android.tools.profiler.proto.Interaction;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class UserEventDataSeriesTest {
 
   private static final long TEST_START_TIME_NS = System.nanoTime();
   private static final long TEST_END_TIME_NS = TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1);
 
-  FakeEventService myEventService = new FakeEventService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myEventService);
+  private FakeTimer myTimer = new FakeTimer();
+  private FakeTransportService myTransportService = new FakeTransportService(myTimer);
+  private FakeEventService myEventService = new FakeEventService();
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myTransportService, myEventService);
+
+  private FakeIdeProfilerServices myIdeProfilerServices;
   private UserEventDataSeries mySeries;
+
+  @Parameterized.Parameters
+  public static Collection<Boolean> useNewEventPipelineParameter() {
+    return Arrays.asList(false, true);
+  }
+
+  public UserEventDataSeriesTest(boolean useNewEventPipeline) {
+    myIdeProfilerServices = new FakeIdeProfilerServices();
+    myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
+  }
 
   @Before
   public void setUp() {
-    mySeries = new UserEventDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA);
+    mySeries = new UserEventDataSeries(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
   }
 
   @Test
   public void testRotationEvent() {
-    myEventService.addSystemEvent(buildRotationEvent(1));
+    buildRotationEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
@@ -63,7 +87,7 @@ public class UserEventDataSeriesTest {
 
   @Test
   public void testTouchEvent() {
-    myEventService.addSystemEvent(buildTouchEvent(1));
+    buildTouchEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
@@ -77,7 +101,7 @@ public class UserEventDataSeriesTest {
 
   @Test
   public void testKeyEvent() {
-    myEventService.addSystemEvent(buildKeyEvent(1));
+    buildKeyEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
@@ -92,8 +116,8 @@ public class UserEventDataSeriesTest {
 
   @Test
   public void testMixedEvent() {
-    myEventService.addSystemEvent(buildTouchEvent(1));
-    myEventService.addSystemEvent(buildRotationEvent(2));
+    buildTouchEvent(1);
+    buildRotationEvent(2);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
     List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 2);
@@ -109,31 +133,79 @@ public class UserEventDataSeriesTest {
     assertEquals(event.value.getType(), UserEvent.ROTATION);
   }
 
-  private SystemData buildTouchEvent(int eventId) {
-    return SystemData.newBuilder()
-      .setEventId(eventId)
-      .setStartTimestamp(TEST_START_TIME_NS)
-      .setEndTimestamp(TEST_END_TIME_NS)
-      .setType(Interaction.InteractionData.Type.TOUCH)
-      .build();
+  private void buildTouchEvent(int eventId) {
+    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+                                              Common.Event.newBuilder()
+                                                .setKind(Common.Event.Kind.INTERACTION)
+                                                .setTimestamp(TEST_START_TIME_NS)
+                                                .setInteraction(
+                                                  Interaction.InteractionData.newBuilder()
+                                                    .setType(Interaction.InteractionData.Type.TOUCH))
+                                                .build());
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+                                              Common.Event.newBuilder()
+                                                .setKind(Common.Event.Kind.INTERACTION)
+                                                .setTimestamp(TEST_END_TIME_NS)
+                                                .setIsEnded(true)
+                                                .setInteraction(
+                                                  Interaction.InteractionData.newBuilder()
+                                                    .setType(Interaction.InteractionData.Type.TOUCH))
+                                                .build());
+    }
+    else {
+      myEventService.addSystemEvent(SystemData.newBuilder()
+                                      .setEventId(eventId)
+                                      .setStartTimestamp(TEST_START_TIME_NS)
+                                      .setEndTimestamp(TEST_END_TIME_NS)
+                                      .setType(Interaction.InteractionData.Type.TOUCH)
+                                      .build());
+    }
   }
 
-  private SystemData buildRotationEvent(int eventId) {
-    return SystemData.newBuilder()
-      .setEventId(eventId)
-      .setStartTimestamp(TEST_START_TIME_NS)
-      .setEndTimestamp(TEST_START_TIME_NS)
-      .setType(Interaction.InteractionData.Type.ROTATION)
-      .build();
+  private void buildRotationEvent(int eventId) {
+    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+                                              Common.Event.newBuilder()
+                                                .setKind(Common.Event.Kind.INTERACTION)
+                                                .setTimestamp(TEST_START_TIME_NS)
+                                                .setIsEnded(true)
+                                                .setInteraction(
+                                                  Interaction.InteractionData.newBuilder()
+                                                    .setType(Interaction.InteractionData.Type.ROTATION))
+                                                .build());
+    }
+    else {
+      myEventService.addSystemEvent(SystemData.newBuilder()
+                                      .setEventId(eventId)
+                                      .setStartTimestamp(TEST_START_TIME_NS)
+                                      .setEndTimestamp(TEST_START_TIME_NS)
+                                      .setType(Interaction.InteractionData.Type.ROTATION)
+                                      .build());
+    }
   }
 
-  private SystemData buildKeyEvent(int eventId) {
-    return SystemData.newBuilder()
-      .setEventId(eventId)
-      .setStartTimestamp(TEST_START_TIME_NS)
-      .setEndTimestamp(TEST_START_TIME_NS)
-      .setType(Interaction.InteractionData.Type.KEY)
-      .setEventData("Hello")
-      .build();
+  private void buildKeyEvent(int eventId) {
+    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+                                              Common.Event.newBuilder()
+                                                .setKind(Common.Event.Kind.INTERACTION)
+                                                .setTimestamp(TEST_START_TIME_NS)
+                                                .setIsEnded(true)
+                                                .setInteraction(
+                                                  Interaction.InteractionData.newBuilder()
+                                                    .setType(Interaction.InteractionData.Type.KEY)
+                                                    .setEventData("Hello"))
+                                                .build());
+    }
+    else {
+      myEventService.addSystemEvent(SystemData.newBuilder()
+                                      .setEventId(eventId)
+                                      .setStartTimestamp(TEST_START_TIME_NS)
+                                      .setEndTimestamp(TEST_START_TIME_NS)
+                                      .setType(Interaction.InteractionData.Type.KEY)
+                                      .setEventData("Hello")
+                                      .build());
+    }
   }
 }
