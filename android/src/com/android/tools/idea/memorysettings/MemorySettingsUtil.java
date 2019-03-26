@@ -18,11 +18,18 @@ package com.android.tools.idea.memorysettings;
 import com.android.tools.analytics.HostData;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.diagnostic.VMOptions;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.sun.management.OperatingSystemMXBean;
 import java.util.Locale;
+import java.awt.Window;
+import org.jetbrains.annotations.Nullable;
+
 
 public class MemorySettingsUtil {
   private static final Logger LOG = Logger.getInstance(MemorySettingsUtil.class);
@@ -66,5 +73,16 @@ public class MemorySettingsUtil {
     }
     LOG.info("saving new Xmx value: " + newValue);
     VMOptions.writeOption(VMOptions.MemoryKind.HEAP, newValue);
+  }
+
+  @Nullable
+  public static Project getCurrentProject() {
+    Project result = null;
+    Window activeWindow = WindowManagerEx.getInstanceEx().getMostRecentFocusedWindow();
+    if (activeWindow != null) {
+      result = CommonDataKeys.PROJECT
+        .getData(DataManager.getInstance().getDataContext(activeWindow));
+    }
+    return result;
   }
 }
