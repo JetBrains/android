@@ -77,16 +77,11 @@ class DataSeriesPerformanceTest {
   private lateinit var session: Common.Session
   private val cpuBenchmark = Benchmark.Builder("DataSeries Query Timings (Nanos)").setProject("Android Studio Profilers").build()
   private val memoryBenchmark = Benchmark.Builder("DataSeries Memory (kb)").setProject("Android Studio Profilers").build()
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("DataSeriesPerformanceTest", FakeCpuService(), FakeMemoryService())
 
   @Before
   fun setup() {
     service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().absolutePath,
                                Consumer<Runnable> { ticker.run(it) }, FakeLogService())
-    val channel = InProcessChannelBuilder.forName("DataSeriesPerformanceTest").build()
-    // Stream id does not matter here as the tests are not communicating with the channel.
-    service.connect(Common.Stream.newBuilder().setStreamId(-1).build(), channel)
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
       val performantDatabase = namespace.myCharacteristic == DataStoreDatabase.Characteristic.PERFORMANT
@@ -111,11 +106,10 @@ class DataSeriesPerformanceTest {
   @Test
   fun runPerformanceTest() {
     val timer = FakeTimer()
-    val studioProfilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
+    val studioProfilers = StudioProfilers(client, FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    val dataSeriesToTest = mapOf(Pair("Event-Activities",
-                                      LifecycleEventDataSeries(client, session, false)),
-                                 Pair("Event-Interactions", UserEventDataSeries(client, session)),
+    val dataSeriesToTest = mapOf(Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
+                                 Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
                                  Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
                                  Pair("Energy-Events",
                                       MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
@@ -133,7 +127,7 @@ class DataSeriesPerformanceTest {
                                  Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers, client.memoryClient) { sample -> sample.timestamp }),
-                                 Pair("Memory-LiveAllocation", TestLiveAllocationSeries(grpcChannel, client, session))
+                                 Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
@@ -171,7 +165,7 @@ class DataSeriesPerformanceTest {
     }
   }
 
-  private class TestLiveAllocationSeries(grpcChannel: FakeGrpcChannel, client: ProfilerClient, session: Common.Session) : DataSeries<Long> {
+  private class TestLiveAllocationSeries(profilers: StudioProfilers, session: Common.Session) : DataSeries<Long> {
     companion object {
       val LOAD_JOINER = MoreExecutors.directExecutor()
     }
@@ -184,8 +178,9 @@ class DataSeriesPerformanceTest {
     val liveAllocation: LiveAllocationCaptureObject
 
     init {
-      val stage = MemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), FakeTimer()))
-      liveAllocation = LiveAllocationCaptureObject(client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(), stage)
+      val stage = MemoryProfilerStage(profilers)
+      liveAllocation = LiveAllocationCaptureObject(profilers.client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(),
+                                                   stage)
     }
   }
 

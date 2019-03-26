@@ -48,14 +48,14 @@ public class EventMonitor extends ProfilerMonitor {
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
 
-    UserEventDataSeries events = new UserEventDataSeries(myProfilers.getClient(), myProfilers.getSession());
+    UserEventDataSeries events = new UserEventDataSeries(myProfilers);
     myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
-    LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), false);
+    LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers, false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
 
     if (myProfilers.getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), true);
+      LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers, true);
       myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
     }
     else {
