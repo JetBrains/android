@@ -45,6 +45,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.LafIconLookup;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -517,7 +518,7 @@ public class MoreFontsDialog extends DialogWrapper {
       setBackground(null);
       append(text);
       if (selected) {
-        setIcon(AllIcons.Actions.Checked);
+        setIcon(LafIconLookup.getIcon("checkmark"));
         setBorderInsets(new JBInsets(0, 0, 0, 0));
       }
       else {

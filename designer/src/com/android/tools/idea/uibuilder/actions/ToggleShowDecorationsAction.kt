@@ -21,10 +21,10 @@ import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction
-import com.intellij.icons.AllIcons
+import com.intellij.util.ui.LafIconLookup
 
 class ToggleShowDecorationsAction(label: String = "Show Layout Decorations") :
-  ToggleViewAction(null, AllIcons.Actions.Checked, label, label) {
+  ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
   override fun isSelected(editor: ViewEditor,
                           handler: ViewHandler,
                           parent: NlComponent,

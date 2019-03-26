@@ -21,10 +21,10 @@ import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
+import com.intellij.util.ui.LafIconLookup;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -202,7 +202,7 @@ public class OrientationMenuAction extends DropDownAction {
       super(renderContext, title);
       myState = state;
       if (isCurrentState) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
     }
 
@@ -219,7 +219,7 @@ public class OrientationMenuAction extends DropDownAction {
       super(renderContext, title);
       myUiMode = uiMode;
       if (checked) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
     }
 
@@ -239,7 +239,7 @@ public class OrientationMenuAction extends DropDownAction {
       super(renderContext, title);
       myNightMode = nightMode;
       if (checked) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
     }
 
@@ -260,7 +260,7 @@ public class OrientationMenuAction extends DropDownAction {
       myProject = project;
       if (select) {
         Presentation templatePresentation = getTemplatePresentation();
-        templatePresentation.setIcon(AllIcons.Actions.Checked);
+        templatePresentation.setIcon(LafIconLookup.getIcon("checkmark"));
         templatePresentation.setEnabled(false);
       }
     }
