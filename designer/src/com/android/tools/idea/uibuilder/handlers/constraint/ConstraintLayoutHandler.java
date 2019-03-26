@@ -1041,6 +1041,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private final String myToolTip;
 
     AlignAction(Scout.Arrange actionType, Icon alignIcon, String toolTip) {
+      super(alignIcon, toolTip);
       myActionType = actionType;
       myAlignIcon = alignIcon;
       myConstrainIcon = null;
@@ -1048,6 +1049,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
 
     AlignAction(Scout.Arrange actionType, Icon alignIcon, Icon constrainIcon, String toolTip) {
+      super(alignIcon, toolTip);
       myActionType = actionType;
       myAlignIcon = alignIcon;
       myConstrainIcon = constrainIcon;
@@ -1399,6 +1401,24 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return ImmutableList.of(new ConstraintPlaceholder(component));
   }
 
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    ImmutableList.Builder<ViewAction> builder = ImmutableList.builder();
+    builder.add(new ClearConstraintsAction());
+
+    ViewAction connectAction = new DisappearingActionMenu("Constrain", StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT, ConstraintViewActions.CONNECT_ACTIONS);
+    builder.add(connectAction);
+
+    if (components.size() > 1) {
+      ViewAction alignAction = new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS);
+      builder.add(alignAction);
+      ViewAction chainAction = new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS);
+      builder.add(chainAction);
+    }
+
+    return builder.build();
+  }
+
   private static class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
@@ -1432,13 +1452,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                       StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT,
                       "Baselines"));
 
-
-    private static final ImmutableList<ViewAction> ALIGN_ACTIONS = ImmutableList.<ViewAction>builder()
+    public static final ImmutableList<ViewAction> ALIGN_ACTIONS = ImmutableList.<ViewAction>builder()
       .addAll(ALIGN_HORIZONTALLY_ACTIONS)
       .addAll(ALIGN_VERTICALLY_ACTIONS)
       .build();
 
-    private static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
+    public static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.CreateHorizontalChain,
                       CREATE_HORIZ_CHAIN,
                       CREATE_HORIZ_CHAIN,
@@ -1511,6 +1530,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       private boolean mToParent = false;
 
       ConnectAction(Scout.Connect actionType, Icon alignIcon, String toolTip, boolean reverse) {
+        super(alignIcon, toolTip);
         myConnectType = actionType;
         myAlignIcon = alignIcon;
         myConstrainIcon = null;
@@ -1519,6 +1539,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
 
       ConnectAction(Scout.Connect actionType, Icon alignIcon, String toolTip) {
+        super(alignIcon, toolTip);
         myConnectType = actionType;
         myAlignIcon = alignIcon;
         myConstrainIcon = null;
@@ -1699,7 +1720,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       );
     }
 
-    private static final ImmutableList<ViewAction> CONNECT_ACTIONS = ImmutableList.of(
+    public static final ImmutableList<ViewAction> CONNECT_ACTIONS = ImmutableList.of(
 
       new ConnectAction(Scout.Connect.ConnectToParentTop,
                         StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TO_TOP,
