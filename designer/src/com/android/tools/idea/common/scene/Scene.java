@@ -757,7 +757,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       return true;
     });
-
+    SecondarySelector secondarySelector = getSelector(transform, x, y);
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -771,10 +771,20 @@ public class Scene implements SelectionListener, Disposable {
       myNewSelectedComponentsOnDown.add(myHitComponent);
       select(myNewSelectedComponentsOnDown);
     }
-    else if (findSelectionOfCurve(transform, x, y)) {
+    else if (findSelectionOfCurve(secondarySelector)) {
       return;
     }
     myHitListener.setTargetFilter(null);
+  }
+
+  private SecondarySelector getSelector(@NotNull SceneContext transform,
+                                        @AndroidDpCoordinate int x,
+                                        @AndroidDpCoordinate int y) {
+    Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
+    if (obj != null && obj instanceof SecondarySelector) {
+      return  (SecondarySelector)obj;
+    }
+    return null;
   }
 
   public void mouseDrag(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
@@ -845,19 +855,21 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  private boolean findSelectionOfCurve(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  private boolean findSelectionOfCurve(SecondarySelector ss) {
     // find selection of curve
-    Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
-    if (obj != null && obj instanceof SecondarySelector) {
-      SecondarySelector ss = (SecondarySelector)obj;
+      if (ss == null) {
+        return false;
+      }
       NlComponent comp = ss.getComponent();
       SecondarySelector.Constraint sub = ss.getConstraint();
       myDesignSurface.getSelectionModel().setSecondarySelection(comp, sub);
       return true;
-    }
-    return false;
+
   }
 
+  /**
+   * handles MouseUP event
+   */
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
@@ -885,12 +897,14 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
 
+    SecondarySelector secondarySelector = getSelector(transform, x, y);
+
     boolean same = sameSelection();
-    if (!same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
+    if (secondarySelector == null && !same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
-    else if (same) {
-      findSelectionOfCurve(transform, x, y);
+    else {
+      findSelectionOfCurve(secondarySelector);
     }
     myHitTarget = null;
     checkRequestLayoutStatus();
