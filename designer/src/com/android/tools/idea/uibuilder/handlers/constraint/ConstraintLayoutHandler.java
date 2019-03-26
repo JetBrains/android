@@ -112,7 +112,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
@@ -121,6 +120,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.util.ui.LafIconLookup;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.awt.Color;
@@ -688,7 +688,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     String mType;
 
     public ToggleVisibilityAction(String type, String text, boolean defaultValue) {
-      super(null, AllIcons.Actions.Checked, text, text);
+      // TODO: Set icon when updating action. Otherwise, when changing theme, icon will remain with outdated theme.
+      super(null, LafIconLookup.getIcon("checkmark"), text, text);
       mType = type;
       ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type, defaultValue));
     }
