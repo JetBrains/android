@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.memorysettings;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import java.util.Hashtable;
+import com.intellij.ui.components.JBLabel;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Locale;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,7 +60,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
   @Override
   public void apply() throws ConfigurationException {
     if (myComponent.isMemorySettingsModified()) {
-      MemorySettingsUtil.saveXmx(myComponent.myIDEXmxSlider.getValue());
+      MemorySettingsUtil.saveXmx(myComponent.mySelectedIdeXmx);
       if (Messages.showOkCancelDialog(AndroidBundle.message("memory.settings.restart.needed"),
                                       IdeBundle.message("title.restart.needed"),
                                       Messages.getQuestionIcon()) == Messages.OK) {
@@ -86,9 +84,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public void reset() {
-    int currentXmx = MemorySettingsUtil.getCurrentXmx();
-    myComponent.myIDEXmxSlider.setValue(currentXmx);
-    myComponent.myIDEXmxValueField.setText(MyComponent.memSizeText(currentXmx));
+    myComponent.myIdeXmxBox.setSelectedIndex(0);
   }
 
   @Override
@@ -97,54 +93,59 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
   }
 
   private static class MyComponent {
-    private static final int MIN_IDE_XMX = 512;
-    private static final int SLIDER_MAJOR_TICK_SPACING = 1024;
-    private static final int SLIDER_MINOR_TICK_SPACING = 256;
+    private static final int MIN_IDE_XMX = 1024;
+    private static final int SIZE_INCREMENT = 1024;
     private static final float MAX_PERCENT_OF_AVAILABLE_RAM = 0.33f;
 
     private JPanel myPanel;
-    private JSlider myIDEXmxSlider;
-    private JTextField myIDEXmxValueField;
+    private JComboBox myIdeXmxBox;
+    private JBLabel myRecommendationDescriptionLabel;
+    private int myCurrentIdeXmx;
+    private int myRecommendedIdeXmx;
+    private int mySelectedIdeXmx;
 
     MyComponent() {
       // Set the memory settings slider
       int machineMem =  MemorySettingsUtil.getMachineMem();
       int maxXmx = getMaxXmx(machineMem);
+      myCurrentIdeXmx = MemorySettingsUtil.getCurrentXmx();
+      mySelectedIdeXmx = myCurrentIdeXmx;
+      Project project = MemorySettingsUtil.getCurrentProject();
+      myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(project, myCurrentIdeXmx);
 
-      myIDEXmxSlider.setMinimum(MIN_IDE_XMX);
-      myIDEXmxSlider.setMaximum(maxXmx);
+      myIdeXmxBox.setEditable(false);
+      myIdeXmxBox.removeAllItems();
+      myIdeXmxBox.addItem(String.format(Locale.US, "%s - current", memSizeText(myCurrentIdeXmx)));
+      if (myRecommendedIdeXmx != -1) {
+        myIdeXmxBox.addItem(String.format(Locale.US, "%d - recommended", myRecommendedIdeXmx));
+      }
 
-      int currentXmx = MemorySettingsUtil.getCurrentXmx();
-      myIDEXmxSlider.setValue(currentXmx);
-      myIDEXmxValueField.setText(memSizeText(currentXmx));
+      for (int size = MIN_IDE_XMX; size <= maxXmx; size += SIZE_INCREMENT) {
+        if (size != myCurrentIdeXmx && size != myRecommendedIdeXmx)
+        myIdeXmxBox.addItem(Integer.toString(size));
+      }
 
-      Hashtable labelTable = new Hashtable();
-      labelTable.put(Integer.valueOf(MIN_IDE_XMX), memLabel(MIN_IDE_XMX));
-      labelTable.put(Integer.valueOf(maxXmx), memLabel(maxXmx));
-      labelTable.put(Integer.valueOf(currentXmx), memLabel(currentXmx));
-      myIDEXmxSlider.setLabelTable(labelTable);
-      myIDEXmxSlider.setPaintLabels(true);
-      myIDEXmxSlider.setMajorTickSpacing(SLIDER_MAJOR_TICK_SPACING);
-      myIDEXmxSlider.setMinorTickSpacing(SLIDER_MINOR_TICK_SPACING);
-      myIDEXmxSlider.setPaintTicks(true);
-      myIDEXmxSlider.setSnapToTicks(true);
-
-      ChangeListener listener = new ChangeListener() {
+      ItemListener listener = new ItemListener() {
         @Override
-        public void stateChanged(ChangeEvent event) {
-          myIDEXmxValueField.setText(memSizeText(myIDEXmxSlider.getValue()));
+        public void itemStateChanged(ItemEvent event) {
+          if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+            String selectedItem = (String)event.getItem();
+            mySelectedIdeXmx = parseSelected(selectedItem);
+            myRecommendationDescriptionLabel.setVisible(
+              selectedItem!= null && selectedItem.contains("recommended"));
+          }
         }
       };
-      myIDEXmxSlider.addChangeListener(listener);
-      myIDEXmxValueField.setEditable(false);
+      myIdeXmxBox.addItemListener(listener);
+      myRecommendationDescriptionLabel.setVisible(false);
     }
 
-    private JLabel memLabel(int mem) {
-      return new JLabel("<html><span style='font-size:8px'>" + memSizeText(mem) + "</span></html>");
+    private int parseSelected(String selected) {
+      return Integer.valueOf(selected.replaceAll("[^\\d]", ""));
     }
 
     private boolean isMemorySettingsModified() {
-      return myIDEXmxSlider.getValue() != MemorySettingsUtil.getCurrentXmx();
+      return mySelectedIdeXmx != myCurrentIdeXmx;
     }
 
     // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and a hard cap (4GB or 8GB)
@@ -154,7 +155,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
 
     private static String memSizeText(int size) {
-      return size == -1 ? "unknown" : String.format(Locale.US, "%.1f", size / 1024.0);
+      return size == -1 ? "unknown" : Integer.toString(size);
     }
   }
 }
