@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs
+import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.io.File
 
 /**
@@ -71,9 +72,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
     // Edit the settings file, but do not sync.
     val virtualFile = this.project.baseDir.findFileByRelativePath("settings.gradle")!!
-    myFixture.openFileInEditor(virtualFile)
-    myFixture.editor.selectionModel.selectLineAtCaret()
-    myFixture.type("include ':app', ':lib', ':jav' ")
+    runWriteAction { virtualFile.setBinaryContent("include ':app', ':lib', ':jav' ".toByteArray()) }
     PsiDocumentManager.getInstance(this.project).commitAllDocuments()
 
     project = PsProjectImpl(resolvedProject)
