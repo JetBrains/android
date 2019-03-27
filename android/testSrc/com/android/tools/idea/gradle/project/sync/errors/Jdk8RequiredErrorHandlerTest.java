@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_JDK8_HYPERLINK;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK;
 
@@ -75,7 +76,7 @@ public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
     quickFix = quickFixes.get(expectedQuickFixCount - 1);
     assertThat(quickFix).isInstanceOf(DownloadJdk8Hyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(JDK8_REQUIRED, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(USE_CURRENTLY_RUNNING_JDK_HYPERLINK, DOWNLOAD_JDK8_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

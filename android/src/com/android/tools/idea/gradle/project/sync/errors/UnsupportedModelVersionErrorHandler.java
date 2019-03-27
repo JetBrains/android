@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_MODEL_VERSION;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
@@ -42,7 +43,7 @@ public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, UNSUPPORTED_MODEL_VERSION);
       return text;
     }
     return null;

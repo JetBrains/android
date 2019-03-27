@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.INTERNET_CONNECTION_ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InternetConnectionErrorHandler extends BaseSyncErrorHandler {
@@ -36,7 +37,7 @@ public class InternetConnectionErrorHandler extends BaseSyncErrorHandler {
       if (firstLine.startsWith("Could not GET ") ||
           firstLine.startsWith("Could not HEAD ") ||
           firstLine.startsWith("Network is unreachable")) {
-        updateUsageTracker(project);
+        updateUsageTracker(project, INTERNET_CONNECTION_ERROR);
         return text;
       }
     }

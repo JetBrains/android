@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.BROKEN_PIPE;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleBrokenPipeErrorHandler extends BaseSyncErrorHandler {
@@ -32,7 +33,7 @@ public class GradleBrokenPipeErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Broken pipe")) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, BROKEN_PIPE);
       text = "Broken pipe.\nThe Gradle daemon may be trying to use ipv4 instead of ipv6.";
       return text;
     }

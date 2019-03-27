@@ -28,6 +28,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_ANDROID_PLATFORM;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.TOGGLE_OFFLINE_MODE_HYPERLINK;
 
@@ -81,7 +82,7 @@ public class CachedDependencyNotFoundErrorHandlerTest extends AndroidGradleTestC
     ToggleOfflineModeHyperlink toggleOfflineModeQuickFix = (ToggleOfflineModeHyperlink)quickFix;
     assertFalse(toggleOfflineModeQuickFix.isEnableOfflineMode());
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(CACHED_DEPENDENCY_NOT_FOUND, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(TOGGLE_OFFLINE_MODE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OBJECT_STREAM_ERROR;
 
 /**
  * Tests for {@link ObjectStreamErrorHandler}.
@@ -59,7 +60,7 @@ public class ObjectStreamErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes.get(0)).isInstanceOf(BuildProjectHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenAndroidSdkManagerHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(OBJECT_STREAM_ERROR, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }
