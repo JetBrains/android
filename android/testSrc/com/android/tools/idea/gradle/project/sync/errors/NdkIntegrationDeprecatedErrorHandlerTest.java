@@ -28,6 +28,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_INTEGRATION_DEPRECATED;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.SET_USE_DEPRECATED_NDK_HYPERLINK;
 
@@ -65,7 +66,7 @@ public class NdkIntegrationDeprecatedErrorHandlerTest extends AndroidGradleTestC
     assertThat(quickFixes.get(0)).isInstanceOf(OpenUrlHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(SetUseDeprecatedNdkHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(NDK_INTEGRATION_DEPRECATED, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(OPEN_URL_HYPERLINK, SET_USE_DEPRECATED_NDK_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

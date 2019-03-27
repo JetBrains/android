@@ -27,6 +27,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.DAEMON_CONTEXT_MISMATCH;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_PROJECT_STRUCTURE_HYPERLINK;
 
 /**
@@ -67,7 +68,7 @@ public class DaemonContextMismatchErrorHandlerTest extends AndroidGradleTestCase
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(OpenProjectStructureHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(DAEMON_CONTEXT_MISMATCH, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(OPEN_PROJECT_STRUCTURE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 
@@ -96,7 +97,7 @@ public class DaemonContextMismatchErrorHandlerTest extends AndroidGradleTestCase
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(OpenProjectStructureHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(DAEMON_CONTEXT_MISMATCH, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(OPEN_PROJECT_STRUCTURE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

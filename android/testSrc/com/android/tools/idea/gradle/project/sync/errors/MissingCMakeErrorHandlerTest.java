@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_CMAKE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.INSTALL_C_MAKE_HYPERLINK;
 
 /**
@@ -143,7 +144,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
 
     assertThat(notificationUpdate.getText()).isEqualTo("Failed to find CMake.");
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(MISSING_CMAKE, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(INSTALL_C_MAKE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 

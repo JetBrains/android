@@ -27,6 +27,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_OPEN_ZIP_FILE;
 
 /**
  * Tests for {@link ErrorOpeningZipFileErrorHandler}.
@@ -60,7 +61,7 @@ public class ErrorOpeningZipFileErrorHandlerTest extends AndroidGradleTestCase {
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(SyncProjectWithExtraCommandLineOptionsHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(CANNOT_OPEN_ZIP_FILE, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }

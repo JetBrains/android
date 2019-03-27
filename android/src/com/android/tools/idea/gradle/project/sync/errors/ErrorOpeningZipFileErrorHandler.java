@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_OPEN_ZIP_FILE;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 // See https://code.google.com/p/android/issues/detail?id=76797
@@ -48,7 +49,7 @@ public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
   private String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains("error in opening zip file")) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, CANNOT_OPEN_ZIP_FILE);
       return "Failed to open zip file.\n" +
              "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)";
     }

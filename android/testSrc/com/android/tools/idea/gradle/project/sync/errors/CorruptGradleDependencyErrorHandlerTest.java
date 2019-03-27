@@ -27,6 +27,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.SYNC_PROJECT_WITH_EXTRA_COMMAND_LINE_OPTIONS_HYPERLINK;
 
 /**
@@ -58,7 +59,7 @@ public class CorruptGradleDependencyErrorHandlerTest extends AndroidGradleTestCa
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(SyncProjectWithExtraCommandLineOptionsHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(CORRUPT_GRADLE_DEPENDENCY, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(SYNC_PROJECT_WITH_EXTRA_COMMAND_LINE_OPTIONS_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }
