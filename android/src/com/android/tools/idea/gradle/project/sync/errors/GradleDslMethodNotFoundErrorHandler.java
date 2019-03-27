@@ -74,7 +74,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     if (errorType.equals("org.gradle.api.internal.MissingMethodException") ||
         errorType.equals("org.gradle.internal.metaobject.AbstractDynamicObject$CustomMessageMissingMethodException")) {
       String method = parseMissingMethod(rootCause.getMessage());
-      updateUsageTracker(project, DSL_METHOD_NOT_FOUND, method);
+      updateUsageTracker(project, DSL_METHOD_NOT_FOUND);
       return GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'";
     }
     return null;
