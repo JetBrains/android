@@ -43,6 +43,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
@@ -60,7 +61,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -224,6 +227,10 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         // Only show Automotive if it is enabled
         continue;
       }
+      if (formFactor == FormFactor.CAR && StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
+        // Only show Car if Automotive is not enabled
+        continue;
+      }
       FormFactorInfo prevFormFactorInfo = formFactorInfoMap.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
 
@@ -248,6 +255,15 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     if (formFactor == FormFactor.MOBILE) {
       Map<String, TemplateHandle> entryMap = templateHandles.stream().collect(toMap(it -> it.getMetadata().getTitle(), it -> it));
       return Arrays.stream(ORDERED_ACTIVITY_NAMES).map(it -> entryMap.get(it)).filter(Objects::nonNull).collect(toList());
+    }
+    if (formFactor == FormFactor.AUTOMOTIVE) {
+      // Include CAR templates in the AUTOMOTIVE tab. If the same template exists in both, only show the AUTOMOTIVE one.
+      Set<String> titles = templateHandles.stream().map(it -> it.getMetadata().getTitle()).collect(Collectors.toSet());
+      for (TemplateHandle carTemplateHandle : TemplateManager.getInstance().getTemplateList(FormFactor.CAR)) {
+        if (!titles.contains(carTemplateHandle.getMetadata().getTitle())) {
+          templateHandles.add(carTemplateHandle);
+        }
+      }
     }
 
     return templateHandles;

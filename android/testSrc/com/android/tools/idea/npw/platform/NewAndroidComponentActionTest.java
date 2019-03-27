@@ -150,4 +150,14 @@ public final class NewAndroidComponentActionTest {
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
   }
+
+  @Test
+  public void autoCategoryAndAutomotiveCategoryShouldntBeVisibleAtTheSameTime() {
+    new NewAndroidComponentAction("Automotive", "templateName", 0).update(myActionEvent);
+    boolean automotiveVisible = myActionEvent.getPresentation().isVisible();
+    new NewAndroidComponentAction("Android Auto", "templateName", 0).update(myActionEvent);
+    boolean autoVisible = myActionEvent.getPresentation().isVisible();
+
+    assertThat(automotiveVisible != autoVisible);
+  }
 }
