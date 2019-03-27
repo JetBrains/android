@@ -209,7 +209,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!IdeInfo.getInstance().isAndroidStudio() && !isAndroidGradleProject()) {
+    if (!isAndroidGradleProject()) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
