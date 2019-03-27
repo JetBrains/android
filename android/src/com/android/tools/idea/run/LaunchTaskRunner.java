@@ -110,15 +110,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
     StringBuilder launchString = new StringBuilder("\n");
     DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
-    launchString.append(dateFormat.format(new Date()));
-    launchString.append(": Launching '");
-    launchString.append(myConfigName);
-    launchString.append("'");
+    launchString.append(dateFormat.format(new Date())).append(": ");
+    launchString.append(getLaunchVerb()).append(" ");
+    launchString.append("'").append(myConfigName).append("'");
     if (!StringUtil.isEmpty(myExecutionTargetName)) {
       launchString.append(" on ");
       launchString.append(myExecutionTargetName);
-      launchString.append(".");
     }
+    launchString.append(".");
     consolePrinter.stdout(launchString.toString());
 
     for (ListenableFuture<IDevice> deviceFuture : listenableDeviceFutures) {
@@ -266,5 +265,18 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   private boolean isSwap() {
     return Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY)) ||
            Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY));
+  }
+
+  @NotNull
+  private String getLaunchVerb() {
+    if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY))) {
+      return "Applying changes to";
+    }
+    else if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY))) {
+      return "Applying code changes to";
+    }
+    else {
+      return "Launching";
+    }
   }
 }
