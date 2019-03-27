@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
+import com.android.SdkConstants
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
@@ -35,8 +36,10 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import com.google.common.truth.Truth
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -72,6 +75,19 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     for (propertyItem in provider.getProperties(model, null, components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
+  }
+
+  fun checkTitle(line: Int, title: String) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
+  }
+
+  fun checkEditor(line: Int, namespace: String, name: String) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PROPERTY)
+    Truth.assertThat(inspector.lines[line].editorModel?.property?.name).isEqualTo(name)
+    Truth.assertThat(inspector.lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
   }
 }
 
