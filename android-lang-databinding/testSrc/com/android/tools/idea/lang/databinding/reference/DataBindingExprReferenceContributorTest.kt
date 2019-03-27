@@ -334,4 +334,116 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     assertThat(xmlModel.isReferenceTo(javaModel)).isTrue()
     assertThat(xmlModel.resolve()).isEqualTo(javaModel)
   }
+
+  @Test
+  fun dbIdReferenceInLambdaExpression() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String doSomething() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:onClick="@{() -> mode<caret>l.doSomething()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val element = fixture.elementAtCaret as XmlTag
+    assertThat(element.name).isEqualTo("variable")
+    assertThat(element.attributes.find { attr -> attr.name == "name" && attr.value == "model" }).isNotNull()
+  }
+
+  @Test
+  fun dbMethodReferenceInLambdaExpression() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String doSomething() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:onClick="@{() -> model.doSomethin<caret>g}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaDoSomething = fixture.findClass("test.langdb.Model").findMethodsByName("doSomething")[0].sourceElement!!
+    val xmlDoSomething = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
+    assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
+
+  @Test
+  fun dbIdReferenceAsMethodParameter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String same(String str) {}
+        public String getValue() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.same(mo<caret>del.getValue())}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val element = fixture.elementAtCaret as XmlTag
+    assertThat(element.name).isEqualTo("variable")
+    assertThat(element.attributes.find { attr -> attr.name == "name" && attr.value == "model" }).isNotNull()
+  }
+
+  @Test
+  fun dbMethodReferenceAsMethodParameter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String same(String str) {}
+        public String getValue() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.same(model.get<caret>Value())}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaDoSomething = fixture.findClass("test.langdb.Model").findMethodsByName("getValue")[0].sourceElement!!
+    val xmlDoSomething = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
+    assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
 }

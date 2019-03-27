@@ -31,13 +31,13 @@ internal class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, te
   : DbExprReference(element, resolveTo, textRange) {
 
   constructor(expr: PsiDbCallExpr, method: PsiMethod) :
-    this(expr, method, expr.refExpr.id.textRange.shiftRight(-expr.startOffsetInParent))
+    this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset))
 
   constructor(expr: PsiDbRefExpr, method: PsiMethod)
-    : this(expr, method, expr.id.textRange.shiftRight(-expr.startOffsetInParent))
+    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
 
   constructor(expr: PsiDbFunctionRefExpr, method: PsiMethod)
-    : this(expr, method, expr.id.textRange.shiftRight(-expr.startOffsetInParent))
+    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
 
   override val resolvedType: PsiModelClass?
     get() {
