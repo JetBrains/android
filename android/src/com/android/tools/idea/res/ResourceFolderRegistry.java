@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
+import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -30,6 +31,8 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,41 +46,40 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A project services that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
+ * A project service that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
  * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
  * needed.
- *
- * <p>The repositories are stored using weak references, so can be garbage collected once no module uses them anymore. The repositories are
- * strongly referenced from {@link MultiResourceRepository} as children of the module resources repository.
  */
 public class ResourceFolderRegistry implements Disposable {
-  private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
-  private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
+  @NotNull private Project myProject;
+  @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
+  @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
 
-  @Override
-  public void dispose() {
-    reset();
+  public ResourceFolderRegistry(@NotNull Project project) {
+    myProject = project;
+    project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+      @Override
+      public void rootsChanged(@NotNull ModuleRootEvent event) {
+        removeStaleEntries();
+      }
+    });
   }
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
     RemovalListener<VirtualFile, ResourceFolderRepository> removalListener = notification -> Disposer.dispose(notification.getValue());
-    return CacheBuilder.newBuilder().weakValues().removalListener(removalListener).build();
+    return CacheBuilder.newBuilder().removalListener(removalListener).build();
   }
 
   @NotNull
   public static ResourceFolderRegistry getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, ResourceFolderRegistry.class);
-  }
-
-  public void reset() {
-    myNamespacedCache.invalidateAll();
-    myNonNamespacedCache.invalidateAll();
   }
 
   @NotNull
@@ -113,6 +115,32 @@ public class ResourceFolderRegistry implements Disposable {
     ResourceFolderRepository namespaced = myNamespacedCache.getIfPresent(directory);
     ResourceFolderRepository nonNamespaced = myNonNamespacedCache.getIfPresent(directory);
     return namespaced == null && nonNamespaced == null ? null : new CachedRepositories(namespaced, nonNamespaced);
+  }
+
+  public void reset() {
+    myNamespacedCache.invalidateAll();
+    myNonNamespacedCache.invalidateAll();
+  }
+
+  private void removeStaleEntries() {
+    // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
+    myNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
+    myNonNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
+  }
+
+  private boolean isStale(@NotNull VirtualFile dir) {
+    AndroidFacet facet = AndroidFacet.getInstance(dir, myProject);
+    if (facet == null) {
+      return true;
+    }
+
+    ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
+    return !folderManager.getFolders().contains(dir) && !folderManager.getTestFolders().contains(dir);
+  }
+
+  @Override
+  public void dispose() {
+    reset();
   }
 
   /**
