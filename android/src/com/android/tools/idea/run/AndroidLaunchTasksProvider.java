@@ -83,6 +83,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     launchTasks.add(new DismissKeyguardTask());
 
     String packageName;
+    boolean launchApp = true;
     try {
       packageName = myApplicationIdProvider.getPackageName();
       launchTasks.addAll(getDeployTasks(device, packageName));
@@ -100,7 +101,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      boolean launchApp = true;
       if (shouldApplyChanges() || shouldApplyCodeChanges()) {
         launchApp = false;
       }
@@ -118,12 +118,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
-      launchStatus.terminateLaunch("Unable to determine application id: " + e);
+      launchStatus.terminateLaunch("Unable to determine application id: " + e, launchApp);
       return Collections.emptyList();
     }
     catch (IllegalStateException e) {
       Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
-      launchStatus.terminateLaunch(e.getMessage());
+      launchStatus.terminateLaunch(e.getMessage(), launchApp);
       return Collections.emptyList();
     }
 
@@ -267,11 +267,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     return null;
-  }
-
-  @Override
-  public boolean createsNewProcess() {
-    return true;
   }
 
   @Override
