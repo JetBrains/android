@@ -749,4 +749,88 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
     assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
   }
+
+  @Test
+  fun testDataBindingCompletion_testCompleteVariableOutsideReferenceContext() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="str" type="String" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{st<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="str" type="String" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{str}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_testCompleteStaticFunctionOutsideReferenceContext() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public static String strUpper(View view) {
+          return "a";
+        }
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{ModelWithBindableMethodsJava::st<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{ModelWithBindableMethodsJava::strUpper}"/>
+      </layout>
+    """.trimIndent())
+  }
 }
