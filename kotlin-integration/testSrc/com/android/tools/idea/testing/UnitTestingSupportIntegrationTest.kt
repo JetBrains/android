@@ -269,12 +269,28 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     runInEdtAndWait {
       val runnerConfigurationSettings = createRunnerConfigurationSettingsForClass("com.example.app.AppJavaUnitTest")
       val androidJUnit = runnerConfigurationSettings.configuration as AndroidJUnitConfiguration
-      androidJUnit.persistentData.TEST_SEARCH_SCOPE.scope = TestSearchScope.MODULE_WITH_DEPENDENCIES
       androidJUnit.persistentData.TEST_OBJECT = JUnitConfiguration.TEST_PACKAGE
+      androidJUnit.persistentData.TEST_SEARCH_SCOPE.scope = TestSearchScope.MODULE_WITH_DEPENDENCIES
       androidJUnit.persistentData.MAIN_CLASS_NAME = ""
       androidJUnit.persistentData.PACKAGE_NAME = ""
+      assertThat(androidJUnit.testObject.suggestActionName()).isEqualTo("All Tests")
       ExecutionUtil.runConfiguration(runnerConfigurationSettings, DefaultRunExecutor.getRunExecutorInstance())
     }
+  }
+
+  /**
+   * Checks that an [com.android.tools.idea.testartifacts.junit.AndroidTestObject] wrapping an
+   * [com.android.tools.idea.testartifacts.junit.AndroidTestsPattern] doesn't fail in `suggestActionName`. This code path is hit when
+   * right-clicking res nodes in the Android project view.
+   */
+  fun testPatternTestObject() = runInEdtAndWait {
+    val runnerConfigurationSettings = createRunnerConfigurationSettingsForClass("com.example.app.AppJavaUnitTest")
+    val androidJUnit = runnerConfigurationSettings.configuration as AndroidJUnitConfiguration
+    androidJUnit.persistentData.TEST_OBJECT = JUnitConfiguration.TEST_PATTERN
+    androidJUnit.persistentData.TEST_SEARCH_SCOPE.scope = TestSearchScope.MODULE_WITH_DEPENDENCIES
+    androidJUnit.persistentData.MAIN_CLASS_NAME = ""
+    androidJUnit.persistentData.PACKAGE_NAME = ""
+    assertThat(androidJUnit.testObject.suggestActionName()).isNull()
   }
 
   private fun checkTestClass(className: String, expectedTests: Set<String>) {
