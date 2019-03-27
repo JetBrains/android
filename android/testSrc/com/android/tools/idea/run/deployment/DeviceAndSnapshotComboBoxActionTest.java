@@ -518,6 +518,38 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void updateDoesntClearSelectedDeviceWhenDevicesIsEmpty() {
+    // Arrange
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> true,
+      () -> false,
+      project -> myDevicesGetter,
+      myClock);
+
+    Device pixel2XlApiQ = new VirtualDevice.Builder()
+      .setName("Pixel 2 XL API Q")
+      .setKey("Pixel_2_XL_API_Q")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build(null, null);
+
+    Device pixel3XlApiQ = new VirtualDevice.Builder()
+      .setName("Pixel 3 XL API Q")
+      .setKey("Pixel_3_XL_API_Q")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build(null, null);
+
+    // Act
+    action.setSelectedDevice(myProject, pixel3XlApiQ);
+    action.update(myEvent);
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(pixel2XlApiQ, pixel3XlApiQ));
+    action.update(myEvent);
+
+    // Assert
+    assertEquals(pixel3XlApiQ, action.getSelectedDevice(myProject));
+  }
+
+  @Test
   public void updateSelectedDeviceIsNull() {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(Devices.PIXEL_2_XL_API_28)
