@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableString;
 import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.AndExpression;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.string.IsEmptyExpression;
@@ -274,7 +273,7 @@ public class ModuleDownloadDeviceFeature {
         // Save UI value into temporary property for each "device feature type"
         List<StringProperty> tempValues = new ArrayList<>();
         for (DeviceFeatureKind value : DeviceFeatureKind.values()) {
-          StringProperty tempProp = new StringValueProperty();
+          StringProperty tempProp = value.newStringValueProperty();
           tempValues.add(tempProp);
           myBindings.bind(tempProp, myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureType().isEqualTo(value));
         }
