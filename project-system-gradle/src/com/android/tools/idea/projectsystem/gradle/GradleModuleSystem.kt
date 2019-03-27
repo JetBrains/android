@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
@@ -464,7 +465,9 @@ class GradleModuleSystem(
           throw VersionIncompatibilityException(explicitDependency, fromModule, existingExplicitCoordinate, moduleMap[id],
                                                 id, versionRange, id, existingVersionRange)
         }
-        if (groupsWithVersionIdentifyRequirements.contains(id.groupId)) {
+
+        // Special case for the support annotations. See details here: b/129408604
+        if (groupsWithVersionIdentifyRequirements.contains(id.groupId) && id.artifactId != ANNOTATIONS_LIB_ARTIFACT_ID) {
           val otherGroupCoordinate = groupMap[id.groupId]
           if (otherGroupCoordinate != null) {
             val dependencyVersion = dependency.versionRange ?: GradleVersionRange.parse("+")
