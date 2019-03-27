@@ -18,4 +18,5 @@
   <design versions="22.2.0,22.2.1,23.0.0,23.1.0,23.1.1"/>
   <appcompat-v7 versions="22.2.0,22.2.1,23.0.0,23.1.0,23.1.1"/>
   <recyclerview-v7 versions="22.2.0,22.2.1,23.0.0,23.1.0,23.1.1"/>
+  <support-annotations versions="21.7.9,22.2.0,22.2.1,23.0.0,23.1.0,23.1.1"/>
 </com.android.support>
