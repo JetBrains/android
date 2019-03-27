@@ -340,7 +340,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * @return root of the imported project or projects.
    */
   @NotNull
-  protected File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String... includedBuilds) throws IOException {
+  protected final File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String... includedBuilds) throws IOException {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
@@ -361,7 +361,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       File projectBuildRoot = new File(projectRoot, buildName);
       prepareProjectForImport(includedBuildRoot, projectBuildRoot);
     }
+    patchPreparedProject(projectRoot);
     return projectRoot;
+  }
+
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
   }
 
   @NotNull
@@ -370,7 +374,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
+  protected final File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
     assertTrue(srcRoot.getPath(), srcRoot.exists());
 
     File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
