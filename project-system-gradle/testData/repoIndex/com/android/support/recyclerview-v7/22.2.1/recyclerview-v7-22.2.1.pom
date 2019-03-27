@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2018 The Android Open Source Project
+  ~ Copyright (C) 2019 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,26 +14,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>androidx.appcompat</groupId>
-  <artifactId>appcompat</artifactId>
-  <version>1.0.0</version>
+  <groupId>com.android.support</groupId>
+  <artifactId>recyclerview-v7</artifactId>
+  <version>22.2.1</version>
   <packaging>aar</packaging>
-  <name>Android AppCompat Library</name>
+  <name>Android RecyclerView Library v7</name>
   <dependencies>
     <dependency>
-      <groupId>androidx.core</groupId>
-      <artifactId>core</artifactId>
-      <version>1.0.0</version>
-      <type>aar</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>androidx.fragment</groupId>
-      <artifactId>fragment</artifactId>
-      <version>1.0.0</version>
+      <groupId>com.android.support</groupId>
+      <artifactId>support-annotations</artifactId>
+      <version>21.7.9</version> <!-- Intentionally setup wrong !!! -->
       <type>aar</type>
       <scope>compile</scope>
     </dependency>
