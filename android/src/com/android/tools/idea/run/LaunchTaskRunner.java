@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -162,6 +163,9 @@ public class LaunchTaskRunner extends Task.Backgroundable {
             myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
                                      result.getConsoleHyperlinkInfo());
           }
+
+          // show the tool window when we have an error
+          RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
 
           myStats.setErrorId(result.getErrorId());
           break;
