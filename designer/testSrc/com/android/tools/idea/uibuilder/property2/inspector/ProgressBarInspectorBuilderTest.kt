@@ -15,12 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.property.panel.api.PropertyEditorModel
-import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_INDETERMINATE
+import com.android.SdkConstants.ATTR_INDETERMINATE_DRAWABLE
+import com.android.SdkConstants.ATTR_INDETERMINATE_TINT
+import com.android.SdkConstants.ATTR_MAXIMUM
+import com.android.SdkConstants.ATTR_PROGRESS
+import com.android.SdkConstants.ATTR_PROGRESS_DRAWABLE
+import com.android.SdkConstants.ATTR_PROGRESS_TINT
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.PROGRESS_BAR
+import com.android.SdkConstants.VALUE_FALSE
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.property.panel.api.PropertyEditorModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -56,15 +67,14 @@ class ProgressBarInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
+    util.checkEditor(4, ANDROID_URI, ATTR_MAXIMUM)
+    util.checkEditor(5, ANDROID_URI, ATTR_PROGRESS)
+    util.checkEditor(6, ANDROID_URI, ATTR_INDETERMINATE)
     assertThat(util.inspector.lines).hasSize(7)
-    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
   }
 
   @Test
@@ -75,17 +85,16 @@ class ProgressBarInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
+    util.checkEditor(4, ANDROID_URI, ATTR_PROGRESS_TINT)
+    util.checkEditor(5, ANDROID_URI, ATTR_INDETERMINATE_TINT)
+    util.checkEditor(6, ANDROID_URI, ATTR_MAXIMUM)
+    util.checkEditor(7, ANDROID_URI, ATTR_PROGRESS)
+    util.checkEditor(8, ANDROID_URI, ATTR_INDETERMINATE)
     assertThat(util.inspector.lines).hasSize(9)
-    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_TINT)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_TINT)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
   }
 
   @Test

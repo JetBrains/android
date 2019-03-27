@@ -15,18 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.property.panel.api.PropertyEditorModel
-import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
+import com.android.SdkConstants.ATTR_FONT_FAMILY
+import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
+import com.android.SdkConstants.ATTR_TEXT_ALL_CAPS
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_TEXT_COLOR
+import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.ATTR_TEXT_STYLE
+import com.android.SdkConstants.ATTR_TYPEFACE
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.TextAlignment
+import com.android.SdkConstants.TextStyle
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.model.HorizontalEditorPanelModel
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.property.panel.api.PropertyEditorModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import icons.StudioIcons.LayoutEditor.Properties.*
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LAYOUT_LEFT
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LAYOUT_RIGHT
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LEFT
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_RIGHT
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_BOLD
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_ITALIC
+import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_UPPERCASE
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.Icon
@@ -46,20 +67,17 @@ class TextViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
+    util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
+    util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
+    util.checkEditor(4, ANDROID_URI, ATTR_TEXT_APPEARANCE)
+    util.checkEditor(5, ANDROID_URI, ATTR_TYPEFACE)
+    util.checkEditor(6, ANDROID_URI, ATTR_TEXT_SIZE)
+    util.checkEditor(7, ANDROID_URI, ATTR_LINE_SPACING_EXTRA)
+    util.checkEditor(8, ANDROID_URI, ATTR_TEXT_COLOR)
+    util.checkEditor(9, ANDROID_URI, ATTR_TEXT_STYLE)
     assertThat(util.inspector.lines).hasSize(10)
-    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
-    assertThat(util.inspector.lines[1].editorModel?.property?.namespace).isEqualTo(ANDROID_URI)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_TEXT)
-    assertThat(util.inspector.lines[2].editorModel?.property?.namespace).isEqualTo(TOOLS_URI)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_CONTENT_DESCRIPTION)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_TEXT_APPEARANCE)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_TYPEFACE)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_TEXT_SIZE)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_LINE_SPACING_EXTRA)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_TEXT_COLOR)
-    assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_TEXT_STYLE)
   }
 
   @Test
@@ -71,9 +89,19 @@ class TextViewInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
+    util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
+    util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
+    util.checkEditor(4, ANDROID_URI, ATTR_TEXT_APPEARANCE)
+    util.checkEditor(5, ANDROID_URI, ATTR_FONT_FAMILY)
+    util.checkEditor(6, ANDROID_URI, ATTR_TYPEFACE)
+    util.checkEditor(7, ANDROID_URI, ATTR_TEXT_SIZE)
+    util.checkEditor(8, ANDROID_URI, ATTR_LINE_SPACING_EXTRA)
+    util.checkEditor(9, ANDROID_URI, ATTR_TEXT_COLOR)
+    util.checkEditor(10, ANDROID_URI, ATTR_TEXT_STYLE)
+    util.checkEditor(11, ANDROID_URI, ATTR_TEXT_ALIGNMENT)
     assertThat(util.inspector.lines).hasSize(12)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
-    assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
   }
 
   @Test
@@ -84,8 +112,19 @@ class TextViewInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
+    util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
+    util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
+    util.checkEditor(4, ANDROID_URI, ATTR_TEXT_APPEARANCE)
+    util.checkEditor(5, ANDROID_URI, ATTR_FONT_FAMILY)
+    util.checkEditor(6, ANDROID_URI, ATTR_TYPEFACE)
+    util.checkEditor(7, ANDROID_URI, ATTR_TEXT_SIZE)
+    util.checkEditor(8, ANDROID_URI, ATTR_LINE_SPACING_EXTRA)
+    util.checkEditor(9, ANDROID_URI, ATTR_TEXT_COLOR)
+    util.checkEditor(10, ANDROID_URI, ATTR_TEXT_STYLE)
+    util.checkEditor(11, ANDROID_URI, ATTR_TEXT_ALIGNMENT)
     assertThat(util.inspector.lines).hasSize(12)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
     val line = util.inspector.lines[10].editorModel as HorizontalEditorPanelModel
     assertThat(line.models).hasSize(3)
     checkToggleButtonModel(line.models[0], "Bold", TEXT_STYLE_BOLD, "true", "false")
@@ -101,6 +140,19 @@ class TextViewInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
+    util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
+    util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
+    util.checkEditor(4, ANDROID_URI, ATTR_TEXT_APPEARANCE)
+    util.checkEditor(5, ANDROID_URI, ATTR_FONT_FAMILY)
+    util.checkEditor(6, ANDROID_URI, ATTR_TYPEFACE)
+    util.checkEditor(7, ANDROID_URI, ATTR_TEXT_SIZE)
+    util.checkEditor(8, ANDROID_URI, ATTR_LINE_SPACING_EXTRA)
+    util.checkEditor(9, ANDROID_URI, ATTR_TEXT_COLOR)
+    util.checkEditor(10, ANDROID_URI, ATTR_TEXT_STYLE)
+    util.checkEditor(11, ANDROID_URI, ATTR_TEXT_ALIGNMENT)
+    assertThat(util.inspector.lines).hasSize(12)
     val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
     assertThat(line.models).hasSize(5)
     checkToggleButtonModel(line.models[0], "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START)
