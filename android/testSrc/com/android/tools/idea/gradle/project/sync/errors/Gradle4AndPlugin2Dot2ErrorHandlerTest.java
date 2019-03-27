@@ -40,12 +40,9 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
   private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
-  @NotNull
-  protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
-    File file = super.prepareProjectForImport(srcRoot, projectRoot);
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
     // Force test to use Gradle 4.10.1.
     createGradleWrapper(projectRoot, "4.10.1");
-    return file;
   }
 
   @Override
