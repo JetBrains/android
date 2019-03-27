@@ -33,7 +33,6 @@ import com.android.tools.idea.lang.databinding.model.ModelClassResolvable;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelField;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
-import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
@@ -41,7 +40,6 @@ import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.DataBindingEvent;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionProvider;
@@ -82,26 +80,22 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         boolean onlyValidCompletions = parameters.getInvocationCount() <= 1;
 
         DataBindingTracker tracker = DataBindingTracker.getInstance(parameters.getEditor().getProject());
-        DataBindingEvent.DataBindingContext dataBindingContext = UNKNOWN_CONTEXT;
 
         PsiElement position = parameters.getOriginalPosition();
         if (position == null) {
           position = parameters.getPosition();
         }
 
+        // The position is a PsiElement identifier. Its parent is a PsiDbId, which is a child of the overall expression, whose type we use
+        // to choose what kind of completion logic to carry out.
+        // For example user types @{model::g<caret>}. Position is the LeafPsiElement "g". Parent is the PsiDbId "g". Grandparent is the
+        // whole expression "model:g".
         PsiElement parent = position.getParent();
         if (parent.getReferences().length == 0) {
           // try to replace parent
           PsiElement grandParent = parent.getParent();
           PsiDbExpr ownerExpr;
-          if (grandParent instanceof PsiDbCallExpr) {
-            // TODO(b/122895499): add tests for this branch
-            ownerExpr = ((PsiDbCallExpr)grandParent).getRefExpr();
-            result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions));
-            result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions));
-          }
-          else if (grandParent instanceof PsiDbRefExpr) {
-            dataBindingContext = DATA_BINDING_CONTEXT_LAMBDA;
+          if (grandParent instanceof PsiDbRefExpr) {
             ownerExpr = ((PsiDbRefExpr)grandParent).getExpr();
             if (ownerExpr == null) {
               autoCompleteVariablesAndUnqualifiedFunctions(getFile(grandParent), result);
@@ -109,25 +103,20 @@ public class DataBindingCompletionContributor extends CompletionContributor {
             }
             result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions));
             result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions));
-          }
-          else if (grandParent instanceof DbFile) {
-            // TODO(b/122895499): add tests for this branch
-            autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
-            // TODO: add completions for packages and java.lang classes.
+            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_LAMBDA);
           }
           else if (grandParent instanceof PsiDbFunctionRefExpr) {
-            dataBindingContext = DATA_BINDING_CONTEXT_METHOD_REFERENCE;
             result.addAllElements(
               populateMethodReferenceCompletionsForMethodBinding(((PsiDbFunctionRefExpr)grandParent).getExpr(), onlyValidCompletions));
+            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_METHOD_REFERENCE);
           }
         }
         else {
-          // TODO(b/122895499): add tests for this branch
+          //TODO(b/129497876): improve completion experience for variables and static functions
           result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions));
           result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions));
           tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, UNKNOWN_CONTEXT);
         }
-        tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, dataBindingContext);
       }
     });
   }
