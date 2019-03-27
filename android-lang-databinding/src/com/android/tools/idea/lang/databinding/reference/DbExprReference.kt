@@ -20,17 +20,12 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 
-private fun getElementRange(element: PsiElement): TextRange {
-  val startOffsetInParent = element.parent.startOffsetInParent
-  return if (startOffsetInParent > 0) element.textRange.shiftRight(-startOffsetInParent) else element.textRange
-}
-
 /**
  * A base class for references found within a data binding expression.
  */
 internal abstract class DbExprReference(private val psiElement: PsiElement,
                                private val resolveTo: PsiElement,
-                               private val textRange: TextRange = getElementRange(psiElement))
+                               private val textRange: TextRange = TextRange(0, psiElement.textLength))
   : ModelClassResolvable, PsiReference {
 
   override fun getElement(): PsiElement {
