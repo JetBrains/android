@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:utils.bzl", "java_jarjar", "archive")
+load("//tools/base/bazel:utils.bzl", "java_jarjar")
 
 # managed by go/iml_to_build
 iml_module(
