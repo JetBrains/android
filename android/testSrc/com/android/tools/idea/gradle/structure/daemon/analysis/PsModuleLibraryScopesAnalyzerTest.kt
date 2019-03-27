@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
-import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyScopeQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.util.Disposer
 import org.hamcrest.CoreMatchers.equalTo
@@ -46,15 +46,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "junit:junit:4.12")
-      val messages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(messages, equalTo(setOf(
-        "Obsolete scope found: <b>testCompile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("testCompile" to "testImplementation")))
+      checkIssuesFor(issues,
+                     "junit:junit:4.12",
+                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -74,17 +69,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "androidx.appcompat:appcompat:1.0.2")
-      val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(issueMessages, equalTo(setOf(
-        "Obsolete scope found: <b>compile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf(
-        "compile" to "api",
-        "compile" to "implementation")))
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "api", "compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -104,15 +92,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "junit:junit:4.12")
-      val messages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(messages, equalTo(setOf(
-        "Obsolete scope found: <b>testCompile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("testCompile" to "testImplementation")))
+      checkIssuesFor(issues,
+                     "junit:junit:4.12",
+                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -132,15 +115,18 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "androidx.appcompat:appcompat:1.0.2")
-      val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(issueMessages, equalTo(setOf(
-        "Obsolete scope found: <b>compile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("compile" to "implementation")))
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "implementation"))
+      checkIssuesFor(issues,
+                     "obsoleteScopesLibrary",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "implementation"))
+      checkIssuesFor(issues,
+                     "compile/libs",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -161,15 +147,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "androidx.appcompat:appcompat:1.0.2")
-      val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(issueMessages, equalTo(setOf(
-        "Obsolete scope found: <b>compile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("compile" to "implementation")))
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -190,15 +171,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "androidx.appcompat:appcompat:1.0.2")
-      val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(issueMessages, equalTo(setOf(
-        "Obsolete scope found: <b>compile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("compile" to "implementation")))
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -219,15 +195,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "junit:junit:4.12")
-      val messages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(messages, equalTo(setOf(
-        "Obsolete scope found: <b>testCompile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("testCompile" to "testImplementation")))
+      checkIssuesFor(issues,
+                     "junit:junit:4.12",
+                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -248,15 +219,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "androidx.appcompat:appcompat:1.0.2")
-      val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(issueMessages, equalTo(setOf(
-        "Obsolete scope found: <b>compile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("compile" to "api", "compile" to "implementation")))
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "api", "compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -276,15 +242,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "junit:junit:4.12")
-      val messages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(messages, equalTo(setOf(
-        "Obsolete scope found: <b>testCompile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf("testCompile" to "testImplementation")))
+      checkIssuesFor(issues,
+                     "junit:junit:4.12",
+                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -304,17 +265,10 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
       val issues = PsIssueCollection()
       analyzer.analyze(module, issues)
 
-      val issueSet = issueSetFor(issues, "androidx.appcompat:appcompat:1.0.2")
-      val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-
-      assertThat(issueMessages, equalTo(setOf(
-        "Obsolete scope found: <b>compile</b>" to ""
-      )))
-      val quickFixChanges = quickFixChangesFor(issueSet)
-
-      assertThat(quickFixChanges, equalTo(setOf(
-        "compile" to "api",
-        "compile" to "implementation")))
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("compile" to "api", "compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
     }
@@ -322,17 +276,27 @@ class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
 
   // TODO(b/129135682): write DynamicFeature tests when bug is fixed
 
+  private fun checkIssuesFor(
+    issues: PsIssueCollection,
+    name: String,
+    expectedMessages: Set<Pair<String, String>>,
+    expectedChanges: Set<Pair<String, String>>
+  ) {
+    val issueSet = issueSetFor(issues, name)
+    val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
+    assertThat(issueMessages, equalTo(expectedMessages))
+    val quickFixChanges = quickFixChangesFor(issueSet)
+    assertThat(quickFixChanges, equalTo(expectedChanges))
+  }
+
   private fun issueSetFor(issues: PsIssueCollection, name: String): Set<PsIssue> {
-    return issues.values.filter {
-      val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
-      dependencyName.equals(name)
-    }.toSet()
+    return issues.values.filter { it.path.toString() == name }.toSet()
   }
 
   private fun quickFixChangesFor(issueSet: Set<PsIssue>): Set<Pair<String,String>> {
     return issueSet
       .flatMap { it.quickFixes }
-      .filterIsInstance<PsLibraryDependencyScopeQuickFixPath>()
+      .filterIsInstance<PsDependencyScopeQuickFixPath>()
       .map { quickFix -> quickFix.oldConfigurationName to quickFix.newConfigurationName }
       .toSet()
   }

@@ -26,7 +26,10 @@ interface PsModuleDependency : PsBaseDependency {
   override val path: PsPath get() = PsModuleDependencyNavigationPath(this)
 }
 
-interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency
+interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency {
+  override fun toKey() = gradlePath
+}
+
 interface PsResolvedModuleDependency: PsResolvedDependency, PsModuleDependency
 
 val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCollection<*, *, *, *>?

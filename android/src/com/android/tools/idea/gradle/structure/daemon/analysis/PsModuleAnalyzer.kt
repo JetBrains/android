@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
@@ -23,7 +24,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
-import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyScopeQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 
 fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence<PsIssue> {
@@ -41,7 +42,7 @@ fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence
   return emptySequence()
 }
 
-fun analyzeLibraryScope(dependency: PsDeclaredLibraryDependency): Iterable<PsIssue> {
+fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> {
   // TODO(xof): implement complete logic here.  cf. suggestApiConfigurationUse() in GradleDetector.kt
   fun shouldSuggestApiScopeReplacement(): Boolean {
     if (dependency.configurationName.startsWith("test") || dependency.configurationName.startsWith("androidTest")) {
@@ -74,10 +75,10 @@ fun analyzeLibraryScope(dependency: PsDeclaredLibraryDependency): Iterable<PsIss
       apiReplacement = configurationName.removeSuffix("Compile") + "Api"
     }
 
-    val implementationFix = PsLibraryDependencyScopeQuickFixPath(dependency, implementationReplacement)
+    val implementationFix = PsDependencyScopeQuickFixPath(dependency, implementationReplacement)
     return if (suggestApi) {
       listOf(
-        PsLibraryDependencyScopeQuickFixPath(dependency, apiReplacement),
+        PsDependencyScopeQuickFixPath(dependency, apiReplacement),
         implementationFix
       )
     }
@@ -91,8 +92,11 @@ fun analyzeLibraryScope(dependency: PsDeclaredLibraryDependency): Iterable<PsIss
   if (configurationName == "compile" || configurationName.endsWith("Compile")) {
     val text = "Obsolete scope found: <b>$configurationName</b>"
     val fixes = fixesFor(configurationName)
-    val issue = PsGeneralIssue(text, "", dependency.path, PsIssueType.OBSOLETE_SCOPE, WARNING, fixes)
-    issues.add(issue)
+    val path = dependency.path
+    if (path != null) {
+      val issue = PsGeneralIssue(text, "", path, PsIssueType.OBSOLETE_SCOPE, WARNING, fixes)
+      issues.add(issue)
+    }
   }
   return issues.asIterable()
 }
