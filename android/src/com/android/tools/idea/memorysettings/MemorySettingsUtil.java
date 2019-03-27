@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.analytics.HostData;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.GradleProperties;
+import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -26,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.sun.management.OperatingSystemMXBean;
+import java.io.IOException;
 import java.util.Locale;
 import java.awt.Window;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +45,12 @@ public class MemorySettingsUtil {
 
   private static final int LOW_IDE_XMX_CAP_IN_GB = 4;
   private static final int HIGH_IDE_XMX_CAP_IN_GB = 8;
+
+  private static final int LOW_GRADLE_DAEMON_XMX_IN_MB = 1024;
+  private static final int HIGH_GRADLE_DAEMON_XMX_IN_MB = 1536;
+
+  public static final int MAX_GRADLE_DAEMON_XMX_IN_MB = 2048;
+  public static final int NO_XMX_IN_VM_ARGS = -2;
 
   public static final int getIdeXmxCapInGB() {
     return StudioFlags.LOW_IDE_XMX_CAP.get() ? LOW_IDE_XMX_CAP_IN_GB : HIGH_IDE_XMX_CAP_IN_GB;
@@ -85,4 +97,52 @@ public class MemorySettingsUtil {
     }
     return result;
   }
+
+  public static int getDefaultGradleDaemonXmx() {
+    return SystemInfo.is32Bit ? LOW_GRADLE_DAEMON_XMX_IN_MB : HIGH_GRADLE_DAEMON_XMX_IN_MB;
+  }
+
+  public static int getProjectGradleDaemonXmx() {
+    return DaemonMemorySettingsUtil.getGradleDaemonXmx(getCurrentProjectProperties());
+  }
+
+  @Nullable
+  public static GradleProperties getCurrentProjectProperties() {
+    return getProjectProperties(getCurrentProject());
+  }
+
+  public static void saveProjectGradleDaemonXmx(int newValue) {
+    LOG.info(String.format(Locale.US, "saving new Gradle daemon Xmx value %d", newValue));
+    Project project = getCurrentProject();
+    GradleProperties properties = getProjectProperties(project);
+    if (properties == null) {
+      reportSaveError(project, "Null gradle properties", null);
+    } else try {
+      DaemonMemorySettingsUtil.setGradleDaemonXmx(getProjectProperties(project), newValue);
+    } catch (IOException e) {
+      String err = "Failed to save new Xmx value to gradle.properties";
+      reportSaveError(project, err, e);
+    }
+  }
+
+  private static void reportSaveError(Project project, String message, @Nullable Exception e) {
+    LOG.info(message, e);
+    if (e != null) {
+      String cause = e.getMessage();
+      if (isNotEmpty(cause)) {
+        message += String.format("<br>\nCause: %1$s", cause);
+      }
+    }
+    AndroidNotification.getInstance(project).showBalloon("Gradle Settings", message, ERROR);
+  }
+
+  @Nullable
+  private static GradleProperties getProjectProperties(Project project) {
+    try {
+      return project != null ? new GradleProperties(project) : null;
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
 }
