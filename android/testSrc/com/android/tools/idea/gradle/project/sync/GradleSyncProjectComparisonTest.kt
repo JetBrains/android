@@ -63,9 +63,9 @@ import java.io.File
  * results.
  *
  * The pre-recorded sync results can be found in testData/syncedProjectSnapshots/ *.txt files. Consult [snapshotSuffixes] for more
- * details on the way in which the file names are constructued.
+ * details on the way in which the file names are constructed.
  *
- * NOTE: It you made changes to sync or the test propjects which make these tests fail in an expected way, you can re-run the tests
+ * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
  *       from IDE with -DUPDATE_SYNC_TEST_SNAPSHOTS to update the files.
  */
 abstract class GradleSyncProjectComparisonTest(
@@ -85,9 +85,6 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false) {
-    /** TODO(b/124497021): Enable this test */
-    override fun testLoadPlainJavaProject() = Unit
-
     /** TODO(b/124508973): Enable this test */
     override fun testPsdDependency() = Unit
 
