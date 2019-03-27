@@ -91,11 +91,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   @Override
-  @NotNull
-  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    File projectRoot = super.prepareProjectForImport(relativePath);
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
     createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
-    return projectRoot;
   }
 
   @Override
