@@ -43,7 +43,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.Key;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import icons.StudioIcons;
 import java.awt.Dimension;
@@ -66,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
-  private static final Key<Instant> SELECTION_TIME = new Key<>("DeviceAndSnapshotComboBoxAction.selectionTime");
+  private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
@@ -140,7 +139,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return null;
     }
 
-    Object key = PropertiesComponent.getInstance(project).getValue(SELECTED_DEVICE);
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    Object key = properties.getValue(SELECTED_DEVICE);
 
     Optional<Device> optionalSelectedDevice = myDevices.stream()
       .filter(device -> device.getKey().equals(key))
@@ -161,8 +161,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .findFirst();
 
     if (optionalConnectedDevice.isPresent()) {
-      Instant selectionTime = project.getUserData(SELECTION_TIME);
-      assert selectionTime != null : "selected device \"" + selectedDevice + "\" has a null selection time";
+      CharSequence selectionTimeString = properties.getValue(SELECTION_TIME);
+      assert selectionTimeString != null : "selected device \"" + selectedDevice + "\" has a null selection time string";
+
+      Instant selectionTime = Instant.parse(selectionTimeString);
 
       Device connectedDevice = optionalConnectedDevice.get();
 
@@ -182,11 +184,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     if (selectedDevice == null) {
       properties.unsetValue(SELECTED_DEVICE);
-      project.putUserData(SELECTION_TIME, null);
+      properties.unsetValue(SELECTION_TIME);
     }
     else {
       properties.setValue(SELECTED_DEVICE, selectedDevice.getKey());
-      project.putUserData(SELECTION_TIME, myClock.instant());
+      properties.setValue(SELECTION_TIME, myClock.instant().toString());
     }
 
     updateExecutionTargetManager(project, selectedDevice);
@@ -332,9 +334,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myDevices.sort(new DeviceComparator());
 
     if (myDevices.isEmpty()) {
-      setSelectedDevice(project, null);
-      setSelectedSnapshot(null);
-
       presentation.setIcon(null);
       presentation.setText("No devices");
 
