@@ -64,6 +64,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Handles locating templates and providing template metadata
@@ -82,6 +83,7 @@ public class TemplateManager {
   public static final String CATEGORY_OTHER = "Other";
   public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_AUTOMOTIVE = "Automotive";
+  public static final String CATEGORY_ANDROID_AUTO = "Android Auto";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -526,20 +528,31 @@ public class TemplateManager {
       categoryGroup.addSeparator();
       setPresentation(category, galleryAction);
     }
-    for (String templateName : categoryRow.keySet()) {
+    // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
+    Map<String, String> templateCategoryMap = categoryRow.keySet().stream().collect(toMap(it -> it, it -> category));
+    if (category.equals(CATEGORY_AUTOMOTIVE)) {
+      for (String templateName : myCategoryTable.row(CATEGORY_ANDROID_AUTO).keySet()) {
+        if (!templateCategoryMap.containsKey(templateName)) {
+          templateCategoryMap.put(templateName, CATEGORY_ANDROID_AUTO);
+        }
+      }
+    }
+    for (Map.Entry<String, String> templateNameAndCategory : templateCategoryMap.entrySet()) {
+      String templateName = templateNameAndCategory.getKey();
+      String templateCategory = templateNameAndCategory.getValue();
       if (EXCLUDED_TEMPLATES.contains(templateName)) {
         continue;
       }
-      TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(category, templateName));
+      TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(templateCategory, templateName));
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
       int minBuildSdkApi = metadata == null ? 0 : metadata.getMinBuildApi();
       boolean androidXRequired = metadata == null ? false : metadata.getAndroidXRequired();
+      File templateFile = myCategoryTable.row(templateCategory).get(templateName);
       NewAndroidComponentAction templateAction = new NewAndroidComponentAction(
-        category, templateName, minSdkVersion, minBuildSdkApi, androidXRequired);
-      String actionId = ACTION_ID_PREFIX + category + templateName;
+        category, templateName, minSdkVersion, minBuildSdkApi, androidXRequired, templateFile);
+      String actionId = ACTION_ID_PREFIX + templateCategory + templateName;
       am.replaceAction(actionId, templateAction);
       categoryGroup.add(templateAction);
-
     }
   }
 
