@@ -28,6 +28,7 @@ import java.awt.event.ItemListener;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +60,10 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    if (myComponent.isMemorySettingsModified()) {
+    if (myComponent.isGradleDaemonXmxModified()) {
+      MemorySettingsUtil.saveProjectGradleDaemonXmx(myComponent.mySelectedGradleXmx);
+    }
+    if (myComponent.isIdeXmxModified()) {
       MemorySettingsUtil.saveXmx(myComponent.mySelectedIdeXmx);
       if (Messages.showOkCancelDialog(AndroidBundle.message("memory.settings.restart.needed"),
                                       IdeBundle.message("title.restart.needed"),
@@ -85,6 +89,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
   @Override
   public void reset() {
     myComponent.myIdeXmxBox.setSelectedIndex(0);
+    myComponent.myGradleDaemonXmxBox.setSelectedIndex(0);
   }
 
   @Override
@@ -100,9 +105,13 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     private JPanel myPanel;
     private JComboBox myIdeXmxBox;
     private JBLabel myRecommendationDescriptionLabel;
+    private JLabel myDefaultGradleDaemonXmx;
+    private JComboBox myGradleDaemonXmxBox;
     private int myCurrentIdeXmx;
     private int myRecommendedIdeXmx;
     private int mySelectedIdeXmx;
+    private int myCurrentGradleXmx;
+    private int mySelectedGradleXmx;
 
     MyComponent() {
       // Set the memory settings slider
@@ -112,32 +121,57 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       mySelectedIdeXmx = myCurrentIdeXmx;
       Project project = MemorySettingsUtil.getCurrentProject();
       myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(project, myCurrentIdeXmx);
-
-      myIdeXmxBox.setEditable(false);
-      myIdeXmxBox.removeAllItems();
-      myIdeXmxBox.addItem(String.format(Locale.US, "%s - current", memSizeText(myCurrentIdeXmx)));
-      if (myRecommendedIdeXmx != -1) {
-        myIdeXmxBox.addItem(String.format(Locale.US, "%d - recommended", myRecommendedIdeXmx));
-      }
-
-      for (int size = MIN_IDE_XMX; size <= maxXmx; size += SIZE_INCREMENT) {
-        if (size != myCurrentIdeXmx && size != myRecommendedIdeXmx)
-        myIdeXmxBox.addItem(Integer.toString(size));
-      }
-
-      ItemListener listener = new ItemListener() {
-        @Override
-        public void itemStateChanged(ItemEvent event) {
-          if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-            String selectedItem = (String)event.getItem();
-            mySelectedIdeXmx = parseSelected(selectedItem);
-            myRecommendationDescriptionLabel.setVisible(
-              selectedItem!= null && selectedItem.contains("recommended"));
-          }
-        }
-      };
-      myIdeXmxBox.addItemListener(listener);
       myRecommendationDescriptionLabel.setVisible(false);
+
+      setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, maxXmx, SIZE_INCREMENT,
+                new ItemListener() {
+                  @Override
+                  public void itemStateChanged(ItemEvent event) {
+                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                      String selectedItem = (String)event.getItem();
+                      mySelectedIdeXmx = parseSelected(selectedItem);
+                      myRecommendationDescriptionLabel.setVisible(
+                        selectedItem!= null && selectedItem.contains("recommended"));
+                    }
+                  }
+                });
+
+
+      myDefaultGradleDaemonXmx.setText(
+        String.format(Locale.US, "%s MB", MemorySettingsUtil.getDefaultGradleDaemonXmx()));
+      if (project != null) {
+        myCurrentGradleXmx = MemorySettingsUtil.getProjectGradleDaemonXmx();
+        mySelectedGradleXmx = myCurrentGradleXmx;
+        setXmxBox(myGradleDaemonXmxBox, myCurrentGradleXmx, -1,
+                  MemorySettingsUtil.MAX_GRADLE_DAEMON_XMX_IN_MB,
+                  SIZE_INCREMENT / 2,
+                  new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent event) {
+                      if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                        mySelectedGradleXmx = parseSelected((String)event.getItem());
+                      }
+                    }
+                  });
+      } else {
+        myGradleDaemonXmxBox.setEnabled(false);
+      }
+    }
+
+    private void setXmxBox(JComboBox box, int current, int recommended, int max, int increment, ItemListener listener) {
+      box.setEditable(false);
+      box.removeAllItems();
+      box.addItem(String.format(Locale.US, "%s - current", memSizeText(current)));
+      if (recommended != -1) {
+        box.addItem(String.format(Locale.US, "%d - recommended", recommended));
+      }
+
+      for (int size = MIN_IDE_XMX; size <= max; size += increment) {
+        if (size != current && size != recommended) {
+          box.addItem(Integer.toString(size));
+        }
+      }
+      box.addItemListener(listener);
     }
 
     private int parseSelected(String selected) {
@@ -145,7 +179,15 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
 
     private boolean isMemorySettingsModified() {
+      return isIdeXmxModified() || isGradleDaemonXmxModified();
+    }
+
+    private boolean isIdeXmxModified() {
       return mySelectedIdeXmx != myCurrentIdeXmx;
+    }
+
+    private boolean isGradleDaemonXmxModified() {
+      return mySelectedGradleXmx != myCurrentGradleXmx;
     }
 
     // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and a hard cap (4GB or 8GB)
