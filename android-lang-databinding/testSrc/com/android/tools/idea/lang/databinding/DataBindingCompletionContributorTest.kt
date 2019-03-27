@@ -18,14 +18,22 @@ package com.android.tools.idea.lang.databinding
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.lang.databinding.DataBindingCompletionContributor.attachTracker
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.codeInsight.completion.JavaLookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.facet.FacetManager
+import com.intellij.psi.PsiSubstitutor
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
@@ -42,8 +50,10 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
                          DataBindingMode.ANDROIDX)
   }
 
+  private val projectRule = AndroidProjectRule.withSdk()
+
   @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  val chain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private val fixture: JavaCodeInsightTestFixture by lazy {
     projectRule.fixture as JavaCodeInsightTestFixture
@@ -649,5 +659,94 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:onClick="@{member.fieldFromBaseClass}"/>
       </layout>
     """.trimIndent())
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_methodPresentation() {
+    val psiClass = fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public void doSomething(View view) {}
+        public void doSomething2(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::do<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+
+    // create expected suggestion
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    val psiMethod = psiClass.findMethodsByName("doSomething", false)[0]
+    val expectedLookupElement = JavaLookupElementBuilder.forMethod(
+      psiMethod, "doSomething", PsiSubstitutor.EMPTY, psiClass)
+
+    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_fieldPresentation() {
+    val psiClass = fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public int field1;
+        public String field2;
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{member.fi<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+
+    // Create expected suggestion
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    val psiField = psiClass.findFieldByName("field1", false)!!
+    val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
+
+    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
   }
 }
