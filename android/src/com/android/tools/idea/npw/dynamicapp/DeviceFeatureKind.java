@@ -15,15 +15,28 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import com.android.tools.idea.observable.core.StringValueProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Enum defining the various distribution options for a device feature of a dynamic feature module.
  */
 public enum DeviceFeatureKind {
-  GL_ES_VERSION("OpenGL ES Version"),
+  GL_ES_VERSION("OpenGL ES Version") {
+    @Override
+    @NotNull
+    StringValueProperty newStringValueProperty() {
+      return new StringValueProperty("0x00020000");
+    }
+  },
 
-  NAME("Name");
+  NAME("Name") {
+    @Override
+    @NotNull
+    StringValueProperty newStringValueProperty() {
+      return new StringValueProperty("");
+    }
+  };
 
   @NotNull
   private String myDisplayName;
@@ -42,4 +55,7 @@ public enum DeviceFeatureKind {
   public String toString() {
     return this.myDisplayName;
   }
+
+  @NotNull
+  abstract StringValueProperty newStringValueProperty();
 }
