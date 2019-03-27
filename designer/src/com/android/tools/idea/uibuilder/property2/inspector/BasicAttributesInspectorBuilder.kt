@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ALPHA
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -26,8 +28,11 @@ import com.intellij.openapi.project.Project
 
 private const val BASIC_TITLE = "Common Attributes"
 
-class BasicAttributesInspectorBuilder(project: Project,
-                                      editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class BasicAttributesInspectorBuilder(
+  project: Project,
+  private val editorProvider: EditorProvider<NelePropertyItem>
+) : InspectorBuilder<NelePropertyItem> {
+
   private val viewInspector = ViewInspectorBuilder(project, editorProvider)
   private val textInspector = TextViewInspectorBuilder(editorProvider)
   private val progressBarInspector = ProgressBarInspectorBuilder(editorProvider)
@@ -41,17 +46,36 @@ class BasicAttributesInspectorBuilder(project: Project,
     viewInspector.attachToInspector(inspector, properties) { generator.title }
     textInspector.attachToInspector(inspector, properties) { generator.title }
     progressBarInspector.attachToInspector(inspector, properties)  { generator.title }
+    addCommonForAll(inspector, properties, generator)
   }
 
   @VisibleForTesting
   class TitleGenerator(val inspector: InspectorPanel) {
-    var titleHolder: InspectorLineModel? = null
+    private var titleHolder: InspectorLineModel? = null
+
+    var titleAdded = false
+      private set
 
     val title: InspectorLineModel
       get() {
         val line = titleHolder ?: inspector.addExpandableTitle(BASIC_TITLE)
         titleHolder = line
+        titleAdded = true
         return line
       }
+  }
+
+  private fun addCommonForAll(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, generator: TitleGenerator) {
+    if (!generator.titleAdded) {
+      // Only add the common elements if the basic section was added already.
+      return
+    }
+    addIfExist(inspector, properties.getOrNull(ANDROID_URI, ATTR_ALPHA), generator.title)
+  }
+
+  private fun addIfExist(inspector: InspectorPanel, property: NelePropertyItem?, title: InspectorLineModel) {
+    if (property != null) {
+      inspector.addEditor(editorProvider.createEditor(property), title)
+    }
   }
 }
