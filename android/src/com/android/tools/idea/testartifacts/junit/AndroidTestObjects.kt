@@ -58,10 +58,15 @@ private fun fixScope(originalScope: GlobalSearchScope, jUnitConfiguration: JUnit
  */
 class AndroidTestObject(private val myTestObject: TestObject) : TestObject(myTestObject.configuration, myTestObject.environment) {
   override fun getModulesToCompile(): Array<Module> = myTestObject.modulesToCompile
-  override fun suggestActionName(): String = myTestObject.suggestActionName()
   override fun checkConfiguration() = myTestObject.checkConfiguration()
   override fun execute(executor: Executor, runner: ProgramRunner<*>) = myTestObject.execute(executor, runner)
   override fun getConfiguration() = myTestObject.configuration
+
+  /**
+   * Returns the suggested context menu action name or null.
+   * @see com.intellij.execution.configurations.LocatableConfigurationBase.getActionName
+   */
+  override fun suggestActionName(): String? = myTestObject.suggestActionName()
 
   override fun getListener(element: PsiElement, configuration: JUnitConfiguration): RefactoringElementListener? {
     return myTestObject.getListener(element, configuration)
