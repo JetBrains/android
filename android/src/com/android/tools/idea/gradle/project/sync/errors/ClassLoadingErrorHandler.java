@@ -131,13 +131,13 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
       if (matcher.matches()) {
         className = matcher.group(1);
       }
-      updateUsageTracker(project, CLASS_NOT_FOUND, className);
+      updateUsageTracker(project, CLASS_NOT_FOUND);
       return String.format("Unable to load class '%1$s'.", className);
     }
 
     if (rootCause instanceof NoSuchMethodError) {
       String methodName = nullToEmpty(text);
-      updateUsageTracker(project, METHOD_NOT_FOUND, methodName);
+      updateUsageTracker(project, METHOD_NOT_FOUND);
       return String.format("Unable to find method '%1$s'.", methodName);
     }
 
