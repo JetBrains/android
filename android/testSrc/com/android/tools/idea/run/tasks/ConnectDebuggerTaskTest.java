@@ -150,7 +150,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
   }
 
   public void testWaitForClientCancelled() {
-    myLaunchStatus.terminateLaunch("Cancelled");
+    myLaunchStatus.terminateLaunch("Cancelled", true);
     assertNull(getConnectDebuggerTask(false).waitForClient());
   }
 
