@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).contains(NDK_INTEGRATION_DEPRECATED)) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, AndroidStudioEvent.GradleSyncFailure.NDK_INTEGRATION_DEPRECATED);
       return NDK_INTEGRATION_DEPRECATED;
     }
     return null;

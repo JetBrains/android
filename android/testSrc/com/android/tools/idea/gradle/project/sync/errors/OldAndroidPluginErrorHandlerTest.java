@@ -36,6 +36,7 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK;
 import static org.mockito.Mockito.spy;
@@ -97,7 +98,7 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(gotoFile).isInstanceOf(OpenFileHyperlink.class);
     assertThat(new File(((OpenFileHyperlink)gotoFile).getFilePath())).isEqualTo(expectedHyperlinkValue);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(OLD_ANDROID_PLUGIN, myUsageReporter.getCollectedFailure());
     assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());
   }
 
