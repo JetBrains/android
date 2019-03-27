@@ -317,12 +317,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     try {
       testPackage = applicationIdProvider.getTestPackageName();
       if (testPackage == null) {
-        launchStatus.terminateLaunch("Unable to determine test package name");
+        launchStatus.terminateLaunch("Unable to determine test package name", true);
         return null;
       }
     }
     catch (ApkProvisionException e) {
-      launchStatus.terminateLaunch("Unable to determine test package name");
+      launchStatus.terminateLaunch("Unable to determine test package name", true);
       return null;
     }
 

@@ -48,7 +48,7 @@ public class AndroidTestListener implements ITestRunListener {
 
   @Override
   public void testRunStopped(long elapsedTime) {
-    myLaunchStatus.terminateLaunch("Test run stopped.\n");
+    myLaunchStatus.terminateLaunch("Test run stopped.\n", true);
   }
 
   @Override
@@ -58,12 +58,12 @@ public class AndroidTestListener implements ITestRunListener {
     }
     myPrinter.stdout("");
     myPrinter.stdout("Tests ran to completion.\n");
-    myLaunchStatus.terminateLaunch("");
+    myLaunchStatus.terminateLaunch("", true);
   }
 
   @Override
   public void testRunFailed(String errorMessage) {
-    myLaunchStatus.terminateLaunch("Test running failed: " + errorMessage);
+    myLaunchStatus.terminateLaunch("Test running failed: " + errorMessage, true);
   }
 
   @Override
