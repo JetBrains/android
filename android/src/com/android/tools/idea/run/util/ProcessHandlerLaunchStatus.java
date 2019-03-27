@@ -49,9 +49,11 @@ public class ProcessHandlerLaunchStatus implements LaunchStatus {
   }
 
   @Override
-  public void terminateLaunch(@Nullable String reason) {
+  public void terminateLaunch(@Nullable String reason, boolean destroyProcess) {
     myTerminated = true;
     myHandler.notifyTextAvailable(reason + "\n", ProcessOutputTypes.STDERR);
-    myHandler.destroyProcess();
+    if (destroyProcess) {
+      myHandler.destroyProcess();
+    }
   }
 }

@@ -16,18 +16,26 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.stats.RunStats;
+import com.google.common.base.MoreObjects;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ExecutionConsole;
+import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
+import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +76,7 @@ public class AndroidRunState implements RunProfileState {
   @Override
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     ProcessHandler processHandler;
-    ConsoleView console;
+    ExecutionConsole console;
     RunStats stats = RunStats.from(myEnv);
 
     String applicationId;
@@ -81,11 +89,18 @@ public class AndroidRunState implements RunProfileState {
 
     stats.setPackage(applicationId);
 
-    if (myLaunchTasksProvider.createsNewProcess()) {
-      // In the case of cold swap, there is an existing process that is connected, but we are going to launch a new one.
-      // Detach the previous process handler so that we don't end up with 2 run tabs for the same launch (the existing one
-      // and the new one).
+    boolean isSwap = MoreObjects.firstNonNull(myEnv.getCopyableUserData(CodeSwapAction.KEY), Boolean.FALSE) ||
+                     MoreObjects.firstNonNull(myEnv.getCopyableUserData(ApplyChangesAction.KEY), Boolean.FALSE);
+    RunContentManager manager = RunContentManager.getInstance(myEnv.getProject());
+    RunContentDescriptor previousDescriptor = manager.findContentDescriptor(executor, myPreviousSessionProcessHandler);
+    if (!isSwap) {
       if (myPreviousSessionProcessHandler != null) {
+        // In the case of cold swap, there is an existing process that is connected, but we are going to launch a new one.
+        // Destroy the previous content and detach the previous process handler so that we don't end up with 2 run tabs
+        // for the same launch (the existing one and the new one).
+        if (previousDescriptor != null) {
+          manager.removeRunContent(executor, previousDescriptor);
+        }
         myPreviousSessionProcessHandler.detachProcess();
       }
 
@@ -94,11 +109,19 @@ public class AndroidRunState implements RunProfileState {
         .monitorRemoteProcesses(myLaunchTasksProvider.monitorRemoteProcess())
         .build();
       console = attachConsole(processHandler, executor);
-    } else {
+      // Stash the console. When we swap, we need the console, as that has the method to print a hyperlink.
+      // (If we only need normal text output, we can call ProcessHandler#notifyTextAvailable instead.)
+    }
+    else {
       assert myPreviousSessionProcessHandler != null : "No process handler from previous session, yet current tasks don't create one";
       processHandler = myPreviousSessionProcessHandler;
-      console = null;
+      // Try to find the old console from the previous process handler, since we're swapping into that same tool window tab.
+      console = previousDescriptor == null ? null : previousDescriptor.getExecutionConsole();
+      console = console == null ? attachConsole(processHandler, executor) : console;
     }
+
+    BiConsumer<String, HyperlinkInfo> hyperlinkConsumer =
+      console instanceof ConsoleView ? ((ConsoleView)console)::printHyperlink : (s, h) -> {};
 
     LaunchInfo launchInfo = new LaunchInfo(executor, runner, myEnv, myConsoleProvider);
     LaunchTaskRunner task = new LaunchTaskRunner(myModule.getProject(),
@@ -109,9 +132,9 @@ public class AndroidRunState implements RunProfileState {
                                                  myDeviceFutures,
                                                  myLaunchTasksProvider,
                                                  stats,
-                                                 console::printHyperlink);
+                                                 hyperlinkConsumer);
     ProgressManager.getInstance().run(task);
-    return console == null ? null : new DefaultExecutionResult(console, processHandler);
+    return new DefaultExecutionResult(console, processHandler);
   }
 
   @NotNull

@@ -284,7 +284,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidAppRunConfigurationBase.class).error(e);
-      launchStatus.terminateLaunch("Unable to identify application id");
+      launchStatus.terminateLaunch("Unable to identify application id", true);
       return null;
     }
   }
