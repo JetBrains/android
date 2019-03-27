@@ -19,16 +19,6 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.ScreenHeightQualifier;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
-import com.android.ide.common.resources.configuration.ScreenWidthQualifier;
-import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
-import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
@@ -93,9 +83,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   @NotNull private final NlDesignSurface myDesignSurface;
   @NotNull private final ScreenView myScreenView;
   @NotNull private final Configuration myConfiguration;
-  private final boolean isPreviewSurface;
-  private final List<FolderConfiguration> myFolderConfigurations;
-  private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
   private final OrientationLayer myOrientationLayer;
   private final SizeBucketLayer mySizeBucketLayer;
   private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
@@ -109,7 +96,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     public void run() {
       mySizeBucketLayer.reset();
       myOrientationLayer.reset();
-      updateUnavailableLayer(true);
     }
   };
   private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
@@ -119,9 +105,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       int androidY = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if (androidX > 0 && androidY > 0 && androidX < myMaxSize && androidY < myMaxSize) {
         NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
-        if (isPreviewSurface) {
-          updateUnavailableLayer(false);
-        }
       }
     }
   };
@@ -134,7 +117,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     myDesignSurface = designSurface;
     myScreenView = screenView;
     myConfiguration = configuration;
-    isPreviewSurface = designSurface.isPreviewSurface();
     myOrientationLayer = new OrientationLayer(myDesignSurface, myScreenView, myConfiguration);
     mySizeBucketLayer = new SizeBucketLayer();
     myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 100, true, null, myDesignSurface);
@@ -145,14 +127,8 @@ public class SimplerCanvasResizeInteraction extends Interaction {
 
     VirtualFile file = configuration.getFile();
     assert file != null;
-    String layoutName = file.getNameWithoutExtension();
     LocalResourceRepository resourceRepository = ResourceRepositoryManager.getProjectResources(configuration.getModule());
     assert resourceRepository != null;
-
-    // TODO: namespaces
-    List<ResourceItem> layouts = resourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, layoutName);
-    myFolderConfigurations =
-      layouts.stream().map(ResourceItem::getConfiguration).sorted(Collections.reverseOrder()).collect(Collectors.toList());
 
     double currentDpi = configuration.getDensity().getDpiValue();
     ConfigurationManager configManager = configuration.getConfigurationManager();
@@ -199,124 +175,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     myCurrentY = y;
 
     myDesignSurface.setResizeMode(true);
-    updateUnavailableLayer(false);
-  }
-
-  private void updateUnavailableLayer(boolean forceRecompute) {
-    //noinspection ConstantConditions
-    FolderConfiguration currentFolderConfig =
-      FolderConfiguration.getConfigForFolder(myConfiguration.getFile().getParent().getNameWithoutExtension());
-    assert currentFolderConfig != null;
-
-    if (!forceRecompute && currentFolderConfig.equals(myUnavailableLayer.getCurrentFolderConfig())) {
-      return;
-    }
-
-    List<Area> configAreas = Lists.newArrayList();
-    Area totalCoveredArea = new Area();
-    for (FolderConfiguration configuration : myFolderConfigurations) {
-      Area configArea = coveredAreaForConfig(configuration, myScreenView);
-      configArea.subtract(totalCoveredArea);
-      if (!configuration.equals(currentFolderConfig)) {
-        configAreas.add(configArea);
-      }
-      totalCoveredArea.add(configArea);
-    }
-
-    myUnavailableLayer.update(configAreas, currentFolderConfig);
-  }
-
-  /**
-   * Returns the {@link Area} of the {@link ScreenView} that is covered by the given {@link FolderConfiguration}
-   */
-  @SuppressWarnings("SuspiciousNameCombination")
-  @NotNull
-  private Area coveredAreaForConfig(@NotNull FolderConfiguration config, @NotNull SceneView screenView) {
-    int x0 = screenView.getX();
-    int y0 = screenView.getY();
-    JComponent layeredPane = myDesignSurface.getLayeredPane();
-    int width = layeredPane.getWidth();
-    int height = layeredPane.getHeight();
-
-    int maxDim = Math.max(width, height);
-    int minX = 0;
-    int maxX = -1;
-    int minY = 0;
-    int maxY = -1;
-
-    SmallestScreenWidthQualifier smallestWidthQualifier = config.getSmallestScreenWidthQualifier();
-    if (smallestWidthQualifier != null) {
-      // Restrict the area due to a sw<N>dp qualifier
-      minX = Coordinates.dpToPx(screenView, smallestWidthQualifier.getValue());
-      minY = Coordinates.dpToPx(screenView, smallestWidthQualifier.getValue());
-    }
-
-    ScreenWidthQualifier widthQualifier = config.getScreenWidthQualifier();
-    if (widthQualifier != null) {
-      // Restrict the area due to a w<N>dp qualifier
-      minX = Math.max(minX, Coordinates.dpToPx(screenView, widthQualifier.getValue()));
-    }
-
-    ScreenHeightQualifier heightQualifier = config.getScreenHeightQualifier();
-    if (heightQualifier != null) {
-      // Restrict the area due to a h<N>dp qualifier
-      minY = Math.max(minY, Coordinates.dpToPx(screenView, heightQualifier.getValue()));
-    }
-
-    ScreenSizeQualifier sizeQualifier = config.getScreenSizeQualifier();
-    if (sizeQualifier != null && sizeQualifier.getValue() != null) {
-      // Restrict the area due to a screen size qualifier (SMALL, NORMAL, LARGE, XLARGE)
-      switch (sizeQualifier.getValue()) {
-        case SMALL:
-          maxX = Coordinates.dpToPx(screenView, 320);
-          maxY = Coordinates.dpToPx(screenView, 470);
-          break;
-        case NORMAL:
-          break;
-        case LARGE:
-          minX = Coordinates.dpToPx(screenView, 480);
-          minY = Coordinates.dpToPx(screenView, 640);
-          break;
-        case XLARGE:
-          minX = Coordinates.dpToPx(screenView, 720);
-          minY = Coordinates.dpToPx(screenView, 960);
-          break;
-      }
-    }
-
-    ScreenRatioQualifier ratioQualifier = config.getScreenRatioQualifier();
-    ScreenRatio ratio = ratioQualifier != null ? ratioQualifier.getValue() : null;
-
-    ScreenOrientationQualifier orientationQualifier = config.getScreenOrientationQualifier();
-    ScreenOrientation orientation = orientationQualifier != null ? orientationQualifier.getValue() : null;
-
-    Polygon portrait = new Polygon();
-    Polygon landscape = new Polygon();
-
-    if (orientation == null || orientation.equals(ScreenOrientation.PORTRAIT)) {
-      constructPolygon(portrait, ratio, maxDim, true);
-      portrait.translate(x0, y0);
-    }
-
-    if (orientation == null || orientation.equals(ScreenOrientation.LANDSCAPE)) {
-      constructPolygon(landscape, ratio, maxDim, false);
-      landscape.translate(x0, y0);
-    }
-
-    Area portraitArea = new Area(portrait);
-    Area landscapeArea = new Area(landscape);
-
-    Area portraitBounds = new Area(new Rectangle(Coordinates.getSwingX(screenView, minX), Coordinates.getSwingY(screenView, minY),
-                                                 maxX >= 0 ? Coordinates.getSwingDimension(screenView, maxX - minX) : width,
-                                                 maxY >= 0 ? Coordinates.getSwingDimension(screenView, maxY - minY) : height));
-    Area landscapeBounds = new Area(new Rectangle(Coordinates.getSwingX(screenView, minY), Coordinates.getSwingY(screenView, minX),
-                                                  maxY >= 0 ? Coordinates.getSwingDimension(screenView, maxY - minY) : width,
-                                                  maxX >= 0 ? Coordinates.getSwingDimension(screenView, maxX - minX) : height));
-
-    portraitArea.intersect(portraitBounds);
-    landscapeArea.intersect(landscapeBounds);
-    portraitArea.add(landscapeArea);
-    return portraitArea;
   }
 
   private static void constructPolygon(@NotNull Polygon polygon, @Nullable ScreenRatio ratio, int dim, boolean isPortrait) {
@@ -369,11 +227,7 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       myUpdateQueue.queue(myLayerUpdate);
     }
 
-    // Only do full live updating of the file if we are in preview mode.
-    // Otherwise, restrict it to the area associated with the current configuration of the layout.
-    if (isPreviewSurface || myUnavailableLayer.isAvailable(x, y)) {
-      myUpdateQueue.queue(myPositionUpdate);
-    }
+    myUpdateQueue.queue(myPositionUpdate);
   }
 
   @Override
@@ -426,7 +280,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
       layers.add(mySizeBucketLayer);
     }
 
-    layers.add(myUnavailableLayer);
     layers.addAll(myDeviceLayers);
     layers.add(myOrientationLayer);
     layers.add(new ResizeLayer());
@@ -459,57 +312,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
         graphics.drawRect(x - 1, y - 1, myCurrentX - x, myCurrentY - y);
         graphics.dispose();
       }
-    }
-  }
-
-  /**
-   * An {@link Layer} for the {@link CanvasResizeInteraction}.
-   * Greys out the {@link Area} unavailableArea.
-   */
-  private class UnavailableSizesLayer extends Layer {
-    private Polygon myClip = new Polygon();
-    private List<Area> myConfigAreas;
-    private FolderConfiguration myCurrentFolderConfig;
-
-    @Override
-    public synchronized void paint(@NotNull Graphics2D g2d) {
-      State deviceState = myConfiguration.getDeviceState();
-      assert deviceState != null;
-      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
-
-      JComponent layeredPane = myDesignSurface.getLayeredPane();
-      constructPolygon(myClip, null, Math.max(layeredPane.getWidth(), layeredPane.getHeight()), isDevicePortrait);
-      myClip.translate(myScreenView.getX() + 1, myScreenView.getY() + 1);
-
-      Graphics2D graphics = (Graphics2D)g2d.create();
-      graphics.clip(myClip);
-
-      int n = 0;
-      for (Area configArea : myConfigAreas) {
-        graphics.setColor(NlConstants.RESIZING_OTHER_CONFIG_COLOR_ARRAY[n++ % NlConstants.RESIZING_OTHER_CONFIG_COLOR_ARRAY.length]);
-        graphics.fill(configArea);
-      }
-
-      graphics.dispose();
-    }
-
-    private boolean isAvailable(int x, int y) {
-      for (Area configArea : myConfigAreas) {
-        if (configArea.contains(x, y)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    private synchronized void update(@NotNull List<Area> configAreas, @NotNull FolderConfiguration currentFolderConfig) {
-      myConfigAreas = configAreas;
-      myCurrentFolderConfig = currentFolderConfig;
-    }
-
-    @Nullable
-    private FolderConfiguration getCurrentFolderConfig() {
-      return myCurrentFolderConfig;
     }
   }
 
