@@ -48,6 +48,7 @@ import static com.android.repository.Revision.parseRevision;
 import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW;
 
 public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
   private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
@@ -69,7 +70,7 @@ public class SdkBuildToolsTooLowErrorHandler extends SyncErrorHandler {
     String text = getRootCause(error).getMessage();
     List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(project, text);
     if (!hyperlinks.isEmpty()) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, SDK_BUILD_TOOLS_TOO_LOW);
       GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }

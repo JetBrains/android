@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.JAVA_HEAP_ERROR;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
@@ -85,7 +86,7 @@ public class JavaHeapSpaceErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes.get(0)).isInstanceOf(OpenUrlHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenUrlHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(JAVA_HEAP_ERROR, myUsageReporter.getCollectedFailure());
     assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());
   }
 }

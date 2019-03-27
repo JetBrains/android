@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_INSTALL_NDK_BUNDLE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetNdkDirHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
@@ -50,29 +52,30 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(errMsg);
     loadProjectAndExpectMissingNdkError(
       "Failed to install the following Android SDK packages as some licences have not been accepted. blah blah ndk-bundle NDK blah blah",
-      ImmutableList.of());
+      ImmutableList.of(), FAILED_TO_INSTALL_NDK_BUNDLE);
   }
 
   public void testHandleErrorWithNdkInstallFailed() throws Exception {
     String errMsg = "Failed to install the following SDK components: blah blah ndk-bundle NDK blah blah";
     registerSyncErrorToSimulate(errMsg);
     loadProjectAndExpectMissingNdkError("Failed to install the following SDK components: blah blah ndk-bundle NDK blah blah",
-                                        ImmutableList.of());
+                                        ImmutableList.of(), FAILED_TO_INSTALL_NDK_BUNDLE);
   }
 
   public void testHandleErrorWithNdkNotConfigured() throws Exception {
     registerSyncErrorToSimulate("NDK not configured. /some/path");
-    loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of());
+    loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of(), NDK_NOT_CONFIGURED);
   }
 
   public void testHandleErrorWithNdkLocationNotFound() throws Exception {
     registerSyncErrorToSimulate("NDK location not found. Define location with ndk.dir in the local.properties file " +
                                 "or with an ANDROID_NDK_HOME environment variable.");
-    loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of());
+    loadProjectAndExpectMissingNdkError("NDK not configured.", ImmutableList.of(), NDK_NOT_CONFIGURED);
   }
 
   private void loadProjectAndExpectMissingNdkError(@NotNull String expected,
-                                                   @NotNull Collection<AndroidStudioEvent.GradleSyncQuickFix> syncQuickFixes)
+                                                   @NotNull Collection<AndroidStudioEvent.GradleSyncQuickFix> syncQuickFixes,
+                                                   @NotNull AndroidStudioEvent.GradleSyncFailure syncFailure)
     throws Exception {
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
@@ -86,7 +89,7 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(SetNdkDirHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(syncFailure, myUsageReporter.getCollectedFailure());
     assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());
   }
 
