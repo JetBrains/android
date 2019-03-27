@@ -156,7 +156,7 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
 
   @Override
   public PsiElement getNavigationElement() {
-    return myPsiResourceFile.getPsiFile();
+    return new DataBindingLayoutInfoFile(this);
   }
 
   @Override
