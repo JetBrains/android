@@ -158,12 +158,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testAddSupportDependencyWithMatchInAppModule() {
     installDependencies(myModule, listOf("com.android.support:recyclerview-v7:22.2.1"))
-    val (found1, missing1, warning1) = gradleModuleSystem.analyzeDependencyCompatibility(
-      listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))
-    assertThat(found1).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7, "22.2.1"))
-
-    val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    installDependencies(module1, listOf("com.android.support:recyclerview-v7:22.2.1"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           api project(':$library1ModuleName')
@@ -171,6 +165,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
       }""".trimIndent())
 
     // Check that the version is picked up from the parent module:
+    val module1 = getAdditionalModuleByName(library1ModuleName)!!
     val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), mavenRepository)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
