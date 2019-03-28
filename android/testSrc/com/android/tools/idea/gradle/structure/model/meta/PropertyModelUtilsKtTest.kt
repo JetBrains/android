@@ -220,8 +220,16 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propRef.dslText(effectiveValueIsNull = false), equalTo<Annotated<DslText>?>(DslText.Reference("propValue").annotated()))
     assertThat(propInterpolated.dslText(effectiveValueIsNull = false),
                equalTo<Annotated<DslText>?>(DslText.InterpolatedString("${'$'}{prop25}").annotated()))
-    assertThat(propUnresolved.dslText(effectiveValueIsNull = false), equalTo<Annotated<DslText>?>(
+    assertThat(propUnresolved.dslText(effectiveValueIsNull = true), equalTo<Annotated<DslText>?>(
       DslText.Reference("unresolvedReference").annotateWithError("Unresolved reference: unresolvedReference")))
+    // This following statement tests the case of known unresolved references which are resolved by property getters.
+    assertThat(propUnresolved.dslText(effectiveValueIsNull = false), equalTo<Annotated<DslText>?>(
+      DslText.Reference("unresolvedReference").annotated()))
+    assertThat(propOtherExpression1.dslText(effectiveValueIsNull = true),
+               equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()))
+    assertThat(propOtherExpression2.dslText(effectiveValueIsNull = true),
+               equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("1 + 2").annotated()))
+    // This following statements test the case of known invalid expressions which are resolved by property getters.
     assertThat(propOtherExpression1.dslText(effectiveValueIsNull = false),
                equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()))
     assertThat(propOtherExpression2.dslText(effectiveValueIsNull = false),
