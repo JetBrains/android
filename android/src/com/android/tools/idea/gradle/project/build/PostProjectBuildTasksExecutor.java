@@ -155,9 +155,17 @@ public class PostProjectBuildTasksExecutor {
 
       BuildSettings buildSettings = BuildSettings.getInstance(myProject);
       BuildMode buildMode = buildSettings.getBuildMode();
+      String runConfigurationTypeId = buildSettings.getRunConfigurationTypeId();
       buildSettings.clear();
 
       myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
+
+      // Don't invoke Gradle Sync if the build is invoked by run configuration.
+      // That will cause problems because Gradle Sync and Deploy will both run at the same time.
+      // During Gradle sync, AndroidModuleModel is re-created, while Deploy relies on AndroidModuleModel to know apk location.
+      if (runConfigurationTypeId != null) {
+        return;
+      }
 
       if (isSyncNeeded(buildMode, errorCount)) {
         GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
