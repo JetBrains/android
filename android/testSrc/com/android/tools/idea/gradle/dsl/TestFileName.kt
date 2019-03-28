@@ -187,6 +187,7 @@ enum class TestFileName(val path: String) {
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT("compileOptionsModel/compileOptionsBlockWithOverrideStatement"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT("compileOptionsModel/compileOptionsRemoveApplicationStatement"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY("compileOptionsModel/compileOptionsModify"),
+  COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER("compileOptionsModel/compileOptionsModifyLongIdentifier"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD("compileOptionsModel/compileOptionsAdd"),
   CONFIGURATIONS_PARSE_CONFIGS("configurations/parseConfigs"),
   CONFIGURATIONS_PARSE_QUALIFIED_CONFIGS("configurations/parseQualifiedConfigs"),
