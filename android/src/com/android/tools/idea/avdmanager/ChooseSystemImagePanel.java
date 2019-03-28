@@ -182,7 +182,7 @@ public class ChooseSystemImagePanel extends JPanel
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
       return !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG) &&
-          !imageTag.equals(SystemImage.CHROMEOS_TAG);
+          !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
     }
     return deviceTagId.equals(imageTag.getId());
   }
