@@ -34,7 +34,8 @@ public final class AndroidStudioPreferences {
     }
 
     for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
-      preferences.unregisterExtension(toRemove);
+      //noinspection unchecked: toRemove came from this extension point to begin with, the types match even if the compiler can't see it.
+      preferences.unregisterExtension((Class)toRemove.getClass());
     }
   }
 }
