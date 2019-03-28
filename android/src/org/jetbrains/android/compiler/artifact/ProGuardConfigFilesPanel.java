@@ -93,7 +93,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     final List<String> result = new ArrayList<String>(paths.size());
 
     for (String path : paths) {
-      String url = VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(path));
+      String url = VfsUtilCore.pathToUrl(path);
       final String sdkHome = getCanonicalSdkHome();
 
       if (sdkHome != null) {
