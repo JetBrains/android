@@ -414,7 +414,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    * Automotive TV, Wear, Tablet, and Phone, or Other if the category 
    * cannot be determined.
    */
-  private static String getCategory(@NotNull Device d) {
+  @VisibleForTesting
+  public static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isAutomotive(d)) {
       return FormFactor.AUTOMOTIVE.toString();
     } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {

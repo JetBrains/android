@@ -143,5 +143,8 @@
     <orientation name="land" size="1310,313" screenPos="256,111" screenSize="802,55" shadow="tablet_shadow_simple_land.9.png" back="tablet_back_simple.9.png"/>
   </device>
 
+  <device id="automotive_1024" name="Automotive">
+    <orientation name="land" size="2070,1458" screenPos="525,224" screenSize="1024,768" back="back.png" lights="fore.png"/>
+  </device>
 
 </devices>
