@@ -56,7 +56,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ui.UIUtil;
+import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -74,6 +74,8 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -82,6 +84,7 @@ public class NewProjectModel extends WizardModel {
   static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
   static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
   static final String PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE";
+  static final String PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE";
 
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
@@ -99,7 +102,7 @@ public class NewProjectModel extends WizardModel {
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final MultiTemplateRenderer myMultiTemplateRenderer;
-  private final ObjectProperty<Language> myLanguage = new ObjectValueProperty<>(calculateInitialLanguage(PropertiesComponent.getInstance()));
+  private final OptionalValueProperty<Language> myLanguage = new OptionalValueProperty<>();
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
   private final BoolProperty myUseAndroidx = new BoolValueProperty();
 
@@ -138,6 +141,7 @@ public class NewProjectModel extends WizardModel {
 
     myEnableCppSupport.set(getInitialCppSupport());
     myUseAndroidx.set(getInitialUseAndroidxSupport());
+    myLanguage.set(calculateInitialLanguage(PropertiesComponent.getInstance()));
   }
 
   @NotNull
@@ -167,7 +171,7 @@ public class NewProjectModel extends WizardModel {
     return myCppFlags;
   }
 
-  public ObjectProperty<Language> language() {
+  public OptionalValueProperty<Language> language() {
     return myLanguage;
   }
 
@@ -281,21 +285,26 @@ public class NewProjectModel extends WizardModel {
    *         otherwise Java (ie user used the wizards before, and un-ticked the check-box)
    */
   @NotNull
-  static Language calculateInitialLanguage(@NotNull PropertiesComponent props) {
+  static Optional<Language> calculateInitialLanguage(@NotNull PropertiesComponent props) {
+    Language initialLanguage;
     String languageValue = props.getValue(PROPERTIES_NPW_LANGUAGE_KEY);
-    if (languageValue != null) {
+    if (languageValue == null) {
+      boolean selectedOldUseKotlin = props.getBoolean(PROPERTIES_KOTLIN_SUPPORT_KEY);
+      boolean isFirstUsage = !props.isValueSet(PROPERTIES_ANDROID_PACKAGE_KEY);
+      initialLanguage = (selectedOldUseKotlin || isFirstUsage) ? KOTLIN : JAVA;
+
+      // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
+      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.getName());
+      props.unsetValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
+    }
+    else  {
       // We have this value saved already, nothing to do
-      return Language.fromName(languageValue, Language.KOTLIN);
+      initialLanguage = Language.fromName(languageValue, KOTLIN);
     }
 
-    boolean selectedOldUseKotlin = props.getBoolean(PROPERTIES_KOTLIN_SUPPORT_KEY);
-    boolean isFirstUsage = !props.isValueSet(PROPERTIES_ANDROID_PACKAGE_KEY);
-    Language res = (selectedOldUseKotlin || isFirstUsage) ? Language.KOTLIN : Language.JAVA;
-
-    // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, res.getName());
-    props.unsetValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
-    return res;
+    boolean askedBefore = props.getBoolean(PROPERTIES_NPW_ASKED_LANGUAGE_KEY);
+    // After version 3.5, we force the user to select the language if we didn't ask before or if the selection was not Kotlin.
+    return initialLanguage == KOTLIN || askedBefore ? Optional.of(initialLanguage) : Optional.empty();
   }
 
   /**
@@ -310,8 +319,10 @@ public class NewProjectModel extends WizardModel {
   public void onWizardFinished(@NotNull ModelWizard.WizardResult wizardResult) {
     if (wizardResult == ModelWizard.WizardResult.FINISHED) {
       // Set the property value
-      PropertiesComponent.getInstance().setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-      PropertiesComponent.getInstance().setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.get().getName());
+      PropertiesComponent props = PropertiesComponent.getInstance();
+      props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
+      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().getName());
+      props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
     }
   }
 
@@ -407,7 +418,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
-      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myLanguage.get() == Language.KOTLIN);
+      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myLanguage.getValue() == KOTLIN);
 
       if (StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
         String offlineReposString = getOfflineReposString();
