@@ -305,6 +305,11 @@ public final class StudioFlags {
     "Simplify design surface resize",
     false);
 
+  public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
+    NELE, "constraint.section", "Constraint Section",
+    "Show the constraint section for constraint widget in property panel",
+    true);
+
   public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
