@@ -16,10 +16,16 @@
 package com.android.tools.idea.diagnostics;
 
 import com.android.annotations.concurrency.Slow;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.WindowsDefenderStatus;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
+import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -54,41 +60,38 @@ public class WindowsPerformanceHintsChecker {
         List<Pattern> excludedPatterns = getExcludedPatterns();
         if (excludedPatterns == null) {
           // there was an error getting the excluded paths
-          //logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
+          logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
         } else {
           Map<Path, Boolean> pathStatuses = checkPathsExcluded(getImportantPaths(project), excludedPatterns);
-          //WindowsDefenderStatus.Status overallStatus;
+          WindowsDefenderStatus.Status overallStatus;
           if (pathStatuses.containsValue(Boolean.FALSE)) {
             systemHealthMonitor.showNotification("windows.defender.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
               "https://developer.android.com/")); // TODO(npaige): point this at the real page once it exists
-            /*
             if (pathStatuses.containsValue(Boolean.TRUE)) {
               overallStatus = WindowsDefenderStatus.Status.SOME_EXCLUDED;
             } else {
               overallStatus = WindowsDefenderStatus.Status.NONE_EXCLUDED;
             }
-            */
           } else {
-            //overallStatus = WindowsDefenderStatus.Status.ALL_EXCLUDED;
+            overallStatus = WindowsDefenderStatus.Status.ALL_EXCLUDED;
           }
           String projectDir = project.getBasePath();
           boolean projectPathExcluded = false;
           if (projectDir != null) {
             projectPathExcluded = pathStatuses.getOrDefault(Paths.get(projectDir), false);
           }
-          //logWindowsDefenderStatus(overallStatus, projectPathExcluded, project);
+          logWindowsDefenderStatus(overallStatus, projectPathExcluded, project);
         }
         break;
       case SCANNING_DISABLED:
-        //logWindowsDefenderStatus(WindowsDefenderStatus.Status.SCANNING_DISABLED, true, project);
+        logWindowsDefenderStatus(WindowsDefenderStatus.Status.SCANNING_DISABLED, true, project);
         break;
       case ERROR:
-        //logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
+        logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
         break;
     }
   }
 
-  /* TODO(npaige): uncomment this and its usages after the proto changes go in
   private static void logWindowsDefenderStatus(WindowsDefenderStatus.Status status, boolean projectDirExcluded, @NotNull Project project) {
     LOG.info("Windows Defender status: " + status + "; projectDirExcluded? " + projectDirExcluded);
     if (!ApplicationManager.getApplication().isInternal() && StatisticsUploadAssistant.isSendAllowed()) {
@@ -99,7 +102,6 @@ public class WindowsPerformanceHintsChecker {
                                                                                      .setStatus(status)), project));
     }
   }
-   */
 
   /** Runs a powershell command to list the paths that are excluded from realtime scanning by Windows Defender. These
    * paths can contain environment variable references, as well as wildcards ('?', which matches a single character, and
