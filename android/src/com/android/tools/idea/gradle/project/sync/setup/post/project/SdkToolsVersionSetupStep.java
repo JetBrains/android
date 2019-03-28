@@ -20,52 +20,104 @@ import static com.android.tools.idea.sdk.VersionCheck.MIN_TOOLS_REV;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_VERSION_INSTALLED;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
+import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SdkToolsVersionSetupStep extends ProjectSetupStep {
+  private static final com.android.repository.api.ProgressIndicator REPO_LOGGER =
+    new StudioLoggerProgressIndicator(SdkToolsVersionSetupStep.class);
+
   @NotNull private final IdeSdks myIdeSdks;
+  @NotNull private final Supplier<? extends RepoManager> myRepoManagerSupplier;
+  @NotNull private final Supplier<? extends ExecutorService> myExecutorServiceSupplier;
   private volatile boolean myNewSdkVersionToolsInfoAlreadyShown;
+  private volatile boolean myNewSdkVersionToolsInfoCheckInProgress;
+
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SdkToolsVersionSetupStep() {
-    this(IdeSdks.getInstance());
+    this(IdeSdks.getInstance(), REPO_MANAGER_SUPPLIER, () -> AppExecutorUtil.getAppExecutorService());
   }
 
   @VisibleForTesting
-  SdkToolsVersionSetupStep(@NotNull IdeSdks ideSdks) {
+  SdkToolsVersionSetupStep(
+      @NotNull IdeSdks ideSdks,
+      @NotNull Supplier<? extends RepoManager> repoManagerSupplier,
+      @NonNull Supplier<? extends ExecutorService> executorServiceSupplier) {
     myIdeSdks = ideSdks;
+    myRepoManagerSupplier = repoManagerSupplier;
+    myExecutorServiceSupplier = executorServiceSupplier;
   }
 
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
-    if (myNewSdkVersionToolsInfoAlreadyShown) {
+    if (myNewSdkVersionToolsInfoAlreadyShown || myNewSdkVersionToolsInfoCheckInProgress) {
+      // If we're already running a check for this, we return this.
+      // If the pop-up has been shown (and dismissed by the user) already, we don't try to show again.
       return;
     }
 
     File androidHome = myIdeSdks.getAndroidSdkPath();
-    if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
-      InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(MIN_TOOLS_REV);
-      String message = "Version " + MIN_TOOLS_REV + " or later is required.";
-      AndroidNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
-      myNewSdkVersionToolsInfoAlreadyShown = true;
+    if (androidHome != null) {
+      // checkToolsPackage can end-up doing some I/O to look for the tools package, so we offload it to a background thread.
+      myNewSdkVersionToolsInfoCheckInProgress = true;
+      myExecutorServiceSupplier.get().submit(() -> {
+        if (!checkToolsPackage(project, androidHome)) {
+          InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(MIN_TOOLS_REV);
+          String message = "Version " + MIN_TOOLS_REV + " or later is required.";
+          AndroidNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
+          myNewSdkVersionToolsInfoAlreadyShown = true;
+        }
+        myNewSdkVersionToolsInfoCheckInProgress = false;
+      });
     }
+  }
+
+  @Slow
+  private boolean checkToolsPackage(@NotNull Project project, @NotNull File androidHome) {
+    // First we use VersionCheck since it's less expensive and directly checks only the "tools" folder under androidHome directory.
+    return VersionCheck.isCompatibleVersion(androidHome) || checkToolsPackageUsingRepoManager(project);
+  }
+
+  private boolean checkToolsPackageUsingRepoManager(@NotNull Project project) {
+    RepoManager mgr = myRepoManagerSupplier.get();
+    if (mgr == null) {
+      return false;
+    }
+
+    mgr.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+             new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+             null, // We force null downloader, to not touch the network at all.
+             StudioSettingsController.getInstance(), true);
+    return mgr.getPackages().getLocalPackages().containsKey("tools");
   }
 
   @Override
@@ -107,4 +159,19 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
       return myVersion;
     }
   }
+
+  /** Supply a RepoManager from {@link AndroidSdks}. */
+  private static final Supplier<RepoManager> REPO_MANAGER_SUPPLIER = () -> {
+      AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+      if (data == null) {
+        return null;
+      }
+
+      RepoManager mgr = data.getSdkHandler().getSdkManager(REPO_LOGGER);
+      if (mgr.getLocalPath() == null) {
+        return null;
+      }
+
+      return mgr;
+    };
 }
