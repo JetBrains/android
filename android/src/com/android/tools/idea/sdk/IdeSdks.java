@@ -492,7 +492,7 @@ public class IdeSdks {
       return false;
     }
     File jdkPath = doGetJdkPath(false);
-    return jdkPath != null && filesEqual(jdkPath, myEmbeddedDistributionPaths.getEmbeddedJdkPath());
+    return jdkPath != null && filesEqual(jdkPath, getEmbeddedJdkPath());
   }
 
   /**
@@ -500,7 +500,17 @@ public class IdeSdks {
    */
   public void setUseEmbeddedJdk() {
     checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
-    setJdkPath(myEmbeddedDistributionPaths.getEmbeddedJdkPath());
+    File embeddedJdkPath = getEmbeddedJdkPath();
+    assert embeddedJdkPath != null;
+    setJdkPath(embeddedJdkPath);
+  }
+
+  @Nullable
+  public File getEmbeddedJdkPath() {
+    if (!myIdeInfo.isAndroidStudio()) {
+      return null;
+    }
+    return myEmbeddedDistributionPaths.getEmbeddedJdkPath();
   }
 
   /**
@@ -517,10 +527,21 @@ public class IdeSdks {
     if (!myIdeInfo.isAndroidStudio()) {
       return false;
     }
-    String javaHome = getJdkFromJavaHome();
     // Do not create Jdk in ProjectJDKTable when running from unit tests, to prevent leaking
     File jdkPath =  assumeUnitTest ? doGetJdkPath(false) : getJdkPath();
-    return javaHome != null && filesEqual(jdkPath, toSystemDependentPath(javaHome));
+    return isSameAsJavaHomeJdk(jdkPath);
+  }
+
+  /**
+   * Indicates whether the passed path is the same as JAVA_HOME.
+   *
+   * @param path Path to test.
+   *
+   * @return true if JAVA_HOME is the same as path
+   */
+  public boolean isSameAsJavaHomeJdk(@Nullable File path) {
+    String javaHome = getJdkFromJavaHome();
+    return javaHome != null && filesEqual(path, toSystemDependentPath(javaHome));
   }
 
   /**
