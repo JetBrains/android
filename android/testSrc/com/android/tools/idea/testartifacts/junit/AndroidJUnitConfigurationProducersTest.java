@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromClass;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.getPsiElement;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
+
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.compiler.options.CompileStepBeforeRun;
@@ -25,12 +32,8 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.util.SystemInfo;
-import org.gradle.internal.impldep.com.google.common.collect.Lists;
-
 import java.util.List;
-
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.*;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
+import org.gradle.internal.impldep.com.google.common.collect.Lists;
 
 
 /**
@@ -156,8 +159,7 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
     assertEquals(CompileStepBeforeRun.ID, beforeRunTasks.get(0).getProviderId());
   }
 
-  // b/128036533
-  public void ignore_testIsFromContextForDirectoryJUnitConfiguration() throws Exception {
+  public void testIsFromContextForDirectoryJUnitConfiguration() throws Exception {
     loadSimpleApplication();
     AndroidJUnitConfiguration configuration = createJUnitConfigurationFromDirectory(getProject(), "app/src/test/java");
     ConfigurationContext context = createContext(getProject(), getPsiElement(getProject(), "app/src/test/java", true));
