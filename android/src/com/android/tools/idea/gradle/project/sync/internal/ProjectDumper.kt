@@ -205,6 +205,8 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
   nest {
     prop("LibraryLevel") { library.libraryLevel }
     prop("IsModuleLevel") { library.isModuleLevel.toString() }
+    prop("Scope") { library.scope.toString() }
+    prop("IsExported") { library.isExported.toString() }
     library.library?.let { dump(it, library.libraryName.orEmpty()) }
   }
 }

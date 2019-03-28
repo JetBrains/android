@@ -1,4 +1,4 @@
-PROJECT             : testPsdDependencyDeleteModule
+PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : app
         ModuleFile          : <PROJECT>/app/app.iml [-]
         ModuleTypeName      : JAVA_MODULE
@@ -145,52 +145,70 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -198,17 +216,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -216,24 +240,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -241,24 +273,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -266,17 +306,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -284,18 +330,24 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -303,12 +355,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -316,12 +372,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -348,26 +408,36 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: jarlib-1.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: jarlib-1.1 [=]
                 *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
             LIBRARY             : Gradle: lib3-0.9.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib3-0.9.1 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
             LIBRARY             : Gradle: lib3-1.0
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Test
+                IsExported          : true
                 Name                : Gradle: lib3-1.0 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
             LIBRARY             : Gradle: lib4-0.9.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib4-0.9.1 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
             LIBRARY             : Gradle: lib4-1.0
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Test
+                IsExported          : true
                 Name                : Gradle: lib4-1.0 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
             ORDER_ENTRY         : jModuleL
@@ -393,11 +463,15 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: lib3-1.0
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib3-1.0 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
             LIBRARY             : Gradle: lib4-1.0
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib4-1.0 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
     MODULE              : jModuleM
@@ -422,11 +496,15 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: lib3-0.9.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib3-0.9.1 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
             LIBRARY             : Gradle: lib4-0.9.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib4-0.9.1 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
     MODULE              : jModuleZ
@@ -451,26 +529,36 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: lib3-1.0
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Test
+                IsExported          : true
                 Name                : Gradle: lib3-1.0 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
             LIBRARY             : Gradle: lib4-0.6
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib4-0.6 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
             LIBRARY             : Gradle: lib4-1.0
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Test
+                IsExported          : true
                 Name                : Gradle: lib4-1.0 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
             LIBRARY             : Gradle: libsam1-1.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: libsam1-1.1 [=]
                 *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
             LIBRARY             : Gradle: libsam2-1.1
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: libsam2-1.1 [=]
                 *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
             ORDER_ENTRY         : jModuleK
@@ -622,52 +710,70 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -675,17 +781,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -693,24 +805,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -718,24 +838,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -743,17 +871,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -761,18 +895,24 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -780,12 +920,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -793,34 +937,46 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.example.jlib:lib3:1.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.jlib:lib3:1.0@jar [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
             LIBRARY             : Gradle: com.example.jlib:lib4:1.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.jlib:lib4:1.0@jar [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
             LIBRARY             : Gradle: com.example.libs:lib1:1.0@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.libs:lib1:1.0@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
             LIBRARY             : Gradle: com.example.libs:lib2:1.0@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.libs:lib2:1.0@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -926,62 +1082,84 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar [=]
                 *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
             LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam2-1.1.jar:unspecified@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam2-1.1.jar:unspecified@jar [=]
                 *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -989,17 +1167,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1007,24 +1191,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1032,24 +1224,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1057,17 +1257,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1075,18 +1281,24 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1094,12 +1306,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1107,12 +1323,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1218,57 +1438,77 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: __local_aars__:<PROJECT>/lib/libsam1-1.1.jar:unspecified@jar [=]
                 *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1276,17 +1516,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1294,24 +1540,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1319,24 +1573,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1344,17 +1606,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1362,18 +1630,24 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1381,12 +1655,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1394,12 +1672,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1506,52 +1788,70 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1559,17 +1859,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1577,24 +1883,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1602,24 +1916,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1627,17 +1949,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1645,18 +1973,24 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1664,12 +1998,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1677,12 +2015,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1788,52 +2130,70 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1841,17 +2201,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1859,24 +2225,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1884,24 +2258,32 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1909,17 +2291,23 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -1927,18 +2315,24 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1946,12 +2340,16 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -1959,34 +2357,46 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.example.jlib:lib3:1.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.jlib:lib3:1.0@jar [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
             LIBRARY             : Gradle: com.example.jlib:lib4:1.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.jlib:lib4:1.0@jar [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
             LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.libs:lib1:0.9.1@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
             LIBRARY             : Gradle: com.example.libs:lib2:0.9.1@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.example.libs:lib2:0.9.1@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -2013,10 +2423,12 @@ PROJECT             : testPsdDependencyDeleteModule
             LIBRARY             : Gradle: lib4-0.6
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: lib4-0.6 [=]
                 *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
-    MODULE              : testPsdDependencyDeleteModule
-        ModuleFile          : <PROJECT>/testPsdDependencyDeleteModule.iml [-]
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack
+        ModuleFile          : <PROJECT>/testPsdDependencyAndroidToJavaModuleAndBack.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

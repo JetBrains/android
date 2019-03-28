@@ -164,63 +164,85 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar!/
             LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:1.0.2@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support.constraint:constraint-layout:1.0.2@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
             LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -228,17 +250,23 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -246,24 +274,32 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -271,24 +307,32 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -296,17 +340,23 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
                 *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
             LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res
@@ -314,18 +364,24 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -333,12 +389,16 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
@@ -346,12 +406,16 @@ PROJECT             : testNdkProjectSync
             LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
             LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
