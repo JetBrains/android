@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import javax.swing.JPanel
@@ -34,7 +35,7 @@ class DummyCustomPanel private constructor() : CustomPanel {
     throw NotImplementedError()
   }
 
-  override fun useComponent(component: NlComponent?) {
+  override fun useComponent(component: NlComponent?, surface: DesignSurface?) {
     throw NotImplementedError()
   }
 

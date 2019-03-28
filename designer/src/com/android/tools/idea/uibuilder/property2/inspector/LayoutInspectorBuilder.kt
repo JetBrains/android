@@ -45,7 +45,8 @@ private const val LAYOUT_TITLE = "Layout"
  * then the custom panel if applicable, followed by the layout attributes
  * defined in the [ViewHandler] of the layout ViewGroup.
  */
-class LayoutInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class LayoutInspectorBuilder(project: Project,
+                             val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -108,7 +109,7 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
-    panel.useComponent(component)
+    panel.useComponent(component, property.model.surface)
     return panel.panel
   }
 
