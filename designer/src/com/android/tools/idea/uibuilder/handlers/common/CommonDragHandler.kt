@@ -86,8 +86,7 @@ internal class CommonDragHandler(editor: ViewEditor,
 
   // Note that coordinate is AndroidCoordinate, not AndroidDpCoordinate.
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType,
-                      callback: Runnable?) {
+                      insertType: InsertType) {
     if (dragTarget == null) {
       return
     }

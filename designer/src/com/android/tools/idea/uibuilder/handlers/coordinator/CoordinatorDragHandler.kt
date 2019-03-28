@@ -73,8 +73,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType,
-                      callback: Runnable?) {
+                      insertType: InsertType) {
     editor.insertChildren(layout.nlComponent, components, -1, insertType)
 
     when (insertType) {
