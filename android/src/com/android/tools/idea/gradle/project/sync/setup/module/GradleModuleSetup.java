@@ -77,7 +77,7 @@ public class GradleModuleSetup {
   @NotNull
   private static Collection<String> getGradlePlugins(@NotNull GradleModuleModels models) {
     GradlePluginModel pluginModel = models.findModel(GradlePluginModel.class);
-    return pluginModel == null ? emptyList() : pluginModel.getGraldePluginList();
+    return pluginModel == null ? emptyList() : pluginModel.getGradlePluginList();
   }
 
   public void setUpModule(@NotNull Module module,

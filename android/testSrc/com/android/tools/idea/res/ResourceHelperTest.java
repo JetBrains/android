@@ -410,7 +410,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(ResourceHelper.getResourceNamespace(projectClass)).isEqualTo(RES_AUTO);
 
     // Project R class:
-    copyRJavaToGeneratedSources();
     PsiClass rClass = myFixture.getJavaFacade().findClass("p1.p2.R", projectClass.getResolveScope());
     assertThat(ResourceHelper.getResourceNamespace(rClass)).isEqualTo(RES_AUTO);
 
@@ -420,7 +419,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement().getContainingFile())).isEqualTo(RES_AUTO);
 
     // Project Manifest class:
-    copyManifestJavaToGeneratedSources();
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       Permission newPermission = manifest.addPermission();
       newPermission.getName().setValue("p1.p2.NEW_PERMISSION");

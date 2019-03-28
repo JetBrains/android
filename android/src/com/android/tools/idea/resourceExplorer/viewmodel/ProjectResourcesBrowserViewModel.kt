@@ -36,7 +36,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
-private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT)
+private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT, ResourceType.MIPMAP)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]

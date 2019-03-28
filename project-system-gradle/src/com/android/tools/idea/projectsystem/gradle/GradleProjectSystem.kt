@@ -45,15 +45,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
   private val myPsiElementFinders: List<PsiElementFinder> = run {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      listOf(
-        AndroidInnerClassFinder.INSTANCE,
-        AndroidManifestClassPsiElementFinder.getInstance(project),
-        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
-      )
-    } else {
-      listOf(AndroidInnerClassFinder.INSTANCE)
-    }
+    listOf(
+      AndroidInnerClassFinder.INSTANCE,
+      AndroidManifestClassPsiElementFinder.getInstance(project),
+      AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+    )
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
@@ -94,8 +90,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
-
-  override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

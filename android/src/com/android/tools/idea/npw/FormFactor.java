@@ -43,7 +43,10 @@ public enum FormFactor {
   TV("TV", "TV", 21, SdkVersionInfo.LOWEST_ACTIVE_API_TV, SdkVersionInfo.HIGHEST_KNOWN_API_TV,
      null, Lists.newArrayList(SystemImage.TV_TAG), null, FormFactors.TV, FormFactors.TV_LARGE),
   CAR("Car", "Android Auto", 21, 21, 21, null, null, MOBILE, FormFactors.CAR, FormFactors.CAR_LARGE),
-  THINGS("Things", "Android Things", 24, 24, SdkVersionInfo.HIGHEST_KNOWN_API, null, null, null, FormFactors.THINGS, FormFactors.THINGS_LARGE),
+  AUTOMOTIVE("Automotive", "Automotive", 28, 28, SdkVersionInfo.HIGHEST_KNOWN_API, null, Lists.newArrayList(SystemImage.AUTOMOTIVE_TAG),
+             null, FormFactors.CAR, FormFactors.CAR_LARGE),
+  THINGS("Things", "Android Things", 24, 24, SdkVersionInfo.HIGHEST_KNOWN_API, null, null, null, FormFactors.THINGS,
+         FormFactors.THINGS_LARGE),
   GLASS("Glass", "Glass", 19, -1, -1, null, Lists.newArrayList(SystemImage.GLASS_TAG), null, FormFactors.GLASS, FormFactors.GLASS_LARGE);
 
   private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
@@ -51,6 +54,7 @@ public enum FormFactor {
     .put(WEAR.id, WEAR)
     .put(TV.id, TV)
     .put(CAR.id, CAR)
+    .put(AUTOMOTIVE.id, AUTOMOTIVE)
     .put(THINGS.id, THINGS)
     .put(GLASS.id, GLASS).build();
 
@@ -88,7 +92,10 @@ public enum FormFactor {
 
   @NotNull
   public static FormFactor getFormFactor(@NotNull Device device) {
-    if (HardwareConfigHelper.isWear(device)) {
+    if (HardwareConfigHelper.isAutomotive(device)) {
+      return AUTOMOTIVE;
+    }
+    else if (HardwareConfigHelper.isWear(device)) {
       return WEAR;
     }
     else if (HardwareConfigHelper.isTv(device)) {
@@ -96,7 +103,7 @@ public enum FormFactor {
     }
     else if (HardwareConfigHelper.isThings(device)) {
       return THINGS;
-    }    // Glass, Car not yet in the device list
+    }    // Glass not yet in the device list
 
     return MOBILE;
   }

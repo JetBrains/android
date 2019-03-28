@@ -90,16 +90,26 @@ public class GradleProjectImporter {
   @Nullable
   public Project importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
+    Project newProject = importProjectCore(projectFolder);
+    if (newProject != null) {
+      GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
+      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, createNewProjectListener(projectFolder));
+    }
+    return newProject;
+  }
+
+  /**
+   * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
+   * storage to force their re-import.
+   */
+  @Nullable
+  public Project importProjectCore(@NotNull VirtualFile projectFolder) {
+    Project newProject;
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
-    }
-    catch (IOException e) {
-      return null;
-    }
-    try {
       String projectName = projectFolder.getName();
-      return importProjectCore(projectName, projectFolderPath, new Request(), createNewProjectListener(projectFolder));
+      newProject = importProjectNoSync(projectName, projectFolderPath, new Request());
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -107,8 +117,9 @@ public class GradleProjectImporter {
       }
       showErrorDialog(e.getMessage(), "Project Import");
       getLogger().error(e);
+      newProject = null;
     }
-    return null;
+    return newProject;
   }
 
   @NotNull
@@ -149,21 +160,6 @@ public class GradleProjectImporter {
     };
   }
 
-  /**
-   * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
-   * storage to force their re-import.
-   */
-  @NotNull
-  @VisibleForTesting
-  public Project importProjectCore(@NotNull String projectName,
-                                   @NotNull File projectFolderPath,
-                                   @NotNull Request request,
-                                   @Nullable GradleSyncListener listener) throws IOException {
-    Project newProject = importProjectNoSync(projectName, projectFolderPath, request);
-    myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, listener);
-    return newProject;
-  }
-
   @NotNull
   public Project importProjectNoSync(@NotNull String projectName,
                                       @NotNull File projectFolderPath,
@@ -193,7 +189,6 @@ public class GradleProjectImporter {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
     projectInfo.setNewProject(request.isNewProject);
     projectInfo.setImportedProject(true);
-    projectInfo.setSkipStartupActivity(true);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
 

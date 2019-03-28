@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.npw.ui;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.IconUtil;
+import com.intellij.openapi.util.IconLoader;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods to load Template Images and find labels (TODO: Better desc)
@@ -37,16 +35,17 @@ public class ActivityGallery {
    * Return the image associated with the current template, if it specifies one, or null otherwise.
    */
   @Nullable
-  public static Image getTemplateImage(@Nullable TemplateHandle templateHandle, boolean isCppTemplate) {
+  public static TemplateIcon getTemplateIcon(@Nullable TemplateHandle templateHandle, boolean isCppTemplate) {
     if (isCppTemplate) {
-      return IconUtil.toImage(AndroidIcons.Wizards.CppConfiguration);
+      return new TemplateIcon(AndroidIcons.Wizards.CppConfiguration);
     }
 
     String thumb = templateHandle == null ? null : templateHandle.getMetadata().getThumbnailPath();
     if (thumb != null && !thumb.isEmpty()) {
       try {
         File file = new File(templateHandle.getRootPath(), thumb.replace('/', File.separatorChar));
-        return file.isFile() ? ImageIO.read(file) : null;
+        Icon icon = IconLoader.findIcon(file.toURI().toURL());
+        return icon != null ? new TemplateIcon(icon) : null;
       }
       catch (IOException e) {
         Logger.getInstance(ActivityGallery.class).warn(e);

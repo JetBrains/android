@@ -27,7 +27,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;

@@ -201,15 +201,34 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
      */
     fun isEditorChanged() = lastValueSet != null && getValue().value != lastValueSet?.value
 
+    private var delayedActionPending = false
+
+    override fun setPopupVisible(visible: Boolean) {
+      super.setPopupVisible(visible)
+      if (!visible && delayedActionPending) {
+        delayedActionPending = false
+        if (!disposed && !beingLoaded) {
+          onEditorChanged()
+        }
+      }
+    }
+
     init {
       if (cellEditor != null) {
-        registerTableCellEditor(cellEditor)
+        // Do not call registerTableCellEditor(cellEditor) which registers "JComboBox.isTableCellEditor" property which
+        // breaks property editors.
+        putClientProperty(TABLE_CELL_EDITOR_PROPERTY, cellEditor)
       }
       setEditable(true)
 
       addActionListener {
         if (!disposed && !beingLoaded) {
-          onEditorChanged()
+          if (super.isPopupVisible()) {
+            delayedActionPending = true
+          }
+          else {
+            onEditorChanged()
+          }
         }
       }
 
@@ -219,6 +238,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         }
       }
     }
+  }
+
+  override fun addFocusListener(listener: FocusListener) {
+    renderedComboBox.editor.editorComponent.addFocusListener(listener)
   }
 
   @VisibleForTesting
@@ -239,7 +262,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         if (extensionAction != null) {
           isFocusable = ScreenReader.isActive()
           icon = StudioIcons.Common.PROPERTY_UNBOUND
-          toolTipText = extensionAction.tooltip
+          toolTipText = extensionAction.tooltip + " (Shift+Enter)"
           addFocusListener(object : FocusListener {
             override fun focusLost(e: FocusEvent) {
               icon = StudioIcons.Common.PROPERTY_UNBOUND
@@ -254,6 +277,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
             override fun mousePressed(event: MouseEvent) { invokeAction() }
           })
           registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("SPACE"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+          this@EditorWrapper
+              .registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("shift ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
         }
         else {
           if (isPropertyContext) {

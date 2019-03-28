@@ -16,7 +16,9 @@
 package com.android.tools.idea.actions;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
@@ -45,6 +47,7 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 /**
@@ -52,7 +55,7 @@ import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx
  */
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
-  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
+  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE);
 
   public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
 
@@ -102,8 +105,17 @@ public class NewAndroidComponentAction extends AnAction {
       return;
     }
 
-    // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
     Presentation presentation = e.getPresentation();
+
+    // Hide Automotive templates if automotive feature is not enabled
+    if (myTemplateCategory.equals(CATEGORY_AUTOMOTIVE) && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
+      presentation.setVisible(false);
+      return;
+    } else {
+      presentation.setVisible(true);
+    }
+
+    // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
     AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
     if (myMinSdkApi > moduleInfo.getMinSdkVersion().getFeatureLevel()) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkApi));

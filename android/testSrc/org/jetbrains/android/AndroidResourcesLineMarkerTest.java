@@ -1,6 +1,5 @@
 package org.jetbrains.android;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -112,9 +111,7 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
 
   private void doJavaFileNavigationTest(int expectedTargets,
                                         boolean expectedEnabled,
-                                        @Nullable Class<? extends PsiElement> targetElementClass)
-    throws IOException {
-    copyRJavaAndManifestJava();
+                                        @Nullable Class<? extends PsiElement> targetElementClass) throws IOException {
     String path = "src/p1/p2/" + getTestName(false) + ".java";
     doJavaFileNavigationTest(path, path, expectedTargets, expectedEnabled, true, targetElementClass);
   }
@@ -133,13 +130,6 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
       for (PsiElement target : targets) {
         assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(target), targetElementClass);
       }
-    }
-  }
-
-  private void copyRJavaAndManifestJava() {
-    copyRJavaToGeneratedSources();
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
     }
   }
 }

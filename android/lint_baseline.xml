@@ -381,8 +381,8 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/model/ManifestInfo.java"
-            line="173"/>
+            file="src/com/android/tools/idea/model/MergedManifestInfo.java"
+            line="549"/>
     </issue>
 
     <issue

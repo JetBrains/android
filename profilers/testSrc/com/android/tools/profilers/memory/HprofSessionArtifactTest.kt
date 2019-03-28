@@ -16,12 +16,13 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.MemoryProfiler
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
@@ -53,7 +54,7 @@ class HprofSessionArtifactTest {
   @Before
   fun setup() {
     myProfilers = StudioProfilers(
-      myGrpcChannel.client,
+      ProfilerClient(myGrpcChannel.name),
       FakeIdeProfilerServices(),
       FakeTimer()
     )

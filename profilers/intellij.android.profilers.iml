@@ -24,5 +24,6 @@
     <orderEntry type="module" module-name="intellij.android.transportDatabase" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.transport" scope="TEST"/>
   </component>
 </module>

@@ -57,10 +57,19 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     }
   }
 
-  // http://b/62543184
-  public void testRunActivityWithNewCreatedProject() {
+  public void testRunActivityWithImportedProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(myGradleProjectInfo.isImportedProject()).thenReturn(true);
+
+    Project project = getProject();
+    myStartupActivity.runActivity(project);
+
+    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any());
+  }
+
+  public void testRunActivityWithSkipStartupProject() {
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    when(myGradleProjectInfo.isSkipStartupActivity()).thenReturn(true);
 
     Project project = getProject();
     myStartupActivity.runActivity(project);

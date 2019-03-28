@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
+import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB
 import com.google.common.truth.Truth.assertThat
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
 
@@ -34,11 +38,28 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     val moduleSystem = myModules.appModule.getModuleSystem()
 
     val (found, missing, warning) = moduleSystem.analyzeDependencyCompatibility(
-      listOf(GradleCoordinate("com.android.support", "appcompat-v7", "+")))
+      listOf(GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "+")))
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "$LATEST_API.+"))
+    assertThat(found).hasSize(1)
+
+    val foundDependency = found.first()
+    assertThat(foundDependency.artifactId).isEqualTo(APPCOMPAT_LIB_ARTIFACT_ID)
+    assertThat(foundDependency.groupId).isEqualTo(SUPPORT_LIB_GROUP_ID)
+    assertThat(foundDependency.version!!.major).isEqualTo(LATEST_API)
+
+    // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
+    if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
+      // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
+      assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")
+    }
+    else {
+      // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
+      assertThat(foundDependency.version!!.minor).isLessThan(Integer.MAX_VALUE)
+      assertThat(foundDependency.version!!.micro).isLessThan(Integer.MAX_VALUE)
+    }
   }
 
   @Throws(Exception::class)
@@ -76,40 +97,48 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
 
     // Verify that getRegisteredDependency gets a existing dependency correctly.
     val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    assertThat(moduleSystem.getRegisteredDependency(appCompat)).isNotNull()
-    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("$LATEST_API.+")
+    val foundDependency = moduleSystem.getRegisteredDependency(appCompat)!!
+
+    assertThat(foundDependency.artifactId).isEqualTo(APPCOMPAT_LIB_ARTIFACT_ID)
+    assertThat(foundDependency.groupId).isEqualTo(SUPPORT_LIB_GROUP_ID)
+    assertThat(foundDependency.version!!.major).isEqualTo(LATEST_API)
+
+    // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
+    if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
+      // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
+      assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")
+    }
+    else {
+      // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
+      assertThat(foundDependency.version!!.minor).isLessThan(Integer.MAX_VALUE)
+      assertThat(foundDependency.version!!.micro).isLessThan(Integer.MAX_VALUE)
+    }
   }
 
   @Throws(Exception::class)
-  fun testGetRegisteredMatchingDependencies() {
-    loadSimpleApplication()
+  fun testGetRegisteredDependencies() {
+    loadProject(SIMPLE_APP_WITH_OLDER_SUPPORT_LIB)
     val moduleSystem = myModules.appModule.getModuleSystem()
-    val dependencyManager = GradleDependencyManager.getInstance(project)
-    val dummyDependency = GradleCoordinate("a", "b", "4.5.6")
+    val appCompat = GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.0")
 
-    // Setup: Ensure the above dummy dependency is present in the build.gradle file.
-    assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
-    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
+    // Matching Dependencies:
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.0")), appCompat)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.+")), appCompat)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.+")), appCompat)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "+")), appCompat)).isTrue()
 
-    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.6")), dummyDependency)).isTrue()
-    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.+")), dummyDependency)).isTrue()
-    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "+")), dummyDependency)).isTrue()
-  }
-
-  @Throws(Exception::class)
-  fun testGetRegisteredNonMatchingDependencies() {
-    loadSimpleApplication()
-    val moduleSystem = myModules.appModule.getModuleSystem()
-    val dependencyManager = GradleDependencyManager.getInstance(project)
-    val dummyDependency = GradleCoordinate("a", "b", "4.5.6")
-
-    // Setup: Ensure the above dummy dependency is present in the build.gradle file.
-    assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
-    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
-
-    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.7"))).isNull()
-    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.99.+"))).isNull()
-    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "BAD", "4.5.6"))).isNull()
+    // Non Matching Dependencies:
+    assertThat(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.0.99"))).isNull()
+    assertThat(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "4.99.+"))).isNull()
+    assertThat(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, "BAD", "25.4.0"))).isNull()
   }
 
   @Throws(Exception::class)

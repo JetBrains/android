@@ -25,24 +25,43 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ImageLoader;
+import com.intellij.util.IconUtil;
 import com.intellij.util.containers.Convertor;
-import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBDimension;
-import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A gallery widget for displaying a collection of images.
@@ -71,7 +90,7 @@ public class ASGallery<E> extends JBList {
   /**
    * Caches item images, is reset if different image provider is supplied.
    */
-  @Nullable private LoadingCache<E, Optional<Image>> myImagesCache;
+  @Nullable private LoadingCache<E, Optional<Icon>> myIconsCache;
   /**
    * Caches item images, is reset if different image provider is supplied.
    */
@@ -80,25 +99,25 @@ public class ASGallery<E> extends JBList {
   @Nullable private Action myDefaultAction;
 
   public ASGallery() {
-    this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0), null);
+    this(new DefaultListModel(), Functions.constant(null), Functions.toStringFunction(), new Dimension(0, 0), null);
   }
 
   public ASGallery(@NotNull ListModel model,
-                   @NotNull Function<? super E, Image> imageProvider,
+                   @NotNull Function<? super E, Icon> iconProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize,
                    @Nullable Action defaultAction) {
-    this(model, imageProvider, labelProvider, thumbnailSize, defaultAction, false);
+    this(model, iconProvider, labelProvider, thumbnailSize, defaultAction, false);
   }
 
   public ASGallery(@NotNull ListModel model,
-                   @NotNull Function<? super E, Image> imageProvider,
+                   @NotNull Function<? super E, Icon> iconProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize,
                    @Nullable Action defaultAction,
                    boolean disableSpeedSearch) {
 
-      myThumbnailSize = JBDimension.create(thumbnailSize);
+    myThumbnailSize = JBDimension.create(thumbnailSize);
     myLabelProvider = labelProvider;
     myDefaultAction = defaultAction;
 
@@ -107,7 +126,7 @@ public class ASGallery<E> extends JBList {
       setFont(listFont);
     }
 
-    setImageProvider(imageProvider);
+    setIconProvider(iconProvider);
     setLabelProvider(labelProvider);
     setModel(model);
     setThumbnailSize(thumbnailSize);
@@ -218,8 +237,8 @@ public class ASGallery<E> extends JBList {
   public void setModel(ListModel model) {
     final int oldSelectIndex  = getSelectedIndex();
     super.setModel(model);
-    if (myImagesCache != null)
-      myImagesCache.invalidateAll();
+    if (myIconsCache != null)
+      myIconsCache.invalidateAll();
     myCellRenderers.clear();
     if (oldSelectIndex >= 0) {
       setSelectedIndex(oldSelectIndex);
@@ -283,10 +302,17 @@ public class ASGallery<E> extends JBList {
    * use {@link Object#equals(Object)}. Please do not rely on this behaviour
    * as it may change without prior notice.
    */
-  public void setImageProvider(@NotNull final Function<? super E, Image> imageProvider) {
-    CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(imageProvider));
+  public void setIconProvider(@NotNull final Function<? super E, Icon> iconProvider) {
+    Function<? super E, Icon> scaledIconProvider = (Function<E, Icon>)input -> {
+      Icon icon = iconProvider.apply(input);
+      if (icon == null) {
+        return null;
+      }
+      return IconUtil.scale(icon, ASGallery.this, (float)myThumbnailSize.height / icon.getIconHeight());
+    };
+    CacheLoader<? super E, Optional<Icon>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledIconProvider));
     myCellRenderers.clear();
-    myImagesCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
+    myIconsCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
     repaint(getVisibleRect());
   }
 
@@ -326,10 +352,10 @@ public class ASGallery<E> extends JBList {
   }
 
   @Nullable
-  private Image getCellImage(E element) {
+  private Icon getCellIcon(E element) {
     try {
-      Optional<Image> image = myImagesCache.get(element);
-      return image.orElse(null);
+      Optional<Icon> icon = myIconsCache.get(element);
+      return icon.orElse(null);
     }
     catch (ExecutionException e) {
       Logger.getInstance(getClass()).error(e);
@@ -378,19 +404,18 @@ public class ASGallery<E> extends JBList {
         myCellRenderers.put(element, renderer);
       }
       renderer.setAppearance(isSelected, cellHasFocus);
-      renderer.setScale(JBUI.ScaleContext.create(jlist), myThumbnailSize);
       return renderer.getComponent();
     }
 
     public CellRenderer createCellRendererComponent(E element) {
-      final Image image = ASGallery.this.getCellImage(element);
+      final Icon icon = ASGallery.this.getCellIcon(element);
       final String label = ASGallery.this.getCellLabel(element);
 
-      if (image == null) {
+      if (icon == null) {
         return new TextOnlyCellRenderer(label);
       }
       else {
-        return new TextAndImageCellRenderer(getFont(), label, image);
+        return new TextAndImageCellRenderer(getFont(), label, icon);
       }
     }
   }
@@ -398,7 +423,6 @@ public class ASGallery<E> extends JBList {
   private interface CellRenderer {
     void setAppearance(boolean isSelected, boolean cellHasFocus);
     Component getComponent();
-    void setScale(JBUI.ScaleContext ctx, Dimension thumbnailSize);
   }
 
   private static abstract class AbstractCellRenderer implements CellRenderer {
@@ -417,11 +441,6 @@ public class ASGallery<E> extends JBList {
       myIsSelected = isSelected;
       myCellHasFocus = cellHasFocus;
       updateAppearance();
-    }
-
-    @Override
-    public void setScale(JBUI.ScaleContext ctx, Dimension size) {
-
     }
 
     protected abstract void updateAppearance();
@@ -462,11 +481,8 @@ public class ASGallery<E> extends JBList {
   private static class TextAndImageCellRenderer extends AbstractCellRenderer {
     private JPanel myPanel;
     private JLabel myLabel;
-    private Image myImage;
-    private JBUI.ScaleContext myScaleContext;
-    private ImageIcon myIcon;
 
-    public TextAndImageCellRenderer(Font font, String label, Image image) {
+    private TextAndImageCellRenderer(Font font, String label, Icon icon) {
       // If there is an image, create a panel with the image at the top and
       // the label at the bottom. Also take care of selection highlighting.
       // +-Panel-------+
@@ -477,10 +493,8 @@ public class ASGallery<E> extends JBList {
       // | (label,     |
       // |   bottom)   |
       // +-------------+
-      myImage = image;
-      myIcon = new JBImageIcon(image);
-      myIcon.setDescription(label);
-      JLabel imageLabel = new JLabel(myIcon);
+      JLabel imageLabel = new JLabel(icon);
+      imageLabel.getAccessibleContext().setAccessibleDescription(label);
 
       JLabel textLabel = new JLabel(label, SwingConstants.CENTER);
       textLabel.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -506,15 +520,6 @@ public class ASGallery<E> extends JBList {
       setSelectionBorder(myPanel);
       setLabelBackground(myLabel);
       setLabelForeground(myLabel);
-    }
-
-    @Override
-    public void setScale(@NotNull JBUI.ScaleContext ctx, Dimension size) {
-      if (!ctx.equals(myScaleContext)) {
-        myScaleContext = ctx;
-        Image image = ImageUtil.ensureHiDPI(myImage, myScaleContext);
-        myIcon.setImage(ImageLoader.scaleImage(image, size.width, size.height));
-      }
     }
 
     @Override

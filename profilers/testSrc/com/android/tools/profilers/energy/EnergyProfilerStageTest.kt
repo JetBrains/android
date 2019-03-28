@@ -16,15 +16,16 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeFeatureTracker
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
@@ -95,7 +96,7 @@ class EnergyProfilerStageTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    myStage = EnergyProfilerStage(StudioProfilers(grpcChannel.client, services, timer))
+    myStage = EnergyProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.name), services, timer))
     myStage.studioProfilers.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(0).toDouble(), TimeUnit.SECONDS.toMicros(5).toDouble())
     myStage.studioProfilers.stage = myStage
     myStage.studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
@@ -117,7 +118,7 @@ class EnergyProfilerStageTest {
     assertThat(myStage.hasUserUsedEnergySelection()).isFalse()
     myStage.selectionModel.setSelectionEnabled(true)
     myStage.selectionModel.set(0.0, 100.0)
-    assertThat(myStage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(1f);
+    assertThat(myStage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(1f)
     assertThat(myStage.hasUserUsedEnergySelection()).isTrue()
   }
 

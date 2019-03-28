@@ -180,8 +180,7 @@ public final class GradleProjects {
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
     VirtualFile target = findImportTarget(importSource);
-    return target != null &&
-           (GradleConstants.EXTENSION.equals(target.getExtension()) ||
+    return (GradleConstants.EXTENSION.equals(target.getExtension()) ||
             target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
   }
 

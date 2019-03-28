@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.google.common.base.Joiner;
@@ -150,7 +151,7 @@ public class LaunchCompatibility {
 
     // Add-ons specify a list of libraries. We need to check that the required libraries are available on the device.
     // See AddOnTarget#canRunOn
-    List<IAndroidTarget.OptionalLibrary> additionalLibs = projectTarget.getAdditionalLibraries();
+    List<OptionalLibrary> additionalLibs = projectTarget.getAdditionalLibraries();
     if (additionalLibs.isEmpty()) {
       return YES;
     }

@@ -99,7 +99,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
   @RunsInEdt
   fun assertRenameFieldDerivedFromResource() {
     // Temporary fix until test model can detect dependencies properly.
-    val assembleDebug = myProjectRule.invokeTasks(myProjectRule.project, "assembleDebug")
+    val assembleDebug = myProjectRule.invokeTasks("assembleDebug")
     assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
 
     val syncState = GradleSyncState.getInstance(myProjectRule.project)
@@ -135,7 +135,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
   @RunsInEdt
   fun assertRenameMethod() {
     // Temporary fix until test model can detect dependencies properly.
-    val assembleDebug = myProjectRule.invokeTasks(myProjectRule.project, "assembleDebug")
+    val assembleDebug = myProjectRule.invokeTasks("assembleDebug")
     assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
 
     val syncState = GradleSyncState.getInstance(myProjectRule.project)

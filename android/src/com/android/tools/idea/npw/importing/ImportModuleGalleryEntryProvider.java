@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
+import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -23,17 +28,11 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 import java.io.File;
 import java.util.Collection;
-
-import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
-import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvider {
   @Override
@@ -58,8 +57,8 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
 
     @Nullable
     @Override
-    public Image getIcon() {
-      return getTemplateImage(myTemplateHandle, false);
+    public Icon getIcon() {
+      return getTemplateIcon(myTemplateHandle, false);
     }
 
     @NotNull
@@ -85,9 +84,9 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
 
     @Nullable
     @Override
-    public Image getIcon() {
+    public Icon getIcon() {
       File androidModuleTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE);
-      return  getTemplateImage(new TemplateHandle(androidModuleTemplate), false);
+      return getTemplateIcon(new TemplateHandle(androidModuleTemplate), false);
     }
 
     @NotNull

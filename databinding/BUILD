@@ -80,6 +80,7 @@ iml_module(
         "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

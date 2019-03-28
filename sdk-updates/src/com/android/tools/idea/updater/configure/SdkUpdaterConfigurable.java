@@ -48,6 +48,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -202,12 +203,38 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       messageToInstall.beginList();
       Multimap<RemotePackage, RemotePackage> dependencies = HashMultimap.create();
       ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      final Queue<String> dependencyIssues = new ConcurrentLinkedQueue<>();
+      ProgressIndicator dependencyIssueReporter = new DelegatingProgressIndicator(progress) {
+        @Override
+        public void logWarning(@NotNull String s) {
+          dependencyIssues.add(s);
+          super.logWarning(s);
+        }
+        @Override
+        public void logError(@NotNull String s) {
+          dependencyIssues.add(s);
+          super.logError(s);
+        }
+      };
       RepositoryPackages packages = getRepoManager().getPackages();
       for (RemotePackage item : requestedPackages.keySet()) {
-        List<RemotePackage> packageDependencies = InstallerUtil.computeRequiredPackages(ImmutableList.of(item), packages, progress);
+        List<RemotePackage> packageDependencies = InstallerUtil.computeRequiredPackages(ImmutableList.of(item), packages,
+                                                                                        dependencyIssueReporter);
         if (packageDependencies == null) {
-          Messages.showErrorDialog((Project)null, "Unable to resolve dependencies for " + item.getDisplayName(), "Dependency Error");
-          throw new ConfigurationException("Unable to resolve dependencies.");
+          String message;
+          if (!dependencyIssues.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (String issue : dependencyIssues) {
+              sb.append(issue);
+              sb.append(", ");
+            }
+            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb.toString();
+          }
+          else {
+            message = "Unable to resolve dependencies for " + item.getDisplayName();
+          }
+          Messages.showErrorDialog((Project)null, message, "Dependency Error");
+          throw new ConfigurationException(message);
         }
         for (RemotePackage dependency : packageDependencies) {
           dependencies.put(dependency, item);

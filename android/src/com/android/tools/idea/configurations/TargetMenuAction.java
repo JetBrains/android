@@ -20,10 +20,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -146,7 +146,7 @@ public class TargetMenuAction extends DropDownAction {
       }
 
       String title = getRenderingTargetLabel(target, true);
-      boolean select = current == target;
+      boolean select = current != null && target.getVersion().equals(current.getVersion());
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
   }
@@ -226,7 +226,7 @@ public class TargetMenuAction extends DropDownAction {
       myManager = manager;
 
       if (manager.getStateManager().getProjectState().isPickTarget()) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
     }
 
@@ -259,7 +259,7 @@ public class TargetMenuAction extends DropDownAction {
 
     public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
                            @NotNull final IAndroidTarget target, final boolean select) {
-      super(renderContext, title, select ? AllIcons.Actions.Checked : null);
+      super(renderContext, title, select ? LafIconLookup.getIcon("checkmark") : null);
       myTarget = target;
     }
 

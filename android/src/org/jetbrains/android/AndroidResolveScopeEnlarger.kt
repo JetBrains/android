@@ -61,7 +61,6 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
       Key.create<CachedValue<SearchScope?>>("${AndroidResolveScopeEnlarger::class.java.name}.resolveScopeSansTests")
 
     private fun computeAdditionalClassesForModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass>? {
-      if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return null
       val project = module.project
       if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return emptyList()
       if (module.androidFacet == null) return emptyList()

@@ -101,7 +101,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     super(null);
     mMain = new SingleWidgetView(mColorSet, myWidgetModel);
     mMain.setOpaque(false);
-
     myConstraintSection = new WidgetConstraintSection(myWidgetModel);
     myConstraintSection.setOpaque(false);
 

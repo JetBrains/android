@@ -21,12 +21,13 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
@@ -48,7 +49,8 @@ class CpuKernelsViewTest {
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuKernelsViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer),
+  var grpcChannel = FakeGrpcChannel("CpuKernelsViewTest", cpuService,
+                                    FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private lateinit var stage: CpuProfilerStage
@@ -58,7 +60,7 @@ class CpuKernelsViewTest {
   @Before
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(grpcChannel.client, ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 

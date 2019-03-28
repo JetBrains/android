@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.naveditor
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
@@ -34,7 +32,6 @@ class HostPanelTest {
   @JvmField
   val guiTest = GuiTestRule()
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testUpdateHostPanel() {
     val frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish()

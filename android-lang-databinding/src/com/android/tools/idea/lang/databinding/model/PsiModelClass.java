@@ -211,14 +211,14 @@ public class PsiModelClass extends ModelClass {
 
   @NotNull
   @Override
-  public List<ModelField> getDeclaredFields() {
+  public List<ModelField> getAllFields() {
     if (myType instanceof PsiClassType) {
       PsiClassType myPsiClassType = (PsiClassType)myType;
       PsiClass resolved = myPsiClassType.resolve();
       if (resolved == null) {
         return Collections.emptyList();
       }
-      return Stream.of(resolved.getFields())
+      return Stream.of(resolved.getAllFields())
         .map(PsiModelField::new)
         .collect(Collectors.toList());
     }
@@ -227,14 +227,14 @@ public class PsiModelClass extends ModelClass {
 
   @NotNull
   @Override
-  public List<ModelMethod> getDeclaredMethods() {
+  public List<ModelMethod> getAllMethods() {
     if (myType instanceof PsiClassType) {
       PsiClassType myPsiClassType = (PsiClassType)myType;
       PsiClass resolved = myPsiClassType.resolve();
       if (resolved == null) {
         return Collections.emptyList();
       }
-      return Stream.of(resolved.getMethods())
+      return Stream.of(resolved.getAllMethods())
         .map(PsiModelMethod::new)
         .collect(Collectors.toList());
     }

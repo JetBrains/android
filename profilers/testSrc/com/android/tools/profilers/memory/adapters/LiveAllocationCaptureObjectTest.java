@@ -25,11 +25,12 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -65,7 +66,6 @@ public class LiveAllocationCaptureObjectTest {
                                                                    new FakeTransportService(myTimer),
                                                                    new FakeProfilerService(myTimer),
                                                                    myService);
-
   protected final int CAPTURE_START_TIME = 0;
   protected final ExecutorService LOAD_SERVICE = MoreExecutors.newDirectExecutorService();
   protected final Executor LOAD_JOINER = MoreExecutors.directExecutor();
@@ -78,7 +78,7 @@ public class LiveAllocationCaptureObjectTest {
 
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer));
+    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
   }
 
   @RunWith(value = Parameterized.class)
@@ -92,6 +92,8 @@ public class LiveAllocationCaptureObjectTest {
 
     @Parameter(2)
     public Boolean myJniRefTracking;
+
+    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
 
     @Before
     @Override
@@ -116,7 +118,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testBasicDataLoad() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -155,7 +157,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testUnstartedSelectionEventsCancelled() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             null,
@@ -234,7 +236,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionWithFilter() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -308,7 +310,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionMinChanges() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -383,7 +385,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionMaxChanges() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -448,7 +450,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionShift() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -536,7 +538,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -574,6 +576,8 @@ public class LiveAllocationCaptureObjectTest {
 
   public static class DefaultHeapTest extends LiveAllocationCaptureObjectTest {
 
+    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+
     @Before
     @Override
     public void before() {
@@ -584,7 +588,7 @@ public class LiveAllocationCaptureObjectTest {
     // Class + method names in each StackFrame are lazy-loaded. Check that the method info are fetched correctly.
     @Test
     public void testLazyLoadedCallStack() throws Exception {
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -620,7 +624,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionWithJaveMethodFilter() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -656,6 +660,8 @@ public class LiveAllocationCaptureObjectTest {
 
   public static class JniHeapTest extends LiveAllocationCaptureObjectTest {
 
+    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+
     @Before
     @Override
     public void before() {
@@ -665,7 +671,7 @@ public class LiveAllocationCaptureObjectTest {
 
     @Test
     public void testLazyLoadedCallStack() throws Exception {
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,
@@ -701,7 +707,7 @@ public class LiveAllocationCaptureObjectTest {
     public void testSelectionWithJaveMethodFilter() throws Exception {
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
-      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myProfilerClient.getMemoryClient(),
                                                                             ProfilersTestData.SESSION_DATA,
                                                                             CAPTURE_START_TIME,
                                                                             LOAD_SERVICE,

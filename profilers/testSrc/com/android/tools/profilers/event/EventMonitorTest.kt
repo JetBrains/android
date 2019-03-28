@@ -20,6 +20,8 @@ import com.android.tools.adtui.model.event.LifecycleAction
 import com.android.tools.adtui.model.event.EventAction
 import com.android.tools.adtui.model.event.KeyboardAction
 import com.android.tools.adtui.model.event.UserEvent
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profilers.*
@@ -44,7 +46,7 @@ class EventMonitorTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices()
-    profilers = StudioProfilers(grpcChannel.client, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
     monitor = EventMonitor(profilers)
   }
 

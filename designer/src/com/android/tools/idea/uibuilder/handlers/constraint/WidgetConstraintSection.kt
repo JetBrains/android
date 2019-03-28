@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBList
+import com.intellij.ui.paint.EffectPainter2D
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -35,6 +35,8 @@ import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import java.awt.Component
 import java.awt.Font
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -43,6 +45,8 @@ import javax.swing.SwingConstants
 
 private const val PREFERRED_WIDTH = 280
 private const val COMPONENT_HEIGHT = 20
+
+private val ERROR_TEXT_COLOR = Color(0x969696)
 
 class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) : AdtSecondaryPanel() {
 
@@ -88,7 +92,6 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     add(list, BorderLayout.CENTER)
     add(warningPanel, BorderLayout.SOUTH)
 
-    // TODO: load project setting to see if it is collapse before.
     setExpand(expanded)
   }
 
@@ -140,9 +143,24 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
 
   private inner class SectionTitle: JPanel(BorderLayout()) {
 
-    private val warningIcon = JLabel()
-
     private val icon = JLabel()
+    private val constraintText = object: JLabel() {
+      override fun paint(g: Graphics) {
+        super.paint(g)
+        val hasWarning = widgetModel.isMissingHorizontalConstrained ||
+                         widgetModel.isMissingVerticalConstrained ||
+                         widgetModel.isOverConstrained
+        if (!expanded && hasWarning) {
+          val originalColor = g.color
+          g.color = Color.RED
+          val shiftY = 0.8 * height
+          EffectPainter2D.WAVE_UNDERSCORE.paint(g as Graphics2D, 0.0, (y + shiftY), width.toDouble(), (height - shiftY), null)
+          g.color = originalColor
+        }
+      }
+    }
+
+    private val constraintNumberText = JLabel()
 
     init {
       preferredSize = JBUI.size(PREFERRED_WIDTH, COMPONENT_HEIGHT)
@@ -150,23 +168,29 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       background = secondaryPanelBackground
 
       icon.icon = if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
-      icon.text = "Constraints"
-      add(icon, BorderLayout.CENTER)
+      icon.border = JBUI.Borders.emptyRight(4)
+      constraintText.text = "Constraints"
 
-      add(warningIcon, BorderLayout.EAST)
-      updateTitle()
+      val title = JPanel(BorderLayout())
+      title.background = secondaryPanelBackground
+      title.add(icon, BorderLayout.WEST)
+      title.add(constraintText, BorderLayout.CENTER)
+
+      add(title, BorderLayout.WEST)
+      add(constraintNumberText, BorderLayout.CENTER)
+      constraintNumberText.foreground = ERROR_TEXT_COLOR
     }
 
     fun updateTitle() {
       icon.icon = if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
-      warningIcon.icon = if (expanded) {
-         null
+      if (expanded) {
+        icon.icon = UIUtil.getTreeExpandedIcon()
+        constraintText
+        constraintNumberText.text = ""
       }
       else {
-        val hasWarning = widgetModel.isMissingHorizontalConstrained ||
-                         widgetModel.isMissingVerticalConstrained ||
-                         widgetModel.isOverConstrained
-        if (hasWarning) StudioIcons.Common.WARNING else null
+        icon.icon = UIUtil.getTreeCollapsedIcon()
+        constraintNumberText.text = "(${listData.size})"
       }
     }
   }
@@ -180,17 +204,20 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     init {
       background = secondaryPanelBackground
 
-      horizontalWarning.icon = StudioIcons.Common.WARNING
+      horizontalWarning.icon = StudioIcons.Common.ERROR_INLINE
       horizontalWarning.text = "Not Horizontally Constrained"
       horizontalWarning.border = JBUI.Borders.empty(2)
+      horizontalWarning.foreground = ERROR_TEXT_COLOR
 
-      verticalWarning.icon = StudioIcons.Common.WARNING
+      verticalWarning.icon = StudioIcons.Common.ERROR_INLINE
       verticalWarning.text = "Not Vertically Constrained"
       verticalWarning.border = JBUI.Borders.empty(2)
+      verticalWarning.foreground = ERROR_TEXT_COLOR
 
-      overConstrainedWarning.icon = StudioIcons.Common.WARNING
+      overConstrainedWarning.icon = StudioIcons.Common.ERROR_INLINE
       overConstrainedWarning.text = "Over Constrained"
       overConstrainedWarning.border = JBUI.Borders.empty(2)
+      overConstrainedWarning.foreground = ERROR_TEXT_COLOR
 
       add(horizontalWarning, BorderLayout.NORTH)
       add(verticalWarning, BorderLayout.CENTER)
@@ -224,7 +251,7 @@ private class ConstraintCellData(val namespace: String,
 private val constraintIcon = StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT
 private val highlightConstraintIcon = ColoredIconGenerator.generateWhiteIcon(constraintIcon)
 
-private val FADING_LABEL_COLOR = JBColor(Color.LIGHT_GRAY, Color.LIGHT_GRAY)
+private val FADING_LABEL_COLOR = Color(0x999999)
 
 private class ConstraintItemRenderer : DefaultListCellRenderer() {
   private val panel = JPanel()

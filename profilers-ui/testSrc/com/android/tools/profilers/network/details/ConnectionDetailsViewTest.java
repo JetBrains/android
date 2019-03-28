@@ -22,13 +22,14 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -99,7 +100,7 @@ public class ConnectionDetailsViewTest {
   @Before
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);

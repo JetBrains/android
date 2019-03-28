@@ -15,19 +15,20 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
@@ -53,7 +54,7 @@ public class AllocStatsDataSeriesTest {
   @Test
   public void testGetDataForXRange() {
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
-    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers studioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
@@ -69,7 +70,7 @@ public class AllocStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocStatsDataSeries series =
-      new AllocStatsDataSeries(studioProfilers, myGrpcChannel.getClient().getMemoryClient(),
+      new AllocStatsDataSeries(studioProfilers, new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                sample -> (long)sample.getJavaAllocationCount());
     List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
@@ -78,7 +79,7 @@ public class AllocStatsDataSeriesTest {
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new AllocStatsDataSeries(studioProfilers, myGrpcChannel.getClient().getMemoryClient(),
+    series = new AllocStatsDataSeries(studioProfilers, new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
                                       sample -> (long)sample.getJavaFreeCount());
     dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());

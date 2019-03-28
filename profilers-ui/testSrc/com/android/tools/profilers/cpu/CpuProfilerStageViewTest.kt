@@ -26,13 +26,14 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -86,7 +87,7 @@ class CpuProfilerStageViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, myIdeServices, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeServices, myTimer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up

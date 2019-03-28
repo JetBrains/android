@@ -56,6 +56,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.ProcessingContext;
+import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -162,14 +163,15 @@ public class DataBindingCompletionContributor extends CompletionContributor {
    * Given a data binding expression, return a list of {@link LookupElement} which are the field references of the given expression.
    * If onlyValidCompletions is false, private and mismatched context fields are also suggested.
    */
-  private List<LookupElement> populateFieldReferenceCompletions(@NotNull PsiElement referenceExpression, Boolean onlyValidCompletions) {
+  private static List<LookupElement> populateFieldReferenceCompletions(@NotNull PsiElement referenceExpression,
+                                                                       boolean onlyValidCompletions) {
     ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
     PsiReference[] childReferences = referenceExpression.getReferences();
     for (PsiReference reference : childReferences) {
       ModelClassResolvable ref = (ModelClassResolvable)reference;
       PsiModelClass resolvedType = ref.getResolvedType();
       if (resolvedType != null) {
-        for (ModelField modelField : resolvedType.getDeclaredFields()) {
+        for (ModelField modelField : resolvedType.getAllFields()) {
           PsiModelField psiModelField = (PsiModelField)modelField;
           if (onlyValidCompletions) {
             if (!psiModelField.isPublic() || ref.isStatic() && !psiModelField.isStatic()) {
@@ -184,12 +186,13 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     return resultBuilder.build();
   }
 
-  private List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression, Boolean onlyValidCompletion) {
+  private static List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression,
+                                                                        boolean onlyValidCompletion) {
     return populateMethodReferenceCompletions(referenceExpression, onlyValidCompletion, true);
   }
 
-  private List<LookupElement> populateMethodReferenceCompletionsForMethodBinding(@NotNull PsiElement referenceExpression,
-                                                                                 Boolean onlyValidCompletion) {
+  private static List<LookupElement> populateMethodReferenceCompletionsForMethodBinding(@NotNull PsiElement referenceExpression,
+                                                                                        boolean onlyValidCompletion) {
     return populateMethodReferenceCompletions(referenceExpression, onlyValidCompletion, false);
   }
 
@@ -197,11 +200,12 @@ public class DataBindingCompletionContributor extends CompletionContributor {
    * Given a data binding expression, return a list of {@link LookupElement} which are method references of the given expression.
    * If onlyValidCompletions is false, private and mismatched context fields are also suggested.
    */
-  private List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression,
-                                                                 Boolean onlyValidCompletions,
-                                                                 Boolean completeBrackets) {
+  private static List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression,
+                                                                        boolean onlyValidCompletions,
+                                                                        boolean completeBrackets) {
     ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
     PsiReference[] childReferences = referenceExpression.getReferences();
+    HashSet<String> uniqueNames = new HashSet<>();
     for (PsiReference reference : childReferences) {
       if (reference instanceof ModelClassResolvable) {
         ModelClassResolvable ref = (ModelClassResolvable)reference;
@@ -209,7 +213,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         if (resolvedType == null) {
           continue;
         }
-        for (ModelMethod modelMethod : resolvedType.getDeclaredMethods()) {
+        for (ModelMethod modelMethod : resolvedType.getAllMethods()) {
           PsiModelMethod psiModelMethod = (PsiModelMethod)modelMethod;
           PsiMethod psiMethod = psiModelMethod.getPsiMethod();
           if (psiMethod.isConstructor()) {
@@ -230,6 +234,12 @@ public class DataBindingCompletionContributor extends CompletionContributor {
               name = StringUtil.decapitalize(psiModelMethod.getName().substring(2));
             }
           }
+
+          // TODO(128618360): add parameters to code completion.
+          if (uniqueNames.contains(name)) {
+            continue;
+          }
+          uniqueNames.add(name);
           resultBuilder.add(createTrackedLookupElement(psiMethod, name));
         }
       }
@@ -245,6 +255,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         DataBindingTracker tracker = DataBindingTracker.getInstance(context.getProject());
 
         PsiElement childElement = context.getFile().findElementAt(context.getStartOffset());
+        assert childElement != null;
         PsiElement grandParent = childElement.getParent().getParent();
         if (grandParent instanceof PsiDbFunctionRefExpr) {
           tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_ACCEPTED, DATA_BINDING_CONTEXT_METHOD_REFERENCE);

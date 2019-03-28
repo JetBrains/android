@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
@@ -27,10 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidEditorTitleProviderTest extends AndroidTestCase {
   public void testTitle() throws Exception {
-    copyRJavaToGeneratedSources();
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      checkTitle("gen/p1/p2/R.java", null);
-    }
 
     checkTitle("AndroidManifest.xml", null);
     checkTitle("res/wrong/path.xml", null);

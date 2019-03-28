@@ -40,7 +40,7 @@ interface AssetPreviewManager {
 
 /**
  * Default implementation of [AssetPreviewManager]. The supported [ResourceType] are [ResourceType.DRAWABLE],
- * [ResourceType.LAYOUT] and [ResourceType.COLOR].
+ * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
 class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) : AssetPreviewManager {
 
@@ -60,6 +60,7 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
     when (resourceType) {
       ResourceType.COLOR -> colorPreviewProvider
       ResourceType.DRAWABLE,
+      ResourceType.MIPMAP,
       ResourceType.LAYOUT -> drawablePreviewProvider
       else -> DefaultIconProvider.INSTANCE
     }
