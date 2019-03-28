@@ -134,8 +134,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -703,8 +702,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -1075,8 +1073,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -1431,8 +1428,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -1781,8 +1777,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -2123,8 +2118,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK

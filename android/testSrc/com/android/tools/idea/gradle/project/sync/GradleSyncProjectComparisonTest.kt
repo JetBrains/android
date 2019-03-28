@@ -42,7 +42,6 @@ import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run

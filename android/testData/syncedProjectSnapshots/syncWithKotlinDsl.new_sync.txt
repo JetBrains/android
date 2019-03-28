@@ -114,8 +114,7 @@ PROJECT             : testSyncWithKotlinDsl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -517,8 +516,7 @@ PROJECT             : testSyncWithKotlinDsl
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK

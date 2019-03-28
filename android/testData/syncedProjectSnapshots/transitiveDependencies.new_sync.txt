@@ -92,8 +92,7 @@ PROJECT             : testTransitiveDependencies
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -570,8 +569,7 @@ PROJECT             : testTransitiveDependencies
             JavaResource (test) : file://<PROJECT>/library1/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/library1/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/library1/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/library1/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/library1/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/library1/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -1009,8 +1007,7 @@ PROJECT             : testTransitiveDependencies
             JavaResource (test) : file://<PROJECT>/library2/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/library2/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/library2/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/library2/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/library2/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/library2/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
