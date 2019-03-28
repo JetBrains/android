@@ -15,16 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.FilteredPTableModel
-import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
-import com.android.tools.property.panel.api.GroupSpec
-import com.android.tools.property.panel.api.InspectorBuilder
-import com.android.tools.property.panel.api.InspectorPanel
-import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.panel.api.TableLineModel
-import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.inspector.groups.ConstraintGroup
@@ -32,13 +22,22 @@ import com.android.tools.idea.uibuilder.property2.inspector.groups.MarginGroup
 import com.android.tools.idea.uibuilder.property2.inspector.groups.PaddingGroup
 import com.android.tools.idea.uibuilder.property2.inspector.groups.ThemeGroup
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
-import com.intellij.openapi.actionSystem.AnAction
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.FilteredPTableModel
+import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
+import com.android.tools.property.panel.api.GroupSpec
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.panel.api.TableUIProvider
 
 private const val ALL_ATTRIBUTES_TITLE = "All Attributes"
 
-class AllAttributesInspectorBuilder(private val model: NelePropertiesModel,
-                               controlTypeProvider: NeleControlTypeProvider,
-                               editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class AllAttributesInspectorBuilder(
+  private val model: NelePropertiesModel,
+  controlTypeProvider: NeleControlTypeProvider,
+  editorProvider: EditorProvider<NelePropertyItem>
+) : InspectorBuilder<NelePropertyItem> {
 
   private val allTableUIProvider = TableUIProvider.create(
     NelePropertyItem::class.java, controlTypeProvider, editorProvider)
@@ -49,7 +48,8 @@ class AllAttributesInspectorBuilder(private val model: NelePropertiesModel,
     }
 
     val allTableModel = FilteredPTableModel.create(model, { true }, alphabeticalSortOrder, createGroups(properties))
-    addTable(inspector, ALL_ATTRIBUTES_TITLE, allTableModel, allTableUIProvider, searchable = true)
+    val titleModel = inspector.addExpandableTitle(ALL_ATTRIBUTES_TITLE, false)
+    inspector.addTable(allTableModel, true, allTableUIProvider, titleModel)
   }
 
   private fun createGroups(properties: PropertiesTable<NelePropertyItem>): List<GroupSpec<NelePropertyItem>> {
@@ -60,14 +60,4 @@ class AllAttributesInspectorBuilder(private val model: NelePropertiesModel,
     groups.add(ThemeGroup(model.facet, properties))
     return groups
   }
-}
-
-fun addTable(inspector: InspectorPanel,
-             title: String,
-             tableModel: PTableModel,
-             uiProvider: TableUIProvider,
-             vararg actions: AnAction,
-             searchable: Boolean): TableLineModel {
-  val titleModel = inspector.addExpandableTitle(title, false, *actions)
-  return inspector.addTable(tableModel, searchable, uiProvider, titleModel)
 }
