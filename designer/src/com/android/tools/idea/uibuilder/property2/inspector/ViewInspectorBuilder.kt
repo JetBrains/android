@@ -110,7 +110,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
-    panel.useComponent(component)
+    panel.useComponent(component, property.model.surface)
     return panel.panel
   }
 

@@ -201,6 +201,13 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     private val verticalWarning = JLabel()
     private val overConstrainedWarning = JLabel()
 
+    private val mouseListener = object: MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent?) {
+        val component = widgetModel.component ?: return
+        widgetModel.surface?.issuePanel?.showIssueForComponent(component, true)
+      }
+    }
+
     init {
       background = secondaryPanelBackground
 
@@ -208,16 +215,19 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       horizontalWarning.text = "Not Horizontally Constrained"
       horizontalWarning.border = JBUI.Borders.empty(2)
       horizontalWarning.foreground = ERROR_TEXT_COLOR
+      horizontalWarning.addMouseListener(mouseListener)
 
       verticalWarning.icon = StudioIcons.Common.ERROR_INLINE
       verticalWarning.text = "Not Vertically Constrained"
       verticalWarning.border = JBUI.Borders.empty(2)
       verticalWarning.foreground = ERROR_TEXT_COLOR
+      verticalWarning.addMouseListener(mouseListener)
 
       overConstrainedWarning.icon = StudioIcons.Common.ERROR_INLINE
       overConstrainedWarning.text = "Over Constrained"
       overConstrainedWarning.border = JBUI.Borders.empty(2)
       overConstrainedWarning.foreground = ERROR_TEXT_COLOR
+      overConstrainedWarning.addMouseListener(mouseListener)
 
       add(horizontalWarning, BorderLayout.NORTH)
       add(verticalWarning, BorderLayout.CENTER)
