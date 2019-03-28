@@ -164,4 +164,40 @@ public class ConstraintUtilities {
     return "";
   }
 
+  @NotNull
+  public static String getResolvedToggleText(@NotNull NlComponent component) {
+    // Get checked attribute, if any.
+    String checkedText = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CHECKED);
+    if (checkedText != null) {
+      if (checkedText.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        checkedText = resolveStringResource(component, checkedText);
+      }
+    }
+    else {
+      checkedText = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_CHECKED);
+      if (checkedText != null) {
+        if (checkedText.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+          checkedText = resolveStringResource(component, checkedText);
+        }
+      }
+    }
+    // Default to off state.
+    String toggleTextAttr =
+      checkedText != null && checkedText.equals(SdkConstants.VALUE_TRUE) ? SdkConstants.ATTR_TEXT_ON : SdkConstants.ATTR_TEXT_OFF;
+    String text = component.getAttribute(SdkConstants.TOOLS_URI, toggleTextAttr);
+    if (text != null) {
+      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        return resolveStringResource(component, text);
+      }
+      return text;
+    }
+    text = component.getAttribute(SdkConstants.ANDROID_URI, toggleTextAttr);
+    if (text != null) {
+      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        return resolveStringResource(component, text);
+      }
+      return text;
+    }
+    return "";
+  }
 }

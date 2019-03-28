@@ -260,6 +260,7 @@ DrawComponentBackground,275,215,30,10,1
 DrawSwitch,275,215,30,10,0,0,false,false,2,2,14,1.0,"switch"
 DrawNlComponentFrame,275,215,30,10,1,20,20
 DrawComponentBackground,195,275,30,10,1
+DrawUnknownDecorator,195,275,30,10,28,1.0,"h"
 DrawNlComponentFrame,195,275,30,10,1,20,20
 VerticalZigZagLineCommand - (250, 0, 225)
 VerticalZigZagLineCommand - (250, 275, 500)
