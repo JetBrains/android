@@ -92,8 +92,7 @@ PROJECT             : My Application
             JavaResource (test) : file://<PROJECT>/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK

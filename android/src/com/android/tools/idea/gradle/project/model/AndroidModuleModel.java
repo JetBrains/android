@@ -17,23 +17,16 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
-import static com.android.SdkConstants.FD_RES_CLASS;
-import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
-import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.util.ArrayUtil.contains;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidProject;
@@ -64,9 +57,9 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -715,45 +708,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myExtraGeneratedSourceFolders.add(folderPath);
   }
 
-  @NotNull
-  public List<File> getExcludedFolderPaths() {
-    File buildFolderPath = getAndroidProject().getBuildFolder();
-    List<File> excludedFolderPaths = new ArrayList<>();
-
-    if (buildFolderPath.isDirectory()) {
-      for (File folderPath : notNullize(buildFolderPath.listFiles())) {
-        String folderName = folderPath.getName();
-        if (folderName.equals(FD_INTERMEDIATES) || folderName.equals(FD_GENERATED)) {
-          // Folders 'intermediates' and 'generated' are never excluded (some children of 'intermediates' are excluded though.)
-          continue;
-        }
-        excludedFolderPaths.add(folderPath);
-      }
-      File intermediates = new File(buildFolderPath, FD_INTERMEDIATES);
-      if (intermediates.isDirectory()) {
-        for (File folderPath : notNullize(intermediates.listFiles())) {
-          String folderName = folderPath.getName();
-          if (folderName.equals(FilenameConstants.EXPLODED_AAR) || folderName.equals("manifest")) {
-            continue;
-          }
-          excludedFolderPaths.add(folderPath);
-        }
-      }
-
-      // Exclude the location of R.java files, to speed up indexing. The location changed in 3.2, so we exclude both.
-      File generatedFolder = new File(buildFolderPath, FD_GENERATED);
-      excludedFolderPaths.add(new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
-      excludedFolderPaths.add(new File(generatedFolder, FD_SOURCE_GEN + File.separator + FD_RES_CLASS));
-    }
-    else {
-      // We know these folders have to be always excluded
-      excludedFolderPaths.add(new File(buildFolderPath, FD_OUTPUTS));
-      excludedFolderPaths.add(new File(buildFolderPath, "tmp"));
-    }
-
-    return excludedFolderPaths;
-  }
-
   /**
    * @return the paths of generated sources placed at the wrong location (not in ${build}/generated.)
    */
@@ -991,12 +945,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Override
+  @NotNull
   public Map<String, DynamicResourceValue> getResValues() {
-    Map<String, DynamicResourceValue> result = new HashMap<>();
     Variant selectedVariant = getSelectedVariant();
 
     // flavors and default config:
-    result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(selectedVariant.getMergedFlavor().getResValues()));
+    Map<String, DynamicResourceValue> result =
+      new HashMap<>(GradleModelConverterUtil.classFieldsToDynamicResourceValues(selectedVariant.getMergedFlavor().getResValues()));
 
     BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
     if (buildType != null) {

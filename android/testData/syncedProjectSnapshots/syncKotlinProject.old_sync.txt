@@ -127,9 +127,7 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/generated/not_namespaced_r_class_sources [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/generated/source/r [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/tmp
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -635,8 +633,7 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/awesomeandroidlibrary/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/awesomeandroidlibrary/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/awesomeandroidlibrary/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
