@@ -42,8 +42,11 @@ import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.WriteAction.run
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
@@ -84,13 +87,7 @@ abstract class GradleSyncProjectComparisonTest(
     override fun testNdkProjectSync() = Unit
   }
 
-  class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false) {
-    /** TODO(b/124508973): Enable this test */
-    override fun testPsdDependency() = Unit
-
-    /** TODO(b/124508973): Enable this test */
-    override fun testPsdDependencyUpgradeLibraryModule() = Unit
-  }
+  class OldSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = false)
 
   private val snapshotSuffixes = listOfNotNull(
       // Suffixes to use to override the default expected result.
@@ -258,8 +255,8 @@ abstract class GradleSyncProjectComparisonTest(
     }
     assertIsEqualToSnapshot(text, ".before_android_to_java")
     val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
-      val jModuleMFile = project.baseDir.findFileByRelativePath("jModuleM/build.gradle")!!
-      val moduleCFile = project.baseDir.findFileByRelativePath("moduleC/build.gradle")!!
+      val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
+      val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
       val moduleCContent = moduleCFile.contentsToByteArray()
       val jModuleMContent = jModuleMFile.contentsToByteArray()
       moduleCFile.setBinaryContent(jModuleMContent)
@@ -270,8 +267,8 @@ abstract class GradleSyncProjectComparisonTest(
     // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
     assertIsEqualToSnapshot(textAfterChange, ".after_android_to_java")
 
-    WriteAction.run<Throwable> {
-      val moduleCFile = project.baseDir.findFileByRelativePath("moduleC/build.gradle")!!
+    run<Throwable> {
+      val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
       moduleCFile.setBinaryContent(oldModuleCContent)
     }
     ApplicationManager.getApplication().saveAll()
@@ -297,8 +294,8 @@ abstract class GradleSyncProjectComparisonTest(
       }
       projectModel.applyChanges()
     }
-    WriteAction.run<Throwable> {
-      project.baseDir.findFileByRelativePath("nested1")!!.rename("test", "container1")
+    run<Throwable> {
+      project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1")
     }
     ApplicationManager.getApplication().saveAll()
     val textAfterDeleting = syncAndDumpProject()
@@ -339,7 +336,7 @@ abstract class GradleSyncProjectComparisonTest(
       projectModel.applyChanges()
     }
     val textAfterDeleting = syncAndDumpProject()
-    // TODO(b/124677413): Remove irrelvant changes from the snapshot when the bug is fixed.
+    // TODO(b/124677413): Remove irrelevant changes from the snapshot when the bug is fixed.
     assertIsEqualToSnapshot(textAfterDeleting, ".after_lib_upgrade")
   }
 
@@ -364,7 +361,7 @@ abstract class GradleSyncProjectComparisonTest(
           it.readText().trimIndent()
         }
         ?: candidateFiles
-            .joinToString(separator = "\n", prefix = "No snapshop files found. Candidates considered:\n\n") {
+            .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
               it.relativeTo(File(AndroidTestBase.getTestDataPath())).toString()
             }
       }
@@ -393,7 +390,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   private fun updateSnapshotFile(snapshotName: String, text: String) {
-    getCandidateSnapshotFiles(snapshotName).let { candiates -> candiates.firstOrNull { it.exists() } ?: candiates.last() }.run {
+    getCandidateSnapshotFiles(snapshotName).let { candidates -> candidates.firstOrNull { it.exists() } ?: candidates.last() }.run {
       println("Writing to: ${this.absolutePath}")
       writeText(text)
     }

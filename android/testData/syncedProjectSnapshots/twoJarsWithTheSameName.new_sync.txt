@@ -103,11 +103,15 @@ PROJECT             : My Application
             LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib1/liba.jar:unspecified@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: __local_aars__:<PROJECT>/lib1/liba.jar:unspecified@jar [=]
                 *CLASSES            : jar://<PROJECT>/lib1/liba.jar!/
             LIBRARY             : Gradle: __local_aars__:<PROJECT>/lib2/liba.jar:unspecified@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
                 Name                : Gradle: __local_aars__:<PROJECT>/lib2/liba.jar:unspecified@jar [=]
                 *CLASSES            : jar://<PROJECT>/lib2/liba.jar!/
             ORDER_ENTRY         : lib
@@ -133,5 +137,7 @@ PROJECT             : My Application
             LIBRARY             : Gradle: liba
                 LibraryLevel        : project
                 IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : true
                 Name                : Gradle: liba [=]
                 *CLASSES            : jar://<PROJECT>/lib1/liba.jar!/
