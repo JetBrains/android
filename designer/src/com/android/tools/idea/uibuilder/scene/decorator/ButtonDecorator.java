@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -125,11 +126,16 @@ public class ButtonDecorator extends SceneDecorator {
     @SwingCoordinate int t = sceneContext.getSwingYDip(rect.y);
     @SwingCoordinate int w = sceneContext.getSwingDimensionDip(rect.width);
     @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
-    String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
+    String text = getContentText(component.getNlComponent());
     int fontSize = DrawTextRegion.getFont(component.getNlComponent(), "14sp");
     float scale = (float)sceneContext.getScale();
     int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
     list.add(new DrawButton(l, t, w, h, mode, baseLineOffset, scale, fontSize, text));
+  }
+
+  @NotNull
+  protected String getContentText(NlComponent nlComponent) {
+    return ConstraintUtilities.getResolvedText(nlComponent);
   }
 }
