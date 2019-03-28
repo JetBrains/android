@@ -17,16 +17,19 @@ package com.android.tools.idea.npw.model;
 
 import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_ANDROID_PACKAGE_KEY;
 import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_KOTLIN_SUPPORT_KEY;
+import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_NPW_ASKED_LANGUAGE_KEY;
 import static com.android.tools.idea.npw.model.NewProjectModel.PROPERTIES_NPW_LANGUAGE_KEY;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.npw.platform.Language;
 import com.intellij.ide.util.PropertiesComponent;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -65,9 +68,27 @@ public final class NewProjectModelTest {
     testInitialLanguage(null, true, true, KOTLIN);
   }
 
+  @Test
+  public void initialLanguageAndAskedUser() {
+    PropertiesComponent props = new PropertiesComponentMock();
+
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, KOTLIN.getName());
+    Optional<Language> language = NewProjectModel.calculateInitialLanguage(props);
+    assertTrue(language.isPresent());
+    assertEquals(KOTLIN, language.get());
+
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, JAVA.getName());
+    language = NewProjectModel.calculateInitialLanguage(props);
+    assertFalse(language.isPresent());
+  }
+
   private static void testInitialLanguage(@Nullable Language savedLang, boolean oldKotlinFlag, boolean newUser,
                                           @NotNull Language expectRes) {
     PropertiesComponent props = new PropertiesComponentMock();
+    // After 3.5, we may get "empty" value, if the saved value is not "Kotlin" and we didn't asked the user.
+    // This test is only checking saved values, so we set "asked user" flag to true.
+    props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
+
     if (savedLang != null) {
       props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, savedLang.getName());
     }
@@ -76,9 +97,11 @@ public final class NewProjectModelTest {
       props.setValue(PROPERTIES_ANDROID_PACKAGE_KEY, "com.example.java");
     }
 
-    Language actualRes = NewProjectModel.calculateInitialLanguage(props);
-    assertEquals(expectRes, actualRes);
-    assertEquals(props.getValue(PROPERTIES_NPW_LANGUAGE_KEY), actualRes.getName());
+    // We never expect "Option.empty", if we get one, .get() will throw an exception and the test will fail.
+    Optional<Language> actualRes = NewProjectModel.calculateInitialLanguage(props);
+    assertTrue(actualRes.isPresent());
+    assertEquals(expectRes, actualRes.get());
+    assertEquals(props.getValue(PROPERTIES_NPW_LANGUAGE_KEY), actualRes.get().getName());
     assertFalse(savedLang == null && props.isValueSet(PROPERTIES_KOTLIN_SUPPORT_KEY));
   }
 }
