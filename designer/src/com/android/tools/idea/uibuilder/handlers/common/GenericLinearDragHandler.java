@@ -380,8 +380,7 @@ public class GenericLinearDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x,
                      @AndroidCoordinate int y,
                      int modifiers,
-                     @NotNull InsertType insertType,
-                     @Nullable Runnable callback) {
+                     @NotNull InsertType insertType) {
     editor.insertChildren(layout.getNlComponent(), components, myInsertPos, insertType);
     Scene scene = editor.getScene();
     scene.removeComponent(myComponent);

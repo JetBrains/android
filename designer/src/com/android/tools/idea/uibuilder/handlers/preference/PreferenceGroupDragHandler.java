@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
 
@@ -156,8 +155,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   public final void commit(@AndroidCoordinate int x,
                            @AndroidCoordinate int y,
                            int modifiers,
-                           @NotNull InsertType type,
-                           @Nullable Runnable callback) {
+                           @NotNull InsertType type) {
     List<SceneComponent> preferences = myGroup.getChildren();
 
     if (preferences.isEmpty()) {

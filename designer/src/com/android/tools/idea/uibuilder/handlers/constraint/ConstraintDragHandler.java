@@ -118,8 +118,7 @@ public class ConstraintDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x,
                      @AndroidCoordinate int y,
                      int modifiers,
-                     @NotNull InsertType insertType,
-                     @Nullable Runnable callback) {
+                     @NotNull InsertType insertType) {
     Scene scene = editor.getScene();
     if (myComponent != null) {
       NlComponent root = myComponent.getNlComponent().getRoot();
