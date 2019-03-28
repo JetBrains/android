@@ -108,6 +108,16 @@ interface InspectorLineModel {
   fun makeExpandable(initiallyExpanded: Boolean) { throw IllegalStateException() }
 
   /**
+   * Is the current line expanded, or set to make it expanded/collapsed.
+   *
+   * The method makeExpandable must be called earlier.
+   * Note: Use with care since not all lines can be made expandable.
+   */
+  var expanded: Boolean
+    get() = true
+    set(_) = throw IllegalStateException()
+
+  /**
    * Register a [ValueChangedListener] to be notified whenever a related property may have changed.
    */
   fun addValueChangedListener(listener: ValueChangedListener) {}

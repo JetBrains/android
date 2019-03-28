@@ -34,7 +34,7 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   var title: String? = null
   var editorModel: PropertyEditorModel? = null
   var expandable = false
-  var expanded = false
+  override var expanded = false
   val children = mutableListOf<InspectorLineModel>()
   val childProperties: List<String>
     get() = children.map { it as FakeInspectorLineModel }.map { it.editorModel!!.property.name }
