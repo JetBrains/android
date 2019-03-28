@@ -437,8 +437,8 @@ public class BuildVariantUpdater {
 
     // Cannot preserve ABI. It is probably filtered out by the user. Fall back to any other available ABI for that build variant.
     String expectedPrefix = newVariant + "-";
-    Optional<NdkVariant> variant = ndkModel.getVariants().stream().filter(it -> it.getName().startsWith(expectedPrefix)).findFirst();
-    return variant.map(NdkVariant::getName).orElse(null);
+    Optional<String> variant = ndkModel.getNdkVariantNames().stream().filter(it -> it.startsWith(expectedPrefix)).findFirst();
+    return variant.orElse(null);
   }
 
   private static boolean hasBuildFilesChanged(@NotNull Project project) {
