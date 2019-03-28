@@ -177,6 +177,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   public void useComponent(@Nullable NlComponent component, @Nullable DesignSurface surface) {
     myWidgetModel.setSurface(surface);
     myWidgetModel.setComponent(component);
+    myConstraintSection.configureUi();
   }
 
   @Override
