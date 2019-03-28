@@ -156,7 +156,7 @@ public class DeviceArtPainterTest {
         // Already have crop data for this spec; skipping
         continue;
       }
-      if (spec.getName().startsWith("Android TV")) {
+      if (spec.getName().startsWith("Android TV") || spec.getName().startsWith("Automotive")) {
         // These images are already cropped
         continue;
       }
