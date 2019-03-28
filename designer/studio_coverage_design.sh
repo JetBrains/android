@@ -8,11 +8,6 @@ readonly script_dir="$(cd $(dirname "$0")/../../../base/bazel; pwd)"
 # Grab the location of the command_log file for bazel daemon so we can search it later.
 readonly command_log="$("${script_dir}"/bazel info command_log)"
 
-# Conditionally add --auth_credentials option for BYOB machines.
-if [[ -r "${HOME}/.android-studio-alphasource.json" ]]; then
-  auth_options="--auth_credentials=${HOME}/.android-studio-alphasource.json"
-fi
-
 # Run Bazel with coverage instrumentation
 "${script_dir}/bazel" \
   --max_idle_secs=60 \
