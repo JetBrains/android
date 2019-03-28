@@ -36,6 +36,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -258,7 +259,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    * UI behavior is to merely stop the execution without any other sort of notification, which far from ideal.
    */
   @Override
-  public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
+  public boolean executeTask(@NotNull DataContext context,
+                             @NotNull RunConfiguration configuration,
+                             @NotNull ExecutionEnvironment env,
+                             @NotNull MakeBeforeRunTask task) {
     RunStats stats = RunStats.from(env);
     try {
       stats.beginBeforeRunTasks();
@@ -269,15 +273,18 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
+  @VisibleForTesting
   @Nullable
-  private String runGradleSyncIfNeeded() {
+  String runGradleSyncIfNeeded(@NotNull RunConfiguration configuration, @NotNull DataContext context) {
     boolean syncNeeded = false;
     boolean forceFullVariantsSync = false;
     AtomicReference<String> errorMsgRef = new AtomicReference<>();
 
-    // Sync-before-build option is enabled, and build files have been changed since last sync.
-    if (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD &&
-        GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO) {
+    // Invoke Gradle Sync if build files have been changed since last sync, and Sync-before-build option is enabled OR post build sync
+    // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
+    if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO &&
+        (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD ||
+         !isPostBuildSyncSupported(myProject, context, configuration))) {
       syncNeeded = true;
     }
 
@@ -307,6 +314,22 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return errorMsgRef.get();
   }
 
+  /**
+   * Returns true if there is no Android module, or all of Android modules support post build sync.
+   */
+  private static boolean isPostBuildSyncSupported(@NotNull Project project,
+                                                  @NotNull DataContext context,
+                                                  @NotNull RunConfiguration configuration) {
+    Module[] modules = getModules(project, context, configuration);
+    for (Module module : modules) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null && !androidModuleModel.getFeatures().isPostBuildSyncSupported()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private boolean doExecuteTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
     if (!myAndroidProjectInfo.requiresAndroidModel() || !myGradleProjectInfo.isDirectGradleBuildEnabled()) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
@@ -314,7 +337,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     // If the model needs a sync, we need to sync "synchronously" before running.
-    String errorMsg = runGradleSyncIfNeeded();
+    String errorMsg = runGradleSyncIfNeeded(configuration, context);
     if (errorMsg != null) {
       // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
       // including the path of the APK.
@@ -350,13 +373,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     BeforeRunBuilder builder = createBuilder(modules, configuration, targetDevices, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
-
+    BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
     try {
       boolean success = builder.build(runner, cmdLineArgs);
 
       if (configuration instanceof AndroidRunConfigurationBase) {
         Object model = runner.getModel();
-        if (model != null && model instanceof OutputBuildAction.PostBuildProjectModels) {
+        if (model instanceof OutputBuildAction.PostBuildProjectModels) {
           ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
         }
         else {
