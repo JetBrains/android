@@ -22,6 +22,7 @@ import static com.android.tools.property.panel.api.FilteredPTableModel.PTableMod
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -130,7 +131,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         case MotionSceneString.ConstraintSetConstraint:
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           label = MotionSceneString.MotionSceneConstraintSet;
-          addCustomLayoutComponent(inspector, component);
+          DesignSurface surface = targetId == null ? null : targetId.getModel().getSurface();
+          addCustomLayoutComponent(inspector, component, surface);
           addPropertyTable(inspector, label, properties, targetId);
           break;
 
@@ -149,7 +151,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           }
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
           addPropertyTable(inspector, label, properties, target, position);
-          addEasingCurveComponent(inspector, component);
+          addEasingCurveComponent(inspector, component, target.getModel().getSurface());
           break;
       }
       if (hasCustomAttributes(tag)) {
@@ -164,22 +166,26 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       return handler != null ? handler.getLayoutCustomPanel() : null;
     }
 
-    private void addEasingCurveComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component) {
+    private void addEasingCurveComponent(@NotNull InspectorPanel inspector,
+                                         @NotNull NlComponent component,
+                                         @Nullable DesignSurface surface) {
       NlComponent parent = component.getParent();
       String parentTag = parent != null ? parent.getTagName() : null;
       if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
         InspectorLineModel title = inspector.addExpandableTitle("Easing Curve", true);
-        myCustomLayoutPanel.useComponent(component);
+        myCustomLayoutPanel.useComponent(component, surface);
         inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
       }
     }
 
-    private void addCustomLayoutComponent(@NotNull InspectorPanel inspector, @NotNull NlComponent component) {
+    private void addCustomLayoutComponent(@NotNull InspectorPanel inspector,
+                                          @NotNull NlComponent component,
+                                          @Nullable DesignSurface surface) {
       NlComponent parent = component.getParent();
       String parentTag = parent != null ? parent.getTagName() : null;
       if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
         InspectorLineModel title = inspector.addExpandableTitle("layout", true);
-        myCustomLayoutPanel.useComponent(component);
+        myCustomLayoutPanel.useComponent(component, surface);
         inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
       }
     }
