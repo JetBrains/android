@@ -15,12 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.testframework.FakePackage;
+import com.android.repository.testframework.FakeRepoManager;
 import com.android.tools.idea.project.AndroidNotificationStub;
 import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessage;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.testFramework.IdeaTestCase;
+import java.nio.charset.Charset;
+import java.util.concurrent.ExecutorService;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -38,19 +46,74 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
   @Mock private IdeSdks myIdeSdks;
 
+  private File sdkDir;
+
   private AndroidNotificationStub myNotification;
   private SdkToolsVersionSetupStep mySetupStep;
+
+  private FakeRepoManager myRepoManager;
+  private RepositoryPackages myRepoPackages;
+
+  private ExecutorService myExecutorService = MoreExecutors.newDirectExecutorService();
+
+  private static final String PLATFORM_SOURCE_PROPERTIES = "Pkg.UserSrc=false\n"
+    + "Pkg.Revision=26.1.1\n"
+    + "Platform.MinPlatformToolsRev=20\n"
+    + "Pkg.Dependencies=emulator\n"
+    + "Pkg.Path=tools\n"
+    + "Pkg.Desc=Android SDK Tools\n";
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
+    sdkDir = getTempDir().createTempDir();
+
     myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject());
-    mySetupStep = new SdkToolsVersionSetupStep(myIdeSdks);
+    mySetupStep = new SdkToolsVersionSetupStep(myIdeSdks, () -> myRepoManager, () -> myExecutorService);
+
+    myRepoPackages = new RepositoryPackages();
+    myRepoManager = new FakeRepoManager(myRepoPackages);
   }
 
-  public void testSetUpProject() {
+  public void testSetUpProject_toolsDirectory() throws Exception {
+    File toolsDirectory = new File(sdkDir, "tools");
+    toolsDirectory.mkdirs();
+    File sourceProperties = new File(toolsDirectory, "source.properties");
+    sourceProperties.createNewFile();
+    Files.asCharSink(sourceProperties, Charset.forName("UTF-8")).write(PLATFORM_SOURCE_PROPERTIES);
+
+    when(myIdeSdks.getAndroidSdkPath()).thenReturn(toolsDirectory.getParentFile());
+
+    mySetupStep.setUpProject(getProject(), null);
+
+    List<NotificationMessage> messages = myNotification.getMessages();
+    assertThat(messages).isEmpty();
+
+    assertFalse(mySetupStep.isNewSdkVersionToolsInfoAlreadyShown());
+  }
+
+  public void testSetUpProject_renamedDirectory() {
+    File toolsDirectory = new File(sdkDir, "tools-non-default");
+    toolsDirectory.mkdirs();
+
+    // This creates a "tools" package which resides in the "tools-non-default" directory as set above.
+    FakePackage.FakeLocalPackage myToolsPackage = new FakePackage.FakeLocalPackage("tools");
+    myToolsPackage.setInstalledPath(toolsDirectory);
+    myRepoPackages.setLocalPkgInfos(ImmutableList.of(myToolsPackage));
+
+    when(myIdeSdks.getAndroidSdkPath()).thenReturn(toolsDirectory.getParentFile());
+
+    mySetupStep.setUpProject(getProject(), null);
+
+    List<NotificationMessage> messages = myNotification.getMessages();
+    assertThat(messages).isEmpty();
+
+    assertFalse(mySetupStep.isNewSdkVersionToolsInfoAlreadyShown());
+  }
+
+  public void testSetUpProject_toolsMissing() {
     when(myIdeSdks.getAndroidSdkPath()).thenReturn(new File("fakePath"));
 
     mySetupStep.setUpProject(getProject(), null);
@@ -71,6 +134,10 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
     assertEquals(MIN_TOOLS_REV, ((InstallSdkToolsHyperlink)hyperlink).getVersion());
 
     assertTrue(mySetupStep.isNewSdkVersionToolsInfoAlreadyShown());
+
+    // We shutdown the executor and try again to make sure we'll not try to recompute the bubble as it has been already shown.
+    myExecutorService.shutdown();
+    mySetupStep.setUpProject(getProject(), null);
   }
 
   public void testInvokeOnFailedSync() {
