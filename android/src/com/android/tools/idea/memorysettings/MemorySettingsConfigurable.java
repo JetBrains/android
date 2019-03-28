@@ -137,8 +137,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                 });
 
 
-      myDefaultGradleDaemonXmx.setText(
-        String.format(Locale.US, "%s MB", MemorySettingsUtil.getDefaultGradleDaemonXmx()));
+      myDefaultGradleDaemonXmx.setText("  " + memSizeText(MemorySettingsUtil.getDefaultGradleDaemonXmx()));
       if (project != null) {
         myCurrentGradleXmx = MemorySettingsUtil.getProjectGradleDaemonXmx();
         mySelectedGradleXmx = myCurrentGradleXmx;
