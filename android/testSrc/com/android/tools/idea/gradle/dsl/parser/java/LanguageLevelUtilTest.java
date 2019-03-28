@@ -19,8 +19,10 @@ import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.conve
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
 import com.intellij.pom.java.LanguageLevel;
+import java.math.BigDecimal;
 import org.junit.Test;
 
 /**
@@ -43,13 +45,13 @@ public class LanguageLevelUtilTest {
   @Test
   public void testConvertToGradleString() {
     // Different version
-    assertEquals("1.4", convertToGradleString(LanguageLevel.JDK_1_4, "1.3"));
-    assertEquals("1.5", convertToGradleString(LanguageLevel.JDK_1_5, "1.3"));
-    assertEquals("1.6", convertToGradleString(LanguageLevel.JDK_1_6, "1.3"));
+    assertEquals(new BigDecimal("1.4"), convertToGradleString(LanguageLevel.JDK_1_4, "1.3"));
+    assertEquals("\"1.5\"", convertToGradleString(LanguageLevel.JDK_1_5, "\"1.3\""));
+    assertEquals(new BigDecimal("1.6"), convertToGradleString(LanguageLevel.JDK_1_6, "1.3"));
 
     // Different format
     assertEquals("'1.6'", convertToGradleString(LanguageLevel.JDK_1_6, "'1.3'"));
-    assertEquals("VERSION_1_6", convertToGradleString(LanguageLevel.JDK_1_6, "VERSION_1_3"));
-    assertEquals("JavaVersion.VERSION_1_6", convertToGradleString(LanguageLevel.JDK_1_6, "JavaVersion.VERSION_1_3"));
+    assertEquals(new ReferenceTo("VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "VERSION_1_3"));
+    assertEquals(new ReferenceTo("JavaVersion.VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "JavaVersion.VERSION_1_3"));
   }
 }
