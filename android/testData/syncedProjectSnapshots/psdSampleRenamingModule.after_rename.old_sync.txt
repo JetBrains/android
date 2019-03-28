@@ -176,8 +176,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -518,8 +517,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/container1/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/container1/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/container1/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/container1/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/container1/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/container1/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -617,8 +615,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/container1/deep/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/container1/deep/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/container1/deep/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/container1/deep/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/container1/deep/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/container1/deep/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -716,8 +713,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -815,8 +811,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -934,8 +929,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -1318,8 +1312,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
@@ -1417,8 +1410,7 @@ PROJECT             : testPsdSampleRenamingModule
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK

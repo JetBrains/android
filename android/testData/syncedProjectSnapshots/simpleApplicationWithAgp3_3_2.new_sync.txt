@@ -92,8 +92,7 @@ PROJECT             : testSimpleApplicationWithAgp3_3_2
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK

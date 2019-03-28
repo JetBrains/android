@@ -93,8 +93,7 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
             JavaSource (test)   : file://<PROJECT>/central/build/generated/source/apt/test/debug [-]
             JavaSource (test)   : file://<PROJECT>/central/build/generated/source/buildConfig/androidTest/debug [-]
             JavaSource          : file://<PROJECT>/central/build/generated/source/buildConfig/debug [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/central/build/outputs [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/central/build/tmp [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/central/build [-]
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK

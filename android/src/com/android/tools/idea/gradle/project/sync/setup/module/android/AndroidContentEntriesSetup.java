@@ -186,10 +186,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
     File buildFolderPath = getAndroidProject().getBuildFolder();
     ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries.stream());
     if (parentContentEntry != null) {
-      List<File> excludedFolderPaths = myAndroidModel.getExcludedFolderPaths();
-      for (File folderPath : excludedFolderPaths) {
-        addExcludedFolder(parentContentEntry, folderPath);
-      }
+      addExcludedFolder(parentContentEntry, buildFolderPath);
     }
   }
 

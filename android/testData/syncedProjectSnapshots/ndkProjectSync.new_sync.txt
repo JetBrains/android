@@ -152,9 +152,7 @@ PROJECT             : testNdkProjectSync
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.cxx
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.externalNativeBuild [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/generated/not_namespaced_r_class_sources [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/generated/source/r [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build/intermediates/cmake
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
             JDK                 : <NAME_CUT> Android SDK
             *isInherited        : false
                 SdkType             : Android SDK
