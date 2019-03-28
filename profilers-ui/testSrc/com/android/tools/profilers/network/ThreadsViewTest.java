@@ -27,11 +27,12 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -75,7 +76,7 @@ public class ThreadsViewTest {
 
   @Before
   public void setUp() throws InvocationTargetException, InterruptedException {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
     myThreadsView = new ThreadsView(myStageView);

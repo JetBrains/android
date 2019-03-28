@@ -55,21 +55,6 @@ import java.io.File
  */
 sealed class LightClassesTestBase : AndroidTestCase() {
 
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
-    // No need to copy R.java into gen!
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
   protected fun resolveReferenceUnderCaret(): PsiElement? {
     // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
     // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
@@ -361,7 +346,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(myFixture.javaFacade.findClass("com.example.someLib.R", GlobalSearchScope.everythingScope(project)))
         .isNotNull()
     }
-    
+
     fun testResourceRename() {
       val strings = myFixture.addFileToProject(
         "/res/values/strings.xml",
@@ -933,7 +918,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 class TestRClassesTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
-    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
 
@@ -987,15 +971,6 @@ class TestRClassesTest : AndroidGradleTestCase() {
         </resources>
       """.trimIndent()
     )
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   fun testAppResources() {
@@ -1128,20 +1103,6 @@ class TestRClassesTest : AndroidGradleTestCase() {
  * Tests for resources registered as generated with Gradle.
  */
 class GeneratedResourcesTest : AndroidGradleTestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
 
   /**
    * Regression test for b/120750247.

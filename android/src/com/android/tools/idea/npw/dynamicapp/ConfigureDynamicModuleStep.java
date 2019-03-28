@@ -37,6 +37,7 @@ import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.FormFactorSdkControls;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
+import com.android.tools.idea.npw.ui.TemplateIcon;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -63,12 +64,10 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.Image;
 import java.util.Collection;
 import java.util.Collections;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -239,9 +238,10 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   }
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    Image image = ActivityGallery.getTemplateImage(templateHandle, false);
-    if (image != null) {
-      myTemplateIconTitle.setIcon(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
+    TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle, false);
+    if (icon != null) {
+      icon.setHeight(256);
+      myTemplateIconTitle.setIcon(icon);
     }
     myTemplateIconTitle.setText("<html><center>" + ActivityGallery.getTemplateImageLabel(templateHandle, false) + "</center></html>");
     myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle, false) + "</center></html>");

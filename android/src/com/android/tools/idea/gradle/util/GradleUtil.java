@@ -991,15 +991,11 @@ public final class GradleUtil {
    * IDE.
    */
   public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      File buildFolder = model.getAndroidProject().getBuildFolder();
-      return artifact.getGeneratedSourceFolders()
-        .stream()
-        .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
-        .collect(Collectors.toList());
-    } else {
-      return artifact.getGeneratedSourceFolders();
-    }
+    File buildFolder = model.getAndroidProject().getBuildFolder();
+    return artifact.getGeneratedSourceFolders()
+      .stream()
+      .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
+      .collect(Collectors.toList());
   }
 
   /**

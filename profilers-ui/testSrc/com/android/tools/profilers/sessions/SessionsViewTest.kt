@@ -20,15 +20,16 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView
@@ -77,7 +78,7 @@ class SessionsViewTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
     mySessionsManager = myProfilers.sessionsManager
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }
@@ -221,6 +222,27 @@ class SessionsViewTest {
     var processAction3 = deviceAction2.childrenActions
       .first { c -> c.text == "Other processes" }.childrenActions
       .first { c -> c.text == "Other2 (30)" }
+  }
+
+  @Test
+  fun testUnsupportedDeviceDropdown() {
+    val unsupportedReason = "Unsupported";
+    val device = Common.Device.newBuilder().setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(
+      Common.Device.State.ONLINE).setUnsupportedReason(unsupportedReason).build()
+    myTransportService.addDevice(device)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    var selectionAction = mySessionsView.processSelectionAction
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    var loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
+    assertThat(loadAction.isEnabled).isTrue()
+    assertThat(loadAction.childrenActionCount).isEqualTo(0)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
+    assertThat(deviceAction1.childrenActions[0].text).isEqualTo(unsupportedReason)
+    assertThat(deviceAction1.childrenActions[0].isEnabled).isFalse()
   }
 
   @Test

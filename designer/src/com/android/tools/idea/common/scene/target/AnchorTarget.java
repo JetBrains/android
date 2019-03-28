@@ -57,6 +57,12 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
   protected final boolean myIsEdge;
 
+  /**
+   * If this Anchor is dragging.
+   * Note that this doesn't mean the associated component is dragging. This means Anchor itself is dragging.
+   */
+  protected boolean myIsDragging = false;
+
   protected final TargetSnapper mySnapper = new TargetSnapper();
 
   /**
@@ -340,7 +346,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   }
 
   private boolean getDrawAsConnected() {
-    return isConnected() && !isTargeted();
+    return (isConnected() || myIsDragging) && !isTargeted();
   }
 
   @Override
@@ -388,6 +394,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     myLastY = -1;
     myComponent.getScene().needsRebuildList();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myIsDragging = false;
   }
 
   @Override

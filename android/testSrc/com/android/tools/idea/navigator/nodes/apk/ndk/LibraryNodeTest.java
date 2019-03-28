@@ -77,7 +77,7 @@ public class LibraryNodeTest extends IdeaTestCase {
   }
 
   public void testGetChildrenWithNdk() throws IOException {
-    VirtualFile ndkFolder = createFolderInProjectRoot(getProject(), "ndk");
+    VirtualFile ndkFolder = createFolderInProjectRoot(getProject(), "ndk-bundle");
     File ndkFolderPath = virtualToIoFile(ndkFolder);
     when(myIdeSdks.getAndroidNdkPath()).thenReturn(ndkFolderPath);
 

@@ -59,7 +59,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
@@ -741,12 +740,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
         }
       }
 
-      if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-        // Exclude the location of R.java files, to speed up indexing. The location changed in 3.2, so we exclude both.
-        File generatedFolder = new File(buildFolderPath, FD_GENERATED);
-        excludedFolderPaths.add(new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
-        excludedFolderPaths.add(new File(generatedFolder, FD_SOURCE_GEN + File.separator + FD_RES_CLASS));
-      }
+      // Exclude the location of R.java files, to speed up indexing. The location changed in 3.2, so we exclude both.
+      File generatedFolder = new File(buildFolderPath, FD_GENERATED);
+      excludedFolderPaths.add(new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
+      excludedFolderPaths.add(new File(generatedFolder, FD_SOURCE_GEN + File.separator + FD_RES_CLASS));
     }
     else {
       // We know these folders have to be always excluded

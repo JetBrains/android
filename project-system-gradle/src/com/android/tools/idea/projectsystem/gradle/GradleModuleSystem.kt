@@ -48,6 +48,21 @@ import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
 import java.util.Collections
 
+/**
+ * Make [.getRegisteredDependency] return the direct module dependencies.
+ *
+ * The method [.getRegisteredDependency] should return direct module dependencies,
+ * but we do not have those available with the current model see b/128449813.
+ *
+ * The artifacts in
+ *   [com.android.tools.idea.gradle.dsl.api.GradleBuildModel.dependencies().artifacts]
+ * is a list of the direct dependencies parsed from the build.gradle files but the
+ * information will not be available for complex build files.
+ *
+ * For now always look at the transitive closure of dependencies.
+ */
+const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
+
 class GradleModuleSystem(
   val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
@@ -66,19 +81,38 @@ class GradleModuleSystem(
       .find { it.matches(coordinate) }
   }
 
+  // TODO: b/129297171
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    return projectBuildModelHandler.read {
-      val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read null
-      artifacts
+    return getDirectDependencies(module).find { it.matches(coordinate) }
+  }
+
+  private fun getDirectDependencies(module: Module): Sequence<GradleCoordinate> {
+    // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
+    return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
+      projectBuildModelHandler.read {
+        // TODO: Replace the below artifacts with the direct dependencies from the AndroidModuleModel see b/128449813
+        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<GradleCoordinate>()
+        artifacts
+          .asSequence()
+          .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
+      }
+    }
+    else {
+      getResolvedDependentLibraries(module)
         .asSequence()
-        .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
-        .find { it.matches(coordinate) }
+        .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
     }
   }
 
   override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getResolvedDependentLibraries(): Collection<Library> {
+    // TODO: b/129297171 When this bug is resolved we may not need getResolvedDependentLibraries(Module)
+    return getResolvedDependentLibraries(module)
+  }
+
+  private fun getResolvedDependentLibraries(module: Module): Collection<Library> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
     val converter = GradleModelConverter(gradleModel.androidProject)
@@ -214,9 +248,7 @@ class GradleModuleSystem(
     try {
       projectBuildModelHandler.read {
         for (relatedModule in findRelatedModules()) {
-          getModuleBuildModel(relatedModule)?.dependencies()?.artifacts()
-            ?.mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
-            ?.forEach { analyzer.addExplicitDependency(it, relatedModule) }
+          getDirectDependencies(relatedModule).forEach { analyzer.addExplicitDependency(it, relatedModule) }
         }
       }
     }
@@ -450,7 +482,7 @@ class GradleModuleSystem(
         explicitMap[id] = explicitDependency
         moduleMap[id] = fromModule
         mavenRepository
-          .findDependencies(id.groupId, id.artifactId, versionRange.min)
+          .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }
     }

@@ -17,13 +17,10 @@ package com.android.tools.idea.run.ui;
 
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
-import java.util.function.Function;
 import javax.swing.KeyStroke;
-import org.jetbrains.annotations.NotNull;
 
 public class CodeSwapAction extends BaseAction {
 

@@ -43,6 +43,7 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -691,6 +692,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (resizeZone.contains(mouseX, mouseY) && hasCustomDevice()) {
       Configuration configuration = getConfiguration();
       assert configuration != null;
+
+      if (StudioFlags.NELE_SIMPLER_RESIZE.get()) {
+        return new SimplerCanvasResizeInteraction(this, screenView, configuration);
+      }
       return new CanvasResizeInteraction(this, screenView, configuration);
     }
 

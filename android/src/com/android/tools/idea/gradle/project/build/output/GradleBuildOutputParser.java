@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.project.build.output;
 
 import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_INFO_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_STATISTICS_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_WARNING_SUFFIX;
 
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.Message.Kind;
@@ -49,12 +53,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
   @NotNull private static final String MESSAGES_GROUP_PREFIX = "Android";
-
-  @NotNull private static final String MESSAGE_GROUP_INFO_SUFFIX = " info";
-  @NotNull private static final String MESSAGE_GROUP_STATISTICS_SUFFIX = " statistics";
-  @NotNull private static final String MESSAGE_GROUP_WARNING_SUFFIX = " warnings";
-  @NotNull private static final String MESSAGE_GROUP_ERROR_SUFFIX = " errors";
-
   @NotNull private static final String DEFAULT_MESSAGE_GROUP = MESSAGES_GROUP_PREFIX + MESSAGE_GROUP_WARNING_SUFFIX;
 
   /**

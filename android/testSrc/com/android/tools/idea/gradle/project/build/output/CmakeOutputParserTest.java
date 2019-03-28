@@ -148,16 +148,12 @@ public class CmakeOutputParserTest {
     assertThat(messageEvent.getFilePosition().getStartLine()).isEqualTo(expectedLineNumber - 1);
     assertThat(messageEvent.getFilePosition().getStartColumn()).isEqualTo(expectedColumnNumber - 1);
     assertThat(messageEvent.getGroup()).isEqualTo(group);
-
-    System.out.println(messageEvent.getMessage());
-    System.out.println(messageEvent.getDescription());
-    System.out.println();
-    System.out.println();
   }
 
   @SuppressWarnings("SameParameterValue")
   private static void verifyMessageEvent(BuildEvent buildEvent, MessageEvent.Kind expectedKind, String group) {
     assertThat(buildEvent).isInstanceOf(MessageEvent.class);
+    assertThat(buildEvent).isNotInstanceOf(FileMessageEvent.class);
 
     MessageEvent messageEvent = (MessageEvent)buildEvent;
 
@@ -181,7 +177,7 @@ public class CmakeOutputParserTest {
 
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Warnings", MessageEvent.Kind.WARNING, 0, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake warnings", MessageEvent.Kind.WARNING, 0, 0);
   }
 
   @Test
@@ -201,7 +197,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Warnings", MessageEvent.Kind.WARNING, lineNumber, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake warnings", MessageEvent.Kind.WARNING, lineNumber, 0);
   }
 
   @Test
@@ -223,7 +219,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Warnings", MessageEvent.Kind.WARNING, lineNumber, columnNumber);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake warnings", MessageEvent.Kind.WARNING, lineNumber, columnNumber);
   }
 
   @Test
@@ -241,7 +237,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Errors", MessageEvent.Kind.ERROR, 0, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake errors", MessageEvent.Kind.ERROR, 0, 0);
   }
 
   @Test
@@ -263,8 +259,8 @@ public class CmakeOutputParserTest {
     verify(messageConsumer, times(2)).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(2);
 
-    verifyMessageEvent(captor.getAllValues().get(0), MessageEvent.Kind.WARNING, "CMake Warnings");
-    verifyFileMessageEvent(captor.getAllValues().get(1), filePath, "CMake Errors", MessageEvent.Kind.ERROR, lineNumber, 0);
+    verifyMessageEvent(captor.getAllValues().get(0), MessageEvent.Kind.WARNING, "CMake warnings");
+    verifyFileMessageEvent(captor.getAllValues().get(1), filePath, "CMake errors", MessageEvent.Kind.ERROR, lineNumber, 0);
   }
 
   @Test
@@ -286,7 +282,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Errors", MessageEvent.Kind.ERROR, lineNumber, columnNumber);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake errors", MessageEvent.Kind.ERROR, lineNumber, columnNumber);
   }
 
   @Test
@@ -304,7 +300,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Errors", MessageEvent.Kind.ERROR, 0, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake errors", MessageEvent.Kind.ERROR, 0, 0);
   }
 
   @Test
@@ -324,7 +320,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Errors", MessageEvent.Kind.ERROR, lineNumber, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake errors", MessageEvent.Kind.ERROR, lineNumber, 0);
   }
 
   @Test
@@ -346,7 +342,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Errors", MessageEvent.Kind.ERROR, lineNumber, columnNumber);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake errors", MessageEvent.Kind.ERROR, lineNumber, columnNumber);
   }
 
   @Test
@@ -364,7 +360,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Warnings", MessageEvent.Kind.WARNING, 0, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake warnings", MessageEvent.Kind.WARNING, 0, 0);
   }
 
   @Test
@@ -384,7 +380,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Warnings", MessageEvent.Kind.WARNING, lineNumber, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake warnings", MessageEvent.Kind.WARNING, lineNumber, 0);
   }
 
   @Test
@@ -406,7 +402,7 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake Warnings", MessageEvent.Kind.WARNING, lineNumber, columnNumber);
+    verifyFileMessageEvent(captor.getAllValues().get(0), filePath, "CMake warnings", MessageEvent.Kind.WARNING, lineNumber, columnNumber);
   }
 
   @Test
@@ -433,6 +429,6 @@ public class CmakeOutputParserTest {
     verify(messageConsumer).accept(captor.capture());
     assertThat(captor.getAllValues()).hasSize(1);
 
-    verifyFileMessageEvent(captor.getAllValues().get(0), makefile.getAbsolutePath(), "CMake Errors", MessageEvent.Kind.ERROR, 49, 0);
+    verifyFileMessageEvent(captor.getAllValues().get(0), makefile.getAbsolutePath(), "CMake errors", MessageEvent.Kind.ERROR, 49, 0);
   }
 }

@@ -15,13 +15,14 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
@@ -58,7 +59,7 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
                                         myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
@@ -126,7 +127,7 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
                                         myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());

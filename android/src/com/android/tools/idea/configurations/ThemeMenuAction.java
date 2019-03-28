@@ -24,11 +24,11 @@ import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import java.util.HashSet;
 import java.util.List;
@@ -245,7 +245,7 @@ public class ThemeMenuAction extends DropDownAction {
       super(configurationHolder, themeDisplayName);
       myTheme = theme;
       if (selected) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
       }
     }
 

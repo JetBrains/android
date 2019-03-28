@@ -24,6 +24,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
@@ -51,7 +52,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Arrays;
@@ -62,6 +62,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
@@ -219,6 +220,10 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         // Only show Glass if you've already installed the SDK
         continue;
       }
+      if (formFactor == FormFactor.AUTOMOTIVE && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
+        // Only show Automotive if it is enabled
+        continue;
+      }
       FormFactorInfo prevFormFactorInfo = formFactorInfoMap.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
 
@@ -264,7 +269,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
     TemplateRenderer[] listItems = templateRenderers.toArray(new TemplateRenderer[0]);
 
-    ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getImage, TemplateRenderer::getImageLabel);
+    ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getIcon, TemplateRenderer::getImageLabel);
     gallery.setModel(JBList.createDefaultListModel((Object[])listItems));
     gallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems));
 
@@ -343,8 +348,8 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
      * Return the image associated with the current template, if it specifies one, or null otherwise.
      */
     @Nullable
-    Image getImage() {
-      return ActivityGallery.getTemplateImage(myTemplate, isCppTemplate());
+    Icon getIcon() {
+      return ActivityGallery.getTemplateIcon(myTemplate, isCppTemplate());
     }
   }
 }

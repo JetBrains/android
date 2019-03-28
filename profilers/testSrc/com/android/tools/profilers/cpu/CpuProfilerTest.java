@@ -18,11 +18,12 @@ package com.android.tools.profilers.cpu;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -65,7 +66,7 @@ public class CpuProfilerTest {
   @Before
   public void setUp() {
     myIdeServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices, new FakeTimer());
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, new FakeTimer());
   }
 
   @Test

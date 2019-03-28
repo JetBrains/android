@@ -25,7 +25,6 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.testFramework.PlatformTestUtil.createComparator;
 import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
@@ -38,26 +37,20 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.refactoring.RefactoringActionHandler;
-import com.intellij.refactoring.actions.RenameElementAction;
-import com.intellij.refactoring.rename.PsiElementRenameHandler;
-import com.intellij.testFramework.TestActionEvent;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -69,7 +62,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import org.gradle.internal.impldep.com.google.common.io.Files;
-import org.jetbrains.android.AndroidRenameHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,7 +110,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "     ic_launcher.png (mdpi)\n" +
                       "    j (2)\n" +
                       "     j.png (mdpi)\n" +
-                      "     j.xml (xxhdpi)\n" +
+                      "     j.xml (xxdpi)\n" +
                       "   layout\n" +
                       "    activity_main.xml\n" +
                       "   menu\n" +
@@ -187,8 +179,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     // Now make sure that selecting that group node caused the actual files to be selected
     PsiElement[] psiElements = myPane.getSelectedPSIElements();
-    assertThat(psiElements).hasLength(1);
-    for (PsiElement e : psiElements[0].getChildren()) {
+    assertThat(psiElements).hasLength(3);
+    for (PsiElement e : psiElements) {
       assertEquals("dimens.xml", ((XmlFile)e).getName());
     }
   }
@@ -329,8 +321,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertNotNull(element);
     myPane.getTreeBuilder().select(element);
 
-    assertNotEmpty(myPane.getTreeBuilder().getSelectedElements());
-
     // Now make sure the virtualFileArray for this node actually contains the 2 files.
     VirtualFile[] files = ((VirtualFile[])myPane.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY.getName()));
     assertNotNull(files);
@@ -339,63 +329,28 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertSameElements(fileNames, ImmutableList.of("j.png", "j.xml"));
   }
 
-  public void testRenameResourceGroup() throws Exception {
-    loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
+  public void testGeneratedSourceFiles_lightClasses() throws Exception {
+    loadSimpleApplication();
+
+    // Create BuildConfig.java in one of the generated source folders.
+    Module appModule = myModules.getAppModule();
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    assertNotNull(androidModel);
+    Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
+    assertThat(generatedFolders).isNotEmpty();
+
+    File buildConfigFolder = generatedFolders.stream().filter(f -> f.getPath().contains("buildConfig")).findFirst().orElse(null);
+    assertNotNull(buildConfigFolder);
+    writeToFile(new File(buildConfigFolder, join("com", "application", "BuildConfig.java")),
+                "package com.application; public final class BuildConfig {}");
+
+    refreshProjectFiles();
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
-    Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "j (2)");
-    assertNotNull(element);
-    myPane.getTreeBuilder().select(element);
-
-    assertNotEmpty(myPane.getTreeBuilder().getSelectedElements());
-
-    String newName = "foo";
-    DataContext data = dataId -> {
-      if (PsiElementRenameHandler.DEFAULT_NAME.is(dataId)) return newName;
-      return myPane.getData(dataId);
-    };
-    RenameElementAction action = new RenameElementAction();
-    AnActionEvent e = new TestActionEvent(data, action);
-    action.update(e);
-    RefactoringActionHandler handler = action.getHandler(data);
-    assertInstanceOf(handler, AndroidRenameHandler.class);
-    assertTrue(((AndroidRenameHandler)handler).isAvailableOnDataContext(data));
-    PsiElement psiElement = data.getData(CommonDataKeys.PSI_ELEMENT);
-    assertInstanceOf(psiElement, PsiDirectory.class);
-    VirtualFile expected1 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-xxhdpi/j.xml");
-    VirtualFile expected2 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-mdpi/j.png");
-    assertNotNull(expected1);
-    assertNotNull(expected2);
-    PsiElement[] children = psiElement.getChildren();
-    List<VirtualFile> virtualFiles = Arrays.stream(children)
-      .map(psiFile -> (((PsiFile)psiFile).getVirtualFile()))
-      .collect(Collectors.toList());
-    assertThat(virtualFiles).containsExactly(expected1, expected2);
-    action.actionPerformed(e);
-    VirtualFile expected4 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-mdpi/foo.png");
-    VirtualFile expected3 = getBaseFolder().getVirtualFile().findFileByRelativePath("app/src/main/res/drawable-xxhdpi/foo.xml");
-    assertNotNull(expected3);
-    assertNotNull(expected4);
-    PsiElement[] children2 = psiElement.getChildren();
-    List<VirtualFile> virtualFiles2 = Arrays.stream(children2)
-      .map(psiFile -> (((PsiFile)psiFile).getVirtualFile()))
-      .collect(Collectors.toList());
-    assertThat(virtualFiles2).containsExactly(expected3, expected4);
-
-  }
-
-  public void testGeneratedSourceFiles_aaptClasses() throws Exception {
-    doTestGeneratedSourceFiles(false, false);
-  }
-
-  public void testGeneratedSourceFiles_lightClasses_oldModel() throws Exception {
-    doTestGeneratedSourceFiles(false, true);
-  }
-
-  public void testGeneratedSourceFiles_lightClasses_newModel() throws Exception {
-    doTestGeneratedSourceFiles(true, true);
+    Set<List<String>> allNodes = getAllNodes(structure);
+    assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
   }
 
   public void testGeneratedResources() throws Exception {
@@ -439,51 +394,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "res (generated)", "raw", "sample_raw_resource"));
-  }
-
-  // Test that the generated source files are displayed under app/generatedJava.
-  private void doTestGeneratedSourceFiles(boolean preSyncValue, boolean postSyncValue) throws Exception {
-    try {
-      // Setting the IDE flag results in a new property being passed to Gradle, which will cause the folder to not be in the model. But the
-      // property is only recognized by new versions of AGP, so we need to also make sure that if the directories are in the model we ignore
-      // them in the UI.
-      StudioFlags.IN_MEMORY_R_CLASSES.override(preSyncValue);
-      loadSimpleApplication();
-      StudioFlags.IN_MEMORY_R_CLASSES.override(postSyncValue);
-
-      // Create BuildConfig.java in one of the generated source folders.
-      Module appModule = myModules.getAppModule();
-      AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
-      assertNotNull(androidModel);
-      Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
-      assertThat(generatedFolders).isNotEmpty();
-
-      File buildConfigFolder = generatedFolders.stream().filter(f -> f.getPath().contains("buildConfig")).findFirst().orElse(null);
-      assertNotNull(buildConfigFolder);
-      writeToFile(new File(buildConfigFolder, join("com", "application", "BuildConfig.java")),
-                  "package com.application; public final class BuildConfig {}");
-
-      if (!preSyncValue) {
-        File rClassesFolder = generatedFolders.stream().filter(f -> f.getName().equals("r")).findFirst().orElse(null);
-        assertNotNull(rClassesFolder);
-        // Here we simulate an old AGP version that creates R.java despite being asked not to.
-        writeToFile(new File(rClassesFolder, join("com", "application", "R.java")),
-                    "package com.application; public final class R {}");
-      }
-      refreshProjectFiles();
-
-      myPane = createPane();
-      TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
-
-      Set<List<String>> allNodes = getAllNodes(structure);
-      assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
-
-      // The R class should only be displayed if we're using R.java from aapt, not light PSI.
-      assertEquals(!postSyncValue, allNodes.contains(Arrays.asList("app (Android)", "java (generated)", "application", "R")));
-    }
-    finally {
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride();
-    }
   }
 
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {

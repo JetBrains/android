@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.res.IdeResourceNameValidator
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.chooseDesignAssets
@@ -22,11 +25,14 @@ import com.android.tools.idea.resourceExplorer.importer.groupIntoDesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.js.inline.util.toIdentitySet
 import java.awt.Image
 import java.util.concurrent.CompletableFuture
+import javax.swing.JTextField
 
 /**
  * Maximum number of files to import at a time.
@@ -42,20 +48,42 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
                                     private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
+  /**
+   *  The [DesignAssetSet]s to be imported.
+   *
+   *  They are stored in an IdentitySet because there might
+   *  be conflicts when a [DesignAssetSet] is being renamed with a name similar
+   *  to another [DesignAssetSet] being imported.
+   */
   private val assetSetsToImport = assets
     .take(MAX_IMPORT_FILES)
     .groupIntoDesignAssetSet()
-    .associate { it.name to it }
-    .toMutableMap()
+    .toIdentitySet()
 
-  val assetSets get() = assetSetsToImport.values
+  val assetSets get() = assetSetsToImport
 
   private val rendererManager = DesignAssetRendererManager.getInstance()
   val fileCount: Int get() = assetSets.sumBy { it.designAssets.size }
   var updateCallback: () -> Unit = {}
 
+  private val fileViewModels = mutableMapOf<DesignAsset, FileImportRowViewModel>()
+
+  /**
+   * We use a a separate validator for duplicate because if a duplicate is found, we just
+   * want to show a warning - a user can override an existing resource.
+   */
+  private val resourceDuplicateValidator = IdeResourceNameValidator.forFilename(
+    ResourceFolderType.DRAWABLE,
+    null,
+    ResourceRepositoryManager.getAppResources(facet))
+
+  /**
+   * This validator only check for the name
+   */
+  private val resourceNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE, null)
+
   fun doImport() {
-    designAssetImporter.importDesignAssets(assetSetsToImport.values, facet)
+    designAssetImporter.importDesignAssets(assetSetsToImport, facet)
   }
 
   fun getAssetPreview(asset: DesignAsset): CompletableFuture<out Image?> {
@@ -72,10 +100,10 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    * @return the [DesignAssetSet] that was containing the [asset]
    */
   fun removeAsset(asset: DesignAsset): DesignAssetSet {
-    val designAssetSet = assetSetsToImport.values.first { it.designAssets.contains(asset) }
+    val designAssetSet = assetSetsToImport.first { it.designAssets.contains(asset) }
     designAssetSet.designAssets -= asset
     if (designAssetSet.designAssets.isEmpty()) {
-      assetSetsToImport.remove(designAssetSet.name)
+      assetSetsToImport.remove(designAssetSet)
     }
     updateCallback()
     return designAssetSet
@@ -92,22 +120,33 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    * The callback won't be called if there is no new file.
    */
   fun importMoreAssets(assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
+    val assetByName = assetSetsToImport.associateBy { it.name }
     chooseDesignAssets(importersProvider) { newAssetSets ->
       newAssetSets
         .take(MAX_IMPORT_FILES)
         .groupIntoDesignAssetSet()
         .forEach {
-          addAssetSet(it, assetAddedCallback)
+          addAssetSet(assetByName, it, assetAddedCallback)
         }
     }
   }
 
-  private fun addAssetSet(it: DesignAssetSet,
+  /**
+   * Add the [assetSet] to the list of asset to be imported.
+   * If [existingAssets] contains a [DesignAssetSet] with the same name as [assetSet],
+   * the [assetSet] will be added the existing [DesignAssetSet], otherwise a new one
+   * will be created.
+   * @param existingAssets A map from a [DesignAssetSet]'s name to the [DesignAssetSet].
+   * This is used to avoid iterating through the whole [assetSetsToImport] set to try find
+   * a [DesignAssetSet] with the same name.
+   */
+  private fun addAssetSet(existingAssets: Map<String, DesignAssetSet>,
+                          assetSet: DesignAssetSet,
                           assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
-    val existingAssetSet = assetSetsToImport[it.name]
+    val existingAssetSet = existingAssets[assetSet.name]
     if (existingAssetSet != null) {
       val existingPaths = existingAssetSet.designAssets.map { designAsset -> designAsset.file.path }.toSet()
-      val onlyNewFiles = it.designAssets.filter { designAsset -> designAsset.file.path !in existingPaths }
+      val onlyNewFiles = assetSet.designAssets.filter { designAsset -> designAsset.file.path !in existingPaths }
       if (onlyNewFiles.isNotEmpty()) {
         existingAssetSet.designAssets += onlyNewFiles
         assetAddedCallback(existingAssetSet, onlyNewFiles)
@@ -115,9 +154,90 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
       }
     }
     else {
-      assetSetsToImport[it.name] = it
-      assetAddedCallback(it, it.designAssets)
+      assetSetsToImport.add(assetSet)
+      assetAddedCallback(assetSet, assetSet.designAssets)
       updateCallback()
     }
   }
+
+
+  /**
+   * Creates a copy of [assetSet] with [newName] set as the [DesignAssetSet]'s name.
+   * This method does not modify the underlying [DesignAsset], which is just passed to the newly
+   * created [DesignAssetSet].
+   *
+   * [assetRenamedCallback] is a callback with the old [assetSet] name and the newly created [DesignAssetSet].
+   * This meant to be used by the view to update itself when it is holding a map from view to [DesignAssetSet].
+   */
+  fun rename(assetSet: DesignAssetSet,
+             newName: String,
+             assetRenamedCallback: (newAssetSet: DesignAssetSet) -> Unit
+  ) {
+    require(assetSetsToImport.contains(assetSet)) { "The assetSet \"${assetSet.name}\" should already exist" }
+    val renamedAssetSet = DesignAssetSet(newName, assetSet.designAssets)
+    assetSetsToImport.remove(assetSet)
+    assetSetsToImport.add(renamedAssetSet)
+    assetRenamedCallback(renamedAssetSet)
+  }
+
+  /**
+   * Creates a [FileImportRowViewModel] for the provided [asset].
+   *
+   * To let the [FileImportRowViewModel] delete itself, a callback needs to
+   * be provided to notify its owner that it has been deleted, and the view needs to be
+   * updated.
+   */
+  fun createFileViewModel(asset: DesignAsset,
+                          removeCallback: (DesignAsset) -> Unit
+  ): FileImportRowViewModel {
+    val viewModelRemoveCallback: (DesignAsset) -> Unit = {
+      removeCallback(asset)
+      fileViewModels.remove(asset)
+    }
+    val fileImportRowViewModel = FileImportRowViewModel(asset, ResourceFolderType.DRAWABLE, removeCallback = viewModelRemoveCallback)
+    fileViewModels[asset] = fileImportRowViewModel
+    return fileImportRowViewModel
+  }
+
+  fun validateName(newName: String, field: JTextField? = null): ValidationInfo? {
+    val errorText = resourceNameValidator.getErrorText(newName)
+    when {
+      errorText != null -> return ValidationInfo(errorText, field)
+      hasDuplicate(newName) -> return createDuplicateValidationInfo(field)
+      checkIfNameUnique(newName) -> return getSameNameIsImportedValidationInfo(field)
+      else -> return null
+    }
+  }
+
+  private fun hasDuplicate(newName: String) = resourceDuplicateValidator.doesResourceExist(newName)
+
+  private fun createDuplicateValidationInfo(field: JTextField?) =
+    ValidationInfo("A resource with this name already exists and might be overridden if the qualifiers are the same.",
+                   field).asWarning()
+
+  private fun getSameNameIsImportedValidationInfo(field: JTextField?) =
+    ValidationInfo("A resource with the same name is also being imported.", field)
+      .asWarning()
+
+  private fun checkIfNameUnique(newName: String?): Boolean {
+    var nameSeen = false
+    return assetSetsToImport
+      .asSequence()
+      .any {
+        if (it.name == newName) {
+          if (nameSeen) return@any true
+          nameSeen = true
+        }
+        false
+      }
+  }
+
+  fun getValidationInfo(): ValidationInfo? = assetSetsToImport.asSequence()
+    .mapNotNull { asset -> validateName(asset.name)?.let { validationInfo -> asset to validationInfo } }
+    .filter { (_, info) -> !info.warning }
+    .map {
+      val (asset, error) = it
+      ValidationInfo("${asset.name}: ${error.message}")
+    }
+    .firstOrNull()
 }

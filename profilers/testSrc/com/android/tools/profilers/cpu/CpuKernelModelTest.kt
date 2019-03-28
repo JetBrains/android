@@ -17,10 +17,11 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
@@ -49,7 +50,7 @@ class CpuKernelModelTest {
   @Before
   fun setup() {
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(myGrpcChannel.client, services, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), services, myTimer)
     myStage = CpuProfilerStage(profilers)
     myCpuModel = CpuKernelModel(myRange, myStage)
   }

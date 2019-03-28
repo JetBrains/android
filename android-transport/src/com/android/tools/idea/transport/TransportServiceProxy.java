@@ -28,9 +28,13 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.profiler.proto.Commands.Command;
+import com.android.tools.profiler.proto.Commands.Command.CommandType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.ProcessData;
+import com.android.tools.profiler.proto.Transport.ExecuteRequest;
+import com.android.tools.profiler.proto.Transport.ExecuteResponse;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
 import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.GetEventsRequest;
@@ -59,12 +63,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -81,6 +85,7 @@ public class TransportServiceProxy extends ServiceProxy
   }
 
   private static final String EMULATOR = "Emulator";
+  static final String PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported.";
 
   private final TransportServiceGrpc.TransportServiceBlockingStub myServiceStub;
   @NotNull private final IDevice myDevice;
@@ -89,6 +94,7 @@ public class TransportServiceProxy extends ServiceProxy
   private final boolean myIsDeviceApiSupported;
   private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   private Thread myEventsListenerThread;
+  private final Map<CommandType, Function<Command, ExecuteResponse>> myCommandHandlers = new HashMap<>();
 
   /**
    * @param ddmlibDevice    the {@link IDevice} for retrieving process informatino.
@@ -98,9 +104,10 @@ public class TransportServiceProxy extends ServiceProxy
    */
   public TransportServiceProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel channel) {
     super(TransportServiceGrpc.getServiceDescriptor());
-    myIsDeviceApiSupported = ddmlibDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
     myDevice = ddmlibDevice;
     myProfilerDevice = transportDevice;
+    // Unsupported device are expected to have the unsupportedReason field set.
+    myIsDeviceApiSupported = myProfilerDevice.getUnsupportedReason().isEmpty();
     myServiceStub = TransportServiceGrpc.newBlockingStub(channel);
     getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 
@@ -108,6 +115,10 @@ public class TransportServiceProxy extends ServiceProxy
 
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
+  }
+
+  public void registerCommandHandler(CommandType commandType, Function<Command, ExecuteResponse> handler) {
+    myCommandHandlers.put(commandType, handler);
   }
 
   /**
@@ -167,6 +178,7 @@ public class TransportServiceProxy extends ServiceProxy
       .setManufacturer(getDeviceManufacturer(device))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
+      .setUnsupportedReason(getDeviceUnsupportedReason(device))
       .build();
   }
 
@@ -184,6 +196,15 @@ public class TransportServiceProxy extends ServiceProxy
       default:
         return Common.Device.State.UNSPECIFIED;
     }
+  }
+
+  @NotNull
+  private static String getDeviceUnsupportedReason(@NotNull IDevice device) {
+    String unsupportedReason = "";
+    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP) {
+      unsupportedReason = PRE_LOLLIPOP_FAILURE_REASON;
+    }
+    return unsupportedReason;
   }
 
   @NotNull
@@ -282,6 +303,19 @@ public class TransportServiceProxy extends ServiceProxy
     responseObserver.onCompleted();
   }
 
+  public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
+    Command command = request.getCommand();
+    ExecuteResponse response;
+    if (myCommandHandlers.containsKey(command.getType())) {
+      response = myCommandHandlers.get(command.getType()).apply(command);
+    }
+    else {
+      response = myServiceStub.execute(request);
+    }
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
   @Override
   public void deviceConnected(@NonNull IDevice device) {
     // Don't care
@@ -326,6 +360,10 @@ public class TransportServiceProxy extends ServiceProxy
     overrides.put(TransportServiceGrpc.METHOD_GET_EVENTS,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getEvents((GetEventsRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(TransportServiceGrpc.METHOD_EXECUTE,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    execute((ExecuteRequest)request, (StreamObserver)observer);
                   }));
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }

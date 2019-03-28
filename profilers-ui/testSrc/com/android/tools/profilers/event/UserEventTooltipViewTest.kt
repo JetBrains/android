@@ -16,6 +16,7 @@
 package com.android.tools.profilers.event
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.EventProfiler
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
@@ -35,7 +36,7 @@ class UserEventTooltipViewTest {
 
   @Before
   fun setup() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())

@@ -139,7 +139,6 @@ public class NlPropertyTableTest {
       .assertPropertyShowing("visibility", null);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/120745982
   @Test
   public void testEditing() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -176,7 +175,6 @@ public class NlPropertyTableTest {
     assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo("@android:accessibilityLiveRegion");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/120745982
   @Test
   public void testCompletionFinishesEditing() throws Exception {
     // If this UI test should fail, this is the intention with the test.

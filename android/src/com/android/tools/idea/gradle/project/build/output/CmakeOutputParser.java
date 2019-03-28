@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_WARNING_SUFFIX;
+
 import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.FilePosition;
@@ -35,9 +38,9 @@ import java.util.regex.Pattern;
  * Parses output from cmake.
  */
 public class CmakeOutputParser implements BuildOutputParser {
-  private static final String CMAKE_ERROR = "CMake Error";
-  private static final String CMAKE_WARNING = "CMake Warning";
-  private static final String ERROR = "Error";
+  @NonNull private static final String CMAKE = "CMake";
+  @NonNull private static final String ERROR = "Error";
+  @NonNull private static final String CMAKE_ERROR = CMAKE + " " + ERROR;
 
   private final Pattern cmakeErrorOrWarning = Pattern.compile("^\\s*CMake (Error|Warning).+");
   static final Pattern fileAndLineNumber = Pattern.compile("^(([A-Za-z]:)?.*):([0-9]+)? *:([0-9]+)?(.+)?");
@@ -73,12 +76,13 @@ public class CmakeOutputParser implements BuildOutputParser {
 
       if (messages.get(0).startsWith(CMAKE_ERROR)) {
         messageConsumer.accept(
-          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.ERROR, CMAKE_ERROR + "s", String.join(" ", messages),
+          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.ERROR, CMAKE + MESSAGE_GROUP_ERROR_SUFFIX, String.join(" ", messages),
                                String.join("\n", messages)));
       }
       else {
         messageConsumer.accept(
-          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.WARNING, CMAKE_WARNING + "s", String.join(" ", messages),
+          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.WARNING, CMAKE + MESSAGE_GROUP_WARNING_SUFFIX,
+                               String.join(" ", messages),
                                String.join("\n", messages)));
       }
       return true;
@@ -118,8 +122,11 @@ public class CmakeOutputParser implements BuildOutputParser {
       FilePosition position =
         new FilePosition(file, fields.lineNumber + SOURCE_POSITION_OFFSET, fields.columnNumber + SOURCE_POSITION_OFFSET);
       messageConsumer.accept(
-        new FileMessageEventImpl(buildId, fields.kind, (fields.kind == MessageEvent.Kind.ERROR ? CMAKE_ERROR : CMAKE_WARNING) + "s",
-                                 fields.errorMessage, String.join("\n", messages), position));
+        new FileMessageEventImpl(buildId, fields.kind, CMAKE +
+                                                       (fields.kind == MessageEvent.Kind.ERROR
+                                                        ? MESSAGE_GROUP_ERROR_SUFFIX
+                                                        : MESSAGE_GROUP_WARNING_SUFFIX), fields.errorMessage, String.join("\n", messages),
+                                 position));
       return true;
     }
 
@@ -171,8 +178,11 @@ public class CmakeOutputParser implements BuildOutputParser {
       FilePosition position =
         new FilePosition(file, fields.lineNumber + SOURCE_POSITION_OFFSET, fields.columnNumber + SOURCE_POSITION_OFFSET);
       messageConsumer.accept(
-        new FileMessageEventImpl(buildId, fields.kind, (fields.kind == MessageEvent.Kind.ERROR ? CMAKE_ERROR : CMAKE_WARNING) + "s",
-                                 fields.errorMessage, String.join("\n", messages), position));
+        new FileMessageEventImpl(buildId, fields.kind, CMAKE +
+                                                       (fields.kind == MessageEvent.Kind.ERROR
+                                                        ? MESSAGE_GROUP_ERROR_SUFFIX
+                                                        : MESSAGE_GROUP_WARNING_SUFFIX), fields.errorMessage, String.join("\n", messages),
+                                 position));
       return true;
     }
 

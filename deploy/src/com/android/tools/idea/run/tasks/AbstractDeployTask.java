@@ -105,18 +105,20 @@ public abstract class AbstractDeployTask implements LaunchTask {
         }
       }
       catch (DeployerException e) {
+        logger.warning("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails());
         return toLaunchResult(e);
       }
     }
 
     if (idsSkippedInstall.isEmpty()) {
-      NOTIFICATION_GROUP.createNotification(getDescription() + " successful", NotificationType.INFORMATION)
-        .setImportant(false).notify(myProject);
+      String content = getDescription() + " successful";
+      NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).setImportant(false).notify(myProject);
+      logger.info("%s", content);
     } else {
-      NOTIFICATION_GROUP.createNotification(getDescription() + " successful",
-                                            createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size())
-        ,NotificationType.INFORMATION, null)
-        .setImportant(false).notify(myProject);
+      String title = getDescription() + " successful";
+      String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
+      NOTIFICATION_GROUP.createNotification(title, content, NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
+      logger.info("%s. %s", title, content);
     }
 
     return new LaunchResult();

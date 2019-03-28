@@ -28,6 +28,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
@@ -39,10 +40,10 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.ReferenceWalker;
 import com.android.tools.profilers.StudioProfilers;
@@ -573,7 +574,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .build();
     myService.addExplicitHeapDumpInfo(heapDumpInfo);
     myService.setExplicitDumpDataStatus(DumpDataResponse.Status.SUCCESS);
-    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(getGrpcChannel().getClient().getMemoryClient(),
+    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(new ProfilerClient(getGrpcChannel().getName()).getMemoryClient(),
                                                                       ProfilersTestData.SESSION_DATA,
                                                                       heapDumpInfo,
                                                                       null,

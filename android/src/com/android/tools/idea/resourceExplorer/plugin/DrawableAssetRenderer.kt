@@ -35,9 +35,18 @@ import javax.xml.parsers.DocumentBuilderFactory
 private val LOG = Logger.getInstance(DrawableAssetRenderer::class.java)
 
 private val SUPPORTED_DRAWABLE_TAG = arrayOf(
-  SdkConstants.TAG_VECTOR, SdkConstants.TAG_SHAPE, SdkConstants.TAG_BITMAP,
-  SdkConstants.TAG_RIPPLE, SdkConstants.TAG_SELECTOR, SdkConstants.TAG_ANIMATED_SELECTOR, SdkConstants.TAG_ANIMATED_VECTOR,
-  SdkConstants.TAG_TRANSITION, SdkConstants.TAG_INSET, SdkConstants.TAG_LAYER_LIST)
+  SdkConstants.TAG_ADAPTIVE_ICON,
+  SdkConstants.TAG_ANIMATED_SELECTOR,
+  SdkConstants.TAG_ANIMATED_VECTOR,
+  SdkConstants.TAG_BITMAP,
+  SdkConstants.TAG_INSET,
+  SdkConstants.TAG_LAYER_LIST,
+  SdkConstants.TAG_RIPPLE,
+  SdkConstants.TAG_SELECTOR,
+  SdkConstants.TAG_SHAPE,
+  SdkConstants.TAG_TRANSITION,
+  SdkConstants.TAG_VECTOR
+)
 
 private const val disposeTime: Long = 5
 private val disposeTimeUnit: TimeUnit = TimeUnit.MINUTES

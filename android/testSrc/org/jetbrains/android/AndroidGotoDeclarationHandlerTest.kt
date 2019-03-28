@@ -18,7 +18,6 @@ package org.jetbrains.android
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
@@ -323,15 +322,6 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 
 class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHandlerTestBase() {
 
-  override fun setUp() {
-    super.setUp()
-    copyRJavaToGeneratedSources()
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
-      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
-    }
-  }
-
   override fun addAarDependencyToMyModule() {
     addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
       resDir.resolve("values/styles.xml").writeText(
@@ -367,28 +357,6 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     val appResources = ResourceRepositoryManager.getAppResources(myFacet)
     assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
     assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
-
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.addFileToProject(
-        "gen/p1/p2/aarLib/R.java",
-        // language=java
-        """
-      package p1.p2.aarLib;
-
-      public final class R {
-        public static final class attr {
-          public static final int libAttr = 0x7f010001;
-        }
-        public static final class style {
-          public static final int LibStyle = 0x7f020001;
-        }
-        public static final class drawable {
-          public static final int libLogo = 0x7f030001;
-        }
-      }
-      """.trimIndent()
-      )
-    }
   }
 
   fun testGotoStringFromLib_ownRClass() {

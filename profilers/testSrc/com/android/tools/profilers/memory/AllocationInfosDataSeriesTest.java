@@ -17,10 +17,11 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,7 @@ public class AllocationInfosDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocationInfosDataSeries series =
-      new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new AllocationInfosDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                     myIdeProfilerServices.getFeatureTracker(), null);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 

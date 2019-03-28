@@ -28,6 +28,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -387,16 +388,14 @@ public class MergedManifestManagerTest extends AndroidTestCase {
                                    "        android:protectionLevel=\"dangerous\" />\n" +
                                    "</manifest>\n";
 
-    ManifestInfo.ManifestFile file = ManifestInfo.ManifestFile.create(myFacet);
+    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(myFacet);
 
-    // On the first load, the manifest is out of date and it will load even with forceLoad = false
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
-    // Now, it's up to date, so the next call will return null
-    assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, true));
+    // The manifest is up-to-date, so the next call will return null
+    assertNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, false));
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, true));
     updateManifestContents(originalContent.replace("unittest", "unittest2"));
     // Even with forceLoad == false, now we should refresh from disk since we've changed the manifest
-    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, file, false));
+    assertNotNull(MergedManifestManager.readSnapshotFromDisk(myFacet, mergedManifestInfo, false));
 
   }
 

@@ -66,6 +66,14 @@ open class SuggestionConfigurableFixture(
     waitForIdle()
   }
 
+  fun waitForGroup(requiredGroupTitle: String) {
+    Wait
+      .seconds(10)
+      .expecting("Group: $requiredGroupTitle")
+      .until { groups().contains(requiredGroupTitle) }
+    waitForIdle()
+  }
+
   fun findGroup(messageGroupTitle: String): SuggestionGroupFixture =
       suggestionGroups().firstOrNull { it.title() == messageGroupTitle } ?: throw AssertionError()
 

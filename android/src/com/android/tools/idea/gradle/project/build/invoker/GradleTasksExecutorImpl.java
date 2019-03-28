@@ -66,6 +66,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -344,7 +345,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         if (!getProject().isDisposed()) {
           List<Message> buildMessages = new ArrayList<>();
           if (buildError instanceof BuildException) {
-            String message = buildError.getMessage();
+            String message = ExternalSystemApiUtil.buildErrorMessage(buildError);
             Message msg = new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN);
             buildMessages.add(msg);
           }

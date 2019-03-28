@@ -110,6 +110,10 @@ class ClassDefinition(val name: String,
     while (true)
     return result
   }
+
+  fun copyWithName(newName: String): ClassDefinition {
+    return ClassDefinition(newName, id, superClassId, instanceSize, superClassOffset, refInstanceFields, constantFields, staticFields)
+  }
 }
 
 

@@ -24,7 +24,7 @@ import com.intellij.psi.PsiModifier
  * Reference that refers to a [PsiField]
  */
 internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiField)
-  : DbExprReference(refExpr, field, refExpr.id.textRange.shiftRight(-refExpr.startOffsetInParent)) {
+  : DbExprReference(refExpr, field, refExpr.id.textRange.shiftLeft(refExpr.textOffset)) {
 
   override val resolvedType: PsiModelClass
     get() = PsiModelClass((resolve() as PsiField).type)

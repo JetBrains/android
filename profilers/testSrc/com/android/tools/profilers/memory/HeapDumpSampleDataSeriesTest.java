@@ -18,9 +18,10 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -47,7 +48,7 @@ public class HeapDumpSampleDataSeriesTest {
   @Before
   public void setUp() {
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, new FakeTimer()),
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, new FakeTimer()),
                               new FakeCaptureObjectLoader());
   }
 
@@ -65,7 +66,7 @@ public class HeapDumpSampleDataSeriesTest {
     myService.addExplicitHeapDumpInfo(dumpInfo2);
 
     HeapDumpSampleDataSeries series =
-      new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
                                    myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));

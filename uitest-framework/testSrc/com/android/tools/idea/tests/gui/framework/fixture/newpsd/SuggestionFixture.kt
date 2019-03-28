@@ -28,6 +28,7 @@ import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.JButtonFixture
 import org.junit.Assert.fail
+import javax.swing.Action
 import javax.swing.JButton
 import javax.swing.JPanel
 
@@ -65,10 +66,15 @@ class SuggestionFixture(
     buttonFixture.click()
   }
 
-  private fun findButton(): JButtonFixture {
+  fun findButton(): JButtonFixture {
     val button = finder().findAll(container, matcher<JBOptionButton> { true }).singleOrNull()
                  ?: finder().findByType<JButton>(container)
     return JButtonFixture(robot(), button)
+  }
+
+  fun getOptionNames(): Array<String> {
+    val options = finder().findAll(container, matcher<JBOptionButton> { true }).singleOrNull()?.options ?: arrayOf()
+    return options.map { it.getValue(Action.NAME).toString() }.toTypedArray()
   }
 }
 

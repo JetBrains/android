@@ -111,7 +111,7 @@ class VariablesTest {
         selectCell("2")
         right()
         editWithF2()
-        selectValue("\$simpleVariableInt : 123")
+        selectValue("\$simpleVariableInt : 123", withKeyboard = true)
         selectCell("k1")
         editWithF2()  // Cancel editing.
         right()

@@ -16,6 +16,9 @@
 package com.android.tools.idea.npw.template;
 
 
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -43,24 +46,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.TestOnly;
-
-import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.AbstractAction;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * This step allows the user to select which type of Activity they want to create.
+ * This step allows the user to select which type of component (Activity, Service, etc.) they want to create.
  *
  * TODO: ATTR_IS_LAUNCHER seems to be dead code, it was one option in the old UI flow. Find out if we can remove it.
  * TODO: This class and ChooseModuleTypeStep looks to have a lot in common. Should we have something more specific than a ASGallery,
@@ -112,7 +111,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       myTemplateRenderers.add(new TemplateRenderer(templateHandle));
     }
 
-    myActivityGallery = new WizardGallery<>(getTitle(), TemplateRenderer::getImage, TemplateRenderer::getLabel);
+    myActivityGallery = new WizardGallery<>(getTitle(), TemplateRenderer::getIcon, TemplateRenderer::getLabel);
     myValidatorPanel = new ValidatorPanel(this, new JBScrollPane(myActivityGallery));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
@@ -339,8 +338,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
      * Return the image associated with the current template, if it specifies one, or null otherwise.
      */
     @Nullable
-    Image getImage() {
-      return ActivityGallery.getTemplateImage(myTemplate, false);
+    Icon getIcon() {
+      return ActivityGallery.getTemplateIcon(myTemplate, false);
     }
   }
 }

@@ -438,7 +438,6 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
 
   public void testJavaHighlighting() throws Throwable {
     copyFileToProject("PermissionsManifest.xml", "AndroidManifest.xml");
-    copyManifestJavaToGeneratedSources();
     doTestJavaHighlighting("p1.p2");
   }
 

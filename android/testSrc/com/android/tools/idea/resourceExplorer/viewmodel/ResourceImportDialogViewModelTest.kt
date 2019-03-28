@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.resourceExplorer.viewmodel
 
+import com.android.resources.ResourceType
+import com.android.tools.idea.resourceExplorer.createFakeResDirectory
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -31,6 +34,9 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
 import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ResourceImportDialogViewModelTest {
 
@@ -67,6 +73,48 @@ class ResourceImportDialogViewModelTest {
     }
     assertThat(viewModel.assetSets).hasSize(1)
     assertThat(viewModel.assetSets.elementAt(0).designAssets).hasSize(2)
+  }
+
+  @Test
+  fun renameAsset() {
+    val first = createFakeResDirectory(rule.module.androidFacet!!)
+    val testFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
+    val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
+    val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset))
+    val designAssetSet = viewModel.assetSets.first()
+    viewModel.rename(designAssetSet, "newName") { newAsset ->
+      assertThat(newAsset).isNotEqualTo(designAssetSet)
+      assertThat(newAsset).isNotSameAs(designAssetSet)
+      assertThat(newAsset.name).isEqualTo("newName")
+    }
+    viewModel.doImport()
+    assertThat(File(first, "drawable/newName.png").exists()).isTrue()
+  }
+
+  @Test
+  fun nameValidation() {
+    val invalidName = "inv@lid"
+    val expected = "'@' is not a valid file-based resource name character: File-based resource names must contain only lowercase a-z, 0-9, or underscore"
+    val newName = "name2"
+
+    val testFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
+    val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
+    val designAsset2 = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE, newName)
+    val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset, designAsset2))
+    var designAssetSet = viewModel.assetSets.first { it.name == "icon_category_entertainment" }
+
+    // Check invalidName
+    viewModel.rename(designAssetSet, invalidName) { designAssetSet = it }
+    assertEquals(expected, viewModel.validateName(invalidName)!!.message)
+    assertEquals("$invalidName: $expected", viewModel.getValidationInfo()!!.message)
+
+    // Check valid name duplicated
+    assertNull(viewModel.validateName(newName))
+    viewModel.rename(designAssetSet, newName) {}
+    val validationInfo = viewModel.validateName(newName)!!
+    assertEquals("A resource with the same name is also being imported.", validationInfo.message)
+    assertTrue(validationInfo.warning)
+    assertNull(viewModel.getValidationInfo())
   }
 
   private fun getTestFiles(vararg path: String): List<VirtualFile> {

@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -38,6 +39,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,6 +75,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_TABLET = "Pixel C";
   private static final String DEFAULT_WEAR = "Android Wear Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
+  private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
 
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
@@ -258,31 +261,24 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void setDefaultDevices() {
-    for (Device d : myDeviceCategoryMap.get(PHONE_TYPE)) {
-      if (d.getDisplayName().equals(DEFAULT_PHONE)) {
-        myDefaultCategoryDeviceMap.put(PHONE_TYPE, d);
-        myDefaultDevice = d;
-        break;
+    myDefaultDevice = updateDefaultDevice(PHONE_TYPE, DEFAULT_PHONE);
+    updateDefaultDevice(TABLET_TYPE, DEFAULT_TABLET);
+    updateDefaultDevice(FormFactor.TV.toString(), DEFAULT_TV);
+    updateDefaultDevice(FormFactor.WEAR.toString(), DEFAULT_WEAR);
+    updateDefaultDevice(FormFactor.AUTOMOTIVE.toString(), DEFAULT_AUTOMOTIVE);
+  }
+
+  private Device updateDefaultDevice(String type, String deviceDisplayName) {
+    List<Device> devices = myDeviceCategoryMap.get(type);
+    if (devices != null) {
+      for (Device d : devices) {
+        if (d.getDisplayName().equals(deviceDisplayName)) {
+          myDefaultCategoryDeviceMap.put(type, d);
+          return d;
+        }
       }
     }
-    for (Device d : myDeviceCategoryMap.get(TABLET_TYPE)) {
-      if (d.getDisplayName().equals(DEFAULT_TABLET)) {
-        myDefaultCategoryDeviceMap.put(TABLET_TYPE, d);
-        break;
-      }
-    }
-    for (Device d : myDeviceCategoryMap.get(FormFactor.WEAR.toString())) {
-      if (d.getDisplayName().equals(DEFAULT_WEAR)) {
-        myDefaultCategoryDeviceMap.put(FormFactor.WEAR.toString(), d);
-        break;
-      }
-    }
-    for (Device d : myDeviceCategoryMap.get(FormFactor.TV.toString())) {
-      if (d.getDisplayName().equals(DEFAULT_TV)) {
-        myDefaultCategoryDeviceMap.put(FormFactor.TV.toString(), d);
-        break;
-      }
-    }
+    return null;
   }
 
   @NotNull
@@ -396,7 +392,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void refreshDeviceProfiles() {
-    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
+    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices()
+      .stream()
+      .filter(d -> !HardwareConfigHelper.isAutomotive(d) || StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get())
+      .collect(Collectors.toList());
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
       String category = getCategory(d);
@@ -411,12 +410,14 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   /**
-   * @return the category of the specified device. One of:
-   * TV, Wear, Tablet, and Phone, or Other if the category
+   * @return the category of the specified device. One of: 
+   * Automotive TV, Wear, Tablet, and Phone, or Other if the category 
    * cannot be determined.
    */
   private static String getCategory(@NotNull Device d) {
-    if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
+    if (HardwareConfigHelper.isAutomotive(d)) {
+      return FormFactor.AUTOMOTIVE.toString();
+    } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
       return FormFactor.TV.toString();
     } else if (HardwareConfigHelper.isWear(d)) {
       return FormFactor.WEAR.toString();

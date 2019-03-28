@@ -31,12 +31,10 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallArtifactHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallCMakeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
@@ -126,12 +124,10 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is FixAndroidGradlePluginVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK
       is FixBuildToolsVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_BUILD_TOOLS_VERSION_HYPERLINK
       is FixGradleVersionInWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK
-      is InstallArtifactHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_ARTIFACT_HYPERLINK
       is InstallBuildToolsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_BUILD_TOOLS_HYPERLINK
       is InstallCMakeHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_C_MAKE_HYPERLINK
       is InstallNdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK
       is InstallPlatformHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK
-      is InstallRepositoryHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_REPOSITORY_HYPERLINK
       is InstallSdkPackageHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_PACKAGE_HYPERLINK
       is SdkToolsVersionSetupStep.InstallSdkToolsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_TOOLS_HYPERLINK
       is OpenAndroidSdkManagerHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_ANDROID_SDK_MANAGER_HYPERLINK

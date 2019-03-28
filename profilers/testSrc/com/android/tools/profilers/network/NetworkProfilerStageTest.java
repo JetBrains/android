@@ -17,8 +17,8 @@ package com.android.tools.profilers.network;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
@@ -30,11 +30,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -92,7 +93,7 @@ public class NetworkProfilerStageTest {
 
   @Before
   public void setUp() {
-    myStudioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     myStudioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myStage = new NetworkProfilerStage(myStudioProfilers);
     myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));

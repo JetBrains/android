@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.profilers.FakeTransportService.VERSION;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.VERSION;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
@@ -33,11 +35,12 @@ public final class StudioProfilersCommonTest {
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
   @Rule public FakeGrpcServer myGrpcServer =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myTransportService, new FakeProfilerService(myTimer));
+  private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcServer.getName());
 
   @Test
   public void testVersion() {
     VersionResponse response =
-      myGrpcServer.getClient().getTransportClient().getVersion(VersionRequest.getDefaultInstance());
+      myProfilerClient.getTransportClient().getVersion(VersionRequest.getDefaultInstance());
     assertThat(response.getVersion()).isEqualTo(VERSION);
   }
 
@@ -68,7 +71,7 @@ public final class StudioProfilersCommonTest {
 
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Common.Device device = Common.Device.newBuilder()

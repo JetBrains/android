@@ -82,6 +82,11 @@ public final class StudioFlags {
     "Use Navigation Controller in a project that has multiple destinations, " +
     "for example: Navigation Drawer Activity or Bottom Navigation Activity. This flag is used not to include the Navigation Component " +
     "before it becomes stable.",
+    true);
+
+  public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
+    NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
+    "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
     false);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
@@ -296,6 +301,11 @@ public final class StudioFlags {
     "Enable the shadow rendering in Layout Editor",
     true);
 
+  public static final Flag<Boolean> NELE_SIMPLER_RESIZE = Flag.create(
+    NELE, "simpler.resize", "Simplify resize",
+    "Simplify design surface resize",
+    false);
+
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
@@ -429,12 +439,6 @@ public final class StudioFlags {
 
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
-  public static final Flag<Boolean> IN_MEMORY_R_CLASSES = Flag.create(
-    EDITOR,
-    "in.memory.r.classes",
-    "Generate R classes fully in memory",
-    "If enabled, R classes are generated in memory", true);
-
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
     EDITOR,
     "collapse.android.namespace",
@@ -533,6 +537,12 @@ public final class StudioFlags {
     MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
     "If set, IDE Xmx is capped at 4GB in the configuration dialog. Otherwise, the cap is 8GB",
     true);
+
+  private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
+  public static final Flag<Boolean> WINDOWS_DEFENDER_CHECK_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.defender.check.enabled", "Enable Windows Defender system health check",
+    "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
+    false);
 
   private StudioFlags() { }
 }

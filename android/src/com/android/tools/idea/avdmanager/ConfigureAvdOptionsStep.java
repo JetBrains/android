@@ -24,23 +24,35 @@ import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.devices.*;
-import com.android.sdklib.internal.avd.*;
+import com.android.sdklib.devices.Abi;
+import com.android.sdklib.devices.CameraLocation;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Hardware;
+import com.android.sdklib.devices.Storage;
+import com.android.sdklib.internal.avd.AvdCamera;
+import com.android.sdklib.internal.avd.AvdNetworkLatency;
+import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.EmulatedProperties;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.observable.*;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -70,24 +82,46 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
-import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import org.gradle.internal.impldep.org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.*;
-import java.util.*;
-import java.util.List;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -1183,10 +1217,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void createUIComponents() {
-    Function<ScreenOrientation, Image> orientationIconFunction = new Function<ScreenOrientation, Image>() {
+    Function<ScreenOrientation, Icon> orientationIconFunction = new Function<ScreenOrientation, Icon>() {
       @Override
-      public Image apply(ScreenOrientation input) {
-        return IconUtil.toImage(ORIENTATIONS.get(input).myIcon);
+      public Icon apply(ScreenOrientation input) {
+        return ORIENTATIONS.get(input).myIcon;
       }
     };
     Function<ScreenOrientation, String> orientationNameFunction = new Function<ScreenOrientation, String>() {

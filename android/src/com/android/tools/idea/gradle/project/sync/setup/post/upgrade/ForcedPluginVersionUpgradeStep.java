@@ -114,6 +114,14 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
             return false;
           }
 
+          // Allow recent RCs. For example, when using a 3.5 canary IDE, allow 3.4-rc as a Gradle
+          // plugin, but not 3.3-rc or 3.4-beta.
+          if (current.getPreviewType().equals("rc") && recommended.getPreviewType() != null
+              && current.getMajor() == recommended.getMajor()
+              && current.getMinor() == recommended.getMinor() - 1) {
+            return false;
+          }
+
           boolean isOlderPreviewAllowed = current.isPreview() && current.getMajor() == 2 && current.getMinor() == 4 &&
                                           current.compareTo(recommended) < 0;
           return !isOlderPreviewAllowed;

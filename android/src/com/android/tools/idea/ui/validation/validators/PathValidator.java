@@ -229,8 +229,15 @@ public final class PathValidator implements Validator<File> {
     }
   };
 
-  public static final Rule PATH_TOO_LONG = new SimpleRule() {
-    private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
+  public static final Rule WINDOWS_PATH_TOO_LONG = new SimpleRule() {
+    /**
+     * Although Android Studio and Gradle support paths longer than MAX_PATH (260)
+     * on Windows, there is still a limit to the length of the path to the root directory,
+     * as each project directory contains a "gradlew.bat" file (used to build the project),
+     * and the length of the path to the "gradlew.bat" cannot exceed MAX_PATH, because
+     * Windows limits path of executables to MAX_PATH (for backward compatibility reasons).
+     */
+    private static final int WINDOWS_PATH_LENGTH_LIMIT = 240;
 
     @Override
     protected boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
@@ -383,7 +390,7 @@ public final class PathValidator implements Validator<File> {
     public Builder withCommonRules() {
       withCommonTestRules();
       if(SystemInfo.isWindows) {
-        withRule(PATH_TOO_LONG, Severity.ERROR);
+        withRule(WINDOWS_PATH_TOO_LONG, Severity.ERROR);
       }
       return this;
     }

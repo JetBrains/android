@@ -24,14 +24,14 @@ import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuUsage
@@ -111,7 +111,7 @@ class DataSeriesPerformanceTest {
   @Test
   fun runPerformanceTest() {
     val timer = FakeTimer()
-    val studioProfilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
+    val studioProfilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     val dataSeriesToTest = mapOf(Pair("Event-Activities",
                                       LifecycleEventDataSeries(client, session, false)),
@@ -184,7 +184,7 @@ class DataSeriesPerformanceTest {
     val liveAllocation: LiveAllocationCaptureObject
 
     init {
-      val stage = MemoryProfilerStage(StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), FakeTimer()))
+      val stage = MemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), FakeTimer()))
       liveAllocation = LiveAllocationCaptureObject(client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(), stage)
     }
   }

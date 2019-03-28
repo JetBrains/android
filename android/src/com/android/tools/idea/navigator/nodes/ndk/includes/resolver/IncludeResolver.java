@@ -37,7 +37,7 @@ abstract public class IncludeResolver {
   @NotNull
   public static IncludeResolver getGlobalResolver(@Nullable File ndkPath) {
     IncludeResolver[] resolvers =
-      new IncludeResolver[]{new NdkIncludeResolver(ndkPath), new CDepIncludeResolver(), new CocosIncludeResolver(),
+      new IncludeResolver[]{new NdkIncludeResolver(), new CDepIncludeResolver(), new CocosIncludeResolver(),
         thirdParty(), externals(), new PlainFolderIncludeResolver()};
     return new IncludeResolver() {
       @Override

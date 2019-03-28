@@ -61,9 +61,6 @@ public final class AdtModuleImporter extends ModuleImporter {
 
   public static boolean isAdtProjectLocation(@NotNull VirtualFile importSource) {
     VirtualFile target = ProjectImportUtil.findImportTarget(importSource);
-    if (target == null) {
-      return false;
-    }
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     File targetDirFile = virtualToIoFile(targetDir);
     return isAdtProjectDir(targetDirFile) && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null;

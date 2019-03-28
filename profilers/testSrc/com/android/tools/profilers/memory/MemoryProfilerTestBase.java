@@ -15,12 +15,13 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import org.junit.Before;
 
@@ -35,7 +36,7 @@ public abstract class MemoryProfilerTestBase {
   @Before
   public void setupBase() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(getGrpcChannel().getClient(), myIdeProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getName()), myIdeProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);

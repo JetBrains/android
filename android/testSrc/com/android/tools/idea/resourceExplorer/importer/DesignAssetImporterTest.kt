@@ -61,8 +61,8 @@ class DesignAssetImporterTest {
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
     val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
     val item = moduleResources.allResources.first()!!
-    Truth.assertThat(item.name).isEqualTo("file1")
-    Truth.assertThat(item.resourceValue?.value).endsWith("drawable-xhdpi/file1.png")
+    Truth.assertThat(item.name).isEqualTo("set1")
+    Truth.assertThat(item.resourceValue?.value).endsWith("drawable-xhdpi/set1.png")
   }
 
   @Test

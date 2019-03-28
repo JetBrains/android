@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.naveditor
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
 import com.google.common.truth.Truth.assertThat
@@ -79,7 +77,6 @@ class DestinationListTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/110924391
   @Test
   @Throws(Exception::class)
   fun testSelectComponent() {

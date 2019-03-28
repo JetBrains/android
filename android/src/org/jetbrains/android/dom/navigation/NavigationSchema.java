@@ -29,7 +29,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
@@ -267,17 +266,19 @@ public class NavigationSchema implements Disposable {
 
   private class NavigatorKeyInfo {
     long myModificationCount;
+    @NotNull TypeRef myNavigatorTypeRef;
     @Nullable String myTagName;
     @Nullable TypeRef myDestinationClassRef;
 
     private NavigatorKeyInfo(@NotNull PsiClass navigator, @Nullable String tag, @Nullable PsiClass destinationClass) {
       myModificationCount = getModificationCount(navigator);
+      myNavigatorTypeRef = new TypeRef(navigator);
       myTagName = tag;
       myDestinationClassRef = destinationClass == null ? NULL_TYPE : new TypeRef(destinationClass);
     }
 
-    boolean matches(@NotNull TypeRef other, @NotNull NavigationSchema schema) {
-      PsiClass otherClass = other.dereference();
+    boolean checkConsistent(@NotNull NavigationSchema schema) {
+      PsiClass otherClass = myNavigatorTypeRef.dereference();
       if (otherClass == null) {
         return false;
       }
@@ -326,9 +327,9 @@ public class NavigationSchema implements Disposable {
   }
 
   /**
-   * Map from Navigator class to class key information. Only used for cache invalidation.
+   * List of class key information. Only used for cache invalidation.
    */
-  private ImmutableMap<TypeRef, NavigatorKeyInfo> myNavigatorCacheKeys;
+  private ImmutableList<NavigatorKeyInfo> myNavigatorCacheKeys;
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -482,11 +483,11 @@ public class NavigationSchema implements Disposable {
     myNavigatorCacheKeys = buildCacheKeys(navigatorToTag, navigatorToDestinationClass);
   }
 
-  private ImmutableMap<TypeRef, NavigatorKeyInfo> buildCacheKeys(Map<PsiClass, String> tagMap, Map<PsiClass, PsiClass> destinationTypeMap) {
-    ImmutableMap.Builder<TypeRef, NavigatorKeyInfo> result = new ImmutableMap.Builder<>();
+  private ImmutableList<NavigatorKeyInfo> buildCacheKeys(Map<PsiClass, String> tagMap, Map<PsiClass, PsiClass> destinationTypeMap) {
+    ImmutableList.Builder<NavigatorKeyInfo> result = new ImmutableList.Builder<>();
     for (PsiClass navigator : Sets.union(tagMap.keySet(), destinationTypeMap.keySet())) {
       NavigatorKeyInfo key = new NavigatorKeyInfo(navigator, tagMap.get(navigator), destinationTypeMap.get(navigator));
-      result.put(new TypeRef(navigator), key);
+      result.add(key);
     }
     return result.build();
   }
@@ -698,7 +699,7 @@ public class NavigationSchema implements Disposable {
         return false;
       }
 
-      return myNavigatorCacheKeys.entrySet().stream().allMatch(entry -> entry.getValue().matches(entry.getKey(), this));
+      return myNavigatorCacheKeys.stream().allMatch(value -> value.checkConsistent(this));
     }
   }
 

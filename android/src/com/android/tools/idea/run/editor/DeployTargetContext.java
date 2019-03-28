@@ -23,9 +23,11 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jdom.Element;
@@ -35,31 +37,29 @@ public class DeployTargetContext implements JDOMExternalizable {
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
-  private final List<DeployTargetProvider> myDeployTargetProviders; // all available deploy targets
+  private final Function<Boolean, Collection<DeployTargetProvider>> myGetDeployTargetProviders;
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public DeployTargetContext() {
-    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(), DeployTargetProvider.getProviders());
+    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(), DeployTargetProvider::getProviders);
   }
 
   @VisibleForTesting
   DeployTargetContext(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
-                      @NotNull List<DeployTargetProvider> deployTargetProviders) {
+                      @NotNull Function<Boolean, Collection<DeployTargetProvider>> getDeployTargetProviders) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
-    myDeployTargetProviders = deployTargetProviders;
+    myGetDeployTargetProviders = getDeployTargetProviders;
 
-    ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
-    for (DeployTargetProvider provider : myDeployTargetProviders) {
-      builder.put(provider.getId(), provider.createState());
-    }
-    myDeployTargetStates = builder.build();
+    // noinspection UnstableApiUsage
+    myDeployTargetStates = getDeployTargetProviders.apply(true).stream()
+      .collect(ImmutableMap.toImmutableMap(DeployTargetProvider::getId, DeployTargetProvider::createState));
   }
 
   @NotNull
   public List<DeployTargetProvider> getApplicableDeployTargetProviders(boolean testConfiguration) {
     boolean deviceSnapshotComboBoxVisible = mySelectDeviceSnapshotComboBoxVisible.get();
 
-    return myDeployTargetProviders.stream()
+    return myGetDeployTargetProviders.apply(deviceSnapshotComboBoxVisible).stream()
       .filter(provider -> provider.isApplicable(testConfiguration, deviceSnapshotComboBoxVisible))
       .collect(Collectors.toList());
   }
@@ -68,7 +68,7 @@ public class DeployTargetContext implements JDOMExternalizable {
   public DeployTargetProvider getCurrentDeployTargetProvider() {
     Object mode = getTargetSelectionMode().name();
 
-    Optional<DeployTargetProvider> optionalProvider = myDeployTargetProviders.stream()
+    Optional<DeployTargetProvider> optionalProvider = myGetDeployTargetProviders.apply(mySelectDeviceSnapshotComboBoxVisible.get()).stream()
       .filter(provider -> provider.getId().equals(mode))
       .findFirst();
 

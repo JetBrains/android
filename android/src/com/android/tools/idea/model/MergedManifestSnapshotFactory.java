@@ -70,8 +70,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -174,9 +172,9 @@ class MergedManifestSnapshotFactory {
   }
 
   @Nullable
-  static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet, @NotNull ManifestInfo.ManifestFile manifestFile) {
+  static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet, @NotNull MergedManifestInfo mergedManifestInfo) {
     try {
-      Document document = manifestFile.getXmlDocument();
+      Document document = mergedManifestInfo.getXmlDocument();
       if (document == null) {
         return null;
       }
@@ -302,12 +300,12 @@ class MergedManifestSnapshotFactory {
         ImmutableSet.copyOf(permissions),
         ImmutableSet.copyOf(revocable));
 
-      Actions actions = manifestFile.getActions();
-      ImmutableList<MergingReport.Record> loggingRecords = manifestFile.getLoggingRecords();
+      Actions actions = mergedManifestInfo.getActions();
+      ImmutableList<MergingReport.Record> loggingRecords = mergedManifestInfo.getLoggingRecords();
       return new MergedManifestSnapshot(facet.getModule(), packageName, appId, versionCode, manifestTheme,
                                         activityAttributesMapBuilder.build(),
-                                        manifestFile, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
-                                        ImmutableList.copyOf(manifestFile.getManifestFiles()),
+                                        mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
+                                        ImmutableList.copyOf(mergedManifestInfo.getFiles()),
                                         permissionHolder, appHasCode,
                                         ImmutableList.copyOf(activities),
                                         ImmutableList.copyOf(activityAliases),

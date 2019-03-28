@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
+import java.awt.event.FocusListener
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.table.TableCellEditor
@@ -64,6 +65,11 @@ interface ModelPropertyEditor<out ValueT : Any> : Disposable {
    * Reloads the editor from the bound property and keeps the value if it has been modified by the user.
    */
   fun reloadIfNotChanged() = reload()
+
+  /**
+   * Adds [listener] to the core editor component(s).
+   */
+  fun addFocusListener(listener: FocusListener)
 
   val property: ModelPropertyCore<out ValueT>
 }

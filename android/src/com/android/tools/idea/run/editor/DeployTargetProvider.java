@@ -42,11 +42,16 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
   private static List<DeployTargetProvider> ourTargets;
 
   public static List<DeployTargetProvider> getProviders() {
+    return getProviders(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
+  }
+
+  @NotNull
+  static List<DeployTargetProvider> getProviders(boolean deviceSnapshotComboBoxVisible) {
     if (ourTargets == null) {
       ourTargets = Arrays.asList(EP_NAME.getExtensions());
     }
 
-    return filterOutDeviceAndSnapshotComboBoxProvider(ourTargets, StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
+    return filterOutDeviceAndSnapshotComboBoxProvider(ourTargets, deviceSnapshotComboBoxVisible);
   }
 
   @NotNull

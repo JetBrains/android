@@ -28,6 +28,7 @@ import com.intellij.util.ui.UIUtil.getListSelectionBackground
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.FocusListener
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 import javax.swing.JComponent
@@ -108,6 +109,10 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())
 
+  fun addFocusListener(listener: FocusListener) {
+    table.addFocusListener(listener)
+  }
+
   /**
    * An [Annotated] [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation
    * in [MyCellEditor].
@@ -132,7 +137,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
       return SimpleColoredComponent().also {
-        parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers)
+        parsedValue.renderTo(it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus), formatter, knownValueRenderers)
         if (isSelected) it.background = getListSelectionBackground(hasFocus)
       }
     }
@@ -140,7 +145,9 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   inner class MyCellEditor : PropertyCellEditor<ValueT>() {
     override fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any = toTableModelValue()
-    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> = editor(getPropertyAt(row), propertyContext, variablesScope)
+    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> =
+        editor(getPropertyAt(row), propertyContext, variablesScope, this)
+            .also { table.addTabKeySupportTo(it.component) }
   }
 }
 

@@ -68,7 +68,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
 
   private final Type myType;
 
-  private boolean myInDrag = false;
   private boolean myRenderingTemporaryConnection = false;
   @AndroidDpCoordinate private int myConnectedX = -1;
   @AndroidDpCoordinate private int myConnectedY = -1;
@@ -639,8 +638,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         break;
       }
     }
-    if (!myInDrag) {
-      myInDrag = true;
+    if (!myIsDragging) {
+      myIsDragging = true;
       DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
     }
 
@@ -666,8 +665,13 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         }
       }
     }
-    revertToPreviousState();
-    myRenderingTemporaryConnection = false;
+    if (myRenderingTemporaryConnection) {
+      revertToPreviousState();
+      myRenderingTemporaryConnection = false;
+      return;
+    }
+
+    myComponent.getScene().needsRebuildList();
   }
 
   /**
@@ -774,11 +778,18 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       }
     }
     finally {
-      if (myInDrag) {
-        myInDrag = false;
+      if (myIsDragging) {
+        myIsDragging = false;
         DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
       }
     }
+  }
+
+  @Override
+  public void mouseCancel() {
+    super.mouseCancel();
+    DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+    revertToPreviousState();
   }
 
   /**

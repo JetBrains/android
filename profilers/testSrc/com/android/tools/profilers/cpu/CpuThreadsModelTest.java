@@ -19,10 +19,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
@@ -64,10 +65,10 @@ public class CpuThreadsModelTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      myTransportService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
+      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
     }
     myServices.enableEventsPipeline(myIsUnifiedPipeline);
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myRange = new Range();

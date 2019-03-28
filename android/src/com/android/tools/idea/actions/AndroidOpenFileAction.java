@@ -18,11 +18,8 @@ package com.android.tools.idea.actions;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.concurrency.AndroidIoManager;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.openapi.Disposable;
@@ -32,7 +29,6 @@ import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Iconable;
@@ -42,24 +38,18 @@ import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
 import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
-import static com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.ide.impl.ProjectUtil.openOrImport;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
@@ -182,47 +172,13 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     }
   }
 
-  private static boolean canOpenAsExistingProject(VirtualFile file) {
-    return FileExtensions.toVirtualFile(FileExtensions.toPathString(file).resolve(Project.DIRECTORY_STORE_FOLDER), true) != null;
-  }
-
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
-    if (!canOpenAsExistingProject(file) && canImportAsGradleProject(file)) {
-      VirtualFile target = findImportTarget(file);
-      if (target != null) {
-        if (!promptToCloseIfNecessary(project)) {
-          return false;
-        }
-
-        GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        gradleImporter.importProject(file);
-        return true;
-      }
-    }
     Project opened = openOrImport(file.getPath(), project, false);
     if (opened != null) {
       setLastOpenedFile(opened, file);
       return true;
     }
     return false;
-  }
-
-  private static boolean promptToCloseIfNecessary(@Nullable Project project) {
-    boolean success = true;
-    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-    if (openProjects.length > 0) {
-      int exitCode = confirmOpenNewProject(false);
-      if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
-        Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
-        if (!closeAndDispose(toClose)) {
-          success = false;
-        }
-      }
-      else if (exitCode != GeneralSettings.OPEN_PROJECT_NEW_WINDOW) {
-        success = false;
-      }
-    }
-    return success;
   }
 
   /**
