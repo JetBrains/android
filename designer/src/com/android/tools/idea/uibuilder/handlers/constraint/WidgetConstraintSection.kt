@@ -53,7 +53,12 @@ private const val COMPONENT_HEIGHT = 20
 
 private val ERROR_TEXT_COLOR = Color(0x969696)
 
-class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) : AdtSecondaryPanel() {
+// TODO: remove this interface after StudioFlags.NELE_CONSTRAINT_SECTION is removed.
+abstract class WidgetSection : AdtSecondaryPanel() {
+  abstract fun configureUi()
+}
+
+class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) : WidgetSection() {
 
   private val sectionTitle = SectionTitle()
   private val list: JList<ConstraintCellData>
@@ -151,7 +156,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     }
   }
 
-  fun configureUi() {
+  override fun configureUi() {
     listData.clear()
 
     val component = widgetModel.component
@@ -518,3 +523,11 @@ val CONSTRAINT_ATTRIBUTES = listOf(
   SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
   SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
 )
+
+class WidgetEmptySection : WidgetSection() {
+  init {
+    preferredSize = JBDimension(0, 0)
+  }
+
+  override fun configureUi() = Unit
+}
