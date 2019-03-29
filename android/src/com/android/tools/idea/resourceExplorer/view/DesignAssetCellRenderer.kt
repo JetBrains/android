@@ -75,7 +75,7 @@ class DesignAssetCellRenderer(
                                       thumbnailSize.width,
                                       thumbnailSize.height,
                                       { list.getCellBounds(index, index)?.let(list::repaint) },
-                                      { ScrollingUtil.isIndexFullyVisible(list, index) })
+                                      { index in list.firstVisibleIndex..list.lastVisibleIndex })
     assetView.withChessboard = iconProvider.supportsTransparency
     assetView.selected = isSelected
     assetView.focused = cellHasFocus
