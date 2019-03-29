@@ -270,6 +270,7 @@ public class TransportServiceProxy extends ServiceProxy
           }
         }
         catch (InterruptedException ignored) {
+          Thread.currentThread().interrupt();
         }
       }
       responseObserver.onCompleted();
