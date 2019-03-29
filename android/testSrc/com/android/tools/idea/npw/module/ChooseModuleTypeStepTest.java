@@ -21,13 +21,13 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instantapp.InstantAppSdks;
+import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider;
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider;
 import com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider;
 import com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +52,7 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     try {
       StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.clearOverride();
       StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.clearOverride();
+      StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.clearOverride();
     }
     finally {
       super.tearDown();
@@ -73,10 +74,10 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     Assert.assertThat(
       sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Instant App Feature Module", "Instant App",
            "Wear OS Module", "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project","Google Cloud Module",
-           "Java Library", "A"),
+           "Java Library", "Benchmark Module", "A"),
       equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Instant App Feature Module", "Wear OS Module",
                   "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
-                  "Google Cloud Module", "A", "Z")
+                  "Google Cloud Module", "Benchmark Module", "A", "Z")
     );
   }
 
@@ -88,12 +89,14 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     // Note: Cloud Module is not in the class path, so we don't test it (is the last one anyway)
     StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.override(false);
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(false);
+    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.override(true);
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
     moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewBenchmarkModuleDescriptionProvider().getDescriptions(getProject()));
 
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
       .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
@@ -101,7 +104,7 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     List<String> expectedEntries = filterExpectedEntries(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
-      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library"
+      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library", "Benchmark Module"
     );
 
     Assert.assertThat(sortedEntries, equalTo(expectedEntries));
@@ -111,12 +114,14 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     // Note: Cloud Module is not in the class path, so we don't test it (is the last one anyway)
     StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.override(true);
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(false);
+    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.override(true);
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
     moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewBenchmarkModuleDescriptionProvider().getDescriptions(getProject()));
 
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
                                                      .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
@@ -124,7 +129,7 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     List<String> expectedEntries = filterExpectedEntries(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Automotive Module", "Wear OS Module",
       "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
-      "Import .JAR/.AAR Package", "Java Library"
+      "Import .JAR/.AAR Package", "Java Library", "Benchmark Module"
     );
 
     Assert.assertThat(sortedEntries, equalTo(expectedEntries));
@@ -133,15 +138,41 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
   public void testSortExistingModuleEntries_HideModulesFalse_InstantDynamicTrue() {
     StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.override(false);
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true);
+    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.override(true);
     ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
     moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions(getProject()));
     moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewBenchmarkModuleDescriptionProvider().getDescriptions(getProject()));
 
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
                                                      .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
+
+    List<String> expectedEntries = filterExpectedEntries(
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module","Instant Dynamic Feature Module", "Instant App",
+      "Instant App Feature Module", "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module",
+      "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library", "Benchmark Module"
+    );
+
+    Assert.assertThat(sortedEntries, equalTo(expectedEntries));
+  }
+
+  public void testSortExistingModuleEntries_HideBenchmarkModule() {
+    StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.override(false);
+    StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true);
+    StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.override(false);
+    ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+    moduleDescriptions.addAll(new ImportModuleGalleryEntryProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewAndroidModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewDynamicAppModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewInstantAppModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewJavaModuleDescriptionProvider().getDescriptions(getProject()));
+    moduleDescriptions.addAll(new NewBenchmarkModuleDescriptionProvider().getDescriptions(getProject()));
+
+    List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
+      .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
     List<String> expectedEntries = filterExpectedEntries(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module","Instant Dynamic Feature Module", "Instant App",

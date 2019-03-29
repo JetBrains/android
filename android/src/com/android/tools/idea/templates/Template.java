@@ -363,6 +363,8 @@ public class Template {
         return TemplateRenderer.ANDROID_INSTANT_APP_MODULE;
       case "Dynamic Feature (Instant App)":
         return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
+      case "Benchmark Module":
+        return TemplateRenderer.BENCHMARK_LIBRARY_MODULE;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
     }
