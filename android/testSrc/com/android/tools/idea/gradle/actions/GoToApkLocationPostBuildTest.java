@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.build.OutputFile;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
@@ -25,39 +31,40 @@ import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class GoToApkLocationPostBuildTest extends AndroidGradleTestCase {
   private Module myModule;
   private GoToApkLocationTask myTask;
+  private List<String> myBuildVariants = new ArrayList<>();
+  private static final String buildVariant = "FreeDebug";
 
   private void initSimpleApp() throws Exception {
     loadSimpleApplication();
     myModule = getModule("app");
-    myTask = new GoToApkLocationTask(Collections.singleton(myModule), "Title");
+    myTask = new GoToApkLocationTask(Collections.singleton(myModule), "Title", Collections.emptyList());
   }
 
   private void initInstantApp() throws Exception {
     loadProject(INSTANT_APP);
     myModule = getModule("instant-app");
-    myTask = new GoToApkLocationTask(Collections.singleton(myModule), "Title");
+    myTask = new GoToApkLocationTask(Collections.singleton(myModule), "Title", Collections.emptyList());
   }
 
   public void testSingleOutputFromPostBuildModel() throws Exception {
     initSimpleApp();
     File output = new File("path/to/apk");
-    Map<Module, File> modulesAndPaths = myTask.getModulesAndPaths(createPostBuildModel(Collections.singleton(output)));
-    assertSameElements(modulesAndPaths.keySet(), myModule);
-    assertEquals(output, modulesAndPaths.get(myModule));
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myModule);
+    String myBuildVariant = androidModel.getSelectedVariant().getName();
+    myTask.getBuildsAndPaths(createPostBuildModel(Collections.singleton(output), myBuildVariant),
+                             myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myModule.getName());
+    assertEquals(output, myTask.getMyBuildsAndApkPaths().get(myModule.getName()));
   }
 
   public void testMultipleOutputFromPostBuildModel() throws Exception {
@@ -65,43 +72,89 @@ public class GoToApkLocationPostBuildTest extends AndroidGradleTestCase {
     File output1 = new File("path/to/apk1");
     File output2 = new File("path/to/apk2");
     assertEquals(output1.getParentFile(), output2.getParentFile());
-    Map<Module, File> modulesAndPaths = myTask.getModulesAndPaths(createPostBuildModel(Lists.newArrayList(output1, output2)));
-    assertSameElements(modulesAndPaths.keySet(), myModule);
-    assertEquals(output1.getParentFile(), modulesAndPaths.get(myModule));
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myModule);
+    String myBuildVariant = androidModel.getSelectedVariant().getName();
+    myTask.getBuildsAndPaths(createPostBuildModel(Lists.newArrayList(output1, output2), myBuildVariant),
+                             myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myModule.getName());
+    assertEquals(output1.getParentFile(), myTask.getMyBuildsAndApkPaths().get(myModule.getName()));
   }
 
   public void testSingleOutputFromInstantAppPostBuildModel() throws Exception {
     initInstantApp();
     File output = new File("path/to/bundle");
-    Map<Module, File> modulesAndPaths = myTask.getModulesAndPaths(createInstantAppPostBuildModel(output));
-    assertSameElements(modulesAndPaths.keySet(), myModule);
-    assertEquals(output, modulesAndPaths.get(myModule));
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myModule);
+    String myBuildVariant = androidModel.getSelectedVariant().getName();
+    myTask.getBuildsAndPaths(createInstantAppPostBuildModel(output, myBuildVariant),
+                             myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myModule.getName());
+    assertEquals(output, myTask.getMyBuildsAndApkPaths().get(myModule.getName()));
   }
 
   public void testSingleOutputFromPreBuildModel() throws Exception {
     initSimpleApp();
-    Map<Module, File> modulesAndPaths = myTask.getModulesAndPaths(null);
-    assertSameElements(modulesAndPaths.keySet(), myModule);
+    myTask.getBuildsAndPaths(null, myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myModule.getName());
 
     File expectedOutput =
       AndroidModuleModel.get(myModule).getSelectedVariant().getMainArtifact().getOutputs().iterator().next().getOutputFile();
-    assertEquals(expectedOutput, modulesAndPaths.get(myModule));
+    assertEquals(expectedOutput, myTask.getMyBuildsAndApkPaths().get(myModule.getName()));
+  }
+
+  private void initSimpleAppForSignedApk() throws Exception {
+    loadSimpleApplication();
+    myModule = getModule("app");
+    myBuildVariants.add(buildVariant);
+    myTask = new GoToApkLocationTask(Collections.singleton(myModule), "Title", myBuildVariants);
+  }
+
+  private void initInstantAppForSignedApk() throws Exception {
+    loadProject(INSTANT_APP);
+    myModule = getModule("instant-app");
+    myBuildVariants.add(buildVariant);
+    myTask = new GoToApkLocationTask(Collections.singleton(myModule), "Title", myBuildVariants);
+  }
+
+  public void testSingleOutputFromPostBuildModelForSignedApk() throws Exception {
+    initSimpleAppForSignedApk();
+    File output = new File("path/to/apk");
+    myTask.getBuildsAndPaths(createPostBuildModel(Collections.singleton(output), myBuildVariants.get(0)),
+                             myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myBuildVariants.get(0));
+    assertEquals(output, myTask.getMyBuildsAndApkPaths().get(myBuildVariants.get(0)));
+  }
+
+  public void testMultipleOutputFromPostBuildModelForSignedApk() throws Exception {
+    initSimpleAppForSignedApk();
+    File output1 = new File("path/to/apk1");
+    File output2 = new File("path/to/apk2");
+    assertEquals(output1.getParentFile(), output2.getParentFile());
+    myTask.getBuildsAndPaths(createPostBuildModel(Lists.newArrayList(output1, output2), myBuildVariants.get(0)),
+                             myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myBuildVariants.get(0));
+    assertEquals(output1.getParentFile(), myTask.getMyBuildsAndApkPaths().get(myBuildVariants.get(0)));
+  }
+
+  public void testSingleOutputFromInstantAppPostBuildModelForSignedApk() throws Exception {
+    initInstantAppForSignedApk();
+    File output = new File("path/to/bundle");
+    myTask.getBuildsAndPaths(createInstantAppPostBuildModel(output, myBuildVariants.get(0)),
+                             myBuildVariants);
+    assertSameElements(myTask.getMyBuildsAndApkPaths().keySet(), myBuildVariants.get(0));
+    assertEquals(output, myTask.getMyBuildsAndApkPaths().get(myBuildVariants.get(0)));
   }
 
   @NotNull
-  private OutputBuildAction.PostBuildProjectModels createPostBuildModel(@NotNull Collection<File> outputs) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myModule);
-    ProjectBuildOutput projectBuildOutput = createProjectBuildOutputMock(androidModel.getSelectedVariant().getName(), outputs);
+  private OutputBuildAction.PostBuildProjectModels createPostBuildModel(@NotNull Collection<File> outputs, String buildVariant) {
+    ProjectBuildOutput projectBuildOutput = createProjectBuildOutputMock(buildVariant, outputs);
     OutputBuildAction.PostBuildModuleModels postBuildModuleModels =
       new PostBuildModuleModelsMockBuilder().setProjectBuildOutput(projectBuildOutput).build();
     return new PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(getGradlePath(myModule), postBuildModuleModels).build();
   }
 
   @NotNull
-  private OutputBuildAction.PostBuildProjectModels createInstantAppPostBuildModel(@NotNull File output) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myModule);
-    InstantAppProjectBuildOutput instantAppProjectBuildOutput =
-      createInstantAppProjectBuildOutputMock(androidModel.getSelectedVariant().getName(), output);
+  private OutputBuildAction.PostBuildProjectModels createInstantAppPostBuildModel(@NotNull File output, String buildVariant) {
+    InstantAppProjectBuildOutput instantAppProjectBuildOutput = createInstantAppProjectBuildOutputMock(buildVariant, output);
     OutputBuildAction.PostBuildModuleModels postBuildModuleModels =
       new PostBuildModuleModelsMockBuilder().setInstantAppProjectBuildOutput(instantAppProjectBuildOutput).build();
     return new PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(getGradlePath(myModule), postBuildModuleModels).build();
@@ -145,6 +198,7 @@ public class GoToApkLocationPostBuildTest extends AndroidGradleTestCase {
       when(myPostBuildModuleModels.findModel(eq(ProjectBuildOutput.class))).thenReturn(projectBuildOutput);
       return this;
     }
+
     private PostBuildModuleModelsMockBuilder setInstantAppProjectBuildOutput(@NotNull InstantAppProjectBuildOutput instantAppProjectBuildOutput) {
       when(myPostBuildModuleModels.findModel(eq(InstantAppProjectBuildOutput.class))).thenReturn(instantAppProjectBuildOutput);
       return this;

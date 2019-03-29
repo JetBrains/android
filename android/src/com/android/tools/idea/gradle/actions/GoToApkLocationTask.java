@@ -15,17 +15,26 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.INFORMATION;
+
 import com.android.build.OutputFile;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.InstantAppProjectBuildOutput;
+import com.android.builder.model.InstantAppVariantBuildOutput;
+import com.android.builder.model.ProjectBuildOutput;
+import com.android.builder.model.VariantBuildOutput;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
@@ -41,116 +50,75 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.util.*;
-
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.INFORMATION;
+import org.jetbrains.annotations.TestOnly;
 
 public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
   public static final String ANALYZE = "analyze:";
   public static final String MODULE = "module:";
   @NotNull private final Project myProject;
-  @Nullable private final Collection<Module> myModules;
+  @NotNull private final Collection<Module> myModules;
   @NotNull private final String myNotificationTitle;
+  @NotNull private final List<String> myBuildVariants;
+  @NotNull private Map<String, File> myBuildsAndApkPaths;
 
-  private Map<Module, File> myModulesAndApkPaths;
-
-  public GoToApkLocationTask(@NotNull Map<Module, File> modulesAndPaths, @NotNull String notificationTitle) {
-    this(modulesAndPaths.entrySet().iterator().next().getKey().getProject(), modulesAndPaths, null, notificationTitle);
-  }
-  public GoToApkLocationTask(@NotNull Collection<Module> modules, @NotNull String notificationTitle) {
-    this(modules.iterator().next().getProject(), null, modules, notificationTitle);
+  public GoToApkLocationTask(@NotNull Collection<Module> modules, @NotNull String notificationTitle, @NotNull List<String> buildVariants) {
+    this(modules.iterator().next().getProject(), modules, notificationTitle, buildVariants);
   }
 
   @VisibleForTesting
   GoToApkLocationTask(@NotNull Project project,
-                      @Nullable Map<Module, File> modulesAndPaths,
-                      @Nullable Collection<Module> modules,
-                      @NotNull String notificationTitle) {
+                      @NotNull Collection<Module> modules,
+                      @NotNull String notificationTitle,
+                      @NotNull List<String> buildVariants) {
     myProject = project;
-    myModulesAndApkPaths = modulesAndPaths;
     myModules = modules;
     myNotificationTitle = notificationTitle;
+    myBuildVariants = buildVariants;
+    myBuildsAndApkPaths = new HashMap<>();
+  }
+
+  @TestOnly
+  void setMyBuildsAndApkPaths(@NotNull Map<String, File> buildsAndApkPaths) {
+    myBuildsAndApkPaths = buildsAndApkPaths;
+  }
+
+  @TestOnly
+  @NotNull
+  Map<String, File> getMyBuildsAndApkPaths() {
+    return myBuildsAndApkPaths;
   }
 
   @Override
   public void execute(@NotNull GradleInvocationResult result) {
+    boolean isSigned = !myBuildVariants.isEmpty();
     try {
-      if (myModulesAndApkPaths == null) {
-        myModulesAndApkPaths = getModulesAndPaths(result.getModel());
-      }
-
-      List<String> moduleNames = new ArrayList<>();
-      Map<String, File> apkPathsByModule = new HashMap<>();
-      for (Map.Entry<Module, File> moduleAndApkPath : myModulesAndApkPaths.entrySet()) {
-        Module module = moduleAndApkPath.getKey();
-        File apkPath = moduleAndApkPath.getValue();
-        if (apkPath != null) {
-          String moduleName = module.getName();
-          moduleNames.add(moduleName);
-          apkPathsByModule.put(moduleName, apkPath);
-        }
-      }
-
-      Collections.sort(moduleNames);
-
-      AndroidNotification notification = AndroidNotification.getInstance(myProject);
-      if (result.isBuildSuccessful()) {
-        if (isShowFilePathActionSupported()) {
-          StringBuilder buffer = new StringBuilder();
-          int moduleCount = moduleNames.size();
-          buffer.append("APK(s) generated successfully for ");
-          buffer.append(moduleCount);
-          buffer.append(moduleCount == 1 ? " module" : " modules");
-          buffer.append(":<br/>");
-          for (int i = 0; i < moduleCount; i++) {
-            String moduleName = moduleNames.get(i);
-            buffer.append("Module '" ).append(moduleName).append("': ");
-            buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">locate</a> or ");
-            buffer.append("<a href=\"").append(ANALYZE).append(moduleName).append("\">analyze</a> the APK.");
-            if (i < moduleCount - 1) {
-              buffer.append("<br/>");
-            }
-          }
-          String text = buffer.toString();
-          notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(apkPathsByModule, myProject));
-        }
-        else {
-          // Platform does not support showing the location of a file.
-          // Display file paths in the 'Log' view, since they could be too long to show in a balloon notification.
-          StringBuilder buffer = new StringBuilder();
-          int moduleCount = moduleNames.size();
-          buffer.append("APK(s) generated successfully for ");
-          buffer.append(moduleCount);
-          buffer.append(moduleCount == 1 ? " module" : " modules");
-          buffer.append(":<br/>");
-          for (int i = 0; i < moduleCount; i++) {
-            String moduleName = moduleNames.get(i);
-            buffer.append(" - ").append(moduleName).append(": ");
-            buffer.append(apkPathsByModule.get(moduleName).getPath());
-            if (i < moduleCount - 1) {
-              buffer.append("\n");
-            }
-          }
-          StringBuilder balloonBuffer = new StringBuilder();
-          balloonBuffer.append("APK(s) generated successfully for ");
-          balloonBuffer.append(moduleCount);
-          balloonBuffer.append(moduleCount == 1 ? " module." : " modules.");
-          notification.showBalloon(myNotificationTitle, balloonBuffer.toString(), INFORMATION, new OpenEventLogHyperlink());
-          notification.addLogEvent(myNotificationTitle, buffer.toString(), INFORMATION);
-        }
-      }
-      else if (result.isBuildCancelled()) {
-        notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
+      getBuildsAndPaths(result.getModel(), myBuildVariants);
+      if (isSigned) {
+        String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
+        showNotification(result, myBuildVariants, moduleName);
       }
       else {
-        String msg = "Errors while building APK. You can find the errors in the 'Messages' view.";
-        notification.showBalloon(myNotificationTitle, msg, ERROR);
+        List<String> moduleNames = new ArrayList<>();
+        for (Map.Entry<String, File> moduleAndApkPath : myBuildsAndApkPaths.entrySet()) {
+          String moduleName = moduleAndApkPath.getKey();
+          File apkPath = moduleAndApkPath.getValue();
+          if (apkPath != null) {
+            moduleNames.add(moduleName);
+          }
+        }
+        Collections.sort(moduleNames);
+        showNotification(result, moduleNames, null);
       }
     }
     finally {
@@ -159,19 +127,89 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
     }
   }
 
+  private void showNotification(@NotNull GradleInvocationResult result,
+                                @NotNull List<String> modulesOrBuildVariants,
+                                @Nullable String moduleName) {
+    AndroidNotification notification = AndroidNotification.getInstance(myProject);
+    boolean isSigned = moduleName != null;
+
+    if (result.isBuildSuccessful()) {
+      StringBuilder builder = new StringBuilder();
+      int count = modulesOrBuildVariants.size();
+      builder.append("APK(s) generated successfully for ");
+      if (isSigned) {
+        builder.append("module '").append(moduleName).append("' with ").append(count)
+          .append(count == 1 ? " build" : " builds");
+      }
+      else {
+        builder.append(count).append(count == 1 ? " module" : " modules");
+      }
+
+      builder.append(":<br/>");
+      if (isShowFilePathActionSupported()) {
+        for (int i = 0; i < count; i++) {
+          String moduleOrBuildVariant = modulesOrBuildVariants.get(i);
+          if (isSigned) {
+            builder.append("Build '");
+          }
+          else {
+            builder.append("Module '");
+          }
+          builder.append(moduleOrBuildVariant).append("': ");
+          builder.append("<a href=\"").append(MODULE).append(moduleOrBuildVariant).append("\">locate</a> or ");
+          builder.append("<a href=\"").append(ANALYZE).append(moduleOrBuildVariant).append("\">analyze</a> the APK.");
+          if (i < count - 1) {
+            builder.append("<br/>");
+          }
+        }
+        String text = builder.toString();
+        notification
+          .showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(myBuildsAndApkPaths, myProject));
+      }
+      else {
+        // Platform does not support showing the location of a file.
+        // Display file paths in the 'Log' view, since they could be too long to show in a balloon notification.
+        for (int i = 0; i < count; i++) {
+          String moduleOrBuildVariant = modulesOrBuildVariants.get(i);
+          builder.append(" - ").append(moduleOrBuildVariant).append(": ");
+          builder.append(myBuildsAndApkPaths.get(moduleOrBuildVariant).getPath());
+          if (i < count - 1) {
+            builder.append("\n");
+          }
+        }
+        StringBuilder balloonBuilder = new StringBuilder();
+        balloonBuilder.append("APK(s) generated successfully for ");
+        if (isSigned) {
+          balloonBuilder.append("module '").append(moduleName).append("' with ").append(count)
+            .append(count == 1 ? " build" : " builds");
+        }
+        else {
+          balloonBuilder.append(count).append(count == 1 ? " module" : " modules");
+        }
+        notification.showBalloon(myNotificationTitle, balloonBuilder.toString(), INFORMATION, new OpenEventLogHyperlink());
+        notification.addLogEvent(myNotificationTitle, builder.toString(), INFORMATION);
+      }
+    }
+    else if (result.isBuildCancelled()) {
+      notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
+    }
+    else {
+      String msg = "Errors while building APK. You can find the errors in the 'Messages' view.";
+      notification.showBalloon(myNotificationTitle, msg, ERROR);
+    }
+  }
+
   /**
    * Generates a map from module to the location (either the apk itself if only one or to the folder if multiples).
    */
-  @NotNull
-  @VisibleForTesting
-  Map<Module, File> getModulesAndPaths(@Nullable Object model) {
-    assert myModules != null;
 
-    Map<Module, File> modulesAndPaths = new HashMap<>();
+  @VisibleForTesting
+  void getBuildsAndPaths(@Nullable Object model, @NotNull List<String> buildVariants) {
+    boolean isSigned = !buildVariants.isEmpty();
     PostBuildModel postBuildModel = null;
 
     if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-      postBuildModel = new PostBuildModel((OutputBuildAction.PostBuildProjectModels) model);
+      postBuildModel = new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model);
     }
 
     for (Module module : myModules) {
@@ -179,33 +217,49 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
       if (androidModel == null) {
         continue;
       }
+      if (isSigned) {
+        assert myModules.size() == 1;
 
-      File outputFolderOrApk = null;
-      if (postBuildModel != null) {
-        outputFolderOrApk = tryToGetOutputPostBuild(androidModel, module, postBuildModel);
-        if (outputFolderOrApk == null) {
-          outputFolderOrApk = tryToGetOutputPostBuildInstantApp(androidModel, module, postBuildModel);
+        for (String buildVariant : buildVariants) {
+          updateBuildsAndPaths(androidModel, postBuildModel, module, buildVariant, isSigned);
         }
       }
-      if (outputFolderOrApk == null) {
-        outputFolderOrApk = tryToGetOutputPreBuild(androidModel);
+      else {
+        String myBuildVariant = androidModel.getSelectedVariant().getName();
+        updateBuildsAndPaths(androidModel, postBuildModel, module, myBuildVariant, isSigned);
       }
-
-      modulesAndPaths.put(module, outputFolderOrApk);
     }
+  }
 
-    return modulesAndPaths;
+  private void updateBuildsAndPaths(@NotNull AndroidModuleModel androidModel,
+                                    @Nullable PostBuildModel postBuildModel,
+                                    @NotNull Module module,
+                                    @NotNull String buildVariant,
+                                    boolean isSigned) {
+    File outputFolderOrApk = null;
+    if (postBuildModel != null) {
+      outputFolderOrApk = tryToGetOutputPostBuild(androidModel, module, postBuildModel, buildVariant);
+      if (outputFolderOrApk == null) {
+        outputFolderOrApk = tryToGetOutputPostBuildInstantApp(androidModel, module, postBuildModel, buildVariant);
+      }
+    }
+    if (outputFolderOrApk == null) {
+      assert !isSigned;
+      outputFolderOrApk = tryToGetOutputPreBuild(androidModel);
+    }
+    myBuildsAndApkPaths.put(isSigned ? buildVariant : module.getName(), outputFolderOrApk);
   }
 
   @Nullable
   private static File tryToGetOutputPostBuild(@NotNull AndroidModuleModel androidModel,
                                               @NotNull Module module,
-                                              @NotNull PostBuildModel postBuildModel) {
+                                              @NotNull PostBuildModel postBuildModel,
+                                              @NotNull String buildVariant) {
     if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
       ProjectBuildOutput projectBuildOutput = postBuildModel.findProjectBuildOutput(module);
       if (projectBuildOutput != null) {
         for (VariantBuildOutput variantBuildOutput : projectBuildOutput.getVariantsBuildOutput()) {
-          if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+          if (variantBuildOutput.getName().equals(buildVariant)) {
             Collection<OutputFile> outputs = variantBuildOutput.getOutputs();
             File outputFolderOrApk;
             if (outputs.size() == 1) {
@@ -226,12 +280,13 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   @Nullable
   private static File tryToGetOutputPostBuildInstantApp(@NotNull AndroidModuleModel androidModel,
                                                         @NotNull Module module,
-                                                        @NotNull PostBuildModel postBuildModel) {
+                                                        @NotNull PostBuildModel postBuildModel,
+                                                        @NotNull String buildVariant) {
     if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_INSTANTAPP) {
       InstantAppProjectBuildOutput instantAppProjectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(module);
       if (instantAppProjectBuildOutput != null) {
         for (InstantAppVariantBuildOutput variantBuildOutput : instantAppProjectBuildOutput.getInstantAppVariantsBuildOutput()) {
-          if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+          if (variantBuildOutput.getName().equals(buildVariant)) {
             return variantBuildOutput.getOutput().getOutputFile();
           }
         }
@@ -268,12 +323,13 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
     @Override
     protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
       String description = e.getDescription();
-      if (description.startsWith(ANALYZE)){
+      if (description.startsWith(ANALYZE)) {
         File apkPath = myApkPathsPerModule.get(description.substring(ANALYZE.length()));
         VirtualFile apk;
         if (apkPath.isFile()) {
           apk = LocalFileSystem.getInstance().findFileByIoFile(apkPath);
-        } else {
+        }
+        else {
           FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
             .withDescription("Select APK to analyze")
             .withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
@@ -283,10 +339,11 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
           OpenFileDescriptor fd = new OpenFileDescriptor(myProject, apk);
           FileEditorManager.getInstance(myProject).openEditor(fd, true);
         }
-      } else if (description.startsWith(MODULE)){
+      }
+      else if (description.startsWith(MODULE)) {
         File apkPath = myApkPathsPerModule.get(description.substring(MODULE.length()));
         assert apkPath != null;
-        if (apkPath.isFile()){
+        if (apkPath.isFile()) {
           apkPath = apkPath.getParentFile();
         }
         ShowFilePathAction.openDirectory(apkPath);
