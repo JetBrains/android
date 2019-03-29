@@ -57,7 +57,12 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 
+import com.android.ide.common.rendering.api.AttrResourceValueImpl;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -71,6 +76,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
@@ -131,14 +137,18 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
@@ -1139,9 +1149,62 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static class MarginSelector extends DirectViewAction {
-    MarginPopup myMarginPopup = new MarginPopup();
-    private int myMarginIconValue = -1;
+    private static final String PICK_A_DIMENSION = "Pick a Dimension";
+
+    private final ActionListener myResourcePickerIconClickListener = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (myComponent == null) {
+          return;
+        }
+
+        Set<ResourceType> types = EnumSet.of(ResourceType.DIMEN);
+        ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+          .setModule(myComponent.getModel().getModule())
+          .setTypes(types)
+          .setCurrentValue(String.valueOf(Scout.getMargin()))
+          .setTag(myComponent.getBackend().getTag())
+          .setDefaultType(ResourceType.DIMEN)
+          .build();
+        dialog.setTitle(PICK_A_DIMENSION);
+
+        if (dialog.showAndGet()) {
+          resolveResValue(dialog);
+        }
+      }
+
+      private void resolveResValue(ChooseResourceDialog dialog) {
+        ResourceResolver resolver = dialog.getResourceResolver();
+        ResourceValue unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
+        unresolved.setValue(dialog.getResourceName());
+        ResourceValue value = resolver.resolveResValue(unresolved);
+
+        if (value != null && value.getValue() != null && value.getValue().endsWith("dp")) {
+          try {
+            String valueInString = value.getValue();
+            String marginDp = valueInString.substring(0, valueInString.length() - 2);
+            int marginInInt = Integer.parseInt(marginDp);
+            setMargin(dialog.getResourceName(), marginInInt);
+          } catch (NumberFormatException nfe) {
+            setMargin(null, Scout.DEFAULT_MARGIN);
+            Logger.getInstance(MarginPopup.class).warn("Was unable to resolve the resValue from ResourceDialog.");
+          }
+        } else {
+          setMargin(null, Scout.DEFAULT_MARGIN);
+        }
+      }
+
+      private void setMargin(@Nullable String resName, int value) {
+        myMarginPopup.getMargin().setValue(value, resName);
+        myMarginPopup.updateText();
+        updateIcon();
+      }
+    };
+
+    MarginPopup myMarginPopup = new MarginPopup(myResourcePickerIconClickListener);
+    private String myPreviousDisplay;
     private Icon myMarginIcon;
+    @Nullable private NlComponent myComponent;
 
     public MarginSelector() {
       super(null, "Default Margins"); // tooltip
@@ -1149,19 +1212,19 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
 
     public void setMargin() {
-      Scout.setMargin(myMarginPopup.getValue());
+      Scout.setMargin(myMarginPopup.getMargin().getValue());
     }
 
     private void updateIcon() {
-      final int margin = myMarginPopup.getValue();
-      if (myMarginIconValue != margin) {
-        myMarginIconValue = margin;
+      String previousDisplay = myMarginPopup.getMargin().getDisplayValue();
+      if (!previousDisplay.equals(myPreviousDisplay)) {
+        myPreviousDisplay = previousDisplay;
         myMarginIcon = new Icon() {
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(JBColor.foreground());
             g.setFont(g.getFont().deriveFont(Font.PLAIN, 12));
-            String m = Integer.toString(margin) + "dp";
+            String m = previousDisplay;
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
             ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -1193,6 +1256,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
+      myComponent = component;
       DesignSurface surface = editor.getScene().getDesignSurface();
       NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
