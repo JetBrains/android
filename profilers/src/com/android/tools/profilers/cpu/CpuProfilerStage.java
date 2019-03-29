@@ -613,7 +613,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
-    long estimateDurationMs = TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
+    long estimateDurationMs = TimeUnit.NANOSECONDS.toMillis(currentTimeNs() - myCaptureStartTimeNs);
     // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
     // If the capture is successful, it will be overridden by a more accurate time, calculated from the capture itself.
     captureMetadata.setCaptureDurationMs(estimateDurationMs);
