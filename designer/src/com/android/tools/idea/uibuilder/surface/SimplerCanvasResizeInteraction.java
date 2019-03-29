@@ -126,11 +126,6 @@ public class SimplerCanvasResizeInteraction extends Interaction {
     myOriginalDevice = configuration.getDevice();
     myOriginalDeviceState = configuration.getDeviceState();
 
-    VirtualFile file = configuration.getFile();
-    assert file != null;
-    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getProjectResources(configuration.getModule());
-    assert resourceRepository != null;
-
     double currentDpi = configuration.getDensity().getDpiValue();
     ConfigurationManager configManager = configuration.getConfigurationManager();
 
