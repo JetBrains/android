@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.finders;
 
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
 import com.google.common.collect.Iterables;
@@ -62,18 +61,12 @@ public class BindingComponentClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull final GlobalSearchScope scope) {
-    if (!isEnabled()) {
-      return null;
-    }
     return Iterables.tryFind(myClasses.getValue(), input -> check(input, qualifiedName, scope)).orNull();
   }
 
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull final GlobalSearchScope scope) {
-    if (!isEnabled()) {
-      return PsiClass.EMPTY_ARRAY;
-    }
     Iterable<PsiClass> filtered = Iterables.filter(myClasses.getValue(), input -> check(input, qualifiedName, scope));
     if (filtered.iterator().hasNext()) {
       return Iterables.toArray(filtered, PsiClass.class);
@@ -83,9 +76,5 @@ public class BindingComponentClassFinder extends PsiElementFinder {
 
   private static boolean check(@Nullable PsiClass psiClass, @NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     return psiClass != null && psiClass.getProject() == scope.getProject() && qualifiedName.equals(psiClass.getQualifiedName());
-  }
-
-  private boolean isEnabled() {
-    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }

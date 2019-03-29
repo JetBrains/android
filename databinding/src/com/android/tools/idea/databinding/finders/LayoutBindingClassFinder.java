@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.finders;
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
 import com.android.tools.idea.databinding.psiclass.LightBindingClass;
 import com.android.tools.idea.res.DataBindingLayoutInfo;
@@ -49,9 +48,6 @@ public class LayoutBindingClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!isEnabled()) {
-      return null;
-    }
     for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
       LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
       Map<String, DataBindingLayoutInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
@@ -73,9 +69,6 @@ public class LayoutBindingClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!isEnabled()) {
-      return PsiClass.EMPTY_ARRAY;
-    }
     PsiClass aClass = findClass(qualifiedName, scope);
     if (aClass == null) {
       return PsiClass.EMPTY_ARRAY;
@@ -89,9 +82,5 @@ public class LayoutBindingClassFinder extends PsiElementFinder {
     // data binding packages are found only if corresponding java packages does not exists. For those, we have DataBindingPackageFinder
     // which has a low priority.
     return null;
-  }
-
-  private boolean isEnabled() {
-    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }

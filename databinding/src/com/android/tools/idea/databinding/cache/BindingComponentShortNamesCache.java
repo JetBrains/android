@@ -18,7 +18,6 @@ package com.android.tools.idea.databinding.cache;
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.finders.BindingComponentClassFinder;
 import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
 import com.intellij.psi.PsiClass;
@@ -60,8 +59,7 @@ public class BindingComponentShortNamesCache extends PsiShortNamesCache {
   }
 
   private boolean check(String name, GlobalSearchScope scope) {
-    return isEnabled()
-           && SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
+    return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
            && scope.getProject() != null
            && myComponent.getProject().equals(scope.getProject());
   }
@@ -69,18 +67,12 @@ public class BindingComponentShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllClassNames() {
-    if (isEnabled()) {
-      return ourClassNames;
-    } else {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
-    }
+    return ourClassNames;
   }
 
   @Override
   public void getAllClassNames(@NotNull HashSet<String> dest) {
-    if (isEnabled()) {
-      dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
-    }
+    dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
   }
 
   @NotNull
@@ -134,9 +126,5 @@ public class BindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public void getAllFieldNames(@NotNull HashSet<String> set) {
 
-  }
-
-  private boolean isEnabled() {
-    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }
