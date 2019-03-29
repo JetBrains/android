@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
-import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.common.property.editors.NlComponentEditor
+import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
@@ -93,10 +93,12 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
       val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
       for (inheritor in schema.getDestinationClassesForTag(component.tagName)) {
         for (child in ClassInheritorsSearch.search(inheritor, scope, true).plus(inheritor)) {
+          if (extendsNavHostFragment(child)) {
+            continue
+          }
+
           val qName = child.qualifiedName
-          if (qName == null ||
-              classNames.contains(qName) ||
-              child.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }) {
+          if (qName == null || classNames.contains(qName)) {
             continue
           }
           classNames.add(qName)
