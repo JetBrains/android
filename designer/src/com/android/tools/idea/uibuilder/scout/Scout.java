@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
@@ -57,6 +58,7 @@ public class Scout {
   }
 
   private static int sMargin = DEFAULT_MARGIN;
+  @Nullable private static String sMarginResource = null;
 
   public static int getMargin() {
     return sMargin;
@@ -64,6 +66,14 @@ public class Scout {
 
   public static void setMargin(int margin) {
     sMargin = margin;
+  }
+
+  public static void setMarginResource(String marginResource) {
+    sMarginResource = marginResource;
+  }
+
+  public static @Nullable String getMarginResource() {
+    return sMarginResource;
   }
 
   public static void arrangeWidgets(Arrange type, List<NlComponent> widgets,

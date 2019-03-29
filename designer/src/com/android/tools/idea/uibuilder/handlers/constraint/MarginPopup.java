@@ -33,21 +33,54 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MarginPopup extends JPanel {
 
+  public static class MarginValue {
+
+    private int myValue = Scout.DEFAULT_MARGIN;
+    @NotNull private String myDisplayValue = myValue + "dp";
+
+    public void setValue(int value, String resName) {
+      myValue = value;
+      Scout.setMargin(value);
+      if (resName != null) {
+        myDisplayValue = DEFAULT_RES_DISPLAY;
+        Scout.setMarginResource(resName);
+      } else {
+        myDisplayValue = value + "dp";
+        Scout.setMarginResource(null);
+      }
+    }
+
+    public int getValue() {
+      return myValue;
+    }
+
+    /**
+     * @return shows valid display value of default margin. (e.g. "@ ..." or "38dp"
+     */
+    @NotNull
+    public String getDisplayValue() {
+      return myDisplayValue;
+    }
+  }
+
+  private static final String DEFAULT_RES_DISPLAY = "@ ...";
   private final JBTextField DEFAULT_MARGIN = new JBTextField("Default Margin : ");
   private final JBTextField myTextField = new JBTextField();
-  private final JButton[] myHistoryButtons = new JButton[4];
+  private final JButton[] myHistoryButtons = new JButton[3];
+  private final JButton myResourcePickerButton = new JButton();
   private final int[] myDefaultValues = {0, 8, 16, 24};
-  private final int[] myHistoryValues = {-1, -1, -1, -1};
+  private final int[] myHistoryValues = {-1, -1, -1};
 
   ActionListener myListener;
-  private int myValue = Scout.DEFAULT_MARGIN;
   private JBPopup myPopup;
+  private final MarginValue myValue = new MarginValue();
 
-  public int getValue() {
+  public MarginValue getMargin() {
     return myValue;
   }
 
@@ -61,15 +94,12 @@ public class MarginPopup extends JPanel {
       JButton b = (JButton)e.getSource();
       String s = b.getText();
       try {
-        myValue = Integer.parseInt(s);
+        myValue.setValue(Integer.parseInt(s), null);
       }
       catch (NumberFormatException e1) {
-        myValue = 0;
-        s = "0";
+        myValue.setValue(0, null);
       }
-      if (!s.isEmpty()) {
-        myTextField.setText(s);
-      }
+      updateText();
       if (myListener != null) {
         myListener.actionPerformed(e);
       }
@@ -78,6 +108,10 @@ public class MarginPopup extends JPanel {
       }
     }
   };
+
+  public void updateText() {
+    myTextField.setText(String.valueOf(myValue.getValue()));
+  }
 
   private boolean isADefault(int value) {
     for (int i = 0; i < myDefaultValues.length; i++) {
@@ -102,7 +136,8 @@ public class MarginPopup extends JPanel {
 
   void saveNewValue(ActionEvent e) {
     try {
-      int value = myValue = Integer.parseInt(myTextField.getText());
+      myValue.setValue(Integer.parseInt(myTextField.getText()), null);
+      int value = myValue.getValue();
       if (!isADefault(value)) {
 
         for (int i = 0; i < myHistoryValues.length; i++) {
@@ -123,7 +158,7 @@ public class MarginPopup extends JPanel {
     }
   }
 
-  public MarginPopup() {
+  public MarginPopup(final ActionListener resourcePickerActionListener) {
     super(new GridBagLayout());
     setBackground(JBColor.background());
     GridBagConstraints gc = new GridBagConstraints();
@@ -145,7 +180,7 @@ public class MarginPopup extends JPanel {
     gc.insets = JBUI.insets(10, 5, 5, 0);
     gc.fill = GridBagConstraints.BOTH;
     myTextField.setHorizontalAlignment(SwingConstants.RIGHT);
-    myTextField.setText(Integer.toString(myValue));
+    myTextField.setText(Integer.toString(myValue.getValue()));
     add(myTextField, gc);
 
     gc.gridx = 3;
@@ -206,6 +241,14 @@ public class MarginPopup extends JPanel {
       //Insets in = myHistoryButtons[i].getMargin();
       add(myHistoryButtons[i], gc);
     }
+    myResourcePickerButton.setMargin(margin);
+    myResourcePickerButton.setText("@ ...");
+    myResourcePickerButton.addActionListener(resourcePickerActionListener);
+    gc.gridx = 3;
+    gc.insets.left = JBUI.scale(0);
+    gc.insets.right = JBUI.scale(5);
+    add(myResourcePickerButton, gc);
+
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentShown(ComponentEvent e) {
