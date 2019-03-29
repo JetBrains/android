@@ -50,7 +50,7 @@ public class MemorySettingsUtil {
   private static final int HIGH_GRADLE_DAEMON_XMX_IN_MB = 1536;
 
   public static final int MAX_GRADLE_DAEMON_XMX_IN_MB = 2048;
-  public static final int NO_XMX_IN_VM_ARGS = -2;
+  public static final int NO_XMX_IN_VM_ARGS = -1;
 
   public static final int getIdeXmxCapInGB() {
     return StudioFlags.LOW_IDE_XMX_CAP.get() ? LOW_IDE_XMX_CAP_IN_GB : HIGH_IDE_XMX_CAP_IN_GB;
