@@ -16,6 +16,11 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.openapi.util.text.StringUtil.decapitalize;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
@@ -26,6 +31,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -52,6 +58,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.GuiUtils;
+import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JComponent;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -60,20 +76,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static com.intellij.openapi.util.text.StringUtil.decapitalize;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 /**
  * @author Eugene.Kudelevsky
@@ -218,7 +220,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
-
         Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), new File(myApkPath));
 
         assert myProject != null;
@@ -257,9 +258,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           gradleBuildInvoker.add(task);
         }
         else {
-          gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
+          List<Module> modules = new ArrayList<>();
+          modules.add(myFacet.getModule());
+          gradleBuildInvoker.add(new GoToApkLocationTask(modules, "Generate Signed APK", myBuildVariants));
         }
-        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties);
+        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties,
+                                        new OutputBuildAction(getModuleGradlePaths(myFacet.getModule())));
 
         getLog().info("Export " + myTargetType.toUpperCase() + " command: " +
                       Joiner.on(',').join(gradleTasks) +
@@ -271,6 +275,16 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return AndroidGradleSettings.createProjectProperty(name, value);
       }
     });
+  }
+
+  @NotNull
+  private static List<String> getModuleGradlePaths(@NotNull Module module) {
+    List<String> gradlePaths = new ArrayList<>();
+    String gradlePath = getGradlePath(module);
+    if (gradlePath != null) {
+      gradlePaths.add(gradlePath);
+    }
+    return gradlePaths;
   }
 
   @VisibleForTesting
