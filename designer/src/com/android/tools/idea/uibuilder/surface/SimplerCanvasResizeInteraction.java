@@ -76,9 +76,9 @@ public class SimplerCanvasResizeInteraction extends Interaction {
   private static final int MAX_ANDROID_SIZE = 1500;
   /**
    * Specific subset of the phones/tablets to show when resizing; for tv and wear, this list
-   * is not used; instead, all devices matching the tag (android-wear, android-tv) are used.
+   * is not used; instead, all devices matching the tag (android-wear, android-tv) are used. @see nexus.xml
    */
-  private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 6P", "Nexus 7", "Nexus 9", "Nexus 10"};
+  private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 7", "Nexus 9", "Nexus 10", "pixel_2", "pixel_3", "pixel_3_xl"};
 
   @NotNull private final NlDesignSurface myDesignSurface;
   @NotNull private final ScreenView myScreenView;
