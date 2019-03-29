@@ -27,6 +27,16 @@ object FilenameConstants {
   const val NOT_NAMESPACED_R_CLASS_SOURCES = "not_namespaced_r_class_sources"
 
   /**
+   * Directory name for generated data binding base classes (e.g. "activity_demo.xml" -> "DemoBinding.java")
+   *
+   * These classes are base classes implemented by impl classes (e.g. "DemoBindingImpl.java") generated
+   * elsewhere, and it is expected that user code will interact with them.
+   *
+   * TODO(b/129543943): Investigate moving this to the data binding module
+   */
+  const val DATA_BINDING_BASE_CLASS_SOURCES = "data_binding_base_class_source_out"
+
+  /**
    * Default name for Gradle task outputs. In 3.2 R.java files for libraries ended up in a directory with this name.
    */
   const val OUT = "out"
