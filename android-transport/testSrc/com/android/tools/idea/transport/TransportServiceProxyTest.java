@@ -56,6 +56,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -125,6 +126,7 @@ public class TransportServiceProxyTest {
     assertThat(cachedProcess.getValue().getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
   }
 
+  @Ignore("b/126763044")
   @Test
   public void testEventStreaming() throws Exception {
     Client client1 = createMockClient(1, "test1", "testClient1");
