@@ -1,0 +1,3 @@
+<resources>
+  <<error descr="'type' attribute should be defined">item</error> name="foo">bar</item>
+</resources>

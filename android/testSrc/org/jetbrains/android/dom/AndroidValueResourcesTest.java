@@ -284,6 +284,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     doTestHighlighting("nameValidation.xml");
   }
 
+  public void testMissingType() throws Throwable {
+    doTestHighlighting("missingType.xml");
+  }
+
   public void testResourceReferenceAsValueCompletion1() throws Throwable {
     doTestCompletion();
   }
