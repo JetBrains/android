@@ -59,50 +59,6 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
   }
 
   /**
-   * Verifies source code directories are set for locally built APKs.
-   *
-   * <p>TT ID: 47e054af-29c2-4bfa-8410-e2f826452e78
-   *
-   * <pre>
-   *   Test steps:
-   *   1. Import ApkDebug.
-   *   2. Build APK
-   *   3. Close ApkDebug project window.
-   *   4. Create APK debugging project with the locally built APK
-   *   5. Open a .smali file to attach Java sources
-   *   6. Open the native library to view the native library editor window.
-   *   8. Attach debug symbols for the library.
-   *   Verify:
-   *   1. C and C++ code directories are attached to the native library
-   *   2. Java source code files are added to the project tree.
-   * </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70731570
-  public void createProjectFromLocallyBuiltApk() throws Exception {
-    File projectRoot = buildApkLocally("ApkDebug");
-
-    profileOrDebugApk(guiTest.welcomeFrame(), new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"));
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor();
-    attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
-
-    // need to wait since the editor doesn't open the java file immediately
-    waitForJavaFileToShow(editor);
-
-    File debugSymbols = new File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so");
-    editor.open("lib/x86/libsanangeles.so")
-      .getLibrarySymbolsFixture()
-      .addDebugSymbols(debugSymbols);
-    guiTest.waitForBackgroundTasks();
-
-    List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
-
-    Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes));
-  }
-
-  /**
    * Verifies source code directories are set for APKs built in a separate environment
    *
    * <p>TT ID: d8188bb9-6b06-4133-afcd-f28db8ebb043
