@@ -87,6 +87,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
         <declare-styleable name="RecyclerView">
           <attr name="layoutManager" format="string" />
         </declare-styleable>
+        <string name='my_layout_manager'>com.example.MyLayoutManager</string>
       </resources>
       """.trimIndent()
 

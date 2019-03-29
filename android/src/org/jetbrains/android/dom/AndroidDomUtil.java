@@ -155,15 +155,17 @@ public class AndroidDomUtil {
     {COORDINATOR_LAYOUT_BEHAVIOR_NAME.oldName(), COORDINATOR_LAYOUT_BEHAVIOR_NAME.newName()};
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final Converter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER = new PackageClassConverter.Builder()
-    .useManifestBasePackage(true)
-    .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
-    .completeLibraryClasses(true)
-    .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
-    .build();
+
+  private static final Converter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
+    new StringResourceAdapterConverter(
+      new PackageClassConverter.Builder()
+        .useManifestBasePackage(true)
+        .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
+        .completeLibraryClasses(true)
+        .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
+        .build());
 
   private static final Converter COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER =
     new StringResourceAdapterConverter(
