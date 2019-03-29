@@ -1362,7 +1362,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED);
     // Capture duration is calculated from the elapsed time since recording has started.
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(elapsedTimeUs);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(elapsedTimeUs));
     // Trace was not generated, so trace size, parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
@@ -1399,7 +1399,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(elapsedTimeUs);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(elapsedTimeUs));
     // Trace was not parsed correctly, so parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
@@ -1438,7 +1438,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
-    assertThat(metadata.getCaptureDurationMs()).isEqualTo(elapsedTimeUs);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(elapsedTimeUs));
     // Trace was not parsed at all, so parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(0);
