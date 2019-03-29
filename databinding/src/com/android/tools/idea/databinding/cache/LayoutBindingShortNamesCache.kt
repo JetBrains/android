@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.cache
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.DataBindingLayoutInfo
@@ -48,9 +47,6 @@ class LayoutBindingShortNamesCache(private val component: DataBindingProjectComp
   private val allClassNamesCache: CachedValue<Array<String>>
   private val allMethodNamesCache: CachedValue<Array<String>>
   private val allFieldNamesCache: CachedValue<Array<String>>
-
-  private val isEnabled: Boolean
-    get() = DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(component)
 
   init {
     val project = component.project
@@ -99,9 +95,6 @@ class LayoutBindingShortNamesCache(private val component: DataBindingProjectComp
   }
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    if (!isEnabled) {
-      return PsiClass.EMPTY_ARRAY
-    }
     val infoList = layoutInfoCache.value[name]?.takeUnless { it.isEmpty() } ?: return PsiClass.EMPTY_ARRAY
     return infoList
       .filter { info -> isInScope(info.psiFile, scope) }
@@ -110,24 +103,14 @@ class LayoutBindingShortNamesCache(private val component: DataBindingProjectComp
   }
 
   override fun getAllClassNames(): Array<String> {
-    return if (!isEnabled) {
-      ArrayUtil.EMPTY_STRING_ARRAY
-    }
-    else allClassNamesCache.value
+    return allClassNamesCache.value
   }
 
   override fun getAllClassNames(dest: HashSet<String>) {
-    if (!isEnabled) {
-      return
-    }
     dest.addAll(allClassNames)
   }
 
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {
-    if (!isEnabled) {
-      return PsiMethod.EMPTY_ARRAY
-    }
-
     val methods = methodsByNameCache.value[name] ?: return PsiMethod.EMPTY_ARRAY
     return methods.filter { isInScope(it, scope) }.toTypedArray()
   }
@@ -148,23 +131,14 @@ class LayoutBindingShortNamesCache(private val component: DataBindingProjectComp
   }
 
   override fun getAllMethodNames(): Array<String> {
-    return if (!isEnabled) {
-      ArrayUtil.EMPTY_STRING_ARRAY
-    }
-    else allMethodNamesCache.value
+    return allMethodNamesCache.value
   }
 
   override fun getAllMethodNames(set: HashSet<String>) {
-    if (!isEnabled) {
-      return
-    }
     set.addAll(allClassNames)
   }
 
   override fun getFieldsByName(name: String, scope: GlobalSearchScope): Array<PsiField> {
-    if (!isEnabled) {
-      return PsiField.EMPTY_ARRAY
-    }
     val fields = fieldsByNameCache.value[name] ?: return PsiField.EMPTY_ARRAY
     return fields.filter { field -> isInScope(field, scope) }.toTypedArray()
   }
@@ -174,16 +148,10 @@ class LayoutBindingShortNamesCache(private val component: DataBindingProjectComp
   }
 
   override fun getAllFieldNames(): Array<String> {
-    return if (!isEnabled) {
-      ArrayUtil.EMPTY_STRING_ARRAY
-    }
-    else allFieldNamesCache.value
+    return allFieldNamesCache.value
   }
 
   override fun getAllFieldNames(set: HashSet<String>) {
-    if (!isEnabled) {
-      return
-    }
     set.addAll(allFieldNames)
   }
 

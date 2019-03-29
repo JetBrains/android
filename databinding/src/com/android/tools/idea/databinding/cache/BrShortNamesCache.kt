@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding.cache
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.psi.PsiClass
@@ -41,9 +40,6 @@ private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
  */
 class BrShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
   private val allFieldNamesCache: CachedValue<Array<String>>
-
-  private val isEnabled: Boolean
-    get() = DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(component)
 
   init {
     allFieldNamesCache = CachedValuesManager.getManager(component.project).createCachedValue(
@@ -70,17 +66,10 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
   }
 
   override fun getAllClassNames(): Array<String> {
-    return if (!isEnabled) {
-      ArrayUtil.EMPTY_STRING_ARRAY
-    }
-    else BR_CLASS_NAME_LIST
+    return BR_CLASS_NAME_LIST
   }
 
   override fun getAllClassNames(dest: HashSet<String>) {
-    if (!isEnabled) {
-      return
-    }
-
     dest.add(DataBindingUtil.BR)
   }
 
@@ -121,10 +110,7 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
   }
 
   override fun getAllFieldNames(): Array<String> {
-    return if (!isEnabled) {
-      ArrayUtil.EMPTY_STRING_ARRAY
-    }
-    else allFieldNamesCache.value
+    return allFieldNamesCache.value
   }
 
   override fun getAllFieldNames(set: HashSet<String>) {
@@ -136,10 +122,6 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
   }
 
   private fun isMyScope(scope: GlobalSearchScope): Boolean {
-    if (!isEnabled) {
-      return false
-    }
-
     return (component.project == scope.project)
   }
 }

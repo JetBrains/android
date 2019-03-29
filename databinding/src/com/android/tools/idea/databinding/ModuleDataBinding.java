@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory;
 import com.android.tools.idea.databinding.psiclass.LightBrClass;
 import com.android.tools.idea.model.AndroidModel;
