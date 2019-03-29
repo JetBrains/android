@@ -207,6 +207,23 @@ public class GradleUtilTest {
   }
 
   @Test
+  public void isDataBindingGeneratedSourceFolder() {
+    myTempDir = createTempDir();
+
+    // Ignore generated data binding base-class directory...
+    assertTrue(isRecognizedAsDataBindingBaseClass("generated/data_binding_base_class_source_out/debug/dataBindingGenBaseClassesDebug/out"));
+
+    // Do NOT ignore generated data binding classes under other locations
+    assertFalse(isRecognizedAsDataBindingBaseClass("generated/source/apt/debug"));
+    assertFalse(isRecognizedAsDataBindingBaseClass("generated/source/kapt/debug"));
+  }
+
+  private boolean isRecognizedAsDataBindingBaseClass(@NotNull String path) {
+    File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
+    return GradleUtil.isDataBindingGeneratedBaseClassesFolder(dir, myTempDir);
+  }
+
+  @Test
   public void getModuleDependencies() {
     // Create mock objects.
     IdeVariant variant = mock(IdeVariant.class);
