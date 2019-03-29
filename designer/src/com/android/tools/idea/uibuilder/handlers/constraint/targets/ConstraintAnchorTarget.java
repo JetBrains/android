@@ -407,7 +407,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       else {
         marginValue = Math.max(marginValue, 0);
       }
-      String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      String margin;
+      if (Scout.getMarginResource() == null) {
+        margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      } else {
+        margin = Scout.getMarginResource();
+      }
       String attr = ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute);
       modification.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
       if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
