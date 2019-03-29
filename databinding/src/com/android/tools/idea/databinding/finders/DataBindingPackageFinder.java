@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.finders;
 
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
@@ -56,7 +55,6 @@ import java.util.Set;
 public class DataBindingPackageFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
   private final CachedValue<Map<String, PsiPackage>> myPackageCache;
-
 
   public DataBindingPackageFinder(final DataBindingProjectComponent component) {
     myComponent = component;
@@ -118,13 +116,6 @@ public class DataBindingPackageFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String qualifiedName) {
-    if (!isEnabled()) {
-      return null;
-    }
     return myPackageCache.getValue().get(qualifiedName);
-  }
-
-  private boolean isEnabled() {
-    return DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(myComponent);
   }
 }
