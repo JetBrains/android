@@ -28,7 +28,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Consumer;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -63,18 +62,18 @@ public class ScreenshotAction extends AbstractDeviceAction {
           File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
           ImageIO.write(getScreenshot(), SdkConstants.EXT_PNG, backingFile);
 
-          final ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, device,
-                                                         device.getProperty(IDevice.PROP_DEVICE_MODEL));
-          viewer.showAndGetOk().doWhenDone((Consumer<Boolean>)ok -> {
-            if (ok) {
-              File screenshot = viewer.getScreenshot();
+          new ScreenshotViewer(project, getScreenshot(), backingFile, device, device.getProperty(IDevice.PROP_DEVICE_MODEL)) {
+            @Override
+            protected void doOKAction() {
+              super.doOKAction();
+              File screenshot = getScreenshot();
               VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
               if (vf != null) {
                 vf.refresh(false, false);
                 FileEditorManager.getInstance(project).openFile(vf, true);
               }
             }
-          });
+          }.show();
         }
         catch (Exception e) {
           Logger.getInstance(ScreenshotAction.class).warn("Error while displaying screenshot viewer: ", e);
