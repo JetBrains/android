@@ -138,12 +138,11 @@ public class TransportServiceProxyTest {
       new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel);
     List<Common.Event> receivedEvents = new ArrayList<>();
     // We should expect six events: two process starts events, followed by event1 and event2, then process ends events.
-    CountDownLatch latch = new CountDownLatch(6);
+    CountDownLatch latch = new CountDownLatch(1);
     proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<Common.Event>() {
       @Override
       public void onNext(Common.Event event) {
         receivedEvents.add(event);
-        latch.countDown();
       }
 
       @Override
@@ -153,6 +152,7 @@ public class TransportServiceProxyTest {
 
       @Override
       public void onCompleted() {
+        latch.countDown();
       }
     });
 
@@ -281,6 +281,7 @@ public class TransportServiceProxyTest {
             }
           }
           catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
           }
         }
         responseObserver.onCompleted();
