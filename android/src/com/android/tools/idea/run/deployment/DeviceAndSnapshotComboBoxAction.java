@@ -44,7 +44,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
+import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.time.Clock;
 import java.time.Instant;
@@ -58,7 +60,10 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -201,6 +206,27 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   void setSelectedSnapshot(@Nullable String selectedSnapshot) {
     mySelectedSnapshot = selectedSnapshot;
+  }
+
+  @NotNull
+  @Override
+  public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
+    JComponent panel = new JPanel(null);
+    GroupLayout layout = new GroupLayout(panel);
+    Component button = createComboBoxButton(presentation);
+
+    Group horizontalGroup = layout.createSequentialGroup()
+      .addComponent(button, 0, JBUI.scale(GroupLayout.DEFAULT_SIZE), JBUI.scale(Short.MAX_VALUE))
+      .addGap(JBUI.scale(3));
+
+    Group verticalGroup = layout.createParallelGroup()
+      .addComponent(button);
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    panel.setLayout(layout);
+    return panel;
   }
 
   @NotNull
