@@ -764,6 +764,27 @@ java_test(
 
 # sanity test
 java_test(
+    name = "LocalApkProjTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/ApkDebug/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.LocalApkProjTest"],
+    tags = COMMON_TAGS + [
+        "no-remote",
+        "requires-fakeroot",
+        "no_psq",
+        "qa_sanity",
+        "qa_sanity_emu",  # Run with emulators - needs home directory, similar to emulator tests
+        "requires_emulator",  # Run together with emulators
+        "qa_unreliable",  # b/70731570
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
     name = "ImportSampleProjectTest",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
