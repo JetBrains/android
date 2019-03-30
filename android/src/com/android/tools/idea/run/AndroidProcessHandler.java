@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
+import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -32,9 +33,12 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
+import com.intellij.execution.Executor;
 import com.intellij.execution.KillableProcess;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -60,7 +64,7 @@ import java.util.function.BiConsumer;
  * destroyProcess kills the processes (typically by a stop button in the UI). If all the processes die, then this handler terminates as
  * well.
  */
-public class AndroidProcessHandler extends ProcessHandler implements KillableProcess {
+public class AndroidProcessHandler extends ProcessHandler implements KillableProcess, SwappableProcessHandler {
   private static final Logger LOG = Logger.getInstance(AndroidProcessHandler.class);
 
   // If the client is not present on the monitored devices after this time, then it is assumed to have died.
@@ -103,6 +107,8 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
 
     deviceChangeListener = new DeviceChangeListener();
     clientChangeListener = new ClientChangeListener();
+
+    putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
   }
 
   /**
@@ -390,6 +396,28 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     }
 
     return AndroidDebugBridge.getBridge();
+  }
+
+  @Nullable
+  @Override
+  public Executor getExecutor() {
+    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
+    if (sessionInfo == null) {
+      return null;
+    }
+
+    return sessionInfo.getExecutor();
+  }
+
+  @Override
+  public boolean isExecutedWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
+    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
+    if (sessionInfo == null) {
+      return false;
+    }
+
+    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId()) &&
+           sessionInfo.getRunConfigurationId() == runConfiguration.getUniqueID();
   }
 
   /**

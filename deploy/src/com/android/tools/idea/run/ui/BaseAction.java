@@ -21,6 +21,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
+import com.android.tools.idea.run.deployable.SwappableProcessHandler;
+import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
@@ -28,6 +31,7 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
@@ -40,10 +44,10 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import java.util.concurrent.Future;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,7 +110,6 @@ public abstract class BaseAction extends AnAction {
       return;
     }
 
-    // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     boolean canRun = true;
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
     if (configSettings == null) {
@@ -114,6 +117,8 @@ public abstract class BaseAction extends AnAction {
     }
     else {
       RunConfiguration config = configSettings.getConfiguration();
+
+      // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
       Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
       for (Executor executor : executors) {
         ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), config);
@@ -122,6 +127,10 @@ public abstract class BaseAction extends AnAction {
         }
         canRun &= !ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId());
       }
+
+      // Check if we have a running ProcessHandler/Executor corresponding to the current ExecutionTarget/RunConfiguration.
+      ProcessHandler processHandler = findRunningProcessHandler(project, config);
+      canRun &= processHandler != null && getExecutor(processHandler, null) != null;
     }
 
     presentation.setEnabled(canRun && checkCompatibility(project));
@@ -141,10 +150,10 @@ public abstract class BaseAction extends AnAction {
       return;
     }
 
-    // TODO: Figure out the debugger flow. For now always use the Run executor.
-    Executor executor = getExecutor();
+    ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration());
+    Executor executor = handler == null ? null : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
     if (executor == null) {
-      LOG.warn(myName + " action could not identify executor");
+      LOG.warn(myName + " action could not identify executor of existing running application");
       return;
     }
 
@@ -153,17 +162,6 @@ public abstract class BaseAction extends AnAction {
 
     env.putCopyableUserData(myKey, true);
     ProgramRunnerUtil.executeConfiguration(env, false, true);
-  }
-
-  @Nullable
-  private static Executor getExecutor() {
-    for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensions()) {
-      if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
-        return executor;
-      }
-    }
-
-    return null;
   }
 
   private static boolean checkCompatibility(@NotNull Project project) {
@@ -192,5 +190,29 @@ public abstract class BaseAction extends AnAction {
     catch (Exception e) {
       return false;
     }
+  }
+
+  @Nullable
+  private static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+    for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
+      SwappableProcessHandler extension = handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
+      if (extension == null) {
+        continue; // We may have a non-swappable process running.
+      }
+
+      if (extension.isExecutedWith(runConfiguration, ExecutionTargetManager.getActiveTarget(project)) &&
+          handler.isStartNotified() &&
+          !handler.isProcessTerminating() &&
+          !handler.isProcessTerminated()) {
+          return handler;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
+    SwappableProcessHandler extension = processHandler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
+    return processHandler.isProcessTerminated() || processHandler.isProcessTerminating() ? defaultExecutor : extension.getExecutor();
   }
 }
