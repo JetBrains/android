@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
+import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.project.Project;
@@ -70,6 +71,11 @@ public class AndroidSessionInfo {
   @NotNull
   public String getExecutorId() {
     return myExecutorId;
+  }
+
+  @Nullable
+  public Executor getExecutor() {
+    return ExecutorRegistry.getInstance().getExecutorById(getExecutorId());
   }
 
   @NotNull

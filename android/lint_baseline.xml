@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.5.0-alpha08">
+<issues format="5" by="lint 26.5.0-alpha11">
 
     <issue
         id="DefaultLocale"
@@ -86,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/org/jetbrains/android/exportSignedPackage/ExportSignedPackageWizard.java"
-            line="264"/>
+            line="268"/>
     </issue>
 
     <issue
@@ -118,7 +118,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="109"/>
+            line="112"/>
     </issue>
 
     <issue
@@ -134,7 +134,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/run/deployment/DeviceAndSnapshotComboBoxAction.java"
-            line="350"/>
+            line="395"/>
     </issue>
 
     <issue
@@ -142,15 +142,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/run/deployment/DeviceAndSnapshotExecutionTargetProvider.java"
-            line="62"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/run/deployment/DeviceAndSnapshotExecutionTargetProvider.java"
-            line="74"/>
+            line="72"/>
     </issue>
 
     <issue
@@ -158,7 +150,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="352"/>
+            line="353"/>
     </issue>
 
     <issue
@@ -166,7 +158,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/res/ModuleResourceRepository.java"
-            line="284"/>
+            line="291"/>
     </issue>
 
     <issue
@@ -326,7 +318,7 @@
         message="Use `Integer.valueOf(0)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="67"/>
+            line="69"/>
     </issue>
 
     <issue
@@ -334,7 +326,7 @@
         message="Use `Integer.valueOf(100)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="68"/>
+            line="70"/>
     </issue>
 
     <issue
@@ -342,7 +334,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/eclipse/EclipseProject.java"
-            line="510"/>
+            line="540"/>
     </issue>
 
     <issue
@@ -365,16 +357,16 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="549"/>
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="905"/>
     </issue>
 
     <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="905"/>
+            file="src/com/android/tools/idea/model/MergedManifestInfo.java"
+            line="379"/>
     </issue>
 
     <issue
@@ -398,7 +390,7 @@
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="422"/>
+            line="423"/>
     </issue>
 
     <issue
@@ -406,7 +398,7 @@
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="652"/>
+            line="653"/>
     </issue>
 
     <issue
@@ -446,7 +438,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="347"/>
+            line="336"/>
     </issue>
 
     <issue
@@ -454,7 +446,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="374"/>
+            line="363"/>
     </issue>
 
     <issue
@@ -462,7 +454,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="458"/>
+            line="447"/>
     </issue>
 
     <issue
@@ -470,7 +462,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="496"/>
+            line="485"/>
     </issue>
 
     <issue
@@ -478,7 +470,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="525"/>
+            line="514"/>
     </issue>
 
 </issues>
