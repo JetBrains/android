@@ -55,17 +55,15 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
 
   static class Target extends AndroidExecutionTarget {
     @NotNull private final Device myDevice;
-    @NotNull private final String myId;
 
     private Target(@NotNull Device device) {
       myDevice = device;
-      myId = "device_and_snapshot_execution_target|" + myDevice.getName();
     }
 
     @NotNull
     @Override
     public String getId() {
-      return myId;
+      return myDevice.getKey();
     }
 
     @NotNull
