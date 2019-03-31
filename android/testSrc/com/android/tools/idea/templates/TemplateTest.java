@@ -653,6 +653,16 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "GoogleMapsWearActivity", true, withKotlin);
   }
 
+  @TemplateCheck
+  public void testNewAutomotiveProjectWithMediaService() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", true);
+  }
+
+  @TemplateCheck
+  public void testNewAutomotiveProjectWithMediaServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", true, withKotlin);
+  }
+
   //--- Non-activity templates ---
 
   @TemplateCheck
@@ -882,13 +892,12 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testAutomotiveMediaService() throws Exception {
-    // Note: Automotive is only enabled in the UI for androidx projects
-    checkCreateTemplate("other", "AutomotiveMediaService", false, withAndroidx);
+    checkCreateTemplate("other", "AutomotiveMediaService", false);
   }
 
   @TemplateCheck
   public void testAutomotiveMediaServiceWithKotlin() throws Exception {
-    checkCreateTemplate("other", "AutomotiveMediaService", false, withAndroidxAndKotlin);
+    checkCreateTemplate("other", "AutomotiveMediaService", false, withKotlin);
   }
 
   @TemplateCheck
