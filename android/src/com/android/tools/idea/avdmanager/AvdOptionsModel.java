@@ -240,7 +240,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
     if (selectedUnit == null) {
-      selectedUnit = Storage.Unit.MiB; // Values expressed without a unit read as MB
+      selectedUnit = Storage.Unit.B; // Values expressed without a unit read as B
       numString = iniString;
     }
     try {
