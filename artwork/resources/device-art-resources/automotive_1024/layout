@@ -18,8 +18,8 @@ parts {
 }
 layouts {
   landscape {
-    width 1368
-    height 1450
+    width 1461
+    height 1481
     part1 {
       name landscape
       x 0
@@ -27,8 +27,8 @@ layouts {
     }
     part2 {
       name device
-      x 171
-      y 191
+      x 218
+      y 124
     }
   }
 }
