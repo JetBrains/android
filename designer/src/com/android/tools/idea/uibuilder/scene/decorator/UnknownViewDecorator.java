@@ -33,9 +33,16 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Decorator to draw the contents of views not defined in {@link NlSceneDecoratorFactory}.
+ * Draws a decorator with its ID or class name as content in blueprint mode.
+ */
 public class UnknownViewDecorator extends SceneDecorator {
   private static final String DEFAULT_DIM = "14sp";
 
+  /**
+   * Draws the centered text of an unknown decorator. Scales down to fit, and scales up to the default size.
+   */
   public static class DrawUnknownDecorator extends DrawRegion {
     protected static final float SCALE_ADJUST = .88f; // a factor to scale fonts from android to Java2d
     private String mText;
