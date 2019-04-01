@@ -335,14 +335,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
 
-    private var previousSelection = listOf<NlComponent>()
-
     override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
-      // Avoid to update same selection twice.
-      if (previousSelection != newSelection) {
-        previousSelection = newSelection
-        scheduleSelectionUpdate(surface, newSelection)
-      }
+      // TODO: b/129691384 only update property panel when only secondary selection changed.
+      scheduleSelectionUpdate(surface, newSelection)
     }
   }
 
