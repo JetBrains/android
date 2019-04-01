@@ -19,6 +19,9 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Decorator for ToggleButton. Based off {@link ButtonDecorator} but displays text relevant for ToggleButton.
+ */
 public class ToggleButtonDecorator extends ButtonDecorator {
   private static final String DEFAULT_TEXT = "OFF";
 
@@ -27,9 +30,6 @@ public class ToggleButtonDecorator extends ButtonDecorator {
   protected String getContentText(NlComponent nlComponent) {
     String text = ConstraintUtilities.getResolvedToggleText(nlComponent);
     if (text.isEmpty()) {
-      text = nlComponent.getId();
-    }
-    if (text == null || text.isEmpty()) {
       text = DEFAULT_TEXT;
     }
     return text;

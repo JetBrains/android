@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.Te
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.SAMPLE_PREFIX;
 import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
@@ -140,64 +141,56 @@ public class ConstraintUtilities {
     return "";
   }
 
+  /**
+   * Get the 'text' attribute from a component.
+   *
+   * @return The resolved 'text' attribute or an empty string if the attribute is not present.
+   */
   @NotNull
   public static String getResolvedText(@NotNull NlComponent component) {
-    String text = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_TEXT);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        if (!text.startsWith(SAMPLE_PREFIX) && !text.startsWith(TOOLS_SAMPLE_PREFIX)) {
-          return resolveStringResource(component, text);
-        }
-        else {
-          return "";
-        }
-      }
-      return text;
+    String text = getResolvedAttribute(component, SdkConstants.ATTR_TEXT);
+    if (text == null) {
+      return "";
     }
-    text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        return resolveStringResource(component, text);
-      }
-      return text;
-    }
-    return "";
+    return text;
   }
 
+  /**
+   * Get the 'text_on' or 'text_off' attribute from a component. Looks for the 'checked' attribute to choose the current state, defaults to
+   * 'text_off' if there is no 'checked' attribute.
+   *
+   * @return The resolved text attribute or an empty string if the attribute is not present.
+   */
   @NotNull
   public static String getResolvedToggleText(@NotNull NlComponent component) {
-    // Get checked attribute, if any.
-    String checkedText = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CHECKED);
-    if (checkedText != null) {
-      if (checkedText.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        checkedText = resolveStringResource(component, checkedText);
-      }
-    }
-    else {
-      checkedText = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_CHECKED);
-      if (checkedText != null) {
-        if (checkedText.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-          checkedText = resolveStringResource(component, checkedText);
-        }
-      }
-    }
-    // Default to off state.
+    String checkedText = getResolvedAttribute(component, SdkConstants.ATTR_CHECKED);
+
     String toggleTextAttr =
       checkedText != null && checkedText.equals(SdkConstants.VALUE_TRUE) ? SdkConstants.ATTR_TEXT_ON : SdkConstants.ATTR_TEXT_OFF;
-    String text = component.getAttribute(SdkConstants.TOOLS_URI, toggleTextAttr);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        return resolveStringResource(component, text);
-      }
-      return text;
+
+    String text = getResolvedAttribute(component, toggleTextAttr);
+
+    if (text == null) {
+      return "";
     }
-    text = component.getAttribute(SdkConstants.ANDROID_URI, toggleTextAttr);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        return resolveStringResource(component, text);
-      }
-      return text;
+    return text;
+  }
+
+  /**
+   * Get an attribute from a component. Looks for 'tools' attributes first.
+   */
+  @Nullable
+  private static String getResolvedAttribute(@NotNull NlComponent component, @NotNull String attribute) {
+    String resolvedAttribute = component.getAttribute(SdkConstants.TOOLS_URI, attribute);
+
+    if (resolvedAttribute == null) {
+      // Check on android namespace.
+      resolvedAttribute = component.getAttribute(SdkConstants.ANDROID_URI, attribute);
     }
-    return "";
+    if (resolvedAttribute != null && resolvedAttribute.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+      // Check if it comes from a resource and resolve.
+      return resolveStringResource(component, resolvedAttribute);
+    }
+    return resolvedAttribute;
   }
 }
