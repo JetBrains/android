@@ -89,7 +89,6 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
 
   init {
     scrollPane.border = JBUI.Borders.empty()
-    client.register(Common.Event.EventGroupIds.SKIA_PICTURE) { handleSkiaPictureEvent(it) }
 
     layoutInspector.modelChangeListeners.add(::modelChanged)
 
@@ -167,22 +166,6 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   private fun modelChanged(old: InspectorModel, new: InspectorModel) {
     scrollPane.viewport.revalidate()
     repaint()
-  }
-
-  private fun handleSkiaPictureEvent(event: LayoutInspectorEvent) {
-    val application = ApplicationManager.getApplication()
-    application.executeOnPooledThread {
-      val bytes = client.getPayload(event.payloadId)
-      if (bytes.isNotEmpty()) {
-        SkiaParser().getViewTree(bytes)?.let {
-          layoutInspector.layoutInspectorModel.update(it)
-          application.invokeLater {
-            scrollPane.viewport.revalidate()
-            repaint()
-          }
-        }
-      }
-    }
   }
 
   // TODO: Replace this with the process selector from the profiler
