@@ -36,6 +36,8 @@ public class DrawAnchor extends DrawRegion {
   private static final int PAINT_HOVER_SIZE_PERCENT = 40;
   private static final int PAINT_INNER_CIRCLE_SIZE_PERCENT = 10;
   private static final int PAINT_DELETE_ICON_SIZE_PERCENT = 40;
+  private static final int PAINT_BASELINE_HOVER_SIZE_PERCENT = 40;
+  private static final int PAINT_BASELINE_FILL_SIZE_PERCENT = 40;
 
   public enum Type {
     NORMAL,
@@ -141,24 +143,49 @@ public class DrawAnchor extends DrawRegion {
 
   public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
     int inset = width / 10;
+    boolean willDelete = myMode == Mode.OVER && myIsConnected;
+    boolean drawAsHover = myMode == Mode.OVER && !myIsConnected;
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getComponentObligatoryBackground();
-    Color color = colorSet.getFrames();
+    Color color = willDelete ? colorSet.getAnchorDisconnectionCircle() : colorSet.getSelectedFrames();
+
     g.setColor(color);
     g.fillRect(x, y + height / 2, width, 1);
+
     int ovalX = x + inset;
+    int ovalY = y;
     int ovalW = width - 2 * inset;
+    int ovalH = height;
+
+    int backgroundX = ovalX;
+    int backgroundY = ovalY;
+    int backgroundW = ovalW;
+    int backgroundH = height;
+    if (drawAsHover) {
+      // Increase size of background when hovering over anchor.
+      int baselineOffset = height * PAINT_BASELINE_HOVER_SIZE_PERCENT / 100;
+      backgroundX -= baselineOffset;
+      backgroundY -= baselineOffset;
+      backgroundW += baselineOffset * 2;
+      backgroundH += baselineOffset * 2;
+    }
+    // Paint background and outline.
     g.setColor(background);
-    g.fillRoundRect(ovalX, y, ovalW, height, height, height);
+    g.fillRoundRect(backgroundX, backgroundY, backgroundW, backgroundH, backgroundH, backgroundH);
     g.setColor(color);
-    g.drawRoundRect(ovalX, y, ovalW, height, height, height);
-    int delta = 3;
+    g.drawRoundRect(backgroundX, backgroundY, backgroundW, backgroundH, backgroundH, backgroundH);
+
+    if (drawAsHover) {
+      // Paint additional outline.
+      g.drawRoundRect(ovalX, ovalY, ovalW, height, height, height);
+    }
+    int delta = height * PAINT_BASELINE_FILL_SIZE_PERCENT / 100;
     int delta2 = delta * 2;
     if (myIsConnected) {
-      g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
-      g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
+      // Fill when anchor is connected.
+      g.fillRoundRect(ovalX + delta, ovalY + delta, ovalW - delta2, ovalH - delta2, ovalH - delta2, ovalH - delta2);
+      g.drawRoundRect(ovalX + delta, ovalY + delta, ovalW - delta2, ovalH - delta2, ovalH - delta2, ovalH - delta2);
     }
-    paintPulsingBaselineAnchor(g, sceneContext, ovalX, ovalW);
   }
 
   /**
