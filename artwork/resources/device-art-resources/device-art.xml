@@ -144,7 +144,7 @@
   </device>
 
   <device id="automotive_1024" name="Automotive">
-    <orientation name="land" size="2070,1458" screenPos="525,224" screenSize="1024,768" back="back.png" lights="fore.png"/>
+    <orientation name="land" size="1461,1481" screenPos="218,124" screenSize="1024,768" back="back.png" lights="fore.png"/>
   </device>
 
 </devices>
