@@ -26,10 +26,15 @@ import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 
 /**
- * Representation of a single View in the layout inspector. Should (eventually) include all information available about that view, including
- * properties and an image of the view.
+ * A view as seen in a Skia image.
+ *
+ * @param id the id in the Skia image which is also the id found by View.getUniqueDrawingId
+ * @param type the qualified class name of the view
+ * @param x the left edge of the view from the device left edge
+ * @param y the top edge of the view from the device top edge
  *
  * Currently primarily created through JNI by the skia parser.
+ * TODO: Rename this class to e.g. SkiaViewNode
  */
 class InspectorView(
   val id: String,
