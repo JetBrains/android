@@ -19,15 +19,13 @@ import com.intellij.ide.presentation.Presentation;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ReceiverPresentationProvider;
 import org.jetbrains.android.util.AndroidUtils;
-
-import java.util.List;
 
 @Presentation(provider = ReceiverPresentationProvider.class)
 @Styleable("AndroidManifestReceiver")
@@ -35,7 +33,7 @@ public interface Receiver extends ApplicationComponent {
   @Attribute("name")
   @Required
   @Convert(PackageClassConverter.class)
-  @ExtendClass(AndroidUtils.RECEIVER_CLASS_NAME)
+  @PackageClassConverter.Options(inheriting = AndroidUtils.RECEIVER_CLASS_NAME)
   AndroidAttributeValue<PsiClass> getReceiverClass();
 
   List<IntentFilter> getIntentFilters();
