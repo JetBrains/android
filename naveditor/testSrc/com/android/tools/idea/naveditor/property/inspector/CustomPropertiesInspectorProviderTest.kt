@@ -21,6 +21,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
+import com.android.tools.idea.naveditor.property.isCustomProperty
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
@@ -78,6 +79,14 @@ class CustomPropertiesInspectorProviderTest : NavTestCase() {
 
     components = listOf(model.find("mycustomdestination")!!)
     properties = getPropertyMap(propertiesManager, components)
+
+    // Temporary logging to help diagnose sporadic test failures
+    val names = properties.keys.toList().sorted()
+    assertTrue(toString(names), names == listOf("id", "label", "layout", "myBoolean", "myInteger", "myString", "name"))
+
+    val customProperties = names.map { properties[it]?.isCustomProperty }
+    assertTrue(toString(customProperties), customProperties == listOf(false, false, false, true, true, true, false))
+
     assertTrue(inspectorProvider.isApplicable(components, properties, propertiesManager))
     assertFalse(activityInspectorProvider.isApplicable(components, properties, propertiesManager))
     var inspector = inspectorProvider.createCustomInspector(components, properties, propertiesManager)
