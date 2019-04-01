@@ -47,6 +47,7 @@ public class CanvasResizeTest {
       .leaveConfigToolbar()
       .startResizeInteraction()
       .resizeToAndroidSize(365, 638) // Size of Nexus 5 in portrait is (360 x 640)
+      .waitForRenderToFinish() // Snap happens during resize, not the end.
       .endResizeInteraction()
       .waitForRenderToFinish()
       .getConfigToolbar()
