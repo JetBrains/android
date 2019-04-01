@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
@@ -25,7 +25,6 @@ import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.Color
 import javax.swing.Icon
 
@@ -53,7 +52,7 @@ data class InspectorPropertyItem(
   val source: String?,
 
   /** The view this attribute belongs to */
-  val view: InspectorView,
+  val view: ViewNode,
 
   /** The properties model this item is a part of */
   val model: InspectorPropertiesModel

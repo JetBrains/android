@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -47,13 +47,13 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
   @VisibleForTesting
-  internal var hitRects = listOf<Triple<Shape, AffineTransform, InspectorView>>()
+  internal var hitRects = listOf<Triple<Shape, AffineTransform, ViewNode>>()
 
   init {
     refresh()
   }
 
-  fun findTopRect(x: Double, y: Double): InspectorView? {
+  fun findTopRect(x: Double, y: Double): ViewNode? {
     return hitRects.findLast {
       it.first.contains(x, y)
     }?.third
@@ -68,7 +68,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   fun refresh() {
     rootDimension = Dimension(model.root.width, model.root.height)
-    val newHitRects = mutableListOf<Triple<Shape, AffineTransform, InspectorView>>()
+    val newHitRects = mutableListOf<Triple<Shape, AffineTransform, ViewNode>>()
     val transform = AffineTransform()
     transform.translate(-model.root.width / 2.0, -model.root.height / 2.0)
 
@@ -82,7 +82,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     hitRects = newHitRects.toList()
   }
 
-  private fun findMaxDepth(view: InspectorView): Int {
+  private fun findMaxDepth(view: ViewNode): Int {
     return 1 + (view.children.values.map { findMaxDepth(it) }.max() ?: 0)
   }
 
@@ -90,8 +90,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
                              magnitude: Double,
                              depth: Int,
                              angle: Double,
-                             view: InspectorView,
-                             newHitRects: MutableList<Triple<Shape, AffineTransform, InspectorView>>) {
+                             view: ViewNode,
+                             newHitRects: MutableList<Triple<Shape, AffineTransform, ViewNode>>) {
     val viewTransform = AffineTransform(transform)
 
     val sign = if (xOff < 0) -1 else 1

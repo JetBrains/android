@@ -15,56 +15,76 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.SdkConstants.CLASS_VIEW
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.intellij.openapi.project.Project
+import org.mockito.Mockito.mock
 import java.awt.Rectangle
 
 fun model(body: InspectorModelDescriptor.() -> Unit) = InspectorModelDescriptor().also(body).build()
 
-class InspectorViewDescriptor(private val id: String,
-                              private val type: String,
+class InspectorViewDescriptor(private val drawId: Long,
+                              private val qualifiedName: String,
                               private val x: Int,
                               private val y: Int,
                               private val width: Int,
-                              private val height: Int) {
+                              private val height: Int,
+                              private val viewId: String,
+                              private val textValue: String) {
   private val children = mutableListOf<InspectorViewDescriptor>()
 
-  constructor(id: String, type: String, rect: Rectangle) : this(id, type, rect.x, rect.y, rect.width, rect.height)
+  constructor(drawId: Long, qualifiedName: String, rect: Rectangle, viewId: String, textValue: String)
+    : this(drawId, qualifiedName, rect.x, rect.y, rect.width, rect.height, viewId, textValue)
 
-  fun view(id: String,
+  fun view(drawId: Long,
            x: Int = 0,
            y: Int = 0,
            width: Int = 0,
            height: Int = 0,
-           type: String = "android.view.View",
+           qualifiedName: String = CLASS_VIEW,
+           viewId: String = "",
+           textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    children.add(InspectorViewDescriptor(id, type, x, y, width, height).apply(body))
+    children.add(InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue).apply(body))
 
-  fun view(id: String, rect: Rectangle, type: String = "android.view.View", body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(id, rect.x, rect.y, rect.width, rect.height, type, body)
+  fun view(drawId: Long,
+           rect: Rectangle,
+           qualifiedName: String = CLASS_VIEW,
+           viewId: String = "",
+           textValue: String = "",
+           body: InspectorViewDescriptor.() -> Unit = {}) =
+    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)
 
-  fun build(): InspectorView {
-    val result = InspectorView(id, type, x, y, width, height)
-    result.children.putAll(children.map { descriptor -> descriptor.build().let { it.id to it } })
+  fun build(): ViewNode {
+    val result = ViewNode(drawId, qualifiedName, null, x, y, width, height, viewId, textValue)
+    result.children.putAll(children.map { descriptor -> descriptor.build().let { it.drawId to it } })
     return result
   }
 }
 
 class InspectorModelDescriptor {
-  lateinit var root: InspectorViewDescriptor
+  private lateinit var root: InspectorViewDescriptor
 
-  fun view(id: String,
+  fun view(drawId: Long,
            x: Int = 0,
            y: Int = 0,
            width: Int = 0,
            height: Int = 0,
-           type: String = "android.view.View",
+           qualifiedName: String = CLASS_VIEW,
+           viewId: String = "",
+           textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) {
-    root = InspectorViewDescriptor(id, type, x, y, width, height).apply(body)
+    root = InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue).apply(body)
   }
 
-  fun view(id: String, rect: Rectangle, type: String = "android.view.View", body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(id, rect.x, rect.y, rect.width, rect.height, type, body)
+  fun view(drawId: Long,
+           rect: Rectangle,
+           qualifiedName: String = CLASS_VIEW,
+           viewId: String = "",
+           textValue: String = "",
+           body: InspectorViewDescriptor.() -> Unit = {}) =
+    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)
 
-  fun build() = InspectorModel(root.build())
+  fun build() = InspectorModel(mock(Project::class.java), root.build())
 }

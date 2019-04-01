@@ -15,23 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.model
-import com.intellij.testFramework.UsefulTestCase
-import org.junit.Test
-
-class InspectorViewTest {
-  @Test
-  fun testFlatten() {
-    val model = model {
-      view("rootId") {
-        view("v1") {
-          view("v3")
-        }
-        view("v2")
-      }
-    }
-
-    UsefulTestCase.assertSameElements(model.root.flatten().map { it.id }, "rootId", "v1", "v3", "v2")
-    UsefulTestCase.assertSameElements(model.root.children["v1"]!!.flatten().map { it.id }, "v1", "v3")
-  }
-}
+const val ROOT = 1L
+const val VIEW1 = 2L
+const val VIEW2 = 3L
+const val VIEW3 = 4L
+const val VIEW4 = 5L
