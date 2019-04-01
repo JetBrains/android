@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
@@ -77,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -92,6 +95,7 @@ import org.junit.runners.Parameterized;
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
+  @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
 
   @Rule public TestName myNameRule = new TestName();
   @Rule public RunInEDTRule myEDTRule = new RunInEDTRule();
@@ -114,9 +118,15 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected VirtualFile myModuleDirPath;
   protected VirtualFile myProjectBasePath;
 
+  @NotNull
+  @Contract(pure = true)
   @Parameters(name = "{1}")
   public static Collection languageExtensions() {
-    return Arrays.asList(new Object[][]{{".gradle", GROOVY_LANGUAGE}});
+    return Arrays.asList(new Object[][]{
+      {".gradle", GROOVY_LANGUAGE}
+      ,
+      {".gradle.kts", KOTLIN_LANGUAGE}
+    });
   }
 
   /**
@@ -155,19 +165,19 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       assertNotNull(basePath);
       myProjectBasePath = VfsUtil.findFile(new File(basePath).toPath(), true);
       assertTrue(myProjectBasePath.isDirectory());
-      mySettingsFile = myProjectBasePath.createChildData(this, FN_SETTINGS_GRADLE);
+      mySettingsFile = myProjectBasePath.createChildData(this, getSettingsFileName());
       assertTrue(mySettingsFile.isWritable());
 
       myModuleDirPath = myModule.getModuleFile().getParent();
       assertTrue(myModuleDirPath.isDirectory());
-      myBuildFile = myModuleDirPath.createChildData(this, FN_BUILD_GRADLE);
+      myBuildFile = myModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
       myPropertiesFile = myModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(myPropertiesFile.isWritable());
 
       VirtualFile subModuleDirPath = VfsUtil.findFile(new File(mySubModule.getModuleFilePath()).getParentFile().toPath(), true);
       assertTrue(subModuleDirPath.isDirectory());
-      mySubModuleBuildFile = subModuleDirPath.createChildData(this, FN_BUILD_GRADLE);
+      mySubModuleBuildFile = subModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(mySubModuleBuildFile.isWritable());
       mySubModulePropertiesFile = subModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(mySubModulePropertiesFile.isWritable());
@@ -175,6 +185,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     });
 
     myTestDataPath = AndroidTestBase.getTestDataPath() + "/parser";
+  }
+
+  @NotNull
+  private String getSettingsFileName() {
+    return (isGroovy()) ? FN_SETTINGS_GRADLE : FN_SETTINGS_GRADLE_KTS;
+  }
+
+  @NotNull
+  private String getBuildFileName() {
+    return (isGroovy()) ? FN_BUILD_GRADLE : FN_BUILD_GRADLE_KTS;
   }
 
   @After
@@ -217,6 +237,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToSettingsFile(@NotNull String text) throws IOException {
+    assumeTrue(isGroovy());
     saveFileUnderWrite(mySettingsFile, text);
   }
 
@@ -225,6 +246,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {
+    assumeTrue(isGroovy());
     saveFileUnderWrite(myBuildFile, text);
   }
 
@@ -239,7 +261,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected String getSubModuleSettingsText() {
-    if (!isGroovy()) throw new UnsupportedOperationException("TODO // IMPLEMENT");
     return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : "TODO Implement";
   }
 
@@ -306,6 +327,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
+    assumeTrue(isGroovy());
     saveFileUnderWrite(mySubModuleBuildFile, text);
   }
 
