@@ -204,7 +204,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        killProcesses();
+        killApps();
       }
 
       @Override
@@ -214,18 +214,18 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     });
   }
 
-  private void killProcesses() {
+  private void killApps() {
     AndroidDebugBridge bridge = getBridgeForKill();
     if (bridge == null) {
       return;
     }
 
     for (IDevice device : bridge.getDevices()) {
-      killProcess(device);
+      killApp(device);
     }
   }
 
-  private void killProcess(@NotNull IDevice candidateDevice) {
+  private void killApp(@NotNull IDevice candidateDevice) {
     boolean shouldStopOnDevice;
     synchronized (deviceClientLock) {
       shouldStopOnDevice = myDevices.contains(candidateDevice.getSerialNumber());
@@ -356,28 +356,25 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     return getDevices().contains(androidTarget.getIDevice()) && androidTarget.isApplicationRunning(myApplicationId);
   }
 
+  /**
+   * Kill processes by running the "am force-stop" shell command, which might take a while to run. For that reason, make sure the kill
+   * commands are executed in another (pooled) thread to prevent them from freezing the UI. Show a progress indicator meanwhile.
+   * TODO(b/122820269): Figure out a nice way to prevent the pooled thread from leaking and testing it's executed properly.
+   */
   @Override
   public void killProcess() {
     AndroidDebugBridge bridge = getBridgeForKill();
     if (bridge == null) {
       return;
     }
-   killProcessAsync();
-  }
 
-  /**
-   * Kill processes by running the "am force-stop" shell command, which might take a while to run. For that reason, make sure the kill
-   * commands are executed in another (pooled) thread to prevent them from freezing the UI. Show a progress indicator meanwhile.
-   * TODO(b/122820269): Figure out a nice way to prevent the pooled thread from leaking and testing it's executed properly.
-   */
-  private void killProcessAsync() {
     // Grab the current target before we run the task in the background, in case the user changes the selection.
     ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
-          killProcesses();
+          killApps();
           return;
         }
 
@@ -385,11 +382,12 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
         if (targetDevice == null) {
           return;
         }
-        killProcess(targetDevice);
+        killApp(targetDevice);
       }
     });
   }
 
+  @Nullable
   private AndroidDebugBridge getBridgeForKill() {
     if (myNoKill) {
       return null;
