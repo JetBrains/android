@@ -98,6 +98,16 @@ handles renaming or moving the class.
 this case we create multiple references, one for every package segment and one for the class itself.
 * DOM converters, e.g. `ResourceReferenceConverter` for tag values in `res/values` and attribute values in layouts etc.
 
+The DOM layer creates references in two ways. The simple case is a `Converter` implementing `ResolvingConverter`, in which case
+`GenericValueReferenceProvider#doCreateReferences` will create a single reference in the corresponding PSI element. The reference delegates
+all the work back to the converter, calling `getVariants` and `resolve`. A converter may also get more control over reference creation and
+implement `CustomReferencesConverter`, e.g. to create more than one reference in the string. In this case the logic for resolution and
+code completion lives in the references. Some of our converters implement both interfaces, which is rather confusing. In this case
+`GenericValueReferenceProvider` will create the generic reference only when `createReferences` from `CustomReferencesConverter` returns no
+references. This makes it hard to understand which `getVariants` method (from the converter or the reference) will be used.
+
+> **TODO:** Audit our converters and make them not implement both interfaces.
+
 ### Resource references
 
 Resource references are handled by `ResourceReferenceConverter`. It uses a strange mixture of `ResolvingConverter` and
