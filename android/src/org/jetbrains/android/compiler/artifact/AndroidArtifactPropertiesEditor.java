@@ -165,7 +165,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   @NotNull
   private String getKeyStoreFileUrl() {
     final String path = getKeyStorePath();
-    return VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(path));
+    return VfsUtilCore.pathToUrl(path);
   }
 
   @NotNull
