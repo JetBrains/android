@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
 import com.intellij.util.ref.DebugReflectionUtil
+import gnu.trove.TObjectHash
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
@@ -119,7 +120,7 @@ class ArrayObjectIdentityExpander(g: HeapGraph): Expander(g) {
       labelToNodeMap[n]
     } else null
     for (obj in arr) {
-      if (obj != null && (TRACK_WEAK_REFS_IN_ARRAYS || obj !is WeakReference<*>)) {
+      if (obj != null && obj !== TObjectHash.REMOVED && (TRACK_WEAK_REFS_IN_ARRAYS || obj !is WeakReference<*>)) {
         val label = ObjectLabel(obj)
         val childNode = n.addEdgeTo(obj, label)
         if (map != null && map[label] == null) {
