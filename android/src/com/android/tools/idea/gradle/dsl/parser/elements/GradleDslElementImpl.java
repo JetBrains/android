@@ -65,7 +65,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @NotNull protected final List<GradleReferenceInjection> myDependents = new ArrayList<>();
 
   /**
-   * Creates an in stance of a {@link GradleDslElement}
+   * Creates an instance of a {@link GradleDslElement}
    *
    * @param parent     the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if
    *                   this element is the root element, i.e a {@link GradleDslFile}.
