@@ -63,6 +63,7 @@ import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_THEME;
 import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.VALUE_FALSE;
@@ -102,6 +103,7 @@ import java.util.stream.Stream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
+import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.DimensionConverter;
@@ -176,6 +178,8 @@ public class AndroidDomUtil {
         .build());
 
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
+
+  private static final AndroidConstraintIdsConverter CONSTRAINT_REFERENCED_IDS_CONVERTER = new AndroidConstraintIdsConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
@@ -338,6 +342,8 @@ public class AndroidDomUtil {
         if (parentTag != null && isInheritor(parentTag, COORDINATOR_LAYOUT)) {
             return COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER;
         }
+      } else if (localName.equals(CONSTRAINT_REFERENCED_IDS)) {
+        return CONSTRAINT_REFERENCED_IDS_CONVERTER;
       }
     }
 

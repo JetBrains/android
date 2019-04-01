@@ -5,6 +5,8 @@ import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.moveCaret
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.completion.CompletionType
@@ -18,6 +20,7 @@ import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
@@ -210,7 +213,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   @Language("JAVA")
   private val coordinatorLayout =
-      """
+    """
       package androidx.coordinatorlayout.widget;
 
       public class CoordinatorLayout extends android.view.ViewGroup {
@@ -220,12 +223,41 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   @Language("XML")
   private val coordinatorLayoutResources =
-      """
+    """
       <resources>
         <declare-styleable name="CoordinatorLayout_Layout">
           <attr name="layout_behavior" format="string" />
         </declare-styleable>
         <string name='appbar_scrolling_view_behavior'>foo.Bar</string>
+      </resources>
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val constraintLayout =
+    """
+      package androidx.constraintlayout.widget;
+
+      public class ConstraintLayout extends android.view.ViewGroup {
+      }
+      """.trimIndent()
+
+
+  @Language("JAVA")
+  private val barrier =
+    """
+      package androidx.constraintlayout.widget;
+
+      public class Barrier extends androidx.constraintlayout.widget.ConstraintLayout {
+      }
+      """.trimIndent()
+
+  @Language("XML")
+  private val constraintLayoutResources =
+    """
+      <resources>
+        <declare-styleable name="ConstraintLayout_Layout">
+          <attr name="constraint_referenced_ids" format="string" />
+        </declare-styleable>
       </resources>
       """.trimIndent()
 
@@ -1628,6 +1660,106 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addClass(innerClass)
 
     toTestCompletion("innerClass3.xml", "innerClass3_after.xml")
+  }
+
+  fun testConstraintReferencedIdsGoToAction() {
+    setAndroidx()
+    myFixture.addClass(constraintLayout)
+    myFixture.addClass(barrier)
+    myFixture.addFileToProject("res/values/values.xml", constraintLayoutResources)
+    val file = myFixture.addFileToProject("res/layout/activity_main.xml",
+      // language=xml
+      """
+      <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+          android:id="@+id/textView"
+          android:layout_height="40dp"
+          android:layout_width="match_parent"
+          app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+          android:id="@+id/editText"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="parent"/>
+
+        <androidx.constraintlayout.widget.Barrier
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          app:constraint_referenced_ids="text${caret}View"/>
+      </androidx.constraintlayout.widget.ConstraintLayout>
+      """.trimIndent())
+    // Checking the textView goto action
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val textViewReference = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
+    assertThat(textViewReference).isNotNull()
+    assertThat(textViewReference!!.canonicalText).isEqualTo("textView")
+
+    // Add a second id and check its' goto action
+    myFixture.moveCaret("app:constraint_referenced_ids=\"textView|\"")
+    myFixture.type(",editText")
+    myFixture.moveCaret("app:constraint_referenced_ids=\"textView,edit|Text\"")
+    PsiDocumentManager.getInstance(myFixture.project).commitAllDocuments()
+    val editTextReference = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
+    assertThat(editTextReference).isNotNull()
+    assertThat(editTextReference!!.canonicalText).isEqualTo("editText")
+
+    // Check that the first id click action is not changed by the addition of the second id
+    myFixture.moveCaret("app:constraint_referenced_ids=\"text|View")
+    val textAgain = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
+    assertThat(textAgain).isNotNull()
+    assertThat(textAgain!!.canonicalText).isEqualTo("textView")
+  }
+
+  fun testConstraintReferencedCompletion() {
+    setAndroidx()
+    myFixture.addClass(constraintLayout)
+    myFixture.addClass(barrier)
+    myFixture.addFileToProject("res/values/values.xml", constraintLayoutResources)
+    val file = myFixture.addFileToProject("res/layout/activity_main.xml",
+      // language=xml
+      """
+      <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+          android:id="@+id/textView"
+          android:layout_height="40dp"
+          android:layout_width="match_parent"
+          app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+          android:id="@+id/editText"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="parent"/>
+
+        <androidx.constraintlayout.widget.Barrier
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          app:constraint_referenced_ids="${caret}"/>
+      </androidx.constraintlayout.widget.ConstraintLayout>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactlyElementsIn(arrayOf("editText", "textView"))
+    myFixture.type("\n,")
+    myFixture.moveCaret("app:constraint_referenced_ids=\"edit|Text,\"")
+    PsiDocumentManager.getInstance(myFixture.project).commitAllDocuments()
+    val editTextReference = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
+    assertThat(editTextReference).isNotNull()
+    assertThat(editTextReference!!.canonicalText).isEqualTo("editText")
+
+    // Adding a second id
+    myFixture.moveCaret("app:constraint_referenced_ids=\"editText,|\"")
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactlyElementsIn(arrayOf("editText", "textView"))
   }
 
   fun testCoordinatorLayoutBehavior_classes() {
