@@ -817,6 +817,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (myIsDragging) {
         myIsDragging = false;
         DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+        myComponent.getScene().needsRebuildList();
       }
     }
   }
