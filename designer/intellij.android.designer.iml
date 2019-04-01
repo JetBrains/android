@@ -14,7 +14,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
@@ -73,5 +72,6 @@
     <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
     <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
     <orderEntry type="library" name="com.android.tools.lint:lint-checks" level="project" />
+    <orderEntry type="library" name="com.android.tools.pixelprobe:pixelprobe" level="project" />
   </component>
 </module>
