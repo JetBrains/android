@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 import com.android.SdkConstants;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
@@ -24,21 +26,17 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -58,8 +56,6 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     DynamicResourceValueRepository dynamicResourceValueRepository =
       DynamicResourceValueRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
-
-    Disposer.register(myFacet, dynamicResourceValueRepository);
 
     LocalResourceRepository parent =
       ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicResourceValueRepository);
