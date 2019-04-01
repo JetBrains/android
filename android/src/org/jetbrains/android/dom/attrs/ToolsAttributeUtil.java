@@ -49,6 +49,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.ResolvingConverter;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,16 +77,16 @@ import org.jetbrains.annotations.Nullable;
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
-  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter.Builder()
+  private static final Converter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter.Builder()
     .useManifestBasePackage(true)
     .withExtendClassNames(AndroidUtils.ACTIVITY_BASE_CLASS_NAME)
     .build();
-  private static final ResolvingConverter VIEW_CONVERTER = new PackageClassConverter.Builder()
+  private static final Converter VIEW_CONVERTER = new PackageClassConverter.Builder()
     .completeLibraryClasses(true)
     .withExtendClassNames(CLASS_VIEW)
     .withExtraBasePackages(WIDGET_PKG_PREFIX)
     .build();
-  private static final ResolvingConverter VIEW_GROUP_CONVERTER = new PackageClassConverter.Builder()
+  private static final Converter VIEW_GROUP_CONVERTER = new PackageClassConverter.Builder()
     .completeLibraryClasses(true)
     .withExtendClassNames(CLASS_VIEWGROUP)
     .withExtraBasePackages(WIDGET_PKG_PREFIX)
@@ -135,7 +136,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.REFERENCE))
     .build();
   /** List of converters to be applied to some of the attributes */
-  private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
+  private static final ImmutableMap<String, Converter> CONVERTERS = ImmutableMap.<String, Converter>builder()
     .put(ATTR_ACTION_BAR_NAV_MODE, new StaticEnumConverter("standard", "list", "tabs"))
     .put(ATTR_OPEN_DRAWER, new StaticEnumConverter("start", "end", "left", "right"))
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
@@ -152,12 +153,12 @@ public class ToolsAttributeUtil {
     .build();
 
   /**
-   * Returns a {@link ResolvingConverter} for the given attribute definition
+   * Returns a {@link Converter} for the given attribute definition
    */
   @Nullable
-  public static ResolvingConverter getConverter(@NotNull AttributeDefinition attrDef) {
+  public static Converter getConverter(@NotNull AttributeDefinition attrDef) {
     String name = attrDef.getName();
-    ResolvingConverter converter = CONVERTERS.get(name);
+    Converter converter = CONVERTERS.get(name);
 
     return converter != null ? converter : AndroidDomUtil.getConverter(attrDef);
   }
