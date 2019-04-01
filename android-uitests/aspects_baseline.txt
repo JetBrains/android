@@ -14,8 +14,10 @@ com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.editor.NlPreviewForm.lambda$initNeleModelWhenSmart$8
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.model.NlModelHelperKt.overrideConfigurationDensity
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.model.NlModelHelperKt.overrideConfigurationScreenSize
+com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.model.NlModelHelperKt.updateConfigurationScreenSize
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager.updateTrackingConfiguration
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.CanvasResizeInteraction.<init>
+com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.SimplerCanvasResizeInteraction.<init>
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.NlDesignSurface.isResizeAvailable
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.ScreenViewBase.getPreferredSize
 com.android.tools.idea.configurations.ConfigurationManager.create|com.android.tools.idea.configurations.ConfigurationManager.getConfiguration
@@ -81,6 +83,7 @@ com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.and
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.uibuilder.surface.CanvasResizeInteraction.<init>
+com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.uibuilder.surface.SimplerCanvasResizeInteraction.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
 com.android.tools.idea.run.LaunchCompatibilityCheckerImpl.validate|com.android.tools.idea.run.deployment.Device.<init>
