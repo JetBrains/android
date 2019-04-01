@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Map;
 import java.util.Set;
@@ -114,7 +115,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
                                                              @NotNull Map<String, DynamicResourceValue> values) {
     DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
     repository.addValues(values);
-
+    Disposer.register(facet, repository);
     return repository;
   }
 

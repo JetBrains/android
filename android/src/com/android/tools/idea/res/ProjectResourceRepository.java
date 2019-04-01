@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -72,6 +70,8 @@ final class ProjectResourceRepository extends MultiResourceRepository {
   @VisibleForTesting
   @NotNull
   static ProjectResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> modules) {
-    return new ProjectResourceRepository(facet, modules);
+    ProjectResourceRepository repository = new ProjectResourceRepository(facet, modules);
+    Disposer.register(facet, repository);
+    return repository;
   }
 }
