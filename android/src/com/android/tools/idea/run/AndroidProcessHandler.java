@@ -371,11 +371,11 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
    * TODO(b/122820269): Figure out a nice way to prevent the pooled thread from leaking and testing it's executed properly.
    */
   private void killProcessAsync() {
+    // Grab the current target before we run the task in the background, in case the user changes the selection.
+    ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-
-        ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
         if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
           killProcesses();
           return;
