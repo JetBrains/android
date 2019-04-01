@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
@@ -49,6 +49,8 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
     oldInspector?.layoutInspectorModel?.selectionListeners?.remove(::handleNewSelection)
     newInspector?.layoutInspectorModel?.selectionListeners?.add(::handleNewSelection)
+    oldInspector?.layoutInspectorModel?.modificationListeners?.remove(::handleModelChange)
+    newInspector?.layoutInspectorModel?.modificationListeners?.add(::handleModelChange)
     // TODO: stop the existing client polling, and detach from agent
     client = newInspector?.client
     client?.register(Common.Event.EventGroupIds.PROPERTIES, ::loadProperties)
@@ -67,7 +69,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun handleNewSelection(oldView: InspectorView?, newView: InspectorView?) {
+  private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?) {
     if (newView != null) {
       provider.requestProperties(newView)
     }
@@ -75,6 +77,11 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
       properties = PropertiesTable.emptyTable()
       firePropertiesGenerated()
     }
+  }
+
+  @Suppress("UNUSED_PARAMETER")
+  private fun handleModelChange(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
+    layoutInspector?.layoutInspectorModel?.selection?.let { provider.requestProperties(it) }
   }
 
   private fun loadProperties(event: LayoutInspectorEvent) {

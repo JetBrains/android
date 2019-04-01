@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
@@ -25,6 +25,7 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.event.ComponentAdapter
@@ -49,7 +50,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     }
   }
 
-  internal var drawBorders by Delegates.observable(true) { _, _, _ -> repaint() }
+  private var drawBorders by Delegates.observable(true) { _, _, _ -> repaint() }
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -113,15 +114,25 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(scale, scale)
+
+    // ViewNode.imageBottom are images that the parents draw on before their
+    // children. Therefore draw them in the given order (parent first).
     model.hitRects.forEach { (rect, transform, view) ->
-      drawView(g2d, view, rect, transform)
+      drawView(g2d, view, view.imageBottom, rect, transform)
+    }
+
+    // ViewNode.imageTop are images that the parents draw on top of their
+    // children. Therefore draw them in the reverse order (children first).
+    model.hitRects.asReversed().forEach { (rect, transform, view) ->
+      drawView(g2d, view, view.imageTop, rect, transform)
     }
   }
 
   override fun getPreferredSize() = Dimension((model.maxWidth * scale + 50).toInt(), (model.maxHeight * scale + 50).toInt())
 
   private fun drawView(g: Graphics,
-                       view: InspectorView,
+                       view: ViewNode,
+                       image: Image?,
                        rect: Shape,
                        transform: AffineTransform) {
     val g2 = g.create() as Graphics2D
@@ -141,27 +152,28 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
 
     g2.transform = g2.transform.apply { concatenate(transform) }
 
-    val bufferedImage = view.image
-    if (bufferedImage != null) {
+    if (image != null) {
       val composite = g2.composite
       if (selection != null && view != selection) {
         g2.composite = AlphaComposite.SrcOver.derive(0.6f)
       }
-      UIUtil.drawImage(g2, bufferedImage, view.x, view.y, null)
+      UIUtil.drawImage(g2, image, view.x, view.y, null)
       g2.composite = composite
     }
     if (drawBorders && view == selection) {
       g2.color = Color.BLACK
       g2.font = g2.font.deriveFont(20f)
-      g2.drawString(view.type, view.x + 5, view.y + 25)
+      g2.drawString(view.qualifiedName.substringAfterLast('.'), view.x + 5, view.y + 25)
     }
   }
 
-  private fun selectionChanged(old: InspectorView?, new: InspectorView?) {
+  @Suppress("UNUSED_PARAMETER")
+  private fun selectionChanged(old: ViewNode?, new: ViewNode?) {
     repaint()
   }
 
-  private fun modelChanged(old: InspectorView?, new: InspectorView?) {
+  @Suppress("UNUSED_PARAMETER")
+  private fun modelChanged(old: ViewNode?, new: ViewNode?, structuralChange: Boolean) {
     model.refresh()
     repaint()
   }
