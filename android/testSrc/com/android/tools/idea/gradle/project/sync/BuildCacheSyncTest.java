@@ -15,17 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import java.util.function.Predicate;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
@@ -33,6 +22,16 @@ import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
+
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Integration tests for 'Gradle Sync' and the Gradle build cache.
@@ -43,6 +42,9 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     Project project = getProject();
     setBuildCachePath(createTempDirectory("build-cache", ""), project);
+
+    // DO NOT SUMIT: Trigger this test in PSQ...
+    assertTrue(4 == 2+2);
 
     importProject(project.getName(), getBaseDirPath(project));
 

@@ -186,6 +186,14 @@ public class AndroidMenuTest extends AndroidDomTestCase {
     toTestCompletion("actionProvider.xml", "actionProvider_after.xml");
   }
 
+  public void testActionProviderAndroidxClass() throws Throwable {
+    myFixture.addClass("package androidx.core.view; public class ActionProvider {}");
+    myFixture.addClass("package p1.p2; public class MyAndroidxActionProvider extends androidx.core.view.ActionProvider {}");
+    copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
+
+    doTestCompletionVariants("actionProvider.xml", "p1.p2.MyProvider", "p1.p2.MyAndroidxActionProvider");
+  }
+
   // Test completion for action providers that are provided by Android framework
   // Regression test for http://b.android.com/78022
   public void testActionProviderFrameworkClass() throws Throwable {
