@@ -50,7 +50,7 @@ fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: Str
  * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
-  val text = file.text
+  val text = editor.document.text
   val delta = window.indexOf("|")
   assertTrue("No caret marker found in the window.", delta != -1)
   val target = window.substring(0, delta) + window.substring(delta + 1)
