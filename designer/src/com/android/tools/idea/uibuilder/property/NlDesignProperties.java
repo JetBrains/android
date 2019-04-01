@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_MOCKUP;
+import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
+import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
+import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
+import static com.android.SdkConstants.ATTR_PARENT_TAG;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
-import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.XmlName;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
-import org.jetbrains.android.dom.converters.StaticEnumConverter;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.annotations.NotNull;
 
 public class NlDesignProperties {
   private final AttributeDefinition myContextDefinition;
@@ -78,10 +86,10 @@ public class NlDesignProperties {
   private static AttributeDefinition getDefinitionByName(@NotNull String name) {
     AttributeDefinition definition = ToolsAttributeUtil.getAttrDefByName(name);
     assert definition != null;
-    ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
+    Converter converter = ToolsAttributeUtil.getConverter(definition);
     // TODO: Figure out how to provide the correct reference editor depending on the converter.
     if (converter instanceof StaticEnumConverter) {
-      Collection<?> variants = converter.getVariants(null);
+      Collection<?> variants = ((StaticEnumConverter)converter).getVariants(null);
       Map<String, Integer> values = new HashMap<>();
       for (Object variant : variants) {
         values.put(variant.toString(), null);
