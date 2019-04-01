@@ -53,15 +53,15 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.GenericDomValue;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import org.jetbrains.android.dom.CompleteLibraryClasses;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -72,6 +72,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class PackageClassConverter extends Converter<PsiClass> implements CustomReferenceConverter<PsiClass> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.converters.PackageClassConverter");
+
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface Options {
+    @Nullable String[] inheriting();
+    boolean completeLibraryClasses() default false;
+  }
 
   /**
    * Use this {@link Builder} to construct a {@link PackageClassConverter}.
@@ -130,8 +136,6 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
   /**
    * Constructs a new {@link PackageClassConverter}.
-   *
-   * @see CompleteLibraryClasses
    */
   protected PackageClassConverter(boolean useManifestBasePackage,
                                   String[] extraBasePackages,
@@ -255,12 +259,8 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
     final DomElement domElement = context.getInvocationElement();
     final String manifestPackage = getManifestPackage(context);
-    final ExtendClass extendClassAnnotation = domElement.getAnnotation(ExtendClass.class);
-
-    final String[] extendClassesNames = extendClassAnnotation != null
-                                        ? new String[]{extendClassAnnotation.value()}
-                                        : myExtendClassesNames;
-    final boolean completeLibraryClasses = myCompleteLibraryClasses || domElement.getAnnotation(CompleteLibraryClasses.class) != null;
+    final String[] extendClassesNames = getClassNames(domElement);
+    final boolean completeLibraryClasses = getCompleteLibraryClasses(domElement);
 
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
@@ -302,6 +302,17 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     consumer.consume(strValue.length());
 
     return result.toArray(PsiReference.EMPTY_ARRAY);
+  }
+
+  public boolean getCompleteLibraryClasses(@NotNull DomElement domElement) {
+    Options options = domElement.getAnnotation(Options.class);
+    return options != null ? options.completeLibraryClasses() : myCompleteLibraryClasses;
+  }
+
+  @NotNull
+  private String[] getClassNames(@NotNull DomElement domElement) {
+    Options options = domElement.getAnnotation(Options.class);
+    return options != null ? options.inheriting() : myExtendClassesNames;
   }
 
   @Nullable
