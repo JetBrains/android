@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.LoadStatus;
+import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -48,7 +49,7 @@ import static com.android.ide.common.rendering.api.Result.Status.ERROR_REFLECTIO
  * {@link #init}, {@link #supports(int)}, {@link #createSession(SessionParams)},
  * {@link #dispose()}, {@link #clearCaches(Object)}.
  */
-public class LayoutLibrary {
+public class LayoutLibrary implements Disposable {
 
     /** Link to the layout bridge */
     private final Bridge mBridge;
@@ -63,6 +64,7 @@ public class LayoutLibrary {
     private Field mTopMarginField;
     private Field mRightMarginField;
     private Field mBottomMarginField;
+    private boolean mIsDisposed;
 
     /**
      * Returns the classloader used to load the classes in the layoutlib jar file.
@@ -170,12 +172,15 @@ public class LayoutLibrary {
      *
      * @see Bridge#dispose()
      */
-    public boolean dispose() {
+    @Override
+    public void dispose() {
         if (mBridge != null) {
-            return mBridge.dispose();
+            mIsDisposed = mBridge.dispose();
         }
+    }
 
-        return true;
+    public boolean isDisposed() {
+        return mIsDisposed;
     }
 
     /**
