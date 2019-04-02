@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
+import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -36,7 +37,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.BorderFactory
-import javax.swing.JPanel
 import javax.swing.table.TableCellRenderer
 
 const val NAV_ACTION_ARGUMENTS_COMPONENT_NAME = "NavActionArgumentsPropertyInspector"
@@ -99,7 +99,7 @@ class NavArgumentDefaultValuesInspectorProvider : InspectorProvider<NavPropertie
     override fun getMaxNumberOfRows() = 2
 
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
-      val panel = JPanel(BorderLayout())
+      val panel = AdtSecondaryPanel(BorderLayout())
       val table = JBTable(NavArgumentDefaultValuesTableModel(argumentProperty))
 
       table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property.editors;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
@@ -34,24 +36,35 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.plaf.ComboBoxUI;
-import javax.swing.plaf.TextUI;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.plaf.ComboBoxUI;
+import javax.swing.plaf.TextUI;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 abstract public class EnumEditor extends BaseComponentEditor implements NlComponentEditor {
   private EnumSupport myEnumSupport;
@@ -90,7 +103,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
                        boolean comboEditable) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.setFocusable(false);
     myBrowsePanel = browsePanel;
 
