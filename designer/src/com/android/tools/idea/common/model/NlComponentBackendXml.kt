@@ -20,7 +20,6 @@ import com.android.tools.idea.templates.TemplateUtils
 import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -149,6 +148,7 @@ open class NlComponentBackendXml private constructor(
   override fun setAttribute(attribute: String, namespace: String?, value: String?): Boolean {
     val application = ApplicationManager.getApplication()
     if (!application.isWriteAccessAllowed) {
+      assert(false) { "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action" }
       // We shouldn't allow write to be performed outside the WriteCommandAction.
       Logger.getInstance(NlWriteCommandActionUtil::class.java).warn(
         "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action ${getStackTrace()}")
