@@ -34,12 +34,50 @@ public class RecommendedPluginVersionUpgradeStepTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
+      // Test for old studio versions.
       {"2.0.0-alpha9", "2.0.0-alpha9", false},
       {"1.1", "2.0.0", true},
-      {"2.0.0-alpha9", "2.0.0-beta1", true},
+      {"2.0.0-alpha9", "2.0.0-beta1", false},
       {"2.0.0-alpha9", "2.0.0", true},
-      {"1.5.0-beta1", "2.0.0-alpha10", true},
+      {"1.5.0-beta1", "2.0.0-alpha10", false},
       {"2.3.0-alpha1", "2.3.0-dev", false},
+
+      // Upgrade to alpha/beta version. We never suggest to upgrade to alpha/beta version. It is handled by force upgrade.
+      {"3.0.0-alpha02", "3.0.0-alpha01", false},
+      {"3.0.0-alpha01", "3.0.0-alpha02", false},
+      {"3.0.0-beta01", "3.0.0-alpha01", false},
+      {"3.0.0-alpha01", "3.0.0-beta01", false},
+      {"3.0.0-beta01", "3.0.0-beta02", false},
+      {"3.1.0-alpha01", "3.0.0-alpha01", false},
+      {"3.1.0-alpha01", "3.0.0-beta01", false},
+      {"3.1.0-beta01", "3.0.0-alpha01", false},
+      {"3.1.0-beta01", "3.0.0-beta01", false},
+      {"3.0.0", "3.0.0-alpha1", false},
+      {"3.0.0", "3.0.0-beta01", false},
+      {"3.0.0", "3.1.0-alpha01", false},
+      {"3.0.0", "3.1.0-beta01", false},
+      {"3.0.0-dev", "3.0.0-alpha1", false},
+      {"3.0.0-dev", "3.0.0-beta01", false},
+      {"3.0.0-dev", "3.1.0-alpha01", false},
+      {"3.0.0-dev", "3.1.0-beta01", false},
+      // upgrade to dev version. We never ask for upgrading to dev version. (Note: Force upgrade doesn't upgrade to dev version neither.)
+      {"3.0.0", "3.0.0-dev", false},
+      {"3.0.0-alpha01", "3.0.0-dev", false},
+      {"3.0.0-beta01", "3.0.0-dev", false},
+      {"3.0.0", "3.1.0-dev", false},
+      {"3.0.0-alpha01", "3.1.0-dev", false},
+      {"3.0.0-beta01", "3.1.0-dev", false},
+      // upgrade to stable version
+      {"3.1.0-alpha01", "3.0.0", false},
+      {"3.1.0-beta01", "3.0.0", false},
+      {"3.1.0-dev", "3.0.0", false},
+      {"3.1.0", "3.0.0", false},
+      {"3.1.0-alpha01", "3.1.0", true},
+      {"3.1.0-beta01", "3.1.0", true},
+      {"3.1.0-dev", "3.1.0", true},
+      {"3.0.0", "3.1.0", true},
+      {"3.0.0", "3.0.1", true},
+      {"3.0.1", "3.0.0", false},
     });
   }
 
