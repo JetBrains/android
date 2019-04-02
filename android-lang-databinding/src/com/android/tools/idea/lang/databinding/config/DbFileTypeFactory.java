@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.databinding;
+package com.android.tools.idea.lang.databinding.config;
 
-import com.intellij.extapi.psi.PsiFileBase;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.psi.FileViewProvider;
+import com.intellij.openapi.fileTypes.FileTypeConsumer;
+import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class DbFile extends PsiFileBase {
-  public DbFile(@NotNull FileViewProvider viewProvider) {
-    super(viewProvider, DbLanguage.INSTANCE);
-  }
-
-  @NotNull
+/**
+ * File Type factory.
+ */
+public class DbFileTypeFactory extends FileTypeFactory {
   @Override
-  public FileType getFileType() {
-    return DbFileType.INSTANCE;
+  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
+    consumer.consume(DbFileType.INSTANCE);
   }
 }

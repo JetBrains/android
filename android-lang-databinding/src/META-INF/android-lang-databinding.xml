@@ -17,11 +17,11 @@
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.DataBindingCompletionContributor" language="AndroidDataBinding"/>
-    <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory"/>
+    <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.config.DbFileTypeFactory"/>
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
-    <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition"/>
+    <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.config.DbParserDefinition"/>
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
-    <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector"/>
+    <languageInjector implementation="com.android.tools.idea.lang.databinding.config.DbLanguageInjector"/>
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.reference.DataBindingExprReferenceContributor"/>
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.lang.databinding.DataBindingFoldingBuilder"/>
   </extensions>
