@@ -15,30 +15,26 @@
  */
 package com.android.tools.idea.flags;
 
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
-
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ExperimentalSettingsConfigurable}.
  */
 public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
   @Mock private GradleExperimentalSettings mySettings;
-  @Mock private ConditionalDeliverySettings myConditionalDeliverySettings;
-
   private ExperimentalSettingsConfigurable myConfigurable;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-
-    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings(), myConditionalDeliverySettings);
+    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings());
   }
 
   public void testIsModified() {
@@ -66,12 +62,6 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
     assertFalse(myConfigurable.isModified());
 
-    myConfigurable.setConditionalDeliverySync(true);
-    myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = false;
-    assertTrue(myConfigurable.isModified());
-    myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = true;
-    assertFalse(myConfigurable.isModified());
-
     myConfigurable.setUseNewPsd(true);
     mySettings.USE_NEW_PSD = false;
     assertTrue(myConfigurable.isModified());
@@ -84,7 +74,6 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     myConfigurable.setSkipSourceGenOnSync(true);
     myConfigurable.setUseL2DependenciesInSync(true);
     myConfigurable.setUseSingleVariantSync(true);
-    myConfigurable.setConditionalDeliverySync(true);
     myConfigurable.setUseNewPsd(true);
 
     myConfigurable.apply();
@@ -93,14 +82,12 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     assertTrue(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertTrue(mySettings.USE_SINGLE_VARIANT_SYNC);
-    assertTrue(myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC);
     assertTrue(mySettings.USE_NEW_PSD);
 
     myConfigurable.setMaxModuleCountForSourceGen(8);
     myConfigurable.setSkipSourceGenOnSync(false);
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setUseSingleVariantSync(false);
-    myConfigurable.setConditionalDeliverySync(false);
     myConfigurable.setUseNewPsd(false);
 
     myConfigurable.apply();
@@ -109,7 +96,6 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     assertFalse(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertFalse(mySettings.USE_SINGLE_VARIANT_SYNC);
-    assertFalse(myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC);
     assertFalse(mySettings.USE_NEW_PSD);
   }
 
@@ -118,7 +104,6 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 6;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
-    myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = true;
     mySettings.USE_NEW_PSD = true;
 
     myConfigurable.reset();
@@ -127,14 +112,12 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     assertEquals(6, myConfigurable.getMaxModuleCountForSourceGen().intValue());
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
     assertTrue(myConfigurable.isUseSingleVariantSync());
-    assertTrue(myConfigurable.isConditionalDeliverySync());
     assertTrue(myConfigurable.isUseNewPsd());
 
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 8;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.USE_SINGLE_VARIANT_SYNC = false;
-    myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = false;
     mySettings.USE_NEW_PSD = false;
 
     myConfigurable.reset();
@@ -143,7 +126,6 @@ public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
     assertEquals(8, myConfigurable.getMaxModuleCountForSourceGen().intValue());
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
     assertFalse(myConfigurable.isUseSingleVariantSync());
-    assertFalse(myConfigurable.isConditionalDeliverySync());
     assertFalse(myConfigurable.isUseNewPsd());
   }
 }
