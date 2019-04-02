@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
-import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorCommand
-import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
