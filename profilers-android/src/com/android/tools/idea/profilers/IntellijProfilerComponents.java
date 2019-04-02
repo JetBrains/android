@@ -119,7 +119,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     // User isn't expected to specify INVALID; it's only meant as an internal fallback
     assert(styleHint != DataViewer.Style.INVALID);
 
-    if (contentType.isImageType()) {
+    if (contentType.isSupportedImageType()) {
       DataViewer viewer = IntellijImageDataViewer.createImageViewer(content);
       if (viewer == null) {
         viewer = IntellijDataViewer.createInvalidViewer();
@@ -127,7 +127,9 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       return viewer;
     }
     if (styleHint == DataViewer.Style.RAW) {
-      return IntellijDataViewer.createRawTextViewer(content);
+      return contentType.isSupportedTextType()
+             ? IntellijDataViewer.createRawTextViewer(content)
+             : IntellijDataViewer.createInvalidViewer();
     }
     else {
       assert (styleHint == DataViewer.Style.PRETTY);
