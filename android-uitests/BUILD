@@ -865,6 +865,20 @@ java_test(
 
 # sanity test
 java_test(
+    name = "CreateAndRunInstantAppTest",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.CreateAndRunInstantAppTest"],
+    tags = COMMON_TAGS + [
+        "no_psq",
+        "qa_sanity",
+        "qa_unreliable",  # http://b/79937083
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
     name = "DualDebuggerBreakpointsTest",
     size = "enormous",
     data = COMMON_DATA + glob([
@@ -885,7 +899,10 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
+        "no_psq",
         "no_windows",
+        "qa_sanity",  # b/128932526
+        "qa_sanity_emu",  # b/128932526
         "qa_unreliable",  # b/128932526
         "requires-fakeroot",
         "requires_emulator",
