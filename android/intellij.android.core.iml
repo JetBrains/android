@@ -31,7 +31,6 @@
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.platform.jps.build" />
     <orderEntry type="module" module-name="intellij.spellchecker" />
-    <orderEntry type="module" module-name="android.sdktools.draw9patch" />
     <orderEntry type="library" name="freemarker" level="project" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -212,5 +211,15 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="com.android.tools.pixelprobe:pixelprobe" level="project" />
+    <orderEntry type="module-library">
+      <library name="com.android.tools:draw9patch" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools:draw9patch:26.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/draw9patch/26.3.0/draw9patch-26.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
