@@ -108,8 +108,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="android.sdktools.java-lib-model" />
-    <orderEntry type="module" module-name="android.sdktools.java-lib-model-builder" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
@@ -216,6 +214,26 @@
         <properties include-transitive-deps="false" maven-id="com.android.tools:draw9patch:26.3.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/draw9patch/26.3.0/draw9patch-26.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="com.android.java.tools.build:java-lib-model-builder" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.java.tools.build:java-lib-model-builder:3.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/java/tools/build/java-lib-model-builder/3.3.0/java-lib-model-builder-3.3.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="com.android.java.tools.build:java-lib-model" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.java.tools.build:java-lib-model:3.3.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/java/tools/build/java-lib-model/3.3.0/java-lib-model-3.3.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
