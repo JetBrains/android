@@ -204,6 +204,8 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         }
       }
     }
+    // Didn't find any secondary constraint
+    list.clearSelection()
     return false
   }
 
