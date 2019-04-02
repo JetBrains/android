@@ -19,11 +19,16 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.tools.analytics.HostData;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.project.AndroidNotification;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.MemorySettings;
+import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.DataManager;
+import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -123,6 +128,37 @@ public class MemorySettingsUtil {
       String err = "Failed to save new Xmx value to gradle.properties";
       reportSaveError(project, err, e);
     }
+  }
+
+  public static void log(MemorySettingsEvent.EventKind kind, int currentIdeXmx, int currentGradleXmx,
+                         int recommendedIdeXmx, int recommendedGradleXmx,
+                         int changedIdeXmx, int changedGradleXmx) {
+    if (!ApplicationManager.getApplication().isInternal() && StatisticsUploadAssistant.isSendAllowed()) {
+      MemorySettingsEvent.Builder eventBuilder =
+        MemorySettingsEvent.newBuilder()
+          .setKind(kind)
+          .setCurrent(createMemorySettings(currentIdeXmx, currentGradleXmx, -1))
+          .setRecommended(createMemorySettings(recommendedIdeXmx, recommendedGradleXmx, -1))
+          .setChanged(createMemorySettings(changedIdeXmx, changedGradleXmx, -1));
+
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.MEMORY_SETTINGS_EVENT)
+                         .setMemorySettingsEvent(eventBuilder));
+    }
+  }
+
+  private static MemorySettings.Builder createMemorySettings(int ideXmx, int gradleXmx, int kotlinXmx) {
+    MemorySettings.Builder builder = MemorySettings.newBuilder();
+    if (ideXmx > 0) {
+      builder.setIdeXmx(ideXmx);
+    }
+    if (gradleXmx > 0) {
+      builder.setGradleDaemonXmx(gradleXmx);
+    }
+    if (kotlinXmx > 0) {
+      builder.setKotlinDaemonXmx(kotlinXmx);
+    }
+    return builder;
   }
 
   private static void reportSaveError(Project project, String message, @Nullable Exception e) {
