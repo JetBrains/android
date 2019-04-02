@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -163,7 +164,7 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException, IOException {
-    if (myLayoutLibrary == null) {
+    if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = mySdkData.getTargetData(target);
@@ -177,6 +178,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
+      Disposer.register(project, myLayoutLibrary);
     }
 
     return myLayoutLibrary;
