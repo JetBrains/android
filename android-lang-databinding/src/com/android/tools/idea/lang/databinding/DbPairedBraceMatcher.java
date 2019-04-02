@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding;
 
+import com.android.tools.idea.lang.databinding.config.DbLanguage;
 import com.android.tools.idea.lang.databinding.psi.*;
 import com.intellij.codeInsight.highlighting.PairedBraceMatcherAdapter;
 import com.intellij.lang.BracePair;
