@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
