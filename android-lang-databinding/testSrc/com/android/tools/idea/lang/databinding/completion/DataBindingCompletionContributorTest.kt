@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.databinding
+package com.android.tools.idea.lang.databinding.completion
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.lang.databinding.DataBindingCompletionContributor.attachTracker
+import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.attachTracker
+import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
