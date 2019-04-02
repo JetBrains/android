@@ -25,6 +25,7 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Disposer
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit
 val NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 class RecommendedPluginVersionUpgradeChecker(private val reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder())
-  : StartupActivity {
+  : StartupActivity, DumbAware {
 
   override fun runActivity(project: Project) {
     checkUpgrade(project, reminder)
