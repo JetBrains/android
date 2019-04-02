@@ -14,7 +14,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -27,5 +26,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
+    <orderEntry type="library" name="com.android.tools:ninepatch" level="project" />
   </component>
 </module>
