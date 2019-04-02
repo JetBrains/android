@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.io.FileOpUtils;
@@ -429,12 +430,14 @@ public class TemplateManager {
     }
   }
 
+  @Slow
   @Nullable
   public ActionGroup getTemplateCreationMenu(@Nullable Project project) {
     refreshDynamicTemplateMenu(project);
     return myTopGroup;
   }
 
+  @Slow
   public void refreshDynamicTemplateMenu(@Nullable Project project) {
     synchronized (CATEGORY_TABLE_LOCK) {
       if (myTopGroup == null) {
@@ -567,6 +570,7 @@ public class TemplateManager {
     return getCategoryTable(false, null);
   }
 
+  @Slow
   @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
     if (myCategoryTable == null || forceReload) {
