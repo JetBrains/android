@@ -31,10 +31,12 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+@Ignore("b/129763461")
 class ObservableAndLiveDataTrackingHelperTest {
   private val projectRule = AndroidGradleProjectRule()
 
