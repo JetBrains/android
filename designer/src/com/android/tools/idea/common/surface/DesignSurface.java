@@ -732,6 +732,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return true;
   }
 
+  /** Scroll to the center of a list of given components. Usually the center of the area containing these elements. */
+  public abstract void scrollToCenter(@NotNull List<NlComponent> list);
+
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
     setScrollPosition(new Point(x, y));
   }
@@ -858,7 +861,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myLayeredPane;
   }
 
-  private void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
+  protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
       listener.componentSelectionChanged(this, newSelection);
