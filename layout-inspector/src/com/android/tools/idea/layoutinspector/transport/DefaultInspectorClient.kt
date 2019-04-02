@@ -20,8 +20,8 @@ import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
-import com.android.tools.layoutinspector.proto.LayoutInspector
-import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorCommand
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
@@ -48,7 +48,7 @@ object DefaultInspectorClient : InspectorClient {
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
 
-  override fun register(groupId: Common.Event.EventGroupIds, callback: (LayoutInspector.LayoutInspectorEvent) -> Unit) {
+  override fun register(groupId: Common.Event.EventGroupIds, callback: (LayoutInspectorEvent) -> Unit) {
     // TODO: unregister listeners
     transportPoller.registerListener(TransportEventListener(
       eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
@@ -65,7 +65,7 @@ object DefaultInspectorClient : InspectorClient {
     })
   }
 
-  override fun execute(command: LayoutInspector.LayoutInspectorCommand) {
+  override fun execute(command: LayoutInspectorCommand) {
     if (selectedStream == Common.Stream.getDefaultInstance() ||
         selectedProcess == Common.Process.getDefaultInstance() ||
         !agentConnected) {
