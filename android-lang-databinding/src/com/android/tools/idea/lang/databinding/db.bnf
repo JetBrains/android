@@ -20,7 +20,7 @@
 
 {
   parserClass="com.android.tools.idea.lang.databinding.parser.DbParser"
-  extends="com.android.tools.idea.lang.databinding.DataBindingPsiElement"
+  extends="com.android.tools.idea.lang.databinding.psi.DataBindingPsiElement"
 
   psiClassPrefix="PsiDb"
   psiImplClassSuffix="Impl"

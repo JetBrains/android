@@ -124,7 +124,7 @@ public interface DbTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == ADD_EXPR) {
+      if (type == ADD_EXPR) {
         return new PsiDbAddExprImpl(node);
       }
       else if (type == BINARY_AND_EXPR) {
