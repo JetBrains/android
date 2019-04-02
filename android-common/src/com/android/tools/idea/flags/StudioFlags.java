@@ -564,10 +564,15 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
-  public static final Flag<Boolean> WINDOWS_DEFENDER_CHECK_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "windows.defender.check.enabled", "Enable Windows Defender system health check",
+  public static final Flag<Boolean> WINDOWS_DEFENDER_NOTIFICATION_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.defender.notification.enabled", "Enable Windows Defender system health check",
     "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
     false);
+
+  public static final Flag<Boolean> WINDOWS_DEFENDER_METRICS_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.defender.metrics.enabled", "Enable Windows Defender metrics collection",
+    "If enabled, metrics about the status of Windows Defender realtime scanning and excluded directories will be collected",
+    true);
 
   private StudioFlags() { }
 }

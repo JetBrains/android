@@ -307,7 +307,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
     application.executeOnPooledThread(this::checkRuntime);
 
-    if (SystemInfo.isWindows && StudioFlags.WINDOWS_DEFENDER_CHECK_ENABLED.get()) {
+    if (SystemInfo.isWindows && (StudioFlags.WINDOWS_DEFENDER_METRICS_ENABLED.get() || StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get())) {
       application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
         public void projectOpened(@NotNull Project project) {

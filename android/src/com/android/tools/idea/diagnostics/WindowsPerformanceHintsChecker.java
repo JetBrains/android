@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus;
@@ -65,8 +66,10 @@ public class WindowsPerformanceHintsChecker {
           Map<Path, Boolean> pathStatuses = checkPathsExcluded(getImportantPaths(project), excludedPatterns);
           WindowsDefenderStatus.Status overallStatus;
           if (pathStatuses.containsValue(Boolean.FALSE)) {
-            systemHealthMonitor.showNotification("windows.defender.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
-              "https://developer.android.com/")); // TODO(npaige): point this at the real page once it exists
+            if (StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get()) {
+              systemHealthMonitor.showNotification("windows.defender.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
+                "https://developer.android.com/")); // TODO(npaige): point this at the real page once it exists
+            }
             if (pathStatuses.containsValue(Boolean.TRUE)) {
               overallStatus = WindowsDefenderStatus.Status.SOME_EXCLUDED;
             } else {
@@ -94,12 +97,14 @@ public class WindowsPerformanceHintsChecker {
 
   private static void logWindowsDefenderStatus(WindowsDefenderStatus.Status status, boolean projectDirExcluded, @NotNull Project project) {
     LOG.info("Windows Defender status: " + status + "; projectDirExcluded? " + projectDirExcluded);
-    if (!ApplicationManager.getApplication().isInternal() && StatisticsUploadAssistant.isSendAllowed()) {
-      UsageTracker.log(UsageTrackerUtils.withProjectId(AndroidStudioEvent.newBuilder()
-                                                         .setKind(AndroidStudioEvent.EventKind.WINDOWS_DEFENDER_STATUS)
-                                                         .setWindowsDefenderStatus(WindowsDefenderStatus.newBuilder()
-                                                                                     .setProjectDirExcluded(projectDirExcluded)
-                                                                                     .setStatus(status)), project));
+    if (StudioFlags.WINDOWS_DEFENDER_METRICS_ENABLED.get()) {
+      if (!ApplicationManager.getApplication().isInternal() && StatisticsUploadAssistant.isSendAllowed()) {
+        UsageTracker.log(UsageTrackerUtils.withProjectId(AndroidStudioEvent.newBuilder()
+                                                           .setKind(AndroidStudioEvent.EventKind.WINDOWS_DEFENDER_STATUS)
+                                                           .setWindowsDefenderStatus(WindowsDefenderStatus.newBuilder()
+                                                                                       .setProjectDirExcluded(projectDirExcluded)
+                                                                                       .setStatus(status)), project));
+      }
     }
   }
 
