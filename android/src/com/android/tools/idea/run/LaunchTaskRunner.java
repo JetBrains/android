@@ -97,7 +97,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
                                     ? myDeviceFutures.getDevices().get(0).getVersion()
                                     : null;
-    DebugConnectorTask debugSessionTask = myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
+    DebugConnectorTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
 
     if (debugSessionTask != null && listenableDeviceFutures.size() != 1) {
       launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true);
