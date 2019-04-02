@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
@@ -70,6 +71,11 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
+    MemorySettingsUtil.log(MemorySettingsEvent.EventKind.SETTINGS_CHANGE_SAVED,
+                           myComponent.myCurrentIdeXmx, myComponent.myCurrentGradleXmx,
+                           myComponent.myRecommendedIdeXmx, -1,
+                           myComponent.mySelectedIdeXmx, myComponent.mySelectedGradleXmx);
+
     if (myComponent.isGradleDaemonXmxModified()) {
       MemorySettingsUtil.saveProjectGradleDaemonXmx(myComponent.mySelectedGradleXmx);
     }
@@ -135,6 +141,11 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       Project project = MemorySettingsUtil.getCurrentProject();
       myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(project, myCurrentIdeXmx);
 
+      MemorySettingsUtil.log(MemorySettingsEvent.EventKind.SHOW_CONFIG_DIALOG,
+                             myCurrentIdeXmx, myCurrentGradleXmx,
+                             myRecommendedIdeXmx, -1,
+                             -1, -1);
+
       if (myRecommendedIdeXmx > 0) {
         myInfoLabel.setIcon(AllIcons.General.Information);
         myInfoLabel.setText(XmlStringUtil.wrapInHtml(
@@ -146,6 +157,10 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
            protected void hyperlinkActivated(HyperlinkEvent e) {
              myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
              mySelectedIdeXmx = myRecommendedIdeXmx;
+             MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
+                                    myCurrentIdeXmx, myCurrentGradleXmx,
+                                    myRecommendedIdeXmx, -1,
+                                    myRecommendedIdeXmx, -1);
            }
          });
        } else {
