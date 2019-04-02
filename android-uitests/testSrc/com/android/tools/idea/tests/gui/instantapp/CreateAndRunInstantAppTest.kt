@@ -22,20 +22,26 @@ import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.fixture.JCheckBoxFixture
+import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
+import javax.swing.JCheckBox
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateAndRunInstantAppTest {
   @Rule @JvmField val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
-  @Rule @JvmField val emulator = EmulatorTestRule()
 
   private val projectApplicationId = "com.android.devtools.simple"
   private lateinit var fakeAdbServer: FakeAdbServer
@@ -90,7 +96,7 @@ class CreateAndRunInstantAppTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/79937083
+  @RunIn(TestGroup.SANITY_BAZEL)
   fun createAndRun() {
     val runConfigName = "app"
     guiTest
@@ -108,12 +114,31 @@ class CreateAndRunInstantAppTest {
     // TODO remove the following workaround wait for http://b/72666461
     ideFrame.waitForGradleProjectSyncToFinish()
 
+    // The project is not deployed as an instant app by default anymore. Enable
+    // deploying the project as an instant app:
+    ideFrame.invokeMenuPath("Run", "Edit Configurations...")
+    val configDialog = EditConfigurationsDialogFixture.find(ideFrame.robot())
+    val instantAppCheckbox = GuiTests.waitUntilShowing(
+      ideFrame.robot(),
+      configDialog.target(),
+      Matchers.byText(JCheckBox::class.java, "Deploy as instant app")
+    )
+    val instantAppCheckBoxFixture = JCheckBoxFixture(
+      ideFrame.robot(),
+      instantAppCheckbox
+    )
+    instantAppCheckBoxFixture.select()
+    configDialog.clickOk()
+    configDialog.waitUntilNotShowing()
+
     ideFrame.runApp(runConfigName, "Google Nexus 5X")
 
     val runWindow = ideFrame.runToolWindow
     runWindow.activate()
     val runWindowContent = runWindow.findContent(runConfigName)
-    emulator.waitForProcessToStart(runWindowContent)
+
+    val runOutputPattern = Pattern.compile(".*Connected to process.*", Pattern.DOTALL)
+    runWindowContent.waitForOutput(PatternTextMatcher(runOutputPattern), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
 
     runWindowContent.waitForStopClick()
   }
