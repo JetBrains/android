@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
+import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -242,8 +243,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         int count = getMaxRows();
         Condition<AnAction> condition = getPreselectCondition();
 
-        JBPopup popup = new ActionGroupPopup(null, group, context, false, true, show, false, runnable, count, condition, null, true);
+        ListPopupImpl popup = new ActionGroupPopup(null, group, context, false, true, show, false, runnable, count, condition, null, true);
         popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
+
+        // noinspection unchecked
+        popup.getList().setCellRenderer(new CellRenderer(popup));
 
         return popup;
       }
@@ -251,6 +255,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     button.setName("deviceAndSnapshotComboBoxButton");
     return button;
+  }
+
+  @Override
+  protected boolean shouldShowDisabledActions() {
+    return true;
   }
 
   @NotNull
@@ -296,14 +305,25 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Collection<Device> connectedDevices = connectednessToDeviceMap.getOrDefault(true, Collections.emptyList());
     Collection<Device> disconnectedDevices = connectednessToDeviceMap.getOrDefault(false, Collections.emptyList());
 
-    Collection<AnAction> actions = new ArrayList<>(connectedDevices.size() + 1 + disconnectedDevices.size());
+    boolean connectedDevicesPresent = !connectedDevices.isEmpty();
+    Collection<AnAction> actions = new ArrayList<>(connectedDevices.size() + disconnectedDevices.size() + 3);
+
+    if (connectedDevicesPresent) {
+      actions.add(new Heading("Running devices"));
+    }
 
     connectedDevices.stream()
       .map(device -> newSelectDeviceAndSnapshotAction(project, device))
       .forEach(actions::add);
 
-    if (!connectedDevices.isEmpty() && !disconnectedDevices.isEmpty()) {
+    boolean disconnectedDevicesPresent = !disconnectedDevices.isEmpty();
+
+    if (connectedDevicesPresent && disconnectedDevicesPresent) {
       actions.add(Separator.create());
+    }
+
+    if (disconnectedDevicesPresent) {
+      actions.add(new Heading("Available devices"));
     }
 
     disconnectedDevices.stream()
