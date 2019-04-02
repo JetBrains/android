@@ -124,6 +124,9 @@ public class UnknownViewDecorator extends SceneDecorator {
 
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    if (component.getChildCount() > 0) {
+      return;
+    }
     super.addContent(list, time, sceneContext, component);
     @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
