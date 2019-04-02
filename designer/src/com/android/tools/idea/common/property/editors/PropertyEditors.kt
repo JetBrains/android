@@ -29,14 +29,12 @@ abstract class PropertyEditors : ProjectComponent, LafManagerListener, Disposabl
 
   abstract fun create(property: NlProperty): NlComponentEditor
 
-  override fun projectOpened() {}
+  final override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
 
-  override fun projectClosed() {}
-
-  override fun initComponent() = LafManager.getInstance().addLafManagerListener(this, this)
-
-  override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
-
-  override fun dispose() {
-  }
+  // Implementation of ProjectComponent lifecycle. Mark all of them as final to avoid children injecting behaviour here
+  // that can affect the project startup performance.
+  final override fun projectOpened() {}
+  final override fun projectClosed() {}
+  final override fun initComponent() = LafManager.getInstance().addLafManagerListener(this, this)
+  final override fun dispose() {}
 }
