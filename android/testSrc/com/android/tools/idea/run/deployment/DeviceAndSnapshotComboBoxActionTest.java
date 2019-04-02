@@ -253,6 +253,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
+      new Heading("Available devices"),
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(action)
         .setProject(myProject)
@@ -285,6 +286,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
+      new Heading("Running devices"),
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(action)
         .setProject(myProject)
@@ -325,12 +327,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
+      new Heading("Running devices"),
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(action)
         .setProject(myProject)
         .setDevice(physicalDeviceBuilder.build(null, myMap))
         .build(),
       Separator.getInstance(),
+      new Heading("Available devices"),
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(action)
         .setProject(myProject)
@@ -364,6 +368,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
+      new Heading("Available devices"),
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(action)
         .setProject(myProject)
@@ -398,6 +403,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
+      new Heading("Available devices"),
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(action)
         .setProject(myProject)
