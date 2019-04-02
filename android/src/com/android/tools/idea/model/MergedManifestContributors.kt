@@ -47,13 +47,16 @@ data class MergedManifestContributors(
 
   companion object {
     @JvmStatic
-    fun determineFor(facet: AndroidFacet) = MergedManifestContributors(
-      primaryManifest = AndroidRootUtil.getPrimaryManifestFile(facet),
-      flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
-      libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests() else emptyList(),
-      navigationFiles = facet.getNavigationFiles(),
-      flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs()
-    )
+    fun determineFor(facet: AndroidFacet): MergedManifestContributors  {
+      val dependencies = AndroidUtils.getAndroidResourceDependencies(facet.module)
+      return MergedManifestContributors(
+        primaryManifest = AndroidRootUtil.getPrimaryManifestFile(facet),
+        flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
+        libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
+        navigationFiles = facet.getNavigationFiles(),
+        flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
+      )
+    }
   }
 }
 
@@ -65,15 +68,11 @@ private fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
     .mapNotNull(IdeaSourceProvider::getManifestFile)
 }
 
-private fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(): List<VirtualFile> {
-  // TODO(b/128928135): Use AndroidUtils#getAndroidResourceDependencies instead.
-  return AndroidUtils.getAllAndroidDependencies(module, true)
-    .flatMap(AndroidFacet::getFlavorAndBuildTypeManifests)
+private fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  return dependencies.flatMap(AndroidFacet::getFlavorAndBuildTypeManifests)
 }
 
-private fun AndroidFacet.getLibraryManifests(): List<VirtualFile> {
-  // TODO(b/128928135): Use AndroidUtils#getAndroidResourceDependencies instead.
-  val dependencies = AndroidUtils.getAllAndroidDependencies(module, true)
+private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   val localLibManifests = dependencies.mapNotNull { it.mainIdeaSourceProvider.manifestFile }
 
   val aarManifests = hashSetOf<File>()
