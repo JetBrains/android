@@ -21,9 +21,6 @@ import static com.google.wireless.android.sdk.stats.DataBindingEvent.DataBinding
 import static com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_ACCEPTED;
 import static com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_SUGGESTED;
 
-import android.databinding.tool.expr.ExprModel;
-import android.databinding.tool.reflection.ModelField;
-import android.databinding.tool.reflection.ModelMethod;
 import com.android.annotations.NonNull;
 import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
@@ -148,7 +145,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
   }
 
   private static void autoCompleteUnqualifiedFunctions(@NonNull CompletionResultSet result) {
-    final LookupElement item = attachTracker(LookupElementBuilder.create(ExprModel.SAFE_UNBOX_METHOD_NAME));
+    final LookupElement item = attachTracker(LookupElementBuilder.create("safeUnbox"));
     result.addElement(item);
   }
 
@@ -164,8 +161,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
       ModelClassResolvable ref = (ModelClassResolvable)reference;
       PsiModelClass resolvedType = ref.getResolvedType();
       if (resolvedType != null) {
-        for (ModelField modelField : resolvedType.getAllFields()) {
-          PsiModelField psiModelField = (PsiModelField)modelField;
+        for (PsiModelField psiModelField : resolvedType.getAllFields()) {
           if (onlyValidCompletions) {
             if (!psiModelField.isPublic() || ref.isStatic() && !psiModelField.isStatic()) {
               continue;
@@ -209,8 +205,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         if (resolvedType == null) {
           continue;
         }
-        for (ModelMethod modelMethod : resolvedType.getAllMethods()) {
-          PsiModelMethod psiModelMethod = (PsiModelMethod)modelMethod;
+        for (PsiModelMethod psiModelMethod : resolvedType.getAllMethods()) {
           PsiMethod psiMethod = psiModelMethod.getPsiMethod();
           if (psiMethod.isConstructor()) {
             continue;

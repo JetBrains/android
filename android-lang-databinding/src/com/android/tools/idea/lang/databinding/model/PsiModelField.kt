@@ -16,34 +16,45 @@
 package com.android.tools.idea.lang.databinding.model
 
 import android.databinding.tool.BindableCompat
-import android.databinding.tool.reflection.ModelField
 import com.android.tools.idea.databinding.DataBindingMode
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiModifier
 
-class PsiModelField(val psiField: PsiField) : ModelField() {
+/**
+ * PSI wrapper around psi fields that additionally expose information particularly useful in data binding expressions.
+ *
+ * Note: This class is adapted from [android.databinding.tool.reflection.ModelField] from db-compiler.
+ */
+class PsiModelField(val psiField: PsiField) {
 
   companion object {
     private val BINDABLE_COMPAT = BindableCompat(arrayOf())
   }
 
-  override fun getBindableAnnotation(): BindableCompat? {
+  val name: String
+    get() = psiField.name
+
+  val isPublic = psiField.hasModifierProperty(PsiModifier.PUBLIC)
+
+  val isStatic = psiField.hasModifierProperty(PsiModifier.STATIC)
+
+  val isFinal = psiField.hasModifierProperty(PsiModifier.FINAL)
+
+  val fieldType = PsiModelClass(psiField.type)
+
+  /**
+   * Returns true if this field has been annotated with Bindable.
+   */
+  val isBindable: Boolean
+    get () = bindableAnnotation != null
+
+  val bindableAnnotation: BindableCompat?
+    get() =
     // we don't care about dependencies in studio so we can return a shared instance.
-    return if (psiField.modifierList?.annotations
-        ?.any { annotation ->
-          DataBindingMode.SUPPORT.bindable == annotation.qualifiedName
-          || DataBindingMode.ANDROIDX.bindable == annotation.qualifiedName
-        } == true) BINDABLE_COMPAT
-    else null
-  }
-
-  override fun getName() = psiField.name
-
-  override fun isPublic() = psiField.hasModifierProperty(PsiModifier.PUBLIC)
-
-  override fun isStatic() = psiField.hasModifierProperty(PsiModifier.STATIC)
-
-  override fun isFinal() = psiField.hasModifierProperty(PsiModifier.FINAL)
-
-  override fun getFieldType() = PsiModelClass(psiField.type)
+      if (psiField.modifierList?.annotations
+          ?.any { annotation ->
+            DataBindingMode.SUPPORT.bindable == annotation.qualifiedName
+            || DataBindingMode.ANDROIDX.bindable == annotation.qualifiedName
+          } == true) BINDABLE_COMPAT
+      else null
 }

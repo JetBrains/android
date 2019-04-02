@@ -26,7 +26,6 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/data-binding:studio.compiler[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
