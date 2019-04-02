@@ -76,16 +76,25 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                            myComponent.myRecommendedIdeXmx, -1,
                            myComponent.mySelectedIdeXmx, myComponent.mySelectedGradleXmx);
 
+    boolean changed = false;
     if (myComponent.isGradleDaemonXmxModified()) {
       MemorySettingsUtil.saveProjectGradleDaemonXmx(myComponent.mySelectedGradleXmx);
+      myComponent.myCurrentGradleXmx = myComponent.mySelectedGradleXmx;
+      changed = true;
     }
     if (myComponent.isIdeXmxModified()) {
       MemorySettingsUtil.saveXmx(myComponent.mySelectedIdeXmx);
+      myComponent.myCurrentIdeXmx = myComponent.mySelectedIdeXmx;
       if (Messages.showOkCancelDialog(AndroidBundle.message("memory.settings.restart.needed"),
                                       IdeBundle.message("title.restart.needed"),
                                       Messages.getQuestionIcon()) == Messages.OK) {
         ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
       }
+      changed = true;
+    }
+    if (changed) {
+      // repaint
+      myComponent.setUI();
     }
   }
 
@@ -126,6 +135,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     private JBLabel myInfoLabel;
     private HyperlinkLabel myApplyRecommendationLabel;
     private JPanel myGradlePanel;
+    private Project myProject;
     private int myCurrentIdeXmx;
     private int myRecommendedIdeXmx;
     private int myCurrentGradleXmx;
@@ -134,18 +144,21 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
     MyComponent() {
       // Set the memory settings slider
-      int machineMem =  MemorySettingsUtil.getMachineMem();
-      int maxXmx = getMaxXmx(machineMem);
       myCurrentIdeXmx = MemorySettingsUtil.getCurrentXmx();
       mySelectedIdeXmx = myCurrentIdeXmx;
-      Project project = MemorySettingsUtil.getCurrentProject();
-      myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(project, myCurrentIdeXmx);
+      myProject = MemorySettingsUtil.getCurrentProject();
+      myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(myProject, myCurrentIdeXmx);
 
       MemorySettingsUtil.log(MemorySettingsEvent.EventKind.SHOW_CONFIG_DIALOG,
                              myCurrentIdeXmx, myCurrentGradleXmx,
                              myRecommendedIdeXmx, -1,
                              -1, -1);
+      setUI();
+    }
 
+
+
+    private void setUI() {
       if (myRecommendedIdeXmx > 0) {
         myInfoLabel.setIcon(AllIcons.General.Information);
         myInfoLabel.setText(XmlStringUtil.wrapInHtml(
@@ -168,6 +181,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
          myApplyRecommendationLabel.setVisible(false);
        }
 
+      int machineMem =  MemorySettingsUtil.getMachineMem();
+      int maxXmx = getMaxXmx(machineMem);
       setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, -1, maxXmx, SIZE_INCREMENT,
                 new ItemListener() {
                   @Override
@@ -178,7 +193,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                   }
                 });
 
-      if (project != null) {
+      if (myProject != null) {
         myCurrentGradleXmx = MemorySettingsUtil.getProjectGradleDaemonXmx();
         mySelectedGradleXmx = myCurrentGradleXmx;
         setXmxBox(myGradleDaemonXmxBox, myCurrentGradleXmx, -1,
