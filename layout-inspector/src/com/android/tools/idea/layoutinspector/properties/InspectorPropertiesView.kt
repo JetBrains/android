@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
@@ -35,8 +36,11 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   }
 
   private val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
-    // TODO: Make this a 1 liner
-    override fun invoke(property: InspectorPropertyItem): ControlType = ControlType.TEXT_EDITOR
+    override fun invoke(property: InspectorPropertyItem): ControlType =
+      when (property.type) {
+        Type.COLOR -> ControlType.COLOR_EDITOR
+        else -> ControlType.TEXT_EDITOR
+      }
   }
 
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
