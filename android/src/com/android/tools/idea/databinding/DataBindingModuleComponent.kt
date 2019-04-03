@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.databinding
 
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UCallExpression
@@ -40,7 +42,11 @@ class DataBindingModuleComponent(val module: Module) {
   // Cache the set of binding adapter attributes for fast lookup during XML markup and autocompletion.
   // This cache is refreshed on every Java change.
   private val cachedBindingAdapterAttributes = CachedValuesManager.getManager(module.project).createCachedValue({
-    CachedValueProvider.Result.create(computeBindingAdapterAttributes(), PsiModificationTracker.MODIFICATION_COUNT)
+    CachedValueProvider.Result.create(
+      computeBindingAdapterAttributes(),
+      (PsiManager.getInstance(module.project).modificationTracker as PsiModificationTrackerImpl).forLanguages {
+        lang -> lang.`is`(JavaLanguage.INSTANCE) || lang.`is`(KotlinLanguage.INSTANCE)
+      })
   }, false)
 
   /**
