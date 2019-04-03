@@ -21,6 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.idea.transport.TransportClient;
+import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
@@ -316,7 +317,9 @@ public class TransportPipelineDialog extends DialogWrapper {
             .setPid(mySelectedProcess.getPid())
             .setType(Command.CommandType.ATTACH_AGENT)
             .setAttachAgent(
-              Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch())))
+              Commands.AttachAgent.newBuilder()
+                .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
             .build();
           myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
           toggleControls(false);

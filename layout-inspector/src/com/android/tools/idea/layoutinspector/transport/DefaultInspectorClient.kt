@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
@@ -152,7 +153,9 @@ object DefaultInspectorClient : InspectorClient {
       .setPid(selectedProcess.pid)
       .setType(Command.CommandType.ATTACH_AGENT)
       .setAttachAgent(
-        Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.abiCpuArch)))
+        Commands.AttachAgent.newBuilder()
+          .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.abiCpuArch))
+          .setAgentConfigPath(TransportFileManager.AGENT_CONFIG_FILE))
       .build()
 
     lateinit var listener: TransportEventListener

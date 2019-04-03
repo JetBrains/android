@@ -29,6 +29,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Common.CommonConfig;
+import com.android.tools.profiler.proto.Transport;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -104,8 +106,9 @@ public final class TransportFileManager {
     return Logger.getInstance(TransportFileManager.class);
   }
 
-  static final String DEVICE_DIR = "/data/local/tmp/perfd/";
-  static final String AGENT_CONFIG_FILE = "agent.config";
+  public static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+  static final String DAEMON_CONFIG_FILE = "daemon.config";
+  public static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
   @NotNull private final IDevice myDevice;
   @NotNull private final MessageBus myMessageBus;
@@ -134,6 +137,8 @@ public final class TransportFileManager {
       copyFileToDevice(HostFiles.TRACED);
       copyFileToDevice(HostFiles.TRACED_PROBE);
     }
+
+    pushDaemonConfig();
     pushAgentConfig(null);
   }
 
@@ -143,7 +148,12 @@ public final class TransportFileManager {
   }
 
   @NotNull
-  static String getAgentConfigPath() {
+  public static String getDaemonConfigPath() {
+    return DEVICE_DIR + DAEMON_CONFIG_FILE;
+  }
+
+  @NotNull
+  public static String getAgentConfigFile() {
     return DEVICE_DIR + AGENT_CONFIG_FILE;
   }
 
@@ -167,17 +177,26 @@ public final class TransportFileManager {
   }
 
   /**
-   * Creates and pushes a config file that lives in transport but is shared between both transport daemon and app agent.
+   * Creates and pushes a config file for configuring the daemon.
+   */
+  private void pushDaemonConfig()
+    throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
+    Transport.DaemonConfig.Builder configBuilder = Transport.DaemonConfig.newBuilder().setCommon(buildCommonConfig());
+    myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeDaemonConfig(configBuilder);
+
+    File configFile = FileUtil.createTempFile(DAEMON_CONFIG_FILE, null, true);
+    OutputStream oStream = new FileOutputStream(configFile);
+    configBuilder.build().writeTo(oStream);
+    myDevice.executeShellCommand("rm -f " + DEVICE_DIR + DAEMON_CONFIG_FILE, new NullOutputReceiver());
+    myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + DAEMON_CONFIG_FILE);
+  }
+
+  /**
+   * Creates and pushes a config file used for configuring the agent.
    */
   public void pushAgentConfig(@Nullable AndroidRunConfigurationBase runConfig)
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
-    Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
-    Agent.AgentConfig.Builder agentConfigBuilder =
-      Agent.AgentConfig.newBuilder()
-        .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
-        // Using "@" to indicate an abstract socket in unix.
-        .setServiceSocketName("@" + TransportDeviceManager.DEVICE_SOCKET_NAME)
-        .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel());
+    Agent.AgentConfig.Builder agentConfigBuilder = Agent.AgentConfig.newBuilder().setCommon(buildCommonConfig());
     myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeAgentConfig(agentConfigBuilder, runConfig);
 
     File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);
@@ -186,6 +205,18 @@ public final class TransportFileManager {
     myDevice.executeShellCommand("rm -f " + DEVICE_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
     myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
   }
+
+  @NotNull
+  private CommonConfig.Builder buildCommonConfig() {
+    CommonConfig.SocketType socketType =
+      isAtLeastO(myDevice) ? CommonConfig.SocketType.ABSTRACT_SOCKET : CommonConfig.SocketType.UNSPECIFIED_SOCKET;
+    return CommonConfig.newBuilder()
+      .setSocketType(socketType)
+      .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
+      // Using "@" to indicate an abstract socket in unix.
+      .setServiceSocketName("@" + TransportDeviceManager.DEVICE_SOCKET_NAME);
+  }
+
 
   /**
    * Copies a file from host (where Studio is running) to the device.
