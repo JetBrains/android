@@ -268,9 +268,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       DrawAnchor.Mode.CAN_CONNECT, // can_connect
       DrawAnchor.Mode.OVER,        // mIsOver
       DrawAnchor.Mode.CAN_CONNECT, // can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // is_connected
+      DrawAnchor.Mode.DO_NOT_DRAW, // is_connected
       DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // is_connected & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // is_connected & mIsOver
       DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget
       DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & can_connect
@@ -278,7 +278,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected &
       DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.Mode.CANNOT_CONNECT, // myThisIsTheTarget & is_cnnected & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // myThisIsTheTarget & is_cnnected & mIsOver
       DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected
       DrawAnchor.Mode.NORMAL,      // isSelected & can_connect
