@@ -55,6 +55,7 @@ public class AndroidPlugin implements BaseComponent {
 
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     AnalyticsSettings.initialize(new LogWrapper(Logger.getInstance(AndroidPlugin.class)), scheduler);
+    AnalyticsSettings.setOptedIn(false);
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
     UsageTracker.initialize(scheduler);
   }
