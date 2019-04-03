@@ -335,6 +335,7 @@ public class StudioIcons {
       public static final Icon CONSTRAIN_TO_TOP = load("/studio/icons/layout-editor/toolbar/constrain-to-top.svg"); // 16x16
       public static final Icon CONSTRAIN_TOP_TO_BOTTOM = load("/studio/icons/layout-editor/toolbar/constrain-top-to-bottom.svg"); // 16x16
       public static final Icon CONSTRAIN_TOP_TO_TOP = load("/studio/icons/layout-editor/toolbar/constrain-top-to-top.svg"); // 16x16
+      public static final Icon CREATE_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/create-constraints.svg"); // 16x16
       public static final Icon CREATE_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/create-horiz-chain.svg"); // 16x16
       public static final Icon CREATE_VERT_CHAIN = load("/studio/icons/layout-editor/toolbar/create-vert-chain.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_PACKED = load("/studio/icons/layout-editor/toolbar/cycle-chain-packed.svg"); // 16x16
