@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
+import com.android.tools.idea.databinding.DataBindingMode
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
@@ -25,20 +26,20 @@ import com.intellij.psi.util.PsiTypesUtil
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelMethod] from db-compiler.
  */
-class PsiModelMethod(val psiMethod: PsiMethod) {
+class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
 
   val declaringClass: PsiModelClass?
-    get() = psiMethod.containingClass?.let { PsiModelClass(PsiTypesUtil.getClassType(it)) }
+    get() = psiMethod.containingClass?.let { PsiModelClass(PsiTypesUtil.getClassType(it), mode) }
 
   val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
-    psiMethod.parameterList.parameters.map { PsiModelClass(it.type) }.toTypedArray()
+    psiMethod.parameterList.parameters.map { PsiModelClass(it.type, mode) }.toTypedArray()
   }
 
   val name: String
     get() = psiMethod.name
 
   val returnType: PsiModelClass?
-    get() = psiMethod.returnType?.let { PsiModelClass(it) }
+    get() = psiMethod.returnType?.let { PsiModelClass(it, mode) }
 
   val isVoid = PsiType.VOID == psiMethod.returnType
 

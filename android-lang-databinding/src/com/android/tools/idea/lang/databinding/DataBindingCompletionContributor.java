@@ -161,6 +161,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
       ModelClassResolvable ref = (ModelClassResolvable)reference;
       PsiModelClass resolvedType = ref.getResolvedType();
       if (resolvedType != null) {
+        resolvedType = resolvedType.getUnwrapped();
         for (PsiModelField psiModelField : resolvedType.getAllFields()) {
           if (onlyValidCompletions) {
             if (!psiModelField.isPublic() || ref.isStatic() && !psiModelField.isStatic()) {
@@ -205,6 +206,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         if (resolvedType == null) {
           continue;
         }
+        resolvedType = resolvedType.getUnwrapped();
         for (PsiModelMethod psiModelMethod : resolvedType.getAllMethods()) {
           PsiMethod psiMethod = psiModelMethod.getPsiMethod();
           if (psiMethod.isConstructor()) {
