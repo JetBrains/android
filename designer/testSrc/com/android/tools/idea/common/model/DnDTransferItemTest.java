@@ -60,4 +60,30 @@ public class DnDTransferItemTest {
                  "    android:src=\"@namespace:drawable/name\"/>",
                  item.getComponents().get(0).getRepresentation());
   }
+
+  @Test
+  public void getLayoutTransferItem() {
+
+    Transferable transferable = new Transferable() {
+      @Override
+      public DataFlavor[] getTransferDataFlavors() {
+        return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
+      }
+
+      @Override
+      public boolean isDataFlavorSupported(DataFlavor flavor) {
+        return flavor == ResourceDataManagerKt.RESOURCE_URL_FLAVOR;
+      }
+
+      @NotNull
+      @Override
+      public Object getTransferData(DataFlavor flavor) {
+        return ResourceUrl.create("namespace", ResourceType.LAYOUT, "name");
+      }
+    };
+
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false);
+    assertEquals("<include layout=\"@namespace:layout/name\"/>",
+                 item.getComponents().get(0).getRepresentation());
+  }
 }
