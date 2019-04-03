@@ -52,7 +52,7 @@ val Logger: Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbD
  */
 class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable {
   private lateinit var usbDeviceCollector: UsbDeviceCollector
-  private lateinit var myProject: Project
+  private var myProject: Project? = null
   private var myDevicesFuture = CompletableFuture.completedFuture(emptyList<DeviceCrossReference>())
   private lateinit var rawDeviceFunction: () -> CompletionStage<List<AdbDevice>>
   private lateinit var deviceFunction: () -> List<IDevice>
@@ -104,7 +104,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     myDevicesFuture
       .thenAccept {
         EdtInvocationManager.getInstance().invokeLater {
-          if (!myProject.isDisposed) {
+          if (!myProject!!.isDisposed) {
             UsageTracker.log(
               AndroidStudioEvent.newBuilder()
                 .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
@@ -115,7 +115,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
                 )
                 .withProjectId(myProject)
             )
-            refreshDependencyState(myProject)
+            refreshDependencyState(myProject!!)
           }
         }
       }
@@ -123,6 +123,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   override fun dispose() {
     myDevicesFuture.cancel(true)
+    myProject = null
   }
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
