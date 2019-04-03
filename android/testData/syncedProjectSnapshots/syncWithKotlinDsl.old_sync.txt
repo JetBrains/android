@@ -379,20 +379,20 @@ PROJECT             : testSyncWithKotlinDsl
                 Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
                 *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jars/classes.jar!/
                 *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/res [-]
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.21/kotlin-stdlib-common-1.3.21.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.30/kotlin-stdlib-common-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.21/kotlin-stdlib-1.3.21.jar!/
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.30/kotlin-stdlib-1.3.30.jar!/
             LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
@@ -523,20 +523,20 @@ PROJECT             : testSyncWithKotlinDsl
                 HomePath            : <ANDROID_SDK>
                 VersionString       : java version "<JDK_VERSION>"
             ORDER_ENTRY         : <Module source>
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.21/kotlin-stdlib-common-1.3.21.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.30/kotlin-stdlib-common-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.21/kotlin-stdlib-1.3.21.jar!/
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.30/kotlin-stdlib-1.3.30.jar!/
             LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
