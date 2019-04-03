@@ -16,6 +16,8 @@ public class StudioIcons {
   }
 
   public static class Avd {
+    public static final Icon DEVICE_AUTOMOTIVE_LARGE = load("/studio/icons/avd/device-automotive-large.svg"); // 32x32
+    public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/avd/device-automotive.svg"); // 16x16
     public static final Icon DEVICE_CAR_LARGE = load("/studio/icons/avd/device-car-large.svg"); // 32x32
     public static final Icon DEVICE_CAR = load("/studio/icons/avd/device-car.svg"); // 16x16
     public static final Icon DEVICE_GLASS_LARGE = load("/studio/icons/avd/device-glass-large.svg"); // 32x32
