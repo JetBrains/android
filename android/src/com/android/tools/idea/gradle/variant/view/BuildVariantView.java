@@ -727,7 +727,7 @@ public class BuildVariantView {
   private static class VariantsCellRenderer extends DefaultTableCellRenderer {
     // Default help text that will be displayed as a tooltip on the Variants cells.
     private static final String variantsCellHelpTooltipText =
-      "Determines the build variant context that will be deployed to device and used by the editor";
+      "Determines the build variant that will be deployed to device and used by the editor";
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -760,7 +760,7 @@ public class BuildVariantView {
   private static class AbisCellRenderer extends DefaultTableCellRenderer {
     // Default help text that will be displayed as a tooltip on the ABI cells.
     private static final String abisCellHelpTooltipText =
-      "For NDK modules, determines the ABI context that will be used by the editor";
+      "For NDK modules, determines the ABI that will be used by the editor";
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
