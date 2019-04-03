@@ -87,9 +87,10 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
           Type.DOUBLE -> fromDouble(property)?.toString()
           Type.FLOAT -> fromFloat(property)?.toString()
           Type.RESOURCE -> stringTable[property.resourceValue]
+          Type.COLOR -> fromColor(property)
           else -> ""
         }
-        add(InspectorPropertyItem(ANDROID_URI, name, value, isDeclared, source, view, model))
+        add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, isDeclared, source, view, model))
       }
       return table
     }
@@ -129,6 +130,11 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
         return null
       }
       return floatValue
+    }
+
+    private fun fromColor(property: Property): String? {
+      val intValue = fromInt32(property) ?: return null
+      return "#${Integer.toHexString(intValue).toUpperCase()}"
     }
 
     private fun add(item: InspectorPropertyItem) {
