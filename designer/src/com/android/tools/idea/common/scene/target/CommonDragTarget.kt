@@ -353,7 +353,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
-    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
   /**
@@ -378,6 +377,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     }
     model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
       attributesTransactions.forEach { it.commit() }
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
     }
   }
 
@@ -401,7 +401,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     currentSnappedPlaceholder = null
     val liveRendered = myComponent.scene.isLiveRenderingEnabled
     draggedComponents.forEachIndexed { index, component ->
-      component.setPosition(initialPositions[index].x, initialPositions[index].y)
       component.isDragging = false
       // Rollback the transaction. Some attributes may be changed due to live rendering.
       val nlComponent = component.authoritativeNlComponent
@@ -410,7 +409,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         nlComponent.fireLiveChangeEvent()
       }
     }
-    myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
   override fun newSelection(): List<SceneComponent> = draggedComponents
