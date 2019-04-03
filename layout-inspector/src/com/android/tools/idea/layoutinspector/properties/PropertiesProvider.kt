@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
@@ -74,13 +75,13 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
                          property.source != Resource.getDefaultInstance()
         val source = stringTable[property.source]
         val value: String? = when (property.type) {
-          Type.STRING -> stringTable[property.int32Value]
+          Type.STRING,
+          Type.INT_ENUM -> stringTable[property.int32Value]
+          Type.GRAVITY,
+          Type.INT_FLAG -> fromFlags(property.flagValue)
           Type.BOOLEAN -> fromBoolean(property)?.toString()
           Type.BYTE,
           Type.CHAR,
-          Type.GRAVITY,
-          Type.INT_ENUM,
-          Type.INT_FLAG,
           Type.INT16,
           Type.INT32 -> fromInt32(property)?.toString()
           Type.INT64 -> fromInt64(property)?.toString()
@@ -93,6 +94,10 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
         add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, isDeclared, source, view, model))
       }
       return table
+    }
+
+    private fun fromFlags(flagValue: FlagValue): String {
+      return flagValue.flagList.joinToString("|") { stringTable[it] }
     }
 
     private fun fromBoolean(property: Property): Boolean? {
