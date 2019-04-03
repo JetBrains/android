@@ -28,6 +28,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -103,7 +104,16 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static PsiType parsePsiType(@NotNull String typeStr, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
-    PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
+    return parsePsiType(typeStr, facet.getModule().getProject(), context);
+  }
+
+  /**
+   * Helper method that convert a type from a String value to a {@link PsiType}, returning
+   * {@code null} instead of throwing an exception if the result is a reference to an invalid type.
+   */
+  @Nullable
+  public static PsiType parsePsiType(@NotNull String typeStr, @NotNull Project project, @Nullable PsiElement context) {
+    PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(project);
     try {
       PsiType type = instance.createTypeFromText(typeStr, context);
       if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {

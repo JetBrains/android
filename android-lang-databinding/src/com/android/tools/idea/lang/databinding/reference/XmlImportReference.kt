@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.res.PsiDataBindingResourceItem
 import com.intellij.openapi.module.Module
@@ -35,7 +36,9 @@ internal class XmlImportReference(element: PsiElement,
       val project = element.project
       return variable.typeDeclaration
         ?.let { type -> JavaPsiFacade.getInstance(project).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false)) }
-        ?.let { psiType -> PsiModelClass(PsiTypesUtil.getClassType(psiType)) }
+        ?.let { psiType ->
+          PsiModelClass(PsiTypesUtil.getClassType(psiType), DataBindingMode.fromPsiElement(element))
+        }
     }
 
   override val isStatic: Boolean

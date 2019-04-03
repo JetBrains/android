@@ -94,7 +94,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // qualified) class in their expression without a corresponding <import> or <variable>
       // declaration. In that case, we search the current module to see if we can find it directly.
       val modelResolvable = prefixExpr.toModelClassResolvable()
-      val psiModelClass = modelResolvable?.resolvedType ?: return findFullyQualifiedReference(refExpr)
+      val psiModelClass = modelResolvable?.resolvedType?.unwrapped ?: return findFullyQualifiedReference(refExpr)
 
       val fieldText = refExpr.id.text
       if (fieldText.isBlank()) {
@@ -192,7 +192,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
       val callExpr = element as PsiDbCallExpr
       val methodExpr = callExpr.refExpr.expr ?: return PsiReference.EMPTY_ARRAY
-      val psiModelClass = methodExpr.toModelClassResolvable()?.resolvedType ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = methodExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
       val methodArgs: MutableList<PsiModelClass?> = mutableListOf()
       callExpr.expressionList?.exprList?.forEach { expr -> methodArgs.add(expr.toModelClassResolvable()?.resolvedType) }
@@ -232,7 +232,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val funRefExpr = element as PsiDbFunctionRefExpr
       val classExpr = funRefExpr.expr
       val methodExpr = funRefExpr.id
-      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
       return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
         .map { modelMethod -> PsiMethodReference(element, modelMethod.psiMethod) }

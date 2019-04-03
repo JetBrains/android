@@ -25,7 +25,7 @@ import com.intellij.psi.PsiModifier
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelField] from db-compiler.
  */
-class PsiModelField(val psiField: PsiField) {
+class PsiModelField(val psiField: PsiField, val mode: DataBindingMode) {
 
   companion object {
     private val BINDABLE_COMPAT = BindableCompat(arrayOf())
@@ -40,7 +40,7 @@ class PsiModelField(val psiField: PsiField) {
 
   val isFinal = psiField.hasModifierProperty(PsiModifier.FINAL)
 
-  val fieldType = PsiModelClass(psiField.type)
+  val fieldType = PsiModelClass(psiField.type, mode)
 
   /**
    * Returns true if this field has been annotated with Bindable.
