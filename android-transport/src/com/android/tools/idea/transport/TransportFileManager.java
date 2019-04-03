@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.MultiLineReceiver;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
@@ -247,6 +249,80 @@ public final class TransportFileManager {
     catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Pushes the necessary filers into the package's folder for supporting attaching agent on startup.
+   *
+   * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
+   * accessible, empty string otherwise.
+   */
+  public String configureStartupAgent(@NotNull String packageName) {
+    // Startup agent feature was introduced from android API level 27.
+    if (myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
+      return "";
+    }
+
+    String packageDataPath = getPackageDataPath(packageName);
+    if (packageDataPath.isEmpty()) {
+      return "";
+    }
+
+    String agentName = String.format(HostFiles.JVMTI_AGENT.getOnDeviceAbiFileNameFormat(), getBestAbi(HostFiles.JVMTI_AGENT).getCpuArch());
+    String[] requiredAgentFiles = {agentName, HostFiles.PERFA.getFileName()};
+    try {
+      for (String agentFile : requiredAgentFiles) {
+        // First remove the file if it already exists in the package folder.
+        // If old file exists and this fails to copy the new one, the app would attach using the old files and some weird bugs may occur.
+        myDevice.executeShellCommand(buildRunAsCommand(packageName, String.format("rm -rf %s", agentFile)), new NullOutputReceiver());
+        myDevice
+          .executeShellCommand(buildRunAsCommand(packageName, String.format("cp %s .", DEVICE_DIR + agentFile)), new NullOutputReceiver());
+      }
+    }
+    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException ignored) {
+      return "";
+    }
+
+    // Example: --attach-agent /data/data/package_name/libjvmtiagent_x86.so=/data/local/tmp/perfd/agent.config
+    return String.format("--attach-agent %s/%s=%s", packageDataPath, agentName, DEVICE_DIR + AGENT_CONFIG_FILE);
+  }
+
+  /**
+   * @return the on-device package's data path if it is available, empty string otherwise.
+   */
+  @NotNull
+  private String getPackageDataPath(@NotNull String packageName) {
+    String[] result = new String[1];
+    try {
+      myDevice.executeShellCommand(buildRunAsCommand(packageName, "pwd"), new MultiLineReceiver() {
+        @Override
+        public void processNewLines(@NonNull String[] lines) {
+          if (result[0] == null) {
+            result[0] = lines[0];
+          }
+        }
+
+        @Override
+        public boolean isCancelled() {
+          return false;
+        }
+      });
+    }
+    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException ignored) {
+    }
+
+    // If the command returns "run-as: ...", the package cannot be found or run-as.
+    if (result[0] == null || result[0].startsWith("run-as: ")) {
+      return "";
+    }
+    else {
+      return result[0];
+    }
+  }
+
+  @NotNull
+  private String buildRunAsCommand(@NotNull String packageName, @NotNull String command) {
+    return String.format("run-as %s sh -c '%s'", packageName, command);
   }
 
   @NotNull
