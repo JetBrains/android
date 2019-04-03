@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.resources.LayoutDirection;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -30,8 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.SAMPLE_PREFIX;
-import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
@@ -42,6 +41,13 @@ public class ConstraintUtilities {
   private static HashMap<String, Integer> alignmentMap_ltr = new HashMap<>();
   private static HashMap<String, Integer> alignmentMap_rtl = new HashMap<>();
   static String[]mode = {"0","1","2","3","center","START","END"};
+  private static final String[][] CHARS_MAP = {
+    {"&quot;", "\""},
+    {"&apos;", "'"},
+    {"&lt;", "<"},
+    {"&gt;", ">"},
+    {"&amp;", "&"},
+  };
 
   static {
     alignmentMap_rtl.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
@@ -189,8 +195,50 @@ public class ConstraintUtilities {
     }
     if (resolvedAttribute != null && resolvedAttribute.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
       // Check if it comes from a resource and resolve.
-      return resolveStringResource(component, resolvedAttribute);
+      resolvedAttribute = resolveStringResource(component, resolvedAttribute);
     }
-    return resolvedAttribute;
+    return replaceSpecialChars(resolvedAttribute);
+  }
+
+  /** Looks and substitutes special characters. */
+  @VisibleForTesting
+  @Nullable
+  static String replaceSpecialChars(@Nullable String text) {
+    if (text == null || text.isEmpty()) {
+      return text;
+    }
+    int offset = 0;
+    int pos = 0;
+    if (text.indexOf("&") >= 0) {
+      boolean notDone = true;
+      while (notDone) {
+        notDone = false;
+        for (int i = 0; i < CHARS_MAP.length; i++) {
+          if ((pos = text.indexOf(CHARS_MAP[i][0],offset)) >= 0) {
+            notDone = true;
+            text = text.replace(CHARS_MAP[i][0], CHARS_MAP[i][1]);
+            offset = pos + CHARS_MAP[i][0].length();
+          }
+        }
+
+        if (offset < text.length() && text.substring(offset).matches(".*&#[0-9]+;.*")) {
+          int begin = text.indexOf("&#");
+          int end = text.indexOf(";", begin);
+          char part = (char)Integer.parseInt(text.substring(begin + 2, end));
+          text = text.replace(text.substring(begin, end + 1), "" + part);
+          notDone = true;
+          offset = end;
+        }
+        if (offset < text.length() && text.substring(offset).matches(".*&#x[a-fA-F0-9]+;.*")) {
+          int begin = text.indexOf("&#x");
+          int end = text.indexOf(";", begin);
+          char part = (char)Integer.parseInt(text.substring(begin + 3, end), 16);
+          text = text.replace(text.substring(begin, end + 1), "" + part);
+          notDone = true;
+          offset = end;
+        }
+      }
+    }
+    return text;
   }
 }
