@@ -44,11 +44,14 @@ final class PhysicalDevice extends Device {
                                   @NotNull IDevice ddmlibDevice,
                                   @Nullable LaunchCompatibilityChecker checker,
                                   @NotNull KeyToConnectionTimeMap map) {
+    String key = ddmlibDevice.getSerialNumber();
+
     return new Builder()
       .setName(getName(properties))
-      .setKey(ddmlibDevice.getSerialNumber())
+      .setKey(key)
+      .setConnectionTime(map.get(key))
       .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, null))
-      .build(checker, map);
+      .build(checker);
   }
 
   static final class Builder extends Device.Builder<Builder> {
@@ -60,13 +63,13 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @Override
-    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
-      return new PhysicalDevice(this, checker, map);
+    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker) {
+      return new PhysicalDevice(this, checker);
     }
   }
 
-  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
-    super(builder, checker, map);
+  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker) {
+    super(builder, checker);
   }
 
   @NotNull
