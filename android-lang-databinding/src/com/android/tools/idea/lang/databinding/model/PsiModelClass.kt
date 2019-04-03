@@ -17,6 +17,8 @@ package com.android.tools.idea.lang.databinding.model
 
 import android.databinding.tool.BindableCompat
 import android.databinding.tool.util.StringUtils
+import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.databinding.DataBindingUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
@@ -29,7 +31,7 @@ import java.util.ArrayList
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelClass] from db-compiler.
  */
-class PsiModelClass(val type: PsiType) {
+class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Constructs a [PsiClass] of the given [.type]. Returns null if [.type] is not an instance of [PsiClassType].
    */
@@ -47,7 +49,7 @@ class PsiModelClass(val type: PsiType) {
     get() {
       // TODO: Support list and map type.
       // For list, it's the return type of the method get(int). For method, it's the second generic type.
-      return (type as? PsiArrayType)?.let { PsiModelClass(it).componentType }
+      return (type as? PsiArrayType)?.let { PsiModelClass(it, mode).componentType }
     }
 
   /**
@@ -106,7 +108,12 @@ class PsiModelClass(val type: PsiType) {
   val isDouble = PsiType.DOUBLE.equalsToText(type.canonicalText)
 
   /**
-   * Returns true if this is a wildcard type argument or not.
+   * Returns true if this is a Generic e.g. List&lt;String>.
+   */
+  val isGeneric = typeArguments.isNotEmpty()
+
+  /**
+   * Returns true if this is a wildcard type argument.
    */
   // b/129719057 implement wildcard
   val isWildcard = false
@@ -143,20 +150,73 @@ class PsiModelClass(val type: PsiType) {
    */
   val typeArguments: List<PsiModelClass>
     get() = (type as? PsiClassType)?.parameters
-              ?.map { typeParameter -> PsiModelClass(typeParameter) }
+              ?.map { typeParameter -> PsiModelClass(typeParameter, mode) }
             ?: listOf()
 
   /**
    * Returns the list of fields in the class and all its superclasses.
    */
   val allFields: List<PsiModelField>
-    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(it) } ?: listOf()
+    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(it, mode) } ?: listOf()
 
   /**
    * Returns the list of methods in the class and all its superclasses.
    */
   val allMethods: List<PsiModelMethod>
-    get() = (type as? PsiClassType)?.resolve()?.allMethods?.map { PsiModelMethod(it) } ?: listOf()
+    get() = (type as? PsiClassType)?.resolve()?.allMethods?.map { PsiModelMethod(it, mode) } ?: listOf()
+
+  /**
+   * Returns true if this is an ObservableField, or any of the primitive versions
+   * such as ObservableBoolean and ObservableInt
+   */
+  private val isObservableField
+    get() =
+      psiClass?.project?.let { project ->
+        mode.observableFields.any { className ->
+          val observableFieldClass = PsiModelClass(DataBindingUtil.parsePsiType(className, project, null)!!, mode)
+          observableFieldClass.isAssignableFrom(erasure())
+        }
+      } ?: false
+
+  /**
+   * Returns true if this is a LiveData
+   */
+  private val isLiveData
+    get() = psiClass?.project?.let { project ->
+      val liveDataClass = PsiModelClass(DataBindingUtil.parsePsiType(mode.liveData, project, null)!!, mode)
+      liveDataClass.isAssignableFrom(erasure())
+    } ?: false
+
+
+  /**
+   * Returns the name of the simple getter method when this is an ObservableField or LiveData or
+   * `null` for any other type
+   */
+  private val observableGetterName: String?
+    get() = when {
+      isObservableField -> "get"
+      isLiveData -> "getValue"
+      else -> null
+    }
+
+  /**
+   * Returns a type that this current type is wrapping. For example, if this type is a `LiveData&lt;String>`, then
+   * return `String`. If this type is not ObservableField or LiveData, then its own type is returned.
+   *
+   * This method can be useful, for example, to allow code completion to provide methods / fields for the
+   * underlying type instead of the parent type itself.
+   *
+   * see [isLiveData], [isObservableField]
+   */
+  val unwrapped: PsiModelClass
+    get() = observableGetterName?.let {
+      if (isGeneric)
+      // For Generics (LiveData<T>, ObservableField<T>, ObservableParcelable<T>), return its type parameter
+        typeArguments[0].unwrapped
+      else
+      // For Non-Generics (ObservableInt, ObservableChar etc.) return the returnType of its getter method
+        getMethod("get", listOf(), staticOnly = false, allowProtected = false)?.returnType?.unwrapped
+    } ?: this
 
   fun toJavaCode() = type.canonicalText
 

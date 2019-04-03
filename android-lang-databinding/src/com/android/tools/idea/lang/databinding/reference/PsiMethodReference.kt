@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
@@ -40,9 +41,8 @@ internal class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, te
     : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
 
   override val resolvedType: PsiModelClass?
-    get() {
-      val returnType = (resolve() as PsiMethod).returnType
-      return if (returnType != null) PsiModelClass(returnType) else null
+    get() = (resolve() as? PsiMethod)?.returnType?.let {
+      PsiModelClass(it, DataBindingMode.fromPsiElement(element))
     }
 
   override val isStatic: Boolean
