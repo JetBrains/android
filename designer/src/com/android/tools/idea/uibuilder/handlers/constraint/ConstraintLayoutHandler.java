@@ -52,6 +52,7 @@ import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_CONSTRAINTS;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
@@ -369,7 +370,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new ClearConstraintsSelectedComponentsAction());
     actions.add(new ChainCycleViewAction());
 
-    actions.add(new DisappearingActionMenu("Constrain", StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT, ConstraintViewActions.CONNECT_ACTIONS));
+    actions.add(new DisappearingActionMenu("Constrain", CREATE_CONSTRAINTS, ConstraintViewActions.CONNECT_ACTIONS));
     actions.add(new DisappearingActionMenu("Organize", PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
     actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
     actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
@@ -1406,7 +1407,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     ImmutableList.Builder<ViewAction> builder = ImmutableList.builder();
     builder.add(new ClearConstraintsAction());
 
-    ViewAction connectAction = new DisappearingActionMenu("Constrain", StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT, ConstraintViewActions.CONNECT_ACTIONS);
+    ViewAction connectAction = new DisappearingActionMenu("Constrain", CREATE_CONSTRAINTS, ConstraintViewActions.CONNECT_ACTIONS);
     builder.add(connectAction);
 
     if (components.size() > 1) {
