@@ -19,6 +19,7 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.RowAssetView
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
@@ -27,6 +28,7 @@ import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.JList
+import javax.swing.ListModel
 import kotlin.properties.Delegates
 
 private val DEFAULT_PREVIEW_SIZE = JBUI.scale(50)
@@ -72,17 +74,26 @@ class AssetListView(
   private val filteringListModel: FilteringListModel<DesignAssetSet>?
 
   init {
-    model = CollectionListModel(assets)
     isOpaque = false
     visibleRowCount = 0
     isGridMode = DEFAULT_GRID_MODE
+    val collectionListModel = CollectionListModel(assets)
     if (speedSearch != null) {
-      speedSearch.setEnabled(true)
-      filteringListModel = NameFilteringListModel(this, { it: DesignAssetSet -> it.name }, speedSearch::shouldBeShowing, speedSearch)
+      filteringListModel = createFilteringListModel(speedSearch, collectionListModel)
+      model = filteringListModel
     }
     else {
       filteringListModel = null
+      model = collectionListModel
     }
+  }
+
+  private fun createFilteringListModel(speedSearch: SpeedSearch,
+                                       collectionListModel: CollectionListModel<DesignAssetSet>
+  ): NameFilteringListModel<DesignAssetSet> {
+    speedSearch.setEnabled(true)
+    return NameFilteringListModel(collectionListModel, { it.name }, speedSearch::shouldBeShowing,
+                                  { StringUtil.notNullize(speedSearch.filter) })
   }
 
   /**
