@@ -22,22 +22,12 @@ import static org.junit.Assert.fail;
 import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
 import java.time.Clock;
-import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class SelectDeviceAndSnapshotActionTest {
-  private KeyToConnectionTimeMap myMap;
   private DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  @Before
-  public void newService() {
-    Clock clock = Mockito.mock(Clock.class);
-    Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
-
-    myMap = new KeyToConnectionTimeMap(clock);
-  }
 
   @Before
   public void newComboBoxAction() {
@@ -55,7 +45,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of())
-      .build(null, myMap);
+      .build(null);
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -72,7 +62,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
-      .build(null, myMap);
+      .build(null);
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -89,7 +79,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
-      .build(null, myMap);
+      .build(null);
 
     try {
       new SelectDeviceAndSnapshotAction.Builder()

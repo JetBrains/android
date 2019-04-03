@@ -45,7 +45,6 @@ public final class AsyncDevicesGetterTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private KeyToConnectionTimeMap myMap;
   private AsyncDevicesGetter myGetter;
   private VirtualDevice myVirtualDevice;
 
@@ -57,8 +56,7 @@ public final class AsyncDevicesGetterTest {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myMap = new KeyToConnectionTimeMap(clock);
-    myGetter = new AsyncDevicesGetter(myRule.getProject(), myMap);
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
 
     AvdInfo avdInfo = new AvdInfo(
       "Pixel_2_XL_API_27",
@@ -107,9 +105,10 @@ public final class AsyncDevicesGetterTest {
     Object expectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 27")
       .setKey("Pixel_2_XL_API_27")
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(actualDevice.getAndroidDevice())
       .setConnected(true)
-      .build(null, myMap);
+      .build(null);
 
     assertEquals(expectedDevice, actualDevice);
     assertEquals(Collections.emptyList(), myConnectedDevices);
