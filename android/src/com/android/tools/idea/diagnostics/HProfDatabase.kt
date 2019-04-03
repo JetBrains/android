@@ -43,12 +43,14 @@ class HProfDatabase(tmpDirectory: Path) {
     synchronized(LOCK) {
       try {
         // Delete all files in temp directory, but ones on the list of kept files
-        val pathsToKeepSet = pathsToKeep.map(Path::toAbsolutePath).toSet()
-        Files.newDirectoryStream(hprofTempDirectory).use { stream ->
-          stream.forEach { path ->
-            if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) &&
-                !pathsToKeepSet.contains(path.toAbsolutePath())) {
-              Files.delete(path)
+        if (Files.isDirectory(hprofTempDirectory, LinkOption.NOFOLLOW_LINKS)) {
+          val pathsToKeepSet = pathsToKeep.map(Path::toAbsolutePath).toSet()
+          Files.newDirectoryStream(hprofTempDirectory).use { stream ->
+            stream.forEach { path ->
+              if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) &&
+                  !pathsToKeepSet.contains(path.toAbsolutePath())) {
+                Files.delete(path)
+              }
             }
           }
         }
