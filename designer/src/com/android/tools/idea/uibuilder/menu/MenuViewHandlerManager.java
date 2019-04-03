@@ -32,7 +32,7 @@ public final class MenuViewHandlerManager {
     }
 
     if (CastButtonHandler.handles(component)) {
-      return new CastButtonHandler();
+      return new CastButtonHandler(component);
     }
 
     if (SearchItemHandler.handles(component)) {
