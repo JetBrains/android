@@ -28,8 +28,6 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
-import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentRequest;
-import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentResponse;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
 import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
@@ -220,16 +218,6 @@ public class TransportServiceTest extends DataStorePollerTest {
     validateResponse(observer, response);
   }
 
-  @Test
-  public void configureStartupAgent() {
-    StreamObserver<ConfigureStartupAgentResponse> observer = mock(StreamObserver.class);
-    myTransportService.configureStartupAgent(
-      ConfigureStartupAgentRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).setAgentLibFileName("TEST").build(),
-      observer);
-    ConfigureStartupAgentResponse response = ConfigureStartupAgentResponse.newBuilder().setAgentArgs("TEST").build();
-    validateResponse(observer, response);
-  }
-
   private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
 
     private Common.Process myProcessToReturn = INITIAL_PROCESS;
@@ -277,12 +265,6 @@ public class TransportServiceTest extends DataStorePollerTest {
     public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> responseObserver) {
       responseObserver.onNext(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
       responseObserver.onCompleted();
-    }
-
-    @Override
-    public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
-      observer.onNext(ConfigureStartupAgentResponse.newBuilder().setAgentArgs(request.getAgentLibFileName()).build());
-      observer.onCompleted();
     }
   }
 }
