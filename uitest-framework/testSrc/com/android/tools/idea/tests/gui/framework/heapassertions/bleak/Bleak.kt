@@ -94,7 +94,7 @@ private fun mostCommonClassesOf(objects: Collection<Any?>, maxResults: Int): Lis
   return classCounts.toList().sortedByDescending { it.second }.take(maxResults)
 }
 
-private fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
+fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   scenario()  // warm up
   if (System.getProperty("enable.bleak") != "true") return  // if BLeak isn't enabled, the test will run normally.
 
