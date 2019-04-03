@@ -47,7 +47,9 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
 
     final PsiDirectoryNode psiDirectoryNode = (PsiDirectoryNode)node;
     PsiDirectory psiDirectory = psiDirectoryNode.getValue();
-    assert psiDirectory != null;
+    if (psiDirectory == null) {
+      return;
+    }
     Project project = psiDirectory.getProject();
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return;
