@@ -27,7 +27,7 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidResourceFilesListener;
+import org.jetbrains.android.compiler.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
