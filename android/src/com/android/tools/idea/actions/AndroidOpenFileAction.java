@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
-import static com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.ide.impl.ProjectUtil.openOrImport;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
@@ -28,14 +24,8 @@ import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpene
 import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.concurrency.AndroidIoManager;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.util.FileExtensions;
-import com.android.utils.concurrency.CachedAsyncSupplier;
-import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
@@ -48,17 +38,11 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
-import com.intellij.util.IconUtil;
-import java.awt.Component;
-import java.awt.Graphics;
 import java.util.List;
-import java.util.Map;
-import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -197,79 +181,6 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
       this.result = result;
       this.file = file;
-    }
-  }
-
-  /**
-   * AsyncIcon displays a {@code placeholderIcon} at the beginning and swaps it with the real icon
-   * after the one is computed.
-   */
-  private static class AsyncIcon implements Icon {
-    @NotNull private final Icon myPlaceholderIcon;
-    @NotNull private final CachedAsyncSupplier<Icon> myIconAsyncSupplier;
-
-    AsyncIcon(@NotNull Icon placeholderIcon, @NotNull CachedAsyncSupplier<Icon> iconAsyncSupplier) {
-      myPlaceholderIcon = placeholderIcon;
-      myIconAsyncSupplier = iconAsyncSupplier;
-    }
-
-    @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-      getIcon().paintIcon(c, g, x, y);
-    }
-
-    @Override
-    public int getIconWidth() {
-      return getIcon().getIconWidth();
-    }
-
-    @Override
-    public int getIconHeight() {
-      return getIcon().getIconHeight();
-    }
-
-    @NonNull
-    private final Icon getIcon() {
-      Icon icon = myIconAsyncSupplier.getNow();
-      return icon != null ? icon : myPlaceholderIcon;
-    }
-  }
-
-  /**
-   * OpenProjectFileChooserDescriptorWithAsyncIcon is a customized open project file chooser with an
-   * icon cache and async icon loading. The icon is chosen by a file type (extension, file, or
-   * directory) by {@link IconUtil#getIcon(VirtualFile, int, Project)} then asynchronously be updated
-   * to {@link OpenProjectFileChooserDescriptor#getIcon(VirtualFile)}.
-   * <p>This class is a workaround solution for the issue b/37099520. Once the issue is addressed in
-   * the upstream (IntelliJ open API), this class can be removed.
-   */
-  private static class OpenProjectFileChooserDescriptorWithAsyncIcon extends OpenProjectFileChooserDescriptor
-    implements Disposable {
-    private final Map<VirtualFile, Icon> myIconCache = Maps.newConcurrentMap();
-
-    public OpenProjectFileChooserDescriptorWithAsyncIcon() {
-      super(true);
-    }
-
-    @Override
-    public Icon getIcon(VirtualFile file) {
-      return myIconCache.computeIfAbsent(file, key -> {
-        // Use file type based icon (file or directory) first and may update it to android project
-        // icon later asynchronously. Determining if a directory is an android project directory
-        // is very expensive because we need to get a list of files of the directory. See b/37099520
-        // for details.
-        Icon placeholder = dressIcon(key, IconUtil.getIcon(key, Iconable.ICON_FLAG_READ_STATUS, null));
-        CachedAsyncSupplier<Icon> asyncIconSupplier = new CachedAsyncSupplier<>(
-            () -> Disposer.isDisposed(this) ? placeholder : super.getIcon(key),
-            AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
-        AsyncIcon icon = new AsyncIcon(placeholder, asyncIconSupplier);
-        return icon;
-      });
-    }
-
-    @Override
-    public void dispose() {
-      myIconCache.clear();
     }
   }
 
