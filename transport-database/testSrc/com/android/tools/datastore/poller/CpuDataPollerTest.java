@@ -244,7 +244,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     myCpuService.startProfilingApp(startRequest, startObserver);
     CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.getDefaultInstance();
     StreamObserver<CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
-    myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+    myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
     GetTraceRequest request = GetTraceRequest.newBuilder().setTraceId(TRACE_ID).build();
