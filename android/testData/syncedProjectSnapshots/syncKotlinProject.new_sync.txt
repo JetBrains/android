@@ -43,7 +43,7 @@ PROJECT             : testSyncKotlinProject
                 apiVersion          : 1.3
                 coroutinesState     : default
                 languageVersion     : 1.3
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.21/kotlin-android-extensions-1.3.21.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.30/kotlin-android-extensions-1.3.30.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -59,7 +59,7 @@ PROJECT             : testSyncKotlinProject
                 apiVersion          : 1.3
                 coroutinesState     : default
                 languageVersion     : 1.3
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.21/kotlin-android-extensions-1.3.21.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.30/kotlin-android-extensions-1.3.30.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -484,27 +484,34 @@ PROJECT             : testSyncKotlinProject
                 IsExported          : false
                 Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
                 *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.21/kotlin-stdlib-common-1.3.21.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.21@jar
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.3.30/kotlin-android-extensions-runtime-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.21/kotlin-stdlib-jdk7-1.3.21.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.30/kotlin-stdlib-common-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.21/kotlin-stdlib-1.3.21.jar!/
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.30/kotlin-stdlib-jdk7-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar
+                LibraryLevel        : project
+                IsModuleLevel       : false
+                Scope               : Compile
+                IsExported          : false
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.30/kotlin-stdlib-1.3.30.jar!/
             LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
@@ -555,7 +562,7 @@ PROJECT             : testSyncKotlinProject
                 apiVersion          : 1.3
                 coroutinesState     : default
                 languageVersion     : 1.3
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.21/kotlin-android-extensions-1.3.21.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.30/kotlin-android-extensions-1.3.30.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -571,7 +578,7 @@ PROJECT             : testSyncKotlinProject
                 apiVersion          : 1.3
                 coroutinesState     : default
                 languageVersion     : 1.3
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.21/kotlin-android-extensions-1.3.21.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.30/kotlin-android-extensions-1.3.30.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -973,27 +980,27 @@ PROJECT             : testSyncKotlinProject
                 IsExported          : false
                 Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
                 *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.21/kotlin-stdlib-common-1.3.21.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.21@jar
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.30/kotlin-stdlib-common-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.21/kotlin-stdlib-jdk7-1.3.21.jar!/
-            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.30/kotlin-stdlib-jdk7-1.3.30.jar!/
+            LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : false
-                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.21@jar [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.21/kotlin-stdlib-1.3.21.jar!/
+                Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.30@jar [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.30/kotlin-stdlib-1.3.30.jar!/
             LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
                 LibraryLevel        : project
                 IsModuleLevel       : false
@@ -1069,34 +1076,34 @@ PROJECT             : testSyncKotlinProject
                 IsExported          : true
                 Name                : Gradle: junit-4.12 [=]
                 *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-            LIBRARY             : Gradle: kotlin-stdlib-1.3.21
+            LIBRARY             : Gradle: kotlin-stdlib-1.3.30
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : true
-                Name                : Gradle: kotlin-stdlib-1.3.21 [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.21/kotlin-stdlib-1.3.21.jar!/
-            LIBRARY             : Gradle: kotlin-stdlib-common-1.3.21
+                Name                : Gradle: kotlin-stdlib-1.3.30 [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.30/kotlin-stdlib-1.3.30.jar!/
+            LIBRARY             : Gradle: kotlin-stdlib-common-1.3.30
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : true
-                Name                : Gradle: kotlin-stdlib-common-1.3.21 [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.21/kotlin-stdlib-common-1.3.21.jar!/
-            LIBRARY             : Gradle: kotlin-stdlib-jdk7-1.3.21
+                Name                : Gradle: kotlin-stdlib-common-1.3.30 [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.30/kotlin-stdlib-common-1.3.30.jar!/
+            LIBRARY             : Gradle: kotlin-stdlib-jdk7-1.3.30
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : true
-                Name                : Gradle: kotlin-stdlib-jdk7-1.3.21 [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.21/kotlin-stdlib-jdk7-1.3.21.jar!/
-            LIBRARY             : Gradle: kotlin-stdlib-jdk8-1.3.21
+                Name                : Gradle: kotlin-stdlib-jdk7-1.3.30 [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.30/kotlin-stdlib-jdk7-1.3.30.jar!/
+            LIBRARY             : Gradle: kotlin-stdlib-jdk8-1.3.30
                 LibraryLevel        : project
                 IsModuleLevel       : false
                 Scope               : Compile
                 IsExported          : true
-                Name                : Gradle: kotlin-stdlib-jdk8-1.3.21 [=]
-                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.21/kotlin-stdlib-jdk8-1.3.21.jar!/
+                Name                : Gradle: kotlin-stdlib-jdk8-1.3.30 [=]
+                *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.30/kotlin-stdlib-jdk8-1.3.30.jar!/
     MODULE              : testSyncKotlinProject
         ModuleFile          : <PROJECT>/testSyncKotlinProject.iml [-]
         ModuleTypeName      : JAVA_MODULE
