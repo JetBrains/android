@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:bind="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <<error descr="Element merge is not allowed here">merge</error>>
+        </<error descr="Element merge is not allowed here">merge</error>>
+    </data>
+
+    <LinearLayout
+        android:orientation="horizontal" android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <<warning descr="Element merge is not allowed here">merge</warning>>
+            <<warning descr="Element ImageView is not allowed here">ImageView</warning> android:layout_width="20dp" android:layout_height="20dp" />
+            <<warning descr="Element TextView is not allowed here">TextView</warning> android:layout_width="wrap_content" android:layout_height="match_parent" />
+        </<warning descr="Element merge is not allowed here">merge</warning>>
+    </LinearLayout>
+</layout>
