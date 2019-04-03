@@ -31,7 +31,10 @@ private class ConstraintWidgetItem(displayName: String, attribute: String, margi
                { it.getAttribute(SdkConstants.SHERPA_URI, attribute) != null },
                displayName,
                { it.getAttribute(SdkConstants.SHERPA_URI, attribute) },
-               { if (margin == null) null else it.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN) ?: it.getAndroidAttribute(margin) })
+               { if (margin == null) null else it.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
+                                               ?: it.getAndroidAttribute(margin)
+                                               ?: "0dp"
+               })
 
 private val CONSTRAINT_ATTRIBUTES_ITEMS: Array<WidgetItem> = arrayOf(
   ConstraintWidgetItem("Start → StartOf", SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_MARGIN_START),
