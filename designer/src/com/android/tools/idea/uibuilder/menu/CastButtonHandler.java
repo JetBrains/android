@@ -26,6 +26,13 @@ import javax.swing.*;
 import static com.android.SdkConstants.*;
 
 public final class CastButtonHandler extends MenuHandler {
+  private final boolean myIsAndroidX;
+
+  public CastButtonHandler(@NotNull NlAttributesHolder button) {
+    String attribute = button.getAttribute(AUTO_URI, "actionProviderClass");
+    myIsAndroidX = attribute != null && attribute.startsWith(ANDROIDX_PKG_PREFIX);
+  }
+
   static boolean handles(@NotNull NlAttributesHolder button) {
     return CLASS_MEDIA_ROUTE_ACTION_PROVIDER.isEquals(button.getAttribute(AUTO_URI, "actionProviderClass"));
   }
@@ -33,7 +40,7 @@ public final class CastButtonHandler extends MenuHandler {
   @NotNull
   @Override
   public String getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ?
+    return myIsAndroidX ?
            AndroidxNameUtils.getCoordinateMapping(MEDIA_ROUTER_LIB_ARTIFACT) :
            MEDIA_ROUTER_LIB_ARTIFACT;
   }
