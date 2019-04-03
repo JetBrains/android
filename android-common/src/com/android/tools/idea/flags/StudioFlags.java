@@ -530,6 +530,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> NITROGEN = Flag.create(
+    TESTING, "nitrogen", "Enables Nitrogen test runner features",
+    "If enabled, Nitrogen test runner configuration becomes available in addition to traditional test runner configurations.",
+    false
+  );
+
   private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");
   public static final Flag<Boolean> THEME_EDITOR_ENABLED = Flag.create(
     THEME_EDITOR, "theme.editor.enabled", "Enable the theme editor",
