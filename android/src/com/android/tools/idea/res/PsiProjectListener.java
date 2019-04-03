@@ -15,21 +15,31 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.FD_RES_RAW;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Consumer;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
+import org.jetbrains.android.compiler.AndroidResourceFilesListener;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.FD_RES_RAW;
 
 /**
  * A project-wide {@link PsiTreeChangeListener} that tracks events that are potentially relevant to
@@ -180,8 +190,11 @@ public class PsiProjectListener implements PsiTreeChangeListener {
       PsiElement child = event.getChild();
       if (child instanceof PsiFile) {
         VirtualFile file = ((PsiFile)child).getVirtualFile();
-        if (file != null && isRelevantFile(file)) {
-          dispatchChildAdded(event, file);
+        if (file != null) {
+          computeModulesToInvalidateAttributeDefs(file);
+          if (isRelevantFile(file)) {
+           dispatchChildAdded(event, file);
+          }
         }
       } else if (child instanceof PsiDirectory) {
         PsiDirectory directory = (PsiDirectory)child;
@@ -208,6 +221,11 @@ public class PsiProjectListener implements PsiTreeChangeListener {
   @Override
   public void childRemoved(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
+
+    if (psiFile != null && psiFile.getVirtualFile() != null) {
+      computeModulesToInvalidateAttributeDefs(psiFile.getVirtualFile());
+    }
+
     if (psiFile == null) {
       PsiElement child = event.getChild();
       if (child instanceof PsiFile) {
@@ -246,8 +264,13 @@ public class PsiProjectListener implements PsiTreeChangeListener {
   public void childReplaced(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
     if (psiFile != null) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null) {
+        computeModulesToInvalidateAttributeDefs(file);
+      }
+
       if (isRelevantFile(psiFile)) {
-        dispatchChildReplaced(event, psiFile.getVirtualFile());
+        dispatchChildReplaced(event, file);
       } else if (isGradleFileEdit(psiFile)) {
         notifyGradleEdit(psiFile);
       }
@@ -293,8 +316,12 @@ public class PsiProjectListener implements PsiTreeChangeListener {
   public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
     if (psiFile != null) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null) {
+        computeModulesToInvalidateAttributeDefs(file);
+      }
+
       if (isRelevantFile(psiFile)) {
-        VirtualFile file = psiFile.getVirtualFile();
         dispatchChildrenChanged(event, file);
       }
 
@@ -335,6 +362,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
       // Change inside a file
       VirtualFile file = psiFile.getVirtualFile();
       if (file != null) {
+        computeModulesToInvalidateAttributeDefs(file);
         if (isRelevantFile(file)) {
           dispatchChildMoved(event, file);
         }
@@ -396,6 +424,26 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
   private void dispatchPropertyChanged(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
     dispatch(virtualFile, listener -> listener.propertyChanged(event));
+  }
+
+  /**
+   * Invalidates attribute definitions of relevant modules after changes to a given file
+   */
+  private void computeModulesToInvalidateAttributeDefs(@NotNull VirtualFile file) {
+    if (!AndroidResourceFilesListener.shouldScheduleUpdate(file)) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(file, myProject);
+    if (facet != null) {
+      for (Module module : AndroidUtils.getSetWithBackwardDependencies(facet.getModule())) {
+        AndroidFacet moduleFacet = AndroidFacet.getInstance(module);
+
+        if (moduleFacet != null) {
+          ModuleResourceManagers.getInstance(moduleFacet).getLocalResourceManager().invalidateAttributeDefinitions();
+        }
+      }
+    }
   }
 }
 

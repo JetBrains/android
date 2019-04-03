@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2010 JetBrains s.r.o.
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.facet;
+package org.jetbrains.android.compiler;
 
 import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
@@ -48,11 +48,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
-import org.jetbrains.android.compiler.AndroidCompileUtil;
-import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,7 +91,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     return result;
   }
 
-  private static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
+  public static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
     // This method is called frequently so we try to avoid as much as possible I/O access. VirtualFile#getFileType will try to read
     // from the file the first time is called so we try to avoid it as much as possible. Instead we will just try to infer the type
     // based on the extension.
@@ -182,7 +180,6 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         return MultiMap.emptyInstance();
       }
       MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
-      Set<Module> modulesToInvalidateAttributeDefs = new HashSet<>();
 
       for (VirtualFile file : myFiles) {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
@@ -195,24 +192,12 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         if (facet == null) {
           continue;
         }
-        VirtualFile parent = file.getParent();
-        VirtualFile gp = parent != null ? parent.getParent() : null;
 
-        List<VirtualFile> resourceDirs = ResourceFolderManager.getInstance(facet).getFolders();
-        for (VirtualFile resourceDir : resourceDirs) {
-          if (gp != null &&
-              Comparing.equal(gp, resourceDir) &&
-              ResourceFolderType.VALUES == ResourceFolderType.getFolderType(parent.getName())) {
-            modulesToInvalidateAttributeDefs.add(module);
-          }
-          List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
-
-          if (!modes.isEmpty()) {
-            result.putValues(module, modes);
-          }
+        List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
+        if (!modes.isEmpty()) {
+          result.putValues(module, modes);
         }
       }
-      invalidateAttributeDefinitions(modulesToInvalidateAttributeDefs);
       return result;
     }
 
@@ -253,16 +238,6 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         }
       }
       return modes;
-    }
-
-    private void invalidateAttributeDefinitions(@NotNull Collection<Module> modules) {
-      for (Module module : AndroidUtils.getSetWithBackwardDependencies(modules)) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-
-        if (facet != null) {
-          ModuleResourceManagers.getInstance(facet).getLocalResourceManager().invalidateAttributeDefinitions();
-        }
-      }
     }
 
     @Override
