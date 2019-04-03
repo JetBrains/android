@@ -386,7 +386,6 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
     nameLabel.text = item.displayName
     boldLabel.text = if (item.boldValue != null) item.boldValue.removePrefix("@+id/").removePrefix("@id/") else ""
     fadingLabel.text = if (item.fadingValue != null) "(${item.fadingValue})" else ""
-    panel.toolTipText = "${item.displayName}=${item.boldValue}"
 
     if (selected) {
       iconLabel.icon = highlightConstraintIcon
