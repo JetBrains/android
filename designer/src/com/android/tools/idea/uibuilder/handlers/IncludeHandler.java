@@ -87,8 +87,10 @@ public final class IncludeHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    // When dropping an include tag, ask the user which layout to include.
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+    // When dropping an include tag, ask the user which layout to include if
+    // the layout attribute is not pre-populated.
+    String layoutAttr = newChild.getAttribute(null, ATTR_LAYOUT);
+    if (insertType == InsertType.CREATE && layoutAttr == null) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
         return NlWriteCommandActionUtil.compute(newChild, "Create Include", () -> {
