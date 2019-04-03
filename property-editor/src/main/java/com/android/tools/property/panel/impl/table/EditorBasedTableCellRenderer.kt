@@ -49,7 +49,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
 
   override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
                                   isSelected: Boolean, hasFocus: Boolean): JComponent? {
-    if (!itemClass.isInstance(item) || !table.tableModel.isCellEditable(item, column)) {
+    if (!itemClass.isInstance(item)) {
       return defaultRenderer.getEditorComponent(table, item, column, depth, isSelected, hasFocus)
     }
     val property = itemClass.cast(item)
