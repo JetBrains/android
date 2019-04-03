@@ -226,7 +226,7 @@ public final class AvdOptionsModel extends WizardModel {
    * corresponding size.
    */
   @Nullable
-  private static Storage getStorageFromIni(@Nullable String iniString) {
+  private static Storage getStorageFromIni(@Nullable String iniString, boolean isInternalStorage) {
     if (iniString == null) {
       return null;
     }
@@ -240,7 +240,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
     if (selectedUnit == null) {
-      selectedUnit = Storage.Unit.B; // Values expressed without a unit read as B
+      selectedUnit = isInternalStorage ? Storage.Unit.B : Storage.Unit.MiB; // Values expressed without a unit read as B for internal storage
       numString = iniString;
     }
     try {
@@ -487,15 +487,15 @@ public final class AvdOptionsModel extends WizardModel {
     String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);
     myCpuCoreCount.setValue(cpuCoreCount==null ? 1 : Integer.parseInt(cpuCoreCount));
 
-    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY));
+    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY), false);
     if (storage != null) {
       myAvdDeviceData.ramStorage().set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY));
+    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY), false);
     if (storage != null) {
       myVmHeapStorage.set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY));
+    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY), true);
     if (storage != null) {
       myInternalStorage.set(storage);
     }
@@ -579,11 +579,11 @@ public final class AvdOptionsModel extends WizardModel {
    */
   private void updateValuesFromHardwareProperties() {
     AvdManagerConnection conn = AvdManagerConnection.getDefaultAvdManagerConnection();
-    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties());
+    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties(), false);
     if (storage != null) {
       mySdCardStorage.setValue(storage);
     }
-    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties());
+    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties(), true);
     // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is defaulted
     // to 0. In this case, We will skip this default value. When the hardware-properties.ini is
     // updated, we will delete the redundant value check.
