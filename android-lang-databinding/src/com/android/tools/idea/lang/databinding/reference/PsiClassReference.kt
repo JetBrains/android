@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -25,7 +26,7 @@ import com.intellij.psi.util.PsiTypesUtil
  */
 internal class PsiClassReference(element: PsiElement, resolveTo: PsiClass) : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass
-    get() = PsiModelClass(PsiTypesUtil.getClassType(resolve() as PsiClass))
+    get() = PsiModelClass(PsiTypesUtil.getClassType(resolve() as PsiClass), DataBindingMode.fromPsiElement(element))
 
   override val isStatic: Boolean
     get() = true
