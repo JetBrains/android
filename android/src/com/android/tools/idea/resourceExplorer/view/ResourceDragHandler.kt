@@ -17,15 +17,14 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.createTransferable
+import java.awt.Cursor
 import java.awt.GraphicsEnvironment
-import java.awt.Point
-import java.awt.dnd.DnDConstants
-import java.awt.dnd.DragGestureEvent
-import java.awt.dnd.DragGestureListener
-import java.awt.dnd.DragSource
-import java.awt.dnd.DragSourceAdapter
+import java.awt.datatransfer.Transferable
 import java.awt.image.BufferedImage
+import javax.swing.DropMode
+import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.TransferHandler
 
 /**
  * Create a new [ResourceDragHandler]
@@ -56,50 +55,47 @@ class HeadlessDragHandler internal constructor() : ResourceDragHandler {
  */
 private class ResourceDragHandlerImpl internal constructor() : ResourceDragHandler {
 
-  private val dragGestureListener: DragGestureListener = ResourceDragGestureListener()
-  private val dragSource = DragSource()
-
   override fun registerSource(assetList: JList<DesignAssetSet>) {
-    dragSource.createDefaultDragGestureRecognizer(assetList,
-                                                  DnDConstants.ACTION_COPY_OR_MOVE,
-                                                  dragGestureListener)
+    assetList.dragEnabled = true
+    assetList.dropMode = DropMode.ON
+    assetList.transferHandler = object : TransferHandler() {
+
+      // Import is handled by the ResourceImportDragTarget
+      override fun canImport(support: TransferSupport?) = false
+
+      override fun importData(comp: JComponent?, t: Transferable?) = false
+
+      override fun getSourceActions(c: JComponent?) = TransferHandler.LINK
+
+      override fun getDragImage() = createDragPreview(assetList, assetList.selectedValue, assetList.selectedIndex)
+
+      override fun createTransferable(c: JComponent?): Transferable {
+        c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+        return createTransferable(assetList.selectedValue.getHighestDensityAsset())
+      }
+
+      override fun exportDone(source: JComponent?, data: Transferable?, action: Int) {
+        source?.cursor = Cursor.getDefaultCursor()
+      }
+    }
   }
 }
 
-private class ResourceDragGestureListener : DragGestureListener {
-
-  private val dragSourceListener = object : DragSourceAdapter() {}
-
-  override fun dragGestureRecognized(dragGestureEvent: DragGestureEvent) {
-    @Suppress("UNCHECKED_CAST")
-    val assetsList = dragGestureEvent.component as? JList<DesignAssetSet> ?: return
-    val index = assetsList.locationToIndex(dragGestureEvent.dragOrigin)
-    if (index == -1) {
-      return
-    }
-    val assetSet = assetsList.model.getElementAt(index)
-    val image = createDragPreview(assetsList, assetSet, index)
-
-    dragGestureEvent.dragSource.startDrag(
-      dragGestureEvent,
-      DragSource.DefaultLinkDrop,
-      image,
-      Point(0, 0),
-      createTransferable(assetSet.designAssets.first()),
-      dragSourceListener
-    )
+private fun createDragPreview(jList: JList<DesignAssetSet>,
+                              assetSet: DesignAssetSet?,
+                              index: Int): BufferedImage {
+  val component = jList.cellRenderer.getListCellRendererComponent(jList, assetSet, index, false, false)
+  // The component having no parent to lay it out an set its size, we need to manually to it, otherwise
+  // validate() won't be executed.
+  component.setSize(component.preferredSize.width, component.preferredSize.height)
+  component.validate()
+  val image = BufferedImage(component.width, component.height, BufferedImage.TYPE_INT_ARGB)
+  with(image.createGraphics()) {
+    color = jList.background
+    fillRect(0, 0, component.width, component.height)
+    component.paint(this)
+    dispose()
   }
-
-  private fun createDragPreview(jList: JList<DesignAssetSet>,
-                                assetSet: DesignAssetSet?,
-                                index: Int): BufferedImage {
-    val component = jList.cellRenderer.getListCellRendererComponent(jList, assetSet, index, false, false)
-    val image = BufferedImage(component.preferredSize.width, component.preferredSize.height, BufferedImage.TYPE_INT_ARGB)
-    with(image.createGraphics()) {
-      component.paint(this)
-      dispose()
-    }
-    return image
-  }
+  return image
 }
 
