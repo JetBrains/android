@@ -94,6 +94,14 @@ private fun mostCommonClassesOf(objects: Collection<Any?>, maxResults: Int): Lis
   return classCounts.toList().sortedByDescending { it.second }.take(maxResults)
 }
 
+private fun StringBuilder.appendRetainedObjectSummary(g: HeapGraph, nodes: Set<HeapGraph.Node>) {
+  val retainedNodes = g.dominatedNodes(nodes)
+  appendln("${retainedNodes.size} (${retainedNodes.fold(0) { acc, node -> acc + node.getApproximateSize() }} bytes)")
+  mostCommonClassesOf(retainedNodes.map{it.obj}, 50).forEach {
+    appendln("    ${it.second} ${it.first.name}")
+  }
+}
+
 fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   scenario()  // warm up
   if (System.getProperty("enable.bleak") != "true") return  // if BLeak isn't enabled, the test will run normally.
@@ -152,11 +160,16 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
           }
 
           // print information about objects retained by the added children:
-          val retained = finalGraph.dominatedNodes(addedChildren.toSet())
-          appendln("\n Retained by new children: ${retained.size} (${retained.fold(0) { acc, node -> acc + node.getApproximateSize() }} bytes)")
-          mostCommonClassesOf(retained.map{it.obj}, 50).forEach {
-            appendln("    ${it.second} ${it.first.name}")
-          }
+          append("\nRetained by new children: ")
+          appendRetainedObjectSummary(finalGraph, addedChildren.toSet())
+
+          // print information about objects retained by all of the children. Sometimes severity is considerably underestimated by
+          // just looking at the children added in the last iteration, since often the same heavy data structures (Projects, etc.) are held
+          // by all of the leaked objects (and so are not retained by the last-iteration children alone, but are retained by all of the children
+          // in aggregate). However, this may also overestimate the severity, since there can be many other objects in the array unrelated to the
+          // actual leak in question.
+          append("\nRetained by all children: ")
+          appendRetainedObjectSummary(finalGraph, leakRoot.children.toSet())
 
         }
         else {
