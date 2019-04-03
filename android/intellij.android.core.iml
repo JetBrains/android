@@ -101,7 +101,6 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -239,5 +238,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="com.android.tools.apkparser:binary-resources" level="project" />
   </component>
 </module>
