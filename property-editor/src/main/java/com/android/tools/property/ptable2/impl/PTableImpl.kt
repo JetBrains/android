@@ -619,6 +619,10 @@ class PTableImpl(override val tableModel: PTableModel,
     }
 
     private fun editNextEditableCell(forwards: Boolean): Component? {
+      if (!isVisible) {
+        // If the table isn't visible: do not try to start cell editing
+        return null
+      }
       val table = this@PTableImpl
       val rows = table.rowCount
       val pos = when {
