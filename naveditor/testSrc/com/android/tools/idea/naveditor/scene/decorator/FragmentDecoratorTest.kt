@@ -27,7 +27,7 @@ import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import org.mockito.Mockito
 import java.awt.BasicStroke
@@ -81,7 +81,7 @@ class FragmentDecoratorTest : NavTestCase() {
         DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), HIGHLIGHTED_FRAME,
                       REGULAR_FRAME_THICKNESS),
         DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f)),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, RoundRectangle2D.Float(417f, 467f, 54f, 104f, 2f, 2f), SELECTED_FRAME,
+        DrawRoundRectangle(DRAW_FRAME_LEVEL, RoundRectangle2D.Float(417f, 467f, 54f, 104f, 2f, 2f), SELECTED,
                            HIGHLIGHTED_FRAME_THICKNESS)
       ),
       displayList.commands)

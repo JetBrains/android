@@ -24,8 +24,8 @@ import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
+import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.LIST_MOUSEOVER
-import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
@@ -223,7 +223,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout())
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), SUBDUED_FRAME))
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME))
     buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
     val scrollable = AdtSecondaryPanel(BorderLayout())
     scrollable.add(buttonPanel, BorderLayout.NORTH)

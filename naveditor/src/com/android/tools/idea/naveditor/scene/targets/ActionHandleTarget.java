@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import static com.android.tools.idea.naveditor.scene.NavColors.BACKGROUND;
+import static com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME;
+import static com.android.tools.idea.naveditor.scene.NavColors.SELECTED;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_DRAG_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
@@ -36,7 +39,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import com.android.tools.idea.naveditor.scene.NavColors;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.google.common.collect.ImmutableList;
@@ -191,8 +193,8 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     int duration = (int)Math.abs(DURATION * (myHandleState.myOuterRadius - newState.myOuterRadius) / OUTER_RADIUS_LARGE);
 
-    Color outerColor = NavColors.BACKGROUND;
-    Color innerColor = getComponent().isSelected() ? NavColors.SELECTED_FRAME : NavColors.SUBDUED_FRAME;
+    Color outerColor = BACKGROUND;
+    Color innerColor = getComponent().isSelected() ? SELECTED : HIGHLIGHTED_FRAME;
 
     if (myIsDragging) {
       list.add(new DrawActionHandleDrag(DRAW_ACTION_HANDLE_DRAG_LEVEL, center, initialOuterRadius, finalOuterRadius,

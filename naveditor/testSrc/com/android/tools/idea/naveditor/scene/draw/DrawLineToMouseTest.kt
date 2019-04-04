@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
@@ -55,7 +55,7 @@ class DrawLineToMouseTest : TestCase() {
     assertEquals(drawLineToMouse.line.x2, mouseX.toFloat())
     assertEquals(drawLineToMouse.line.y2, mouseY.toFloat())
 
-    inOrder.verify(g).setColor(SELECTED_FRAME)
+    inOrder.verify(g).setColor(SELECTED)
     inOrder.verify(g).setStroke(LINE_TO_MOUSE_STROKE)
     inOrder.verify(g).draw(drawLineToMouse.line)
   }
