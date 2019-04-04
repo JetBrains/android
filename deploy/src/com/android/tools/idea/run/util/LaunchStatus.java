@@ -19,5 +19,5 @@ import org.jetbrains.annotations.Nullable;
 
 public interface LaunchStatus {
   boolean isLaunchTerminated();
-  void terminateLaunch(@Nullable String reason);
+  void terminateLaunch(@Nullable String reason, boolean destroyProcess);
 }

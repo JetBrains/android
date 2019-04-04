@@ -49,12 +49,19 @@ open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
 
     LOG.debugIfEnabled("findClassFile(module=$module, fqcn=$fqcn)})")
 
-    val classFile = findClassFileInModuleWithLogging(module, fqcn)
-    if (classFile != null) return classFile
-
-    ModuleRootManager.getInstance(module).getDependencies(false).forEach { depModule ->
-      val classFile = findClassFile(depModule, fqcn, visited)
+    try {
+      val classFile = findClassFileInModuleWithLogging(module, fqcn)
       if (classFile != null) return classFile
+
+      ModuleRootManager.getInstance(module).getDependencies(false).forEach { depModule ->
+        val classFile = findClassFile(depModule, fqcn, visited)
+        if (classFile != null) return classFile
+      }
+    } catch (t: Throwable) {
+      if (module.isDisposed) {
+        return null
+      }
+      throw t
     }
 
     return null
@@ -80,7 +87,6 @@ open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
    * with JPS store their compiled output.
    */
   protected open fun findClassFileInModule(module: Module, fqcn: String): VirtualFile? {
-    if (module.isDisposed) return null
     return CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.let { findClassFileInOutputRoot(it, fqcn) }
   }
 }

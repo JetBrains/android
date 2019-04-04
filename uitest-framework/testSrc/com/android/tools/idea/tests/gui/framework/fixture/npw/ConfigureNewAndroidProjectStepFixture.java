@@ -53,10 +53,15 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
-    String name = FormFactor.MOBILE.id + ".minSdk";
+  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
+    String name = formFactor.id + ".minSdk";
     new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), name, JComboBox.class)).selectApiLevel(api);
     return this;
+  }
+
+  @NotNull
+  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
+    return selectMinimumSdkApi(FormFactor.MOBILE, api);
   }
 
   @NotNull

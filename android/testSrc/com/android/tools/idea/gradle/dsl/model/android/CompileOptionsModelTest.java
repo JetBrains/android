@@ -21,11 +21,13 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
 import org.junit.Test;
@@ -120,7 +122,9 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
     CompileOptionsModel compileOptions = android.compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.BIG_DECIMAL, compileOptions.sourceCompatibility().getValueType());
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.STRING, compileOptions.targetCompatibility().getValueType());
     assertEquals("encoding", "UTF8", compileOptions.encoding());
     assertEquals("incremental", Boolean.FALSE, compileOptions.incremental());
 
@@ -135,9 +139,39 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
     compileOptions = android.compileOptions();
     assertEquals(LanguageLevel.JDK_1_8, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.BIG_DECIMAL, compileOptions.sourceCompatibility().getValueType());
     assertEquals(LanguageLevel.JDK_1_9, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.STRING, compileOptions.targetCompatibility().getValueType());
     assertEquals("encoding", "ISO-2022-JP", compileOptions.encoding());
     assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
+  }
+
+  @Test
+  public void testCompileOptionsModify_longIdentier() throws Exception {
+    writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    CompileOptionsModel compileOptions = android.compileOptions();
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.REFERENCE, compileOptions.sourceCompatibility().getValueType());
+    assertNull(compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.STRING, compileOptions.targetCompatibility().getValueType());
+
+    compileOptions.sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8);
+    compileOptions.targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_9);
+
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+    assertNotNull(android);
+
+    compileOptions = android.compileOptions();
+    assertEquals(LanguageLevel.JDK_1_8, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.REFERENCE, compileOptions.sourceCompatibility().getValueType());
+    assertEquals(LanguageLevel.JDK_1_9, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals(GradlePropertyModel.ValueType.STRING, compileOptions.targetCompatibility().getValueType());
   }
 
   @Test

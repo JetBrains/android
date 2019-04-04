@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class CachedDependencyNotFoundErrorHandler extends BaseSyncErrorHandler {
@@ -34,7 +35,7 @@ public class CachedDependencyNotFoundErrorHandler extends BaseSyncErrorHandler {
     if (isNotEmpty(text)) {
       String firstLine = getFirstLineMessage(text);
       if (firstLine.startsWith("No cached version of ") && firstLine.contains("available for offline mode.")) {
-        updateUsageTracker(project);
+        updateUsageTracker(project, CACHED_DEPENDENCY_NOT_FOUND);
         return firstLine;
       }
     }

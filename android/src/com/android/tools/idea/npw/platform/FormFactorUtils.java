@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.platform;
 
+import static java.util.stream.Collectors.toList;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
+import java.awt.Graphics2D;
+import java.util.Arrays;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -42,13 +49,14 @@ public class FormFactorUtils {
   public static Icon getFormFactorsImage(JComponent component, boolean requireEmulator) {
     int width = 0;
     int height = 0;
-    for (FormFactor formFactor : FormFactor.values()) {
-      if (formFactor == FormFactor.GLASS) {
-        continue;
-      }
-      if (requireEmulator && !formFactor.hasEmulator()) {
-        continue;
-      }
+    List<FormFactor> filteredFormFactors = Arrays.stream(FormFactor.values())
+      .filter(formFactor ->
+                formFactor != FormFactor.GLASS &&
+                (formFactor != FormFactor.AUTOMOTIVE || StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) &&
+                (formFactor != FormFactor.CAR || !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) &&
+                (formFactor.hasEmulator() || !requireEmulator))
+      .collect(toList());
+    for (FormFactor formFactor : filteredFormFactors) {
       Icon icon = formFactor.getLargeIcon();
       height = Math.max(height, icon.getIconHeight());
       width += formFactor.getLargeIcon().getIconWidth();
@@ -57,13 +65,7 @@ public class FormFactorUtils {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D graphics = image.createGraphics();
     int x = 0;
-    for (FormFactor formFactor : FormFactor.values()) {
-      if (requireEmulator && !formFactor.hasEmulator()) {
-        continue;
-      }
-      if (formFactor == FormFactor.GLASS) {
-        continue;
-      }
+    for (FormFactor formFactor : filteredFormFactors) {
       Icon icon = formFactor.getLargeIcon();
       icon.paintIcon(component, graphics, x, 0);
       x += icon.getIconWidth();

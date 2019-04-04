@@ -15,52 +15,64 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotificationListener;
+import static com.intellij.notification.NotificationType.INFORMATION;
+import static org.mockito.Mockito.verify;
+
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenEventLogHyperlink;
+import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotificationListener;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.IdeaTestCase;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.intellij.notification.NotificationType.INFORMATION;
-import static org.mockito.Mockito.verify;
-
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
 public class GoToApkLocationTaskTest extends IdeaTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
-
+  boolean isShowFilePathActionSupported;
   @Mock private AndroidNotification myMockNotification;
   private GoToApkLocationTask myTask;
-  boolean isShowFilePathActionSupported = true;
   private File myApkPath;
+  private List<Module> modules;
+  private SortedMap<String, File> modulesToPaths;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-
+    isShowFilePathActionSupported = true;
+    modules = new ArrayList<>();
     // Simulate the path of the APK for the project's module.
     myApkPath = createTempDir("apkLocation");
-    Map<Module, File> modulesToPaths = Collections.singletonMap(getModule(), myApkPath);
-
-    myTask = new GoToApkLocationTask(getProject(), modulesToPaths, null, NOTIFICATION_TITLE) {
+    modulesToPaths = new TreeMap<>();
+    modulesToPaths.put(getModule().getName(), myApkPath);
+    modules.add(getModule());
+    myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE, Collections.emptyList()) {
       @Override
       boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
+      }
+
+      @Override
+      void getBuildsAndPaths(@Nullable Object model, @NotNull List<String> buildVariants) {
+        this.setMyBuildsAndApkPaths(modulesToPaths);
       }
     };
     new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myMockNotification);
@@ -80,10 +92,8 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
   }
 
   public void testExecuteWithSuccessfulBuild() {
-    Module module = getModule();
-
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String moduleName = module.getName();
+    String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName, null);
     Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, myApkPath);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
@@ -92,7 +102,6 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
     isShowFilePathActionSupported = false;
-
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     String message = getExpectedModuleNotificationMessageNoShowFilePathAction();
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
@@ -100,26 +109,17 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
   }
 
   public void testExecuteWithSuccessfulBuildOfDynamicApp() throws IOException {
-    Module module = getModule();
-
     // Create and setup dynamic feature module
     Module featureModule = createModule("feature1");
 
     // Simulate the path of the APK for the project's module.
     File featureApkPath = createTempDir("featureApkLocation");
-    SortedMap<Module, File> modulesToPaths = new TreeMap<>((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), false));
-    modulesToPaths.put(getModule(), myApkPath);
-    modulesToPaths.put(featureModule, featureApkPath);
 
-    myTask = new GoToApkLocationTask(getProject(), modulesToPaths, null, NOTIFICATION_TITLE) {
-      @Override
-      boolean isShowFilePathActionSupported() {
-        return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
-      }
-    };
-
+    modules.add(featureModule);
+    modulesToPaths.put(featureModule.getName(), featureApkPath);
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String moduleName = module.getName();
+
+    String moduleName = getModule().getName();
     String featureModuleName = featureModule.getName();
     Map<String, File> apkPathsPerModule = new HashMap<>();
     apkPathsPerModule.put(moduleName, myApkPath);
@@ -155,7 +155,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
 
   @NotNull
   private static String getExpectedModuleNotificationMessageNoShowFilePathAction() {
-    return "APK(s) generated successfully for 1 module.";
+    return "APK(s) generated successfully for 1 module";
   }
 
   @NotNull

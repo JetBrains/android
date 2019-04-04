@@ -33,10 +33,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+@Ignore("b/129763461")
 class TrackBindingAdaptersTest {
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
 

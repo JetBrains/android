@@ -15,13 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ALPHA
+import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.PROGRESS_BAR
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TOOLS_NS_NAME_PREFIX
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.property.panel.api.*
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorLineModel
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import javax.swing.JPanel
@@ -60,12 +73,10 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
       inspector.addComponent(custom, titleLine)
     }
 
-    for (propertyName in attributes) {
-      val property = findProperty(propertyName, properties)
-      if (property != null && property.name != ATTR_VISIBILITY) {
-        inspector.addEditor(editorProvider.createEditor(property), titleLine)
-      }
-    }
+    attributes
+      .filter { it != ATTR_VISIBILITY && it != ATTR_ALPHA }
+      .mapNotNull { findProperty(it, properties) }
+      .forEach { inspector.addEditor(editorProvider.createEditor(it), titleLine) }
   }
 
   private fun findProperty(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
@@ -99,7 +110,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
-    panel.useComponent(component)
+    panel.useComponent(component, property.model.surface)
     return panel.panel
   }
 

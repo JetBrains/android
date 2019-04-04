@@ -24,12 +24,11 @@ import com.android.tools.idea.transport.TransportClient;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
-import com.android.tools.idea.transport.poller.TransportEventPollerFactory;
 import com.android.tools.pipeline.example.proto.Echo;
 import com.android.tools.profiler.proto.Commands;
+import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.profiler.proto.Commands.Command;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -52,6 +51,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,12 +84,6 @@ public class TransportPipelineDialog extends DialogWrapper {
   @NotNull private final TransportEventPoller myTransportEventPoller;
   private TransportEventListener mySelectedEventListener;
   private TransportEventListener myAgentStatusListener;
-
-  // This is necessary because when reopening the dialog, the AGENT connected can be received before a process
-  // is selected by the user (it is already connected). In that case, we don't want to toggle the controls
-  // off again when going into "awaiting agent" because it doesn't come back up, so just register the listener
-  // after user selects a dropdown item.
-  private boolean myAgentConnected = false;
 
   private long getSelectedStreamId() {
     return mySelectedStream.getStreamId();
@@ -131,8 +125,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     myStreamIdMap = new HashMap<>();
     myProcessIdMap = new HashMap<>();
 
-    myTransportEventPoller = TransportEventPollerFactory.getInstance().createPoller(myClient.getTransportStub(),
-                                                         TimeUnit.MILLISECONDS.toNanos(250));
+    myTransportEventPoller = TransportEventPoller.createPoller(myClient.getTransportStub(), TimeUnit.MILLISECONDS.toNanos(250));
 
     // Register the event listeners with myTransportEventPoller
     initializeEventListeners();
@@ -153,12 +146,14 @@ public class TransportPipelineDialog extends DialogWrapper {
 
       // Create listener for selected status
       Common.Event.Kind currentEventKind = (Common.Event.Kind)myEventFilter.getSelectedItem();
-      mySelectedEventListener = new TransportEventListener.Builder(currentEventKind,
+      mySelectedEventListener = new TransportEventListener(
+        currentEventKind,
+        ApplicationManager.getApplication()::invokeLater,
         event -> {
           // Add events to log
           myEventLog.append(event.toString());
-        }, ApplicationManager.getApplication()::invokeLater)
-        .build();
+          return Unit.INSTANCE;
+        });
       myTransportEventPoller.registerListener(mySelectedEventListener);
     });
 
@@ -170,7 +165,7 @@ public class TransportPipelineDialog extends DialogWrapper {
   @Override
   protected void dispose() {
     super.dispose();
-    TransportEventPollerFactory.getInstance().stopPoller(myTransportEventPoller);
+    TransportEventPoller.stopPoller(myTransportEventPoller);
   }
 
   // Triggered byt init() call.
@@ -201,56 +196,63 @@ public class TransportPipelineDialog extends DialogWrapper {
    */
   private void initializeEventListeners() {
     // Create listener for STREAM connected
-    TransportEventListener streamConnectedListener = new TransportEventListener.Builder(Common.Event.Kind.STREAM,
+    TransportEventListener streamConnectedListener = new TransportEventListener(
+      Common.Event.Kind.STREAM,
+      ApplicationManager.getApplication()::invokeLater,
+      event -> event.getStream().hasStreamConnected(),
       event -> {
         Common.Stream stream = event.getStream().getStreamConnected().getStream();
         myStreamIdMap.put(stream.getStreamId(), stream);
         myProcessesMap.put(stream.getStreamId(), new ArrayList<>());
         rebuildDevicesDropdown();
-      }, ApplicationManager.getApplication()::invokeLater)
-      .setFilter(event -> event.getStream().hasStreamConnected())
-      .build();
+        return Unit.INSTANCE;
+      });
     myTransportEventPoller.registerListener(streamConnectedListener);
 
 
     // Create listener for STREAM disconnected
-    TransportEventListener streamDisconnectedListener = new TransportEventListener.Builder(Common.Event.Kind.STREAM,
+    TransportEventListener streamDisconnectedListener = new TransportEventListener(
+      Common.Event.Kind.STREAM,
+      ApplicationManager.getApplication()::invokeLater,
+      event -> !event.getStream().hasStreamConnected(),
       event -> {
         Common.Stream stream = event.getStream().getStreamConnected().getStream();
         myStreamIdMap.remove(stream.getStreamId());
         myProcessesMap.remove(stream.getStreamId());
         rebuildDevicesDropdown();
-      }, ApplicationManager.getApplication()::invokeLater)
-      .setFilter(event -> !event.getStream().hasStreamConnected())
-      .build();
+        return Unit.INSTANCE;
+      });
     myTransportEventPoller.registerListener(streamDisconnectedListener);
 
 
     // Create listener for PROCESS started
-    TransportEventListener processStartedListener = new TransportEventListener.Builder(Common.Event.Kind.PROCESS,
+    TransportEventListener processStartedListener = new TransportEventListener(
+      Common.Event.Kind.PROCESS, ApplicationManager.getApplication()::invokeLater,
+      event -> event.getProcess().hasProcessStarted(),
       event -> {
         // Group ID here is the process ID
         Common.Process process = event.getProcess().getProcessStarted().getProcess();
         myProcessesMap.get(process.getDeviceId()).add(process);
         myProcessIdMap.put(event.getGroupId(), process);
         rebuildDevicesDropdown();
-      }, ApplicationManager.getApplication()::invokeLater)
-      .setFilter(event -> event.getProcess().hasProcessStarted())
-      .build();
+        return Unit.INSTANCE;
+      });
     myTransportEventPoller.registerListener(processStartedListener);
 
 
     // Create listener for PROCESS stopped
-    TransportEventListener processEndedListener = new TransportEventListener.Builder(Common.Event.Kind.PROCESS,
+    TransportEventListener processEndedListener = new TransportEventListener(
+      Common.Event.Kind.PROCESS, ApplicationManager.getApplication()::invokeLater,
+      event -> !event.getProcess().hasProcessStarted(),
       event -> {
         // Group ID here is the process ID
         Common.Process process = myProcessIdMap.remove(event.getGroupId());
-        if (myProcessesMap.get(process.getDeviceId()) != null)
+        if (myProcessesMap.get(process.getDeviceId()) != null) {
           myProcessesMap.get(process.getDeviceId()).remove(process);
+        }
         rebuildDevicesDropdown();
-      }, ApplicationManager.getApplication()::invokeLater)
-      .setFilter(event -> !event.getProcess().hasProcessStarted())
-      .build();
+        return Unit.INSTANCE;
+      });
     myTransportEventPoller.registerListener(processEndedListener);
   }
 
@@ -328,19 +330,20 @@ public class TransportPipelineDialog extends DialogWrapper {
 
   private void registerAgentListener() {
     if (myAgentStatusListener != null) {
-     myTransportEventPoller.unregisterListener(myAgentStatusListener);
+      myTransportEventPoller.unregisterListener(myAgentStatusListener);
     }
 
     // Create listener for agent status
-    myAgentStatusListener = new TransportEventListener.Builder(Common.Event.Kind.AGENT,
+    myAgentStatusListener = new TransportEventListener(
+      Common.Event.Kind.AGENT, ApplicationManager.getApplication()::invokeLater,
+      event -> event.getAgentData().getStatus().equals(Common.AgentData.Status.ATTACHED),
+      this::getSelectedStreamId,
+      this::getSelectedProcessId,
       event -> {
         // If a process is selected, enable the UI once the agent is detected.
         toggleControls(true);
-      }, ApplicationManager.getApplication()::invokeLater)
-      .setStreamId(this::getSelectedStreamId)
-      .setProcessId(this::getSelectedProcessId)
-      .setFilter(event -> event.getAgentData().getStatus().equals(Common.AgentData.Status.ATTACHED))
-      .build();
+        return Unit.INSTANCE;
+      });
     myTransportEventPoller.registerListener(myAgentStatusListener);
   }
 

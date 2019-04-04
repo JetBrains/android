@@ -120,13 +120,15 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
   private static boolean shouldRecommendUpgrade(@NotNull AndroidPluginInfo androidPluginInfo) {
     GradleVersion current = androidPluginInfo.getPluginVersion();
     GradleVersion recommended = GradleVersion.parse(androidPluginInfo.getPluginGeneration().getLatestKnownVersion());
-
     return shouldRecommendUpgrade(recommended, current);
   }
 
   @VisibleForTesting
   static boolean shouldRecommendUpgrade(@NotNull GradleVersion recommended, @Nullable GradleVersion current) {
     if (current != null) {
+      if (recommended.isPreview()) {
+        return false;
+      }
       if (recommended.isSnapshot() && current.getPreviewType() != null && current.compareIgnoringQualifiers(recommended) == 0) {
         // e.g recommended: 2.3.0-dev and current: 2.3.0-alpha1
         return false;

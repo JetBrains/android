@@ -18,6 +18,7 @@ package com.android.tools.profilers.event
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.EventProfiler
+import com.android.tools.profiler.proto.Interaction
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
@@ -63,18 +64,18 @@ class LifecycleTooltipViewTest {
     val fragmentEndTimeNs = TimeUnit.SECONDS.toNanos(5)
 
     myEventService.addActivityEvent(
-      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(Interaction.ViewData.State.CREATED,
                                                                   TEST_START_TIME_NS),
-                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                                ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                                   TEST_START_TIME_NS),
-                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                                                ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                                   activityEndTimeNs)),
                          0))
     for (fragmentName in FRAGMENT_NAMES) {
       myEventService.addActivityEvent(
         buildActivityEvent(fragmentName,
-                           arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS),
-                                   ActivityStateData(EventProfiler.ActivityStateData.ActivityState.REMOVED, fragmentEndTimeNs)),
+                           arrayOf(ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS),
+                                   ActivityStateData(Interaction.ViewData.State.REMOVED, fragmentEndTimeNs)),
                            fragmentName.hashCode().toLong()))
     }
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
@@ -107,16 +108,16 @@ class LifecycleTooltipViewTest {
   fun tooltipFragmentLabelShouldBeEmptyWhenDisabled() {
     myIdeProfilerServices.enableFragments(false)
     myEventService.addActivityEvent(
-      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+      buildActivityEvent(ACTIVITY_NAME, arrayOf(ActivityStateData(Interaction.ViewData.State.CREATED,
                                                                   TEST_START_TIME_NS),
-                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                                ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                                   TEST_START_TIME_NS),
-                                                ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                                                ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS)),
                          0))
     for (fragmentName in FRAGMENT_NAMES) {
       myEventService.addActivityEvent(
         buildActivityEvent(fragmentName,
-                           arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TEST_START_TIME_NS)),
+                           arrayOf(ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS)),
                            fragmentName.hashCode().toLong()))
     }
     myTimer.tick(TimeUnit.SECONDS.toNanos(2))
@@ -138,14 +139,14 @@ class LifecycleTooltipViewTest {
   fun tooltipRangeChangeShouldBeHandled() {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME, arrayOf(
-        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TimeUnit.SECONDS.toNanos(1)),
-        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED, TimeUnit.SECONDS.toNanos(5))
+        ActivityStateData(Interaction.ViewData.State.ADDED, TimeUnit.SECONDS.toNanos(1)),
+        ActivityStateData(Interaction.ViewData.State.PAUSED, TimeUnit.SECONDS.toNanos(5))
       ), 0))
 
     myEventService.addActivityEvent(
       buildActivityEvent(OTHER_ACTIVITY_NAME, arrayOf(
-        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.ADDED, TimeUnit.SECONDS.toNanos(6)),
-        ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED, TimeUnit.SECONDS.toNanos(7))
+        ActivityStateData(Interaction.ViewData.State.ADDED, TimeUnit.SECONDS.toNanos(6)),
+        ActivityStateData(Interaction.ViewData.State.PAUSED, TimeUnit.SECONDS.toNanos(7))
       ), 0))
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -166,13 +167,13 @@ class LifecycleTooltipViewTest {
   fun testGetActivityTitleTextCompleted() {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
-                         arrayOf(ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                         arrayOf(ActivityStateData(Interaction.ViewData.State.CREATED,
                                                    TEST_START_TIME_NS),
-                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                 ActivityStateData(Interaction.ViewData.State.RESUMED,
                                                    TEST_START_TIME_NS),
-                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.PAUSED,
+                                 ActivityStateData(Interaction.ViewData.State.PAUSED,
                                                    TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1)),
-                                 ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                                 ActivityStateData(Interaction.ViewData.State.DESTROYED,
                                                    TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1))),
                          0
       ))
@@ -193,10 +194,7 @@ class LifecycleTooltipViewTest {
                                  states: Array<ActivityStateData>,
                                  contextHash: Long): EventProfiler.ActivityData {
     val builder = EventProfiler.ActivityData.newBuilder()
-    builder.setPid(ProfilersTestData.SESSION_DATA.pid)
-      .setName(name)
-      .setHash(name.hashCode().toLong())
-      .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash))
+    builder.setName(name).setHash(name.hashCode().toLong()).setActivityContextHash(contextHash)
     for (state in states) {
       builder.addStateChanges(EventProfiler.ActivityStateData.newBuilder()
                                 .setState(state.activityState)
@@ -220,7 +218,7 @@ class LifecycleTooltipViewTest {
       get() = durationLabel.text
   }
 
-  private class ActivityStateData constructor(var activityState: EventProfiler.ActivityStateData.ActivityState, var activityStateTime: Long)
+  private class ActivityStateData constructor(var activityState: Interaction.ViewData.State, var activityStateTime: Long)
 
   companion object {
     private val TEST_START_TIME_NS = TimeUnit.SECONDS.toNanos(1)

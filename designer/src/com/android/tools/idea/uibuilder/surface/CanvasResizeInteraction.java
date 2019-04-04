@@ -27,6 +27,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.diagnostics.PerfDebugHelper;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
@@ -116,9 +117,12 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentX;
   private int myCurrentY;
 
+  private final PerfDebugHelper myPerfDebugHelper = new PerfDebugHelper();
+
   public CanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
                                  @NotNull ScreenView screenView,
                                  @NotNull Configuration configuration) {
+    myPerfDebugHelper.start("[Original Resize] - constructor");
     myDesignSurface = designSurface;
     myScreenView = screenView;
     myConfiguration = configuration;
@@ -178,16 +182,19 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     myMaxSize = (int)(MAX_ANDROID_SIZE * currentDpi / DEFAULT_DENSITY);
+    myPerfDebugHelper.end("[Original Resize] - constructor");
   }
 
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
+    myPerfDebugHelper.start("[Original Resize] - begin");
     super.begin(x, y, startMask);
     myCurrentX = x;
     myCurrentY = y;
 
     myDesignSurface.setResizeMode(true);
     updateUnavailableLayer(false);
+    myPerfDebugHelper.end("[Original Resize] - begin");
   }
 
   private void updateUnavailableLayer(boolean forceRecompute) {
@@ -331,6 +338,7 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
+    myPerfDebugHelper.start("[Original Resize] - update");
     if (myOriginalDevice.isScreenRound()) {
       // Force aspect preservation
       int deltaX = x - myStartX;
@@ -362,10 +370,12 @@ public class CanvasResizeInteraction extends Interaction {
     if (isPreviewSurface || myUnavailableLayer.isAvailable(x, y)) {
       myUpdateQueue.queue(myPositionUpdate);
     }
+    myPerfDebugHelper.end("[Original Resize] - update");
   }
 
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
+    myPerfDebugHelper.start("[Original Resize] - end");
     super.end(x, y, modifiers, canceled);
 
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
@@ -388,6 +398,8 @@ public class CanvasResizeInteraction extends Interaction {
         NlModelHelperKt.overrideConfigurationScreenSize(myScreenView.getModel(), androidX, androidY);
       }
     }
+    myPerfDebugHelper.end("[Original Resize] - end");
+    myPerfDebugHelper.print();
   }
 
   /**
@@ -654,8 +666,8 @@ public class CanvasResizeInteraction extends Interaction {
       assert deviceState != null;
       boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
 
-      int width = Coordinates.getAndroidX(myScreenView, myCurrentX);
-      int height = Coordinates.getAndroidY(myScreenView, myCurrentY);
+      int width = Coordinates.getAndroidXDip(myScreenView, myCurrentX);
+      int height = Coordinates.getAndroidYDip(myScreenView, myCurrentY);
       if ((width > height && isDevicePortrait) || (width < height && !isDevicePortrait)) {
         return;
       }

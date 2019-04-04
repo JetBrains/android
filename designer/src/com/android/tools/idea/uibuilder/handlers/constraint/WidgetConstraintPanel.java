@@ -24,6 +24,8 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
@@ -74,7 +76,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   @NotNull private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
-  private final WidgetConstraintSection myConstraintSection;
+  @NotNull final private WidgetSection myConstraintSection;
 
   private final InspectorColorSet mColorSet = new InspectorColorSet();
 
@@ -101,7 +103,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     super(null);
     mMain = new SingleWidgetView(mColorSet, myWidgetModel);
     mMain.setOpaque(false);
-    myConstraintSection = new WidgetConstraintSection(myWidgetModel);
+    myConstraintSection = StudioFlags.NELE_CONSTRAINT_SECTION.get() ? new WidgetConstraintSection(myWidgetModel)
+                                                                    : new WidgetEmptySection();
     myConstraintSection.setOpaque(false);
 
     setPreferredSize(PANEL_DIMENSION);
@@ -173,8 +176,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   }
 
   @Override
-  public void useComponent(@Nullable NlComponent component) {
+  public void useComponent(@Nullable NlComponent component, @Nullable DesignSurface surface) {
+    myWidgetModel.setSurface(surface);
     myWidgetModel.setComponent(component);
+    myConstraintSection.configureUi();
   }
 
   @Override

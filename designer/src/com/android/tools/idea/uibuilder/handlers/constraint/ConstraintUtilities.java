@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.resources.LayoutDirection;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -28,9 +29,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.Te
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.SAMPLE_PREFIX;
-import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
@@ -41,6 +41,13 @@ public class ConstraintUtilities {
   private static HashMap<String, Integer> alignmentMap_ltr = new HashMap<>();
   private static HashMap<String, Integer> alignmentMap_rtl = new HashMap<>();
   static String[]mode = {"0","1","2","3","center","START","END"};
+  private static final String[][] CHARS_MAP = {
+    {"&quot;", "\""},
+    {"&apos;", "'"},
+    {"&lt;", "<"},
+    {"&gt;", ">"},
+    {"&amp;", "&"},
+  };
 
   static {
     alignmentMap_rtl.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
@@ -140,28 +147,98 @@ public class ConstraintUtilities {
     return "";
   }
 
+  /**
+   * Get the 'text' attribute from a component.
+   *
+   * @return The resolved 'text' attribute or an empty string if the attribute is not present.
+   */
   @NotNull
   public static String getResolvedText(@NotNull NlComponent component) {
-    String text = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_TEXT);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        if (!text.startsWith(SAMPLE_PREFIX) && !text.startsWith(TOOLS_SAMPLE_PREFIX)) {
-          return resolveStringResource(component, text);
-        }
-        else {
-          return "";
-        }
-      }
-      return text;
+    String text = getResolvedAttribute(component, SdkConstants.ATTR_TEXT);
+    if (text == null) {
+      return "";
     }
-    text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        return resolveStringResource(component, text);
-      }
-      return text;
-    }
-    return "";
+    return text;
   }
 
+  /**
+   * Get the 'text_on' or 'text_off' attribute from a component. Looks for the 'checked' attribute to choose the current state, defaults to
+   * 'text_off' if there is no 'checked' attribute.
+   *
+   * @return The resolved text attribute or an empty string if the attribute is not present.
+   */
+  @NotNull
+  public static String getResolvedToggleText(@NotNull NlComponent component) {
+    String checkedText = getResolvedAttribute(component, SdkConstants.ATTR_CHECKED);
+
+    String toggleTextAttr =
+      checkedText != null && checkedText.equals(SdkConstants.VALUE_TRUE) ? SdkConstants.ATTR_TEXT_ON : SdkConstants.ATTR_TEXT_OFF;
+
+    String text = getResolvedAttribute(component, toggleTextAttr);
+
+    if (text == null) {
+      return "";
+    }
+    return text;
+  }
+
+  /**
+   * Get an attribute from a component. Looks for 'tools' attributes first.
+   */
+  @Nullable
+  private static String getResolvedAttribute(@NotNull NlComponent component, @NotNull String attribute) {
+    String resolvedAttribute = component.getAttribute(SdkConstants.TOOLS_URI, attribute);
+
+    if (resolvedAttribute == null) {
+      // Check on android namespace.
+      resolvedAttribute = component.getAttribute(SdkConstants.ANDROID_URI, attribute);
+    }
+    if (resolvedAttribute != null && resolvedAttribute.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+      // Check if it comes from a resource and resolve.
+      resolvedAttribute = resolveStringResource(component, resolvedAttribute);
+    }
+    return replaceSpecialChars(resolvedAttribute);
+  }
+
+  /** Looks and substitutes special characters. */
+  @VisibleForTesting
+  @Nullable
+  static String replaceSpecialChars(@Nullable String text) {
+    if (text == null || text.isEmpty()) {
+      return text;
+    }
+    int offset = 0;
+    int pos = 0;
+    if (text.indexOf("&") >= 0) {
+      boolean notDone = true;
+      while (notDone) {
+        notDone = false;
+        for (int i = 0; i < CHARS_MAP.length; i++) {
+          if ((pos = text.indexOf(CHARS_MAP[i][0],offset)) >= 0) {
+            notDone = true;
+            text = text.replace(CHARS_MAP[i][0], CHARS_MAP[i][1]);
+            offset = pos + CHARS_MAP[i][0].length();
+          }
+        }
+
+        if (offset < text.length() && text.substring(offset).matches(".*&#[0-9]+;.*")) {
+          int begin = text.indexOf("&#");
+          int end = text.indexOf(";", begin);
+          char part = (char)Integer.parseInt(text.substring(begin + 2, end));
+          text = text.replace(text.substring(begin, end + 1), "" + part);
+          notDone = true;
+          offset = end;
+        }
+        if (offset < text.length() && text.substring(offset).matches(".*&#x[a-fA-F0-9]+;.*")) {
+          int begin = text.indexOf("&#x");
+          int end = text.indexOf(";", begin);
+          char part = (char)Integer.parseInt(text.substring(begin + 3, end), 16);
+          text = text.replace(text.substring(begin, end + 1), "" + part);
+          notDone = true;
+          offset = end;
+        }
+      }
+    }
+    return text;
+  }
 }

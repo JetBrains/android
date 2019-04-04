@@ -16,7 +16,6 @@
 package com.android.tools.idea.flags;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
@@ -24,19 +23,24 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
+import java.util.Hashtable;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.text.NumberFormatter;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import javax.swing.*;
-import javax.swing.text.NumberFormatter;
-import java.util.Hashtable;
-
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
-  @NotNull private final ConditionalDeliverySettings myConditionalDeliverySettings;
 
   private JPanel myPanel;
   private JSpinner myModuleNumberSpinner;
@@ -44,23 +48,19 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
   private JSlider myLayoutEditorQualitySlider;
-  private TitledSeparator myCreateNewModuleWizardTitledSeparator;
-  private JCheckBox myConditionalDeliveryCheckbox;
   private JCheckBox myNewPsdCheckbox;
   private TitledSeparator myNewPsdSeparator;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), ConditionalDeliverySettings.getInstance());
+    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project));
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
-                                   @NotNull RenderSettings renderSettings,
-                                   @NotNull ConditionalDeliverySettings conditionalDeliverySettings) {
+                                   @NotNull RenderSettings renderSettings) {
     mySettings = settings;
     myRenderSettings = renderSettings;
-    myConditionalDeliverySettings = conditionalDeliverySettings;
 
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
@@ -72,10 +72,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
-
-    myCreateNewModuleWizardTitledSeparator.setVisible(StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
-    myConditionalDeliveryCheckbox.setVisible(StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
-
     myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
     myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
 
@@ -118,7 +114,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
         (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-        myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC != isConditionalDeliverySync() ||
         mySettings.USE_NEW_PSD != isUseNewPsd()) {
       return true;
     }
@@ -143,8 +138,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     }
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
-
-    myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = isConditionalDeliverySync();
     mySettings.USE_NEW_PSD = isUseNewPsd();
   }
 
@@ -189,15 +182,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseSingleVariantSyncCheckbox.setSelected(value);
   }
 
-  boolean isConditionalDeliverySync() {
-    return myConditionalDeliveryCheckbox.isSelected();
-  }
-
-  @TestOnly
-  void setConditionalDeliverySync(boolean value) {
-    myConditionalDeliveryCheckbox.setSelected(value);
-  }
-
   boolean isUseNewPsd() {
     return myNewPsdCheckbox.isSelected();
   }
@@ -214,7 +198,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
-    myConditionalDeliveryCheckbox.setSelected(myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC);
     myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
   }
 

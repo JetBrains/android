@@ -67,6 +67,7 @@ public abstract class PollRunner implements RunnableFuture<Void> {
       Thread.currentThread().interrupt();
     }
     finally {
+      myIsRunning = false;
       myIsDone.countDown();
     }
   }
@@ -94,7 +95,6 @@ public abstract class PollRunner implements RunnableFuture<Void> {
     if (myIsRunning) {
       myIsDone.await();
     }
-    myIsRunning = !isDone();
     return null;
   }
 
@@ -103,7 +103,6 @@ public abstract class PollRunner implements RunnableFuture<Void> {
     if (myIsRunning) {
       myIsDone.await(timeout, unit);
     }
-    myIsRunning = !isDone();
     return null;
   }
 }

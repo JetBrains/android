@@ -43,6 +43,43 @@ import org.jetbrains.android.facet.AndroidFacet
 
 const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
+// TODO: When appropriate move this static methods to appropriate file.
+//  For now keep it here to be closer to [NlModel.overrideConfigurationScreenSize]
+fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
+  val original = configuration.device
+  val deviceBuilder = Device.Builder(original) // doesn't copy tag id
+  if (original != null) {
+    deviceBuilder.setTagId(original.tagId)
+  }
+  deviceBuilder.setName("Custom")
+  deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
+  val device = deviceBuilder.build()
+  for (state in device.allStates) {
+    val screen = state.hardware.screen
+    screen.xDimension = xDimension
+    screen.yDimension = yDimension
+
+    val dpi = screen.pixelDensity.dpiValue.toDouble()
+    val width = xDimension / dpi
+    val height = yDimension / dpi
+    val diagonalLength = Math.sqrt(width * width + height * height)
+
+    screen.diagonalLength = diagonalLength
+    screen.size = ScreenSize.getScreenSize(diagonalLength)
+
+    screen.ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+
+    screen.screenRound = device.defaultHardware.screen.screenRound
+    screen.chin = device.defaultHardware.screen.chin
+  }
+
+  //Change the orientation of the device depending on the shape of the canvas
+  val newState: State? =
+    if (xDimension > yDimension) device.getState("Landscape")
+    else device.getState("Portrait")
+  configuration.setEffectiveDevice(device, newState)
+}
+
 /**
  * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
  */

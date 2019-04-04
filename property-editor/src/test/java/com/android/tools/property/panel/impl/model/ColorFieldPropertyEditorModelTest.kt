@@ -17,7 +17,7 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.tools.property.panel.api.ActionIconButton
+import com.android.tools.property.panel.impl.model.util.FakeActionIconButton
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
@@ -29,11 +29,7 @@ class ColorFieldPropertyEditorModelTest {
 
   private fun createModel(): Pair<ColorFieldPropertyEditorModel, AnAction> {
     val action = Mockito.mock(AnAction::class.java)
-    val actionButton = object: ActionIconButton {
-      override val actionButtonFocusable = true
-      override val actionIcon = StudioIcons.LayoutEditor.Properties.FAVORITES
-      override val action = action
-    }
+    val actionButton = FakeActionIconButton(true, StudioIcons.LayoutEditor.Properties.FAVORITES, action)
     val property = FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, "#330066", null, actionButton)
     val model = ColorFieldPropertyEditorModel(property)
     return Pair(model, action)
@@ -45,5 +41,15 @@ class ColorFieldPropertyEditorModelTest {
     assertThat(model.editable).isTrue()
     assertThat(model.leftButtonIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES)
     assertThat(model.buttonAction).isSameAs(action)
+  }
+
+  @Test
+  fun testColorIconUpdatesWithPropertyChanges() {
+    val model = createModel().first
+    val property = model.property as FakePropertyItem
+    val actionButton = property.colorButton as FakeActionIconButton
+    assertThat(model.leftButtonIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES)
+    actionButton.actionIcon = StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LEFT
+    assertThat(model.leftButtonIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LEFT)
   }
 }

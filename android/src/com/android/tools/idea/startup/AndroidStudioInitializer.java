@@ -212,7 +212,7 @@ public class AndroidStudioInitializer implements Runnable {
 
         for (MultiHostInjector injector : extensionPoint.getExtensions()) {
           if (injector instanceof GrConcatenationInjector) {
-            extensionPoint.unregisterExtension(injector);
+            extensionPoint.unregisterExtension(injector.getClass());
             return;
           }
         }
@@ -242,7 +242,7 @@ public class AndroidStudioInitializer implements Runnable {
       if (runConfigurationProducer instanceof JUnitConfigurationProducer
           && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
         // In AndroidStudio these ConfigurationProducer s are replaced
-        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer);
+        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer.getClass());
       }
     }
 
@@ -251,7 +251,7 @@ public class AndroidStudioInitializer implements Runnable {
     for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
       if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
         // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
-        configurationTypeExtensionPoint.unregisterExtension(configurationType);
+        configurationTypeExtensionPoint.unregisterExtension(configurationType.getClass());
       }
     }
 

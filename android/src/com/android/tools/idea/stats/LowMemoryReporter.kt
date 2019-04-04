@@ -18,21 +18,20 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
-import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable
-import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START
+import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.components.ApplicationComponent
 import com.intellij.openapi.util.LowMemoryWatcher
 import java.util.concurrent.TimeUnit
-import javax.swing.SwingUtilities
 
 class LowMemoryReporter : ApplicationComponent {
-  private var lowMemoryWatcher: LowMemoryWatcher? = null
+  private var lowMemoryWatcherAll: LowMemoryWatcher? = null
+  private var lowMemoryWatcherAfterGc: LowMemoryWatcher? = null
 
   private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), singleShotOnly = true)
 
   override fun initComponent() {
-    lowMemoryWatcher = LowMemoryWatcher.register {
+    lowMemoryWatcherAll = LowMemoryWatcher.register {
       // According to https://docs.oracle.com/javase/7/docs/api/java/lang/management/MemoryNotificationInfo.html#MEMORY_THRESHOLD_EXCEEDED,
       // the notification is emitted once when the threshold is exceeded, and is not emitted again until the VM goes below the threshold.
       // So we don't have to explicitly rate limit our reports.
@@ -40,14 +39,21 @@ class LowMemoryReporter : ApplicationComponent {
                          .setKind(AndroidStudioEvent.EventKind.STUDIO_LOW_MEMORY_EVENT)
                          .setJavaProcessStats(CommonMetricsData.javaProcessStats))
       if (limiter.tryAcquire()) {
-        AndroidStudioSystemHealthMonitor.getInstance()?.addHistogramToDatabase("LowMemoryWatcher")
-        SwingUtilities.invokeLater(HeapDumpSnapshotRunnable(false, SCHEDULE_ON_NEXT_START))
+        AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
       }
     }
+    lowMemoryWatcherAfterGc = LowMemoryWatcher.register({
+      val wasDisabled = limiter.disable()
+      if (!wasDisabled) {
+        AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.LowMemory)
+      }
+    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
   }
 
   override fun disposeComponent() {
-    lowMemoryWatcher?.stop()
-    lowMemoryWatcher = null
+    lowMemoryWatcherAll?.stop()
+    lowMemoryWatcherAll = null
+    lowMemoryWatcherAfterGc?.stop()
+    lowMemoryWatcherAfterGc = null
   }
 }

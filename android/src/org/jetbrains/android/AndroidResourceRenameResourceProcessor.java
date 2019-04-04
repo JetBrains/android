@@ -67,6 +67,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.light.LightElement;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -93,7 +94,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.android.augment.AndroidLightField;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
@@ -158,7 +158,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       }
       else if (computedElement instanceof PsiClass) {
         PsiClass cls = (PsiClass)computedElement;
-        if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
+        if (InheritanceUtil.isInheritor(cls, CLASS_VIEW)) {
           return true;
         }
       }
@@ -192,7 +192,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
     else if (computedElement instanceof PsiClass) {
       PsiClass cls = (PsiClass)computedElement;
-      if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
+      if (InheritanceUtil.isInheritor(cls, CLASS_VIEW)) {
         prepareCustomViewRenaming(cls, newName, allRenames, facet);
       }
     }

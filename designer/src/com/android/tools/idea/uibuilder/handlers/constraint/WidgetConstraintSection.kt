@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.intellij.ui.components.JBList
 import com.intellij.ui.paint.EffectPainter2D
 import com.intellij.util.ui.JBDimension
@@ -42,13 +45,20 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
 
 private const val PREFERRED_WIDTH = 280
 private const val COMPONENT_HEIGHT = 20
 
 private val ERROR_TEXT_COLOR = Color(0x969696)
 
-class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) : AdtSecondaryPanel() {
+// TODO: remove this interface after StudioFlags.NELE_CONSTRAINT_SECTION is removed.
+abstract class WidgetSection : AdtSecondaryPanel() {
+  abstract fun configureUi()
+}
+
+class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) : WidgetSection() {
 
   private val sectionTitle = SectionTitle()
   private val list: JList<ConstraintCellData>
@@ -56,6 +66,8 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   private val warningPanel = WarningPanel()
 
   private var expanded: Boolean = false
+
+  private var previousComponent: NlComponent? = null
 
   init {
     border = JBUI.Borders.empty(4, 4, 4, 4)
@@ -65,14 +77,34 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = ConstraintItemRenderer()
 
+    list.addListSelectionListener(object: ListSelectionListener {
+      override fun valueChanged(e: ListSelectionEvent) {
+        val index = list.selectedIndex
+        if (index < 0 || index >= listData.size) {
+          return
+        }
+        val itemData = listData[index] ?: return
+        val scene = widgetModel.surface?.scene ?: return
+        val apiLevel = scene.renderedApiLevel
+        val rtl = scene.isInRTL
+        val constraint = getConstraintForAttribute(itemData.attribute, apiLevel, rtl)
+        widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
+        widgetModel.surface?.invalidate()
+      }
+    })
+
     list.addKeyListener(object: KeyAdapter() {
       override fun keyReleased(e: KeyEvent) {
         if (e.keyCode == KeyEvent.VK_DELETE || e.keyCode == KeyEvent.VK_BACK_SPACE) {
-
           val index = list.selectedIndex
           val item = listData.removeAt(index)
 
           widgetModel.removeAttributes(item.namespace, item.attribute)
+          list.clearSelection()
+          e.consume()
+        }
+        else if (e.keyCode == KeyEvent.VK_ESCAPE) {
+          list.clearSelection()
           e.consume()
         }
         else {
@@ -92,7 +124,9 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     add(list, BorderLayout.CENTER)
     add(warningPanel, BorderLayout.SOUTH)
 
-    setExpand(expanded)
+    val hasConstraintSelection = updateConstraintSelection()
+    // Force expand the list if there is constraint selection
+    setExpand(if (hasConstraintSelection) true else expanded)
   }
 
   private fun setExpand(expanded: Boolean) {
@@ -122,7 +156,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     }
   }
 
-  fun configureUi() {
+  override fun configureUi() {
     listData.clear()
 
     val component = widgetModel.component
@@ -137,8 +171,42 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     }
     list.visibleRowCount = listData.size
 
-    setExpand(expanded)
+    val hasConstraintSelection = updateConstraintSelection()
+    // Force expand the list if there is constraint selection
+    setExpand(if (hasConstraintSelection) true else expanded)
     repaint()
+  }
+
+  // Return true if list has constraint selection, otherwise false.
+  private fun updateConstraintSelection(): Boolean {
+    val selectionModel = widgetModel.surface?.selectionModel ?: return false
+    val widgetComponent = widgetModel.component
+    val secondarySelection = selectionModel.secondarySelection
+    if (previousComponent != widgetModel.component && secondarySelection == null) {
+      // Component is changed and new component doesn't have secondary selection.
+      list.clearSelection()
+      previousComponent = widgetComponent
+      return false
+    }
+    previousComponent = widgetComponent
+    if (secondarySelection is SecondarySelector.Constraint) {
+      val scene = widgetModel.surface?.scene ?: return false
+      val apiLevel = scene.renderedApiLevel
+      val rtl = scene.isInRTL
+      val attributes = getAttributesForConstraint(secondarySelection, apiLevel, rtl)
+
+      for (index in listData.indices) {
+        if (listData[index].attribute in attributes) {
+          if (list.selectedIndex != index) {
+            list.selectedIndex = index
+          }
+          return true
+        }
+      }
+    }
+    // Didn't find any secondary constraint
+    list.clearSelection()
+    return false
   }
 
   private inner class SectionTitle: JPanel(BorderLayout()) {
@@ -201,6 +269,13 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     private val verticalWarning = JLabel()
     private val overConstrainedWarning = JLabel()
 
+    private val mouseListener = object: MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent?) {
+        val component = widgetModel.component ?: return
+        widgetModel.surface?.issuePanel?.showIssueForComponent(component, true)
+      }
+    }
+
     init {
       background = secondaryPanelBackground
 
@@ -208,16 +283,19 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       horizontalWarning.text = "Not Horizontally Constrained"
       horizontalWarning.border = JBUI.Borders.empty(2)
       horizontalWarning.foreground = ERROR_TEXT_COLOR
+      horizontalWarning.addMouseListener(mouseListener)
 
       verticalWarning.icon = StudioIcons.Common.ERROR_INLINE
       verticalWarning.text = "Not Vertically Constrained"
       verticalWarning.border = JBUI.Borders.empty(2)
       verticalWarning.foreground = ERROR_TEXT_COLOR
+      verticalWarning.addMouseListener(mouseListener)
 
       overConstrainedWarning.icon = StudioIcons.Common.ERROR_INLINE
       overConstrainedWarning.text = "Over Constrained"
       overConstrainedWarning.border = JBUI.Borders.empty(2)
       overConstrainedWarning.foreground = ERROR_TEXT_COLOR
+      overConstrainedWarning.addMouseListener(mouseListener)
 
       add(horizontalWarning, BorderLayout.NORTH)
       add(verticalWarning, BorderLayout.CENTER)
@@ -308,7 +386,6 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
     nameLabel.text = item.displayName
     boldLabel.text = if (item.boldValue != null) item.boldValue.removePrefix("@+id/").removePrefix("@id/") else ""
     fadingLabel.text = if (item.fadingValue != null) "(${item.fadingValue})" else ""
-    panel.toolTipText = "${item.displayName}=${item.boldValue}"
 
     if (selected) {
       iconLabel.icon = highlightConstraintIcon
@@ -343,4 +420,115 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
 
     return panel
   }
+}
+
+/**
+ * Return a list of attributes which have same direction of the given [SecondarySelector.Constraint].
+ */
+fun getAttributesForConstraint(constraint: SecondarySelector.Constraint, apiLevel: Int, isRtl: Boolean): List<String> {
+  return when (constraint) {
+    SecondarySelector.Constraint.LEFT -> when {
+      apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START -> LEFT_ATTRIBUTES
+      isRtl -> END_ATTRIBUTES + LEFT_ATTRIBUTES
+      else -> START_ATTRIBUTES + LEFT_ATTRIBUTES
+    }
+    SecondarySelector.Constraint.RIGHT -> when {
+      apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START -> RIGHT_ATTRIBUTES
+      isRtl -> START_ATTRIBUTES + RIGHT_ATTRIBUTES
+      else -> END_ATTRIBUTES + RIGHT_ATTRIBUTES
+    }
+    SecondarySelector.Constraint.TOP -> TOP_ATTRIBUTES
+    SecondarySelector.Constraint.BOTTOM -> BOTTOM_ATTRIBUTES
+    else -> BASELINE_ATTRIBUTES
+  }
+}
+
+/**
+ * Return [SecondarySelector.Constraint] which represent the same direction of the given attribute.
+ */
+fun getConstraintForAttribute(attribute: String, apiLevel: Int, isRtl: Boolean): SecondarySelector.Constraint? {
+  when {
+    apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START -> return when (attribute) {
+      in LEFT_ATTRIBUTES -> SecondarySelector.Constraint.LEFT
+      in RIGHT_ATTRIBUTES -> SecondarySelector.Constraint.RIGHT
+      in TOP_ATTRIBUTES -> SecondarySelector.Constraint.TOP
+      in BOTTOM_ATTRIBUTES -> SecondarySelector.Constraint.BOTTOM
+      in BASELINE_ATTRIBUTES -> SecondarySelector.Constraint.BASELINE
+      else -> null
+    }
+    isRtl -> return when (attribute) {
+      in LEFT_ATTRIBUTES, in END_ATTRIBUTES -> SecondarySelector.Constraint.LEFT
+      in RIGHT_ATTRIBUTES, in START_ATTRIBUTES -> SecondarySelector.Constraint.RIGHT
+      in TOP_ATTRIBUTES -> SecondarySelector.Constraint.TOP
+      in BOTTOM_ATTRIBUTES -> SecondarySelector.Constraint.BOTTOM
+      in BASELINE_ATTRIBUTES -> SecondarySelector.Constraint.BASELINE
+      else -> null
+    }
+    else -> return when (attribute) {
+      in LEFT_ATTRIBUTES, in START_ATTRIBUTES -> SecondarySelector.Constraint.LEFT
+      in RIGHT_ATTRIBUTES, in END_ATTRIBUTES -> SecondarySelector.Constraint.RIGHT
+      in TOP_ATTRIBUTES -> SecondarySelector.Constraint.TOP
+      in BOTTOM_ATTRIBUTES -> SecondarySelector.Constraint.BOTTOM
+      in BASELINE_ATTRIBUTES -> SecondarySelector.Constraint.BASELINE
+      else -> null
+    }
+  }
+}
+
+private val START_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+  SdkConstants.ATTR_LAYOUT_START_TO_END_OF
+)
+
+private val END_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+  SdkConstants.ATTR_LAYOUT_END_TO_END_OF
+)
+
+private val LEFT_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+  SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+)
+
+private val RIGHT_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+  SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF
+)
+
+private val TOP_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+  SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF
+)
+
+private val BOTTOM_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+  SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+)
+
+private val BASELINE_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
+)
+
+val CONSTRAINT_ATTRIBUTES = listOf(
+  SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+  SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+  SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+  SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+  SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+  SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+  SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+  SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+  SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+  SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+  SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+  SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+  SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
+)
+
+class WidgetEmptySection : WidgetSection() {
+  init {
+    preferredSize = JBDimension(0, 0)
+  }
+
+  override fun configureUi() = Unit
 }

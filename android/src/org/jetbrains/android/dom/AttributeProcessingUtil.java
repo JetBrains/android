@@ -77,7 +77,6 @@ import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -97,7 +96,6 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
 import java.util.Collection;
@@ -441,7 +439,7 @@ public class AttributeProcessingUtil {
   }
 
   /**
-   * Returns a styleable name that is mistakeely used for the layout attributes defined by the
+   * Returns a styleable name that is mistakenly used for the layout attributes defined by the
    * specified PsiClass of the layout.
    */
   @Nullable
@@ -840,7 +838,7 @@ public class AttributeProcessingUtil {
     if (definition != null) {
       XmlName name = new XmlName(attributeName, TOOLS_URI);
       DomExtension domExtension = callback.processAttribute(name, definition, null);
-      ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
+      Converter converter = ToolsAttributeUtil.getConverter(definition);
       if (domExtension != null && converter != null) {
         domExtension.setConverter(converter);
       }

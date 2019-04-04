@@ -28,6 +28,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.INTERNET_CONNECTION_ERROR;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.TOGGLE_OFFLINE_MODE_HYPERLINK;
 
 /**
@@ -74,7 +75,7 @@ public class InternetConnectionErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(ToggleOfflineModeHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(INTERNET_CONNECTION_ERROR, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(TOGGLE_OFFLINE_MODE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

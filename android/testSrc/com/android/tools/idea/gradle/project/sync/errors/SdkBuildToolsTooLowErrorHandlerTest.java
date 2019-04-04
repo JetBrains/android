@@ -33,6 +33,7 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW;
 
 /**
  * Tests for {@link SdkBuildToolsTooLowErrorHandler}.
@@ -74,7 +75,7 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenFileHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(SDK_BUILD_TOOLS_TOO_LOW, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
 }
 

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -290,6 +290,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     resourceDirectories.forEach(dir -> delegates.add(resourceFolderRegistry.get(facet, dir, namespace)));
 
-    return new ModuleResourceRepository(facet, namespace, delegates, SourceSet.MAIN);
+    ModuleResourceRepository repository = new ModuleResourceRepository(facet, namespace, delegates, SourceSet.MAIN);
+    Disposer.register(facet, repository);
+    return repository;
   }
 }

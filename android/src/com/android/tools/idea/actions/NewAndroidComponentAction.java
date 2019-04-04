@@ -47,6 +47,7 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_ANDROID_AUTO;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
@@ -61,6 +62,7 @@ public class NewAndroidComponentAction extends AnAction {
 
   private final String myTemplateCategory;
   private final String myTemplateName;
+  private final File myTemplateFile;
   private final int myMinSdkApi;
   private final int myMinBuildSdkApi;
   private final boolean myAndroidXRequired;
@@ -76,6 +78,12 @@ public class NewAndroidComponentAction extends AnAction {
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
                                    boolean androidXRequired) {
+    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, androidXRequired,
+         TemplateManager.getInstance().getTemplateFile(templateCategory, templateName));
+  }
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
+                                   boolean androidXRequired, File templateFile) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
@@ -83,6 +91,7 @@ public class NewAndroidComponentAction extends AnAction {
     myMinSdkApi = minSdkVersion;
     myMinBuildSdkApi = minBuildSdkApi;
     myAndroidXRequired = androidXRequired;
+    myTemplateFile = templateFile;
   }
 
   public void setShouldOpenFiles(boolean shouldOpenFiles) {
@@ -107,8 +116,9 @@ public class NewAndroidComponentAction extends AnAction {
 
     Presentation presentation = e.getPresentation();
 
-    // Hide Automotive templates if automotive feature is not enabled
-    if (myTemplateCategory.equals(CATEGORY_AUTOMOTIVE) && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) {
+    // Hide Automotive templates if automotive feature is not enabled, or Car templates if it is.
+    if ((myTemplateCategory.equals(CATEGORY_AUTOMOTIVE) && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) ||
+        (myTemplateCategory.equals(CATEGORY_ANDROID_AUTO) && StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get())) {
       presentation.setVisible(false);
       return;
     } else {
@@ -156,7 +166,7 @@ public class NewAndroidComponentAction extends AnAction {
       assert targetDirectory != null;
     }
 
-    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+    File file = myTemplateFile;
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"

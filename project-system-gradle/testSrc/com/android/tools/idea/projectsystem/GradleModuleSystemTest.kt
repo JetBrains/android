@@ -158,12 +158,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testAddSupportDependencyWithMatchInAppModule() {
     installDependencies(myModule, listOf("com.android.support:recyclerview-v7:22.2.1"))
-    val (found1, missing1, warning1) = gradleModuleSystem.analyzeDependencyCompatibility(
-      listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))
-    assertThat(found1).containsExactly(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7, "22.2.1"))
-
-    val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    installDependencies(module1, listOf("com.android.support:recyclerview-v7:22.2.1"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           api project(':$library1ModuleName')
@@ -171,6 +165,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
       }""".trimIndent())
 
     // Check that the version is picked up from the parent module:
+    val module1 = getAdditionalModuleByName(library1ModuleName)!!
     val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), mavenRepository)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
@@ -326,6 +321,20 @@ class GradleModuleSystemTest : AndroidTestCase() {
     assertThat(warning).isEmpty()
     assertThat(found).containsExactly(
       GradleCoordinate.parseCoordinateString("com.google.android.material:material:1.3.0"))
+    assertThat(missing).isEmpty()
+  }
+
+  fun testAddingKotlinStdlibDependenciesFromMultipleSources() {
+    // We are adding 2 kotlin dependencies which depend on different kotlin stdlib
+    // versions: 1.2.50 and 1.3.0. Make sure the dependencies can be added without errors.
+    val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("androidx.core", "core-ktx", "1.0.0"),
+             GradleCoordinate("androidx.navigation", "navigation-runtime-ktx", "2.0.0")))
+
+    assertThat(warning).isEmpty()
+    assertThat(found).containsExactly(
+      GradleCoordinate.parseCoordinateString("androidx.core:core-ktx:1.0.0"),
+      GradleCoordinate.parseCoordinateString("androidx.navigation:navigation-runtime-ktx:2.0.0"))
     assertThat(missing).isEmpty()
   }
 

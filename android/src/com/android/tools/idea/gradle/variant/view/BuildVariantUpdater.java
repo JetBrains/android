@@ -23,6 +23,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.ThreeState.YES;
+import static java.lang.System.currentTimeMillis;
 
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -436,8 +437,8 @@ public class BuildVariantUpdater {
 
     // Cannot preserve ABI. It is probably filtered out by the user. Fall back to any other available ABI for that build variant.
     String expectedPrefix = newVariant + "-";
-    Optional<NdkVariant> variant = ndkModel.getVariants().stream().filter(it -> it.getName().startsWith(expectedPrefix)).findFirst();
-    return variant.map(NdkVariant::getName).orElse(null);
+    Optional<String> variant = ndkModel.getNdkVariantNames().stream().filter(it -> it.startsWith(expectedPrefix)).findFirst();
+    return variant.orElse(null);
   }
 
   private static boolean hasBuildFilesChanged(@NotNull Project project) {
@@ -527,13 +528,21 @@ public class BuildVariantUpdater {
         // Run generate sources if needed
         generateSourcesIfNeeded(project, affectedAndroidFacets, indicator);
 
-        // Call listeners
-        if (application.isUnitTestMode()) {
+        Runnable listeners = () -> {
+          // Call selection change listeners.
           variantSelectionChangeListeners.run();
+
+          // And, notify all Gradle Sync listeners that Gradle sync was skipped.
+          GradleSyncState.getInstance(project).syncSkipped(currentTimeMillis());
+        };
+
+        if (application.isUnitTestMode()) {
+          listeners.run();
+        } else {
+          application.invokeLater(listeners);
         }
-        else {
-          application.invokeLater(variantSelectionChangeListeners);
-        }
+
+
         getLog().info("Finished setup of cached variant");
       }
 

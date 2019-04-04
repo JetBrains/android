@@ -44,6 +44,7 @@ object GuiTestOptions {
     getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.txt")
   fun getAspectsAgentBaseline(): String =
     getSystemProperty("aspects.agent.baseline", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
+  fun getAspectsBaselineExportPath(): String = getSystemProperty("aspects.baseline.export.path", "")
 
   //used for restarted and resumed test to qualify from what point to start
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)

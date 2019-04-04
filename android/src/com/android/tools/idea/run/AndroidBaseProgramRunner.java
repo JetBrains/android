@@ -29,8 +29,18 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
+import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentDescriptorReusePolicy;
+import com.intellij.execution.ui.RunContentManager;
+import com.intellij.execution.ui.RunnerLayoutUi;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.ui.content.Content;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +61,26 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
 
     FileDocumentManager.getInstance().saveAllDocuments();
     ExecutionResult result = state.execute(env.getExecutor(), this);
-    RunContentDescriptor descriptor = DefaultProgramRunnerKt.showRunContent(result, env);
+
+    RunContentDescriptor descriptor = null;
+    if (isSwap && result != null) {
+      // If we're hotswapping, we want to use the currently-running ContentDescriptor,
+      // instead of making a new one (which "show"RunContent actually does).
+      RunContentManager manager = RunContentManager.getInstance(env.getProject());
+      // Note we may still end up with a null descriptor since the user could close the tool tab after starting a hotswap.
+      descriptor = manager.findContentDescriptor(env.getExecutor(), result.getProcessHandler());
+    }
+
+    if (descriptor == null) {
+      descriptor = DefaultProgramRunnerKt.showRunContent(result, env);
+    }
+    else {
+      // Since we got to this branch, it implies we're swapping. In that case, create a wrapper
+      // descriptor so that the ExecutionManager doesn't try to "show" it
+      // (which actually creates a new descriptor and wipes out the old one).
+      descriptor = new HidableRunContentDescriptor(descriptor, true);
+    }
+
     if (descriptor != null) {
       if (isSwap) {
         // Don't show the tool window when we're applying (code) changes.
@@ -70,5 +99,188 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
     }
 
     return descriptor;
+  }
+
+  private static class HidableRunContentDescriptor extends RunContentDescriptor {
+    private final RunContentDescriptor myDelegate;
+    private final boolean myIsHidden;
+
+    public HidableRunContentDescriptor(@NotNull RunContentDescriptor delegate, boolean isHidden) {
+      super(null, null, new JLabel(), "hidden", null, null, null);
+      myDelegate = delegate;
+      myIsHidden = isHidden;
+    }
+
+    @Override
+    public Runnable getActivationCallback() {
+      return myDelegate.getActivationCallback();
+    }
+
+    @NotNull
+    @Override
+    public AnAction[] getRestartActions() {
+      return myDelegate.getRestartActions();
+    }
+
+    @Override
+    public ExecutionConsole getExecutionConsole() {
+      return myDelegate.getExecutionConsole();
+    }
+
+    @Override
+    public void dispose() {
+      myDelegate.dispose();
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return myDelegate.getIcon();
+    }
+
+    @Nullable
+    @Override
+    public ProcessHandler getProcessHandler() {
+      return myDelegate.getProcessHandler();
+    }
+
+    @Override
+    public void setProcessHandler(ProcessHandler processHandler) {
+      myDelegate.setProcessHandler(processHandler);
+    }
+
+    @Override
+    public boolean isContentReuseProhibited() {
+      return myDelegate.isContentReuseProhibited();
+    }
+
+    @Override
+    public JComponent getComponent() {
+      return myDelegate.getComponent();
+    }
+
+    @Override
+    public String getDisplayName() {
+      return myDelegate.getDisplayName();
+    }
+
+    @Override
+    public String getHelpId() {
+      return myDelegate.getHelpId();
+    }
+
+    @Nullable
+    @Override
+    public Content getAttachedContent() {
+      return myDelegate.getAttachedContent();
+    }
+
+    @Override
+    public void setAttachedContent(@NotNull Content content) {
+      myDelegate.setAttachedContent(content);
+    }
+
+    @Nullable
+    @Override
+    public String getContentToolWindowId() {
+      return myDelegate.getContentToolWindowId();
+    }
+
+    @Override
+    public void setContentToolWindowId(@Nullable String contentToolWindowId) {
+      myDelegate.setContentToolWindowId(contentToolWindowId);
+    }
+
+    @Override
+    public boolean isActivateToolWindowWhenAdded() {
+      return myDelegate.isActivateToolWindowWhenAdded();
+    }
+
+    @Override
+    public void setActivateToolWindowWhenAdded(boolean activateToolWindowWhenAdded) {
+      myDelegate.setActivateToolWindowWhenAdded(activateToolWindowWhenAdded);
+    }
+
+    @Override
+    public boolean isSelectContentWhenAdded() {
+      return myDelegate.isSelectContentWhenAdded();
+    }
+
+    @Override
+    public void setSelectContentWhenAdded(boolean selectContentWhenAdded) {
+      myDelegate.setSelectContentWhenAdded(selectContentWhenAdded);
+    }
+
+    @Override
+    public boolean isReuseToolWindowActivation() {
+      return myDelegate.isReuseToolWindowActivation();
+    }
+
+    @Override
+    public void setReuseToolWindowActivation(boolean reuseToolWindowActivation) {
+      myDelegate.setReuseToolWindowActivation(reuseToolWindowActivation);
+    }
+
+    @Override
+    public long getExecutionId() {
+      return myDelegate.getExecutionId();
+    }
+
+    @Override
+    public void setExecutionId(long executionId) {
+      myDelegate.setExecutionId(executionId);
+    }
+
+    @Override
+    public String toString() {
+      return myDelegate.toString();
+    }
+
+    @Override
+    public Computable<JComponent> getPreferredFocusComputable() {
+      return myDelegate.getPreferredFocusComputable();
+    }
+
+    @Override
+    public void setFocusComputable(Computable<JComponent> focusComputable) {
+      myDelegate.setFocusComputable(focusComputable);
+    }
+
+    @Override
+    public boolean isAutoFocusContent() {
+      return myDelegate.isAutoFocusContent();
+    }
+
+    @Override
+    public void setAutoFocusContent(boolean autoFocusContent) {
+      myDelegate.setAutoFocusContent(autoFocusContent);
+    }
+
+    @Nullable
+    @Override
+    public RunnerLayoutUi getRunnerLayoutUi() {
+      return myDelegate.getRunnerLayoutUi();
+    }
+
+    @Override
+    public void setRunnerLayoutUi(@Nullable RunnerLayoutUi runnerLayoutUi) {
+      myDelegate.setRunnerLayoutUi(runnerLayoutUi);
+    }
+
+    @Override
+    public boolean isHiddenContent() {
+      return myIsHidden;
+    }
+
+    @NotNull
+    @Override
+    public RunContentDescriptorReusePolicy getReusePolicy() {
+      return myDelegate.getReusePolicy();
+    }
+
+    @Override
+    public void setReusePolicy(@NotNull RunContentDescriptorReusePolicy reusePolicy) {
+      myDelegate.setReusePolicy(reusePolicy);
+    }
   }
 }

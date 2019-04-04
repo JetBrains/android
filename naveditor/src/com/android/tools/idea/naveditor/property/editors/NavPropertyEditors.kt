@@ -15,20 +15,31 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_GRAPH
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
 import com.android.tools.idea.common.property.editors.PropertyEditors
+import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isInclude
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
-import com.intellij.openapi.project.Project
-import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import com.intellij.openapi.project.Project
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 
 class NavPropertyEditors : PropertyEditors() {
 
@@ -36,25 +47,38 @@ class NavPropertyEditors : PropertyEditors() {
 
   override fun create(property: NlProperty): NlComponentEditor {
     val project = property.model.project
-    when (property.name) {
-      TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor(project)
-      NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
-      ATTR_START_DESTINATION -> return ChildDestinationsEditor()
-      ATTR_NAME -> return DestinationClassEditor()
-      ATTR_POP_UP_TO -> return AllDestinationsEditor()
-      ATTR_GRAPH -> return SourceGraphEditor()
-      ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM -> return AnimationEditor()
-      ATTR_LAYOUT -> return NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER)
+    val component = property.components.firstOrNull() ?: throw IllegalStateException()
+
+    when {
+      property.name == TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor(project)
+      component.isInclude ->
+        when (property.name) {
+          ATTR_GRAPH -> return SourceGraphEditor()
+        }
+      component.isNavigation ->
+        when (property.name) {
+          ATTR_START_DESTINATION -> return ChildDestinationsEditor()
+        }
+      component.isDestination ->
+        when (property.name) {
+          ATTR_NAME -> return DestinationClassEditor()
+          ATTR_LAYOUT -> return NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER)
+        }
+      component.isAction && component.parent?.isDestination == true ->
+        when (property.name) {
+          ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM -> return AnimationEditor()
+          ATTR_POP_UP_TO -> return AllDestinationsEditor()
+          ATTR_DESTINATION -> return VisibleDestinationsEditor()
+        }
     }
-    if (property.definition?.formats?.contains(AttributeFormat.BOOLEAN) == true) {
-      return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)
-    }
-    if (property is SimpleProperty) {
+
+    return when {
+      property.definition?.formats?.contains(AttributeFormat.BOOLEAN) == true -> NlBooleanEditor.createForInspector(DEFAULT_LISTENER)
       // SimpleProperty doesn't allow editing
-      return NonEditableEditor(project)
+      property is SimpleProperty -> NonEditableEditor(project)
+      else -> TextEditor(project, true, DEFAULT_LISTENER)
     }
     // TODO: handle other types
-    return TextEditor(project, true, DEFAULT_LISTENER)
   }
 
   companion object Factory {

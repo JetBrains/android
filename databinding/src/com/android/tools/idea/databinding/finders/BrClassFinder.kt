@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.databinding.config.DataBindingCodeGenService
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.psi.PsiClass
@@ -36,9 +35,6 @@ import com.intellij.psi.util.CachedValuesManager
 class BrClassFinder(private val component: DataBindingProjectComponent) : PsiElementFinder() {
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 
-  private val isEnabled: Boolean
-    get() = DataBindingCodeGenService.getInstance().isCodeGenSetToInMemoryFor(component)
-
   init {
     classByPackageCache = CachedValuesManager.getManager(component.project).createCachedValue(
       {
@@ -50,7 +46,7 @@ class BrClassFinder(private val component: DataBindingProjectComponent) : PsiEle
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
-    if (!isEnabled || psiPackage.project != scope.project) {
+    if (psiPackage.project != scope.project) {
       return PsiClass.EMPTY_ARRAY
     }
 
@@ -64,7 +60,7 @@ class BrClassFinder(private val component: DataBindingProjectComponent) : PsiEle
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    if (!isEnabled || !qualifiedName.endsWith(DataBindingUtil.BR)) {
+    if (!qualifiedName.endsWith(DataBindingUtil.BR)) {
       return null
     }
     val psiClass = classByPackageCache.value[qualifiedName]
@@ -72,10 +68,6 @@ class BrClassFinder(private val component: DataBindingProjectComponent) : PsiEle
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
-    if (!isEnabled) {
-      return PsiClass.EMPTY_ARRAY
-    }
-
     val aClass = findClass(qualifiedName, scope) ?: return PsiClass.EMPTY_ARRAY
     return arrayOf(aClass)
   }

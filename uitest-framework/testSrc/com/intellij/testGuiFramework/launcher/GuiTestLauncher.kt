@@ -151,7 +151,8 @@ object GuiTestLauncher {
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port",
       /* aspects agent options */
-      "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
+      "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}",
+      "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
     )
     /* options for BLeak */
     if (System.getProperty("enable.bleak") == "true") {

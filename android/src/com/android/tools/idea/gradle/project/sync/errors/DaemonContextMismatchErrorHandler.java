@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.DAEMON_CONTEXT_MISMATCH;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 // See https://code.google.com/p/android/issues/detail?id=76984
@@ -47,7 +48,7 @@ public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
         "Java home is different.".equals(message.get(2))) {
       String expectedAndActual = parseExpectedAndActualJavaHomes(text);
       if (isNotEmpty(expectedAndActual)) {
-        updateUsageTracker(project);
+        updateUsageTracker(project, DAEMON_CONTEXT_MISMATCH);
         return firstLine + "\n" + message.get(2) + "\n" + expectedAndActual + "\n" + "Please configure the JDK to match the expected one.";
       }
     }

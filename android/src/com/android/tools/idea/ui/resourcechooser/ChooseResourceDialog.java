@@ -1218,7 +1218,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @NotNull
-  private ResourceResolver getResourceResolver() {
+  public ResourceResolver getResourceResolver() {
     Configuration config = getConfiguration();
     ResourceResolver resolver = config.getResourceResolver();
     assert resolver != null;

@@ -54,7 +54,7 @@ open class CollapsibleLabelModel(
       fireValueChanged()
     }
 
-  var expanded = true
+  override var expanded = true
     set(value) {
       field = value
       children?.forEach { it.visible = value }

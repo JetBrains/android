@@ -69,7 +69,7 @@ final class VirtualDevice extends Device {
       .setKey(avdInfo.getName())
       .setAndroidDevice(new LaunchableAndroidDevice(avdInfo))
       .setSnapshots(getSnapshots(avdInfo))
-      .build(checker, null);
+      .build(checker);
   }
 
   @NotNull
@@ -137,15 +137,17 @@ final class VirtualDevice extends Device {
                                           @NotNull IDevice ddmlibDevice,
                                           @Nullable LaunchCompatibilityChecker checker,
                                           @NotNull KeyToConnectionTimeMap map) {
+    String key = virtualDevice.getKey();
     AvdInfo avdInfo = ((LaunchableAndroidDevice)virtualDevice.getAndroidDevice()).getAvdInfo();
 
     return new Builder()
       .setName(virtualDevice.getName())
-      .setKey(virtualDevice.getKey())
+      .setKey(key)
+      .setConnectionTime(map.get(key))
       .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, Collections.singletonList(avdInfo)))
       .setConnected(true)
       .setSnapshots(virtualDevice.mySnapshots)
-      .build(checker, map);
+      .build(checker);
   }
 
   static final class Builder extends Device.Builder<Builder> {
@@ -178,13 +180,13 @@ final class VirtualDevice extends Device {
 
     @NotNull
     @Override
-    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
-      return new VirtualDevice(this, checker, map);
+    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker) {
+      return new VirtualDevice(this, checker);
     }
   }
 
-  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
-    super(builder, checker, map);
+  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker) {
+    super(builder, checker);
 
     myConnected = builder.myConnected;
     mySnapshots = builder.mySnapshots;

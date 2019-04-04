@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 // See https://code.google.com/p/android/issues/detail?id=74842
@@ -33,7 +34,7 @@ public class CorruptGradleDependencyErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.startsWith("Premature end of Content-Length delimited message body")) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, CORRUPT_GRADLE_DEPENDENCY);
       return "Gradle's dependency cache seems to be corrupt or out of sync.";
     }
     return null;

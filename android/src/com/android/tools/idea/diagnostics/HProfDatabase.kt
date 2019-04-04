@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.diagnostics
 
-import com.google.common.collect.ImmutableList
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable
 import com.intellij.openapi.application.ApplicationNamesInfo
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.createDirectories
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.util.Locale
 
 /**
@@ -31,78 +30,33 @@ import java.util.Locale
  */
 class HProfDatabase(tmpDirectory: Path) {
 
-  // $tmpDirectory/hprof-list.txt contains list of hprof files to process later.
   // All hprof files should be in $tmpDirectory/hprof-temp/
-  private val hprofDatabase = tmpDirectory.resolve("hprof-list.txt").toAbsolutePath()
   private val hprofTempDirectory: Path = tmpDirectory.resolve("hprof-temp").toAbsolutePath()
 
   private val LOCK = Any()
 
-  fun getPathsAndCleanupDatabase(): List<Path> {
+  companion object {
+    private val LOG = Logger.getInstance(HeapDumpSnapshotRunnable::class.java)
+  }
+
+  fun cleanupHProfFiles(pathsToKeep: List<Path>) {
     synchronized(LOCK) {
       try {
-        val hprofPathsList: MutableList<Path> = mutableListOf()
-
-        if (Files.isRegularFile(hprofDatabase)) {
-          try {
-            val allLines = Files.readAllLines(hprofDatabase)
-            Files.deleteIfExists(hprofDatabase)
-
-            val allPaths = allLines
-              .map { Paths.get(it) }
-              .map(Path::toAbsolutePath)
-
-            // Delete all files that are not in hprof temp directory
-            var exceptionThrown = false
-            allPaths.filter { it.parent != hprofTempDirectory.toAbsolutePath() }.forEach {
-              try {
-                Files.deleteIfExists(it)
-              } catch (_: IOException) {
-                exceptionThrown = true
+        // Delete all files in temp directory, but ones on the list of kept files
+        if (Files.isDirectory(hprofTempDirectory, LinkOption.NOFOLLOW_LINKS)) {
+          val pathsToKeepSet = pathsToKeep.map(Path::toAbsolutePath).toSet()
+          Files.newDirectoryStream(hprofTempDirectory).use { stream ->
+            stream.forEach { path ->
+              if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) &&
+                  !pathsToKeepSet.contains(path.toAbsolutePath())) {
+                Files.delete(path)
               }
             }
-
-            //
-            if (!exceptionThrown) {
-              hprofPathsList.addAll(allPaths.filter { Files.isRegularFile(it) })
-            }
-          }
-          catch (t: Throwable) {
-            // If there was any problem with reading the database, ignore it and report
-            // any list. This way, all files in temp directory will be deleted and we should be back in
-            // good state.
           }
         }
-
-        // Delete all files in temp directory, but ones that are to be returned
-        val hprofPathsSet = hprofPathsList.toSet()
-        Files.newDirectoryStream(hprofTempDirectory).use { stream ->
-          stream.forEach { path ->
-            if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) &&
-                !hprofPathsSet.contains(path.toAbsolutePath())) {
-              Files.delete(path)
-            }
-          }
-        }
-        return hprofPathsList
       }
-      catch (_: IOException) {
-        // Return empty list if there was any exception, so that any path
-        // is never reported more than once.
-        return ImmutableList.of()
-      }
-    }
-  }
-
-  fun appendHProfPath(path: Path) {
-    appendLineToFile(hprofDatabase, path.toString())
-  }
-
-  private fun appendLineToFile(dbPath: Path, line: String) {
-    synchronized(LOCK) {
-      Files.createDirectories(dbPath.parent)
-      Files.newBufferedWriter(dbPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { writer ->
-        writer.appendln(line)
+      catch (e: IOException) {
+        LOG.warn("Exception while cleaning hprof files", e)
       }
     }
   }

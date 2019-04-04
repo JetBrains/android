@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.npw.template.components;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Provides a combobox which presents the user with a list of Programming Languages.
@@ -35,10 +38,10 @@ public final class LanguageComboProvider extends ComponentProvider<JComboBox> {
     languageCombo.setRenderer(new ListCellRendererWrapper<Language>() {
       @Override
       public void customize(JList list, Language value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getName());
+        setText(value == null ? message("android.wizard.language.combo.empty") : value.getName());
       }
     });
-    languageCombo.setToolTipText("The programming language used for code generation");
+    languageCombo.setToolTipText(message("android.wizard.language.combo.tooltip"));
     return languageCombo;
   }
 

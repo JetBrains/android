@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.PickSampleListDataViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.google.common.collect.ImmutableList;
@@ -85,5 +86,10 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   @Override
   public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of(new PickSampleListDataViewAction(TOOLS_URI, ATTR_LISTITEM));
   }
 }

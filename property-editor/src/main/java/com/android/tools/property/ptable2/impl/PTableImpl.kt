@@ -425,6 +425,14 @@ class PTableImpl(override val tableModel: PTableModel,
     return true
   }
 
+  // The implementation in JTable stops editing and performs auto resizing.
+  // When a row is added in a PTableImpl we often want to edit the new row.
+  // The default implementation will not allow that.
+  // Also auto resizing is not used in PTableImpl so no functionality should is lost.
+  override fun columnMarginChanged(event: ChangeEvent) {
+    resizeAndRepaint()
+  }
+
   // This method fixes a problem where the other cell was not repainted after
   // focus was removed from a PTable with a cell being edited.
   private fun repaintOtherCellInRow() {

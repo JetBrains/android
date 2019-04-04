@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module;
 
+import static com.android.tools.idea.flags.StudioFlags.NPW_TEMPLATES_AUTOMOTIVE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Mockito.when;
 
@@ -97,10 +98,10 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
       .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
-    List<String> expectedEntries = Lists.newArrayList(
-      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module", "Wear OS Module",
-      "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
-      "Import .JAR/.AAR Package", "Java Library"
+    List<String> expectedEntries = filterExpectedEntries(
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant App", "Instant App Feature Module",
+      "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
+      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library"
     );
 
     Assert.assertThat(sortedEntries, equalTo(expectedEntries));
@@ -120,8 +121,8 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
                                                      .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
-    List<String> expectedEntries = Lists.newArrayList(
-      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Wear OS Module",
+    List<String> expectedEntries = filterExpectedEntries(
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Automotive Module", "Wear OS Module",
       "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
       "Import .JAR/.AAR Package", "Java Library"
     );
@@ -142,10 +143,10 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     List<String> sortedEntries = ChooseModuleTypeStep.sortModuleEntries(moduleDescriptions).stream()
                                                      .map(ModuleGalleryEntry::getName).collect(Collectors.toList());
 
-    List<String> expectedEntries = Lists.newArrayList(
-      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module","Instant Dynamic Feature Module", "Instant App", "Instant App Feature Module", "Wear OS Module",
-      "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
-      "Import .JAR/.AAR Package", "Java Library"
+    List<String> expectedEntries = filterExpectedEntries(
+      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module","Instant Dynamic Feature Module", "Instant App",
+      "Instant App Feature Module", "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module",
+      "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library"
     );
 
     Assert.assertThat(sortedEntries, equalTo(expectedEntries));
@@ -173,5 +174,14 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
 
   private static Matcher<List<String>> equalToList(String... operand) {
     return equalTo(Arrays.asList(operand));
+  }
+
+  /**
+   * Filters a list of expected entries, excluding those that are disabled.
+   */
+  private static List<String> filterExpectedEntries(String ... expectedEntries) {
+    return Arrays.stream(expectedEntries)
+      .filter(entry -> !entry.equals("Automotive Module") || NPW_TEMPLATES_AUTOMOTIVE.get())
+      .collect(Collectors.toList());
   }
 }

@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_INSTALL_NDK_BUNDLE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class MissingNdkErrorHandler extends BaseSyncErrorHandler {
@@ -37,11 +39,11 @@ public class MissingNdkErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String message = rootCause.getMessage();
     if (isNotEmpty(message) && matchesNdkNotConfigured(getFirstLineMessage(message))) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, NDK_NOT_CONFIGURED);
       return "NDK not configured.";
     }
     else if (isNotEmpty(message) && matchesTriedInstall(message)) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, FAILED_TO_INSTALL_NDK_BUNDLE);
       return message;
     }
     return null;

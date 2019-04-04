@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.java;
 
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
@@ -30,15 +32,16 @@ public class LanguageLevelPropertyModelImpl extends ResolvedPropertyModelImpl im
     super(realModel);
   }
 
+  @TestOnly
   @Override
   @Nullable
   public LanguageLevel toLanguageLevel() {
-    String string = toString();
-    return string == null ? null : parseFromGradleString(string);
+    String stringToParse = LanguageLevelUtil.getStringToParse(this);
+    return stringToParse == null ? null : parseFromGradleString(stringToParse);
   }
 
   @Override
   public void setLanguageLevel(@NotNull LanguageLevel level) {
-    setValue(convertToGradleString(level, toString()));
+    setValue(convertToGradleString(level, LanguageLevelUtil.getStringToParse(this)));
   }
 }

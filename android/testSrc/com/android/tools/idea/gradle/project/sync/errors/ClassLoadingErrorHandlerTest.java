@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMess
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND;
 
@@ -61,7 +62,7 @@ public class ClassLoadingErrorHandlerTest extends AndroidGradleTestCase {
 
   public void testHandleErrorWhenClassCannotBeCast() throws Exception {
     assertErrorAndHyperlinksDisplayed(
-      new Throwable("Cause: org.slf4j.impl.JDK14LoggerFactory cannot be cast to ch.qos.logback.classic.LoggerContext"), null);
+      new Throwable("Cause: org.slf4j.impl.JDK14LoggerFactory cannot be cast to ch.qos.logback.classic.LoggerContext"), CANNOT_BE_CAST_TO);
   }
 
   private void assertErrorAndHyperlinksDisplayed(@NotNull Throwable cause, @Nullable AndroidStudioEvent.GradleSyncFailure syncFailure)
