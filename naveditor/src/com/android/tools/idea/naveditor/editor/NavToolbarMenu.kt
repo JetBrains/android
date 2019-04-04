@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_BACKGROUND
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
@@ -47,8 +47,8 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
       .setBlockClicksThroughBalloon(true)
       .setAnimationCycle(200)
       .setRequestFocus(true)  // Note that this seems non-functional, since it requests focus before the balloon is shown
-    balloonBuilder.setBorderColor(SUBDUED_BACKGROUND)
-    balloonBuilder.setFillColor(SUBDUED_BACKGROUND)
+    balloonBuilder.setBorderColor(secondaryPanelBackground)
+    balloonBuilder.setFillColor(secondaryPanelBackground)
     balloon = balloonBuilder.createBalloon().also {
       it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
     }
