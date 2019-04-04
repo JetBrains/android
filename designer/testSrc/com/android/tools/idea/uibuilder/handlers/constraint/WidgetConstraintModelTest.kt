@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
@@ -116,14 +117,18 @@ class WidgetConstraintModelTest: SceneTest() {
     assertTrue(widgetModel.isMissingVerticalConstrained)
     assertFalse(widgetModel.isOverConstrained)
 
-    linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_PARENT)
-    linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_PARENT)
+    NlWriteCommandActionUtil.run(linear, "Set Params") {
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_PARENT)
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_PARENT)
+    }
 
     assertFalse(widgetModel.isMissingHorizontalConstrained)
     assertFalse(widgetModel.isMissingVerticalConstrained)
     assertFalse(widgetModel.isOverConstrained)
 
-    linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_PARENT)
+    NlWriteCommandActionUtil.run(linear, "Set Constraints") {
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_PARENT)
+    }
     assertTrue(widgetModel.isOverConstrained)
 
     // Test Constraint Guideline doesn't need to constrained vertically and horizontally.
