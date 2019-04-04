@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("RecommendedPluginVersionUpgrade")
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade
 
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade
@@ -25,55 +26,51 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.Executors
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
 val NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 class RecommendedPluginVersionUpgradeChecker(private val reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder())
-  : StartupActivity, DumbAware {
+  : StartupActivity {
 
   override fun runActivity(project: Project) {
     checkUpgrade(project, reminder)
   }
+}
 
-  companion object {
+/**
+ * Show or schedule the balloon notification when project is upgradable.
+ */
+@JvmOverloads
+fun checkUpgrade(project: Project, reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder()) {
+  val nextReminderTime = TimeBasedUpgradeReminder().getStoredTimestamp(project)?.toLongOrNull() ?: 0
+  val current = System.currentTimeMillis()
 
-    /**
-     * Show or schedule the balloon notification when project is upgradable.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun checkUpgrade(project: Project, reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder()) {
-      val nextReminderTime = TimeBasedUpgradeReminder().getStoredTimestamp(project)?.toLongOrNull() ?: 0
-      val current = System.currentTimeMillis()
-
-      if (current >= nextReminderTime) {
-        // It is 1 day longer after last checking, or user didn't ask to remind later if nextReminderTime is 0.
-        checkAndShowNotification(project, reminder)
-      }
-      else {
-        // It is less than 1 day after last checking, schedule next checking.
-        scheduleNextReminder(project, nextReminderTime - current, TimeUnit.MILLISECONDS, reminder)
-      }
-    }
-
-    @JvmStatic
-    @JvmOverloads
-    fun scheduleNextReminder(project: Project,
-                             delay: Long,
-                             unit: TimeUnit,
-                             reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder()) {
-      val executors = Executors.newScheduledThreadPool(1)
-        .apply { schedule({ checkAndShowNotification(project, reminder) }, delay, unit) }
-      Disposer.register(project, Disposable { executors.shutdownNow() })
-    }
+  if (current >= nextReminderTime) {
+    // It is 1 day longer after last checking, or user didn't ask to remind later if nextReminderTime is 0.
+    checkAndShowNotification(project, reminder)
+  }
+  else {
+    // It is less than 1 day after last checking, schedule next checking.
+    scheduleNextReminder(project, nextReminderTime - current, TimeUnit.MILLISECONDS, reminder)
   }
 }
+
+@JvmOverloads
+fun scheduleNextReminder(project: Project,
+                         delay: Long,
+                         unit: TimeUnit,
+                         reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder()) {
+  val executor = AppExecutorUtil.getAppScheduledExecutorService()
+  val notificationFuture = executor.schedule({ checkAndShowNotification(project, reminder) }, delay, unit)
+  // In order to not leak the project object we need to make sure that the scheduled task is not around once the project has been disposed.
+  Disposer.register(project, Disposable { notificationFuture.cancel(false) })
+}
+
 
 private fun checkAndShowNotification(project: Project, reminder: TimeBasedUpgradeReminder) {
   val upgrade = PluginVersionUpgrade.getInstance(project)
