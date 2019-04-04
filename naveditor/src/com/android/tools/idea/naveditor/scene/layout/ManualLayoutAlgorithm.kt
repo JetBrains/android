@@ -64,7 +64,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     }
 
   init {
-    val connection = module.project.messageBus.connect()
+    val connection = module.project.messageBus.connect(sceneManager)
     connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before {
       override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
         if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it) } == true) {
