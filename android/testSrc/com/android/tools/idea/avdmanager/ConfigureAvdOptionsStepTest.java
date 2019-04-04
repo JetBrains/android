@@ -25,14 +25,19 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
+import com.android.testutils.NoErrorsOrWarningsLogger;
+import com.android.tools.idea.observable.BatchInvoker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.AndroidTestCase;
 import org.junit.rules.TemporaryFolder;
 
@@ -55,17 +60,32 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private static final String SDK_LOCATION = "/sdk";
   private static final String AVD_LOCATION = "/avd";
 
+  private AvdInfo myQAvdInfo;
   private AvdInfo myMarshmallowAvdInfo;
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
   private ISystemImage mySnapshotSystemImage;
   private Map<String, String> myPropertiesMap = Maps.newHashMap();
+  private SystemImageDescription myQImageDescription;
+  private Device myFoldable;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
+
+    // Q image (API 29)
+    String qPath = "system-images;android-29;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath);
+    DetailsTypes.SysImgDetailsType detailsQ =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsQ.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsQ.setAbi("x86");
+    detailsQ.setApiLevel(29);
+    pkgQ.setTypeDetails((TypeDetails) detailsQ);
+    pkgQ.setInstalledPath(new File(SDK_LOCATION, "29-Q-x86"));
+    fileOp.recordExistingFile(new File(pkgQ.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
@@ -105,7 +125,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     pkgZulu.setInstalledPath(new File(SDK_LOCATION, "zulu-x86"));
     fileOp.recordExistingFile(new File(pkgZulu.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgNPreview, pkgZulu));
+    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgNPreview, pkgZulu));
 
     RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
 
@@ -115,6 +135,8 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
+    ISystemImage QImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(qPath, progress).getLocation());
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
@@ -124,12 +146,26 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
+    myQImageDescription = new SystemImageDescription(QImage);
+    DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
+    myFoldable = devMgr.getDevice("7.3in Foldable", "Generic");
+
+    myQAvdInfo =
+      new AvdInfo("name", new File("ini"), "folder", QImage, myPropertiesMap);
     myMarshmallowAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
     myPreviewAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
     myZuluAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", ZuluImage, myPropertiesMap);
+
+    BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    BatchInvoker.clearOverrideStrategy();
+    super.tearDown();
   }
 
   public void testIsGoogleApiTag() throws Exception {
@@ -154,6 +190,25 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertEquals(OFF, gpuOtherMode(22, true, true, true));
     assertEquals(OFF, gpuOtherMode(23, true, false, true));
     assertEquals(OFF, gpuOtherMode(23, false, false, true));
+  }
+
+  public void testFoldedDevice() {
+    ensureSdkManagerAvailable();
+    AvdOptionsModel optionsModel = new AvdOptionsModel(myQAvdInfo);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    optionsStep.addListeners();
+    Disposer.register(getTestRootDisposable(), optionsStep);
+    optionsModel.device().setNullableValue(myFoldable);
+
+    JBLabel label = optionsStep.getDeviceFrameTitle();
+    assertFalse(label.isEnabled());
+    label = optionsStep.getSkinDefinitionLabel();
+    assertFalse(label.isEnabled());
+    JCheckBox box = optionsStep.getDeviceFrameCheckbox();
+    assertFalse(box.isEnabled());
+    assertFalse(box.isSelected());
+    SkinChooser skinChooser = optionsStep.getSkinComboBox();
+    assertFalse(skinChooser.isEnabled());
   }
 
   public void testUpdateSystemImageData() throws Exception {
