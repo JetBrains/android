@@ -28,6 +28,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -230,7 +231,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myList.addMouseListener(myMouseListener);
     myModel.addListener(myModelListener);
 
-    myList.setBackground(NavColors.SUBDUED_BACKGROUND);
+    myList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     updateComponentList();
     myList.putClientProperty(CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
       if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
