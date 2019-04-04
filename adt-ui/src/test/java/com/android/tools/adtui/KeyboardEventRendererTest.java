@@ -46,6 +46,7 @@ public class KeyboardEventRendererTest {
     FontMetrics defaultMetrics = jp.getFontMetrics(jp.getFont());
     when(myGraphics2D.getFontMetrics()).thenReturn(defaultMetrics);
     when(myGraphics2D.drawImage(any(Image.class), anyInt(), anyInt(), any(Component.class))).thenReturn(true);
+    when(myGraphics2D.getTransform()).thenReturn(new AffineTransform());
     myRenderer = new KeyboardEventRenderer();
   }
 
