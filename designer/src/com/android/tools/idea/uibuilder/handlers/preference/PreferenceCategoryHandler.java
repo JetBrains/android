@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.intellij.openapi.application.WriteAction;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +65,10 @@ public final class PreferenceCategoryHandler extends ViewGroupHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+    NlWriteCommandActionUtil.run(newChild, "Clearing Width and Height", () -> {
+      newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+      newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+    });
 
     return true;
   }

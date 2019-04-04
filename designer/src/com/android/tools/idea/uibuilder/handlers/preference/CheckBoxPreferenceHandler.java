@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -77,7 +78,9 @@ public final class CheckBoxPreferenceHandler extends PreferenceHandler {
       return false;
     }
 
-    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
+    NlWriteCommandActionUtil.run(newChild, "Set Preference Key", () -> {
+      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
+    });
     return true;
   }
 }
