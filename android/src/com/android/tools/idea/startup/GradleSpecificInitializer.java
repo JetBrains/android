@@ -89,7 +89,6 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
-    setUpInstantRunActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
@@ -159,22 +158,6 @@ public class GradleSpecificInitializer implements Runnable {
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
-  }
-
-  private static void setUpInstantRunActions() {
-    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
-    // in code as well (instead of xml).
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
-    if (runnerActions instanceof DefaultActionGroup) {
-      AnAction action;
-      if (StudioFlags.JVMTI_REFRESH.get()) {
-        action = new ApplyChangesAction();
-      } else {
-        action = new HotswapAction();
-      }
-      ((DefaultActionGroup)runnerActions).add(action, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-    }
   }
 
   private static void setUpWelcomeScreenActions() {
