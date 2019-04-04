@@ -96,8 +96,7 @@ public abstract class CreateResourceActionBase extends AnAction {
 
     final boolean enabled = isAvailable(dataContext);
 
-    presentation.setVisible(enabled);
-    presentation.setEnabled(enabled);
+    presentation.setEnabledAndVisible(enabled);
   }
 
   @Override

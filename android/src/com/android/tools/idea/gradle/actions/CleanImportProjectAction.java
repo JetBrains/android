@@ -148,8 +148,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent e) {
     boolean isGradleProject = isGradleProjectIfNotNull(e.getProject());
     Presentation presentation = e.getPresentation();
-    presentation.setVisible(isGradleProject);
-    presentation.setEnabled(isGradleProject);
+    presentation.setEnabledAndVisible(isGradleProject);
   }
 
   private static boolean isGradleProjectIfNotNull(@Nullable Project project) {

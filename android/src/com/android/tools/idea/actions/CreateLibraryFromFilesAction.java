@@ -106,8 +106,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     }
 
     Presentation presentation = e.getPresentation();
-    presentation.setVisible(visible);
-    presentation.setEnabled(visible);
+    presentation.setEnabledAndVisible(visible);
   }
 
   @NotNull
