@@ -38,8 +38,7 @@ public class OpenStringResourceEditorAction extends AnAction {
     if (project != null && file != null) {
       show = StringResourceEditorProvider.canViewTranslations(project, file);
     }
-    e.getPresentation().setVisible(show);
-    e.getPresentation().setEnabled(show);
+    e.getPresentation().setEnabledAndVisible(show);
   }
 
   @Override
