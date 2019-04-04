@@ -303,7 +303,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SIMPLER_RESIZE = Flag.create(
     NELE, "simpler.resize", "Simplify resize",
     "Simplify design surface resize",
-    true);
+    false);
 
   public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
     NELE, "constraint.section", "Constraint Section",
