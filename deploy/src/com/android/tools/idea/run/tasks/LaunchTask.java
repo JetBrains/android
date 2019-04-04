@@ -20,6 +20,7 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.execution.Executor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -39,7 +40,7 @@ public interface LaunchTask {
 
   boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer);
 
-  default LaunchResult run(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  default LaunchResult run(@NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     boolean success = perform(device, launchStatus, printer);
     LaunchResult result = new LaunchResult();
     result.setSuccess(success);
