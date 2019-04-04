@@ -15,14 +15,12 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-import static com.android.SdkConstants.CLASS_ACTIVITY;
-
 import com.intellij.ide.presentation.Presentation;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
-import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
@@ -31,18 +29,20 @@ import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.structure.manifest.ActivityPresentationProvider;
 
+import java.util.List;
+
 @Presentation(provider = ActivityPresentationProvider.class)
 @Styleable("AndroidManifestActivity")
 public interface Activity extends ApplicationComponent {
   @Attribute("name")
   @Required
   @Convert(PackageClassConverter.class)
-  @PackageClassConverter.Options(inheriting = CLASS_ACTIVITY)
+  @ExtendClass("android.app.Activity")
   AndroidAttributeValue<PsiClass> getActivityClass();
 
   @Attribute("parentActivityName")
   @Convert(PackageClassConverter.class)
-  @PackageClassConverter.Options(inheriting = CLASS_ACTIVITY)
+  @ExtendClass("android.app.Activity")
   AndroidAttributeValue<PsiClass> getParentActivityName();
 
   @Attribute("enabled")
