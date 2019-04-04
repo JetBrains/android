@@ -66,8 +66,6 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
     AnAction action = new AnAction() {
       @Override
       public void update(@NotNull AnActionEvent e) {
-        super.update(e);
-
         Presentation presentation = e.getPresentation();
         presentation.setText(contextMenuItem.getText());
         presentation.setIcon(contextMenuItem.getIcon());
