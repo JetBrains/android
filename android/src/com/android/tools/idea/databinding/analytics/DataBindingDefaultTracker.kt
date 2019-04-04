@@ -29,16 +29,20 @@ import com.intellij.openapi.project.Project
 class DataBindingDefaultTracker private constructor(private val project: Project): DataBindingTracker {
 
   /**
-   * This method would only ever be called when data binding module is not enabled. Always track false.
+   * This method could only be called when data binding module is not enabled. The only thing we can track is the enabled bit, which we
+   * always set to false.
    */
-  override fun trackDataBindingEnabled() {
-    val studioEventBuilder = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DATA_BINDING).setDataBindingEvent(
-      DataBindingEvent.newBuilder().setType(DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT).setPollMetadata(
-        DataBindingEvent.DataBindingPollMetadata.newBuilder().setDataBindingEnabled(false).build()))
-    UsageTracker.log(studioEventBuilder.withProjectId(project))
-  }
-
   override fun trackPolledMetaData() {
+    val studioEventBuilder = AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.DATA_BINDING
+      dataBindingEvent = DataBindingEvent.newBuilder().apply {
+        type = DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT
+        pollMetadata = DataBindingEvent.DataBindingPollMetadata.newBuilder().apply {
+          dataBindingEnabled = false
+        }.build()
+      }.build()
+    }
+    UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
   override fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {

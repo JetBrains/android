@@ -37,6 +37,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea:intellij.java.analysis.impl[module]",
+        "//tools/idea/.idea/libraries:NanoXML",
     ],
 )
 

@@ -58,27 +58,16 @@ class DataBindingProjectComponent(val project: Project) : ModificationTracker {
         DataBindingUtil.getDataBindingEnabledTracker(),
         ModuleManager.getInstance(project))
     }, false)
+
     GradleSyncState.subscribe(project, object : GradleSyncListener {
       override fun syncSucceeded(project: Project) {
-        dataBindingTracker.trackDataBindingEnabled()
+        dataBindingTracker.trackPolledMetaData()
       }
 
       override fun syncFailed(project: Project, errorMessage: String) {
-        dataBindingTracker.trackDataBindingEnabled()
+        dataBindingTracker.trackPolledMetaData()
       }
     })
-    // TODO(b/129763461): investigate how to collect polling metadata in a way that minimally affects IDE performance
-    //    GradleBuildState.subscribe(project, object : GradleBuildListener {
-    //      override fun buildStarted(context: BuildContext) {
-    //      }
-    //
-    //      override fun buildExecutorCreated(request: GradleBuildInvoker.Request) {
-    //      }
-    //
-    //      override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-    //        dataBindingTracker.trackPolledMetaData()
-    //      }
-    //    })
   }
 
   fun hasAnyDataBindingEnabledFacet(): Boolean = getDataBindingEnabledFacets().isNotEmpty()
