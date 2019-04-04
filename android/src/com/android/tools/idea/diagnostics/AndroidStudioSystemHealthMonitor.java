@@ -186,6 +186,10 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
   }
 
+  public boolean hasPendingHeapReport() throws IOException {
+    return myReportsDatabase.getReports().stream().anyMatch(r -> r instanceof UnanalyzedHeapReport);
+  }
+
   public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
     return ourInstance;
   }
@@ -301,9 +305,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     Application application = ApplicationManager.getApplication();
     registerPlatformEventsListener();
 
-    application.executeOnPooledThread(() -> {
-      checkRuntime();
-    });
+    application.executeOnPooledThread(this::checkRuntime);
 
     if (SystemInfo.isWindows && StudioFlags.WINDOWS_DEFENDER_CHECK_ENABLED.get()) {
       application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
@@ -315,9 +317,17 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       });
     }
 
-    if (!application.isInternal() && !StatisticsUploadAssistant.isSendAllowed()) {
-      return;
+    List<DiagnosticReport> reports = myReportsDatabase.reapReports();
+    processDiagnosticReports(reports);
+
+    if (application.isInternal() || StatisticsUploadAssistant.isSendAllowed()) {
+      initDataCollection();
     }
+  }
+
+  private void initDataCollection() {
+    Application application = ApplicationManager.getApplication();
+
     ourStudioActionCount.set(myProperties.getOrInitLong(STUDIO_ACTIVITY_COUNT, 0L) + 1);
     ourStudioExceptionCount.set(getPersistedExceptionCount(STUDIO_EXCEPTION_COUNT_FILE));
     ourInitialPersistedExceptionCount.set(ourStudioExceptionCount.get());
@@ -327,7 +337,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
-    trackStudioReports(myReportsDatabase.reapReportDetails());
 
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
@@ -616,18 +625,19 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     showNotification("sys.health.too.many.exceptions", notificationAction);
   }
 
-  private static void trackStudioReports(@NotNull List<DiagnosticReport> reports) {
-    if (reports.isEmpty()) {
-      return;
+  private static void processDiagnosticReports(@NotNull List<DiagnosticReport> reports) {
+    if (AnalyticsSettings.getOptedIn()) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        sendDiagnosticReportsOfTypeWithLimit("PerformanceThreadDump", reports, MAX_PERFORMANCE_REPORTS_COUNT);
+        sendDiagnosticReportsOfTypeWithLimit("Histogram", reports, MAX_HISTOGRAM_REPORTS_COUNT);
+        sendDiagnosticReportsOfTypeWithLimit("Freeze", reports, MAX_FREEZE_REPORTS_COUNT);
+      });
     }
 
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      sendDiagnosticReportsOfTypeWithLimit("PerformanceThreadDump", reports, MAX_PERFORMANCE_REPORTS_COUNT);
-      sendDiagnosticReportsOfTypeWithLimit("Histogram", reports, MAX_HISTOGRAM_REPORTS_COUNT);
-      sendDiagnosticReportsOfTypeWithLimit("Freeze", reports, MAX_FREEZE_REPORTS_COUNT);
-    });
+    processHeapReports(reports);
+  }
 
-
+  private static void processHeapReports(@NotNull List<DiagnosticReport> reports) {
     List<Path> hprofsToBeAnalyzed = startHeapReportsAnalysis(reports
                          .stream()
                          .filter(r -> r.getType().equals("UnanalyzedHeap"))

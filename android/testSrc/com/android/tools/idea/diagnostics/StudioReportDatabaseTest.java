@@ -70,11 +70,11 @@ public class StudioReportDatabaseTest {
     db.appendReport(new PerformanceThreadDumpReport(t1, "test"));
     db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
 
-    List<DiagnosticReport> reports = db.reapReportDetails();
+    List<DiagnosticReport> reports = db.reapReports();
     List<Path> paths = reports.stream().map(r -> ((PerformanceThreadDumpReport) r).getThreadDumpPath()).collect(Collectors.toList());
     assertThat(paths, hasItems(t1, t2));
 
-    reports = db.reapReportDetails();
+    reports = db.reapReports();
     assertTrue(reports.isEmpty());
   }
 
@@ -92,7 +92,7 @@ public class StudioReportDatabaseTest {
     db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
     db.appendReport(new HistogramReport(t3, h3, MemoryReportReason.LowMemory, "test"));
 
-    List<DiagnosticReport> reports = db.reapReportDetails();
+    List<DiagnosticReport> reports = db.reapReports();
 
     assertEquals(3, reports.size());
     assertEquals(2, reports.stream().filter(r -> r.getType().equals("Histogram")).count());
@@ -106,7 +106,7 @@ public class StudioReportDatabaseTest {
 
     db.appendReport(new HistogramReport(t1, h1, MemoryReportReason.LowMemory, "Histogram description"));
 
-    DiagnosticReport details = db.reapReportDetails().get(0);
+    DiagnosticReport details = db.reapReports().get(0);
 
     assertThat(details, CoreMatchers.is(instanceOf(HistogramReport.class)));
     HistogramReport report = (HistogramReport) details;
@@ -130,7 +130,7 @@ public class StudioReportDatabaseTest {
     db.appendReport(new FreezeReport(threadDump, paths, false, 20L, "Freeze report"));
     db.appendReport(new FreezeReport(threadDump, paths, true, null, "Freeze report"));
 
-    List<DiagnosticReport> diagnosticReports = db.reapReportDetails();
+    List<DiagnosticReport> diagnosticReports = db.reapReports();
     FreezeReport report = (FreezeReport) diagnosticReports.get(0);
     assertEquals("Freeze", report.getType());
     assertEquals(threadDump, report.getThreadDumpPath());
@@ -146,7 +146,7 @@ public class StudioReportDatabaseTest {
   @Test
   public void testEmptyFreezeReport() throws IOException {
     db.appendReport(new FreezeReport(null, new TreeMap<>(), false, null, null));
-    FreezeReport report = (FreezeReport) db.reapReportDetails().get(0);
+    FreezeReport report = (FreezeReport) db.reapReports().get(0);
 
     assertNull(report.getThreadDumpPath());
     assertEquals(0, report.getReportParts().size());
@@ -160,7 +160,7 @@ public class StudioReportDatabaseTest {
 
     db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
 
-    DiagnosticReport details = db.reapReportDetails().get(0);
+    DiagnosticReport details = db.reapReports().get(0);
 
     assertEquals("PerformanceThreadDump", details.getType());
     assertEquals(t1, ((PerformanceThreadDumpReport) details).getThreadDumpPath());
@@ -172,7 +172,7 @@ public class StudioReportDatabaseTest {
     Path t1 = createTempFileWithThreadDump("T1");
     db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
     Files.write(databaseFile.toPath(), "Corrupted json".getBytes(Charsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
-    List<DiagnosticReport> details = db.reapReportDetails();
+    List<DiagnosticReport> details = db.reapReports();
 
     // If the db file contains corrupted of malformed json, return no reports.
     assertEquals(0, details.size());
@@ -180,7 +180,7 @@ public class StudioReportDatabaseTest {
     // Test that database works even after its file gets corrupted.
     Path t2 = createTempFileWithThreadDump("T2");
     db.appendReport(new PerformanceThreadDumpReport(t2, "Performance thread dump description"));
-    details = db.reapReportDetails();
+    details = db.reapReports();
 
     assertEquals(1, details.size());
     assertEquals(t2, ((PerformanceThreadDumpReport) details.get(0)).getThreadDumpPath());
@@ -199,7 +199,7 @@ public class StudioReportDatabaseTest {
       "9.8.7.6" // kotlin version
     );
     db.appendReport(new HistogramReport(t1, t2, MemoryReportReason.LowMemory, "", properties));
-    List<DiagnosticReport> reports = db.reapReportDetails();
+    List<DiagnosticReport> reports = db.reapReports();
     HistogramReport report = (HistogramReport) reports.get(0);
     assertNotSame(properties, report.getProperties());
     assertEquals(properties, report.getProperties());
