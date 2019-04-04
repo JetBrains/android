@@ -52,8 +52,7 @@ public class ConvertToNinePatchAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     final VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
     final boolean isPng = isPngFile(file);
-    e.getPresentation().setEnabled(isPng);
-    e.getPresentation().setVisible(isPng);
+    e.getPresentation().setEnabledAndVisible(isPng);
   }
 
   @Contract("null -> false")

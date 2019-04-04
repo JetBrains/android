@@ -43,8 +43,7 @@ public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
     boolean enable = isValidAndroidGradleModuleSelected(dataContext);
 
     Presentation presentation = e.getPresentation();
-    presentation.setEnabled(enable);
-    presentation.setVisible(enable);
+    presentation.setEnabledAndVisible(enable);
   }
 
   @Override
