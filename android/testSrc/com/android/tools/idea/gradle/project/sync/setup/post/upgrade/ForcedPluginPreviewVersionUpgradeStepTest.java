@@ -59,6 +59,9 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
       {"3.4.0-rc02", "3.4.0", true}, // old rc's only allowed from previews, not stable
       {"3.4.0-rc02", "3.5.0", true}, // old rc's only allowed from previews, not stable
 
+      {"3.4.0-alpha03", "3.5.0", true},
+      {"3.4.0-alpha05", "3.4.0", true},
+
       {"3.4.0-rc01", "3.5.0-alpha01", false},
       {"3.4.0-rc02", "3.5.0-alpha01", false},
       {"3.3.1", "3.5.0-alpha01", false},
