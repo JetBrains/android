@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.naveditor.structure
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.SelectionModel
-import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.naveditor.model.uiName
+import com.android.tools.idea.naveditor.scene.NavColors.FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_BACKGROUND
 import com.android.tools.idea.naveditor.structure.DestinationList.ROOT_NAME
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -47,9 +48,8 @@ class BackPanel(private val surface: NavDesignSurface, private val updateCallbac
 
   init {
     Disposer.register(parentDisposable, this)
-    val colorSet = SceneContext.get(surface.currentSceneView).colorSet
-    background = colorSet.subduedBackground
-    border = BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, colorSet.frames),
+    background = SUBDUED_BACKGROUND
+    border = BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, FRAME),
                                                 BorderFactory.createEmptyBorder(5, 5, 5, 5))
     isVisible = false
     add(label, BorderLayout.WEST)

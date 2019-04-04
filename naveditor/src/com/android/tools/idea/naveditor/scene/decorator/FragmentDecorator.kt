@@ -25,6 +25,7 @@ import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.FRAGMENT_BORDER_SPACING
+import com.android.tools.idea.naveditor.scene.NavColors.FRAME
 import com.android.tools.idea.naveditor.scene.convertToRoundRect
 import com.android.tools.idea.naveditor.scene.growRectangle
 import java.awt.geom.Rectangle2D
@@ -40,7 +41,7 @@ object FragmentDecorator : NavScreenDecorator() {
     val sceneView = sceneContext.surface?.currentSceneView ?: return
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.frames, REGULAR_FRAME_THICKNESS))
+    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, FRAME, REGULAR_FRAME_THICKNESS))
 
     @SwingCoordinate val imageRectangle = Rectangle2D.Float()
     imageRectangle.setRect(drawRectangle)
@@ -57,7 +58,7 @@ object FragmentDecorator : NavScreenDecorator() {
         DrawRoundRectangle(
           DRAW_FRAME_LEVEL,
           outerRectangle,
-          frameColor(sceneContext, component),
+          frameColor(component),
           HIGHLIGHTED_FRAME_THICKNESS
         )
       )

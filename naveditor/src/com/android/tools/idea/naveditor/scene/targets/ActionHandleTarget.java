@@ -36,9 +36,9 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.NavColors;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -191,9 +191,8 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     int duration = (int)Math.abs(DURATION * (myHandleState.myOuterRadius - newState.myOuterRadius) / OUTER_RADIUS_LARGE);
 
-    ColorSet colorSet = sceneContext.getColorSet();
-    Color outerColor = colorSet.getBackground();
-    Color innerColor = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
+    Color outerColor = NavColors.BACKGROUND;
+    Color innerColor = getComponent().isSelected() ? NavColors.SELECTED_FRAME : NavColors.SUBDUED_FRAME;
 
     if (myIsDragging) {
       list.add(new DrawActionHandleDrag(DRAW_ACTION_HANDLE_DRAG_LEVEL, center, initialOuterRadius, finalOuterRadius,
