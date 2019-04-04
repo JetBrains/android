@@ -64,7 +64,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -326,9 +325,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
 
-    if (type != PreferenceScreenFileType.INSTANCE) {
-      mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
-    }
+    mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
 
     getDesignSurface().updateErrorDisplay();
     getDesignSurface().getLayeredPane().setPreferredSize(primarySceneView.getPreferredSize());

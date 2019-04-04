@@ -173,7 +173,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
     }
 
     private fun createComponent(facet: AndroidFacet, fixture: CodeInsightTestFixture, descriptor: ComponentDescriptor): List<NlComponent> {
-      val model = NlModelBuilderUtil.model(facet, fixture as JavaCodeInsightTestFixture, "layout.xml", descriptor).build()
+      val model = NlModelBuilderUtil.model(facet, fixture as JavaCodeInsightTestFixture, "layout", "layout.xml", descriptor).build()
       val root = model.getRoot()
       return if (root.childCount > 0) root.children else model.components
     }
