@@ -34,18 +34,16 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.PTableModelUpdateListener
-import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
-import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.EdtRule
@@ -70,19 +68,16 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
+    util.checkTitle(0, "Declared Attributes", true)
+    val tableModel = util.checkTable(1).tableModel
     assertThat(util.inspector.lines).hasSize(2)
-    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
-    assertThat(util.inspector.lines[1].type).isEqualTo(FakeLineType.TABLE)
-
-    assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
-    assertThat(util.inspector.lines[0].expandable).isTrue()
 
     // Check that there are 3 attributes
-    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
+    assertThat(tableModel.items.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
 
     // Also check the values
-    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.value })
+    assertThat(tableModel.items.map { it.value })
       .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing").inOrder()
   }
 
@@ -92,22 +87,22 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
+    val titleModel = util.checkTitle(0, "Declared Attributes", true)
+    val tableModel = util.checkTable(1).tableModel
+    assertThat(util.inspector.lines).hasSize(2)
+
+    titleModel.expanded = false
     performAddNewRowAction(util)
 
-    assertThat(util.inspector.lines).hasSize(2)
-    assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
-    assertThat(util.inspector.lines[1].type).isEqualTo(FakeLineType.TABLE)
-
-    assertThat(util.inspector.lines[0].title).isEqualTo("Declared Attributes")
-    assertThat(util.inspector.lines[0].expandable).isTrue()
-    assertThat(util.inspector.lines[0].actions.size).isEqualTo(2)
+    // Check that the "Declared Attributes" title is now expanded
+    assertThat(titleModel.expanded).isTrue()
 
     // Check that there are 4 attributes
-    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
+    assertThat(tableModel.items.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT, "").inOrder()
 
     // Also check the values
-    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.value })
+    assertThat(tableModel.items.map { it.value })
       .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing", null).inOrder()
   }
 
@@ -119,7 +114,7 @@ class DeclaredAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
-    val declared = util.inspector.lines[1].tableModel!!
+    val declared = util.checkTable(1).tableModel
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.VALUE)).isTrue()
     assertThat(declared.acceptMoveToNextEditor(declared.items[1], PTableColumn.NAME)).isTrue()
@@ -138,7 +133,7 @@ class DeclaredAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
-    val declared = util.inspector.lines[1].tableModel!!
+    val declared = util.checkTable(1).tableModel
     val newProperty = declared.items.last() as NeleNewPropertyItem
     newProperty.name = PREFIX_ANDROID + ATTR_TEXT_SIZE
     newProperty.delegate?.value = "10sp"
@@ -161,7 +156,7 @@ class DeclaredAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
-    val declared = util.inspector.lines[1].tableModel!!
+    val declared = util.checkTable(1).tableModel
     val listener = mock(PTableModelUpdateListener::class.java)
     declared.addListener(listener)
 
@@ -177,7 +172,7 @@ class DeclaredAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     performAddNewRowAction(util)
 
-    val declared = util.inspector.lines[1].tableModel!!
+    val declared = util.checkTable(1).tableModel
     val listener = mock(PTableModelUpdateListener::class.java)
     declared.addListener(listener)
 
@@ -192,7 +187,7 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    val tableLine = util.inspector.lines[1] as FakeTableLineModel
+    val tableLine = util.checkTable(1)
     val model = tableLine.tableModel
     tableLine.selectedItem = model.items[2] // select ATTR_TEXT
     performDeleteRowAction(util)
@@ -214,7 +209,8 @@ class DeclaredAttributesInspectorBuilderTest {
     performDeleteRowAction(util)
 
     // Check that there are only the 3 declared attributes left (the place holder is gone)
-    assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
+    val declared = util.checkTable(1).tableModel
+    assertThat(declared.items.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
   }
 
@@ -225,7 +221,7 @@ class DeclaredAttributesInspectorBuilderTest {
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
 
-    val declared = util.inspector.lines[1].tableModel!!
+    val declared = util.checkTable(1).tableModel
     val listener = RecursiveUpdateListener(declared)
     declared.addListener(listener)
 

@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -55,9 +56,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,18 +206,27 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     }
 
     Scene.FilterType filerType = myComponent.getScene().getFilterType();
+    boolean matchesFilter;
     switch (filerType) {
       case BASELINE_ANCHOR:
-        return isBaselineAnchor();
+        matchesFilter = isBaselineAnchor();
+        break;
       case VERTICAL_ANCHOR:
-        return isVerticalAnchor();
+        matchesFilter = isVerticalAnchor();
+        break;
       case HORIZONTAL_ANCHOR:
-        return isHorizontalAnchor();
+        matchesFilter = isHorizontalAnchor();
+        break;
       case ANCHOR:
-        return true;
+        matchesFilter = true;
+        break;
       default:
-        return false;
+        matchesFilter = false;
+        break;
     }
+    Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    boolean tryingToConnect = state != null && (state & myType.getMask()) != 0 && isTargeted();
+    return  matchesFilter || tryingToConnect;
   }
 
   @Override
@@ -407,7 +419,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       else {
         marginValue = Math.max(marginValue, 0);
       }
-      String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      String margin;
+      if (Scout.getMarginResource() == null) {
+        margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      } else {
+        margin = Scout.getMarginResource();
+      }
       String attr = ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute);
       modification.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
       if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
@@ -772,7 +789,26 @@ public class ConstraintAnchorTarget extends AnchorTarget {
           float dx = myComponent.getScene().getDesignSurface().getContentOriginX();
           float dy = myComponent.getScene().getDesignSurface().getContentOriginY();
 
+          // Finish previous dragging setup.
+          myIsDragging = false;
+          DecoratorUtilities.setTryingToConnectState(myComponent.getAuthoritativeNlComponent(), myType, false);
 
+          List<NlComponent> allItemsNlComponents =
+            allItems.stream().map(item -> item.getAuthoritativeNlComponent()).collect(Collectors.toCollection(ArrayList::new));
+          menu.addPopupMenuListener(new PopupMenuListenerAdapter() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+              super.popupMenuWillBecomeVisible(e);
+              DecoratorUtilities.setTryingToConnectState(myComponent.getAuthoritativeNlComponent(), allItemsNlComponents, myType, true);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+              super.popupMenuWillBecomeInvisible(e);
+              DecoratorUtilities.setTryingToConnectState(myComponent.getAuthoritativeNlComponent(), allItemsNlComponents, myType, false);
+              myComponent.getScene().setFilterType(Scene.FilterType.NONE);
+            }
+          });
           menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
         }
       }
@@ -781,6 +817,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (myIsDragging) {
         myIsDragging = false;
         DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+        myComponent.getScene().needsRebuildList();
       }
     }
   }
@@ -820,6 +857,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     SceneComponent mySrc;
     SceneComponent myDest;
     Scout.Connect myType;
+    @Nullable AnchorTarget myDestTarget;
+
     List<SceneComponent> mAllItems;
 
     public ConnectMenu(List<SceneComponent> allItems,
@@ -831,6 +870,11 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       mySrc = src;
       myDest = dest;
       myType = type;
+      for (Target target : myDest.getTargets()) {
+        if (target instanceof AnchorTarget && ((AnchorTarget)target).getType() == myType.getDstAnchorType()) {
+          myDestTarget = (AnchorTarget)target;
+        }
+      }
       addActionListener(this);
       addChangeListener(this);
     }
@@ -850,8 +894,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       for (SceneComponent item : mAllItems) {
         item.setDrawState(SceneComponent.DrawState.NORMAL);
       }
-
-      myDest.setDrawState(SceneComponent.DrawState.DRAG);
+      if (myDestTarget != null) {
+        myDestTarget.setMouseHovered(isSelected() || isArmed());
+      }
+      myDest.setDrawState(isSelected() || isArmed() ? SceneComponent.DrawState.HOVER : SceneComponent.DrawState.NORMAL);
       myDest.getScene().needsRebuildList();
       myDest.getScene().repaint();
     }

@@ -65,6 +65,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.impl.NotificationsConfigurationImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -413,7 +414,7 @@ public class GradleSyncState {
     mySummary.setSyncTimestamp(timestamp);
     enableNotifications();
     notifyStateChanged();
-    warnIfNotJdkHome();
+    ApplicationManager.getApplication().invokeAndWait(() -> warnIfNotJdkHome());
   }
 
   private void warnIfNotJdkHome() {
@@ -423,6 +424,9 @@ public class GradleSyncState {
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.getDisplayId()).isShouldLog()) {
       return;
     }
+    // using the IdeSdks requires us be on the dispatch thread
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
     IdeSdks ideSdks = IdeSdks.getInstance();
     if (ideSdks.isUsingJavaHomeJdk()) {
       return;

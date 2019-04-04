@@ -127,7 +127,7 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
 
     @Override
     public void refresh() {
-      myPanel.useComponent(myComponent);
+      myPanel.useComponent(myComponent, null);
     }
   }
 }

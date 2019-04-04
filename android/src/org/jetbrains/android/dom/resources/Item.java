@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.Required;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.dom.converters.FormatConverter;
@@ -37,6 +38,7 @@ public interface Item extends ResourceElement {
     }
   }
 
+  @Required
   @Convert(TypeConverter.class)
   GenericAttributeValue<String> getType();
 

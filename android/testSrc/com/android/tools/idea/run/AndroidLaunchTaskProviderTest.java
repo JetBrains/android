@@ -128,7 +128,7 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
     }
 
     @Override
-    public void terminateLaunch(@Nullable String reason) {
+    public void terminateLaunch(@Nullable String reason, boolean destroyProcess) {
 
     }
   }

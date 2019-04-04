@@ -18,24 +18,26 @@ package com.android.tools.idea.diagnostics.hprof.action
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
-import com.android.tools.idea.diagnostics.report.HeapReport
+import com.android.tools.idea.diagnostics.report.AnalyzedHeapReport
+import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.BorderLayout
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -44,6 +46,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import java.util.function.BiConsumer
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -51,7 +54,7 @@ import javax.swing.JPanel
 import javax.swing.JTextArea
 import javax.swing.event.HyperlinkEvent
 
-class AnalysisRunnable(private val hprofPath: Path,
+class AnalysisRunnable(val report: UnanalyzedHeapReport,
                        private val deleteAfterAnalysis: Boolean) : Runnable {
 
   companion object {
@@ -74,13 +77,8 @@ class AnalysisRunnable(private val hprofPath: Path,
       }
     }
 
-    override fun onFinished() {
-      val nextCheckMs = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)
-      PropertiesComponent.getInstance().setValue(HeapDumpSnapshotRunnable.NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
-    }
-
     private fun deleteHprofFileAsync() {
-      CompletableFuture.runAsync { Files.deleteIfExists(hprofPath) }
+      CompletableFuture.runAsync { Files.deleteIfExists(report.hprofPath) }
     }
 
     override fun run(indicator: ProgressIndicator) {
@@ -95,12 +93,18 @@ class AnalysisRunnable(private val hprofPath: Path,
       else {
         openOptions = setOf(StandardOpenOption.READ)
       }
-      val reportString = FileChannel.open(hprofPath, openOptions).use { channel ->
+      val reportString = FileChannel.open(report.hprofPath, openOptions).use { channel ->
         HProfAnalysis(channel, SystemTempFilenameSupplier()).analyze(indicator)
       }
       if (deleteAfterAnalysis) {
         deleteHprofFileAsync()
       }
+
+      val analyzedReport = AnalyzedHeapReport(
+        reportString,
+        report.heapProperties,
+        report.properties
+      )
 
       val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
         AndroidBundle.message("heap.dump.analysis.notification.title"),
@@ -108,13 +112,13 @@ class AnalysisRunnable(private val hprofPath: Path,
         AndroidBundle.message("heap.dump.analysis.notification.ready.content"),
         NotificationType.INFORMATION)
       notification.isImportant = true
-      notification.addAction(ReviewReportAction(reportString))
+      notification.addAction(ReviewReportAction(analyzedReport))
 
       notification.notify(null)
     }
   }
 
-  class ReviewReportAction(private val reportString: String) :
+  class ReviewReportAction(private val report: AnalyzedHeapReport) :
     NotificationAction(AndroidBundle.message("heap.dump.analysis.notification.action.title"))
   {
     private var reportShown = false
@@ -126,20 +130,26 @@ class AnalysisRunnable(private val hprofPath: Path,
       UIUtil.invokeLaterIfNeeded {
         notification.expire()
 
-        val reportDialog = ShowReportDialog(reportString)
-        val canSend = reportDialog.showAndGet()
-        if (canSend) {
-          // User can modify the report text and add/remove text. Get the updated contents.
-          uploadReport(reportDialog.textArea.text)
+        val reportDialog = ShowReportDialog(report)
+        val userAgreedToSendReport = reportDialog.showAndGet()
+
+        // Silence report collection for next 7 days if not invoked by the user
+        if (!report.heapProperties.reason.isUserInvoked()) {
+          val nextCheckMs = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)
+          PropertiesComponent.getInstance().setValue(HeapDumpSnapshotRunnable.NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
+        }
+
+        if (userAgreedToSendReport) {
+          uploadReport()
         }
       }
     }
 
-    private fun uploadReport(report: String) {
+    private fun uploadReport() {
       // No need to check for AnalyticsSettings.hasOptedIn() as user agreed to the privacy policy by
       // clicking "Send" in ShowReportDialog.
-      StudioCrashReporter.getInstance().submit(HeapReport(report).asCrashReport(), true)
-        .whenCompleteAsync { _, throwable: Throwable? ->
+      StudioCrashReporter.getInstance().submit(report.asCrashReport(), true)
+        .whenCompleteAsync(BiConsumer<String, Throwable?> { _, throwable ->
           if (throwable == null) {
             HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),
@@ -157,16 +167,17 @@ class AnalysisRunnable(private val hprofPath: Path,
               null
             ).setImportant(false).notify(null)
           }
-        }
+        }, PooledThreadExecutor.INSTANCE)
     }
   }
 }
 
-class ShowReportDialog(report: String) : DialogWrapper(false) {
-  val textArea: JTextArea = JTextArea(30, 130)
+class ShowReportDialog(report: AnalyzedHeapReport) : DialogWrapper(false) {
+  private val textArea: JTextArea = JTextArea(30, 130)
 
   init {
-    textArea.text = report
+    textArea.text = report.text
+    textArea.isEditable = false
     textArea.caretPosition = 0
     init()
     title = AndroidBundle.message("heap.dump.analysis.report.dialog.title")
@@ -175,8 +186,11 @@ class ShowReportDialog(report: String) : DialogWrapper(false) {
 
   override fun createCenterPanel(): JComponent? {
     val pane = JPanel(BorderLayout(0,5))
+    val productName = ApplicationNamesInfo.getInstance().fullProductName
 
-    pane.add(JLabel(AndroidBundle.message("heap.dump.analysis.report.dialog.header")), BorderLayout.PAGE_START)
+    val header = JLabel(AndroidBundle.message("heap.dump.analysis.report.dialog.header", productName))
+
+    pane.add(header, BorderLayout.PAGE_START)
     pane.add(JBScrollPane(textArea), BorderLayout.CENTER)
     with (SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK)) {
       isOpaque = false

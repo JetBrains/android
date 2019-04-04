@@ -24,20 +24,22 @@ import com.intellij.build.output.BuildOutputInstantReader
  * This reader simply takes an input and splits it around any newlines, omitting empty strings,
  * which mimics the behavior of [BuildOutputInstantReaderImpl]
  */
-class TestBuildOutputInstantReader(input: String) : BuildOutputInstantReader {
-  private val myLines: List<String> = Splitter.on("\n").omitEmptyStrings().split(input).toList()
-  private var currentIndex: Int = 0
+class TestBuildOutputInstantReader(private val myLines: List<String>) : BuildOutputInstantReader {
+  constructor(input: String) : this(Splitter.on("\n").omitEmptyStrings().split(input).toList())
+
+  var currentIndex: Int = -1
+    private set
 
   override fun getBuildId(): Any {
     return "Dummy Id"
   }
 
   override fun readLine(): String? {
-    return if (currentIndex == myLines.size) {
+    currentIndex++
+    return if (currentIndex >= myLines.size) {
       null
     }
-    else myLines[currentIndex++]
-
+    else myLines[currentIndex]
   }
 
   override fun pushBack() {

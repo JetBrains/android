@@ -87,7 +87,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
-    false);
+    true);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
@@ -123,8 +123,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_SIMPLEPERF_HOST = Flag.create(
     PROFILER, "cpu.simpleperf.host", "Enable simpleperf report-sample to be run on the host.",
     "If enabled, simpleperf report-sample commands are going to be run on the host instead of the device.",
-    // TODO(b/120140674): Enable running 'simplperf report-sample' command on Windows (not device).
-    !SystemInfo.isWindows);
+    true);
 
   public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
     PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
@@ -305,6 +304,16 @@ public final class StudioFlags {
     NELE, "simpler.resize", "Simplify resize",
     "Simplify design surface resize",
     false);
+
+  public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
+    NELE, "constraint.section", "Constraint Section",
+    "Show the constraint section for constraint widget in property panel",
+    true);
+
+  public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
+    NELE, "property.panel.actionbar", "Property Panel Actionbar",
+    "Support Actionbar in property panel",
+    true);
 
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
@@ -513,6 +522,18 @@ public final class StudioFlags {
     "If enabled, instrumentation output keys (from calling Instrumentation#sendStatus) that begin with 'android.studio.display.' "
     + "will have their values printed after a test has finished running.",
     true
+  );
+
+  public static final Flag<Boolean> KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS = Flag.create(
+    TESTING, "kotlin.incorrect.scope.check", "Checks the scope of classes being used in kotlin test files",
+    "If enabled, an inspection will run that shows an error when a class is used in a kotlin test file that is not is scope.",
+    false
+  );
+
+  public static final Flag<Boolean> NITROGEN = Flag.create(
+    TESTING, "nitrogen", "Enables Nitrogen test runner features",
+    "If enabled, Nitrogen test runner configuration becomes available in addition to traditional test runner configurations.",
+    false
   );
 
   private static final FlagGroup THEME_EDITOR = new FlagGroup(FLAGS, "theme.editor", "Theme Editor");

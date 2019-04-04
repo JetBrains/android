@@ -645,7 +645,9 @@ public class DisplayList {
     addListElementProvider(ButtonDecorator.DrawButton.class, ButtonDecorator.DrawButton::createFromString);
     addListElementProvider(SwitchDecorator.DrawSwitch.class, SwitchDecorator.DrawSwitch::createFromString);
     addListElementProvider(RadioButtonDecorator.DrawRadioButton.class, RadioButtonDecorator.DrawRadioButton::createFromString);
+    addListElementProvider(ToggleButtonDecorator.DrawButton.class, ToggleButtonDecorator.DrawButton::createFromString);
     addListElementProvider(CheckBoxDecorator.DrawCheckbox.class, CheckBoxDecorator.DrawCheckbox::createFromString);
+    addListElementProvider(UnknownViewDecorator.DrawUnknownDecorator.class, UnknownViewDecorator.DrawUnknownDecorator::createFromString);
   }
 
   static public void addListElementConstructor(Class<? extends DrawCommand> c) {

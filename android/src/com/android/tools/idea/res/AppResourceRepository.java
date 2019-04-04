@@ -28,6 +28,7 @@ import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
@@ -166,7 +167,9 @@ class AppResourceRepository extends MultiResourceRepository {
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
                                              @NotNull List<LocalResourceRepository> modules,
                                              @NotNull Collection<AarResourceRepository> libraries) {
-    return new AppResourceRepository(facet, modules, libraries);
+    AppResourceRepository repository = new AppResourceRepository(facet, modules, libraries);
+    Disposer.register(facet, repository);
+    return repository;
   }
 
   private static class IdResourceItem implements ResourceItem {

@@ -22,7 +22,6 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -30,9 +29,6 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,45 +67,15 @@ final class GroupDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x,
                      @AndroidCoordinate int y,
                      int modifiers,
-                     @NotNull InsertType insertType,
-                     @Nullable Runnable callback) {
+                     @NotNull InsertType insertType) {
     NlComponent groupComponent = myGroup.getNlComponent();
     int insertIndex = getInsertIndex();
-
-    if (!editor.canInsertChildren(groupComponent, myItems, insertIndex)) {
-      return;
-    }
 
     NlWriteCommandActionUtil.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
-      insertGroupComponentAsync(groupComponent, insertIndex, insertType, callback);
     });
-  }
-
-  /**
-   * Inserts the given group component and children at the given insert index in a separate thread backed by a {@link ProgressIndicator}.
-   * This is necessary to cover the scenario where we need to add the component (and/or children) dependencies to the project.
-   * {@link NlDependencyManager#addDependencies} can block, therefore shouldn't be called from EDT. After inserting the components, executes
-   * a given callback (which should not block) in EDT.
-   */
-  private void insertGroupComponentAsync(@NotNull NlComponent groupComponent, int insertIndex, @NotNull InsertType insertType,
-                                         @Nullable Runnable callback) {
-    ProgressManager.getInstance().run(new Task.Backgroundable(editor.getModel().getProject(), "Adding Components...") {
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        NlDependencyManager.getInstance().addDependencies(myItems, editor.getModel().getFacet());
-        editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
-      }
-
-      @Override
-      public void onFinished() {
-        if (callback != null) {
-          callback.run();
-        }
-      }
-    });
+    editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
   }
 
   private void updateOrderInCategoryAttributes() {

@@ -79,10 +79,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -111,6 +112,7 @@ import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.android.dom.converters.StringResourceAdapterConverter;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.Action;
 import org.jetbrains.android.dom.manifest.Activity;
@@ -126,6 +128,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
@@ -141,33 +144,37 @@ public class AndroidDomUtil {
   private static final Logger LOG = Logger.getInstance(AndroidDomUtil.class);
 
   private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
-      AndroidxName.of("android.support.v7.widget.", "RecyclerView.LayoutManager");
-  private static final AndroidxName RECYCLER_VIEW_PACKAGE_NAME =
-    AndroidxName.of("android.support.v7.widget.");
+    AndroidxName.of("android.support.v7.widget.", "RecyclerView$LayoutManager");
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_NAMES =
     {RECYCLER_VIEW_LAYOUT_MANAGER_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES =
-    {RECYCLER_VIEW_PACKAGE_NAME.oldName(), RECYCLER_VIEW_PACKAGE_NAME.newName()};
+    {"android.support.v7.widget.", "androidx.recyclerview.widget."};
   private static final AndroidxName COORDINATOR_LAYOUT_BEHAVIOR_NAME =
-    AndroidxName.of("android.support.design.widget.", "CoordinatorLayout.Behavior");
+    AndroidxName.of("android.support.design.widget.", "CoordinatorLayout$Behavior");
   private static final String[] COORDINATOR_LAYOUT_BEHAVIOR_NAMES =
-    {COORDINATOR_LAYOUT_BEHAVIOR_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
+    {COORDINATOR_LAYOUT_BEHAVIOR_NAME.oldName(), COORDINATOR_LAYOUT_BEHAVIOR_NAME.newName()};
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER = new PackageClassConverter.Builder()
-    .useManifestBasePackage(true)
-    .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
-    .completeLibraryClasses(true)
-    .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
-    .build();
-  private static final PackageClassConverter COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER = new PackageClassConverter.Builder()
-    .useManifestBasePackage(true)
-    .completeLibraryClasses(true)
-    .withExtendClassNames(COORDINATOR_LAYOUT_BEHAVIOR_NAMES)
-    .build();
+
+  private static final Converter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
+    new StringResourceAdapterConverter(
+      new PackageClassConverter.Builder()
+        .useManifestBasePackage(true)
+        .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
+        .completeLibraryClasses(true)
+        .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
+        .build());
+
+  private static final Converter COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER =
+    new StringResourceAdapterConverter(
+      new PackageClassConverter.Builder()
+        .useManifestBasePackage(true)
+        .completeLibraryClasses(true)
+        .withExtendClassNames(COORDINATOR_LAYOUT_BEHAVIOR_NAMES)
+        .build());
+
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
@@ -320,7 +327,7 @@ public class AndroidDomUtil {
     else {
       // TODO: This should be duplicated to handle the similar classes from the new support packages
       // RecyclerView:
-      if (localName.equals(ATTR_LAYOUT_MANAGER) && RECYCLER_VIEW.isEquals(tagName)) {
+      if (localName.equals(ATTR_LAYOUT_MANAGER) && isInheritor(xmlTag, RECYCLER_VIEW)) {
         return RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER;
       }
       else if (localName.equals(ATTR_LAYOUT_BEHAVIOR)) {
@@ -328,9 +335,8 @@ public class AndroidDomUtil {
         // when scrolling.
         // https://developer.android.com/reference/android/support/design/widget/CoordinatorLayout
         XmlTag parentTag = xmlTag.getParentTag();
-        String parentTagName = parentTag != null ? parentTag.getName() : null;
-        if (COORDINATOR_LAYOUT.isEquals(parentTagName)) {
-          return COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER;
+        if (parentTag != null && isInheritor(parentTag, COORDINATOR_LAYOUT)) {
+            return COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER;
         }
       }
     }
@@ -511,10 +517,10 @@ public class AndroidDomUtil {
       return null;
     }
 
-    boolean isActivity = isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-    boolean isService = isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
-    boolean isReceiver = isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
-    boolean isProvider = isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
+    boolean isActivity = InheritanceUtil.isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+    boolean isService = InheritanceUtil.isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
+    boolean isReceiver = InheritanceUtil.isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
+    boolean isProvider = InheritanceUtil.isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
 
     if (!isActivity && !isService && !isReceiver && !isProvider) {
       return null;
@@ -564,10 +570,14 @@ public class AndroidDomUtil {
     return null;
   }
 
-  public static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
-    Project project = aClass.getProject();
-    PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
-    return baseClass != null && aClass.isInheritor(baseClass, true);
+  private static boolean isInheritor(@NotNull XmlTag tag, @NotNull AndroidxName baseClass) {
+    String qualifiedName = tag.getName();
+    if (StringUtil.isEmpty(qualifiedName)) {
+      return false;
+    }
+
+    PsiClass tagClass = JavaPsiFacade.getInstance(tag.getProject()).findClass(qualifiedName, tag.getResolveScope());
+    return InheritanceUtil.isInheritor(tagClass, MigrateToAndroidxUtil.getNameInProject(baseClass, tag.getProject()));
   }
 
   private static final boolean CHECK_THREADING = false;

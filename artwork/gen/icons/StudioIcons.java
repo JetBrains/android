@@ -16,6 +16,8 @@ public class StudioIcons {
   }
 
   public static class Avd {
+    public static final Icon DEVICE_AUTOMOTIVE_LARGE = load("/studio/icons/avd/device-automotive-large.svg"); // 32x32
+    public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/avd/device-automotive.svg"); // 16x16
     public static final Icon DEVICE_CAR_LARGE = load("/studio/icons/avd/device-car-large.svg"); // 32x32
     public static final Icon DEVICE_CAR = load("/studio/icons/avd/device-car.svg"); // 16x16
     public static final Icon DEVICE_GLASS_LARGE = load("/studio/icons/avd/device-glass-large.svg"); // 32x32
@@ -335,6 +337,7 @@ public class StudioIcons {
       public static final Icon CONSTRAIN_TO_TOP = load("/studio/icons/layout-editor/toolbar/constrain-to-top.svg"); // 16x16
       public static final Icon CONSTRAIN_TOP_TO_BOTTOM = load("/studio/icons/layout-editor/toolbar/constrain-top-to-bottom.svg"); // 16x16
       public static final Icon CONSTRAIN_TOP_TO_TOP = load("/studio/icons/layout-editor/toolbar/constrain-top-to-top.svg"); // 16x16
+      public static final Icon CREATE_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/create-constraints.svg"); // 16x16
       public static final Icon CREATE_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/create-horiz-chain.svg"); // 16x16
       public static final Icon CREATE_VERT_CHAIN = load("/studio/icons/layout-editor/toolbar/create-vert-chain.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_PACKED = load("/studio/icons/layout-editor/toolbar/cycle-chain-packed.svg"); // 16x16

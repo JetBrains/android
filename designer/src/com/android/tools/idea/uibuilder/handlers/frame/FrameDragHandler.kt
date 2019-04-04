@@ -71,8 +71,7 @@ class FrameDragHandler(editor: ViewEditor,
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType,
-                      callback: Runnable?) {
+                      insertType: InsertType) {
     if (component != null) {
       dragTarget.mouseCancel()
       layout.scene.removeComponent(component)

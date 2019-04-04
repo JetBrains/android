@@ -93,17 +93,32 @@ public class DnDTransferItem {
     return null;
   }
 
-  private static DnDTransferItem fromResourceUrl(ResourceUrl url) {
-    if (url.type == ResourceType.DRAWABLE) {
-      @Language("XML")
-      String representation = "<ImageView\n" +
-                              "    android:layout_width=\"wrap_content\"\n" +
-                              "    android:layout_height=\"wrap_content\"\n" +
-                              "    android:src=\"" + url.toString() + "\"/>";
-      ResourceManagerTracking.INSTANCE.logDragOnViewGroup(url.type);
-      return new DnDTransferItem(new DnDTransferComponent(SdkConstants.IMAGE_VIEW, representation, 200, 100));
+  @Nullable
+  private static DnDTransferItem fromResourceUrl(@NotNull ResourceUrl url) {
+    String representation;
+    String tag;
+    ResourceManagerTracking.INSTANCE.logDragOnViewGroup(url.type);
+    // TODO(caen) Delegate this to the view Handlers
+    if (url.type == ResourceType.LAYOUT) {
+      representation = String.format("<include layout=\"%s\"/>", url.toString());
+      tag = SdkConstants.TAG_INCLUDE;
     }
-    return null;
+    else if (url.type == ResourceType.COLOR || url.type == ResourceType.DRAWABLE) {
+      String size = url.type == ResourceType.COLOR ? "50dp" : "wrap_content";
+
+      @Language("XML")
+      String xml = "<ImageView\n" +
+                   "    android:layout_width=\"%1$s\"\n" +
+                   "    android:layout_height=\"%1$s\"\n" +
+                   "    android:src=\"%2$s\"/>";
+      representation = String.format(xml, size, url.toString());
+
+      tag = SdkConstants.IMAGE_VIEW;
+    }
+    else {
+      return null;
+    }
+    return new DnDTransferItem(new DnDTransferComponent(tag, representation, 100, 100));
   }
 
   public boolean isFromPalette() {

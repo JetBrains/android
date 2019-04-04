@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.dynamicfeature
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -32,7 +31,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,19 +40,13 @@ class AddDynamicFeatureTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
-  private var conditionalDeliveryStore = false
-
-  @Before
-  fun setUp() {
-    conditionalDeliveryStore = ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC
-  }
 
   @After
   fun tearDown() {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.clearOverride()
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.clearOverride()
-    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = conditionalDeliveryStore
   }
+
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
    * new module wizard.
@@ -76,6 +68,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addDefaultDynamicModule() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importSimpleApplication()
 
     createDefaultDynamicModule(ideFrame)
@@ -118,6 +111,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addInstantDynamicModule_baseHasNoModule() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
     val ideFrame = guiTest.importSimpleApplication()
     createInstantDynamicModule(ideFrame)
@@ -224,6 +218,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addDynamicModuleWithModifiedDelivery() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
@@ -265,8 +260,6 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
-    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
-
     val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
@@ -311,8 +304,6 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
-    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
-
     val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
@@ -357,8 +348,6 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
-    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
-
     val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
@@ -407,7 +396,6 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
-    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
 
     val ideFrame = guiTest.importSimpleApplication()
 
@@ -494,10 +482,11 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addLoginActivityToDynamicModule() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importSimpleApplication()
 
     createDefaultDynamicModule(ideFrame)
-    .invokeMenuPath("File", "New", "Activity", "Login Activity")
+      .invokeMenuPath("File", "New", "Activity", "Login Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
@@ -538,6 +527,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
     val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.editor

@@ -4,6 +4,7 @@ import com.android.SdkConstants
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.completion.CompletionType
@@ -14,7 +15,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import com.intellij.lang.documentation.DocumentationProvider
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -32,6 +33,7 @@ import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
+import org.jetbrains.android.refactoring.setAndroidxProperties
 import java.io.IOException
 import java.util.ArrayList
 import java.util.Arrays
@@ -85,6 +87,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
         <declare-styleable name="RecyclerView">
           <attr name="layoutManager" format="string" />
         </declare-styleable>
+        <string name='my_layout_manager'>com.example.MyLayoutManager</string>
       </resources>
       """.trimIndent()
 
@@ -203,6 +206,27 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
           }
         }
       }
+      """.trimIndent()
+
+  @Language("JAVA")
+  private val coordinatorLayout =
+      """
+      package androidx.coordinatorlayout.widget;
+
+      public class CoordinatorLayout extends android.view.ViewGroup {
+        public static abstract class Behavior {}
+      }
+      """.trimIndent()
+
+  @Language("XML")
+  private val coordinatorLayoutResources =
+      """
+      <resources>
+        <declare-styleable name="CoordinatorLayout_Layout">
+          <attr name="layout_behavior" format="string" />
+        </declare-styleable>
+        <string name='appbar_scrolling_view_behavior'>foo.Bar</string>
+      </resources>
       """.trimIndent()
 
   override fun providesCustomManifest(): Boolean {
@@ -398,7 +422,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestHighlighting("missing_attrs.xml")
   }
 
-  fun testLayoutManagerAttribute() {
+  fun testLayoutManagerAttributeForOldRecyclerView() {
     // RecyclerView has a "layoutManager" attribute that should give completions that extend
     // the RecyclerView.LayoutManager class.
     myFixture.addClass(recyclerViewOld)
@@ -406,6 +430,17 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestCompletionVariants("recycler_view.xml",
                              "android.support.v7.widget.GridLayoutManager",
                              "android.support.v7.widget.LinearLayoutManager")
+  }
+
+  fun testLayoutManagerAttributeForNewRecyclerView() {
+    // RecyclerView has a "layoutManager" attribute that should give completions that extend
+    // the RecyclerView.LayoutManager class.
+    setAndroidx()
+    myFixture.addClass(recyclerViewNew)
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
+    doTestCompletionVariants("recycler_view_0.xml",
+                             "androidx.recyclerview.widget.GridLayoutManager",
+                             "androidx.recyclerview.widget.LinearLayoutManager")
   }
 
   fun testLayoutManagerAttributeHighlighting() {
@@ -457,7 +492,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     TestCase.assertFalse(variants!!.contains("p1.p2.LabelView"))
     TestCase.assertTrue(variants.contains("p1.p2.LabelView1"))
 
-    WriteCommandAction.runWriteCommandAction(null) {
+    runWriteCommandAction(null) {
       try {
         labelViewJava.delete(null)
       }
@@ -1132,7 +1167,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     }
     TestCase.assertEquals(1, actions.size)
 
-    WriteCommandAction.runWriteCommandAction(project) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    runWriteCommandAction(project) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
     myFixture.checkResultByFile("res/values/drawables.xml", myTestFolder + '/'.toString() + getTestName(true) + "_drawable_after.xml", true)
   }
 
@@ -1356,7 +1391,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val action = AndroidCreateOnClickHandlerAction()
     TestCase.assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(null) { action.invoke(myFixture.project, myFixture.editor, myFixture.file) }
+    runWriteCommandAction(null) { action.invoke(myFixture.project, myFixture.editor, myFixture.file) }
     myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity_after.java", false)
   }
@@ -1385,7 +1420,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
     TestCase.assertEquals(1, actions.size)
-    WriteCommandAction.runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", "$myTestFolder/OnClickActivity1_after.java", false)
@@ -1578,6 +1613,94 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     toTestCompletion("innerClass3.xml", "innerClass3_after.xml")
   }
 
+  fun testCoordinatorLayoutBehavior_classes() {
+    setAndroidx()
+    myFixture.addClass(coordinatorLayout)
+    myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
+
+    myFixture.addClass(
+      // language=java
+      """
+        package com.example.behaviors;
+
+        import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+        public class MyBehavior extends CoordinatorLayout.Behavior {}
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      // language=java
+      """
+        package com.example.behaviors;
+
+        import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+        public class SomeView {
+          public static class SomeBehavior extends CoordinatorLayout.Behavior {}
+        }
+      """.trimIndent()
+    )
+
+    val layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=xml
+      """
+      <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Hello World!"
+              app:layout_behavior="$caret" />
+
+      </androidx.coordinatorlayout.widget.CoordinatorLayout>
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "com.example.behaviors.MyBehavior",
+      "com.example.behaviors.SomeView\$SomeBehavior"
+    )
+
+    myFixture.type('\n')
+    myFixture.checkHighlighting()
+  }
+
+  fun testCoordinatorLayoutBehavior_strings() {
+    setAndroidx()
+    myFixture.addClass(coordinatorLayout)
+    myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
+
+    val layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=xml
+      """
+      <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Hello World!"
+              app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+      </androidx.coordinatorlayout.widget.CoordinatorLayout>
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+    myFixture.checkHighlighting()
+  }
+
   private fun doTestAttrReferenceCompletion(textToType: String) {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
     val file = copyFileToProject(getTestName(true) + ".xml")
@@ -1601,10 +1724,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val actions = highlightAndFindQuickFixes(CreateFileResourceQuickFix::class.java)
     TestCase.assertEquals(1, actions.size)
 
-    WriteCommandAction.runWriteCommandAction(project) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+    runWriteCommandAction(project) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
   }
 
   private fun enableInspection(inspectionClass: Class<out LocalInspectionTool>) {
     myFixture.enableInspections(setOf(inspectionClass))
+  }
+
+  private fun setAndroidx() = runWriteCommandAction(project) {
+    project.setAndroidxProperties("true")
   }
 }

@@ -37,8 +37,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun prepareProjectForImport(srcRoot: File, projectRoot: File): File {
-    val result = super.prepareProjectForImport(srcRoot, projectRoot)
+  override fun patchPreparedProject(projectRoot: File) {
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
@@ -46,7 +45,6 @@ class PsModuleCollectionTest : DependencyTestCase() {
       }
       ApplicationManager.getApplication().saveAll()
     }
-    return result
   }
 
   fun loadProject(path: String, patch: (VirtualFile) -> Unit) {

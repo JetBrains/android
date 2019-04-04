@@ -15,9 +15,133 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
-import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_END_FOR_ICON
+import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_START_FOR_ICON
+import com.android.SdkConstants.ATTR_ADJUST_VIEW_BOUNDS
+import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT
+import com.android.SdkConstants.ATTR_BACKGROUND_TINT_MODE
+import com.android.SdkConstants.ATTR_BORDER_WIDTH
+import com.android.SdkConstants.ATTR_BOX_BACKGROUND_COLOR
+import com.android.SdkConstants.ATTR_BOX_BACKGROUND_MODE
+import com.android.SdkConstants.ATTR_BOX_COLLAPSED_PADDING_TOP
+import com.android.SdkConstants.ATTR_BOX_STROKE_COLOR
+import com.android.SdkConstants.ATTR_BOX_STROKE_WIDTH
+import com.android.SdkConstants.ATTR_CHECKABLE
+import com.android.SdkConstants.ATTR_CHECKED_CHIP
+import com.android.SdkConstants.ATTR_CHECKED_ICON
+import com.android.SdkConstants.ATTR_CHECKED_ICON_VISIBLE
+import com.android.SdkConstants.ATTR_CHIP_ICON
+import com.android.SdkConstants.ATTR_CHIP_ICON_VISIBLE
+import com.android.SdkConstants.ATTR_CHIP_SPACING
+import com.android.SdkConstants.ATTR_CHIP_SPACING_HORIZONTAL
+import com.android.SdkConstants.ATTR_CHIP_SPACING_VERTICAL
+import com.android.SdkConstants.ATTR_CLOSE_ICON
+import com.android.SdkConstants.ATTR_CLOSE_ICON_VISIBLE
+import com.android.SdkConstants.ATTR_COMPAT_PADDING
+import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
+import com.android.SdkConstants.ATTR_CORNER_RADIUS
+import com.android.SdkConstants.ATTR_COUNTER_ENABLED
+import com.android.SdkConstants.ATTR_COUNTER_MAX_LENGTH
+import com.android.SdkConstants.ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_COUNTER_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_CROP_TO_PADDING
+import com.android.SdkConstants.ATTR_ELEVATION
+import com.android.SdkConstants.ATTR_ERROR_ENABLED
+import com.android.SdkConstants.ATTR_ERROR_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_FAB_ALIGNMENT_MODE
+import com.android.SdkConstants.ATTR_FAB_ANIMATION_MODE
+import com.android.SdkConstants.ATTR_FAB_CRADLE_MARGIN
+import com.android.SdkConstants.ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS
+import com.android.SdkConstants.ATTR_FAB_CRADLE_VERTICAL_OFFSET
+import com.android.SdkConstants.ATTR_FAB_CUSTOM_SIZE
+import com.android.SdkConstants.ATTR_FAB_SIZE
+import com.android.SdkConstants.ATTR_HELPER_TEXT
+import com.android.SdkConstants.ATTR_HELPER_TEXT_ENABLED
+import com.android.SdkConstants.ATTR_HELPER_TEXT_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC
+import com.android.SdkConstants.ATTR_HINT
+import com.android.SdkConstants.ATTR_HINT_ANIMATION_ENABLED
+import com.android.SdkConstants.ATTR_HINT_ENABLED
+import com.android.SdkConstants.ATTR_HINT_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_HOVERED_FOCUSED_TRANSLATION_Z
+import com.android.SdkConstants.ATTR_ICON
+import com.android.SdkConstants.ATTR_ICON_PADDING
+import com.android.SdkConstants.ATTR_ICON_TINT
+import com.android.SdkConstants.ATTR_ICON_TINT_MODE
+import com.android.SdkConstants.ATTR_INSET_BOTTOM
+import com.android.SdkConstants.ATTR_INSET_LEFT
+import com.android.SdkConstants.ATTR_INSET_RIGHT
+import com.android.SdkConstants.ATTR_INSET_TOP
+import com.android.SdkConstants.ATTR_ITEM_BACKGROUND
+import com.android.SdkConstants.ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED
+import com.android.SdkConstants.ATTR_ITEM_ICON_TINT
+import com.android.SdkConstants.ATTR_ITEM_TEXT_COLOR
+import com.android.SdkConstants.ATTR_LABEL_VISIBILITY_MODE
+import com.android.SdkConstants.ATTR_MAX_IMAGE_SIZE
+import com.android.SdkConstants.ATTR_MENU
+import com.android.SdkConstants.ATTR_ON_CLICK
+import com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION
+import com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_DRAWABLE
+import com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_ENABLED
+import com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_TINT
+import com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_TINT_MODE
+import com.android.SdkConstants.ATTR_PRESSED_TRANSLATION_Z
+import com.android.SdkConstants.ATTR_RIPPLE_COLOR
+import com.android.SdkConstants.ATTR_SCALE_TYPE
+import com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC
+import com.android.SdkConstants.ATTR_SINGLE_LINE
+import com.android.SdkConstants.ATTR_SINGLE_SELECTION
+import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
+import com.android.SdkConstants.ATTR_STROKE_COLOR
+import com.android.SdkConstants.ATTR_STROKE_WIDTH
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TAB_BACKGROUND
+import com.android.SdkConstants.ATTR_TAB_CONTENT_START
+import com.android.SdkConstants.ATTR_TAB_GRAVITY
+import com.android.SdkConstants.ATTR_TAB_ICON_TINT
+import com.android.SdkConstants.ATTR_TAB_ICON_TINT_MODE
+import com.android.SdkConstants.ATTR_TAB_INDICATOR
+import com.android.SdkConstants.ATTR_TAB_INDICATOR_ANIMATION_DURATION
+import com.android.SdkConstants.ATTR_TAB_INDICATOR_COLOR
+import com.android.SdkConstants.ATTR_TAB_INDICATOR_FULL_WIDTH
+import com.android.SdkConstants.ATTR_TAB_INDICATOR_GRAVITY
+import com.android.SdkConstants.ATTR_TAB_INDICATOR_HEIGHT
+import com.android.SdkConstants.ATTR_TAB_INLINE_LABEL
+import com.android.SdkConstants.ATTR_TAB_MAX_WIDTH
+import com.android.SdkConstants.ATTR_TAB_MIN_WIDTH
+import com.android.SdkConstants.ATTR_TAB_MODE
+import com.android.SdkConstants.ATTR_TAB_PADDING
+import com.android.SdkConstants.ATTR_TAB_PADDING_BOTTOM
+import com.android.SdkConstants.ATTR_TAB_PADDING_END
+import com.android.SdkConstants.ATTR_TAB_PADDING_START
+import com.android.SdkConstants.ATTR_TAB_PADDING_TOP
+import com.android.SdkConstants.ATTR_TAB_RIPPLE_COLOR
+import com.android.SdkConstants.ATTR_TAB_SELECTED_TEXT_COLOR
+import com.android.SdkConstants.ATTR_TAB_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_TAB_TEXT_COLOR
+import com.android.SdkConstants.ATTR_TAB_UNBOUNDED_RIPPLE
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_COLOR_HINT
+import com.android.SdkConstants.ATTR_THEME
+import com.android.SdkConstants.ATTR_TINT
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.BOTTOM_APP_BAR
+import com.android.SdkConstants.BOTTOM_NAVIGATION_VIEW
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.CHIP
+import com.android.SdkConstants.CHIP_GROUP
+import com.android.SdkConstants.FLOATING_ACTION_BUTTON
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.MATERIAL_BUTTON
+import com.android.SdkConstants.TAB_LAYOUT
+import com.android.SdkConstants.TEXT_INPUT_LAYOUT
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -55,15 +179,15 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
+    util.checkEditor(3, ANDROID_URI, ATTR_ON_CLICK)
+    util.checkEditor(4, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(5, ANDROID_URI, ATTR_BACKGROUND)
+    util.checkEditor(6, ANDROID_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(7, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
     assertThat(util.inspector.lines).hasSize(8)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_ON_CLICK)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_ELEVATION)
-    checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_BACKGROUND)
-    checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_BACKGROUND_TINT)
-    checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
   }
 
   @Test
@@ -76,12 +200,12 @@ class ViewInspectorBuilderTest {
     util.removeProperty(ANDROID_URI, ATTR_BACKGROUND_TINT)
     util.removeProperty(ANDROID_URI, ATTR_ON_CLICK)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
+    util.checkEditor(3, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
     assertThat(util.inspector.lines).hasSize(5)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_ELEVATION)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
   }
 
   @Test
@@ -91,15 +215,15 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addImageViewProperties(util, true)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, AUTO_URI, ATTR_SRC_COMPAT)
+    util.checkEditor(2, TOOLS_URI, ATTR_SRC_COMPAT)
+    util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
+    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND)
+    util.checkEditor(5, ANDROID_URI, ATTR_SCALE_TYPE)
+    util.checkEditor(6, ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS)
+    util.checkEditor(7, ANDROID_URI, ATTR_CROP_TO_PADDING)
     assertThat(util.inspector.lines).hasSize(8)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], AUTO_URI, ATTR_SRC_COMPAT)
-    checkProperty(util.inspector.lines[2], TOOLS_URI, ATTR_SRC_COMPAT)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_BACKGROUND)
-    checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_SCALE_TYPE)
-    checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS)
-    checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_CROP_TO_PADDING)
   }
 
   @Test
@@ -109,15 +233,15 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addImageViewProperties(util, false)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_SRC)
+    util.checkEditor(2, TOOLS_URI, ATTR_SRC)
+    util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
+    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND)
+    util.checkEditor(5, ANDROID_URI, ATTR_SCALE_TYPE)
+    util.checkEditor(6, ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS)
+    util.checkEditor(7, ANDROID_URI, ATTR_CROP_TO_PADDING)
     assertThat(util.inspector.lines).hasSize(8)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_SRC)
-    checkProperty(util.inspector.lines[2], TOOLS_URI, ATTR_SRC)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_BACKGROUND)
-    checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_SCALE_TYPE)
-    checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS)
-    checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_CROP_TO_PADDING)
   }
 
   @Test
@@ -129,15 +253,15 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(3, AUTO_URI, ATTR_FAB_ALIGNMENT_MODE)
+    util.checkEditor(4, AUTO_URI, ATTR_FAB_ANIMATION_MODE)
+    util.checkEditor(5, AUTO_URI, ATTR_FAB_CRADLE_MARGIN)
+    util.checkEditor(6, AUTO_URI, ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS)
+    util.checkEditor(7, AUTO_URI, ATTR_FAB_CRADLE_VERTICAL_OFFSET)
     assertThat(util.inspector.lines).hasSize(8)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_BACKGROUND_TINT)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_FAB_ALIGNMENT_MODE)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_FAB_ANIMATION_MODE)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_FAB_CRADLE_MARGIN)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_FAB_CRADLE_ROUNDED_CORNER_RADIUS)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_FAB_CRADLE_VERTICAL_OFFSET)
   }
 
   @Test
@@ -151,28 +275,28 @@ class ViewInspectorBuilderTest {
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(util.inspector.lines).hasSize(22)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_ON_CLICK)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_ELEVATION)
-    checkProperty(util.inspector.lines[5], ANDROID_URI, ATTR_INSET_LEFT)
-    checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_INSET_RIGHT)
-    checkProperty(util.inspector.lines[7], ANDROID_URI, ATTR_INSET_TOP)
-    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_INSET_BOTTOM)
-    checkProperty(util.inspector.lines[9], ANDROID_URI, ATTR_BACKGROUND)
-    checkProperty(util.inspector.lines[10], ANDROID_URI, ATTR_BACKGROUND_TINT)
-    checkProperty(util.inspector.lines[11], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_ICON)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_ICON_PADDING)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_ICON_TINT)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_ICON_TINT_MODE)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_ADDITIONAL_PADDING_START_FOR_ICON)
-    checkProperty(util.inspector.lines[17], AUTO_URI, ATTR_ADDITIONAL_PADDING_END_FOR_ICON)
-    checkProperty(util.inspector.lines[18], AUTO_URI, ATTR_STROKE_COLOR)
-    checkProperty(util.inspector.lines[19], AUTO_URI, ATTR_STROKE_WIDTH)
-    checkProperty(util.inspector.lines[20], AUTO_URI, ATTR_CORNER_RADIUS)
-    checkProperty(util.inspector.lines[21], AUTO_URI, ATTR_RIPPLE_COLOR)
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
+    util.checkEditor(3, ANDROID_URI, ATTR_ON_CLICK)
+    util.checkEditor(4, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(5, ANDROID_URI, ATTR_INSET_LEFT)
+    util.checkEditor(6, ANDROID_URI, ATTR_INSET_RIGHT)
+    util.checkEditor(7, ANDROID_URI, ATTR_INSET_TOP)
+    util.checkEditor(8, ANDROID_URI, ATTR_INSET_BOTTOM)
+    util.checkEditor(9, ANDROID_URI, ATTR_BACKGROUND)
+    util.checkEditor(10, ANDROID_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(11, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    util.checkEditor(12, AUTO_URI, ATTR_ICON)
+    util.checkEditor(13, AUTO_URI, ATTR_ICON_PADDING)
+    util.checkEditor(14, AUTO_URI, ATTR_ICON_TINT)
+    util.checkEditor(15, AUTO_URI, ATTR_ICON_TINT_MODE)
+    util.checkEditor(16, AUTO_URI, ATTR_ADDITIONAL_PADDING_START_FOR_ICON)
+    util.checkEditor(17, AUTO_URI, ATTR_ADDITIONAL_PADDING_END_FOR_ICON)
+    util.checkEditor(18, AUTO_URI, ATTR_STROKE_COLOR)
+    util.checkEditor(19, AUTO_URI, ATTR_STROKE_WIDTH)
+    util.checkEditor(20, AUTO_URI, ATTR_CORNER_RADIUS)
+    util.checkEditor(21, AUTO_URI, ATTR_RIPPLE_COLOR)
   }
 
   @Test
@@ -184,15 +308,15 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, AUTO_URI, ATTR_CHIP_SPACING)
+    util.checkEditor(3, AUTO_URI, ATTR_CHIP_SPACING_HORIZONTAL)
+    util.checkEditor(4, AUTO_URI, ATTR_CHIP_SPACING_VERTICAL)
+    util.checkEditor(5, AUTO_URI, ATTR_SINGLE_LINE)
+    util.checkEditor(6, AUTO_URI, ATTR_SINGLE_SELECTION)
+    util.checkEditor(7, AUTO_URI, ATTR_CHECKED_CHIP)
     assertThat(util.inspector.lines).hasSize(8)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_CHIP_SPACING)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_CHIP_SPACING_HORIZONTAL)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_CHIP_SPACING_VERTICAL)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_SINGLE_LINE)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_SINGLE_SELECTION)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_CHECKED_CHIP)
   }
 
   @Test
@@ -205,17 +329,17 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_CHECKABLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_TEXT)
+    util.checkEditor(4, AUTO_URI, ATTR_CHIP_ICON)
+    util.checkEditor(5, AUTO_URI, ATTR_CHIP_ICON_VISIBLE)
+    util.checkEditor(6, AUTO_URI, ATTR_CHECKED_ICON)
+    util.checkEditor(7, AUTO_URI, ATTR_CHECKED_ICON_VISIBLE)
+    util.checkEditor(8, AUTO_URI, ATTR_CLOSE_ICON)
+    util.checkEditor(9, AUTO_URI, ATTR_CLOSE_ICON_VISIBLE)
     assertThat(util.inspector.lines).hasSize(10)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_CHECKABLE)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_TEXT)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_CHIP_ICON)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_CHIP_ICON_VISIBLE)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_CHECKED_ICON)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_CHECKED_ICON_VISIBLE)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_CLOSE_ICON)
-    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_CLOSE_ICON_VISIBLE)
   }
 
   @Test
@@ -227,16 +351,16 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
+    util.checkEditor(3, AUTO_URI, ATTR_LABEL_VISIBILITY_MODE)
+    util.checkEditor(4, AUTO_URI, ATTR_ITEM_ICON_TINT)
+    util.checkEditor(5, AUTO_URI, ATTR_MENU)
+    util.checkEditor(6, AUTO_URI, ATTR_ITEM_BACKGROUND)
+    util.checkEditor(7, AUTO_URI, ATTR_ITEM_TEXT_COLOR)
+    util.checkEditor(8, ANDROID_URI, ATTR_ELEVATION)
     assertThat(util.inspector.lines).hasSize(9)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_LABEL_VISIBILITY_MODE)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_ITEM_ICON_TINT)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_MENU)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_ITEM_BACKGROUND)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_ITEM_TEXT_COLOR)
-    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_ELEVATION)
   }
 
   @Test
@@ -249,16 +373,16 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
+    util.checkEditor(3, AUTO_URI, ATTR_LABEL_VISIBILITY_MODE)
+    util.checkEditor(4, AUTO_URI, ATTR_ITEM_ICON_TINT)
+    util.checkEditor(5, AUTO_URI, ATTR_MENU)
+    util.checkEditor(6, AUTO_URI, ATTR_ITEM_BACKGROUND)
+    util.checkEditor(7, AUTO_URI, ATTR_ITEM_TEXT_COLOR)
+    util.checkEditor(8, ANDROID_URI, ATTR_ELEVATION)
     assertThat(util.inspector.lines).hasSize(9)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_LABEL_VISIBILITY_MODE)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_ITEM_ICON_TINT)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_MENU)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_ITEM_BACKGROUND)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_ITEM_TEXT_COLOR)
-    checkProperty(util.inspector.lines[8], ANDROID_URI, ATTR_ELEVATION)
   }
 
   @Test
@@ -271,24 +395,24 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_SRC)
+    util.checkEditor(2, "", ATTR_STYLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    util.checkEditor(5, AUTO_URI, ATTR_RIPPLE_COLOR)
+    util.checkEditor(6, ANDROID_URI, ATTR_TINT)
+    util.checkEditor(7, AUTO_URI, ATTR_FAB_SIZE)
+    util.checkEditor(8, AUTO_URI, ATTR_FAB_CUSTOM_SIZE)
+    util.checkEditor(9, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(10, AUTO_URI, ATTR_HOVERED_FOCUSED_TRANSLATION_Z)
+    util.checkEditor(11, AUTO_URI, ATTR_PRESSED_TRANSLATION_Z)
+    util.checkEditor(12, AUTO_URI, ATTR_BORDER_WIDTH)
+    util.checkEditor(13, AUTO_URI, ATTR_COMPAT_PADDING)
+    util.checkEditor(14, AUTO_URI, ATTR_MAX_IMAGE_SIZE)
+    util.checkEditor(15, AUTO_URI, ATTR_SHOW_MOTION_SPEC)
+    util.checkEditor(16, AUTO_URI, ATTR_HIDE_MOTION_SPEC)
     assertThat(util.inspector.lines).hasSize(17)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_SRC)
-    checkProperty(util.inspector.lines[2], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_BACKGROUND_TINT)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_RIPPLE_COLOR)
-    checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_TINT)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_FAB_SIZE)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_FAB_CUSTOM_SIZE)
-    checkProperty(util.inspector.lines[9], ANDROID_URI, ATTR_ELEVATION)
-    checkProperty(util.inspector.lines[10], AUTO_URI, ATTR_HOVERED_FOCUSED_TRANSLATION_Z)
-    checkProperty(util.inspector.lines[11], AUTO_URI, ATTR_PRESSED_TRANSLATION_Z)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_BORDER_WIDTH)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_COMPAT_PADDING)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_MAX_IMAGE_SIZE)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_SHOW_MOTION_SPEC)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_HIDE_MOTION_SPEC)
   }
 
   @Test
@@ -301,24 +425,24 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_SRC)
+    util.checkEditor(2, "", ATTR_STYLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    util.checkEditor(5, AUTO_URI, ATTR_RIPPLE_COLOR)
+    util.checkEditor(6, ANDROID_URI, ATTR_TINT)
+    util.checkEditor(7, AUTO_URI, ATTR_FAB_SIZE)
+    util.checkEditor(8, AUTO_URI, ATTR_FAB_CUSTOM_SIZE)
+    util.checkEditor(9, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(10, AUTO_URI, ATTR_HOVERED_FOCUSED_TRANSLATION_Z)
+    util.checkEditor(11, AUTO_URI, ATTR_PRESSED_TRANSLATION_Z)
+    util.checkEditor(12, AUTO_URI, ATTR_BORDER_WIDTH)
+    util.checkEditor(13, AUTO_URI, ATTR_COMPAT_PADDING)
+    util.checkEditor(14, AUTO_URI, ATTR_MAX_IMAGE_SIZE)
+    util.checkEditor(15, AUTO_URI, ATTR_SHOW_MOTION_SPEC)
+    util.checkEditor(16, AUTO_URI, ATTR_HIDE_MOTION_SPEC)
     assertThat(util.inspector.lines).hasSize(17)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_SRC)
-    checkProperty(util.inspector.lines[2], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[3], ANDROID_URI, ATTR_BACKGROUND_TINT)
-    checkProperty(util.inspector.lines[4], ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_RIPPLE_COLOR)
-    checkProperty(util.inspector.lines[6], ANDROID_URI, ATTR_TINT)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_FAB_SIZE)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_FAB_CUSTOM_SIZE)
-    checkProperty(util.inspector.lines[9], ANDROID_URI, ATTR_ELEVATION)
-    checkProperty(util.inspector.lines[10], AUTO_URI, ATTR_HOVERED_FOCUSED_TRANSLATION_Z)
-    checkProperty(util.inspector.lines[11], AUTO_URI, ATTR_PRESSED_TRANSLATION_Z)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_BORDER_WIDTH)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_COMPAT_PADDING)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_MAX_IMAGE_SIZE)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_SHOW_MOTION_SPEC)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_HIDE_MOTION_SPEC)
   }
 
   @Test
@@ -330,36 +454,36 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
+    util.checkEditor(3, AUTO_URI, ATTR_TAB_INDICATOR_HEIGHT)
+    util.checkEditor(4, AUTO_URI, ATTR_TAB_CONTENT_START)
+    util.checkEditor(5, AUTO_URI, ATTR_TAB_BACKGROUND)
+    util.checkEditor(6, AUTO_URI, ATTR_TAB_INDICATOR)
+    util.checkEditor(7, AUTO_URI, ATTR_TAB_INDICATOR_GRAVITY)
+    util.checkEditor(8, AUTO_URI, ATTR_TAB_INDICATOR_ANIMATION_DURATION)
+    util.checkEditor(9, AUTO_URI, ATTR_TAB_INDICATOR_FULL_WIDTH)
+    util.checkEditor(10, AUTO_URI, ATTR_TAB_MODE)
+    util.checkEditor(11, AUTO_URI, ATTR_TAB_GRAVITY)
+    util.checkEditor(12, AUTO_URI, ATTR_TAB_INLINE_LABEL)
+    util.checkEditor(13, AUTO_URI, ATTR_TAB_MIN_WIDTH)
+    util.checkEditor(14, AUTO_URI, ATTR_TAB_MAX_WIDTH)
+    util.checkEditor(15, AUTO_URI, ATTR_TAB_TEXT_APPEARANCE)
+    util.checkEditor(16, AUTO_URI, ATTR_TAB_TEXT_COLOR)
+    util.checkEditor(17, AUTO_URI, ATTR_TAB_SELECTED_TEXT_COLOR)
+    util.checkEditor(18, AUTO_URI, ATTR_TAB_PADDING)
+    util.checkEditor(19, AUTO_URI, ATTR_TAB_PADDING_START)
+    util.checkEditor(20, AUTO_URI, ATTR_TAB_PADDING_END)
+    util.checkEditor(21, AUTO_URI, ATTR_TAB_PADDING_TOP)
+    util.checkEditor(22, AUTO_URI, ATTR_TAB_PADDING_BOTTOM)
+    util.checkEditor(23, AUTO_URI, ATTR_TAB_ICON_TINT)
+    util.checkEditor(24, AUTO_URI, ATTR_TAB_ICON_TINT_MODE)
+    util.checkEditor(25, AUTO_URI, ATTR_TAB_RIPPLE_COLOR)
+    util.checkEditor(26, AUTO_URI, ATTR_TAB_UNBOUNDED_RIPPLE)
+    util.checkEditor(27, ANDROID_URI, ATTR_THEME)
+    util.checkEditor(28, ANDROID_URI, ATTR_BACKGROUND)
     assertThat(util.inspector.lines).hasSize(29)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_TAB_INDICATOR_HEIGHT)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_TAB_CONTENT_START)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_TAB_BACKGROUND)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_TAB_INDICATOR)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_TAB_INDICATOR_GRAVITY)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_TAB_INDICATOR_ANIMATION_DURATION)
-    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_TAB_INDICATOR_FULL_WIDTH)
-    checkProperty(util.inspector.lines[10], AUTO_URI, ATTR_TAB_MODE)
-    checkProperty(util.inspector.lines[11], AUTO_URI, ATTR_TAB_GRAVITY)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_TAB_INLINE_LABEL)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_TAB_MIN_WIDTH)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_TAB_MAX_WIDTH)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_TAB_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_TAB_TEXT_COLOR)
-    checkProperty(util.inspector.lines[17], AUTO_URI, ATTR_TAB_SELECTED_TEXT_COLOR)
-    checkProperty(util.inspector.lines[18], AUTO_URI, ATTR_TAB_PADDING)
-    checkProperty(util.inspector.lines[19], AUTO_URI, ATTR_TAB_PADDING_START)
-    checkProperty(util.inspector.lines[20], AUTO_URI, ATTR_TAB_PADDING_END)
-    checkProperty(util.inspector.lines[21], AUTO_URI, ATTR_TAB_PADDING_TOP)
-    checkProperty(util.inspector.lines[22], AUTO_URI, ATTR_TAB_PADDING_BOTTOM)
-    checkProperty(util.inspector.lines[23], AUTO_URI, ATTR_TAB_ICON_TINT)
-    checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_TAB_ICON_TINT_MODE)
-    checkProperty(util.inspector.lines[25], AUTO_URI, ATTR_TAB_RIPPLE_COLOR)
-    checkProperty(util.inspector.lines[26], AUTO_URI, ATTR_TAB_UNBOUNDED_RIPPLE)
-    checkProperty(util.inspector.lines[27], ANDROID_URI, ATTR_THEME)
-    checkProperty(util.inspector.lines[28], ANDROID_URI, ATTR_BACKGROUND)
   }
 
   @Test
@@ -371,36 +495,36 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
+    util.checkEditor(3, AUTO_URI, ATTR_TAB_INDICATOR_HEIGHT)
+    util.checkEditor(4, AUTO_URI, ATTR_TAB_CONTENT_START)
+    util.checkEditor(5, AUTO_URI, ATTR_TAB_BACKGROUND)
+    util.checkEditor(6, AUTO_URI, ATTR_TAB_INDICATOR)
+    util.checkEditor(7, AUTO_URI, ATTR_TAB_INDICATOR_GRAVITY)
+    util.checkEditor(8, AUTO_URI, ATTR_TAB_INDICATOR_ANIMATION_DURATION)
+    util.checkEditor(9, AUTO_URI, ATTR_TAB_INDICATOR_FULL_WIDTH)
+    util.checkEditor(10, AUTO_URI, ATTR_TAB_MODE)
+    util.checkEditor(11, AUTO_URI, ATTR_TAB_GRAVITY)
+    util.checkEditor(12, AUTO_URI, ATTR_TAB_INLINE_LABEL)
+    util.checkEditor(13, AUTO_URI, ATTR_TAB_MIN_WIDTH)
+    util.checkEditor(14, AUTO_URI, ATTR_TAB_MAX_WIDTH)
+    util.checkEditor(15, AUTO_URI, ATTR_TAB_TEXT_APPEARANCE)
+    util.checkEditor(16, AUTO_URI, ATTR_TAB_TEXT_COLOR)
+    util.checkEditor(17, AUTO_URI, ATTR_TAB_SELECTED_TEXT_COLOR)
+    util.checkEditor(18, AUTO_URI, ATTR_TAB_PADDING)
+    util.checkEditor(19, AUTO_URI, ATTR_TAB_PADDING_START)
+    util.checkEditor(20, AUTO_URI, ATTR_TAB_PADDING_END)
+    util.checkEditor(21, AUTO_URI, ATTR_TAB_PADDING_TOP)
+    util.checkEditor(22, AUTO_URI, ATTR_TAB_PADDING_BOTTOM)
+    util.checkEditor(23, AUTO_URI, ATTR_TAB_ICON_TINT)
+    util.checkEditor(24, AUTO_URI, ATTR_TAB_ICON_TINT_MODE)
+    util.checkEditor(25, AUTO_URI, ATTR_TAB_RIPPLE_COLOR)
+    util.checkEditor(26, AUTO_URI, ATTR_TAB_UNBOUNDED_RIPPLE)
+    util.checkEditor(27, ANDROID_URI, ATTR_THEME)
+    util.checkEditor(28, ANDROID_URI, ATTR_BACKGROUND)
     assertThat(util.inspector.lines).hasSize(29)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], "", ATTR_STYLE)
-    checkProperty(util.inspector.lines[2], AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_TAB_INDICATOR_HEIGHT)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_TAB_CONTENT_START)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_TAB_BACKGROUND)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_TAB_INDICATOR)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_TAB_INDICATOR_GRAVITY)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_TAB_INDICATOR_ANIMATION_DURATION)
-    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_TAB_INDICATOR_FULL_WIDTH)
-    checkProperty(util.inspector.lines[10], AUTO_URI, ATTR_TAB_MODE)
-    checkProperty(util.inspector.lines[11], AUTO_URI, ATTR_TAB_GRAVITY)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_TAB_INLINE_LABEL)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_TAB_MIN_WIDTH)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_TAB_MAX_WIDTH)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_TAB_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_TAB_TEXT_COLOR)
-    checkProperty(util.inspector.lines[17], AUTO_URI, ATTR_TAB_SELECTED_TEXT_COLOR)
-    checkProperty(util.inspector.lines[18], AUTO_URI, ATTR_TAB_PADDING)
-    checkProperty(util.inspector.lines[19], AUTO_URI, ATTR_TAB_PADDING_START)
-    checkProperty(util.inspector.lines[20], AUTO_URI, ATTR_TAB_PADDING_END)
-    checkProperty(util.inspector.lines[21], AUTO_URI, ATTR_TAB_PADDING_TOP)
-    checkProperty(util.inspector.lines[22], AUTO_URI, ATTR_TAB_PADDING_BOTTOM)
-    checkProperty(util.inspector.lines[23], AUTO_URI, ATTR_TAB_ICON_TINT)
-    checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_TAB_ICON_TINT_MODE)
-    checkProperty(util.inspector.lines[25], AUTO_URI, ATTR_TAB_RIPPLE_COLOR)
-    checkProperty(util.inspector.lines[26], AUTO_URI, ATTR_TAB_UNBOUNDED_RIPPLE)
-    checkProperty(util.inspector.lines[27], ANDROID_URI, ATTR_THEME)
-    checkProperty(util.inspector.lines[28], ANDROID_URI, ATTR_BACKGROUND)
   }
 
   @Test
@@ -412,32 +536,32 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_TEXT_COLOR_HINT)
+    util.checkEditor(2, ANDROID_URI, ATTR_HINT)
+    util.checkEditor(3, AUTO_URI, ATTR_HINT_ENABLED)
+    util.checkEditor(4, AUTO_URI, ATTR_HINT_ANIMATION_ENABLED)
+    util.checkEditor(5, AUTO_URI, ATTR_HINT_TEXT_APPEARANCE)
+    util.checkEditor(6, AUTO_URI, ATTR_HELPER_TEXT)
+    util.checkEditor(7, AUTO_URI, ATTR_HELPER_TEXT_ENABLED)
+    util.checkEditor(8, AUTO_URI, ATTR_HELPER_TEXT_TEXT_APPEARANCE)
+    util.checkEditor(9, AUTO_URI, ATTR_ERROR_ENABLED)
+    util.checkEditor(10, AUTO_URI, ATTR_ERROR_TEXT_APPEARANCE)
+    util.checkEditor(11, AUTO_URI, ATTR_COUNTER_ENABLED)
+    util.checkEditor(12, AUTO_URI, ATTR_COUNTER_MAX_LENGTH)
+    util.checkEditor(13, AUTO_URI, ATTR_COUNTER_TEXT_APPEARANCE)
+    util.checkEditor(14, AUTO_URI, ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE)
+    util.checkEditor(15, AUTO_URI, ATTR_PASSWORD_TOGGLE_ENABLED)
+    util.checkEditor(16, AUTO_URI, ATTR_PASSWORD_TOGGLE_DRAWABLE)
+    util.checkEditor(17, AUTO_URI, ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION)
+    util.checkEditor(18, AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT)
+    util.checkEditor(19, AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT_MODE)
+    util.checkEditor(20, AUTO_URI, ATTR_BOX_BACKGROUND_MODE)
+    util.checkEditor(21, AUTO_URI, ATTR_BOX_COLLAPSED_PADDING_TOP)
+    util.checkEditor(22, AUTO_URI, ATTR_BOX_STROKE_COLOR)
+    util.checkEditor(23, AUTO_URI, ATTR_BOX_BACKGROUND_COLOR)
+    util.checkEditor(24, AUTO_URI, ATTR_BOX_STROKE_WIDTH)
     assertThat(util.inspector.lines).hasSize(25)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_TEXT_COLOR_HINT)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_HINT)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_HINT_ENABLED)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_HINT_ANIMATION_ENABLED)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_HINT_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_HELPER_TEXT)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_HELPER_TEXT_ENABLED)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_HELPER_TEXT_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_ERROR_ENABLED)
-    checkProperty(util.inspector.lines[10], AUTO_URI, ATTR_ERROR_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[11], AUTO_URI, ATTR_COUNTER_ENABLED)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_COUNTER_MAX_LENGTH)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_COUNTER_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_PASSWORD_TOGGLE_ENABLED)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_PASSWORD_TOGGLE_DRAWABLE)
-    checkProperty(util.inspector.lines[17], AUTO_URI, ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION)
-    checkProperty(util.inspector.lines[18], AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT)
-    checkProperty(util.inspector.lines[19], AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT_MODE)
-    checkProperty(util.inspector.lines[20], AUTO_URI, ATTR_BOX_BACKGROUND_MODE)
-    checkProperty(util.inspector.lines[21], AUTO_URI, ATTR_BOX_COLLAPSED_PADDING_TOP)
-    checkProperty(util.inspector.lines[22], AUTO_URI, ATTR_BOX_STROKE_COLOR)
-    checkProperty(util.inspector.lines[23], AUTO_URI, ATTR_BOX_BACKGROUND_COLOR)
-    checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_BOX_STROKE_WIDTH)
   }
 
   @Test
@@ -449,43 +573,32 @@ class ViewInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, ANDROID_URI, ATTR_TEXT_COLOR_HINT)
+    util.checkEditor(2, ANDROID_URI, ATTR_HINT)
+    util.checkEditor(3, AUTO_URI, ATTR_HINT_ENABLED)
+    util.checkEditor(4, AUTO_URI, ATTR_HINT_ANIMATION_ENABLED)
+    util.checkEditor(5, AUTO_URI, ATTR_HINT_TEXT_APPEARANCE)
+    util.checkEditor(6, AUTO_URI, ATTR_HELPER_TEXT)
+    util.checkEditor(7, AUTO_URI, ATTR_HELPER_TEXT_ENABLED)
+    util.checkEditor(8, AUTO_URI, ATTR_HELPER_TEXT_TEXT_APPEARANCE)
+    util.checkEditor(9, AUTO_URI, ATTR_ERROR_ENABLED)
+    util.checkEditor(10, AUTO_URI, ATTR_ERROR_TEXT_APPEARANCE)
+    util.checkEditor(11, AUTO_URI, ATTR_COUNTER_ENABLED)
+    util.checkEditor(12, AUTO_URI, ATTR_COUNTER_MAX_LENGTH)
+    util.checkEditor(13, AUTO_URI, ATTR_COUNTER_TEXT_APPEARANCE)
+    util.checkEditor(14, AUTO_URI, ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE)
+    util.checkEditor(15, AUTO_URI, ATTR_PASSWORD_TOGGLE_ENABLED)
+    util.checkEditor(16, AUTO_URI, ATTR_PASSWORD_TOGGLE_DRAWABLE)
+    util.checkEditor(17, AUTO_URI, ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION)
+    util.checkEditor(18, AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT)
+    util.checkEditor(19, AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT_MODE)
+    util.checkEditor(20, AUTO_URI, ATTR_BOX_BACKGROUND_MODE)
+    util.checkEditor(21, AUTO_URI, ATTR_BOX_COLLAPSED_PADDING_TOP)
+    util.checkEditor(22, AUTO_URI, ATTR_BOX_STROKE_COLOR)
+    util.checkEditor(23, AUTO_URI, ATTR_BOX_BACKGROUND_COLOR)
+    util.checkEditor(24, AUTO_URI, ATTR_BOX_STROKE_WIDTH)
     assertThat(util.inspector.lines).hasSize(25)
-    checkTitle(util.inspector.lines[0], "Common Attributes")
-    checkProperty(util.inspector.lines[1], ANDROID_URI, ATTR_TEXT_COLOR_HINT)
-    checkProperty(util.inspector.lines[2], ANDROID_URI, ATTR_HINT)
-    checkProperty(util.inspector.lines[3], AUTO_URI, ATTR_HINT_ENABLED)
-    checkProperty(util.inspector.lines[4], AUTO_URI, ATTR_HINT_ANIMATION_ENABLED)
-    checkProperty(util.inspector.lines[5], AUTO_URI, ATTR_HINT_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[6], AUTO_URI, ATTR_HELPER_TEXT)
-    checkProperty(util.inspector.lines[7], AUTO_URI, ATTR_HELPER_TEXT_ENABLED)
-    checkProperty(util.inspector.lines[8], AUTO_URI, ATTR_HELPER_TEXT_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[9], AUTO_URI, ATTR_ERROR_ENABLED)
-    checkProperty(util.inspector.lines[10], AUTO_URI, ATTR_ERROR_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[11], AUTO_URI, ATTR_COUNTER_ENABLED)
-    checkProperty(util.inspector.lines[12], AUTO_URI, ATTR_COUNTER_MAX_LENGTH)
-    checkProperty(util.inspector.lines[13], AUTO_URI, ATTR_COUNTER_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[14], AUTO_URI, ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE)
-    checkProperty(util.inspector.lines[15], AUTO_URI, ATTR_PASSWORD_TOGGLE_ENABLED)
-    checkProperty(util.inspector.lines[16], AUTO_URI, ATTR_PASSWORD_TOGGLE_DRAWABLE)
-    checkProperty(util.inspector.lines[17], AUTO_URI, ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION)
-    checkProperty(util.inspector.lines[18], AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT)
-    checkProperty(util.inspector.lines[19], AUTO_URI, ATTR_PASSWORD_TOGGLE_TINT_MODE)
-    checkProperty(util.inspector.lines[20], AUTO_URI, ATTR_BOX_BACKGROUND_MODE)
-    checkProperty(util.inspector.lines[21], AUTO_URI, ATTR_BOX_COLLAPSED_PADDING_TOP)
-    checkProperty(util.inspector.lines[22], AUTO_URI, ATTR_BOX_STROKE_COLOR)
-    checkProperty(util.inspector.lines[23], AUTO_URI, ATTR_BOX_BACKGROUND_COLOR)
-    checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_BOX_STROKE_WIDTH)
-  }
-
-  private fun checkTitle(line: FakeInspectorLineModel, title: String) {
-    assertThat(line.type).isEqualTo(FakeLineType.TITLE)
-    assertThat(line.title).isEqualTo(title)
-  }
-
-  private fun checkProperty(line: FakeInspectorLineModel, namespace: String, propertyName: String) {
-    assertThat(line.type).isEqualTo(FakeLineType.PROPERTY)
-    assertThat(line.editorModel?.property?.name).isEqualTo(propertyName)
-    assertThat(line.editorModel?.property?.namespace).isEqualTo(namespace)
   }
 
   private fun addImageViewProperties(util: InspectorTestUtil, withAppCompat: Boolean) {

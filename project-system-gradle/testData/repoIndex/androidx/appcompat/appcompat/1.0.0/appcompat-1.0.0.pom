@@ -21,7 +21,7 @@
   <artifactId>appcompat</artifactId>
   <version>1.0.0</version>
   <packaging>aar</packaging>
-  <name>Android AppCompat Library v7</name>
+  <name>Android AppCompat Library</name>
   <dependencies>
     <dependency>
       <groupId>androidx.core</groupId>

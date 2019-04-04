@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNEXPECTED_ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class UnexpectedErrorHandler extends BaseSyncErrorHandler {
@@ -35,7 +36,7 @@ public class UnexpectedErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains(UNEXPECTED_ERROR_FILE_BUG)) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, UNEXPECTED_ERROR);
       return text;
     }
     return null;

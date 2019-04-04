@@ -48,6 +48,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import gnu.trove.TLongObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -65,12 +66,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -95,6 +99,11 @@ public class TransportServiceProxy extends ServiceProxy
   private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   private Thread myEventsListenerThread;
   private final Map<CommandType, Function<Command, ExecuteResponse>> myCommandHandlers = new HashMap<>();
+
+  // Cache the latest event timestamp we received from the daemon, which is used for closing all still-opened event groups when
+  // the proxy lost connection with the device.
+  private long myLatestEventTimestampNs = Long.MIN_VALUE;
+  @Nullable private CountDownLatch myEventStreamingLatch = null;
 
   /**
    * @param ddmlibDevice    the {@link IDevice} for retrieving process informatino.
@@ -221,9 +230,12 @@ public class TransportServiceProxy extends ServiceProxy
   public void disconnect() {
     AndroidDebugBridge.removeDeviceChangeListener(this);
     AndroidDebugBridge.removeClientChangeListener(this);
-    if (myEventsListenerThread != null) {
-      myEventsListenerThread.interrupt();
-      myEventsListenerThread = null;
+    if (myEventStreamingLatch != null) {
+      try {
+        myEventStreamingLatch.await();
+      }
+      catch (InterruptedException ignored) {
+      }
     }
   }
 
@@ -250,8 +262,7 @@ public class TransportServiceProxy extends ServiceProxy
       catch (StatusRuntimeException ignored) {
         // disconnect handle generally outside of the exception.
       }
-      // Reaching here means that the device side getEvents stream has terminated. We need to clean up any live processes.
-      removeProcesses(ImmutableSet.copyOf(myCachedProcesses.keySet()), Long.MAX_VALUE);
+
       if (myEventsListenerThread != null) {
         myEventsListenerThread.interrupt();
         myEventsListenerThread = null;
@@ -259,22 +270,62 @@ public class TransportServiceProxy extends ServiceProxy
     }).start();
 
     // This loop runs on a GRPC thread, it should not exit until the grpc is terminated killing the thread.
+    myEventStreamingLatch = new CountDownLatch(1);
     myEventsListenerThread = new Thread(() -> {
+      Map<Event.Kind, TLongObjectHashMap> ongoingEventGroups = new HashMap<>();
       // The loop keeps running if the queue is not emptied, to make sure we pipe through all the existing
       // events that are already in the queue.
       while (!Thread.currentThread().isInterrupted() || !myEventQueue.isEmpty()) {
         try {
           Event event = myEventQueue.take();
-          if (event != null) {
-            responseObserver.onNext(event);
+          myLatestEventTimestampNs = Math.max(myLatestEventTimestampNs, event.getTimestamp());
+
+          // Update the event cache: remove an event group if it has ended, otherwise cache the latest opened event for that group.
+          if (event.getIsEnded()) {
+            ongoingEventGroups.computeIfPresent(event.getKind(), (kind, map) -> {
+              map.remove(event.getGroupId());
+              return map.isEmpty() ? null : map;
+            });
           }
+          else if (event.getGroupId() != 0) {
+            ongoingEventGroups.compute(event.getKind(), (kind, map) -> {
+              map = Optional.ofNullable(map).orElseGet(TLongObjectHashMap::new);
+              map.put(event.getGroupId(), event);
+              return map;
+            });
+          }
+          responseObserver.onNext(event);
         }
-        catch (InterruptedException ignored) {
+        catch (InterruptedException exception) {
+          Thread.currentThread().interrupt();
         }
       }
+
+      // Create a generic end event with the input kind and group id.
+      // Note - We will revisit this logic if it turns out we need to insert domain-specific data with the end event.
+      // For the most part, since the device stream is disconnected, we should not have to care.
+      for (Event.Kind kind : ongoingEventGroups.keySet()) {
+        ongoingEventGroups.get(kind).forEachValue(lastEvent -> {
+          responseObserver.onNext(generateEndEvent((Event)lastEvent));
+          return true;
+        });
+      }
+
       responseObserver.onCompleted();
+      myEventStreamingLatch.countDown();
     });
     myEventsListenerThread.start();
+  }
+
+  @NotNull
+  private Common.Event generateEndEvent(@NotNull Common.Event previousEvent) {
+    return Event.newBuilder()
+      .setKind(previousEvent.getKind())
+      .setGroupId(previousEvent.getGroupId())
+      .setPid(previousEvent.getPid())
+      .setTimestamp(myLatestEventTimestampNs + 1)
+      .setIsEnded(true)
+      .build();
   }
 
   public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {

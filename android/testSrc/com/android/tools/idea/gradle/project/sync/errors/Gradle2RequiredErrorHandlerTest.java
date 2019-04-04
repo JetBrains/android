@@ -28,6 +28,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.GRADLE2_REQUIRED;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.CREATE_GRADLE_WRAPPER_HYPERLINK;
 
 /**
@@ -61,7 +62,7 @@ public class Gradle2RequiredErrorHandlerTest extends AndroidGradleTestCase {
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(CreateGradleWrapperHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(GRADLE2_REQUIRED, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(CREATE_GRADLE_WRAPPER_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

@@ -33,14 +33,13 @@ import com.android.tools.idea.lang.databinding.model.ModelClassResolvable;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelField;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
-import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
 import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.DataBindingEvent;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionProvider;
@@ -48,6 +47,7 @@ import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.InsertionContext;
+import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.util.text.StringUtil;
@@ -55,8 +55,10 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiSubstitutor;
+import com.intellij.psi.util.PsiFormatUtil;
+import com.intellij.psi.util.PsiFormatUtilBase;
 import com.intellij.util.ProcessingContext;
-import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,26 +80,22 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         boolean onlyValidCompletions = parameters.getInvocationCount() <= 1;
 
         DataBindingTracker tracker = DataBindingTracker.getInstance(parameters.getEditor().getProject());
-        DataBindingEvent.DataBindingContext dataBindingContext = UNKNOWN_CONTEXT;
 
         PsiElement position = parameters.getOriginalPosition();
         if (position == null) {
           position = parameters.getPosition();
         }
 
+        // The position is a PsiElement identifier. Its parent is a PsiDbId, which is a child of the overall expression, whose type we use
+        // to choose what kind of completion logic to carry out.
+        // For example user types @{model::g<caret>}. Position is the LeafPsiElement "g". Parent is the PsiDbId "g". Grandparent is the
+        // whole expression "model:g".
         PsiElement parent = position.getParent();
         if (parent.getReferences().length == 0) {
           // try to replace parent
           PsiElement grandParent = parent.getParent();
           PsiDbExpr ownerExpr;
-          if (grandParent instanceof PsiDbCallExpr) {
-            // TODO(b/122895499): add tests for this branch
-            ownerExpr = ((PsiDbCallExpr)grandParent).getRefExpr();
-            result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions));
-            result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions));
-          }
-          else if (grandParent instanceof PsiDbRefExpr) {
-            dataBindingContext = DATA_BINDING_CONTEXT_LAMBDA;
+          if (grandParent instanceof PsiDbRefExpr) {
             ownerExpr = ((PsiDbRefExpr)grandParent).getExpr();
             if (ownerExpr == null) {
               autoCompleteVariablesAndUnqualifiedFunctions(getFile(grandParent), result);
@@ -105,25 +103,20 @@ public class DataBindingCompletionContributor extends CompletionContributor {
             }
             result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions));
             result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions));
-          }
-          else if (grandParent instanceof DbFile) {
-            // TODO(b/122895499): add tests for this branch
-            autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
-            // TODO: add completions for packages and java.lang classes.
+            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_LAMBDA);
           }
           else if (grandParent instanceof PsiDbFunctionRefExpr) {
-            dataBindingContext = DATA_BINDING_CONTEXT_METHOD_REFERENCE;
             result.addAllElements(
               populateMethodReferenceCompletionsForMethodBinding(((PsiDbFunctionRefExpr)grandParent).getExpr(), onlyValidCompletions));
+            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_METHOD_REFERENCE);
           }
         }
         else {
-          // TODO(b/122895499): add tests for this branch
+          //TODO(b/129497876): improve completion experience for variables and static functions
           result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions));
           result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions));
           tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, UNKNOWN_CONTEXT);
         }
-        tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, dataBindingContext);
       }
     });
   }
@@ -148,14 +141,14 @@ public class DataBindingCompletionContributor extends CompletionContributor {
       return;
     }
     for (PsiDataBindingResourceItem resourceItem : dataBindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
-      result.addElement(
-        createTrackedLookupElement(resourceItem.getXmlTag(),
-                                   DataBindingUtil.convertToJavaFieldName(resourceItem.getName())));
+      LookupElementBuilder elementBuilder = LookupElementBuilder.create(resourceItem.getXmlTag(),
+                                                                        DataBindingUtil.convertToJavaFieldName(resourceItem.getName()));
+      result.addElement(attachTracker(elementBuilder));
     }
   }
 
   private static void autoCompleteUnqualifiedFunctions(@NonNull CompletionResultSet result) {
-    final LookupElement item = createTrackedLookupElement(ExprModel.SAFE_UNBOX_METHOD_NAME, ExprModel.SAFE_UNBOX_METHOD_NAME);
+    final LookupElement item = attachTracker(LookupElementBuilder.create(ExprModel.SAFE_UNBOX_METHOD_NAME));
     result.addElement(item);
   }
 
@@ -178,8 +171,12 @@ public class DataBindingCompletionContributor extends CompletionContributor {
               continue;
             }
           }
-          resultBuilder
-            .add(createTrackedLookupElement(psiModelField.getPsiField(), StringUtil.notNullize(psiModelField.getPsiField().getName())));
+          LookupElementBuilder lookupBuilder = JavaLookupElementBuilder
+            .forField(psiModelField.getPsiField(), StringUtil.notNullize(psiModelField.getPsiField().getName()),
+                      psiModelField.getPsiField().getContainingClass())
+            .withTypeText(
+              PsiFormatUtil.formatVariable(psiModelField.getPsiField(), PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY));
+          resultBuilder.add(attachTracker(lookupBuilder));
         }
       }
     }
@@ -205,7 +202,6 @@ public class DataBindingCompletionContributor extends CompletionContributor {
                                                                         boolean completeBrackets) {
     ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
     PsiReference[] childReferences = referenceExpression.getReferences();
-    HashSet<String> uniqueNames = new HashSet<>();
     for (PsiReference reference : childReferences) {
       if (reference instanceof ModelClassResolvable) {
         ModelClassResolvable ref = (ModelClassResolvable)reference;
@@ -234,22 +230,19 @@ public class DataBindingCompletionContributor extends CompletionContributor {
               name = StringUtil.decapitalize(psiModelMethod.getName().substring(2));
             }
           }
-
-          // TODO(128618360): add parameters to code completion.
-          if (uniqueNames.contains(name)) {
-            continue;
-          }
-          uniqueNames.add(name);
-          resultBuilder.add(createTrackedLookupElement(psiMethod, name));
+          LookupElementBuilder lookupBuilder =
+            JavaLookupElementBuilder.forMethod(psiMethod, name, PsiSubstitutor.EMPTY, psiMethod.getContainingClass());
+          resultBuilder.add(attachTracker(lookupBuilder));
         }
       }
     }
     return resultBuilder.build();
   }
 
-  private static LookupElement createTrackedLookupElement(@NotNull Object lookupObject, @NotNull String lookupString) {
+  @VisibleForTesting
+  static LookupElement attachTracker(@NotNull LookupElementBuilder element) {
     // Attach a completion handler to each look up element so we can track when user accepts a suggestion.
-    return LookupElementBuilder.create(lookupObject, lookupString).withInsertHandler(new InsertHandler<LookupElement>() {
+    return element.withInsertHandler(new InsertHandler<LookupElement>() {
       @Override
       public void handleInsert(@NotNull InsertionContext context, @NotNull LookupElement item) {
         DataBindingTracker tracker = DataBindingTracker.getInstance(context.getProject());

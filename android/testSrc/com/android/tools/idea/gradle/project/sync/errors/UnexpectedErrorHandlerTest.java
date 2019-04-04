@@ -28,6 +28,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNEXPECTED_ERROR;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.FILE_BUG_HYPERLINK;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.SHOW_LOG_HYPERLINK;
 
@@ -63,7 +64,7 @@ public class UnexpectedErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes.get(0)).isInstanceOf(FileBugHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(ShowLogHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(UNEXPECTED_ERROR, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(FILE_BUG_HYPERLINK, SHOW_LOG_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

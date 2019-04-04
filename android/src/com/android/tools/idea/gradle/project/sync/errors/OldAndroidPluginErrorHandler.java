@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
@@ -45,7 +46,7 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     // To override this check from the command line please set the ANDROID_DAILY_OVERRIDE environment variable to "e3353206c64a2c010454e8bb4f2d7187b56c198"
     String text = rootCause.getMessage();
     if (isMatching(text)) {
-      updateUsageTracker(project);
+      updateUsageTracker(project, OLD_ANDROID_PLUGIN);
       // This way we remove extra lines and spaces from original message.
       return Joiner.on('\n').join(Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text));
     }

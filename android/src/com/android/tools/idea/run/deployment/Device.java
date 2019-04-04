@@ -55,6 +55,9 @@ public abstract class Device {
     private String myKey;
 
     @Nullable
+    private Instant myConnectionTime;
+
+    @Nullable
     private AndroidDevice myAndroidDevice;
 
     @NotNull
@@ -70,6 +73,12 @@ public abstract class Device {
     }
 
     @NotNull
+    final T setConnectionTime(@Nullable Instant connectionTime) {
+      myConnectionTime = connectionTime;
+      return self();
+    }
+
+    @NotNull
     final T setAndroidDevice(@NotNull AndroidDevice androidDevice) {
       myAndroidDevice = androidDevice;
       return self();
@@ -79,21 +88,22 @@ public abstract class Device {
     abstract T self();
 
     @NotNull
-    abstract Device build(@Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map);
+    abstract Device build(@Nullable LaunchCompatibilityChecker checker);
   }
 
-  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @Nullable KeyToConnectionTimeMap map) {
+  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker) {
     assert builder.myName != null;
     myName = builder.myName;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
 
+    myConnectionTime = builder.myConnectionTime;
+
     assert builder.myAndroidDevice != null;
     myAndroidDevice = builder.myAndroidDevice;
 
     myIsValid = checker == null || !checker.validate(myAndroidDevice).isCompatible().equals(ThreeState.NO);
-    myConnectionTime = map == null ? null : map.get(myKey);
   }
 
   @NotNull

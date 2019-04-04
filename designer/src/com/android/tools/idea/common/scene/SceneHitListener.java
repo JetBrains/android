@@ -181,6 +181,10 @@ class SceneHitListener {
     return candidate;
   }
 
+  public ArrayList<SceneComponent> getHitComponents() {
+    return myHitComponents;
+  }
+
   private static boolean parentInSelection(@NotNull SceneComponent component, @NotNull List<NlComponent> selection) {
     if (selection.isEmpty()) {
       return false;

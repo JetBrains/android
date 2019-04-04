@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -34,10 +39,13 @@ public class StudioReportDatabase {
   private final Object myDbLock = new Object();
   @GuardedBy("myDbLock")
   private final Path myDb;
-  private final static long MAX_SUPPORTED_FORMAT_VERSION = 1;
 
   public StudioReportDatabase(@NotNull File databaseFile) {
-    myDb = databaseFile.toPath();
+    this(databaseFile.toPath());
+  }
+
+  public StudioReportDatabase(@NotNull Path databasePath) {
+    myDb = databasePath;
   }
 
   @NotNull
@@ -45,7 +53,7 @@ public class StudioReportDatabase {
     List<DiagnosticReport> result;
 
     synchronized (myDbLock) {
-      try (Reader reader = new FileReader(myDb.toFile())) {
+      try (Reader reader = new InputStreamReader(new FileInputStream(myDb.toFile()), UTF_8)) {
         result = DiagnosticReport.Companion.readDiagnosticReports(reader);
       }
       catch (Exception e) {

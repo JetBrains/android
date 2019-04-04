@@ -24,5 +24,5 @@ fun applyPlaceholderToSceneComponent(component: SceneComponent, placeholder: Pla
   val downX = component.centerX
   val downY = component.centerY
   dragTarget.mouseDown(downX, downY)
-  dragTarget.applyPlaceholder(placeholder, commit = true)
+  dragTarget.applyPlaceholder(placeholder)
 }

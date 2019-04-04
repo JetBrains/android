@@ -26,6 +26,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.exe
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -174,6 +175,7 @@ public class PostSyncProjectSetup {
   /**
    * Invoked after a project has been synced with Gradle.
    */
+  @Slow
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator, @Nullable ExternalSystemTaskId taskId) {
     try {
       if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {

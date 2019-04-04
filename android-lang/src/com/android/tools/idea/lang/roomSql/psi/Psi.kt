@@ -38,12 +38,12 @@ import org.jetbrains.uast.getUastParentOfType
 import javax.swing.Icon
 
 class RoomTokenType(debugName: String) : IElementType(debugName, RoomSqlLanguage.INSTANCE) {
-  override fun toString(): String = when (super.toString()) {
+  override fun toString(): String = when (val token = super.toString()) {
     "," -> "comma"
     ";" -> "semicolon"
     "'" -> "single quote"
     "\"" -> "double quote"
-    else -> super.toString()
+    else -> token
   }
 }
 

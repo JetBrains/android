@@ -16,9 +16,6 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.testing.addManifest
@@ -27,6 +24,8 @@ import com.android.tools.idea.uibuilder.property2.inspector.groups.CONSTRAINT_GR
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.ptable2.PTableGroupItem
 import com.google.common.truth.Truth
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -52,14 +51,9 @@ class AllAttributesInspectorBuilderTest {
     util.loadProperties()
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
+    util.checkTitle(0, "All Attributes")
+    val items = util.checkTable(1).tableModel.items
     Truth.assertThat(util.inspector.lines).hasSize(2)
-    Truth.assertThat(util.inspector.lines[0].type).isEqualTo(FakeLineType.TITLE)
-    Truth.assertThat(util.inspector.lines[1].type).isEqualTo(FakeLineType.TABLE)
-
-    Truth.assertThat(util.inspector.lines[0].title).isEqualTo("All Attributes")
-    Truth.assertThat(util.inspector.lines[0].expandable).isTrue()
-
-    val items = util.inspector.lines[1].tableModel!!.items
 
     // Check that these 6 attributes are present in alphabetical order:
     Truth.assertThat(items.map { it.name })

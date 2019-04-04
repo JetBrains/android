@@ -21,6 +21,7 @@ import com.android.tools.property.panel.api.Watermark
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.inspector.AllAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.BasicAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.ComponentActionsInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.DeclaredAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
@@ -45,6 +46,9 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
     if (StudioFlags.NELE_NEW_PROPERTY_PANEL_WITH_TABS.get()) {
       val basic = addTab(BASIC_PAGE)
       basic.searchable = false
+      if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
+        basic.builders.add(ComponentActionsInspectorBuilder(model))
+      }
       basic.builders.add(IdInspectorBuilder(editorProvider))
       basic.builders.add(LayoutInspectorBuilder(model.project, editorProvider))
       basic.builders.add(BasicAttributesInspectorBuilder(model.project, editorProvider))
@@ -54,6 +58,9 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
     }
     else {
       val tab = addTab("")
+      if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
+        tab.builders.add(ComponentActionsInspectorBuilder(model))
+      }
       tab.builders.add(IdInspectorBuilder(editorProvider))
       tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
       tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))

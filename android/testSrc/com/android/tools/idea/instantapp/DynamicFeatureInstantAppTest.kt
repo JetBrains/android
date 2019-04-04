@@ -171,7 +171,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       return false
     }
 
-    override fun terminateLaunch(reason: String?) {
+    override fun terminateLaunch(reason: String?, destroyProcess: Boolean) {
     }
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -86,12 +87,16 @@ public final class IncludeHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    // When dropping an include tag, ask the user which layout to include.
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+    // When dropping an include tag, ask the user which layout to include if
+    // the layout attribute is not pre-populated.
+    String layoutAttr = newChild.getAttribute(null, ATTR_LAYOUT);
+    if (insertType == InsertType.CREATE && layoutAttr == null) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
-        newChild.setAttribute(null, ATTR_LAYOUT, src);
-        return true;
+        return NlWriteCommandActionUtil.compute(newChild, "Create Include", () -> {
+          newChild.setAttribute(null, ATTR_LAYOUT, src);
+          return true;
+        });
       }
       else {
         // Remove the view; the insertion was canceled

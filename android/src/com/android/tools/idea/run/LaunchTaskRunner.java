@@ -21,6 +21,8 @@ import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -29,6 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -94,10 +97,10 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
                                     ? myDeviceFutures.getDevices().get(0).getVersion()
                                     : null;
-    DebugConnectorTask debugSessionTask = myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
+    DebugConnectorTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
 
     if (debugSessionTask != null && listenableDeviceFutures.size() != 1) {
-      launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.");
+      launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true);
     }
 
     if (debugSessionTask != null) {
@@ -107,15 +110,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
     StringBuilder launchString = new StringBuilder("\n");
     DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
-    launchString.append(dateFormat.format(new Date()));
-    launchString.append(": Launching '");
-    launchString.append(myConfigName);
-    launchString.append("'");
+    launchString.append(dateFormat.format(new Date())).append(": ");
+    launchString.append(getLaunchVerb()).append(" ");
+    launchString.append("'").append(myConfigName).append("'");
     if (!StringUtil.isEmpty(myExecutionTargetName)) {
       launchString.append(" on ");
       launchString.append(myExecutionTargetName);
-      launchString.append(".");
     }
+    launchString.append(".");
     consolePrinter.stdout(launchString.toString());
 
     for (ListenableFuture<IDevice> deviceFuture : listenableDeviceFutures) {
@@ -132,11 +134,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
       }
       catch (com.intellij.execution.ExecutionException e) {
-        launchStatus.terminateLaunch(e.getMessage());
+        launchStatus.terminateLaunch(e.getMessage(), !isSwap());
         break;
       }
       catch (IllegalStateException e) {
-        launchStatus.terminateLaunch(e.getMessage());
+        launchStatus.terminateLaunch(e.getMessage(), !isSwap());
         Logger.getInstance(LaunchTaskRunner.class).error(e);
         break;
       }
@@ -155,13 +157,16 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         if (!success) {
           myErrorNotificationListener = result.getNotificationListener();
           myError = result.getError();
-          launchStatus.terminateLaunch(result.getConsoleError());
+          launchStatus.terminateLaunch(result.getConsoleError(), !isSwap());
 
           // append a footer hyperlink, if one was provided
           if (result.getConsoleHyperlinkInfo() != null) {
             myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
                                      result.getConsoleHyperlinkInfo());
           }
+
+          // show the tool window when we have an error
+          RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
 
           myStats.setErrorId(result.getErrorId());
           break;
@@ -173,7 +178,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
         // check for cancellation via progress bar
         if (indicator.isCanceled()) {
-          launchStatus.terminateLaunch("User cancelled launch");
+          launchStatus.terminateLaunch("User cancelled launch", !isSwap());
           success = false;
           break;
         }
@@ -193,8 +198,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           .perform(myLaunchInfo, device, (ProcessHandlerLaunchStatus)launchStatus, (ProcessHandlerConsolePrinter)consolePrinter);
       }
       else { // we only need to inform the process handler if certain scenarios
-        if (myLaunchTasksProvider.createsNewProcess() // we are not doing a hot swap (in which case we are creating a new process)
-            && myProcessHandler instanceof AndroidProcessHandler) { // we aren't debugging (in which case its a DebugProcessHandler)
+        if (myProcessHandler instanceof AndroidProcessHandler) { // we aren't debugging (in which case its a DebugProcessHandler)
           AndroidProcessHandler procHandler = (AndroidProcessHandler) myProcessHandler;
           procHandler.addTargetDevice(device);
         }
@@ -215,7 +219,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   }
 
   @Nullable
-  private static IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture,
+  private IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture,
                                        @NotNull ProgressIndicator indicator,
                                        @NotNull LaunchStatus launchStatus) {
     while (true) {
@@ -225,16 +229,16 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       catch (TimeoutException ignored) {
       }
       catch (InterruptedException e) {
-        launchStatus.terminateLaunch("Interrupted while waiting for device");
+        launchStatus.terminateLaunch("Interrupted while waiting for device", true);
         return null;
       }
       catch (ExecutionException e) {
-        launchStatus.terminateLaunch("Error while waiting for device: " + e.getCause().getMessage());
+        launchStatus.terminateLaunch("Error while waiting for device: " + e.getCause().getMessage(), true);
         return null;
       }
 
       if (indicator.isCanceled()) {
-        launchStatus.terminateLaunch("User cancelled launch");
+        launchStatus.terminateLaunch("User cancelled launch", !isSwap());
         return null;
       }
 
@@ -256,5 +260,23 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
 
     return total;
+  }
+
+  private boolean isSwap() {
+    return Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY)) ||
+           Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY));
+  }
+
+  @NotNull
+  private String getLaunchVerb() {
+    if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY))) {
+      return "Applying changes to";
+    }
+    else if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY))) {
+      return "Applying code changes to";
+    }
+    else {
+      return "Launching";
+    }
   }
 }

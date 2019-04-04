@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -29,7 +30,10 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -44,15 +48,13 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 import java.util.List;
@@ -60,8 +62,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
-
-import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates a preview image that is used when dragging an item from the palette.
@@ -99,30 +104,28 @@ public class PreviewProvider implements Disposable {
   @AndroidCoordinate
   public ImageAndDimension createPreview(@NotNull JComponent component, @NotNull Palette.Item item) {
     Dimension size;
-    BufferedImage image = myDependencyManager.needsLibraryLoad(item) ? null : renderDragImage(item);
-    if (image != null) {
-      size = new Dimension(image.getWidth(), image.getHeight());
-      image = ImageUtils.scale(image, getScale());
+    Image image;
+    JBUI.ScaleContext scaleContext = JBUI.ScaleContext.create(component);
+    Image renderedItem = myDependencyManager.needsLibraryLoad(item) ? null : renderDragImage(item);
+
+    if (renderedItem == null) {
+      Icon icon = item.getIcon();
+      image = IconUtil.toImage(icon, scaleContext);
     }
     else {
-      Icon icon = item.getIcon();
-      //noinspection UndesirableClassUsage
-      image = new BufferedImage(icon.getIconWidth(),
-                                icon.getIconHeight(),
-                                BufferedImage.TYPE_INT_ARGB);
-      Graphics2D g2 = (Graphics2D)image.getGraphics();
-      icon.paintIcon(component, g2, 0, 0);
-      g2.dispose();
-
-      double scale = getScale();
-      size = new Dimension((int)(image.getWidth() / scale), (int)(image.getHeight() / scale));
+      image = ImageUtil.ensureHiDPI(renderedItem, scaleContext);
     }
+
+    int width = ImageUtil.getRealWidth(image);
+    int height = ImageUtil.getRealHeight(image);
+    image = ImageUtil.scaleImage(image, getScale());
+    size = new Dimension(width, height);
 
     // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
     boolean inUserScale = !SystemInfo.isWindows || !UIUtil.isJreHiDPI(component);
-    image = ImageUtil.toBufferedImage(image, inUserScale);
+    BufferedImage bufferedImage = ImageUtil.toBufferedImage(image, inUserScale);
 
-    return new ImageAndDimension(image, size);
+    return new ImageAndDimension(bufferedImage, size);
   }
 
   @Nullable
@@ -206,7 +209,8 @@ public class PreviewProvider implements Disposable {
       return null;
     }
     PsiFile file = PsiFileFactory
-      .getInstance(renderTask.getContext().getModule().getProject()).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+      .getInstance(renderTask.getContext().getModule().getProject())
+      .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
 
     assert file instanceof XmlFile;
     renderTask.setXmlFile((XmlFile)file);
@@ -254,8 +258,8 @@ public class PreviewProvider implements Disposable {
       RenderService renderService = RenderService.getInstance(module.getProject());
       RenderLogger logger = renderService.createLogger(facet);
       myRenderTask = renderService.taskBuilder(facet, configuration)
-                                  .withLogger(logger)
-                                  .buildSynchronously();
+        .withLogger(logger)
+        .buildSynchronously();
     }
 
     return myRenderTask;

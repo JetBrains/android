@@ -39,7 +39,7 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void testBasics() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    assertEquals(26, specs.size());
+    assertEquals(28, specs.size());
 
     DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
     assertNotNull(nexus4);
@@ -64,7 +64,10 @@ public class DeviceArtDescriptorTest extends TestCase {
       assertNotNull(id);
       assertNotNull(descriptor.getName());
       for (ScreenOrientation orientation : new ScreenOrientation[] { ScreenOrientation.LANDSCAPE, ScreenOrientation.PORTRAIT}) {
-        if (orientation == ScreenOrientation.PORTRAIT && id.startsWith("tv_")) {
+        if (orientation == ScreenOrientation.PORTRAIT && (id.startsWith("tv_") || id.startsWith("automotive_"))) {
+          continue;
+        }
+        if (orientation == ScreenOrientation.LANDSCAPE && id.startsWith("polestar_")) {
           continue;
         }
         assertNotNull(id, descriptor.getFrameSize(orientation));
@@ -74,7 +77,10 @@ public class DeviceArtDescriptorTest extends TestCase {
         // We've pre-subtracted the crop everywhere now
         assertNull(descriptor.getCrop(orientation));
         assertTrue(id, descriptor.getFrame(orientation).exists());
-        assertTrue(id, descriptor.getDropShadow(orientation).exists());
+        File dropShadow = descriptor.getDropShadow(orientation);
+        if (dropShadow != null) {
+          assertTrue(id, dropShadow.exists());
+        }
         File reflectionOverlay = descriptor.getReflectionOverlay(orientation);
         if (reflectionOverlay != null) {
           assertTrue(id, reflectionOverlay.exists());
@@ -139,5 +145,17 @@ public class DeviceArtDescriptorTest extends TestCase {
       }
     }
     return null;
+  }
+
+  public void testAutomotiveSpecs() {
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      if ("automotive_1024".equals(spec.getId())) {
+        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
+        verifyFileExists(spec.getFrame(ScreenOrientation.LANDSCAPE));
+        return;  // pass: found automotive spec
+      }
+    }
+    fail("Did not find automotive_1024 spec");
   }
 }

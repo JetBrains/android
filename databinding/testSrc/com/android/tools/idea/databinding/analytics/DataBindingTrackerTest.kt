@@ -28,8 +28,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
+import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_ACCEPTED
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_SUGGESTED
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -38,6 +38,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -93,6 +94,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     }
   }
 
+  @Ignore("b/129763461")
   @Test
   fun testDataBindingPollingMetadataTracking() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())

@@ -39,19 +39,10 @@ public class ProjectSetup {
   }
 
   public void setUpProject(@Nullable ProgressIndicator progressIndicator, boolean syncFailed) {
-    Runnable invokeProjectSetupStepsTask = () -> {
-      for (ProjectSetupStep step : mySetupSteps) {
-        if (!syncFailed || step.invokeOnFailedSync()) {
-          step.setUpProject(myProject, progressIndicator);
-        }
+    for (ProjectSetupStep step : mySetupSteps) {
+      if (!syncFailed || step.invokeOnFailedSync()) {
+        step.setUpProject(myProject, progressIndicator);
       }
-    };
-
-    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      invokeProjectSetupStepsTask.run();
-      return;
     }
-
-    invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(invokeProjectSetupStepsTask));
   }
 }

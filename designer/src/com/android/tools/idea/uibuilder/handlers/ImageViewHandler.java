@@ -47,6 +47,8 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.PickDrawableViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.ScaleTypesViewActionMenu;
 import com.android.tools.idea.uibuilder.handlers.assistant.ImageViewAssistant;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
@@ -230,5 +232,11 @@ public class ImageViewHandler extends ViewHandler {
     actions.add(new ComponentAssistantViewAction(this::getComponentAssistant));
 
     return cacheable;
+  }
+
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of(new PickDrawableViewAction(ANDROID_URI, ATTR_SRC),
+                            new ScaleTypesViewActionMenu(ANDROID_URI, ATTR_SCALE_TYPE));
   }
 }

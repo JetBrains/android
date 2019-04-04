@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
+import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
@@ -26,17 +33,14 @@ import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
+import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.android.tools.property.panel.impl.support.PropertiesTableImpl
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import com.google.common.truth.Truth
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -72,6 +76,33 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     for (propertyItem in provider.getProperties(model, null, components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
+  }
+
+  fun checkTitle(line: Int, title: String) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
+  }
+
+  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
+    Truth.assertThat(inspector.lines[line].expandable).isEqualTo(expandable)
+    return inspector.lines[line]
+  }
+
+  fun checkEditor(line: Int, namespace: String, name: String) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PROPERTY)
+    Truth.assertThat(inspector.lines[line].editorModel?.property?.name).isEqualTo(name)
+    Truth.assertThat(inspector.lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
+  }
+
+  fun checkTable(line: Int): FakeTableLineModel {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TABLE)
+    return inspector.lines[line] as FakeTableLineModel
   }
 }
 

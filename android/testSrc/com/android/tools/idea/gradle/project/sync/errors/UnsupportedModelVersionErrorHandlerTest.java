@@ -27,6 +27,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_MODEL_VERSION;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK;
 
 /**
@@ -60,7 +61,7 @@ public class UnsupportedModelVersionErrorHandlerTest extends AndroidGradleTestCa
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
 
-    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(UNSUPPORTED_MODEL_VERSION, myUsageReporter.getCollectedFailure());
     assertEquals(ImmutableList.of(FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

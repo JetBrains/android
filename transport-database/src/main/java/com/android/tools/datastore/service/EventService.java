@@ -79,9 +79,8 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
       // information or drop it.
       EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
       builder.setName(data.getName());
-      builder.setPid(data.getPid());
       builder.setHash(data.getHash());
-      builder.setFragmentData(data.getFragmentData());
+      builder.setActivityContextHash(data.getActivityContextHash());
 
       // Find the first index greater than our initial request range.
       int firstIndexGreaterThanStart = 0;

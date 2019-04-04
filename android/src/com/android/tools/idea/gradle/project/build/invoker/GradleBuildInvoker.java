@@ -36,6 +36,7 @@ import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
+import com.android.tools.idea.gradle.project.build.output.ClangOutputParser;
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
 import com.android.tools.idea.gradle.project.build.output.DataBindingOutputParser;
 import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
@@ -408,6 +409,7 @@ public class GradleBuildInvoker {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     List<BuildOutputParser> buildOutputParsers =
       Arrays.asList(new GradleBuildOutputParser(),
+                    new ClangOutputParser(),
                     new CmakeOutputParser(),
                     new XmlErrorOutputParser(),
                     new AndroidGradlePluginOutputParser(),

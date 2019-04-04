@@ -8,7 +8,6 @@ import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
-import com.intellij.database.dataSource.DatabaseColorPanel;
 import com.intellij.database.dataSource.DatabaseNameComponent;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.view.ui.DsUiDefaults;
@@ -93,8 +92,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   @Nullable
   @Override
   public JComponent createComponent() {
-    myNameComponent = new DatabaseNameComponent(this, myController,
-                                                new DatabaseColorPanel(myDataSource, myManager, myProject, myController));
+    myNameComponent = new DatabaseNameComponent(this, myController, true);
     myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
     myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
 

@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_CMAKE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_CMAKE;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
@@ -70,12 +71,12 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
     if (isNotEmpty(message)) {
       String firstLine = getFirstLineMessage(message);
       if (firstLine.startsWith("Failed to find CMake.") || firstLine.startsWith("Unable to get the CMake version")) {
-        updateUsageTracker(project);
+        updateUsageTracker(project, MISSING_CMAKE);
         return "Failed to find CMake.";
       }
       else if (matchesCannotFindCmake(firstLine) || matchesTriedInstall(message)
                || matchesCmakeWithVersion(message)) {
-        updateUsageTracker(project);
+        updateUsageTracker(project, null);
         return message;
       }
     }

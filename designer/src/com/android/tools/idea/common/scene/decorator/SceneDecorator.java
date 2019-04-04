@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,10 +84,14 @@ public class SceneDecorator {
   protected void addBackground(@NotNull DisplayList list,
                                @NotNull SceneContext sceneContext,
                                @NotNull SceneComponent component) {
-    if (sceneContext.getColorSet().drawBackground()) {
+    boolean wantToConnect = DecoratorUtilities.getTryingToConnectState(component.getAuthoritativeNlComponent()) != null;
+    SceneComponent.DrawState state = component.getDrawState();
+
+    // For normal design mode, only draw background for hover.
+    if (!component.getAuthoritativeNlComponent().isRoot() &&
+        (sceneContext.getColorSet().drawBackground() || (wantToConnect && state == SceneComponent.DrawState.HOVER))) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect); // get the rectangle from the component
-      SceneComponent.DrawState state = component.getDrawState();
       if (component.isToolLocked()) {
         state = SceneComponent.DrawState.SUBDUED;
       }

@@ -17,24 +17,25 @@ package com.android.tools.idea.diagnostics.hprof.action
 
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable.AnalysisOption.IMMEDIATE
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START
+import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 
-class UserInvokedFullAnalysisAction : AnAction(), DumbAware {
+class InternalUserInvokedFullAnalysisAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
-    HeapDumpSnapshotRunnable(true, IMMEDIATE).run()
+    HeapDumpSnapshotRunnable(MemoryReportReason.InternalUserInvoked, IMMEDIATE).run()
   }
 }
 
 class UserInvokedHeapDumpSnapshotAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
-    HeapDumpSnapshotRunnable(true, SCHEDULE_ON_NEXT_START).run()
+    HeapDumpSnapshotRunnable(MemoryReportReason.UserInvoked, SCHEDULE_ON_NEXT_START).run()
   }
 }
 
-class NonuserInvokedHeapDumpSnapshotAction : AnAction(), DumbAware {
+class InternalNonuserInvokedHeapDumpSnapshotAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
-    HeapDumpSnapshotRunnable(false, SCHEDULE_ON_NEXT_START).run()
+    HeapDumpSnapshotRunnable(MemoryReportReason.InternalUserInvoked, SCHEDULE_ON_NEXT_START).run()
   }
 }

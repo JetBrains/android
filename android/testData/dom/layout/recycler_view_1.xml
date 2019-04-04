@@ -61,4 +61,11 @@
       app:layoutManager=".<error descr="Unresolved class 'LinearLayoutManager'">LinearLayoutManager</error>">
   </android.support.v7.widget.RecyclerView>
 
+
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="@string/my_layout_manager">
+  </android.support.v7.widget.RecyclerView>
+
 </LinearLayout>

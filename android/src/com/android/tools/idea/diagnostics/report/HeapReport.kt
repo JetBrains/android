@@ -20,27 +20,14 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.gson.stream.JsonWriter
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
-class HeapReport
+abstract class HeapReport
 @JvmOverloads
-constructor(val report: String,
+constructor(type: String,
+            val heapProperties: HeapReportProperties,
             baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport("Heap", baseProperties) {
-  private val EXCEPTION_TYPE = "com.android.OutOfMemory"
-
-  private val EMPTY_OOM_STACKTRACE = EXCEPTION_TYPE + ": \n" +
-                                     "\tat " + HeapReport::class.java.name + ".missingEdtStack(Unknown source)"
+  : DiagnosticReport(type, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
-    writer.name("report").value(report)
-  }
-
-  override fun asCrashReport(): CrashReport {
-    return object : DiagnosticCrashReport(type, properties) {
-      override fun serialize(builder: MultipartEntityBuilder) {
-        super.serialize(builder)
-        builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, EMPTY_OOM_STACKTRACE)
-        builder.addTextBody("heapReport", report)
-      }
-    }
+    writer.name("reason").value(heapProperties.reason.toString())
   }
 }

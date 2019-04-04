@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.TestSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.ResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -31,6 +32,9 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
   @Override
   public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, @Nullable Project project) {
     if (project == null) {
+      return null;
+    }
+    if (!TestSourcesFilter.isTestSources(file, project)) {
       return null;
     }
     TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, project);

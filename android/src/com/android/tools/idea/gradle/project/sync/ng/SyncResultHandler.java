@@ -32,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
@@ -142,8 +141,7 @@ class SyncResultHandler {
         syncListener.syncSucceeded(myProject);
       }
 
-      StartupManager.getInstance(myProject)
-        .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+      runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -168,8 +166,7 @@ class SyncResultHandler {
       syncListener.syncSkipped(myProject);
     }
 
-    StartupManager.getInstance(myProject)
-      .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+    runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -241,8 +238,7 @@ class SyncResultHandler {
         if (syncListener != null) {
           syncListener.syncSucceeded(myProject);
         }
-        StartupManager.getInstance(myProject)
-          .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+        runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
       }
       catch (Throwable e) {
         notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -314,6 +310,22 @@ class SyncResultHandler {
       }
     }
     return true;
+  }
+
+  private void runWhenProjectInitializedOnPooledThreadIfNotUnderTest(@NotNull Runnable runnable) {
+    StartupManager.getInstance(myProject)
+      .runWhenProjectIsInitialized(() -> {
+        // For unit tests we run the runnable on the dispatch thread, during PostSyncProjectSetup we dispatch a number of other
+        // threads to perform tasks. If this thread is not run on the EDT then we will end up checking assertions before the thread this
+        // runs on returns which leads to a bunch of unit test failures.
+        // TODO: Refine the threading of sync and ensure that tests have a way to wait for everything.
+        if (ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode()) {
+          ApplicationManager.getApplication().executeOnPooledThread(runnable);
+        }
+        else {
+          runnable.run();
+        }
+      });
   }
 
   /**

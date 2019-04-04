@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
+import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -32,9 +33,12 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
+import com.intellij.execution.Executor;
 import com.intellij.execution.KillableProcess;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -60,7 +64,7 @@ import java.util.function.BiConsumer;
  * destroyProcess kills the processes (typically by a stop button in the UI). If all the processes die, then this handler terminates as
  * well.
  */
-public class AndroidProcessHandler extends ProcessHandler implements KillableProcess {
+public class AndroidProcessHandler extends ProcessHandler implements KillableProcess, SwappableProcessHandler {
   private static final Logger LOG = Logger.getInstance(AndroidProcessHandler.class);
 
   // If the client is not present on the monitored devices after this time, then it is assumed to have died.
@@ -103,6 +107,8 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
 
     deviceChangeListener = new DeviceChangeListener();
     clientChangeListener = new ClientChangeListener();
+
+    putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
   }
 
   /**
@@ -198,7 +204,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        killProcesses();
+        killApps();
       }
 
       @Override
@@ -208,18 +214,18 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     });
   }
 
-  private void killProcesses() {
+  private void killApps() {
     AndroidDebugBridge bridge = getBridgeForKill();
     if (bridge == null) {
       return;
     }
 
     for (IDevice device : bridge.getDevices()) {
-      killProcess(device);
+      killApp(device);
     }
   }
 
-  private void killProcess(@NotNull IDevice candidateDevice) {
+  private void killApp(@NotNull IDevice candidateDevice) {
     boolean shouldStopOnDevice;
     synchronized (deviceClientLock) {
       shouldStopOnDevice = myDevices.contains(candidateDevice.getSerialNumber());
@@ -350,28 +356,25 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     return getDevices().contains(androidTarget.getIDevice()) && androidTarget.isApplicationRunning(myApplicationId);
   }
 
+  /**
+   * Kill processes by running the "am force-stop" shell command, which might take a while to run. For that reason, make sure the kill
+   * commands are executed in another (pooled) thread to prevent them from freezing the UI. Show a progress indicator meanwhile.
+   * TODO(b/122820269): Figure out a nice way to prevent the pooled thread from leaking and testing it's executed properly.
+   */
   @Override
   public void killProcess() {
     AndroidDebugBridge bridge = getBridgeForKill();
     if (bridge == null) {
       return;
     }
-   killProcessAsync();
-  }
 
-  /**
-   * Kill processes by running the "am force-stop" shell command, which might take a while to run. For that reason, make sure the kill
-   * commands are executed in another (pooled) thread to prevent them from freezing the UI. Show a progress indicator meanwhile.
-   * TODO(b/122820269): Figure out a nice way to prevent the pooled thread from leaking and testing it's executed properly.
-   */
-  private void killProcessAsync() {
+    // Grab the current target before we run the task in the background, in case the user changes the selection.
+    ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-
-        ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
         if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
-          killProcesses();
+          killApps();
           return;
         }
 
@@ -379,17 +382,40 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
         if (targetDevice == null) {
           return;
         }
-        killProcess(targetDevice);
+        killApp(targetDevice);
       }
     });
   }
 
+  @Nullable
   private AndroidDebugBridge getBridgeForKill() {
     if (myNoKill) {
       return null;
     }
 
     return AndroidDebugBridge.getBridge();
+  }
+
+  @Nullable
+  @Override
+  public Executor getExecutor() {
+    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
+    if (sessionInfo == null) {
+      return null;
+    }
+
+    return sessionInfo.getExecutor();
+  }
+
+  @Override
+  public boolean isExecutedWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
+    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
+    if (sessionInfo == null) {
+      return false;
+    }
+
+    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId()) &&
+           sessionInfo.getRunConfigurationId() == runConfiguration.getUniqueID();
   }
 
   /**

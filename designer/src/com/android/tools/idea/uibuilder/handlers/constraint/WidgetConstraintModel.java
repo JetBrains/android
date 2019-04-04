@@ -51,6 +51,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
@@ -242,6 +243,7 @@ public class WidgetConstraintModel {
   private Runnable myUpdateCallback;
   @Nullable private NlComponent myComponent;
   @Nullable private NlModel myModel;
+  @Nullable private DesignSurface mySurface;
 
   @NotNull private final ChangeListener myChangeLiveListener = e -> fireUIUpdate();
   @NotNull private final ModelListener myModelListener = new ModelListener() {
@@ -352,6 +354,15 @@ public class WidgetConstraintModel {
   public boolean hasBaseline() {
     return myComponent != null &&
            myComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+  }
+
+  public void setSurface(@Nullable DesignSurface surface) {
+    mySurface = surface;
+  }
+
+  @Nullable
+  public DesignSurface getSurface() {
+    return mySurface;
   }
 
   public void setComponent(@Nullable NlComponent component) {

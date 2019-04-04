@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
@@ -44,7 +46,6 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.StringProperty;
@@ -161,7 +162,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     else {
       myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
     }
-    myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myProjectLanguage)), myProjectModel.language());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language());
     myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
 
 
@@ -173,8 +174,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myValidatorPanel.registerValidator(myProjectModel.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
+    myValidatorPanel.registerValidator(myProjectModel.language(), value ->
+      value.isPresent() ? OK : new Validator.Result(ERROR, message("android.wizard.validate.select.language")));
+
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
-      value.isPresent() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text")));
+      value.isPresent() ? OK : new Validator.Result(ERROR, message("select.target.dialog.text")));
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
@@ -188,14 +192,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
       myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
       myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get()
-                                    && myProjectModel.isAndroidxAvailable()
-                                    && formFactor != FormFactor.AUTOMOTIVE); // New automotive projects will use Androidx by default.
+                                    && myProjectModel.isAndroidxAvailable());
     });
 
     myListeners.listenAndFire(androidSdkInfo, sender -> {
       VersionItem androidVersion = androidSdkInfo.getValueOrNull();
-      boolean isAndroidxOnly = (androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q)
-                               || getModel().formFactor().get() == FormFactor.AUTOMOTIVE; // New automotive projects use Androidx by default
+      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
       if (isAndroidxOnly) {
         // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
         myUseAndroidxCheck.setSelected(true);
@@ -222,7 +224,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     getModel().hasCompanionApp().set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor().get() == FormFactor.CAR // Auto is not a standalone module (but rather a modification to a mobile module)
+      getModel().formFactor().get() == FormFactor.CAR || // Auto is not a standalone module (but rather a modification to a mobile module)
+      getModel().formFactor().get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
     );
 
     myProjectModel.useOfflineRepo().set(myOfflineRepoCheck.isVisible() && myOfflineRepoCheck.isSelected());

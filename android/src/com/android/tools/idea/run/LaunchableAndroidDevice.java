@@ -110,6 +110,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
         return SystemImage.WEAR_TAG.equals(myAvdInfo.getTag());
       case TV:
         return SystemImage.TV_TAG.equals(myAvdInfo.getTag());
+      case AUTOMOTIVE:
+        return SystemImage.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
       default:
         return true;
     }
