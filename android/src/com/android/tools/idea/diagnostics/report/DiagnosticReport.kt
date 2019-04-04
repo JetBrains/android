@@ -108,6 +108,7 @@ constructor(val type: String,
       }
     }
 
+    @Throws(IOException::class)
     fun readDiagnosticReports(inputReader: Reader): ArrayList<DiagnosticReport> {
       val result = ArrayList<DiagnosticReport>()
       JsonReader(inputReader).use { reader ->

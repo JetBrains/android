@@ -34,6 +34,7 @@ import com.intellij.util.MemoryDumpHelper
 import com.intellij.util.io.exists
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.daemon.common.usedMemory
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
@@ -96,6 +97,37 @@ class HeapDumpSnapshotRunnable(
         LOG.info("Don't ask for snapshot until $nextCheckDateString.")
         return
       }
+    }
+
+    try {
+      val instance = AndroidStudioSystemHealthMonitor.getInstance()
+
+      if (instance == null) {
+        LOG.error("Android Studio System Health Monitor not initialized.")
+        return
+      }
+
+      val isHeapReportPending = instance.hasPendingHeapReport()
+      if (isHeapReportPending) {
+        if (userInvoked) {
+          val productName = ApplicationNamesInfo.getInstance().fullProductName
+
+          val message = AndroidBundle.message("heap.dump.snapshot.already.pending", productName)
+          Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
+        }
+        LOG.info("Heap report already pending.")
+        return
+      }
+    } catch (ex: IOException) {
+      if (userInvoked) {
+        val message = AndroidBundle.message("heap.dump.snapshot.error.check.log")
+        Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
+        LOG.warn("Exception while querying for pending heap report", ex)
+      }
+      else {
+        LOG.info("Exception while querying for pending heap report", ex)
+      }
+      return
     }
 
     val hprofPath = AndroidStudioSystemHealthMonitor.ourHProfDatabase.createHprofTemporaryFilePath()
