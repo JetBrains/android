@@ -18,9 +18,6 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.run.LaunchCompatibilityChecker;
-import com.intellij.util.ThreeState;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -32,38 +29,31 @@ public final class DeviceComparatorTest {
       .setKey("Pixel_3_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setConnected(true)
-      .build(null);
+      .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build(null);
+      .build();
 
     assertTrue(new DeviceComparator().compare(device1, device2) < 0);
   }
 
   @Test
   public void compareValid() {
-    LaunchCompatibilityChecker checker = Mockito.mock(LaunchCompatibilityChecker.class);
-
-    AndroidDevice androidDevice1 = Mockito.mock(AndroidDevice.class);
-    Mockito.when(checker.validate(androidDevice1)).thenReturn(LaunchCompatibility.YES);
-
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
       .setKey("Pixel_3_API_28")
-      .setAndroidDevice(androidDevice1)
-      .build(checker);
-
-    AndroidDevice androidDevice2 = Mockito.mock(AndroidDevice.class);
-    Mockito.when(checker.validate(androidDevice2)).thenReturn(new LaunchCompatibility(ThreeState.NO, null));
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
+      .setValid(false)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(androidDevice2)
-      .build(checker);
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
 
     assertTrue(new DeviceComparator().compare(device1, device2) < 0);
   }
@@ -75,13 +65,13 @@ public final class DeviceComparatorTest {
       .setKey("Pixel_3_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setConnected(true)
-      .build(null);
+      .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
       .setKey("00fff9d2279fa601")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build(null);
+      .build();
 
     assertTrue(new DeviceComparator().compare(device1, device2) < 0);
   }
@@ -92,13 +82,13 @@ public final class DeviceComparatorTest {
       .setName("Pixel 2 XL API 28")
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build(null);
+      .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
       .setKey("Pixel_3_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build(null);
+      .build();
 
     assertTrue(new DeviceComparator().compare(device1, device2) < 0);
   }

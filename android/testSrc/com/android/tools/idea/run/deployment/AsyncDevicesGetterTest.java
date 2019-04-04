@@ -20,14 +20,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.ISystemImage;
-import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.openapi.module.Module;
-import java.io.File;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -48,9 +47,6 @@ public final class AsyncDevicesGetterTest {
   private AsyncDevicesGetter myGetter;
   private VirtualDevice myVirtualDevice;
 
-  private IDevice myConnectedDevice;
-  private Collection<IDevice> myConnectedDevices;
-
   @Before
   public void setUp() {
     Clock clock = Mockito.mock(Clock.class);
@@ -58,22 +54,11 @@ public final class AsyncDevicesGetterTest {
 
     myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
 
-    AvdInfo avdInfo = new AvdInfo(
-      "Pixel_2_XL_API_27",
-      new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.ini"),
-      "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.avd",
-      Mockito.mock(ISystemImage.class),
-      null);
-
-    myVirtualDevice = VirtualDevice.newDisconnectedDevice(avdInfo, null);
-  }
-
-  @Before
-  public void newConnectedDevices() {
-    myConnectedDevice = Mockito.mock(IDevice.class);
-
-    myConnectedDevices = new ArrayList<>(1);
-    myConnectedDevices.add(myConnectedDevice);
+    myVirtualDevice = new VirtualDevice.Builder()
+      .setName("Pixel 2 XL API 27")
+      .setKey("Pixel_2_XL_API_27")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
   }
 
   @Test
@@ -98,9 +83,25 @@ public final class AsyncDevicesGetterTest {
 
   @Test
   public void newVirtualDeviceIfItsConnectedAvdNamesAreEqual() {
-    Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
+    IDevice ddmlibDevice = Mockito.mock(IDevice.class);
+    Mockito.when(ddmlibDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
 
-    Device actualDevice = myGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(androidDevice.isRunning()).thenReturn(true);
+
+    // noinspection UnstableApiUsage
+    Mockito.when(androidDevice.getLaunchedDevice()).thenReturn(Futures.immediateFuture(ddmlibDevice));
+
+    ConnectedDevice connectedDevice = new ConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setKey("Pixel_2_XL_API_27")
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    Collection<ConnectedDevice> connectedDevices = new ArrayList<>(1);
+    connectedDevices.add(connectedDevice);
+
+    Device actualDevice = myGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, connectedDevices);
 
     Object expectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 27")
@@ -108,19 +109,37 @@ public final class AsyncDevicesGetterTest {
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(actualDevice.getAndroidDevice())
       .setConnected(true)
-      .build(null);
+      .build();
 
     assertEquals(expectedDevice, actualDevice);
-    assertEquals(Collections.emptyList(), myConnectedDevices);
+    assertEquals(Collections.emptyList(), connectedDevices);
   }
 
   @Test
   public void newVirtualDeviceIfItsConnected() {
-    Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_28");
+    IDevice ddmlibDevice = Mockito.mock(IDevice.class);
+    Mockito.when(ddmlibDevice.getAvdName()).thenReturn("Pixel_2_XL_API_28");
 
-    Object actualDevice = myGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(androidDevice.isRunning()).thenReturn(true);
+
+    // noinspection UnstableApiUsage
+    Mockito.when(androidDevice.getLaunchedDevice()).thenReturn(Futures.immediateFuture(ddmlibDevice));
+
+    ConnectedDevice connectedDevice = new ConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setKey("Pixel_2_XL_API_28")
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    Collection<ConnectedDevice> connectedDevices = new ArrayList<>(1);
+    connectedDevices.add(connectedDevice);
+
+    Object actualDevice = myGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, connectedDevices);
 
     assertSame(myVirtualDevice, actualDevice);
-    assertEquals(Collections.singletonList(myConnectedDevice), myConnectedDevices);
+
+    // noinspection MisorderedAssertEqualsArguments
+    assertEquals(Collections.singletonList(connectedDevice), connectedDevices);
   }
 }
