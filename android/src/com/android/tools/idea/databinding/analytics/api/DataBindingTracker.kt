@@ -36,11 +36,6 @@ interface DataBindingTracker {
   }
 
   /**
-   * Tracks whether the user has enabled data binding in gradle file. Currently it's tracked at sync time.
-   */
-  fun trackDataBindingEnabled()
-
-  /**
    * Tracks metrics that we actively poll for. Stats such as # of DB layout xmls, imports, variables, etc.
    * See [DataBindingEvent.DataBindingPollingMetadata] for full list of metrics.
    */
