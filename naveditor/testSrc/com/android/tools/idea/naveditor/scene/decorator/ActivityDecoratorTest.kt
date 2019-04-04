@@ -33,7 +33,7 @@ import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import org.mockito.Mockito
@@ -90,7 +90,7 @@ class ActivityDecoratorTest : NavTestCase() {
     assertEquals(
       listOf(
         DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, COMPONENT_BACKGROUND),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, SELECTED_FRAME, HIGHLIGHTED_FRAME_THICKNESS),
+        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, SELECTED, HIGHLIGHTED_FRAME_THICKNESS),
         DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f)),
         DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), ACTIVITY_BORDER,
                       ACTIVITY_BORDER_WIDTH),

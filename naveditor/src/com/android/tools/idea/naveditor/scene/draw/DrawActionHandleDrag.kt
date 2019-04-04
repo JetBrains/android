@@ -25,7 +25,7 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.NavColors.BACKGROUND
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import java.awt.geom.Point2D
 
 data class DrawActionHandleDrag(private val level: Int,
@@ -46,7 +46,7 @@ data class DrawActionHandleDrag(private val level: Int,
 
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = DrawFilledCircle(0, center, BACKGROUND, LerpFloat(initialOuterRadius, finalOuterRadius, duration))
-    val innerCircle = DrawFilledCircle(1, center, SELECTED_FRAME, innerRadius)
+    val innerCircle = DrawFilledCircle(1, center, SELECTED, innerRadius)
     val lineToMouse = DrawLineToMouse(2, center)
     return listOf(outerCircle, innerCircle, lineToMouse)
   }
