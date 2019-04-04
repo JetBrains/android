@@ -20,6 +20,11 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.naveditor.scene.NavColors.FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_TEXT
+import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -37,39 +42,24 @@ abstract class NavBaseDecorator : SceneDecorator() {
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
 
-  fun frameColor(context: SceneContext, component: SceneComponent): Color {
-    val colorSet = context.colorSet
-
-    return when (component.drawState) {
-      SceneComponent.DrawState.SELECTED -> colorSet.selectedFrames
+  fun frameColor(component: SceneComponent): Color =
+    when (component.drawState) {
+      SceneComponent.DrawState.SELECTED -> SELECTED_FRAME
       SceneComponent.DrawState.HOVER ->
-        if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) colorSet.selectedFrames
-        else colorSet.highlightedFrames
-      SceneComponent.DrawState.DRAG -> colorSet.highlightedFrames
-      else -> colorSet.frames
+        if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED_FRAME
+        else HIGHLIGHTED_FRAME
+      SceneComponent.DrawState.DRAG -> HIGHLIGHTED_FRAME
+      else -> FRAME
     }
-  }
 
-  fun textColor(context: SceneContext, component: SceneComponent): Color {
-    val colorSet = context.colorSet
+  fun textColor(component: SceneComponent): Color = if (component.isSelected) SELECTED_TEXT else TEXT
 
-    return if (component.isSelected) {
-      colorSet.selectedText
-    }
-    else {
-      colorSet.text
-    }
-  }
+  fun frameThickness(component: SceneComponent): Float =
+    if (isHighlighted(component)) HIGHLIGHTED_FRAME_THICKNESS else REGULAR_FRAME_THICKNESS
 
-  fun frameThickness(component: SceneComponent): Float {
-    return if (isHighlighted(component)) HIGHLIGHTED_FRAME_THICKNESS else REGULAR_FRAME_THICKNESS
-  }
-
-  fun isHighlighted(component: SceneComponent): Boolean {
-    return when (component.drawState) {
+  fun isHighlighted(component: SceneComponent): Boolean =
+    when (component.drawState) {
       SceneComponent.DrawState.SELECTED, SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG -> true
       else -> false
     }
-  }
-
 }

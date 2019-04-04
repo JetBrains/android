@@ -24,7 +24,9 @@ import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.LIST_MOUSEOVER
+import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -221,7 +223,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout())
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.SUBDUED_FRAME_COLOR))
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), SUBDUED_FRAME))
     buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
     val scrollable = AdtSecondaryPanel(BorderLayout())
     scrollable.add(buttonPanel, BorderLayout.NORTH)
@@ -418,7 +420,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     private val SECONDARY_TEXT_RENDERER = JBLabel()
 
     init {
-      SECONDARY_TEXT_RENDERER.foreground = NavColorSet.SUBDUED_TEXT_COLOR
+      SECONDARY_TEXT_RENDERER.foreground = SUBDUED_TEXT
       val leftPanel = JPanel(VerticalLayout(0, SwingConstants.CENTER))
       leftPanel.isOpaque = false
       THUMBNAIL_RENDERER.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
@@ -431,7 +433,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       rightPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
       rightPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
       RENDERER.add(rightPanel, BorderLayout.CENTER)
-      RENDERER.background = NavColorSet.LIST_MOUSEOVER_COLOR
+      RENDERER.background = LIST_MOUSEOVER
       RENDERER.isOpaque = false
     }
   }

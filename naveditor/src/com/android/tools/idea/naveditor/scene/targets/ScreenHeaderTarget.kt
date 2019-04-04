@@ -32,6 +32,7 @@ import com.android.tools.idea.naveditor.scene.HEADER_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
+import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.scaledFont
 import java.awt.Font
@@ -84,7 +85,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
     val text = component.nlComponent.uiName
     @SwingCoordinate val textRectangle = Rectangle2D.Float(l, t + textPadding, r - l, textHeight)
     list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, textRectangle,
-        sceneContext.colorSet.subduedText, scaledFont(sceneContext, Font.PLAIN), false))
+        SUBDUED_TEXT, scaledFont(sceneContext, Font.PLAIN), false))
   }
 
   override fun addHit(transform: SceneContext, picker: ScenePicker) {

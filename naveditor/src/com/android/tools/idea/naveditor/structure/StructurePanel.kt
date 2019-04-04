@@ -23,7 +23,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.naveditor.scene.NavColorSet.SUBDUED_BACKGROUND_COLOR
+import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_BACKGROUND
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -59,7 +59,7 @@ class StructurePanel(parentDisposable: Disposable) : AdtSecondaryPanel(BorderLay
       hostSeparator.isEnabled = true
       hostSeparator.label.foreground = JBColor.GRAY
       hostSeparator.border = JBUI.Borders.empty(5)
-      hostSeparator.background = SUBDUED_BACKGROUND_COLOR
+      hostSeparator.background = SUBDUED_BACKGROUND
       hostPanel.add(hostSeparator, BorderLayout.NORTH)
       hostPanel.add(HostPanel(toolContext), BorderLayout.SOUTH)
       add(hostPanel, BorderLayout.NORTH)
@@ -71,7 +71,7 @@ class StructurePanel(parentDisposable: Disposable) : AdtSecondaryPanel(BorderLay
       graphSeparator.isEnabled = true
       graphSeparator.label.foreground = JBColor.GRAY
       graphSeparator.border = JBUI.Borders.empty(5)
-      graphSeparator.background = SUBDUED_BACKGROUND_COLOR
+      graphSeparator.background = SUBDUED_BACKGROUND
       graphHeader.add(graphSeparator, BorderLayout.NORTH)
       backPanel = BackPanel(toolContext, dl::updateComponentList, this)
       graphHeader.add(backPanel, BorderLayout.SOUTH)
