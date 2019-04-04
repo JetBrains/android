@@ -27,20 +27,20 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import org.junit.Test;
 
-public final class VirtualDeviceTest {
+public final class VirtualDevicesWorkerDelegateTest {
   @Test
   public void getNameSnapshotProtocolBufferDoesntExist() {
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Path directory = fileSystem.getPath("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
+    Path directory = fileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
 
-    Object actualName = VirtualDevice.getName(directory);
+    Object actualName = VirtualDevicesWorkerDelegate.getName(directory);
 
     assertEquals("default_boot", actualName);
   }
 
   @Test
   public void getNameImageCountEqualsZero() {
-    assertNull(VirtualDevice.getName(Snapshot.getDefaultInstance(), ""));
+    assertNull(VirtualDevicesWorkerDelegate.getName(Snapshot.getDefaultInstance(), ""));
   }
 
   @Test
@@ -50,7 +50,7 @@ public final class VirtualDeviceTest {
       .build();
 
     String fallbackName = "default_boot";
-    assertSame(fallbackName, VirtualDevice.getName(snapshot, fallbackName));
+    assertSame(fallbackName, VirtualDevicesWorkerDelegate.getName(snapshot, fallbackName));
   }
 
   @Test
@@ -60,6 +60,6 @@ public final class VirtualDeviceTest {
       .setLogicalName("My Snapshot")
       .build();
 
-    assertEquals("My Snapshot", VirtualDevice.getName(snapshot, ""));
+    assertEquals("My Snapshot", VirtualDevicesWorkerDelegate.getName(snapshot, ""));
   }
 }

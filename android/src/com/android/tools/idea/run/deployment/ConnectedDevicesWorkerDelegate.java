@@ -18,29 +18,39 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.intellij.util.ThreeState;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import javax.swing.SwingWorker;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<IDevice>, Void> {
+final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<ConnectedDevice>, Void> {
+  @NotNull
   private final Project myProject;
 
-  ConnectedDevicesWorkerDelegate(@NotNull Project project) {
+  @Nullable
+  private final LaunchCompatibilityChecker myChecker;
+
+  ConnectedDevicesWorkerDelegate(@NotNull Project project, @Nullable LaunchCompatibilityChecker checker) {
     myProject = project;
+    myChecker = checker;
   }
 
   @NotNull
   @Override
-  protected Collection<IDevice> doInBackground() {
+  protected Collection<ConnectedDevice> doInBackground() {
     File adb = AndroidSdkUtils.getAdb(myProject);
 
     if (adb == null) {
@@ -54,7 +64,9 @@ final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<IDevic
     }
 
     try {
-      return Arrays.asList(futureBridge.get().getDevices());
+      return Arrays.stream(futureBridge.get().getDevices())
+        .map(this::newConnectedDevice)
+        .collect(Collectors.toList());
     }
     catch (InterruptedException exception) {
       // This should never happen. The future is done and can no longer be interrupted.
@@ -64,5 +76,17 @@ final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<IDevic
       Logger.getInstance(ConnectedDevicesWorkerDelegate.class).warn(exception);
       return Collections.emptyList();
     }
+  }
+
+  @NotNull
+  private ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice) {
+    AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
+
+    return new ConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setValid(myChecker == null || !myChecker.validate(androidDevice).isCompatible().equals(ThreeState.NO))
+      .setKey(ddmlibDevice.getSerialNumber())
+      .setAndroidDevice(androidDevice)
+      .build();
   }
 }
