@@ -21,8 +21,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.gradle.project.build.BuildStatus
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -38,7 +36,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -70,7 +67,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   }
 
   @Test
-  fun testDataBindingEnabledTracking() {
+  fun testDataBindingPollingMetadataTracking() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       try {
@@ -78,31 +75,6 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
         val syncState = GradleSyncState.getInstance(projectRule.project)
         syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
         syncState.syncEnded()
-
-        assertThat(
-          tracker.usages
-            .map { it.studioEvent }
-            .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-            .map { it.dataBindingEvent.pollMetadata.dataBindingEnabled }
-            .last())
-          .isEqualTo(mode != DataBindingMode.NONE)
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
-    }
-  }
-
-  @Ignore("b/129763461")
-  @Test
-  fun testDataBindingPollingMetadataTracking() {
-    val tracker = TestUsageTracker(VirtualTimeScheduler())
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        val buildState = GradleBuildState.getInstance(projectRule.project)
-        buildState.buildFinished(BuildStatus.SUCCESS)
         val dataBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
@@ -114,10 +86,10 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
         }
         else {
           dataBindingPollMetadata!!
-          assertThat(dataBindingPollMetadata.layoutXmlCount).isEqualTo(3)
+          assertThat(dataBindingPollMetadata.dataBindingEnabled).isTrue()
+          assertThat(dataBindingPollMetadata.layoutXmlCount).isEqualTo(4)
           assertThat(dataBindingPollMetadata.importCount).isEqualTo(0)
           assertThat(dataBindingPollMetadata.variableCount).isEqualTo(7)
-          assertThat(dataBindingPollMetadata.expressionCount).isEqualTo(5)
         }
       }
       finally {

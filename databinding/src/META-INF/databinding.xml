@@ -35,6 +35,8 @@
       <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
       <category>Android</category>
     </intentionAction>
+
+    <fileBasedIndex implementation="com.android.tools.idea.databinding.index.DataBindingXmlIndex"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
