@@ -16,25 +16,32 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.BUILDSRC_MODULE;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.ELIGIBLE;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.KOTLIN_MPP;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.OLD_PLUGIN;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.PURE_JAVA;
+import static com.google.common.base.Strings.nullToEmpty;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 // Update the eligibility of single-variant sync for current project.
 public class EnableDisableSingleVariantSyncStep {
@@ -47,6 +54,9 @@ public class EnableDisableSingleVariantSyncStep {
   // Returns EligibilityState which indicates the state or the specific reason if not supported.
   @NotNull
   static EligibilityState isEligibleForSingleVariantSync(@NotNull Project project) {
+    if (hasBuildSrcModule(project)) {
+      return BUILDSRC_MODULE;
+    }
     boolean hasAndroidModule = false;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       // Check if module has kotlin plugin, only populated in new sync.
@@ -83,6 +93,26 @@ public class EnableDisableSingleVariantSyncStep {
       }
     }
     return hasAndroidModule ? ELIGIBLE : PURE_JAVA;
+  }
+
+  private static boolean hasBuildSrcModule(@NotNull Project project) {
+    String projectPath = project.getBasePath();
+    List<String> projectRoots = new ArrayList<>();
+    if (projectPath != null) {
+      // collect root project directory.
+      projectRoots.add(projectPath);
+      // collect composite build project directory.
+      GradleProjectSettings projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(projectPath);
+      if (projectSettings != null) {
+        GradleProjectSettings.CompositeBuild compositeBuild = projectSettings.getCompositeBuild();
+        if (compositeBuild != null) {
+          for (BuildParticipant participant : compositeBuild.getCompositeParticipants()) {
+            projectRoots.add(nullToEmpty(participant.getRootPath()));
+          }
+        }
+      }
+    }
+    return projectRoots.stream().anyMatch(path -> SyncProjectModels.hasBuildSrcModule(path));
   }
 
   // Returns true if the module has kotlin plugin applied.
@@ -137,6 +167,14 @@ public class EnableDisableSingleVariantSyncStep {
       @NotNull
       String getReason() {
         return "uses Kotlin MPP";
+      }
+    },
+    // The project contains buildSrc modules
+    BUILDSRC_MODULE {
+      @Override
+      @NotNull
+      String getReason() {
+        return "contains buildSrc module";
       }
     };
 
