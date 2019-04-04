@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static java.util.Objects.requireNonNull;
 
 import com.android.builder.model.AndroidProject;
-import com.android.builder.model.SyncIssue;
 import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.java.model.GradlePluginModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,6 +87,10 @@ public class SyncProjectModels implements Serializable {
       GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
 
       failIfKotlinPluginAppliedAndKotlinModelIsMissing(controller, gradleProject);
+      // fail if any project contains buildSrc module.
+      if (gradleProject != null && hasBuildSrcModule(gradleProject.getProjectDirectory().getPath())) {
+        throw new NewGradleSyncNotSupportedException("containing buildSrc module");
+      }
     }
 
     for (GradleBuild gradleBuild : gradleBuilds) {
@@ -99,6 +105,19 @@ public class SyncProjectModels implements Serializable {
     }
     // Request for GlobalLibraryMap model at last, when all of other models have been built.
     populateGlobalLibraryMap(controller);
+  }
+
+  /**
+   * Returns {@code true} if the given path has subfolder named "buildSrc", and buildSrc folder contains
+   * build.gradle or build.gradle.kts file.
+   *
+   * @param projectPath directory of root project
+   */
+  public static boolean hasBuildSrcModule(@NotNull String projectPath) {
+    File buildSrcDir = new File(projectPath, "buildSrc");
+    File buildFile = new File(buildSrcDir, FN_BUILD_GRADLE);
+    File ktsBuildFile = new File(buildSrcDir, FN_BUILD_GRADLE_KTS);
+    return buildFile.isFile() || ktsBuildFile.isFile();
   }
 
   private void failIfKotlinPluginAppliedAndKotlinModelIsMissing(@NotNull BuildController controller,
