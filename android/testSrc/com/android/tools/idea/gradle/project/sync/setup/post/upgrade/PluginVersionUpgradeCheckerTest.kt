@@ -62,8 +62,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
 
     replaceUpgradeService(upgradable = false)
 
-    val checker = RecommendedPluginVersionUpgradeChecker(upgradeReminder)
-    checker.runActivity(myProject)
+    checkUpgrade(myProject, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
@@ -77,8 +76,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
 
     replaceUpgradeService(upgradable = true)
 
-    val checker = RecommendedPluginVersionUpgradeChecker(upgradeReminder)
-    checker.runActivity(myProject)
+    checkUpgrade(myProject, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
