@@ -15,23 +15,12 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyEditorModel
-import com.android.tools.property.panel.impl.support.ImageFocusListener
-import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import java.awt.BorderLayout
-import java.awt.Point
-import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
@@ -42,26 +31,16 @@ import javax.swing.JComponent
  */
 class ActionButtonBinding(private val model: PropertyEditorModel,
                           private val editor: JComponent) : CellPanel(), DataProvider {
-  private val actionButton = ButtonWithCustomTooltip()
   private val actionButtonModel
     get() = model.property.browseButton
+  private val actionButton = ButtonWithCustomTooltip(actionButtonModel?.action)
 
   init {
     add(editor, BorderLayout.CENTER)
     add(actionButton, BorderLayout.EAST)
     updateFromModel()
 
-    actionButton.registerActionKey({ buttonPressed(null) }, KeyStrokes.SPACE, "space")
-    actionButton.registerActionKey({ buttonPressed(null) }, KeyStrokes.ENTER, "enter")
     model.addListener(ValueChangedListener { updateFromModel() })
-
-    actionButton.addMouseListener(object: MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        buttonPressed(event)
-      }
-    })
-    actionButton.isFocusable = actionButtonModel?.actionButtonFocusable ?: false
-    actionButton.addFocusListener(ImageFocusListener(actionButton) { updateFromModel() })
   }
 
   override fun requestFocus() {
@@ -80,34 +59,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     return null
   }
 
-  private fun buttonPressed(mouseEvent: MouseEvent?) {
-    val action = actionButtonModel?.action ?: return
-    if (action is ActionGroup) {
-      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, action)
-      val location = locationFromEvent(mouseEvent)
-      popupMenu.component.show(this, location.x, location.y)
-    }
-    else {
-      val event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN,
-                                                   DataManager.getInstance().getDataContext(editor))
-      action.actionPerformed(event)
-      model.refresh()
-    }
-  }
-
-  private fun locationFromEvent(mouseEvent: MouseEvent?): Point {
-    if (mouseEvent != null) {
-      return mouseEvent.locationOnScreen
-    }
-    val location = actionButton.locationOnScreen
-    return Point(location.x + actionButton.width / 2, location.y + actionButton.height / 2)
-  }
-
-  private inner class ButtonWithCustomTooltip : IconWithFocusBorder() {
-
-    init {
-      background = secondaryPanelBackground
-    }
+  private inner class ButtonWithCustomTooltip(action: AnAction?) : IconWithFocusBorder({ action }) {
 
     override fun getToolTipText(event: MouseEvent): String? {
       // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
