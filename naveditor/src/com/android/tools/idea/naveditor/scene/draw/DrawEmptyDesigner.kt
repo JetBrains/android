@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.pointToString
 import com.android.tools.idea.common.scene.draw.stringToPoint
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
+import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import java.awt.Font
@@ -45,7 +46,7 @@ class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val g2 = g.create() as Graphics2D
 
-    g2.color = sceneContext.colorSet.text
+    g2.color = TEXT
     g2.font = Font("Default", 0, JBUI.scale(FONT_SIZE))
 
     @SwingCoordinate var x = point.x
