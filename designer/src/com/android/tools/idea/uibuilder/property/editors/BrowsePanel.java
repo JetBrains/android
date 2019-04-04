@@ -320,20 +320,17 @@ public class BrowsePanel extends AdtSecondaryPanel {
           case MISSING_DESIGN_PROPERTY:
             presentation.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
             presentation.setText("Specify Design Property");
-            presentation.setVisible(true);
-            presentation.setEnabled(true);
+            presentation.setEnabledAndVisible(true);
             break;
           case IS_REMOVABLE_DESIGN_PROPERTY:
             presentation.setIcon(AllIcons.Actions.Delete);
             presentation.setText("Remove this Design Property");
-            presentation.setVisible(true);
-            presentation.setEnabled(true);
+            presentation.setEnabledAndVisible(true);
             break;
           default:
             presentation.setIcon(null);
             presentation.setText(null);
-            presentation.setVisible(false);
-            presentation.setEnabled(false);
+            presentation.setEnabledAndVisible(false);
             break;
         }
       }
