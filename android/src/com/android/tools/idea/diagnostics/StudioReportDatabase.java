@@ -49,12 +49,12 @@ public class StudioReportDatabase {
   }
 
   @NotNull
-  public List<DiagnosticReport> reapReportDetails() {
+  public List<DiagnosticReport> reapReports() {
     List<DiagnosticReport> result;
 
     synchronized (myDbLock) {
-      try (Reader reader = new InputStreamReader(new FileInputStream(myDb.toFile()), UTF_8)) {
-        result = DiagnosticReport.Companion.readDiagnosticReports(reader);
+      try {
+        result = getReports();
       }
       catch (Exception e) {
         result = ImmutableList.of();
@@ -69,6 +69,15 @@ public class StudioReportDatabase {
     }
 
     return result;
+  }
+
+  @NotNull
+  public List<DiagnosticReport> getReports() throws IOException {
+    synchronized (myDbLock) {
+      try (Reader reader = new InputStreamReader(new FileInputStream(myDb.toFile()), UTF_8)) {
+        return DiagnosticReport.Companion.readDiagnosticReports(reader);
+      }
+    }
   }
 
   public void appendReport(DiagnosticReport report) throws IOException {
