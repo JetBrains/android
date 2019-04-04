@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import static com.android.tools.idea.naveditor.scene.NavColors.BACKGROUND;
 import static com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME;
 import static com.android.tools.idea.naveditor.scene.NavColors.SELECTED;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
@@ -26,6 +25,7 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.INNER_RADIU
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIUS_LARGE;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIUS_SMALL;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -193,7 +193,7 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     int duration = (int)Math.abs(DURATION * (myHandleState.myOuterRadius - newState.myOuterRadius) / OUTER_RADIUS_LARGE);
 
-    Color outerColor = BACKGROUND;
+    Color outerColor = StudioColorsKt.getPrimaryPanelBackground();
     Color innerColor = getComponent().isSelected() ? SELECTED : HIGHLIGHTED_FRAME;
 
     if (myIsDragging) {
