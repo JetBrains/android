@@ -340,7 +340,7 @@ public class AndroidAnnotatorUtil {
       return new AnAction() {
         @Override
         public void actionPerformed(AnActionEvent e) {
-          Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
+          Editor editor = e.getData(CommonDataKeys.EDITOR);
           if (editor != null) {
             // Need ARGB support in platform color chooser; see
             //  https://youtrack.jetbrains.com/issue/IDEA-123498
