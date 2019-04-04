@@ -22,8 +22,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.scene.NavColors.FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED_TEXT
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.intellij.util.ui.JBUI
@@ -44,15 +43,16 @@ abstract class NavBaseDecorator : SceneDecorator() {
 
   fun frameColor(component: SceneComponent): Color =
     when (component.drawState) {
-      SceneComponent.DrawState.SELECTED -> SELECTED_FRAME
+      SceneComponent.DrawState.SELECTED -> SELECTED
       SceneComponent.DrawState.HOVER ->
-        if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED_FRAME
+        if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED
         else HIGHLIGHTED_FRAME
       SceneComponent.DrawState.DRAG -> HIGHLIGHTED_FRAME
       else -> FRAME
     }
 
-  fun textColor(component: SceneComponent): Color = if (component.isSelected) SELECTED_TEXT else TEXT
+
+  fun textColor(component: SceneComponent): Color = if (component.isSelected) SELECTED else TEXT
 
   fun frameThickness(component: SceneComponent): Float =
     if (isHighlighted(component)) HIGHLIGHTED_FRAME_THICKNESS else REGULAR_FRAME_THICKNESS
