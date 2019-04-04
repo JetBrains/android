@@ -15,29 +15,29 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-public final class PhysicalDeviceTest {
+public final class ConnectedDeviceTest {
   @Test
   public void getNameManufacturerAndModelAreNull() {
-    assertEquals("Unknown Device", PhysicalDevice.getName(new DeviceNameProperties(null, null, null, null)));
+    assertEquals("Unknown Device", ConnectedDevice.getName(new DeviceNameProperties(null, null, null, null)));
   }
 
   @Test
   public void getNameManufacturerIsNull() {
-    assertEquals("Nexus 5X", PhysicalDevice.getName(new DeviceNameProperties("Nexus 5X", null, null, null)));
+    assertEquals("Nexus 5X", ConnectedDevice.getName(new DeviceNameProperties("Nexus 5X", null, null, null)));
   }
 
   @Test
   public void getNameModelIsNull() {
-    assertEquals("LGE Device", PhysicalDevice.getName(new DeviceNameProperties(null, "LGE", null, null)));
+    assertEquals("LGE Device", ConnectedDevice.getName(new DeviceNameProperties(null, "LGE", null, null)));
   }
 
   @Test
   public void getName() {
-    assertEquals("LGE Nexus 5X", PhysicalDevice.getName(new DeviceNameProperties("Nexus 5X", "LGE", null, null)));
+    assertEquals("LGE Nexus 5X", ConnectedDevice.getName(new DeviceNameProperties("Nexus 5X", "LGE", null, null)));
   }
 }

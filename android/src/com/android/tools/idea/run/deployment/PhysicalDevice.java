@@ -17,12 +17,9 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DeviceNameProperties;
-import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.LaunchCompatibilityChecker;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -40,18 +37,18 @@ final class PhysicalDevice extends Device {
   private static final Icon ourInvalidIcon = ExecutionUtil.getLiveIndicator(AllIcons.General.Error);
 
   @NotNull
-  static PhysicalDevice newDevice(@NotNull DeviceNameProperties properties,
-                                  @NotNull IDevice ddmlibDevice,
-                                  @Nullable LaunchCompatibilityChecker checker,
+  static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
+                                  @NotNull DeviceNamePropertiesFetcher fetcher,
                                   @NotNull KeyToConnectionTimeMap map) {
-    String key = ddmlibDevice.getSerialNumber();
+    String key = device.getKey();
 
     return new Builder()
-      .setName(getName(properties))
+      .setName(device.getPhysicalDeviceName(fetcher))
+      .setValid(device.isValid())
       .setKey(key)
       .setConnectionTime(map.get(key))
-      .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, null))
-      .build(checker);
+      .setAndroidDevice(device.getAndroidDevice())
+      .build();
   }
 
   static final class Builder extends Device.Builder<Builder> {
@@ -63,34 +60,13 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @Override
-    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker) {
-      return new PhysicalDevice(this, checker);
+    PhysicalDevice build() {
+      return new PhysicalDevice(this);
     }
   }
 
-  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker) {
-    super(builder, checker);
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static String getName(@NotNull DeviceNameProperties properties) {
-    String manufacturer = properties.getManufacturer();
-    String model = properties.getModel();
-
-    if (manufacturer == null && model == null) {
-      return "Unknown Device";
-    }
-
-    if (manufacturer == null) {
-      return model;
-    }
-
-    if (model == null) {
-      return manufacturer + " Device";
-    }
-
-    return manufacturer + ' ' + model;
+  private PhysicalDevice(@NotNull Builder builder) {
+    super(builder);
   }
 
   @NotNull

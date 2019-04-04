@@ -19,11 +19,9 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ThreeState;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -36,7 +34,7 @@ public abstract class Device {
   @NotNull
   private final String myName;
 
-  private final boolean myIsValid;
+  private final boolean myValid;
 
   @NotNull
   private final String myKey;
@@ -51,6 +49,8 @@ public abstract class Device {
     @Nullable
     private String myName;
 
+    private boolean myValid;
+
     @Nullable
     private String myKey;
 
@@ -60,9 +60,19 @@ public abstract class Device {
     @Nullable
     private AndroidDevice myAndroidDevice;
 
+    Builder() {
+      myValid = true;
+    }
+
     @NotNull
     final T setName(@NotNull String name) {
       myName = name;
+      return self();
+    }
+
+    @NotNull
+    final T setValid(boolean valid) {
+      myValid = valid;
       return self();
     }
 
@@ -88,12 +98,14 @@ public abstract class Device {
     abstract T self();
 
     @NotNull
-    abstract Device build(@Nullable LaunchCompatibilityChecker checker);
+    abstract Device build();
   }
 
-  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker) {
+  Device(@NotNull Builder builder) {
     assert builder.myName != null;
     myName = builder.myName;
+
+    myValid = builder.myValid;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
@@ -102,8 +114,6 @@ public abstract class Device {
 
     assert builder.myAndroidDevice != null;
     myAndroidDevice = builder.myAndroidDevice;
-
-    myIsValid = checker == null || !checker.validate(myAndroidDevice).isCompatible().equals(ThreeState.NO);
   }
 
   @NotNull
@@ -118,7 +128,7 @@ public abstract class Device {
   }
 
   final boolean isValid() {
-    return myIsValid;
+    return myValid;
   }
 
   @NotNull

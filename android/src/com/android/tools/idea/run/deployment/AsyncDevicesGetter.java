@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
@@ -49,7 +48,7 @@ class AsyncDevicesGetter {
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
-  private final Worker<Collection<IDevice>> myConnectedDevicesWorker;
+  private final Worker<Collection<ConnectedDevice>> myConnectedDevicesWorker;
 
   @NotNull
   private final DeviceNamePropertiesFetcher myDevicePropertiesFetcher;
@@ -84,9 +83,9 @@ class AsyncDevicesGetter {
       () -> new VirtualDevicesWorkerDelegate(myChecker),
       Collections.emptyList());
 
-    Collection<IDevice> connectedDevices = new ArrayList<>(myConnectedDevicesWorker.get(
-      () -> new ConnectedDevicesWorkerDelegate(myProject),
-      Collections.emptyList()));
+    Collection<ConnectedDevice> connectedDevices = myConnectedDevicesWorker.get(
+      () -> new ConnectedDevicesWorkerDelegate(myProject, myChecker),
+      Collections.emptyList());
 
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
 
@@ -95,7 +94,7 @@ class AsyncDevicesGetter {
       .forEach(devices::add);
 
     connectedDevices.stream()
-      .map(device -> PhysicalDevice.newDevice(myDevicePropertiesFetcher.get(device), device, myChecker, myMap))
+      .map(device -> PhysicalDevice.newDevice(device, myDevicePropertiesFetcher, myMap))
       .forEach(devices::add);
 
     Collection<String> keys = devices.stream()
@@ -149,15 +148,15 @@ class AsyncDevicesGetter {
   // TODO(b/122476635) Simplify this method
   @NotNull
   @VisibleForTesting
-  final Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice, @NotNull Iterable<IDevice> connectedDevices) {
+  final Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice, @NotNull Iterable<ConnectedDevice> connectedDevices) {
     Object key = virtualDevice.getKey();
 
-    for (Iterator<IDevice> i = connectedDevices.iterator(); i.hasNext(); ) {
-      IDevice device = i.next();
+    for (Iterator<ConnectedDevice> i = connectedDevices.iterator(); i.hasNext(); ) {
+      ConnectedDevice connectedDevice = i.next();
 
-      if (Objects.equals(device.getAvdName(), key)) {
+      if (Objects.equals(connectedDevice.getVirtualDeviceKey(), key)) {
         i.remove();
-        return VirtualDevice.newConnectedDevice(virtualDevice, device, myChecker, myMap);
+        return VirtualDevice.newConnectedDevice(virtualDevice, connectedDevice, myMap);
       }
     }
 
