@@ -32,7 +32,7 @@ public interface Service extends ApplicationComponent {
   @Attribute("name")
   @Required
   @Convert(PackageClassConverter.class)
-  @PackageClassConverter.Options(inheriting = AndroidUtils.SERVICE_CLASS_NAME)
+  @ExtendClass(AndroidUtils.SERVICE_CLASS_NAME)
   AndroidAttributeValue<PsiClass> getServiceClass();
 
   List<IntentFilter> getIntentFilters();

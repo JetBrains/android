@@ -15,11 +15,7 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import com.intellij.util.xml.Attribute;
-import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.GenericAttributeValue;
-import com.intellij.util.xml.Required;
+import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
@@ -31,6 +27,6 @@ public interface CustomDrawable extends DrawableDomElement {
   @Required
   @Attribute("class")
   @Convert(PackageClassConverter.class)
-  @PackageClassConverter.Options(inheriting = "android.graphics.drawable.Drawable")
+  @ExtendClass("android.graphics.drawable.Drawable")
   GenericAttributeValue<ResourceValue> getImplementingClass();
 }
