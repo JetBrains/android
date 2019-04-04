@@ -19,6 +19,11 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.ex.PathManagerEx
 import java.io.File
 
+object LangDataBindingTestData {
+  const val PROJECT_WITH_DATA_BINDING_SUPPORT = "projects/projectWithDataBindingSupport"
+  const val PROJECT_WITH_DATA_BINDING_ANDROID_X = "projects/projectWithDataBindingAndroidX"
+}
+
 fun getTestDataPath(): String {
   val adtPath = PathManager.getHomePath() + "/../adt/idea/android-lang-databinding/testData"
   return if (File(adtPath).exists()) adtPath else PathManagerEx.findFileUnderCommunityHome("plugins/android").path
