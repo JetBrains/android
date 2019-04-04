@@ -21,26 +21,23 @@ import java.awt.Color
 
 object NavColors {
   val FRAME = JBColor(0xa7a7a7, 0x2d2f31)
+  @JvmField
   val HIGHLIGHTED_FRAME = JBColor(0xa7a7a7, 0xa1a1a1)
-  @JvmField
-  val SELECTED_FRAME = JBColor(0x1886f7, 0x9ccdff)
-  @JvmField
-  val SUBDUED_FRAME = JBColor(0xa7a7a7, 0xa1a1a1)
   @JvmField
   val BACKGROUND = JBColor(0xf5f5f5, 0x2d2f31)
   @JvmField
   val SUBDUED_BACKGROUND = JBColor(0xfcfcfc, 0x313435)
   val COMPONENT_BACKGROUND = JBColor(0xfafafa, 0x515658)
   val TEXT = JBColor(0xa7a7a7, 0x888888)
-  val SELECTED_TEXT = JBColor(0x1886f7, 0x9ccdff)
   val SUBDUED_TEXT = JBColor(0x656565, 0xbababb)
   val ACTION = JBColor(Color(-0x4d585859, true), Color(-0x4d777778, true))
   val HIGHLIGHTED_ACTION = JBColor(0xa7a7a7, 0x888888)
-  val SELECTED_ACTION = JBColor(0x1886f7, 0x9ccdff)
   val ACTIVITY_BORDER = JBColor(0xa7a7a7, 0x2d2f31)
   // Note that this must match the highlight color of ActionButtonWithText
   val LIST_MOUSEOVER = JBColor(Gray.xDB, Color(0x55595c))
   val PLACEHOLDER_BORDER = JBColor(0xcccccc, 0x3f4244)
   val PLACEHOLDER_TEXT = JBColor(0xcccccc, 0x888888)
   val PLACEHOLDER_BACKGROUND = JBColor(0xfdfdfd, 0x515658)
+  @JvmField
+  val SELECTED = JBColor(0x1886f7, 0x9ccdff)
 }
