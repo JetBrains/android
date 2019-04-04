@@ -43,7 +43,6 @@ public class ZoomLabelAction extends AnAction implements CustomComponentAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    super.update(e);
     updatePresentation(e.getPresentation());
   }
 

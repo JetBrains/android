@@ -395,7 +395,6 @@ public class GradleBuildInvoker {
           AnAction restartAction = new AnAction() {
             @Override
             public void update(@NotNull AnActionEvent e) {
-              super.update(e);
               e.getPresentation().setEnabled(!myBuildStopper.contains(id));
             }
 
