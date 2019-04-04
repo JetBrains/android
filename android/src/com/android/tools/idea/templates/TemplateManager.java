@@ -461,8 +461,8 @@ public class TemplateManager {
   }
 
   private static void updateAction(AnActionEvent event, String text, boolean visible, boolean disableIfNotReady) {
-    IdeView view = LangDataKeys.IDE_VIEW.getData(event.getDataContext());
-    final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
+    IdeView view = event.getData(LangDataKeys.IDE_VIEW);
+    final Module module = event.getData(LangDataKeys.MODULE);
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
     Presentation presentation = event.getPresentation();
     boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null;
