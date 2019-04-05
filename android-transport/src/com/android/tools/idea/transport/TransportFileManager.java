@@ -139,7 +139,7 @@ public final class TransportFileManager {
     }
 
     pushDaemonConfig();
-    pushAgentConfig(null);
+    pushAgentConfig(AGENT_CONFIG_FILE, null);
   }
 
   @NotNull
@@ -194,16 +194,16 @@ public final class TransportFileManager {
   /**
    * Creates and pushes a config file used for configuring the agent.
    */
-  public void pushAgentConfig(@Nullable AndroidRunConfigurationBase runConfig)
+  public void pushAgentConfig(@NotNull String configName, @Nullable AndroidRunConfigurationBase runConfig)
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
     Agent.AgentConfig.Builder agentConfigBuilder = Agent.AgentConfig.newBuilder().setCommon(buildCommonConfig());
     myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeAgentConfig(agentConfigBuilder, runConfig);
 
-    File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);
+    File configFile = FileUtil.createTempFile(configName, null, true);
     OutputStream oStream = new FileOutputStream(configFile);
     agentConfigBuilder.build().writeTo(oStream);
-    myDevice.executeShellCommand("rm -f " + DEVICE_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
-    myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
+    myDevice.executeShellCommand("rm -f " + DEVICE_DIR + configName, new NullOutputReceiver());
+    myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + configName);
   }
 
   @NotNull
@@ -285,10 +285,14 @@ public final class TransportFileManager {
   /**
    * Pushes the necessary filers into the package's folder for supporting attaching agent on startup.
    *
+   * @param packageName The package to launch agent with.
+   * @param configName  The agent config file name that should be passed along into the agent. This assumes it already existing under
+ *                      {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
+   *
    * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
    * accessible, empty string otherwise.
    */
-  public String configureStartupAgent(@NotNull String packageName) {
+  public String configureStartupAgent(@NotNull String packageName, @NotNull String configName) {
     // Startup agent feature was introduced from android API level 27.
     if (myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
       return "";
@@ -314,8 +318,8 @@ public final class TransportFileManager {
       return "";
     }
 
-    // Example: --attach-agent /data/data/package_name/libjvmtiagent_x86.so=/data/local/tmp/perfd/agent.config
-    return String.format("--attach-agent %s/%s=%s", packageDataPath, agentName, DEVICE_DIR + AGENT_CONFIG_FILE);
+    // Example: --attach-agent /data/data/package_name/libjvmtiagent_x86.so=/data/local/tmp/perfd/startupagent.config
+    return String.format("--attach-agent %s/%s=%s", packageDataPath, agentName, DEVICE_DIR + configName);
   }
 
   /**
