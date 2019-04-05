@@ -58,7 +58,7 @@ object DefaultInspectorClient : InspectorClient {
       processId = selectedProcess::getPid) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && agentConnected &&
-          it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, 0)) {
+          it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
         callback(it.layoutInspectorEvent)
         lastResponseTimePerGroup[it.groupId] = it.timestamp
       }

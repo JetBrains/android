@@ -343,6 +343,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
       }
       for (Transport.EventGroup.Builder eventGroup : myStreamEvents.get(streamId)) {
         for (Common.Event event : eventGroup.getEventsList()) {
+          if (request.getPid() != EMPTY_REQUEST_VALUE && request.getPid() != event.getPid()) {
+            continue;
+          }
           if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
             continue;
           }
