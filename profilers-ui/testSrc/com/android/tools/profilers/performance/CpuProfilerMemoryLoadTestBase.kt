@@ -37,6 +37,7 @@ import org.junit.After
 import org.junit.Rule
 import java.io.File
 import java.lang.management.ManagementFactory
+import kotlin.system.measureTimeMillis
 
 /**
  * Base class for loading the CpuProfilerStageView and measuring the used memory as well as the high water mark. This class starts the
@@ -45,6 +46,7 @@ import java.lang.management.ManagementFactory
  */
 open class CpuProfilerMemoryLoadTestBase {
   val myMemoryBenchmark = Benchmark.Builder("CpuProfiler Import Trace Memory (kb)").setProject("Android Studio Profilers").build()
+  val myTimingBenchmark = Benchmark.Builder("CpuProfiler Import Trace Time (millis)").setProject("Android Studio Profilers").build()
   val myTimer = FakeTimer()
   val myComponents = FakeIdeProfilerComponents()
   val myIdeServices = FakeIdeProfilerServices()
@@ -67,7 +69,7 @@ open class CpuProfilerMemoryLoadTestBase {
   private fun logMemoryUsed(metricName: String) {
     val memoryUsage = ManagementFactory.getMemoryMXBean()
     ensureGc()
-    myMemoryBenchmark.log(metricName + "-Used", memoryUsage.heapMemoryUsage.used)
+    myMemoryBenchmark.log(metricName + "-Used", memoryUsage.heapMemoryUsage.used / 1024)
   }
 
   private fun ensureGc() {
@@ -91,15 +93,16 @@ open class CpuProfilerMemoryLoadTestBase {
     myIdeServices.enablePerfetto(true)
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeServices, myTimer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-
+    val stage = CpuProfilerStage(profilers, fileName)
+    var cpuStageView: CpuProfilerStageView? = null
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-
+    myTimingBenchmark.log(name, measureTimeMillis {
     myProfilersView = StudioProfilersView(profilers, myComponents)
-    val stage = CpuProfilerStage(profilers, fileName)
-    // Setting the stage enters the stage and triggers the parsing of the CpuCapture
-    stage.studioProfilers.stage = stage
-    val cpuStageView = CpuProfilerStageView(myProfilersView!!, stage)
+      // Setting the stage enters the stage and triggers the parsing of the CpuCapture
+      stage.studioProfilers.stage = stage
+      cpuStageView = CpuProfilerStageView(myProfilersView!!, stage)
+    })
     logMemoryUsed(name + "-Load-Capture")
     // Test the stage view just to hold a reference in case the compiler attempts to be smart.
     assertThat(cpuStageView).isNotNull()
