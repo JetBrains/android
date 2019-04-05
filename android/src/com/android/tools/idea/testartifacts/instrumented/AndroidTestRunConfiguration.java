@@ -30,6 +30,7 @@ import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTrackerTestRunListener;
 import com.google.common.collect.ImmutableList;
@@ -91,6 +92,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
+
+    putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
   @Override

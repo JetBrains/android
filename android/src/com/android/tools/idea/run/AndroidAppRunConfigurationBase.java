@@ -34,6 +34,7 @@ import com.android.tools.idea.run.editor.LaunchOptionState;
 import com.android.tools.idea.run.editor.NoLaunch;
 import com.android.tools.idea.run.editor.SpecificActivityLaunch;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.MultiUserUtils;
 import com.android.tools.idea.stats.RunStats;
@@ -116,6 +117,8 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     for (LaunchOption option : LAUNCH_OPTIONS) {
       myLaunchOptionStates.put(option.getId(), option.createState());
     }
+
+    putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
   @Override
