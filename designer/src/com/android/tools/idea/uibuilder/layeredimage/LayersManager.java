@@ -93,15 +93,15 @@ public class LayersManager extends NlAbstractWindowManager {
     LayersPanel layersPanel = new LayersPanel();
     layersPanel.setImage(getImage(designer));
 
-    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
     // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets
     // me not specify it) is available and upstreamed, replace the following with just
     // anchor = getEditorMode() :
-    String value = propertiesComponent.getValue(myEditorModeKey);
+    String value = PropertiesComponent.getInstance(myProject).getValue(myEditorModeKey);
     ToolWindowAnchor anchor;
     if (value == null) {
       anchor = getAnchor();
-    } else {
+    }
+    else {
       anchor = value.equals("ToolWindow") ? null : ToolWindowAnchor.fromText(value);
     }
 
@@ -113,7 +113,7 @@ public class LayersManager extends NlAbstractWindowManager {
     }
     return new LightToolWindow(layersPanel, "Image Layers", AllIcons.Toolwindows.ToolWindowPalette,
                                layersPanel, layersPanel, contentSplitter, anchor, this,
-                               myProject, propertiesComponent, getVisibilityKeyName(designer), 200, null);
+                               myProject, getVisibilityKeyName(designer), 200, null);
   }
 
   @NotNull
