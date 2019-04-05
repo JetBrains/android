@@ -21,8 +21,8 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
@@ -42,6 +42,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Collections2;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -3412,6 +3413,33 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
+  /** Regression test for b/115880623 */
+  public void testRemoveDuplicate() {
+    VirtualFile valuesXml = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    ResourceFolderRepository resources = createRepository();
+    myFixture.openFileInEditor(valuesXml);
+
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(1);
+
+    moveCaret(myFixture, "<string name=\"|app_name");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    runListeners();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
+
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DELETE_LINE);
+    runListeners();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(1);
+
+    moveCaret(myFixture, "<string name=\"|app_name");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    runListeners();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
+
+    myFixture.performEditorAction(IdeActions.ACTION_COMMENT_LINE);
+    runListeners();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(1);
+  }
+
   public void testLoadValuesWithBadName() {
     resetScanCounter();
 
@@ -4072,5 +4100,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     moveCaret(myFixture, place);
     myFixture.type(toType);
     PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+  }
+
+  private void runListeners() {
+    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+    UIUtil.dispatchAllInvocationEvents();
   }
 }
