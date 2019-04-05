@@ -20,7 +20,6 @@ import com.intellij.designer.LightToolWindowManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
@@ -33,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public abstract class CaptureEditorLightToolWindowManager extends LightToolWindowManager {
-  protected CaptureEditorLightToolWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
-    super(project, fileEditorManager);
+  protected CaptureEditorLightToolWindowManager(@NotNull Project project) {
+    super(project);
   }
 
   @Nullable

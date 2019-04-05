@@ -18,7 +18,6 @@ package com.android.tools.idea.profiling.view;
 import com.intellij.designer.*;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import icons.AndroidIcons;
@@ -31,15 +30,16 @@ import javax.swing.*;
  * Dummy LightToolWindowManager because the framework requires two managers at the same time.
  */
 public class EmptyManager extends CaptureEditorLightToolWindowManager {
-  @NotNull private JPanel myEmptyPanel = new JPanel();
+  @NotNull
+  private final JPanel myEmptyPanel = new JPanel();
 
   @NotNull
   public static EmptyManager getInstance(@NotNull Project project) {
     return project.getComponent(EmptyManager.class);
   }
 
-  protected EmptyManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
-    super(project, fileEditorManager);
+  protected EmptyManager(@NotNull Project project) {
+    super(project);
   }
 
   @Nullable
