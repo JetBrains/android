@@ -1200,7 +1200,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       boolean removed = false;
       if (source != null) {
         for (ResourceItem item : source) {
-          removed |= removeItems(source, item.getType(), item.getName(), false);  // Will throw away file
+          removed |= !removeItems(item.getType(), item.getName(), source).isEmpty();
         }
 
         this.sources.remove(file.getVirtualFile());
@@ -1331,8 +1331,28 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     commitToRepository(result);
   }
 
-  private boolean removeItems(ResourceItemSource source, ResourceType type, String name, boolean removeFromFile) {
-    boolean removed = false;
+  /**
+   * @see #removeItems(ResourceType, String, ResourceItemSource, XmlTag)
+   */
+  @NotNull
+  private <T extends ResourceItem> List<T> removeItems(@NotNull ResourceType type,
+                                                       @NotNull String name,
+                                                       @NotNull ResourceItemSource<T> source) {
+    return removeItems(type, name, source, null);
+  }
+
+  /**
+   * Removes resource items matching the given type, name, source file and tag from {@link #myFullTable}. The tag is optional and only
+   * {@link PsiResourceItem}s will be checked against it.
+   *
+   * @return removed elements
+   */
+  @NotNull
+  private <T extends ResourceItem> List<T> removeItems(@NotNull ResourceType type,
+                                                       @NotNull String name,
+                                                       @NotNull ResourceItemSource<T> source,
+                                                       @Nullable XmlTag xmlTag) {
+    List<T> removed = new ArrayList<>();
 
     synchronized (ITEM_MAP_LOCK) {
       // Remove the item of the given name and type from the given resource file.
@@ -1347,12 +1367,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           while (iterator.hasNext()) {
             ResourceItem item = iterator.next();
             if (source.isSourceOf(item)) {
-              iterator.remove();
-              if (removeFromFile) {
-                //noinspection unchecked - we checked source and item are of compatible types in isSourceOf.
-                source.removeItem(item);
+              if (xmlTag == null || !(item instanceof PsiResourceItem) || ((PsiResourceItem)item).wasTag(xmlTag)) {
+                iterator.remove();
+
+                //noinspection unchecked: We know that `item` comes from `source` so it's of the correct type.
+                removed.add((T)item);
               }
-              removed = true;
             }
           }
         }
@@ -1638,7 +1658,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                         if (map == null) {
                           return;
                         }
-                        if (removeItems(resourceFile, type, name, true)) {
+                        List<PsiResourceItem> removed = removeItems(type, name, resourceFile, tag);
+                        if (!removed.isEmpty()) {
+                          for (PsiResourceItem item : removed) {
+                            resourceFile.removeItem(item);
+                          }
                           setModificationCount(ourModificationCounter.incrementAndGet());
                           invalidateParentCaches(myNamespace, type);
                         }
@@ -2390,7 +2414,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       for (ResourceType type : resourceTypes) {
         if (type != ResourceType.ID) {
           String name = ResourceHelper.getResourceName(file);
-          removeItems(source, type, name, false);  // No need since we're discarding the file.
+          removeItems(type, name, source);
         }
       }
     } // else: not a resource folder
@@ -2454,7 +2478,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private void removeItemsFromSource(ResourceItemSource<? extends ResourceItem> source) {
     synchronized (ITEM_MAP_LOCK) {
       for (ResourceItem item : source) {
-        removeItems(source, item.getType(), item.getName(), false);  // no need since we're discarding the file
+        removeItems(item.getType(), item.getName(), source);
       }
     }
   }
