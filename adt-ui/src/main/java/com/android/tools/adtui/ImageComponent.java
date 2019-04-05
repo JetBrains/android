@@ -16,9 +16,6 @@
 package com.android.tools.adtui;
 
 import com.intellij.ui.components.panels.OpaquePanel;
-import com.intellij.util.IconUtil;
-import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +29,7 @@ import java.awt.image.BufferedImage;
  * externally.
  */
 public class ImageComponent extends OpaquePanel {
-  protected Icon myIcon = null;
+  protected BufferedImage myImage = null;
 
   public ImageComponent() {
   }
@@ -43,19 +40,33 @@ public class ImageComponent extends OpaquePanel {
 
   @Override
   protected void paintChildren(@NotNull Graphics g) {
-    if (myIcon == null) return;
-    Image image = IconUtil.toImage(myIcon, JBUI.ScaleContext.create((Graphics2D)g));
-    UIUtil.drawImage(g, image, new Rectangle(getWidth(), getHeight()), new Rectangle(image.getWidth(null), image.getHeight(null)), null);
+    if (myImage == null) return;
+    Graphics2D g2 = (Graphics2D) g.create();
+    setRenderingHints(g2);
+    g2.drawImage(myImage, 0, 0, getWidth(), getHeight(), 0, 0, myImage.getWidth(), myImage.getHeight(), null);
   }
 
   public void setIcon(@Nullable Icon icon) {
-    myIcon = icon;
+    if (icon != null) {
+      myImage = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+      final Graphics2D gg = myImage.createGraphics();
+      setRenderingHints(gg);
+      icon.paintIcon(this, gg, 0, 0);
+      gg.dispose();
+    } else {
+      myImage = null;
+    }
     revalidate();
     repaint();
   }
 
   @Nullable
   public BufferedImage getImage() {
-    return ImageUtil.toBufferedImage(IconUtil.toImage(myIcon));
+    return myImage;
+  }
+
+  private static void setRenderingHints(Graphics2D gg) {
+    gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    gg.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
   }
 }
