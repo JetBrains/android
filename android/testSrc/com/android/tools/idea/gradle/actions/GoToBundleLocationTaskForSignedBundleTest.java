@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.gradle.actions.GoToBundleLocationTask.OpenFolderNotificationListener;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
@@ -40,16 +41,16 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
- * Tests for {@link GoToApkLocationTask}.
+ * Tests for {@link GoToBundleLocationTask}.
  */
-public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
-  private static final String NOTIFICATION_TITLE = "Build APK";
-  @Mock private AndroidNotification myMockNotification;
-  private GoToApkLocationTask myTask;
-  private boolean isShowFilePathActionSupported;
-  private SortedMap<String, File> buildsToPaths;
+public class GoToBundleLocationTaskForSignedBundleTest extends IdeaTestCase {
+  private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
   private static final String buildVariant1 = "FreeDebug";
   private static final String buildVariant2 = "PaidDebug";
+  private boolean isShowFilePathActionSupported;
+  @Mock private AndroidNotification myMockNotification;
+  private GoToBundleLocationTask myTask;
+  private SortedMap<String, File> buildsToPaths;
 
   @Override
   public void setUp() throws Exception {
@@ -60,16 +61,16 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
     List<String> buildVariants = new ArrayList<>();
     buildVariants.add(buildVariant1);
     buildVariants.add(buildVariant2);
-    File myApkPath1 = createTempDir(buildVariant1 + "apkLocation");
-    File myApkPath2 = createTempDir(buildVariant2 + "apkLocation");
-    // Simulate the paths of the APK for the module with one or more build variants.
+    // Simulate the path of the bundle file for the project's module.
+    File myBundleFilePath1 = createTempDir(buildVariant1 + "bundleFileLocation");
+    File myBundleFilePath2 = createTempDir(buildVariant2 + "bundleFileLocation");
     buildsToPaths = new TreeMap<>();
-    buildsToPaths.put(buildVariant1, myApkPath1);
-    buildsToPaths.put(buildVariant2, myApkPath2);
+    buildsToPaths.put(buildVariant1, myBundleFilePath1);
+    buildsToPaths.put(buildVariant2, myBundleFilePath2);
     IdeComponents ideComponents = new IdeComponents(myProject);
     BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(buildsToPaths);
-    myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants) {
+    myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null) {
       @Override
       boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
@@ -86,18 +87,17 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
   }
 
   public void testExecuteWithFailedBuild() {
-    String message = "Errors while building APK. You can find the errors in the 'Messages' view.";
+    String message = "Errors while building Bundle file. You can find the errors in the 'Messages' view.";
     myTask.execute(createBuildResult(new Throwable("Unknown error with gradle build")));
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, NotificationType.ERROR);
   }
 
   public void testExecuteWithSuccessfulBuild() {
-    Module module = getModule();
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String moduleName = module.getName();
+    String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName, buildVariant1, buildVariant2);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new GoToApkLocationTask.OpenFolderNotificationListener(buildsToPaths, myProject));
+                                           new OpenFolderNotificationListener(myProject, buildsToPaths, null));
   }
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
@@ -105,36 +105,38 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     String message = getExpectedModuleNotificationMessageNoShowFilePathAction(getModule().getName());
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new GoToApkLocationTask.OpenEventLogHyperlink());
+                                           new GoToBundleLocationTask.OpenEventLogHyperlink());
   }
 
   @NotNull
   private static String getExpectedModuleNotificationMessage(@NotNull String moduleName,
                                                              @Nullable String buildVariant1Name,
                                                              @Nullable String buildVariant2Name) {
-    return "APK(s) generated successfully for module '" +
+    return "App bundle(s) generated successfully for module '" +
            moduleName +
            "' with 2 build variants:" +
            getExpectedModuleLineNotificationMessage(buildVariant1Name) +
            getExpectedModuleLineNotificationMessage(buildVariant2Name);
   }
 
+
   @NotNull
-  private static String getExpectedModuleLineNotificationMessage(@NotNull String buildVariantName) {
+  private static String getExpectedModuleLineNotificationMessage(@NotNull String moduleName) {
     return "<br/>Build variant '" +
-           buildVariantName +
+           moduleName +
            "': <a href=\"" +
-           GoToApkLocationTask.MODULE +
-           buildVariantName +
-           "\">locate</a> or <a href=\"" +
-           GoToApkLocationTask.ANALYZE +
-           buildVariantName +
-           "\">analyze</a> the APK.";
+           GoToBundleLocationTask.LOCATE_URL_PREFIX +
+           moduleName +
+           "\">locate</a> or " +
+           "<a href=\"" +
+           GoToBundleLocationTask.ANALYZE_URL_PREFIX +
+           moduleName +
+           "\">analyze</a> the app bundle.";
   }
 
   @NotNull
   private static String getExpectedModuleNotificationMessageNoShowFilePathAction(@NotNull String moduleName) {
-    return "APK(s) generated successfully for module '" + moduleName + "' with 2 build variants";
+    return "App bundle(s) generated successfully for module '" + moduleName + "' with 2 build variants";
   }
 
   @NotNull
