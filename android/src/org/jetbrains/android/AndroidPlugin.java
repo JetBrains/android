@@ -53,10 +53,10 @@ public class AndroidPlugin implements BaseComponent {
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
 
-    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-    AnalyticsSettings.initialize(new LogWrapper(Logger.getInstance(AndroidPlugin.class)), scheduler);
+    AnalyticsSettings.initialize(new LogWrapper(Logger.getInstance(AndroidPlugin.class)), null);
+    AnalyticsSettings.setOptedIn(false);
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
-    UsageTracker.initialize(scheduler);
+    UsageTracker.initialize(JobScheduler.getScheduler());
   }
 
   private static void setUpActionsUnderFlag() {
