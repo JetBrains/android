@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.AppBundleProjectBuildOutput;
-import com.android.builder.model.AppBundleVariantBuildOutput;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.INFORMATION;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.OutputBuildAction;
-import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
@@ -40,15 +38,16 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.util.*;
-
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.INFORMATION;
 
 public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
   public static final String ANALYZE_URL_PREFIX = "analyze:";
@@ -56,62 +55,35 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
   public static final String LOCATE_KEY_URL_PREFIX = "key:";
   @NotNull private final Project myProject;
   @NotNull private final String myNotificationTitle;
-  @Nullable private final Collection<Module> myModules;
+  @NotNull private final Collection<Module> myModules;
   @Nullable private final File myExportedKeyFile;
-  @Nullable private Map<Module, File> myModulesAndBundlePaths;
+  @NotNull private final List<String> myBuildVariants;
 
   public GoToBundleLocationTask(@NotNull Project project,
+                                @NotNull Collection<Module> modules,
                                 @NotNull String notificationTitle,
-                                @NotNull Collection<Module> modules) {
-    this(project, notificationTitle, modules, null, null);
-  }
-
-  public GoToBundleLocationTask(@NotNull Project project,
-                                @NotNull String notificationTitle,
-                                @NotNull Map<Module, File> modulesAndBundlePaths) {
-    this(project, notificationTitle, null, modulesAndBundlePaths, null);
-  }
-
-  public GoToBundleLocationTask(@NotNull Project project,
-                                @NotNull String notificationTitle,
-                                @NotNull Map<Module, File> modulesAndBundlePaths,
-                                @NotNull File exportedKeyFile) {
-    this(project, notificationTitle, null, modulesAndBundlePaths, exportedKeyFile);
-  }
-
-  @VisibleForTesting
-  GoToBundleLocationTask(@NotNull Project project,
-                         @NotNull String notificationTitle,
-                         @Nullable Collection<Module> modules,
-                         @Nullable Map<Module, File> modulesAndPaths,
-                         @Nullable File exportedKeyFile) {
+                                @NotNull List<String> buildVariants,
+                                @Nullable File exportedKeyFile) {
     myProject = project;
     myNotificationTitle = notificationTitle;
-    myModulesAndBundlePaths = modulesAndPaths;
     myModules = modules;
     myExportedKeyFile = exportedKeyFile;
+    myBuildVariants = buildVariants;
   }
 
   @Override
   public void execute(@NotNull GradleInvocationResult result) {
+    boolean isSigned = !myBuildVariants.isEmpty();
     try {
-      if (myModulesAndBundlePaths == null) {
-        myModulesAndBundlePaths = getModulesAndPaths(result.getModel());
-      }
-
-      // Sorted module name -> output bundle file
-      SortedMap<String, File> bundlePathsByModule = sortModules(myModulesAndBundlePaths);
-
-      AndroidNotification notification = AndroidNotification.getInstance(myProject);
-      if (result.isBuildSuccessful()) {
-        notifySuccess(notification, bundlePathsByModule);
-      }
-      else if (result.isBuildCancelled()) {
-        notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
+      BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
+      Map<String, File> bundleBuildsToPath =
+        buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, true);
+      if (isSigned) {
+        String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
+        showNotification(result, moduleName, bundleBuildsToPath);
       }
       else {
-        String msg = "Errors while building Bundle file. You can find the errors in the 'Messages' view.";
-        notification.showBalloon(myNotificationTitle, msg, ERROR);
+        showNotification(result, null, bundleBuildsToPath);
       }
     }
     finally {
@@ -120,108 +92,86 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     }
   }
 
-  private void notifySuccess(@NotNull AndroidNotification notification,
-                             @NotNull SortedMap<String, File> bundlePathsByModule) {
-    if (ShowFilePathAction.isSupported()) {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("App bundle(s) generated successfully:<br/>");
+  private void showNotification(@NotNull GradleInvocationResult result,
+                                @Nullable String moduleName,
+                                @NotNull Map<String, File> buildsAndBundlePaths) {
+    AndroidNotification notification = AndroidNotification.getInstance(myProject);
+    if (result.isBuildSuccessful()) {
+      notifySuccess(notification, moduleName, buildsAndBundlePaths);
+    }
+    else if (result.isBuildCancelled()) {
+      notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
+    }
+    else {
+      String msg = "Errors while building Bundle file. You can find the errors in the 'Messages' view.";
+      notification.showBalloon(myNotificationTitle, msg, ERROR);
+    }
+  }
 
-      int moduleIndex = 0;
-      for (Map.Entry<String, File> entry : bundlePathsByModule.entrySet()) {
-        String moduleName = entry.getKey();
-        buffer.append("Module '").append(moduleName).append("': ");
-        buffer.append("<a href=\"").append(LOCATE_URL_PREFIX).append(moduleName).append("\">locate</a> or ");
-        buffer.append("<a href=\"").append(ANALYZE_URL_PREFIX).append(moduleName).append("\">analyze</a> the app bundle.");
-        if (moduleIndex < bundlePathsByModule.size() - 1) {
-          buffer.append("<br/>");
+  private void notifySuccess(@NotNull AndroidNotification notification,
+                             @Nullable String moduleName,
+                             @NotNull Map<String, File> bundleBuildsToPath) {
+    boolean isSigned = moduleName != null;
+    StringBuilder builder = new StringBuilder();
+    int count = bundleBuildsToPath.size();
+    builder.append("App bundle(s) generated successfully for ");
+    if (isSigned) {
+      builder.append("module '").append(moduleName).append("' with ").append(count)
+        .append(count == 1 ? " build variant" : " build variants");
+    }
+    else {
+      builder.append(count).append(count == 1 ? " module" : " modules");
+    }
+
+    builder.append(":<br/>");
+    if (isShowFilePathActionSupported()) {
+      for (Iterator<String> iterator = bundleBuildsToPath.keySet().iterator(); iterator.hasNext(); ) {
+        String moduleOrBuildVariant = iterator.next();
+        if (isSigned) {
+          builder.append("Build variant '");
+        }
+        else {
+          builder.append("Module '");
+        }
+        builder.append(moduleOrBuildVariant).append("': ");
+        builder.append("<a href=\"").append(LOCATE_URL_PREFIX).append(moduleOrBuildVariant).append("\">locate</a> or ");
+        builder.append("<a href=\"").append(ANALYZE_URL_PREFIX).append(moduleOrBuildVariant).append("\">analyze</a> the app bundle.");
+        if (iterator.hasNext()) {
+          builder.append("<br/>");
         }
       }
+
       if (myExportedKeyFile != null) {
-        buffer.append("<br/>");
-        buffer.append("<a href=\"").append(LOCATE_KEY_URL_PREFIX).append("\">Locate</a> exported key file.");
+        builder.append("<br/>");
+        builder.append("<a href=\"").append(LOCATE_KEY_URL_PREFIX).append("\">Locate</a> exported key file.");
       }
 
-      String text = buffer.toString();
+      String text = builder.toString();
       notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(myProject,
-                                                                                                          bundlePathsByModule,
+                                                                                                          bundleBuildsToPath,
                                                                                                           myExportedKeyFile));
     }
     else {
-      // Platform does not support showing the location of a file.
-      // Display file paths in the 'Log' view, since they could be too long to show in a balloon notification.
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("App bundle(s) generated successfully:\n");
-
-      int moduleIndex = 0;
-      for (Map.Entry<String, File> entry : bundlePathsByModule.entrySet()) {
-        String moduleName = entry.getKey();
-        buffer.append(" - ").append(moduleName).append(": ");
-        buffer.append(entry.getValue().getPath());
-        if (moduleIndex < bundlePathsByModule.size() - 1) {
-          buffer.append("\n");
-        }
+      builder.append(bundleBuildsToPath.entrySet().stream()
+                       .map(entry -> String.format(" - %s: %s", entry.getKey(), entry.getValue().getPath()))
+                       .collect(Collectors.joining("\n")));
+      StringBuilder balloonBuilder = new StringBuilder();
+      balloonBuilder.append("App bundle(s) generated successfully for ");
+      if (isSigned) {
+        balloonBuilder.append("module '").append(moduleName).append("' with ").append(count)
+          .append(count == 1 ? " build variant" : " build variants");
       }
-      notification.showBalloon(myNotificationTitle, "App bundle(s) generated successfully.", INFORMATION, new OpenEventLogHyperlink());
-      notification.addLogEvent(myNotificationTitle, buffer.toString(), INFORMATION);
+      else {
+        balloonBuilder.append(count).append(count == 1 ? " module" : " modules");
+      }
+      notification.showBalloon(myNotificationTitle, balloonBuilder.toString(), INFORMATION, new OpenEventLogHyperlink());
+      notification.addLogEvent(myNotificationTitle, builder.toString(), INFORMATION);
     }
   }
 
-  /**
-   * Generates a map from module to the location (either the bundle file itself if only one or to the folder if multiples).
-   */
-  @NotNull
   @VisibleForTesting
-  Map<Module, File> getModulesAndPaths(@Nullable Object model) {
-    assert myModules != null;
-
-    Map<Module, File> modulesAndPaths = new HashMap<>();
-    if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-      PostBuildModel postBuildModel = new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model);
-
-      for (Module module : myModules) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-        if (androidModel != null) {
-          File bundleFile = tryToGetOutputPostBuildBundleFile(androidModel, module, postBuildModel);
-          if (bundleFile != null) {
-            modulesAndPaths.put(module, bundleFile);
-          }
-        }
-      }
-    }
-
-    return modulesAndPaths;
-  }
-
-  @NotNull
-  private static SortedMap<String, File> sortModules(@NotNull Map<Module, File> modulesAndBundlePaths) {
-    SortedMap<String, File> bundlePathsByModule = new TreeMap<>();
-    for (Map.Entry<Module, File> moduleAndBundlePath : modulesAndBundlePaths.entrySet()) {
-      Module module = moduleAndBundlePath.getKey();
-      File bundlePath = moduleAndBundlePath.getValue();
-      if (bundlePath != null) {
-        String moduleName = module.getName();
-        bundlePathsByModule.put(moduleName, bundlePath);
-      }
-    }
-    return bundlePathsByModule;
-  }
-
-  @Nullable
-  private static File tryToGetOutputPostBuildBundleFile(@NotNull AndroidModuleModel androidModel,
-                                                        @NotNull Module module,
-                                                        @NotNull PostBuildModel postBuildModel) {
-    if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
-      AppBundleProjectBuildOutput appBundleProjectBuildOutput = postBuildModel.findAppBundleProjectBuildOutput(module);
-      if (appBundleProjectBuildOutput != null) {
-        for (AppBundleVariantBuildOutput variantBuildOutput : appBundleProjectBuildOutput.getAppBundleVariantsBuildOutput()) {
-          if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
-            return variantBuildOutput.getBundleFile();
-          }
-        }
-      }
-    }
-
-    return null;
+  boolean isShowFilePathActionSupported() {
+    return ShowFilePathAction.isSupported();
   }
 
   private static Logger getLog() {
@@ -234,9 +184,11 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     @NotNull private final Map<String, File> myBundlePathsPerModule;
     @Nullable private final File myExportedKeyFile;
 
-    OpenFolderNotificationListener(@NotNull Project project, @NotNull Map<String, File> apkPathsPerModule, @Nullable File exportedKeyFile) {
+    OpenFolderNotificationListener(@NotNull Project project,
+                                   @NotNull Map<String, File> myBuildsAndBundlePaths,
+                                   @Nullable File exportedKeyFile) {
       myProject = project;
-      myBundlePathsPerModule = apkPathsPerModule;
+      myBundlePathsPerModule = myBuildsAndBundlePaths;
       myExportedKeyFile = exportedKeyFile;
     }
 
@@ -290,15 +242,6 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       showFileOrDirectory(myExportedKeyFile);
     }
 
-    private static void showFileOrDirectory(@NotNull File file) {
-      if (file.isFile()) {
-        ShowFilePathAction.openFile(file);
-      }
-      else {
-        ShowFilePathAction.openDirectory(file.getParentFile());
-      }
-    }
-
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -315,9 +258,19 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     public int hashCode() {
       return Objects.hash(myBundlePathsPerModule);
     }
+
+    private static void showFileOrDirectory(@NotNull File file) {
+      if (file.isFile()) {
+        ShowFilePathAction.openFile(file);
+      }
+      else {
+        ShowFilePathAction.openDirectory(file.getParentFile());
+      }
+    }
   }
 
-  private static class OpenEventLogHyperlink extends NotificationHyperlink {
+  @VisibleForTesting
+  static class OpenEventLogHyperlink extends NotificationHyperlink {
     OpenEventLogHyperlink() {
       super("open.event.log", "Show app bundle path(s) in the 'Event Log' view");
     }
@@ -328,6 +281,19 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       if (tw != null) {
         tw.activate(null, false);
       }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      // There are no fields to compare.
+      return true;
     }
   }
 }
