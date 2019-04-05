@@ -78,6 +78,7 @@ com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.and
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.fonts.ProjectFonts.getFonts
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.npw.ThemeHelper.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.AppResourceRepository.computeLocalRepositories
+com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.uibuilder.surface.CanvasResizeInteraction.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
