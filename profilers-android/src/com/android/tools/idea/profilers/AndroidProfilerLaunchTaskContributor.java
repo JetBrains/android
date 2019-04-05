@@ -70,6 +70,8 @@ import org.jetbrains.annotations.Nullable;
  * extra option to "am start ..." command.
  */
 public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunchTaskContributor {
+  private static final String STARTUP_AGENT_CONFIG_NAME = "startupagent.config";
+
   private static Logger getLogger() {
     return Logger.getInstance(AndroidProfilerLaunchTaskContributor.class);
   }
@@ -108,16 +110,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
-    pushNewAgentConfig(fileManager, project);
-    String agentArgs = fileManager.configureStartupAgent(applicationId);
+    pushStartupAgentConfig(fileManager, project);
+    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
     String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
-  private void pushNewAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
+  private void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
-      fileManager.pushAgentConfig(getSelectedRunConfiguration(project));
+      fileManager.pushAgentConfig(STARTUP_AGENT_CONFIG_NAME, getSelectedRunConfiguration(project));
     }
     catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
       throw new RuntimeException(e);
