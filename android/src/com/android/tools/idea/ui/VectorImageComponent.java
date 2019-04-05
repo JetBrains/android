@@ -18,7 +18,6 @@ package com.android.tools.idea.ui;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageComponent;
 import com.android.tools.adtui.util.GraphicsUtil;
-import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -39,10 +38,9 @@ public class VectorImageComponent extends ImageComponent {
     myRectangle.setBounds(0, 0, getWidth(), getHeight());
     GraphicsUtil.paintCheckeredBackground(g, DEFAULT_ODD_CELL_COLOR, DEFAULT_EVEN_CELL_COLOR, myRectangle, CELL_SIZE);
 
-    BufferedImage image = getImage();
-    if (image != null) {
+    if (myImage != null) {
       // Draw the image in the center.
-      AssetUtil.drawCenterInside((Graphics2D) g, image, myRectangle);
+      AssetUtil.drawCenterInside((Graphics2D) g, myImage, myRectangle);
     }
   }
 }
