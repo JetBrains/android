@@ -63,6 +63,18 @@ public class StudioReportDatabaseTest {
   }
 
   @Test
+  public void testEmptyDatabase() throws IOException {
+    List<DiagnosticReport> reports = db.getReports();
+    assertEquals(0, reports.size());
+    db.appendReport(new PerformanceThreadDumpReport(createTempFileWithThreadDump("1"), "test"));
+    reports = db.reapReports();
+    reports = db.getReports();
+    assertEquals(0, reports.size());
+    reports = db.reapReports();
+    assertEquals(0, reports.size());
+  }
+
+  @Test
   public void testParser() throws IOException {
     Path t1 = createTempFileWithThreadDump("1");
     Path t2 = createTempFileWithThreadDump("1");
