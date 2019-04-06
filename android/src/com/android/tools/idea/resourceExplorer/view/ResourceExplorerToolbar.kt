@@ -38,7 +38,6 @@ import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.MouseEvent
@@ -138,7 +137,7 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
 }
 
 class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : PopupAction(StudioIcons.Common.FILTER, FILTERS_BUTTON_LABEL) {
+  : PopupAction(AllIcons.General.Filter, FILTERS_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
     add(ShowDependenciesAction(viewModel))
   }
