@@ -37,7 +37,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
@@ -630,7 +630,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
 
@@ -659,7 +659,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
 
@@ -695,7 +695,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
 
@@ -724,7 +724,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
   }
 
@@ -754,7 +754,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
   }
 
@@ -784,7 +784,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
   }
 
@@ -814,7 +814,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
-    assertEquals(AndroidIcons.Ddms.EmulatorDevice, myPresentation.getIcon());
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(Devices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
 }
