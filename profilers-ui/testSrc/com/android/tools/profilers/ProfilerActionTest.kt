@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import icons.StudioIcons
 import org.junit.Test
 import java.awt.event.KeyEvent
@@ -63,18 +64,18 @@ class ProfilerActionTest {
   @Test
   fun iconCanBeEitherStaticOrChangedDynamically() {
     // Passing a supplier to the setter should allow the icon to be dynamically changed.
-    var icon = StudioIcons.Common.ADD
+    var icon = AllIcons.General.Add
     var profilerAction = ProfilerAction.Builder("").setIcon({ icon }).build()
-    assertThat(profilerAction.icon).isEqualTo(StudioIcons.Common.ADD)
+    assertThat(profilerAction.icon).isEqualTo(AllIcons.General.Add)
     icon = StudioIcons.Common.BACK_ARROW
     assertThat(profilerAction.icon).isEqualTo(StudioIcons.Common.BACK_ARROW)
 
     // Passing an icon to the setter creates an action with fixed icon.
-    icon = StudioIcons.Common.ADD
+    icon = AllIcons.General.Add
     profilerAction = ProfilerAction.Builder("").setIcon(icon).build()
-    assertThat(profilerAction.icon).isEqualTo(StudioIcons.Common.ADD)
+    assertThat(profilerAction.icon).isEqualTo(AllIcons.General.Add)
     icon = StudioIcons.Common.BACK_ARROW
-    assertThat(profilerAction.icon).isEqualTo(StudioIcons.Common.ADD)
+    assertThat(profilerAction.icon).isEqualTo(AllIcons.General.Add)
   }
 
   @Test

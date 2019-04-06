@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.ResourceManagerTracking
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroupUtil
 import com.intellij.openapi.actionSystem.ActionManager
@@ -124,7 +125,7 @@ abstract class PopupAction internal constructor(val icon: Icon?, description: St
 }
 
 private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : PopupAction(StudioIcons.Common.ADD, ADD_BUTTON_LABEL) {
+  : PopupAction(AllIcons.General.Add, ADD_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
     addAll(viewModel.addActions)
     val importersActions = viewModel.getImportersActions()
