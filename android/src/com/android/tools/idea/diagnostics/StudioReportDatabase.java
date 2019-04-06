@@ -74,6 +74,9 @@ public class StudioReportDatabase {
   @NotNull
   public List<DiagnosticReport> getReports() throws IOException {
     synchronized (myDbLock) {
+      if (!Files.exists(myDb) || Files.size(myDb) == 0L) {
+        return ImmutableList.of();
+      }
       try (Reader reader = new InputStreamReader(new FileInputStream(myDb.toFile()), UTF_8)) {
         return DiagnosticReport.Companion.readDiagnosticReports(reader);
       }

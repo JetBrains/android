@@ -25,5 +25,6 @@ open class HeapCrashReport(type: String,
   override fun serialize(builder: MultipartEntityBuilder) {
     super.serialize(builder)
     builder.addTextBody("reason", heapProperties.reason.toString())
+    builder.addTextBody("liveStats", heapProperties.liveStats)
   }
 }
