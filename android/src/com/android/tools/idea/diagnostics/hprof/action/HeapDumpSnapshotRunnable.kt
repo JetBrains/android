@@ -16,11 +16,13 @@
 package com.android.tools.idea.diagnostics.hprof.action
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
+import com.android.tools.idea.diagnostics.hprof.analysis.LiveInstanceStats
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
 import com.android.tools.idea.diagnostics.report.HeapReportProperties
 import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
 import com.android.tools.idea.ui.GuiTestingService
+import com.android.utils.TraceUtils
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
@@ -99,35 +101,38 @@ class HeapDumpSnapshotRunnable(
       }
     }
 
-    try {
-      val instance = AndroidStudioSystemHealthMonitor.getInstance()
+    if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START) {
+      try {
+        val instance = AndroidStudioSystemHealthMonitor.getInstance()
 
-      if (instance == null) {
-        LOG.error("Android Studio System Health Monitor not initialized.")
-        return
-      }
-
-      val isHeapReportPending = instance.hasPendingHeapReport()
-      if (isHeapReportPending) {
-        if (userInvoked) {
-          val productName = ApplicationNamesInfo.getInstance().fullProductName
-
-          val message = AndroidBundle.message("heap.dump.snapshot.already.pending", productName)
-          Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
+        if (instance == null) {
+          LOG.error("Android Studio System Health Monitor not initialized.")
+          return
         }
-        LOG.info("Heap report already pending.")
+
+        val isHeapReportPending = instance.hasPendingHeapReport()
+        if (isHeapReportPending) {
+          if (userInvoked) {
+            val productName = ApplicationNamesInfo.getInstance().fullProductName
+
+            val message = AndroidBundle.message("heap.dump.snapshot.already.pending", productName)
+            Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
+          }
+          LOG.info("Heap report already pending.")
+          return
+        }
+      }
+      catch (ex: IOException) {
+        if (userInvoked) {
+          val message = AndroidBundle.message("heap.dump.snapshot.error.check.log")
+          Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
+          LOG.warn("Exception while querying for pending heap report", ex)
+        }
+        else {
+          LOG.info("Exception while querying for pending heap report", ex)
+        }
         return
       }
-    } catch (ex: IOException) {
-      if (userInvoked) {
-        val message = AndroidBundle.message("heap.dump.snapshot.error.check.log")
-        Messages.showErrorDialog(message, AndroidBundle.message("heap.dump.snapshot.title"))
-        LOG.warn("Exception while querying for pending heap report", ex)
-      }
-      else {
-        LOG.info("Exception while querying for pending heap report", ex)
-      }
-      return
     }
 
     val hprofPath = AndroidStudioSystemHealthMonitor.ourHProfDatabase.createHprofTemporaryFilePath()
@@ -196,7 +201,16 @@ class HeapDumpSnapshotRunnable(
       // Freezes JVM (and whole UI) while heap dump is created.
       captureSnapshot()
 
-      val report = UnanalyzedHeapReport(hprofPath, HeapReportProperties(reason))
+      var liveStats = ""
+      ApplicationManager.getApplication().invokeAndWait {
+        liveStats = try {
+          LiveInstanceStats().createReport()
+        }
+        catch (e: Error) {
+          "Error while gathering live statistics: ${TraceUtils.getStackTrace(e)}\n"
+        }
+      }
+      val report = UnanalyzedHeapReport(hprofPath, HeapReportProperties(reason, liveStats))
 
       when (analysisOption) {
         AnalysisOption.SCHEDULE_ON_NEXT_START -> {
