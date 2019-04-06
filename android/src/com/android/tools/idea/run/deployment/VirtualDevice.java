@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -37,7 +37,7 @@ final class VirtualDevice extends Device {
   static final String DEFAULT_SNAPSHOT = "default_boot";
   static final ImmutableCollection<String> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(DEFAULT_SNAPSHOT);
 
-  private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.EmulatorDevice);
+  private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
   private final boolean myConnected;
 
@@ -109,7 +109,7 @@ final class VirtualDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    return myConnected ? ourConnectedIcon : AndroidIcons.Ddms.EmulatorDevice;
+    return myConnected ? ourConnectedIcon : StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
   }
 
   @Override
