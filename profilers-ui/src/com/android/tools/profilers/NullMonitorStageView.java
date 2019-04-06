@@ -16,8 +16,8 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.instructions.*;
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
-import icons.StudioIcons;
 import icons.StudioIllustrations;
 import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +95,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     List<RenderInstruction> instructions = new ArrayList<>();
     FontMetrics metrics = UIUtilities.getFontMetrics(myInstructionsWrappingPanel, font);
     instructions.add(new TextInstruction(metrics, "Click "));
-    instructions.add(new IconInstruction(StudioIcons.Common.ADD, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
+    instructions.add(new IconInstruction(AllIcons.General.Add, PROFILING_INSTRUCTIONS_ICON_PADDING, null));
     instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
     instructions.add(new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN));
     instructions.add(new UrlInstruction(font, "Learn More", "https://developer.android.com/r/studio-ui/about-profilers.html"));
