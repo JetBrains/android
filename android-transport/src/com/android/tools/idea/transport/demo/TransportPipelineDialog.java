@@ -30,6 +30,7 @@ import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -38,7 +39,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ public class TransportPipelineDialog extends DialogWrapper {
 
     myClient = new TransportClient(TransportService.getInstance().getChannelName());
 
-    myProcessSelectionAction = new CommonAction("Select Process", StudioIcons.Common.ADD);
+    myProcessSelectionAction = new CommonAction("Select Process", AllIcons.General.Add);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
     myProcessSelectionDropDown.setToolTipText("Select a process to connect to.");
     myProcessAgentStatus = new JLabel("");

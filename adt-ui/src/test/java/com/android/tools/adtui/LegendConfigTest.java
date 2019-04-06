@@ -16,7 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import icons.StudioIcons;
+import com.intellij.icons.AllIcons;
 import java.util.function.Function;
 import javax.swing.Icon;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class LegendConfigTest {
 
   @Test
   public void correctSettingsFromIconGetterConstructor() {
-    Function<String, Icon> iconGetter = s -> StudioIcons.Common.ADD;
+    Function<String, Icon> iconGetter = s -> AllIcons.General.Add;
     LegendConfig legendConfig = new LegendConfig( iconGetter, Color.BLACK);
     assertEquals(LegendConfig.IconType.CUSTOM, legendConfig.getIconType());
     assertEquals(Color.BLACK, legendConfig.getColor());
