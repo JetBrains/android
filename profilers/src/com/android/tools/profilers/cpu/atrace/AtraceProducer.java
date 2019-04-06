@@ -38,7 +38,7 @@ import java.util.zip.Inflater;
  * and return the next line decoded. Each line is returned as a string as the atrace file is encoded as a series of
  * strings.
  */
-public class AtraceProducer implements BufferProducer {
+public class AtraceProducer implements TrebuchetBufferProducer {
   private static final int BUFFER_SIZE_BYTES = 2048;
   private byte[] myOutputBuffer = new byte[BUFFER_SIZE_BYTES];
   private byte[] myInputBuffer = new byte[BUFFER_SIZE_BYTES];
@@ -58,18 +58,24 @@ public class AtraceProducer implements BufferProducer {
     return Logger.getInstance(AtraceProducer.class);
   }
 
-  public AtraceProducer(FileInputStream inputStream) throws IOException {
-    myInputStream = inputStream;
-    myInflater = new Inflater();
-
-    // Read the initial header of the input file.
-    fillInputBuffer();
-    verifyHeader();
-    myLineQueue.add("# Initial Data Required by Importer");
+  public AtraceProducer() {
   }
 
-  public AtraceProducer(File file) throws IOException {
-    this(new FileInputStream(file));
+  @Override
+  public boolean parseFile(File file) {
+    try {
+      myInputStream = new FileInputStream(file);
+      myInflater = new Inflater();
+
+      // Read the initial header of the input file.
+      fillInputBuffer();
+      verifyHeader();
+      myLineQueue.add("# Initial Data Required by Importer");
+      return true;
+    } catch (IOException ex) {
+      getLogger().error(ex);
+      return false;
+    }
   }
 
   /**

@@ -28,7 +28,8 @@ class AtraceProducerTest {
   @Before
   fun setup() {
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    myProducer = AtraceProducer(traceFile)
+    myProducer = AtraceProducer()
+    assertThat(myProducer.parseFile(traceFile)).isTrue()
   }
 
   @Test
@@ -36,7 +37,8 @@ class AtraceProducerTest {
     val rawTraceData = CpuProfilerTestUtils.getTraceFile("../long_line_trace_truncated.txt")
     val contents = InputStreamReader(FileInputStream(rawTraceData))
     val traceFile = CpuProfilerTestUtils.getTraceFile("long_line.ctrace")
-    myProducer = AtraceProducer(traceFile)
+    myProducer = AtraceProducer()
+    assertThat(myProducer.parseFile(traceFile)).isTrue()
     // "# Initial Data Required by Importer\n"
     var slice = myProducer.next()
     val lines = contents.readLines()
@@ -54,7 +56,7 @@ class AtraceProducerTest {
 
   @Test
   fun testDecompressedLineHasNewLineChar() {
-    var slice = myProducer.next()
+    val slice = myProducer.next()
     assertThat(slice.toString()).endsWith("\n")
   }
 
@@ -81,7 +83,7 @@ class AtraceProducerTest {
   fun testEndOfFileReturnsNull() {
     do {
       // Read each line until we hit the end of stream.
-      var line = myProducer.nextLine
+      val line = myProducer.nextLine
     }
     while (line != null)
     // Validate that next returns null to indicate end of stream.
@@ -91,10 +93,11 @@ class AtraceProducerTest {
   @Test
   fun testCaptureLoadsWhenDataFitsExactBufferBounds() {
     val traceFile = CpuProfilerTestUtils.getTraceFile("exact_size_atrace.ctrace")
-    val producer = AtraceProducer(traceFile)
+    val producer = AtraceProducer()
+    assertThat(producer.parseFile(traceFile)).isTrue()
     do {
       // Read each line until we hit the end of stream.
-      var line = producer.nextLine
+      val line = producer.nextLine
     }
     while (line != null)
   }
