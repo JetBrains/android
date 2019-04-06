@@ -31,6 +31,7 @@ import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
@@ -81,7 +82,7 @@ class DeclaredAttributesInspectorBuilder(
 private class AddNewRowAction(
   val tableModel: FilteredPTableModel<NelePropertyItem>,
   val newProperty: NeleNewPropertyItem
-): AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
+): AnAction(null, ADD_PROPERTY_ACTION_TITLE, AllIcons.General.Add) {
 
   var titleModel: InspectorLineModel? = null
   var lineModel: TableLineModel? = null

@@ -21,9 +21,9 @@ import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class AddMotionFieldAction extends AnAction {
@@ -34,7 +34,7 @@ public class AddMotionFieldAction extends AnAction {
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
                               @NotNull FilteredPTableModel<NelePropertyItem> tableModel,
                               @NotNull PropertiesTable<NelePropertyItem> properties) {
-    super(null, "Add Property", StudioIcons.Common.ADD);
+    super(null, "Add Property", AllIcons.General.Add);
     myTableModel = tableModel;
     myNewProperty = new NeleNewPropertyItem(model, properties);
   }
