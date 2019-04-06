@@ -17,7 +17,6 @@ package com.android.tools.profilers
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import icons.StudioIcons
 import org.junit.Test
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
@@ -67,14 +66,14 @@ class ProfilerActionTest {
     var icon = AllIcons.General.Add
     var profilerAction = ProfilerAction.Builder("").setIcon({ icon }).build()
     assertThat(profilerAction.icon).isEqualTo(AllIcons.General.Add)
-    icon = StudioIcons.Common.BACK_ARROW
-    assertThat(profilerAction.icon).isEqualTo(StudioIcons.Common.BACK_ARROW)
+    icon = AllIcons.Actions.Back
+    assertThat(profilerAction.icon).isEqualTo(AllIcons.Actions.Back)
 
     // Passing an icon to the setter creates an action with fixed icon.
     icon = AllIcons.General.Add
     profilerAction = ProfilerAction.Builder("").setIcon(icon).build()
     assertThat(profilerAction.icon).isEqualTo(AllIcons.General.Add)
-    icon = StudioIcons.Common.BACK_ARROW
+    icon = AllIcons.Actions.Back
     assertThat(profilerAction.icon).isEqualTo(AllIcons.General.Add)
   }
 
