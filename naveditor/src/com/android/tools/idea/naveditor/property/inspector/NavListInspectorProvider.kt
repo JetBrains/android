@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.google.common.annotations.VisibleForTesting
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -155,6 +156,9 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           val id = displayIdSuffix(value)
           append(name)
           append(id, SimpleTextAttributes.GRAYED_ATTRIBUTES)
+          if (!selected) {
+            setBackground(secondaryPanelBackground)
+          }
         }
       }
 
