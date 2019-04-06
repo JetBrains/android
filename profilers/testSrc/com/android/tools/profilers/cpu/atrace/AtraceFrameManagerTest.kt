@@ -38,7 +38,8 @@ class AtraceFrameManagerTest {
   @Before
   fun setup() {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val reader = AtraceProducer(file)
+    val reader = AtraceProducer()
+    assertThat(reader.parseFile(file)).isTrue()
     val task = ImportTask(PrintlnImportFeedback())
     model = task.importBuffer(reader)
     process = model.processes[TEST_PID]!!

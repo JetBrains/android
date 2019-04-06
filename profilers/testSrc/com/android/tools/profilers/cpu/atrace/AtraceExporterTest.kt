@@ -20,6 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Test
 import java.io.*
+import java.util.zip.DataFormatException
 import java.util.zip.InflaterInputStream
 
 class AtraceExporterTest {
@@ -28,7 +29,7 @@ class AtraceExporterTest {
   fun testTracerHeaderFollowedByFirstLine() {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
-    AtraceExporter.export(FileInputStream(file), FileOutputStream(exportedFile))
+    AtraceExporter.export(file, FileOutputStream(exportedFile))
 
     // Read in header.
     val inputStream = FileInputStream(exportedFile)
@@ -45,24 +46,37 @@ class AtraceExporterTest {
   }
 
   @Test
-  fun testExportedFileCanBeImported() {
+  fun testExportedAtraceFileCanBeImported() {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val exportedFile = FileUtil.createTempFile("atrace", ".trace")
-    AtraceExporter.export(FileInputStream(file), FileOutputStream(exportedFile))
-    val producer = AtraceProducer(exportedFile)
-    var line = producer.nextLine
-    assertThat(line).matches("# Initial Data Required by Importer")
-    line = producer.nextLine
-    assertThat(line).matches("# tracer: nop")
+    exportImportFile(file)
   }
 
-  @Test(expected = IOException::class)
+  @Test
+  fun testExportedPerfettoFileCanBeImported() {
+    val file = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+    exportImportFile(file)
+  }
+
+  // When the exception is handled properly and we get an AssertionError from the log.
+  @Test(expected = AssertionError::class)
   fun testLoadingInvalidFileThrowsException() {
     //Create temp invalid file
     val tempFile = createTempTraceFile()
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
     exportedFile.deleteOnExit()
-    AtraceExporter.export(FileInputStream(tempFile), FileOutputStream(exportedFile))
+    AtraceExporter.export(tempFile, FileOutputStream(exportedFile))
+  }
+
+  fun exportImportFile(file:File) {
+    val exportedFile = FileUtil.createTempFile("atrace", ".trace")
+    AtraceExporter.export(file, FileOutputStream(exportedFile))
+    val producer = AtraceProducer()
+    assertThat(producer.parseFile(exportedFile)).isTrue()
+    var line = producer.nextLine
+    assertThat(line).matches("# Initial Data Required by Importer")
+    line = producer.nextLine
+    assertThat(line).matches("# tracer: nop")
+    exportedFile.delete()
   }
 
   fun createTempTraceFile() : File {
