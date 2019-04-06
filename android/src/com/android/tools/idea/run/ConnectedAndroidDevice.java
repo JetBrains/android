@@ -33,7 +33,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,7 +154,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
       return true;
     }
 
-    renderer.setIcon(myDevice.isEmulator() ? AndroidIcons.Ddms.EmulatorDevice : AndroidIcons.Ddms.RealDevice);
+    renderer.setIcon(myDevice.isEmulator() ? StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
 
     IDevice.DeviceState state = myDevice.getState();
     if (state != IDevice.DeviceState.ONLINE) {

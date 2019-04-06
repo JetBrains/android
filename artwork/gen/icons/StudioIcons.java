@@ -116,8 +116,16 @@ public class StudioIcons {
   }
 
   public static class DeviceExplorer {
+    public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_PHONE = load("/studio/icons/device-explorer/physical-device-phone.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_TV = load("/studio/icons/device-explorer/physical-device-tv.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_WEAR = load("/studio/icons/device-explorer/physical-device-wear.svg"); // 16x16
     public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.svg"); // 16x16
     public static final Icon SHARED_PREFS = load("/studio/icons/device-explorer/shared-prefs.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_CAR = load("/studio/icons/device-explorer/virtual-device-car.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_PHONE = load("/studio/icons/device-explorer/virtual-device-phone.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_TV = load("/studio/icons/device-explorer/virtual-device-tv.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_WEAR = load("/studio/icons/device-explorer/virtual-device-wear.svg"); // 16x16
   }
 
   public static class LayoutEditor {
