@@ -25,9 +25,9 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.structure.DestinationList.ROOT_NAME
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -43,7 +43,7 @@ class BackPanel(private val surface: NavDesignSurface, private val updateCallbac
   : JPanel(BorderLayout()), Disposable, ModelListener, SelectionListener {
 
   @VisibleForTesting
-  val label: JLabel = JLabel("", StudioIcons.Common.BACK_ARROW, SwingConstants.LEFT)
+  val label: JLabel = JLabel("", AllIcons.Actions.Back, SwingConstants.LEFT)
 
   init {
     Disposer.register(parentDisposable, this)

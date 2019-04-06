@@ -44,6 +44,7 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -266,7 +267,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
+    JButton button = new CommonButton(AllIcons.Actions.Back);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
