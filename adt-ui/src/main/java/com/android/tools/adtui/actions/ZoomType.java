@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.actions;
 
+import com.intellij.icons.AllIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,12 +43,12 @@ public enum ZoomType {
   /**
    * Zoom in
    */
-  IN("Zoom In", StudioIcons.Common.ZOOM_IN),
+  IN("Zoom In", AllIcons.General.ZoomIn),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out", StudioIcons.Common.ZOOM_OUT),
+  OUT("Zoom Out", AllIcons.General.ZoomOut),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)
