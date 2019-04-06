@@ -15,23 +15,21 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
+import com.android.tools.profiler.protobuf3jarjar.CodedInputStream;
+import com.android.tools.profiler.protobuf3jarjar.DescriptorProtos;
+import com.android.tools.profiler.protobuf3jarjar.ExtensionRegistryLite;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.Predicate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import perfetto.protos.PerfettoTrace;
-import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;
 
 /**
@@ -39,7 +37,7 @@ import trebuchet.io.DataSlice;
  * {@link trebuchet.task.ImportTask} to create a {@link trebuchet.model.Model}.
  * This model is used by the profilers UI to render systrace data.
  */
-public class PerfettoProducer implements BufferProducer {
+public class PerfettoProducer implements TrebuchetBufferProducer {
   // Required line for trebuchet to parse as ftrace.
   private static final String FTRACE_HEADER = "# tracer: nop";
   // Supported events are events that we know how to convert from perfetto format to systrace format.
@@ -53,7 +51,8 @@ public class PerfettoProducer implements BufferProducer {
   // Maps thread id to thread group id. A tgid is the thread id at the root of the tree. This is also known as the PID in user space.
   private final Map<Integer, Integer> myTidToTgid = new HashMap<>();
   private final Map<Integer, String> myTidToName = new HashMap<>();
-  private Iterator<String> myTimeSortedLines;
+  private final ArrayDeque<String> myGeneratedTrebuchetLines = new ArrayDeque<>();
+  private final PerfettoPacketDBSorter mySorter = new PerfettoPacketDBSorter();
 
   private static double NanosToSeconds(double nanos) {
     return nanos / TimeUnit.SECONDS.toNanos(1);
@@ -63,10 +62,53 @@ public class PerfettoProducer implements BufferProducer {
     return nanos / TimeUnit.MILLISECONDS.toNanos(1);
   }
 
-  private static PerfettoTrace.Trace loadTrace(File file) {
+  /**
+   * @param file handle to a file that represents a perfetto trace. A single trace packet will be read from this file to verify
+   *             the file can be opened and parsed to a {@link PerfettoTrace.TracePacket}
+   * @return true if one {@link PerfettoTrace.TracePacket} was able to be read from the file.
+   */
+  public static boolean verifyFileHasPerfettoTraceHeader(@NotNull File file) {
     try {
-      // TODO: Write own custom ByteBuffer class to stream data in if this is slow.
-      return PerfettoTrace.Trace.parseFrom(new FileInputStream(file));
+      CodedInputStream inputStream = CodedInputStream.newInstance(new FileInputStream(file));
+      ExtensionRegistryLite packetRegistry = ExtensionRegistryLite.newInstance();
+      PerfettoTrace.registerAllExtensions(packetRegistry);
+      PerfettoTrace.TracePacket packet = readOnePacket(inputStream, packetRegistry);
+      // If we can load 1 packet then we assume this is a perfetto file.
+      return packet != null;
+    }
+    catch (IOException ex) {
+      getLogger().error(ex);
+      return false;
+    }
+  }
+
+  /**
+   * Helper function for reading one packet from the {@link PerfettoTrace.Trace} proto.
+   * We read one proto this way because reading the full {@link PerfettoTrace.Trace} requires us to store each
+   * {@link PerfettoTrace.TracePacket} in memory. For a 60 second file this can be 10K+ packets consuming greater than 700mb of memory.
+   * <p>
+   * Note: This accepts a CodedInputStream instead of input stream because CodedInputStream reads more than it needs and is buffered.
+   * Note: This accepts the packet registry so we can reuse this API in the static function to check perfetto trace headers.
+   *
+   * @return Null is returned for end of stream, otherwise a trace packet is returned.
+   */
+  private static PerfettoTrace.TracePacket readOnePacket(CodedInputStream stream, ExtensionRegistryLite packetRegistry) {
+    try {
+      // Coded Input Streams by default only let you read in 64KB of data from one proto message. Because our root level proto message is
+      // greater than this we need to reset the size counter each time we read a new packet.
+      stream.resetSizeCounter();
+      int tag = stream.readTag();
+      // If tag == 0, we have reached end of stream, or some other error.
+      if (tag == 0) {
+        return null;
+      }
+      // Since we know the layout of the Trace proto, we know it has one field that is a repeated field. So we expect to tag to match this
+      // value. If it does not we throw an error since we can't processes unknown tags.
+      if (tag != DescriptorProtos.FieldDescriptorProto.Type.TYPE_GROUP_VALUE) {
+        getLogger().error(String.format("Encounted unknown tag (%d) when attempting to parse perfetto capture.", tag));
+        return null;
+      }
+      return stream.readMessage(PerfettoTrace.TracePacket.parser(), packetRegistry);
     }
     catch (IOException ex) {
       getLogger().error(ex);
@@ -74,34 +116,42 @@ public class PerfettoProducer implements BufferProducer {
     }
   }
 
-  public static boolean verifyFileHasPerfettoTraceHeader(@NotNull File file) {
-    PerfettoTrace.Trace trace = loadTrace(file);
-    return trace != null && trace.getPacketCount() != 0;
-  }
-
   private static Logger getLogger() {
     return Logger.getInstance(PerfettoProducer.class);
   }
 
-  public PerfettoProducer(File file) {
-    PerfettoTrace.Trace trace = loadTrace(file);
-    assert trace != null;
-    convertToTraceLines(trace);
+  public PerfettoProducer() {
   }
 
-  private void convertToTraceLines(PerfettoTrace.Trace trace) {
+  @Override
+  public boolean parseFile(File file) {
+    try {
+      convertToTraceLines(file);
+      return true;
+    }
+    catch (IOException ex) {
+      getLogger().error(ex);
+      return false;
+    }
+  }
+
+  private void convertToTraceLines(File file) throws IOException {
     // Add a special case name for thread id 0.
     // Thread id 0 is used for events that are generated by the system not associated with any process.
     // In systrace and perfetto they use <idle> as the name for events generated with this thread id.
     myTidToName.put(0, "<idle>");
-    // TODO (b/125865941) Handle tid recycling when mapping tids to names.
-    // Loop all packets building thread names, and a map of thread ids to process ids.
-    List<PerfettoTrace.TracePacket> ftracePacketsToProcess = new ArrayList<>();
     // The clock sync packet is set to the first packet encountered with a clock snapshot.
     PerfettoTrace.TracePacket clockSyncPacket = null;
-    for (PerfettoTrace.TracePacket packet : trace.getPacketList()) {
+
+    // Do a first pass on the file in order to collect all thread names, and thread group names mapped to id.
+    // This allows us to properly build the list of threads / events required by trebuchet for it to
+    // map threads to processes.
+    ExtensionRegistryLite packetRegistry = ExtensionRegistryLite.newInstance();
+    PerfettoTrace.registerAllExtensions(packetRegistry);
+    CodedInputStream inputStream = CodedInputStream.newInstance(new FileInputStream(file));
+    PerfettoTrace.TracePacket packet;
+    while ((packet = readOnePacket(inputStream, packetRegistry)) != null) {
       if (packet.hasFtraceEvents()) {
-        ftracePacketsToProcess.add(packet);
         PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
         for (PerfettoTrace.FtraceEvent event : bundle.getEventList()) {
           if (!event.hasSchedSwitch()) {
@@ -130,35 +180,32 @@ public class PerfettoProducer implements BufferProducer {
         clockSyncPacket = packet;
       }
     }
+
+    // Do a second pass on the file now that we have all thread names do a second pass on the file to generate the lines for trebuchet.
+    inputStream = CodedInputStream.newInstance(new FileInputStream(file));
+    while ((packet = readOnePacket(inputStream, packetRegistry)) != null) {
+      if (packet.hasFtraceEvents()) {
+        PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
+        for(PerfettoTrace.FtraceEvent event : bundle.getEventList())
+        if (IS_SUPPORTED_EVENT.apply(event)) {
+          mySorter.addLine(event.getTimestamp(), formatLine(event, bundle.getCpu()));
+        }
+      }
+    }
+
     // Build systrace lines for each packet.
     // Note: lines need to be sorted by time else assumptions in trebuchet break.
-    long nextLowestIndex = 0L;
-    SortedMap<Long, String> timeSortedLines = new TreeMap<>();
-    timeSortedLines.put(nextLowestIndex++, "# Initial Data Required by Importer");
-    timeSortedLines.put(nextLowestIndex++, FTRACE_HEADER);
+    myGeneratedTrebuchetLines.add("# Initial Data Required by Importer");
+    myGeneratedTrebuchetLines.add(FTRACE_HEADER);
 
     // Each perfetto trace has many clock sync packets. We need the mono and real time clocks from the first packet to align timestamps with
     // ftrace to timestamps from studio.
     assert clockSyncPacket != null;
-    nextLowestIndex = addClockSyncLines(clockSyncPacket, timeSortedLines, nextLowestIndex);
-
-    // Generate all other lines.
-    ftracePacketsToProcess.forEach(packet -> {
-      PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
-      for (PerfettoTrace.FtraceEvent event : bundle.getEventList()) {
-        if (!IS_SUPPORTED_EVENT.apply(event)) {
-          continue;
-        }
-        String line = formatEventPrefix(event.getTimestamp(), bundle.getCpu(), event.getPid()) + formatEvent(event);
-        timeSortedLines.put(event.getTimestamp(), line);
-      }
-    });
-    myTimeSortedLines = timeSortedLines.values().iterator();
+    addClockSyncLines(clockSyncPacket);
+    mySorter.resetForIterator();
   }
 
-  private long addClockSyncLines(@NotNull PerfettoTrace.TracePacket clockSyncPacket,
-                                 SortedMap<Long, String> timeSortedLines,
-                                 long nextLowestIndex) {
+  private void addClockSyncLines(@NotNull PerfettoTrace.TracePacket clockSyncPacket) {
     PerfettoTrace.ClockSnapshot snapshot = clockSyncPacket.getClockSnapshot();
     PerfettoTrace.ClockSnapshot.Clock monotonicClock = null;
     PerfettoTrace.ClockSnapshot.Clock realtimeClock = null;
@@ -176,24 +223,31 @@ public class PerfettoProducer implements BufferProducer {
     }
     assert monotonicClock != null && realtimeClock != null;
     //<...>-29454 (-----) [002] ...1 1214209.724359: tracing_mark_write: trace_event_clock_sync: parent_ts=539454.250000
-    timeSortedLines.put(nextLowestIndex++, formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
-                                           String.format("tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f",
-                                                         NanosToSeconds(monotonicClock.getTimestamp())));
+    myGeneratedTrebuchetLines.add(formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
+                                  String.format("tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f",
+                                               NanosToSeconds(monotonicClock.getTimestamp())));
     //<...>-29454 (-----) [002] ...1 1214209.724366: tracing_mark_write: trace_event_clock_sync: realtime_ts=1520548500187
-    timeSortedLines.put(nextLowestIndex++, formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
-                                           "tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
-                                           NanosToMillis(realtimeClock.getTimestamp()));
-    return nextLowestIndex;
+    myGeneratedTrebuchetLines.add(formatEventPrefix(boottimeClock.getTimestamp(), 0, Short.MAX_VALUE) +
+                                  "tracing_mark_write: trace_event_clock_sync: realtime_ts=" +
+                                  NanosToMillis(realtimeClock.getTimestamp()));
   }
 
   @Nullable
   @Override
   public DataSlice next() {
-    if (!myTimeSortedLines.hasNext()) {
+    if (!mySorter.hasNext()) {
       // Null signals end of file.
       return null;
     }
-    String line = myTimeSortedLines.next();
+
+    // A line comes from either our required lines, or our line sorter.
+    String line;
+    if (!myGeneratedTrebuchetLines.isEmpty()) {
+      line = myGeneratedTrebuchetLines.poll();
+    }
+    else {
+      line = mySorter.next();
+    }
     // Trebuchet has a bug where all lines need to be truncated to 1023 characters including the newline.
     byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes();
     return new DataSlice(data);
@@ -204,6 +258,13 @@ public class PerfettoProducer implements BufferProducer {
     //Clean up
     myTidToName.clear();
     myTidToTgid.clear();
+  }
+
+  /**
+   * Function passed to the PacketSorter to convert an FtraceEvent to a line.
+   */
+  private String formatLine(PerfettoTrace.FtraceEvent event, int cpu) {
+    return formatEventPrefix(event.getTimestamp(), cpu, event.getPid()) + formatEvent(event);
   }
 
   /**
