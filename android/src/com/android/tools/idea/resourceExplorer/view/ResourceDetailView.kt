@@ -24,6 +24,7 @@ import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerViewMod
 import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.Separator
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -36,7 +37,6 @@ import com.intellij.ui.components.JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER
 import com.intellij.ui.components.JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
@@ -83,7 +83,7 @@ class ResourceDetailView(
   private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.designAssets.size)
   private var lastFocusedAsset: AssetView? = null
 
-  private val backAction = object : AnAction(StudioIcons.Common.BACK_ARROW) {
+  private val backAction = object : AnAction(AllIcons.Actions.Back) {
     init {
       templatePresentation.isEnabledAndVisible = true
       ResourceManagerTracking.logDetailViewOpened(designAssetSet.designAssets.firstOrNull()?.type)
