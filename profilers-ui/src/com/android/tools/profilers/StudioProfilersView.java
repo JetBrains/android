@@ -296,8 +296,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
-    myZoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
-    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
+    myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
+    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
     myZoomOut.addActionListener(event -> {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
@@ -311,8 +311,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myZoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
     rightToolbar.add(myZoomOut);
 
-    myZoomIn = new CommonButton(StudioIcons.Common.ZOOM_IN);
-    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
+    myZoomIn = new CommonButton(AllIcons.General.ZoomIn);
+    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomIn));
     myZoomIn.addActionListener(event -> {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
