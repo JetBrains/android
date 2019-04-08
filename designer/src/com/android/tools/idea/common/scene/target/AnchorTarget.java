@@ -170,7 +170,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   }
 
   /** Returns true if this anchor can disconnect itself. */
-  protected boolean canDisconnect() {
+  public boolean canDisconnect() {
     // TODO: Make use of this on a common function to disconnect for constraint and relative anchor targets.
     return true;
   }
@@ -271,6 +271,10 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     DrawAnchor.Mode mode = getDrawMode();
     DrawAnchor.Type type = getDrawType();
     boolean drawAsConnected = getDrawAsConnected();
+    if (mode == DrawAnchor.Mode.DELETE && !canDisconnect()) {
+      // TODO: This should be done in getDrawMode().
+      mode = DrawAnchor.Mode.OVER;
+    }
 
     if (mode != DrawAnchor.Mode.DO_NOT_DRAW) {
       if (type != DrawAnchor.Type.BASELINE) {
