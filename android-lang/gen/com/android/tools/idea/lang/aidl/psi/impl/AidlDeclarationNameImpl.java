@@ -48,6 +48,7 @@ public class AidlDeclarationNameImpl extends AidlNamedElementImpl implements Aid
     return findNotNullChildByType(IDENTIFIER);
   }
 
+  @Override
   public PsiElement getNameIdentifier() {
     return AidlPsiUtil.getNameIdentifier(this);
   }
