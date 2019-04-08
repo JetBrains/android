@@ -35,6 +35,7 @@ import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
 import com.android.tools.idea.gradle.project.build.output.ClangOutputParser;
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
@@ -146,14 +147,21 @@ public class GradleBuildInvoker {
       return;
     }
     setProjectBuildMode(CLEAN);
-    // "Clean" also generates sources.
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
     File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, SOURCE_GEN,
-                                                                                         TestCompileType.NONE);
-    tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
+    List<String> commandLineArgs = new ArrayList<>();
+    // Add source generation tasks only if source gen is enabled.
+    if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
+      Module[] modules = ModuleManager.getInstance(myProject).getModules();
+      tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, SOURCE_GEN, TestCompileType.NONE));
+      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
+      commandLineArgs.add(createGenerateSourcesOnlyProperty());
+    }
+    else {
+      tasks.put(projectPath.toPath(), CLEAN_TASK_NAME);
+    }
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), commandLineArgs);
     }
   }
 
