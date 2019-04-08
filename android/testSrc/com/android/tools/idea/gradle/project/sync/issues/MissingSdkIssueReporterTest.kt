@@ -106,7 +106,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
 
     reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
 
-    val notifications = syncMessages.notifications
+    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.ERROR }
     assertSize(1, notifications)
     val notification = notifications[0]
 
