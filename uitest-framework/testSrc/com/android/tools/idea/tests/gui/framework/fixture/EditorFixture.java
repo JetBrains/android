@@ -61,8 +61,8 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.SplitEditorToolbar;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
@@ -410,11 +410,11 @@ public class EditorFixture {
     }
     // The concept of tabs can be mapped to the split editor toolbar, where there are three actions to change the editor to (in this order):
     // 1) text-only, 2) split view, 3) preview(design)-only. We try to find this toolbar and select the corresponding action.
-    TextEditorWithPreview.SplitEditorToolbar toolbar = robot.finder().find(
+    SplitEditorToolbar toolbar = robot.finder().find(
       editor.getComponent(),
-      new GenericTypeMatcher<TextEditorWithPreview.SplitEditorToolbar>(TextEditorWithPreview.SplitEditorToolbar.class) {
+      new GenericTypeMatcher<SplitEditorToolbar>(SplitEditorToolbar.class) {
         @Override
-        protected boolean isMatching(@NotNull TextEditorWithPreview.SplitEditorToolbar component) {
+        protected boolean isMatching(@NotNull SplitEditorToolbar component) {
           return true;
         }
       }
