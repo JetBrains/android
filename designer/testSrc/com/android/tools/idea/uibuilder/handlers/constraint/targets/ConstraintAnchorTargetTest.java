@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Point;
+import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -321,6 +322,11 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     assertTrue(target.isConnected());
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertTrue(target.isConnected());
+
+    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
+    myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
+    myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
+    assertFalse(target.isConnected());
   }
 
   private void renderAnchorTargetsToDisplayList(@NotNull SceneComponent component, @NotNull DisplayList displayList) {

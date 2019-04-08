@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.util.SystemInfo;
 import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +45,10 @@ public class GotoComponentAction extends DumbAwareAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     InputEvent inputEvent = e.getInputEvent();
-    if (inputEvent instanceof MouseEvent && mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent)) {
-      // We don't want to perform navigation if we are panning
+    boolean isControlMetaDown = SystemInfo.isMac ? inputEvent.isMetaDown() : inputEvent.isControlDown();
+    if (inputEvent instanceof MouseEvent &&
+        mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || isControlMetaDown) {
+      // We don't want to perform navigation while holding some modifiers on mouse event.
       return;
     }
     SelectionModel selectionModel = mySurface.getSelectionModel();
