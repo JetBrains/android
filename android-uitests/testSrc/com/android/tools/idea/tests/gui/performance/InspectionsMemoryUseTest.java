@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class InspectionsMemoryUseTest {
   @UseBleak
   public void inspectCode() throws IOException {
     guiTest.importSimpleApplication();
-    BleakKt.runWithBleak(() -> guiTest.ideFrame()
+    Bleak.runWithBleak(() -> guiTest.ideFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .close()

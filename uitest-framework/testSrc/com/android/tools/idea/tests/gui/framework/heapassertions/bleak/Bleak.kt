@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("Bleak")
+
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
 import java.io.File
