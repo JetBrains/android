@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.AUTO_URI
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
@@ -56,6 +58,15 @@ class CustomPropertiesInspectorProviderTest : NavTestCase() {
                                                          "</resources>\n")
     }
     ResourceRepositoryManager.getAppResources(myFacet).sync()
+
+    // Temporary logging to help diagnose sporadic test failures
+    val resources = ResourceRepositoryManager.getAppResources(myFacet).getResources(ResourceNamespace.RES_AUTO, ResourceType.ATTR)
+    val resourceNames = resources.keySet().toList().sorted()
+    assertTrue(toString(resourceNames),
+               resourceNames == listOf("action", "argType", "data", "dataPattern", "defaultNavHost", "destination", "enterAnim", "exitAnim",
+                                       "graph", "launchSingleTop", "myBoolean", "myBoolean2", "myInteger", "myInteger2", "myString",
+                                       "myString2", "navGraph", "nullable", "popEnterAnim", "popExitAnim", "popUpTo", "popUpToInclusive",
+                                       "startDestination", "uri"))
 
     val model = model("nav.xml") {
       NavModelBuilderUtil.navigation("root") {
