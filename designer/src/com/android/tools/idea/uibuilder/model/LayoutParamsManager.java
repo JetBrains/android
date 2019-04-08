@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS;
+import static com.android.SdkConstants.CLASS_COORDINATOR_LAYOUT;
+import static com.android.resources.ResourceType.ID;
+import static java.util.Arrays.stream;
+
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.SdkConstants;
@@ -30,18 +36,24 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
-import static com.android.SdkConstants.*;
-import static com.android.resources.ResourceType.ID;
-import static java.util.Arrays.stream;
 
 /**
  * Class to handle the access to LayoutParams instances
@@ -375,7 +387,9 @@ public class LayoutParamsManager {
                               @NotNull Configuration configuration) {
     // Try to get the types from the attribute definition
     EnumSet<AttributeFormat> inferredTypes =
-      attributeDefinition != null ? EnumSet.copyOf(attributeDefinition.getFormats()) : EnumSet.noneOf(AttributeFormat.class);
+      attributeDefinition != null && !attributeDefinition.getFormats().isEmpty()
+      ? EnumSet.copyOf(attributeDefinition.getFormats())
+      : EnumSet.noneOf(AttributeFormat.class);
     if (value != null &&
         (value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) || value.startsWith(SdkConstants.PREFIX_THEME_REF)) &&
         configuration.getResourceResolver() != null) {
