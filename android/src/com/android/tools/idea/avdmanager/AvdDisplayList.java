@@ -486,7 +486,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return targetString(info.getAndroidVersion(), info.getTag());
       }
     },
-    new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
+    new AvdColumnInfo("CPU/ABI", JBUI.scale(70)) {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
