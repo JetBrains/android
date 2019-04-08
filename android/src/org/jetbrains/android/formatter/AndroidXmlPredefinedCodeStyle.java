@@ -9,16 +9,13 @@ import com.intellij.psi.codeStyle.PredefinedCodeStyle;
 import com.intellij.psi.codeStyle.arrangement.ArrangementSettings;
 import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
+import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.xml.arrangement.XmlRearranger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order.BY_NAME;
-import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order.KEEP;
-import static com.intellij.xml.arrangement.XmlRearranger.attrArrangementRule;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
   public AndroidXmlPredefinedCodeStyle() {
@@ -44,23 +41,40 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     androidSettings.OTHER_SETTINGS = new AndroidXmlCodeStyleSettings.OtherSettings();
 
     final CommonCodeStyleSettings xmlCommonSettings = settings.getCommonSettings(XMLLanguage.INSTANCE);
-    xmlCommonSettings.setArrangementSettings(createVersion2Settings());
+    xmlCommonSettings.setArrangementSettings(createVersion3Settings());
     xmlCommonSettings.FORCE_REARRANGE_MODE = CommonCodeStyleSettings.REARRANGE_ALWAYS;
+  }
+
+  @NotNull
+  public static ArrangementSettings createVersion3Settings() {
+    List<StdArrangementMatchRule> rules = new ArrayList<>();
+
+    rules.add(AndroidXmlRearranger.newAttributeRule("xmlns:android", "^$", Order.KEEP));
+    rules.add(AndroidXmlRearranger.newAttributeRule("xmlns:.*", "^$", Order.BY_NAME));
+    rules.add(AndroidXmlRearranger.newAttributeRule(".*:id", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(AndroidXmlRearranger.newAttributeRule(".*:name", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(AndroidXmlRearranger.newAttributeRule("name", "^$", Order.KEEP));
+    rules.add(AndroidXmlRearranger.newAttributeRule("style", "^$", Order.KEEP));
+    rules.add(AndroidXmlRearranger.newAttributeRule(".*", "^$", Order.BY_NAME));
+    rules.add(AndroidXmlRearranger.newAttributeRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE));
+    rules.add(AndroidXmlRearranger.newAttributeRule(".*", ".*", Order.BY_NAME));
+
+    return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
   }
 
   @NotNull
   public static ArrangementSettings createVersion2Settings() {
     List<StdArrangementMatchRule> rules = new ArrayList<>();
 
-    rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
-    rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:id", SdkConstants.ANDROID_URI, KEEP));
-    rules.add(attrArrangementRule(".*:name", SdkConstants.ANDROID_URI, KEEP));
-    rules.add(attrArrangementRule("name", "^$", KEEP));
-    rules.add(attrArrangementRule("style", "^$", KEEP));
-    rules.add(attrArrangementRule(".*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE));
-    rules.add(attrArrangementRule(".*", ".*", BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule("xmlns:android", "^$", Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule("xmlns:.*", "^$", Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*:id", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule(".*:name", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule("name", "^$", Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule("style", "^$", Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule(".*", "^$", Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE));
+    rules.add(XmlRearranger.attrArrangementRule(".*", ".*", Order.BY_NAME));
 
     return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
   }
@@ -69,20 +83,20 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
   public static ArrangementSettings createVersion1Settings() {
     List<StdArrangementMatchRule> rules = new ArrayList<>();
 
-    rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
-    rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:id", SdkConstants.ANDROID_URI, KEEP));
-    rules.add(attrArrangementRule(".*:name", SdkConstants.ANDROID_URI, KEEP));
-    rules.add(attrArrangementRule("name", "^$", KEEP));
-    rules.add(attrArrangementRule("style", "^$", KEEP));
-    rules.add(attrArrangementRule(".*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:layout_width", SdkConstants.ANDROID_URI, KEEP));
-    rules.add(attrArrangementRule(".*:layout_height", SdkConstants.ANDROID_URI, KEEP));
-    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.ANDROID_URI, BY_NAME));
-    rules.add(attrArrangementRule(".*:width", SdkConstants.ANDROID_URI, BY_NAME));
-    rules.add(attrArrangementRule(".*:height", SdkConstants.ANDROID_URI, BY_NAME));
-    rules.add(attrArrangementRule(".*", SdkConstants.ANDROID_URI, BY_NAME));
-    rules.add(attrArrangementRule(".*", ".*", BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule("xmlns:android", "^$", Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule("xmlns:.*", "^$", Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*:id", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule(".*:name", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule("name", "^$", Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule("style", "^$", Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule(".*", "^$", Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*:layout_width", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule(".*:layout_height", SdkConstants.ANDROID_URI, Order.KEEP));
+    rules.add(XmlRearranger.attrArrangementRule(".*:layout_.*", SdkConstants.ANDROID_URI, Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*:width", SdkConstants.ANDROID_URI, Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*:height", SdkConstants.ANDROID_URI, Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*", SdkConstants.ANDROID_URI, Order.BY_NAME));
+    rules.add(XmlRearranger.attrArrangementRule(".*", ".*", Order.BY_NAME));
 
     return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
   }

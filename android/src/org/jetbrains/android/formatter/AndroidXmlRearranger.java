@@ -16,23 +16,35 @@
 package org.jetbrains.android.formatter;
 
 import com.intellij.psi.codeStyle.arrangement.ArrangementSettingsSerializer;
+import com.intellij.psi.codeStyle.arrangement.ArrangementUtil;
 import com.intellij.psi.codeStyle.arrangement.DefaultArrangementSettingsSerializer;
+import com.intellij.psi.codeStyle.arrangement.DefaultArrangementSettingsSerializer.Mixin;
 import com.intellij.psi.codeStyle.arrangement.match.StdArrangementEntryMatcher;
 import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
 import com.intellij.psi.codeStyle.arrangement.model.ArrangementAtomMatchCondition;
 import com.intellij.psi.codeStyle.arrangement.std.ArrangementSettingsToken;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
+import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.EntryType;
+import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Regexp;
 import com.intellij.xml.arrangement.XmlRearranger;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-
-import static com.intellij.psi.codeStyle.arrangement.DefaultArrangementSettingsSerializer.Mixin;
-import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Regexp;
-
-final class AndroidXmlRearranger extends XmlRearranger {
+public final class AndroidXmlRearranger extends XmlRearranger {
   private AndroidXmlRearranger() {
+  }
+
+  @NotNull
+  public static StdArrangementMatchRule newAttributeRule(@NotNull String qualifiedNameRegex,
+                                                         @NotNull String xmlNamespaceRegex,
+                                                         @NotNull ArrangementSettingsToken order) {
+    StdArrangementEntryMatcher matcher = new StdArrangementEntryMatcher(ArrangementUtil.combine(
+      new ArrangementAtomMatchCondition(EntryType.XML_ATTRIBUTE),
+      new ArrangementAtomMatchCondition(Regexp.NAME, qualifiedNameRegex),
+      new ArrangementAtomMatchCondition(Regexp.XML_NAMESPACE, xmlNamespaceRegex)));
+
+    return new StdArrangementMatchRule(matcher, order);
   }
 
   @NotNull
