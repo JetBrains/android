@@ -31,8 +31,13 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"/>
     <TextView
-        android:text="@{vo.initialString()}"
-        android:id="@+id/uppercaseTextView"
+        android:text="@{vo.getLiveData().getLiveDataString()}"
+        android:id="@+id/liveDataView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:text="@{vo.getObservableField().getObservableFieldString()}"
+        android:id="@+id/observableFieldView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </RelativeLayout>
