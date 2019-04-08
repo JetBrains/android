@@ -49,6 +49,7 @@ public class AidlNameComponentImpl extends AidlNamedElementImpl implements AidlN
     return findNotNullChildByType(IDENTIFIER);
   }
 
+  @Override
   public PsiReference getReference() {
     return AidlPsiUtil.getReference(this);
   }
