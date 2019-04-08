@@ -911,6 +911,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     for (BuildMessage message : warnMessages) {
       if (message.getMessageText().endsWith("was forcibly excluded by the IDE, so custom generated files won't be compiled")) {
         containsForciblyExcludedRootWarn = true;
+        break;
       }
     }
     assertTrue(containsForciblyExcludedRootWarn);

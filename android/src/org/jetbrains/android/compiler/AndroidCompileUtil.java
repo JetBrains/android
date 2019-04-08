@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.compiler;
 
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
@@ -286,6 +286,7 @@ public class AndroidCompileUtil {
       for (VirtualFile existingRoot : model.getSourceRoots()) {
         if (Comparing.equal(existingRoot, root)) {
           markedAsSource = true;
+          break;
         }
       }
 
