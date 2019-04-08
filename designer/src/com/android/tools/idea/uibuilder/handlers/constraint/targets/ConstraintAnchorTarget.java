@@ -164,9 +164,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   @Override
-  protected boolean canDisconnect() {
-    // TODO: Enable disconnect while holding down a key.
-    return false;
+  public boolean canDisconnect() {
+    return myComponent.getScene().isControlDown();
   }
 
   @SuppressWarnings("UseJBColor")
@@ -295,7 +294,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       DrawAnchor.Mode.NORMAL,      // isSelected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // isSelected & is_connected & mIsOver
+      DrawAnchor.Mode.DELETE,      // isSelected & is_connected & mIsOver
       DrawAnchor.Mode.OVER,        // isSelected & is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & can_connect
@@ -723,8 +722,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (closestTarget != null && !closestTarget.isConnected(this)) {
         NlComponent component = myComponent.getAuthoritativeNlComponent();
         if (closestTarget == this) {
-          // TODO: Enable disconnect while holding down a key.
-          //disconnectMe(component);
+          if (canDisconnect()) {
+            disconnectMe(component);
+          }
         }
         else {
           String attribute = getAttribute(closestTarget);

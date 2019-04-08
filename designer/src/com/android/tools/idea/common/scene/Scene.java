@@ -552,7 +552,7 @@ public class Scene implements SelectionListener, Disposable {
 
     if (closestComponent == null
         || closestComponent.getNlComponent().isRoot()
-           && myHitTarget == null) {
+           && myOverTarget == null) {
       Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
       if (obj != null && obj instanceof SecondarySelector) {
         SecondarySelector ss = (SecondarySelector)obj;
