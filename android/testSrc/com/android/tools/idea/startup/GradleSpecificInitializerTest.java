@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.tools.idea.startup.GradleSpecificInitializer.TEMPLATE_PROJECT_SETTINGS_GROUP_ID;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -25,15 +28,12 @@ import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.arrangement.ArrangementSettings;
+import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
-
+import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order;
 import java.util.Collections;
-
-import static com.android.tools.idea.startup.GradleSpecificInitializer.TEMPLATE_PROJECT_SETTINGS_GROUP_ID;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order.KEEP;
-import static com.intellij.xml.arrangement.XmlRearranger.attrArrangementRule;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
+import org.jetbrains.android.formatter.AndroidXmlRearranger;
 
 /**
  * Tests for {@link GradleSpecificInitializer}
@@ -66,7 +66,7 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
   }
 
-  public void testModifyCodeStyleSettingsReplacesVersion1WithVersion2() {
+  public void testModifyCodeStyleSettingsReplacesVersion1WithVersion3() {
     CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
 
     CodeStyleScheme scheme = schemes.createNewScheme("New Scheme", schemes.getDefaultScheme());
@@ -78,12 +78,12 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     GradleSpecificInitializer.modifyCodeStyleSettings();
 
     assertThat(schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).getArrangementSettings())
-      .isEqualTo(AndroidXmlPredefinedCodeStyle.createVersion2Settings());
+      .isEqualTo(AndroidXmlPredefinedCodeStyle.createVersion3Settings());
   }
 
   public void testModifyCodeStyleSettingsDoesntReplaceVersion1() {
-    ArrangementSettings settings = StdArrangementSettings
-      .createByMatchRules(Collections.emptyList(), Collections.singletonList(attrArrangementRule("xmlns:android", "^$", KEEP)));
+    StdArrangementMatchRule rule = AndroidXmlRearranger.newAttributeRule("xmlns:android", "^$", Order.KEEP);
+    ArrangementSettings settings = StdArrangementSettings.createByMatchRules(Collections.emptyList(), Collections.singletonList(rule));
 
     CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
 
