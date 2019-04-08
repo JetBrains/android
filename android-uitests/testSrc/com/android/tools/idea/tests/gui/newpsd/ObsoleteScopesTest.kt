@@ -27,6 +27,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.After
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -68,12 +69,19 @@ class ObsoleteScopesTest {
     suggestionsConfigurable.waitForGroup("Warnings")
     val warningsGroup = suggestionsConfigurable.findGroup("Warnings")
     val warningSuggestions = warningsGroup.suggestions()
+
     val expectedMessages = listOf(
       Pair("\napp » com.google.guava:guava:23.0\nObsolete scope found: compile View usage",
            arrayOf("Update compile to implementation")),
+      Pair("\napp » compile/libs\nObsolete scope found: compile View usage",
+           arrayOf("Update compile to implementation")),
       Pair("\napp » junit:junit:4.11\nObsolete scope found: testCompile View usage",
            arrayOf("Update testCompile to testImplementation")),
+      Pair("\napp » mylibrary\nObsolete scope found: compile View usage",
+           arrayOf("Update compile to implementation")),
       Pair("\nmylibrary » com.android.support:appcompat-v7:26.0.1\nObsolete scope found: compile View usage",
+           arrayOf("Update compile to api", "Update compile to implementation")),
+      Pair("\nmylibrary » compile/libs\nObsolete scope found: compile View usage",
            arrayOf("Update compile to api", "Update compile to implementation")),
       Pair("\nmylibrary » junit:junit:4.11\nObsolete scope found: testCompile View usage",
            arrayOf("Update testCompile to testImplementation")))
@@ -82,7 +90,7 @@ class ObsoleteScopesTest {
                hasItems(*(expectedMessages.map { it.first }).toTypedArray()))
     warningSuggestions.forEach { suggestion ->
       val expected = expectedMessages.find { it.first == suggestion.plainTextMessage() }
-      println(expected)
+      assertNotNull(expected)
       suggestion.findButton().requireText(expected!!.second[0])
       val options = suggestion.getOptionNames()
       if (options.isEmpty()) {
