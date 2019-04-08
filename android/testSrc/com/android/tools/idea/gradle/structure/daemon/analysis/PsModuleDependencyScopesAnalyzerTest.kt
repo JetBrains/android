@@ -31,7 +31,7 @@ import com.intellij.openapi.util.Disposer
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 
-class PsModuleLibraryScopesAnalyzerTest : DependencyTestCase() {
+class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
   fun testObsoleteTestCompileScopeInLibrary() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
