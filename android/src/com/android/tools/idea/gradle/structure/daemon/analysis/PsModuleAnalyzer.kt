@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSI
 import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyPlusQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 
 fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence<PsIssue> {
@@ -35,7 +36,7 @@ fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence
   if (declaredVersion != null && declaredVersion.endsWith("+")) {
     val message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds."
     // TODO(b/111058962): Replace "+" with the most recent version of the library.
-    val issue = PsGeneralIssue(message, path, PROJECT_ANALYSIS, WARNING, PsLibraryDependencyVersionQuickFixPath(dependency, "+", false))
+    val issue = PsGeneralIssue(message, path, PROJECT_ANALYSIS, WARNING, PsLibraryDependencyPlusQuickFixPath(dependency))
 
     return sequenceOf(issue)
   }
