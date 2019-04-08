@@ -25,6 +25,8 @@ public interface AidlTokenTypeSets {
 
   TokenSet BAD_TOKENS = TokenSet.create(TokenType.BAD_CHARACTER);
 
+  TokenSet IDENTIFIERS = TokenSet.create(AidlTokenTypes.IDENTIFIER);
+
   TokenSet KEY_WORDS = TokenSet
     .create(AidlTokenTypes.BOOLEAN_KEYWORD, AidlTokenTypes.BYTE_KEYWORD, AidlTokenTypes.CHAR_KEYWORD, AidlTokenTypes.DOUBLE_KEYWORD,
             AidlTokenTypes.FLATTENABLE_KEYWORD, AidlTokenTypes.FLOAT_KEYWORD, AidlTokenTypes.IMPORT_KEYWORD, AidlTokenTypes.IN_KEYWORD,
