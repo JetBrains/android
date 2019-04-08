@@ -94,7 +94,10 @@ import org.jetbrains.annotations.Nullable;
  * The contents of the "Build Variants" tool window.
  */
 public class BuildVariantView {
-  private static final Object[] TABLE_COLUMN_NAMES = new Object[]{"Module", "Active Build Variant", "Active ABI"};
+  // Column headers for projects that only have Java/Kotlin code (i.e., no native code).
+  private static final Object[] TABLE_COLUMN_NAMES_WITHOUT_ABI = new Object[]{"Module", "Active Build Variant"};
+  // Column headers for projects that also have native code.
+  private static final Object[] TABLE_COLUMN_NAMES_WITH_ABI = new Object[]{"Module", "Active Build Variant", "Active ABI"};
 
   private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
@@ -110,6 +113,19 @@ public class BuildVariantView {
   private JPanel myNotificationPanel;
 
   private final List<Conflict> myConflicts = new ArrayList<>();
+
+  // Indicates whether the last time the BuildVariantTable was drawn, it had the ABIs column displayed or not. The ABIs column
+  // was displayed only if there was at least one module that had a native/C++ build in it. This flag is just a UI smoothness
+  // optimization.
+  //
+  // While Gradle Sync is running, the Build Variant table is drawn without any rows, yet its headers (i.e., column names)
+  // are still shown to the user. For Java-only projects, we don't want their table to temporarily show ABIs column during sync,
+  // and similarly, for native/C++ projects, we don't want to hide the ABIs column during sync. Unfortunately, until Gradle sync is
+  // complete, we don't know whether the current project contains any native/C++ code.
+  //
+  // This flag remembers whether the table had an ABIs column the last time we draw it to the screen (i.e., sync'ed it). This way,
+  // we provide a consistent UI appearance to the user.
+  private boolean previousModelHadAbis = false;
 
   @NotNull
   public static BuildVariantView getInstance(@NotNull Project project) {
@@ -496,8 +512,11 @@ public class BuildVariantView {
    * The model to use for the Build Variant table in the panel.
    */
   private static class BuildVariantTableModel extends DefaultTableModel {
-    BuildVariantTableModel(List<Object[]> rows) {
-      super(rows.toArray(new Object[rows.size()][TABLE_COLUMN_NAMES.length]), TABLE_COLUMN_NAMES);
+    BuildVariantTableModel(List<Object[]> rows, boolean hasAbis) {
+      super(
+        rows.toArray(
+          new Object[rows.size()][hasAbis ? TABLE_COLUMN_NAMES_WITH_ABI.length : TABLE_COLUMN_NAMES_WITHOUT_ABI.length]),
+        hasAbis ? TABLE_COLUMN_NAMES_WITH_ABI : TABLE_COLUMN_NAMES_WITHOUT_ABI);
     }
   }
 
@@ -522,7 +541,7 @@ public class BuildVariantView {
     private final AbisCellRenderer myAbisCellRenderer = new AbisCellRenderer();
 
     BuildVariantTable() {
-      super(new BuildVariantTableModel(Collections.emptyList()));
+      super(new BuildVariantTableModel(Collections.emptyList(), previousModelHadAbis));
       addKeyListener(new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent e) {
@@ -540,8 +559,6 @@ public class BuildVariantView {
           }
         }
       });
-
-      setExpandableItemsEnabled(false);
     }
 
     /**
@@ -573,7 +590,7 @@ public class BuildVariantView {
     }
 
     private void clearContents() {
-      setModel(new BuildVariantTableModel(Collections.emptyList()));
+      setModel(new BuildVariantTableModel(Collections.emptyList(), previousModelHadAbis));
       myVariantCellEditors.clear();
       myAbiCellEditors.clear();
     }
@@ -582,16 +599,17 @@ public class BuildVariantView {
                   @NotNull Map<Integer, BuildVariantItem[]> buildVariantsPerRow,
                   @NotNull Map<Integer, AbiItem[]> abisPerRow) {
       setLoading(false);
+      previousModelHadAbis = !abisPerRow.isEmpty();
       if (rows.isEmpty()) {
         // This is most likely an old-style (pre-Gradle) Android project. Just leave the table empty.
-        setModel(new BuildVariantTableModel(rows));
+        setModel(new BuildVariantTableModel(rows, previousModelHadAbis));
         return;
       }
 
       boolean hasVariants = !buildVariantsPerRow.isEmpty();
       List<Object[]> content = hasVariants ? rows : Collections.emptyList();
 
-      setModel(new BuildVariantTableModel(content));
+      setModel(new BuildVariantTableModel(content, previousModelHadAbis));
       addBuildVariants(buildVariantsPerRow);
       addAbiNames(abisPerRow);
     }
