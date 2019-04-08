@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
@@ -28,10 +28,10 @@ public class BleakLogControl extends TestWatcher {
   public void starting(Description description) {
     try {
       FileUtil.ensureExists(new File(GuiTests.getGuiTestRootDirPath(), "bleak"));
-      BleakKt.setCurrentLogFile(new File(GuiTests.getGuiTestRootDirPath(),
+      Bleak.setCurrentLogFile(new File(GuiTests.getGuiTestRootDirPath(),
                                          "bleak/" + description.getClassName() + "." + description.getMethodName()));
     } catch (IOException e) {
-      BleakKt.setCurrentLogFile(null);
+      Bleak.setCurrentLogFile(null);
     }
   }
 }
