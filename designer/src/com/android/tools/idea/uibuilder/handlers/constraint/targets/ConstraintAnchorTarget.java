@@ -812,7 +812,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
               myComponent.getScene().setFilterType(Scene.FilterType.NONE);
             }
           });
-          menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+          if (menu.getComponentCount() > 0) {
+            menu
+              .show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+          }
         }
       }
     }

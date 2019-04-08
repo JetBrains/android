@@ -184,6 +184,41 @@ public class DecoratorUtilities {
   }
 
   /**
+   * From a given component and a list of components, returns a set of the components that are part of the same connection graph related to
+   * the given component.
+   */
+  public static HashSet<NlComponent> getConnectedNlComponents(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
+    HashSet<NlComponent> set = new HashSet<>();
+    String id = c.getId();
+    if (id == null) {
+      return set;
+    }
+    set.add(c);
+    int lastCount;
+    do {
+      lastCount = set.size();
+      for (NlComponent sister : sisters) {
+        for (int i = 0; i < list.length; i++) {
+          String str = ConstraintComponentUtilities.getConnectionId(sister, SdkConstants.SHERPA_URI, list[i]);
+          if (str == null || str.isEmpty()) {
+            // No component connected.
+            continue;
+          }
+          for (NlComponent connectedComponent : set) {
+            String connectedId = connectedComponent.getId();
+            if(connectedId != null && connectedId.equals(str)){
+              set.add(sister);
+              break;
+            }
+          }
+        }
+      }
+    }
+    while (set.size() > lastCount);
+    return set;
+  }
+
+  /**
    * Set or clears the "trying to connect" state on all NLComponents that are sisters of this component.
    * The state is a Integer flag, bit 0=top,1=south,2=east,3=west,4=baseline
    *
@@ -209,7 +244,7 @@ public class DecoratorUtilities {
                                              List<NlComponent> dstComponents,
                                              AnchorTarget.Type type,
                                              boolean on) {
-    HashSet<String> connected;
+    HashSet<NlComponent> connected;
     Integer mask;
     if (on) {
       srcComponent.putClientProperty(TRY_TO_CONNECT, 0);
@@ -217,11 +252,11 @@ public class DecoratorUtilities {
         case TOP:
         case BOTTOM:
           mask = MASK_TOP | MASK_BOTTOM;
-          connected = getConnected(srcComponent, dstComponents,
+          connected = getConnectedNlComponents(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourBottomAttributes,
                                    ConstraintComponentUtilities.ourTopAttributes);
           for (NlComponent dstComponent : dstComponents) {
-            if (dstComponent != srcComponent && !connected.contains(dstComponent.getId())) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent)) {
               dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
@@ -229,13 +264,13 @@ public class DecoratorUtilities {
         case RIGHT:
         case LEFT:
           mask = MASK_LEFT | MASK_RIGHT;
-          connected = getConnected(srcComponent, dstComponents,
+          connected = getConnectedNlComponents(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourRightAttributes,
                                    ConstraintComponentUtilities.ourLeftAttributes,
                                    ConstraintComponentUtilities.ourStartAttributes,
                                    ConstraintComponentUtilities.ourEndAttributes);
           for (NlComponent dstComponent : dstComponents) {
-            if (dstComponent != srcComponent && !connected.contains(dstComponent.getId())) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent)) {
               dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
@@ -243,12 +278,12 @@ public class DecoratorUtilities {
 
         case BASELINE:
           mask = MASK_BASELINE;
-          connected = getConnected(srcComponent, dstComponents,
+          connected = getConnectedNlComponents(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourBottomAttributes,
                                    ConstraintComponentUtilities.ourTopAttributes,
                                    ConstraintComponentUtilities.ourBaselineAttributes);
           for (NlComponent dstComponent : dstComponents) {
-            if (dstComponent != srcComponent && !connected.contains(dstComponent.getId())) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent)) {
               dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }

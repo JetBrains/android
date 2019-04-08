@@ -1670,7 +1670,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean wouldCreateLoop(NlComponent source, Direction sourceDirection, NlComponent target) {
-    HashSet<String> connected;
+    HashSet<NlComponent> connected;
     if (source.getParent() == null) {
       return true;
     }
@@ -1678,16 +1678,19 @@ public final class ConstraintComponentUtilities {
     switch (sourceDirection) {
       case TOP:
       case BOTTOM:
-        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
-        return connected.contains(target.getId());
+        connected =
+          DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
+        return connected.contains(target);
       case RIGHT:
       case LEFT:
-        connected = getConnected(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
-        return connected.contains(target.getId());
+        connected = DecoratorUtilities
+          .getConnectedNlComponents(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
+        return connected.contains(target);
 
       case BASELINE:
-        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
-        return connected.contains(target.getId());
+        connected =
+          DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
+        return connected.contains(target);
     }
     return false;
   }
