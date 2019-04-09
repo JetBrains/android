@@ -90,6 +90,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         val constraint = getConstraintForAttribute(itemData.attribute, apiLevel, rtl)
         widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
         widgetModel.surface?.invalidate()
+        widgetModel.surface?.repaint()
       }
     })
 
