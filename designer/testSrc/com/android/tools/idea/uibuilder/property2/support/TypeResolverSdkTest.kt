@@ -23,6 +23,7 @@ import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CLASS_PREFERENCE
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.MATERIAL1_PKG
@@ -58,7 +59,6 @@ private const val PREFERENCE_PACKAGE = "android.preference"
 private const val APPCOMPAT_VIEW_PACKAGE = "android.support.v7.widget"
 private const val CONSTRAINT_LAYOUT_PACKAGE = "android.support.constraint"
 private const val TOTAL_ERROR_MESSAGE = "attributes with mismatched types"
-private const val LAYOUT_FILE_SUFFIX = "_layout"
 private const val RECYCLER_VIEW_V7_ID = "recyclerview-v7"
 
 @RunsInEdt
@@ -156,13 +156,14 @@ class TypeResolverSdkTest {
   }
 
   private fun checkViewAttributes(tagName: String, report: Report) {
-    val util = SupportTestUtil(projectRule, tagName, parentTag = FRAME_LAYOUT, fileName = tagName)
+    val util = SupportTestUtil(projectRule, tagName, parentTag = FRAME_LAYOUT,
+                               fileName = "${tagName.substringAfter('.')}$DOT_XML")
     val tag = util.components.first().backend.tag!!
     checkAttributes(tag, report)
   }
 
   private fun checkViewLayoutAttributes(tagName: String, report: Report) {
-    val util = SupportTestUtil(projectRule, BUTTON, parentTag = tagName, fileName = "${tagName}${LAYOUT_FILE_SUFFIX}")
+    val util = SupportTestUtil(projectRule, BUTTON, parentTag = tagName, fileName = "${tagName.substringAfter('.')}$DOT_XML")
     val tag = util.components.first().parent!!.backend.tag!!
     checkAttributes(tag, report)
   }

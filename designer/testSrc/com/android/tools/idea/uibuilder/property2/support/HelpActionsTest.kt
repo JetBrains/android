@@ -29,6 +29,7 @@ import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.EXPECTED_TEXT_TOOLTIP
@@ -71,7 +72,12 @@ class HelpActionsTest {
   @RunsInEdt
   @Test
   fun testTooltipForCustomPropertyWithoutDocumentation() {
-    val util = SupportTestUtil(projectRule, TEXT_VIEW)
+    val descriptor = ComponentDescriptor(TEXT_VIEW)
+          .withBounds(0, 0, 1000, 1000)
+          .wrapContentWidth()
+          .wrapContentHeight()
+          .withAttribute(AUTO_URI, "something", "1")
+    val util = SupportTestUtil(projectRule, descriptor)
     util.setUpCustomView()
     val property = util.makeProperty(AUTO_URI, "legend", NelePropertyType.BOOLEAN)
     assertThat(property.tooltipForName).isEqualTo("<html><b>app:legend</b></html>")
