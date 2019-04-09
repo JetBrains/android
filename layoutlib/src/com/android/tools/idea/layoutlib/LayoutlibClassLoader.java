@@ -91,7 +91,7 @@ public class LayoutlibClassLoader extends ClassLoader {
         ClassRemapper classRemapper = new ClassRemapper(writer, remapper) {
           @Override
           public void visitInnerClass(String name, String outerName, String innerName, int access) {
-            if (outerName.startsWith(binaryName)) {
+            if (outerName != null && outerName.startsWith(binaryName)) {
               pendingClasses.push(toClassName(name));
             }
             super.visitInnerClass(name, outerName, innerName, access);
