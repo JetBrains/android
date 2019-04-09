@@ -29,8 +29,6 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 
 class XmlErrorOutputParser : BuildOutputParser {
-  private val messageGroup = "Xml parsing"
-
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     if (line == null || reader == null || messageConsumer == null) {
       return false
@@ -58,7 +56,7 @@ class XmlErrorOutputParser : BuildOutputParser {
           FileMessageEventImpl(
             reader.buildId,
             MessageEvent.Kind.ERROR,
-            messageGroup + MESSAGE_GROUP_ERROR_SUFFIX,
+            XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,
             message,
             FilePosition(file, lineNumber, columnNumber)
@@ -70,7 +68,7 @@ class XmlErrorOutputParser : BuildOutputParser {
           MessageEventImpl(
             reader.buildId,
             MessageEvent.Kind.ERROR,
-            messageGroup + MESSAGE_GROUP_ERROR_SUFFIX,
+            XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,
             message
           )
@@ -97,6 +95,8 @@ class XmlErrorOutputParser : BuildOutputParser {
   }
 
   companion object {
+    const val XML_PARSING_GROUP = "Xml parsing"
+
     /**
      * Matches the sax parsing exception format:
      * org.xml.sax.SAXParseException; systemId: <file>; lineNumber: <lineNumber>; columnNumber: <colNumber>; <message>
