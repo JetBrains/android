@@ -61,7 +61,7 @@ public class ModuleDownloadConditions {
       }
     }, null);
     myFeatureHelpLink.setHyperlinkTarget(myLinkUrl);
-    myFeatureHelpLink.setHtmlText("<html><a>Learn more</a> about supported conditions, such as device features and user country.</html>");
+    myFeatureHelpLink.setHtmlText("<html><a>Learn more</a> about supported conditions, such as device features and user country</html>");
   }
 
   public void init(@NotNull Project project,
