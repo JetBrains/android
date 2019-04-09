@@ -61,6 +61,11 @@ public class CustomViewHandler extends DelegatingViewHandler {
     myProperties = properties;
   }
 
+  @NotNull
+  public String getTagName() {
+    return myTagName;
+  }
+
   // Palette
 
   @Override

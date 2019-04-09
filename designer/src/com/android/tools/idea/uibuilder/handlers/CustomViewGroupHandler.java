@@ -65,6 +65,11 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
     myLayoutProperties = layoutProperties;
   }
 
+  @NotNull
+  public String getTagName() {
+    return myTagName;
+  }
+
   // Palette
 
   @Override

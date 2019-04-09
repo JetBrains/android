@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.CollectionQuery;
@@ -55,6 +56,11 @@ import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
 public class NlPaletteModelTest {
+  private static final String CUSTOM_VIEW_CLASS = "com.example.FakeCustomView";
+  private static final String CUSTOM_VIEW_GROUP_CLASS = "com.example.FakeCustomViewGroup";
+  private static final String CUSTOM_VIEW = StringUtil.getShortName(CUSTOM_VIEW_CLASS);
+  private static final String CUSTOM_VIEW_GROUP = StringUtil.getShortName(CUSTOM_VIEW_GROUP_CLASS);
+
   @Rule
   public final AndroidProjectRule projectRule = AndroidProjectRule.onDisk().initAndroid(true);
   private AndroidFacet facet;
@@ -77,11 +83,11 @@ public class NlPaletteModelTest {
   public void addIllegalThirdPartyComponent() {
     LayoutFileType layoutFileType = LayoutFileType.INSTANCE;
     Palette palette = model.getPalette(layoutFileType);
-    boolean added = model.addAdditionalComponent(layoutFileType, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, LINEAR_LAYOUT,
+    boolean added = model.addAdditionalComponent(layoutFileType, NlPaletteModel.PROJECT_GROUP, palette, null, LINEAR_LAYOUT,
                                                  LINEAR_LAYOUT, null, null, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null,
                                                  Collections.emptyList(), Collections.emptyList());
     assertThat(added).isFalse();
-    assertThat(getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP)).isNull();
+    assertThat(getProjectGroup(palette)).isNull();
 
     ViewHandler handler = ViewHandlerManager.get(facet).getHandler(LINEAR_LAYOUT);
     assertThat(handler).isInstanceOf(LinearLayoutHandler.class);
@@ -91,39 +97,93 @@ public class NlPaletteModelTest {
   public void addThirdPartyComponent() throws InterruptedException {
     registerJavaClasses();
     registerFakeBaseViewHandler();
-    Palette palette = getPaletteWhenAdditionalComponentsReady(model, LayoutFileType.INSTANCE);
-    String tag = "com.example.FakeCustomView";
-    boolean added = model
-      .addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, tag, tag,
-                              getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
-                              "family", ImmutableList.of("family", "size"), Collections.emptyList());
-    Palette.Group thirdParty = getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP);
-    assertThat(added).isTrue();
+    Palette palette = getPaletteWhenAdditionalComponentsReady(model);
+
+    Palette.Group thirdParty = getProjectGroup(palette);
     assertThat(thirdParty).isNotNull();
-    assertThat(thirdParty.getItems().size()).isEqualTo(1);
+    assertThat(thirdParty.getItems().size()).isEqualTo(2);
 
-    Palette.Item item = (Palette.Item)thirdParty.getItem(0);
-    assertThat(item.getTagName()).isEqualTo(tag);
-    assertThat(item.getIcon()).isEqualTo(AndroidIcons.Android);
-    assertThat(item.getTitle()).isEqualTo("FakeCustomView");
-    assertThat(item.getGradleCoordinateId()).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
-    assertThat(item.getXml()).isEqualTo(getXml(tag));
+    @Language("XML")
+    String expectedViewXml = "<com.example.FakeCustomView\n" +
+                             "    android:layout_width=\"wrap_content\"\n" +
+                             "    android:layout_height=\"wrap_content\" />\n";
+    @Language("XML")
+    String expectedViewGroupXml = "<com.example.FakeCustomViewGroup\n" +
+                                  "    android:layout_width=\"match_parent\"\n" +
+                                  "    android:layout_height=\"match_parent\" />\n";
 
-    ViewHandler handler = ViewHandlerManager.get(facet).getHandler(tag);
+    Palette.Item item1 = (Palette.Item)thirdParty.getItem(0);
+    assertThat(item1.getTagName()).isEqualTo(CUSTOM_VIEW_CLASS);
+    assertThat(item1.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
+    assertThat(item1.getTitle()).isEqualTo(CUSTOM_VIEW);
+    assertThat(item1.getGradleCoordinateId()).isEmpty();
+    assertThat(item1.getXml()).isEqualTo(expectedViewXml);
+
+    Palette.Item item2 = (Palette.Item)thirdParty.getItem(1);
+    assertThat(item2.getTagName()).isEqualTo(CUSTOM_VIEW_GROUP_CLASS);
+    assertThat(item2.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
+    assertThat(item2.getTitle()).isEqualTo(CUSTOM_VIEW_GROUP);
+    assertThat(item2.getGradleCoordinateId()).isEmpty();
+    assertThat(item2.getXml()).isEqualTo(expectedViewGroupXml);
+
+    ViewHandler handler = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_CLASS);
     assertThat(handler).isNotNull();
-    assertThat(handler.getTitle(tag)).isEqualTo("FakeCustomView");
-    assertThat(handler.getIcon(tag)).isEqualTo(AndroidIcons.Android);
-    assertThat(handler.getGradleCoordinateId(tag)).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
-    assertThat(handler.getPreviewScale(tag)).isWithin(0.0).of(1.0);
-    assertThat(handler.getInspectorProperties()).containsExactly("family", "size");
+    assertThat(handler.getTitle(CUSTOM_VIEW_CLASS)).isEqualTo(CUSTOM_VIEW);
+    assertThat(handler.getIcon(CUSTOM_VIEW_CLASS)).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
+    assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isEmpty();
+    assertThat(handler.getPreviewScale(CUSTOM_VIEW_CLASS)).isWithin(0.0).of(1.0);
+    assertThat(handler.getInspectorProperties()).isEmpty();
     assertThat(handler.getLayoutInspectorProperties()).isEmpty();
-    assertThat(handler.getPreferredProperty()).isEqualTo("family");
+    assertThat(handler.getPreferredProperty()).isNull();
+  }
+
+  @Test
+  public void addThirdPartyComponentTwice() throws InterruptedException {
+    registerJavaClasses();
+    registerFakeBaseViewHandler();
+    Palette palette = getPaletteWhenAdditionalComponentsReady(model);
+    boolean added1 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+                                                  CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
+                                                  getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"),
+                                                  Collections.emptyList());
+    ViewHandler handler1 = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_CLASS);
+
+    boolean added2 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+                                                  CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
+                                                  getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"),
+                                                  Collections.emptyList());
+    ViewHandler handler2 = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_CLASS);
+    assertThat(added1).isTrue();
+    assertThat(added2).isTrue();
+    assertThat(handler1).isSameAs(handler2);
+  }
+
+  @Test
+  public void addThirdPartyGroupComponentTwice() throws InterruptedException {
+    registerJavaClasses();
+    registerFakeBaseViewHandler();
+    Palette palette = getPaletteWhenAdditionalComponentsReady(model);
+    boolean added1 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+                                                  CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
+                                                  getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"),
+                                                  Collections.emptyList());
+    ViewHandler handler1 = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_GROUP_CLASS);
+
+    boolean added2 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+                                                  CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
+                                                  getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"),
+                                                  Collections.emptyList());
+    ViewHandler handler2 = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_GROUP_CLASS);
+    assertThat(added1).isTrue();
+    assertThat(added2).isTrue();
+    assertThat(handler1).isSameAs(handler2);
   }
 
   @Test
   public void projectComponents() throws InterruptedException {
-    registerJavaClasses();
-    Palette.Group projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
+    //registerJavaClasses();
+    Palette palette = getPaletteWhenAdditionalComponentsReady(model);
+    Palette.Group projectComponents = getProjectGroup(palette);
     assertThat(projectComponents).isNull();
 
     CountDownLatch latch = new CountDownLatch(1);
@@ -131,20 +191,20 @@ public class NlPaletteModelTest {
 
     model.loadAdditionalComponents(LayoutFileType.INSTANCE, (project) -> {
       PsiClass customView = mock(PsiClass.class);
-      when(customView.getName()).thenReturn("FakeCustomView");
-      when(customView.getQualifiedName()).thenReturn("com.example.FakeCustomView");
+      when(customView.getName()).thenReturn(CUSTOM_VIEW);
+      when(customView.getQualifiedName()).thenReturn(CUSTOM_VIEW_CLASS);
       return new CollectionQuery<>(ImmutableList.of(customView));
     });
     latch.await();
 
-    projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
+    palette = model.getPalette(LayoutFileType.INSTANCE);
+    projectComponents = getProjectGroup(palette);
     assertThat(projectComponents.getItems().size()).isEqualTo(1);
 
-    String tag = "com.example.FakeCustomView";
     Palette.Item item = (Palette.Item)projectComponents.getItem(0);
-    assertThat(item.getTagName()).isEqualTo(tag);
+    assertThat(item.getTagName()).isEqualTo(CUSTOM_VIEW_CLASS);
     assertThat(item.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
-    assertThat(item.getTitle()).isEqualTo("FakeCustomView");
+    assertThat(item.getTitle()).isEqualTo(CUSTOM_VIEW);
     assertThat(item.getGradleCoordinateId()).isEmpty();
     assertThat(item.getXml()).isEqualTo("<com.example.FakeCustomView\n" +
                                         "    android:layout_width=\"wrap_content\"\n" +
@@ -168,27 +228,25 @@ public class NlPaletteModelTest {
   }
 
   @Nullable
-  private Palette.Group getGroupByName(@NotNull String name) {
-    Palette palette = model.getPalette(LayoutFileType.INSTANCE);
+  private static Palette.Group getProjectGroup(@NotNull Palette palette) {
     List<Palette.BaseItem> groups = palette.getItems();
     return groups.stream()
       .filter(Palette.Group.class::isInstance)
       .map(Palette.Group.class::cast)
-      .filter(g -> name.equals(g.getName()))
+      .filter(g -> NlPaletteModel.PROJECT_GROUP.equals(g.getName()))
       .findFirst()
       .orElse(null);
   }
 
-  private static Palette getPaletteWhenAdditionalComponentsReady(NlPaletteModel model,
-                                                                 LayoutEditorFileType type) throws InterruptedException {
+  private static Palette getPaletteWhenAdditionalComponentsReady(NlPaletteModel model) throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(2);
     // We should receive two updates: one for the initial palette that doesn't include
     // any third-party components, and then another once the additional components are registered.
     model.setUpdateListener((m, t) -> latch.countDown());
-    model.getPalette(type);
+    model.getPalette(LayoutFileType.INSTANCE);
     latch.await();
     model.setUpdateListener(null);
-    return model.getPalette(type);
+    return model.getPalette(LayoutFileType.INSTANCE);
   }
 
   private void registerFakeBaseViewHandler() {
@@ -200,7 +258,9 @@ public class NlPaletteModelTest {
 
   private void registerJavaClasses() {
     fixture.addClass("package android.view; public class View {}");
+    fixture.addClass("package android.view; public class ViewGroup extends View {}");
     fixture.addClass("package com.example; public class FakeCustomView extends android.view.View {}");
+    fixture.addClass("package com.example; public class FakeCustomViewGroup extends android.view.ViewGroup {}");
   }
 
   @Language("XML")
