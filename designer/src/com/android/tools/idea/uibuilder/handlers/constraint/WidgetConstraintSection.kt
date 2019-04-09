@@ -73,6 +73,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   private var expanded: Boolean = false
 
   private var previousComponent: NlComponent? = null
+  private var selectedData: ConstraintCellData? = null
 
   init {
     layout = BorderLayout()
@@ -88,6 +89,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         if (index < 0 || index >= listData.size) {
           return
         }
+        selectedData = listData[index] ?: null
         val itemData = listData[index] ?: return
         val scene = widgetModel.surface?.scene ?: return
         val apiLevel = scene.renderedApiLevel
@@ -217,7 +219,19 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         }
       }
     }
-    // Didn't find any secondary constraint
+    else if (selectedData != null) {
+      // Didn't find any secondary constraint, keep previous selection if exist. (e.g. horizontal or vertical bias)
+      val index = listData.indexOf(selectedData)
+      if (index != -1) {
+        list.selectedIndex = index
+        return false
+      }
+      else {
+        // Previous selected data is expired, reset it.
+        selectedData = null
+      }
+    }
+    // No previous selection or previous selected attribute is gone, clear selection.
     list.clearSelection()
     return false
   }
@@ -344,11 +358,11 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   }
 }
 
-private class ConstraintCellData(val namespace: String,
-                                 val attribute: String,
-                                 val displayName: String,
-                                 val boldValue: String?,
-                                 val fadingValue: String?)
+private data class ConstraintCellData(val namespace: String,
+                                      val attribute: String,
+                                      val displayName: String,
+                                      val boldValue: String?,
+                                      val fadingValue: String?)
 
 private val constraintIcon = StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT
 private val highlightConstraintIcon = ColoredIconGenerator.generateWhiteIcon(constraintIcon)
