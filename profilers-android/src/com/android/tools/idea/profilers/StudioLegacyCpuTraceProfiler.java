@@ -244,9 +244,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         assert stopResponseBuilder != null;
         stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
         stopResponseBuilder.setTrace(ByteString.copyFrom(data));
-        // Set the trace id to a random integer.
-        // TODO: Change to something more predictable/robust.
-        stopResponseBuilder.setTraceId((int)(Math.random() * Integer.MAX_VALUE));
+        stopResponseBuilder.setTraceId(System.nanoTime());
         record.myStopLatch.countDown();
       }
     }

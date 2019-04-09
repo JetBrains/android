@@ -75,7 +75,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private static final int THREAD_ID_2 = 2222;
   private static final String THREAD_NAME = "Thread1";
   private static final String THREAD_NAME_2 = "Thread2";
-  private static final int TRACE_ID = 1111;
+  private static final long TRACE_ID = 1111L;
   private static final ByteString TRACE_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
   private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
   private static final long ONE_SECOND_MS = TimeUnit.SECONDS.toMillis(1);

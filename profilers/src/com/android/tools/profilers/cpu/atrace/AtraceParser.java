@@ -107,7 +107,7 @@ public class AtraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File file, int traceId) throws IOException {
+  public CpuCapture parse(File file, long traceId) throws IOException {
     parseModelIfNeeded(file);
     double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
