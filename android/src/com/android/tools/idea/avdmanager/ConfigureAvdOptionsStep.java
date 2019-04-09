@@ -657,19 +657,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myListeners.listen(getModel().systemImage(), new InvalidationListener() {
-      @Override
-      public void onInvalidated() {
-        updateSystemImageData();
-      }
-    });
+    myListeners.listen(getModel().systemImage(), () -> updateSystemImageData());
 
-    myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
-      @Override
-      public void onInvalidated() {
-        toggleSystemOptionals(true);
-      }
-    });
+    myListeners.listen(getModel().useQemu2(), () -> toggleSystemOptionals(true));
 
     myListeners.listen(getModel().selectedAvdOrientation(),
                        screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
