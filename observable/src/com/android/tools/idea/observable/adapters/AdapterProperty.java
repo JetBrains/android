@@ -77,7 +77,7 @@ public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implemen
   }
 
   @Override
-  public final void onInvalidated(@NotNull ObservableValue<?> sender) {
+  public final void onInvalidated() {
     trySync();
     notifyInvalidated(); // When our wrapped observable gets invalidated, we should too
   }

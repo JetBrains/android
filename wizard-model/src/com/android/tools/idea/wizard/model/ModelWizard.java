@@ -97,7 +97,7 @@ public final class ModelWizard implements Disposable {
       throw new IllegalStateException("Can't create a wizard with no steps");
     }
 
-    myCanGoForward.addListener(sender -> {
+    myCanGoForward.addListener(() -> {
       if (myCanGoForward.get()) {
         // Make double sure that, when we switch from blocked to can proceed, we check that no
         // future steps also became visible or hidden at some point. Otherwise, we might think

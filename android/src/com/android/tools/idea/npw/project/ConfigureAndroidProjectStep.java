@@ -195,7 +195,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
                                     && myProjectModel.isAndroidxAvailable());
     });
 
-    myListeners.listenAndFire(androidSdkInfo, sender -> {
+    myListeners.listenAndFire(androidSdkInfo, () -> {
       VersionItem androidVersion = androidSdkInfo.getValueOrNull();
       boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
       if (isAndroidxOnly) {

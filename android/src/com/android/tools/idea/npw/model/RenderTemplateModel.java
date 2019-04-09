@@ -142,7 +142,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   private void init() {
-    myLanguageSet.addListener(sender -> setInitialSourceLanguage(myLanguageSet.get()));
+    myLanguageSet.addListener(() -> setInitialSourceLanguage(myLanguageSet.get()));
   }
 
   private static Logger getLog() {

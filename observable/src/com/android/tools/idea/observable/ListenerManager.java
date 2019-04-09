@@ -83,7 +83,7 @@ public final class ListenerManager {
    * Like {@link #listen(ObservableValue, InvalidationListener)} but with a typed receiver.
    */
   public <T> void receive(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
-    InvalidationListener listenerWrapper = sender -> receiver.receive(src.get());
+    InvalidationListener listenerWrapper = () -> receiver.receive(src.get());
     myReceiverMapping.put(receiver, listenerWrapper);
 
     listen(src, listenerWrapper);
@@ -95,7 +95,7 @@ public final class ListenerManager {
    */
   public void listenAndFire(@NotNull ObservableValue<?> src, @NotNull InvalidationListener listener) {
     listen(src, listener);
-    listener.onInvalidated(src);
+    listener.onInvalidated();
   }
 
   /**
@@ -270,7 +270,7 @@ public final class ListenerManager {
     }
 
     @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated() {
       myInvoker.enqueue(this);
     }
 

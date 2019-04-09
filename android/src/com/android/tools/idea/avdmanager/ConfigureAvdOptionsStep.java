@@ -660,14 +660,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myListeners.listen(getModel().systemImage(), new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated() {
         updateSystemImageData();
       }
     });
 
     myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated() {
         toggleSystemOptionals(true);
       }
     });
