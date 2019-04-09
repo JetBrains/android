@@ -950,6 +950,8 @@ public class Scene implements SelectionListener, Disposable {
       select(myNewSelectedComponentsOnRelease);
     }
     else {
+      // TODO: Clear in findSelectionOfCurve.
+      myDesignSurface.getSelectionModel().clearSecondary();
       findSelectionOfCurve(secondarySelector);
     }
     myHitTarget = null;

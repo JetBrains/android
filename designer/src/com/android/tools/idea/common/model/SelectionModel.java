@@ -53,9 +53,7 @@ public class SelectionModel {
       return;
     }
     mySelection = ImmutableList.copyOf(components);
-    if (myPrimary != primary) {
-      mySecondarySelection = null;
-    }
+    mySecondarySelection = null;
     myPrimary = primary;
     notifySelectionChanged();
   }
@@ -67,6 +65,14 @@ public class SelectionModel {
     mySelection = ImmutableList.of();
     myPrimary = null;
 
+    mySecondarySelection = null;
+    notifySelectionChanged();
+  }
+
+  public void clearSecondary() {
+    if (mySecondarySelection == null) {
+      return;
+    }
     mySecondarySelection = null;
     notifySelectionChanged();
   }
@@ -143,7 +149,7 @@ public class SelectionModel {
       mySecondarySelection = null;
     }
     else {
-      mySecondarySelection = secondary; // TODO selection cleared in setSelection !
+      mySecondarySelection = secondary;
       mySelection = ImmutableList.of(component);
       myPrimary = component;
     }
