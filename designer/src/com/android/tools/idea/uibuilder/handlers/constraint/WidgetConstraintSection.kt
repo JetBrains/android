@@ -392,19 +392,19 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
     fadingLabel.text = if (item.fadingValue != null) "(${item.fadingValue})" else ""
 
     if (selected) {
-      iconLabel.icon = highlightConstraintIcon
+      iconLabel.icon = if (list.isFocusOwner) highlightConstraintIcon else constraintIcon
 
-      iconLabel.background = list.selectionBackground
-      panel.background = list.selectionBackground
-      nameLabel.background = list.selectionBackground
-      boldLabel.background = list.selectionBackground
-      fadingLabel.background = list.selectionBackground
+      iconLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      panel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      nameLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      boldLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      fadingLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
 
-      iconLabel.foreground = list.selectionForeground
-      panel.foreground = list.selectionForeground
-      nameLabel.foreground = list.selectionForeground
-      boldLabel.foreground = list.selectionForeground
-      fadingLabel.foreground = list.selectionForeground
+      iconLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      panel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      nameLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      boldLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      fadingLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
     }
     else {
       iconLabel.icon = constraintIcon
@@ -415,10 +415,10 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
       boldLabel.background = secondaryPanelBackground
       fadingLabel.background = secondaryPanelBackground
 
-      iconLabel.foreground = list.foreground
-      panel.foreground = list.foreground
-      nameLabel.foreground = list.foreground
-      boldLabel.foreground = list.foreground
+      iconLabel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
+      panel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
+      nameLabel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
+      boldLabel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
       fadingLabel.foreground = FADING_LABEL_COLOR
     }
 
