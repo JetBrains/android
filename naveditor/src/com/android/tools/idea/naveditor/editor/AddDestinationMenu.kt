@@ -395,8 +395,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     surface.selectionModel.setSelection(ImmutableList.of(component))
   }
 
-  override fun createCustomComponent(presentation: Presentation): JComponent {
-    button = super.createCustomComponent(presentation)
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    button = super.createCustomComponent(presentation, place)
     buttonPresentation = presentation
     return button
   }

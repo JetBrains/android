@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.ui.popup.Balloon
@@ -31,13 +32,16 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
   var balloon: Balloon? = null
 
   override fun actionPerformed(e: AnActionEvent) {
-    if (balloon?.wasFadedOut() == false) {
+    if (isBalloonVisible()) {
       balloon?.hide()
     }
     else {
       show(e.inputEvent.source as JComponent)
     }
   }
+
+  @VisibleForTesting
+  fun isBalloonVisible() = balloon?.wasFadedOut() == false
 
   fun show(component: JComponent) {
     val balloonBuilder = JBPopupFactory.getInstance()
