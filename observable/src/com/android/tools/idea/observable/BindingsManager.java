@@ -183,22 +183,15 @@ public final class BindingsManager {
   private final class TwoWayBinding<T> {
     private final SettableValue<T> myLhs;
     private final SettableValue<T> myRhs;
-    private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
-      @Override
-      public void onInvalidated() {
-        myInvoker.enqueue(new DestUpdater<>(myRhs, myLhs));
-      }
-    };
-    private final InvalidationListener myRightChangedListener = new InvalidationListener() {
-      @Override
-      public void onInvalidated() {
-        myInvoker.enqueue(new DestUpdater<>(myLhs, myRhs));
-      }
-    };
+    private final InvalidationListener myLeftChangedListener;
+    private final InvalidationListener myRightChangedListener;
 
     public TwoWayBinding(SettableValue<T> lhs, SettableValue<T> rhs) {
       myLhs = lhs;
       myRhs = rhs;
+      myLeftChangedListener = () -> myInvoker.enqueue(new DestUpdater<>(myRhs, myLhs));
+      myRightChangedListener = () -> myInvoker.enqueue(new DestUpdater<>(myLhs, myRhs));
+
       myLhs.addListener(myLeftChangedListener);
       myRhs.addListener(myRightChangedListener);
 
