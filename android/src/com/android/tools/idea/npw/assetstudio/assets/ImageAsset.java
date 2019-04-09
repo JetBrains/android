@@ -65,7 +65,7 @@ public final class ImageAsset extends BaseAsset {
 
   public ImageAsset() {
     myImagePath = new OptionalValueProperty<>();
-    myImagePath.addListener((v) -> {
+    myImagePath.addListener(() -> {
       myXmlDrawableIsResizable.set(false);
       synchronized (myLock) {
         myImageFile = myImagePath.getValueOrNull();

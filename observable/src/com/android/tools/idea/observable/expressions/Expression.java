@@ -29,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
  * as this will ensure invalidation notifications propagate correctly.
  */
 public abstract class Expression<T> extends AbstractObservableValue<T> implements ObservableValue<T> {
-  @SuppressWarnings("FieldCanBeLocal") // Must be local to avoid weak garbage collection.
-  private final InvalidationListener myListener = sender -> notifyInvalidated();
+  @SuppressWarnings("FieldCanBeLocal") // must be local to avoid weak garbage collection
+  private final InvalidationListener myListener = () -> notifyInvalidated();
 
   protected Expression(@NotNull ObservableValue<?>... values) {
     if (values.length == 0) {

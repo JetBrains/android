@@ -60,7 +60,7 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
     SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(fontCombo);
     myBindings.bindTwoWay(ObjectProperty.wrap(selectedFont), myTextAsset.fontFamily());
 
-    InvalidationListener onTextChanged = sender -> {
+    InvalidationListener onTextChanged = () -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
       for (ActionListener listener : myListeners) {
         listener.actionPerformed(e);

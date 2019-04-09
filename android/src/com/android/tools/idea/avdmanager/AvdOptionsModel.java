@@ -171,7 +171,7 @@ public final class AvdOptionsModel extends WizardModel {
     else {
       updateValuesFromHardwareProperties();
     }
-    myDevice.addListener(sender -> {
+    myDevice.addListener(() -> {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
 
@@ -184,7 +184,7 @@ public final class AvdOptionsModel extends WizardModel {
         myVmHeapStorage.set(vmHeapSize);
       }
     });
-    mySystemImage.addListener(sender -> {
+    mySystemImage.addListener(() -> {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateSkinFromDeviceAndSystemImage(myDevice.getValue(), mySystemImage.getValueOrNull());
       }

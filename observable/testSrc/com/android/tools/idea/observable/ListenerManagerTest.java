@@ -33,19 +33,15 @@ public final class ListenerManagerTest {
     listeners.listen(intProperty, intListener);
 
     assertThat(intListener.myInvalidationCount).isEqualTo(0);
-    assertThat(intListener.myLastValue).isEqualTo(0);
 
     intProperty.set(20);
     assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(20);
 
     intProperty.set(20);
     assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(20);
 
     intProperty.set(30);
     assertThat(intListener.myInvalidationCount).isEqualTo(2);
-    assertThat(intListener.myLastValue).isEqualTo(30);
   }
 
   @Test
@@ -83,11 +79,9 @@ public final class ListenerManagerTest {
     listeners.listenAndFire(intProperty, intListener);
 
     assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(10);
 
     intProperty.set(20);
     assertThat(intListener.myInvalidationCount).isEqualTo(2);
-    assertThat(intListener.myLastValue).isEqualTo(20);
   }
 
   @Test
@@ -151,7 +145,6 @@ public final class ListenerManagerTest {
 
     intProperty.set(30);
     assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(20);
   }
 
   @Test
@@ -312,12 +305,10 @@ public final class ListenerManagerTest {
 
   private static class IntListener implements InvalidationListener {
     int myInvalidationCount = 0;
-    int myLastValue;
 
     @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated() {
       myInvalidationCount++;
-      myLastValue = ((ObservableInt)sender).get();
     }
   }
 

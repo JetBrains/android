@@ -115,7 +115,7 @@ public class LayoutTreePanel extends JPanel implements ToolContent<LayoutInspect
   }
 
   @Override
-  public void onInvalidated(@NotNull ObservableValue<?> sender) {
+  public void onInvalidated() {
     if (!myContext.getSubviewList().isEmpty()) {
       ViewNode parentNode = myContext.getSubviewList().get(myContext.getSubviewList().size() - 1);
       if (parentNode == null) return;

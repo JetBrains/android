@@ -63,7 +63,7 @@ public final class VectorIconButton extends JButton
       }
     });
 
-    myXmlAsset.path().addListener(sender -> {
+    myXmlAsset.path().addListener(() -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
       for (ActionListener listener : myAssetListeners) {
         listener.actionPerformed(e);
