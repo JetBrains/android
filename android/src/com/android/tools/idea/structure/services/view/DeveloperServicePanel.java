@@ -89,33 +89,30 @@ public final class DeveloperServicePanel extends EditorPanel {
 
     myEnabledCheckbox.setName("enableService");
 
-    enabledCheckboxSelected.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated() {
-        if (enabledCheckboxSelected.get()) {
-          if (!myService.getContext().installed().get()) {
-            // User just selected a service which was previously uninstalled. This means we are
-            // ready to edit it.
-            myService.getContext().beginEditing();
+    enabledCheckboxSelected.addListener(() -> {
+      if (enabledCheckboxSelected.get()) {
+        if (!myService.getContext().installed().get()) {
+          // User just selected a service which was previously uninstalled. This means we are
+          // ready to edit it.
+          myService.getContext().beginEditing();
+        }
+      }
+      else {
+        if (myService.getContext().installed().get()) {
+          // User just deselected a service which was previous installed
+          String message = String.format(DELETE_SERVICE_MESSAGE, myService.getMetadata().getName(),
+                                         Joiner.on('\n').join(myService.getMetadata().getDependencies()));
+          int answer = Messages.showYesNoDialog(myService.getModule().getProject(), message, DELETE_SERVICE_TITLE, null);
+          if (answer == Messages.YES) {
+            myService.uninstall();
+          }
+          else {
+            enabledCheckboxSelected.set(true);
           }
         }
         else {
-          if (myService.getContext().installed().get()) {
-            // User just deselected a service which was previous installed
-            String message = String.format(DELETE_SERVICE_MESSAGE, myService.getMetadata().getName(),
-                                           Joiner.on('\n').join(myService.getMetadata().getDependencies()));
-            int answer = Messages.showYesNoDialog(myService.getModule().getProject(), message, DELETE_SERVICE_TITLE, null);
-            if (answer == Messages.YES) {
-              myService.uninstall();
-            }
-            else {
-              enabledCheckboxSelected.set(true);
-            }
-          }
-          else {
-            // User just deselected a service they were editing but hadn't installed yet
-            myService.getContext().cancelEditing();
-          }
+          // User just deselected a service they were editing but hadn't installed yet
+          myService.getContext().cancelEditing();
         }
       }
     });
