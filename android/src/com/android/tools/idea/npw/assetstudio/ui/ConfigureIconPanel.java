@@ -379,7 +379,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     initializeBindingsAndUiForIconType();
 
     // Update foreground layer asset type depending on asset type radio buttons.
-    myAssetType.addListener(sender -> {
+    myAssetType.addListener(() -> {
       AssetComponent assetComponent = myAssetPanelMap.get(myAssetType.get());
       myActiveAsset.set(assetComponent.getAsset());
     });
@@ -399,7 +399,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
                    myShape)
         .with(onAssetModified);
 
-    myListeners.listenAndFire(myActiveAsset, sender -> {
+    myListeners.listenAndFire(myActiveAsset, () -> {
       myActiveAssetBindings.releaseAll();
       BaseAsset asset = myActiveAsset.get();
       myActiveAssetBindings.bindTwoWay(trimmed, asset.trimmed());

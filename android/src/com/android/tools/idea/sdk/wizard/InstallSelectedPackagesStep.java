@@ -136,7 +136,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     myBackgroundAction.setWizard(wizard);
 
     // Note: Calling updateNavigationProperties while myInstallationFinished is updated causes ConcurrentModificationException
-    myListeners.listen(myInstallationFinished, v -> ApplicationManager.getApplication().invokeLater(wizard::updateNavigationProperties));
+    myListeners.listen(myInstallationFinished, () -> ApplicationManager.getApplication().invokeLater(wizard::updateNavigationProperties));
   }
 
   @Override

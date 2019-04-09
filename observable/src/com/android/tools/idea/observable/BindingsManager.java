@@ -156,7 +156,7 @@ public final class BindingsManager {
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated() {
       if (myEnabled.get()) {
         myInvoker.enqueue(new DestUpdater<>(myDest, mySrc));
       }
@@ -171,7 +171,7 @@ public final class BindingsManager {
       myEnabled.addListener(this);
 
       // Once bound, force the dest value to initialize itself with the src value
-      onInvalidated(src);
+      onInvalidated();
     }
 
     public void dispose() {
@@ -185,13 +185,13 @@ public final class BindingsManager {
     private final SettableValue<T> myRhs;
     private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated() {
         myInvoker.enqueue(new DestUpdater<>(myRhs, myLhs));
       }
     };
     private final InvalidationListener myRightChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated() {
         myInvoker.enqueue(new DestUpdater<>(myLhs, myRhs));
       }
     };
@@ -203,7 +203,7 @@ public final class BindingsManager {
       myRhs.addListener(myRightChangedListener);
 
       // Once bound, force the left value to initialize itself with the right value
-      myRightChangedListener.onInvalidated(rhs);
+      myRightChangedListener.onInvalidated();
     }
 
     public void dispose() {

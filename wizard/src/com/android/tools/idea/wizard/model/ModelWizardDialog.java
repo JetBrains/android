@@ -376,7 +376,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
         Action myActiveAction = null;
 
         @Override
-        public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        public void onInvalidated() {
           if (myActiveAction != null && myActionListener != null) {
             myActiveAction.removePropertyChangeListener(myActionListener);
           }
@@ -397,7 +397,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
         }
       };
       myExtraAction.addListener(extraActionChangedListener);
-      extraActionChangedListener.onInvalidated(myExtraAction);
+      extraActionChangedListener.onInvalidated();
     }
 
     @NotNull
