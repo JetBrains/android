@@ -45,7 +45,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public static final int TOTAL_ELAPSED_TIME = 100;
 
-  public static final int FAKE_TRACE_ID = 6;
+  public static final long FAKE_TRACE_ID = 6L;
 
   private CpuProfiler.CpuProfilingAppStartResponse.Status myStartProfilingStatus = CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS;
 
@@ -79,7 +79,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private CpuProfiler.TraceInitiationType myOngoingCaptureInitiationType;
 
-  private int myTraceId = FAKE_TRACE_ID;
+  private long myTraceId = FAKE_TRACE_ID;
 
   private CpuProfiler.CpuProfilerType myProfilerType = CpuProfiler.CpuProfilerType.ART;
 
@@ -150,7 +150,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myProfilerType = profilerType;
   }
 
-  public void setTraceId(int id) {
+  public void setTraceId(long id) {
     myTraceId = id;
   }
 

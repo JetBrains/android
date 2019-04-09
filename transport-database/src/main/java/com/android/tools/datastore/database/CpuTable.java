@@ -298,7 +298,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return traceInfo;
   }
 
-  public TraceData getTraceData(Common.Session session, int traceId) {
+  public TraceData getTraceData(Common.Session session, long traceId) {
     try {
       ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, session.getSessionId(), traceId);
       if (results.next()) {
@@ -318,7 +318,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return null;
   }
 
-  public void insertTrace(Common.Session session, int traceId, CpuProfilerType profilerType, CpuProfilerMode profilerMode,
+  public void insertTrace(Common.Session session, long traceId, CpuProfilerType profilerType, CpuProfilerMode profilerMode,
                           ByteString data) {
     execute(CpuStatements.INSERT_TRACE_DATA, session.getSessionId(), traceId, profilerType.toString(), profilerMode.toString(),
             data.toByteArray());

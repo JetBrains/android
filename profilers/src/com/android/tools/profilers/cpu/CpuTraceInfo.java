@@ -50,7 +50,7 @@ public class CpuTraceInfo implements ConfigurableDurationData {
     return myRange;
   }
 
-  public int getTraceId() {
+  public long getTraceId() {
     return myInfo.getTraceId();
   }
 

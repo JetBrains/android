@@ -2143,7 +2143,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     @Nullable
     @Override
     public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                               int traceId,
+                                               long traceId,
                                                @NotNull ByteString traceData,
                                                CpuProfiler.CpuProfilerType profilerType) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
