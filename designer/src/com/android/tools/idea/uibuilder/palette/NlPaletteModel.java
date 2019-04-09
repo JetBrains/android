@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -27,9 +28,10 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHand
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -37,7 +39,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
@@ -49,32 +50,28 @@ import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import javax.swing.Icon;
+import javax.xml.bind.JAXBException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-
 public class NlPaletteModel implements Disposable {
   @VisibleForTesting
-  static final String THIRD_PARTY_GROUP = "3rd Party";
   static final String PROJECT_GROUP = "Project";
 
   /**
@@ -276,6 +273,14 @@ public class NlPaletteModel implements Disposable {
 
       if (handler instanceof ConstraintHelperHandler) {
         return false; // temporary hack
+      }
+
+      if (handler instanceof CustomViewGroupHandler && ((CustomViewGroupHandler)handler).getTagName().equals(tagName)) {
+        return true;
+      }
+
+      if (handler instanceof CustomViewHandler && ((CustomViewHandler)handler).getTagName().equals(tagName)) {
+        return true;
       }
 
       if (handler instanceof ViewGroupHandler) {
