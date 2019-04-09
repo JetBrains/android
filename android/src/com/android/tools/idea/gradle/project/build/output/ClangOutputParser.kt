@@ -89,9 +89,9 @@ private val linkerErrorPattern = Regex("clang(\\+\\+)?(\\.exe)?: error: linker c
 private val linkerErrorDiagnosticPattern = Regex(
   "((?:[A-Z]:)?[^\\s][^:]+)(?::(\\d+))?: (${ClangDiagnosticClass.values().joinToString("|") { it.tag }})?: (.+)")
 
-private const val COMPILER_MESSAGES_GROUP_PREFIX = "Clang Compiler"
+const val CLANG_COMPILER_MESSAGES_GROUP_PREFIX = "Clang Compiler"
 fun compilerMessageGroup(gradleProject: String, variant: String, abi: String?) =
-  "$COMPILER_MESSAGES_GROUP_PREFIX [${listOfNotNull(gradleProject, variant, abi).joinToString(" ")}]"
+  "$CLANG_COMPILER_MESSAGES_GROUP_PREFIX [${listOfNotNull(gradleProject, variant, abi).joinToString(" ")}]"
 
 /** Parser that parses Clang output and emit [BuildEvent] indicating with compiler diagnostic messages. */
 class ClangOutputParser : BuildOutputParser {
