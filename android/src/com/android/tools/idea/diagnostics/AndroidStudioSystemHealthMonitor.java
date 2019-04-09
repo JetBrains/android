@@ -563,7 +563,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private void warnIfOpenJDK() {
     if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
         !SystemInfo.isJetBrainsJvm && !SystemInfo.isStudioJvm) {
-      showNotification("unsupported.jvm.openjdk.message", null);
+      showNotification("unsupported.jvm.openjdk.message", myProperties, null);
     }
   }
 
@@ -575,7 +575,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
         !SystemInfo.isJavaVersionAtLeast("1.8.0_76")) {
       // Upstream JDK8 bug tracked by https://bugs.openjdk.java.net/browse/JDK-8134917, affecting 1.8.0_60 up to 1.8.0_76.
       // Fixed by Jetbrains in their 1.8.0_40-b108 JRE and tracked in https://youtrack.jetbrains.com/issue/IDEA-146691
-      showNotification("unsupported.jvm.dragndrop.message", null);
+      showNotification("unsupported.jvm.dragndrop.message", myProperties, null);
     }
   }
 
@@ -622,7 +622,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       AndroidBundle.message("sys.health.send.feedback"),
       (event, notification) -> sendFeedback.actionPerformed(event)
     );
-    showNotification("sys.health.too.many.exceptions", notificationAction);
+    showNotification("sys.health.too.many.exceptions", myProperties, notificationAction);
   }
 
   private static void processDiagnosticReports(@NotNull List<DiagnosticReport> reports) {
@@ -724,11 +724,14 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       logUsageOnlyIfNotInternalApplication(eventBuilder);
     }
   }
-
   void showNotification(@PropertyKey(resourceBundle = "messages.AndroidBundle") String key,
+                        @Nullable PropertiesComponent properties,
                         @Nullable NotificationAction action,
                         Object... params) {
-    boolean ignored = myProperties.isValueSet("ignore." + key);
+    boolean ignored = false;
+    if (properties != null) {
+      ignored = properties.isValueSet("ignore." + key);
+    }
     LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
     if (ignored) return;
 
@@ -740,7 +743,9 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
         notification.expire();
-        myProperties.setValue("ignore." + key, "true");
+        if (properties != null) {
+          properties.setValue("ignore." + key, "true");
+        }
       }
     });
     notification.setImportant(true);
