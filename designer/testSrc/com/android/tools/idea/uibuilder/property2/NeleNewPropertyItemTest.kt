@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -172,7 +173,12 @@ class NeleNewPropertyItemTest {
   }
 
   private fun createTable(): PropertiesTable<NelePropertyItem> {
-    val util = SupportTestUtil(projectRule, IMAGE_BUTTON, parentTag = LINEAR_LAYOUT)
+    val descriptor = ComponentDescriptor(IMAGE_BUTTON)
+      .withBounds(0, 0, 1000, 1000)
+      .wrapContentWidth()
+      .wrapContentHeight()
+      .withAttribute(AUTO_URI, "something", "1")
+    val util = SupportTestUtil(projectRule, descriptor)
     val property0 = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
     val property1 = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     val property2 = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.DIMENSION)
