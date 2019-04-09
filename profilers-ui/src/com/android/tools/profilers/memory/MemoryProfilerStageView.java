@@ -769,8 +769,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     stopLoadingUi();
     myCaptureObject = getStage().getSelectedCapture();
     if (myCaptureObject == null) {
-      myAllocationButton.setEnabled(true);
-      myHeapDumpButton.setEnabled(true);
+      boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+      myAllocationButton.setEnabled(isAlive);
+      myHeapDumpButton.setEnabled(isAlive);
       myChartCaptureSplitter.setSecondComponent(null);
       return;
     }
@@ -790,13 +791,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void captureObjectFinishedLoading() {
-    myAllocationButton.setEnabled(true);
+    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+    myAllocationButton.setEnabled(isAlive);
     // If the capture is an imported file, mySelectionComponent is null.
     // If it is part of a profiler session, mySelectionComponent is not null and should obtain the focus.
     if (mySelectionComponent != null) {
       mySelectionComponent.requestFocus();
     }
-    myHeapDumpButton.setEnabled(true);
+    myHeapDumpButton.setEnabled(isAlive);
     if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
       return;
     }

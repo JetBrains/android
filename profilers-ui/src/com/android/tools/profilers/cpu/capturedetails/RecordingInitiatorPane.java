@@ -66,6 +66,7 @@ class RecordingInitiatorPane extends CapturePane {
     myConfigsView = new CpuProfilingConfigurationView(stageView.getStage(), stageView.getIdeComponents());
 
     myRecordButton = new JButton(CpuProfilerToolbar.RECORD_TEXT);
+    myRecordButton.setEnabled(stageView.getStage().getStudioProfilers().getSessionsManager().isSessionAlive());
     myRecordButton.addActionListener(event -> stageView.getStage().toggleCapturing());
 
     disableInteraction();
