@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.output;
 
 import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
+import static com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_INFO_SUFFIX;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_STATISTICS_SUFFIX;
@@ -52,8 +53,7 @@ import org.jetbrains.annotations.Nullable;
  * Parser got errors returned by the Android Gradle Plugin in AGPBI json format.
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
-  @NotNull private static final String MESSAGES_GROUP_PREFIX = "Android";
-  @NotNull private static final String DEFAULT_MESSAGE_GROUP = MESSAGES_GROUP_PREFIX + MESSAGE_GROUP_WARNING_SUFFIX;
+  @NotNull private static final String DEFAULT_MESSAGE_GROUP = ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP + MESSAGE_GROUP_WARNING_SUFFIX;
 
   /**
    * Contains the future gradle plugin output extracted from the json object per build Id, the json string is outputted before those output
@@ -132,7 +132,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
     if (msg == null) {
       return DEFAULT_MESSAGE_GROUP;
     }
-    String messageGroup = msg.getToolName() == null ? MESSAGES_GROUP_PREFIX : msg.getToolName();
+    String messageGroup = msg.getToolName() == null ? ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP : msg.getToolName();
     switch (msg.getKind()) {
       case WARNING:
         return messageGroup + MESSAGE_GROUP_WARNING_SUFFIX;
