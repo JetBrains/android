@@ -78,9 +78,9 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     LOG.info("Installing application: " + applicationId);
-    Deployer.InstallMode installMode = Deployer.InstallMode.FULL;
-    if (StudioFlags.DELTA_INSTALL.get()) {
-        installMode = Deployer.InstallMode.DELTA;
+    Deployer.InstallMode installMode = Deployer.InstallMode.DELTA;
+    if (!StudioFlags.DELTA_INSTALL.get()) {
+        installMode = Deployer.InstallMode.FULL;
     }
 
     return deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
