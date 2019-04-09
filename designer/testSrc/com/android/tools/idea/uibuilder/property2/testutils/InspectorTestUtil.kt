@@ -44,8 +44,8 @@ import com.google.common.truth.Truth
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "")
-  : SupportTestUtil(projectRule, *tags, parentTag = parentTag) {
+class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = "layout.xml")
+  : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
 
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 

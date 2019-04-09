@@ -31,7 +31,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -49,12 +49,12 @@ public class NlModelBuilderUtil {
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
-    return model(AndroidFacet.getInstance(rule.module), (JavaCodeInsightTestFixture)rule.fixture, resourceFolder, name, root);
+    return model(AndroidFacet.getInstance(rule.module), rule.fixture, resourceFolder, name, root);
   }
 
   @NotNull
   public static ModelBuilder model(@NotNull AndroidFacet facet,
-                                   @NotNull JavaCodeInsightTestFixture fixture,
+                                   @NotNull CodeInsightTestFixture fixture,
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
