@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * Parses output from cmake.
  */
 public class CmakeOutputParser implements BuildOutputParser {
-  @NonNull private static final String CMAKE = "CMake";
+  @NonNull static final String CMAKE = "CMake";
   @NonNull private static final String ERROR = "Error";
   @NonNull private static final String CMAKE_ERROR = CMAKE + " " + ERROR;
 

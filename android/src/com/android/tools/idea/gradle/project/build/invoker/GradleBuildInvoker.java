@@ -37,7 +37,9 @@ import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperKt;
 import com.android.tools.idea.gradle.project.build.output.ClangOutputParser;
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper;
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
 import com.android.tools.idea.gradle.project.build.output.DataBindingOutputParser;
 import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
@@ -102,6 +104,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -415,21 +419,24 @@ public class GradleBuildInvoker {
   @NotNull
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
-    List<BuildOutputParser> buildOutputParsers =
-      Arrays.asList(new GradleBuildOutputParser(),
-                    new ClangOutputParser(),
-                    new CmakeOutputParser(),
-                    new XmlErrorOutputParser(),
-                    new AndroidGradlePluginOutputParser(),
-                    new DataBindingOutputParser(),
-                    new JavacOutputParser(),
-                    new KotlincOutputParser());
+    List<BuildOutputParserWrapper> buildOutputParsersWrappers =
+      Stream.of(new GradleBuildOutputParser(),
+                new ClangOutputParser(),
+                new CmakeOutputParser(),
+                new XmlErrorOutputParser(),
+                new AndroidGradlePluginOutputParser(),
+                new DataBindingOutputParser(),
+                new JavacOutputParser(),
+                new KotlincOutputParser()).map(BuildOutputParserWrapper::new).collect(Collectors.toList());
+
 
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
     BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
-                                                                                             buildOutputParsers);
+                                                                                             Collections
+                                                                                               .unmodifiableList(
+                                                                                                 buildOutputParsersWrappers));
     try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
         @NotNull private BuildOutputInstantReaderImpl myReader = buildOutputInstantReader;
@@ -447,10 +454,14 @@ public class GradleBuildInvoker {
             public void actionPerformed(@NotNull AnActionEvent e) {
               // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
               myReader.close();
-              myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
+              buildOutputParsersWrappers.forEach(BuildOutputParserWrapper::reset);
+              myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
+                                                          Collections.unmodifiableList(buildOutputParsersWrappers));
               executeTasks(request);
             }
           };
+
+          buildOutputParsersWrappers.forEach(BuildOutputParserWrapper::reset);
 
           Presentation presentation = restartAction.getTemplatePresentation();
           presentation.setText("Restart");
@@ -494,6 +505,7 @@ public class GradleBuildInvoker {
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
+          BuildOutputParserWrapperKt.sendBuildFailureMetrics(buildOutputParsersWrappers, myProject);
           buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
         }
 
