@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard.model;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.ObservableOptional;
@@ -212,7 +211,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
       ModelWizardDialogAction wizardAction = (ModelWizardDialogAction)action;
       myBindings.bind(new EnabledProperty(button), wizardAction.shouldBeEnabled());
       myBindings.bind(new VisibleProperty(button), wizardAction.shouldBeVisible());
-      myListeners.receiveAndFire(wizardAction.shouldBeDefault(), isDefault -> {
+      myListeners.listenAndFire(wizardAction.shouldBeDefault(), isDefault -> {
         JRootPane rootPane = getRootPane();
         if (rootPane != null && isDefault) {
           rootPane.setDefaultButton(button);

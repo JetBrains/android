@@ -109,7 +109,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
-    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
+    myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     // Project should never be null (we are adding a new module to an existing project)
     NewModuleModel moduleModel = getModel();
@@ -119,7 +119,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
     myBindings.bind(moduleNameText, computedModuleName, isModuleNameSynced);
     myBindings.bind(model.moduleName(), moduleNameText);
-    myListeners.receive(moduleNameText, value -> isModuleNameSynced.set(value.equals(computedModuleName.get())));
+    myListeners.listen(moduleNameText, value -> isModuleNameSynced.set(value.equals(computedModuleName.get())));
 
     myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
 

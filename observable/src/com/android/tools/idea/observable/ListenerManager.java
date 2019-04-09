@@ -82,7 +82,7 @@ public final class ListenerManager {
   /**
    * Like {@link #listen(ObservableValue, InvalidationListener)} but with a typed receiver.
    */
-  public <T> void receive(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
+  public <T> void listen(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
     InvalidationListener listenerWrapper = () -> receiver.receive(src.get());
     myReceiverMapping.put(receiver, listenerWrapper);
 
@@ -102,8 +102,8 @@ public final class ListenerManager {
    * A convenience method which both registers the target receiver and then fires it with the
    * observable's latest value (to initialize it, essentially).
    */
-  public <T> void receiveAndFire(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
-    receive(src, receiver);
+  public <T> void listenAndFire(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
+    listen(src, receiver);
     receiver.receive(src.get());
   }
 
@@ -152,7 +152,7 @@ public final class ListenerManager {
 
   /**
    * Releases a receiver previously registered via
-   * {@link #receive(ObservableValue, Receiver)}. If the receiver was registered with
+   * {@link #listen(ObservableValue, Receiver)}. If the receiver was registered with
    * multiple observables, they will all be released.
    */
   public void release(@NotNull Receiver<?> receiver) {
@@ -166,7 +166,7 @@ public final class ListenerManager {
   /**
    * Releases all listeners previously registered to a target observable via
    * {@link #listen(ObservableValue, InvalidationListener)} or
-   * {@link #receive(ObservableValue, Receiver)}.
+   * {@link #listen(ObservableValue, Receiver)}.
    */
   public void release(@NotNull ObservableValue<?> observable) {
     Iterator<ListenerPairing> i = myListeners.iterator();

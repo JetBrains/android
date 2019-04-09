@@ -284,13 +284,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       myOutputPreviewLabel.setText("Preview");
       renderIconPreviews();
     };
-    myListeners.receiveAndFire(myOutputIconType, iconType -> {
+    myListeners.listenAndFire(myOutputIconType, iconType -> {
       ((CardLayout)myConfigureIconPanels.getLayout()).show(myConfigureIconPanels, iconType.toString());
       updatePreview.run();
     });
-    myListeners.receiveAndFire(myShowGridProperty, selected -> updatePreview.run());
-    myListeners.receiveAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
-    myListeners.receiveAndFire(myPreviewDensityProperty, value -> updatePreview.run());
+    myListeners.listenAndFire(myShowGridProperty, selected -> updatePreview.run());
+    myListeners.listenAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
+    myListeners.listenAndFire(myPreviewDensityProperty, value -> updatePreview.run());
 
     // Show interactive preview components only if creating adaptive icons.
     Expression<Boolean> isAdaptiveIconOutput =

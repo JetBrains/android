@@ -195,7 +195,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myClipartAssetButton.addAssetListener(assetListener);
     myFileBrowser.addAssetListener(assetListener);
 
-    myListeners.receiveAndFire(myAssetSourceType, sourceType -> {
+    myListeners.listenAndFire(myAssetSourceType, sourceType -> {
       myIconPickerPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
       myColorRowPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
       myFileBrowserPanel.setVisible(sourceType == AssetSourceType.FILE);
