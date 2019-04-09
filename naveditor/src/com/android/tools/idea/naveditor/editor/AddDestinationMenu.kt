@@ -296,11 +296,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
-          val dests = ApplicationManager.getApplication().runReadAction(Computable { destinations })
+          val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
           maxIconWidth = dests.map { it.thumbnail.getWidth(null) }.max() ?: 0
-          val listModel = application.runReadAction(Computable {
-            FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
-          })
+          val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(
             object : DocumentAdapter() {
