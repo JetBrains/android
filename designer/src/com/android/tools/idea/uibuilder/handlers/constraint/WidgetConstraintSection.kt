@@ -106,6 +106,9 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         }
         else if (e.keyCode == KeyEvent.VK_ESCAPE) {
           list.clearSelection()
+          widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, null)
+          widgetModel.surface?.invalidate()
+          widgetModel.surface?.repaint()
           e.consume()
         }
         else {
