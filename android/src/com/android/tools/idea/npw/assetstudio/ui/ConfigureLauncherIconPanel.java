@@ -359,7 +359,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myOutputName = new TextProperty(myOutputNameTextField);
     myForegroundLayerName = new TextProperty(myForegroundLayerNameTextField);
     myBackgroundLayerName = new TextProperty(myBackgroundLayerNameTextField);
-    myListeners.receive(myForegroundLayerName, name -> {
+    myListeners.listen(myForegroundLayerName, name -> {
       if (name.equals(defaultForegroundLayerName())) {
         myGeneralBindings.bind(myForegroundLayerName, Expression.create(() -> defaultForegroundLayerName(), myOutputName));
       }
@@ -367,7 +367,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
         myGeneralBindings.release(myForegroundLayerName);
       }
     });
-    myListeners.receive(myBackgroundLayerName, name -> {
+    myListeners.listen(myBackgroundLayerName, name -> {
       if (name.equals(defaultBackgroundLayerName())) {
         myGeneralBindings.bind(myBackgroundLayerName, Expression.create(() -> defaultBackgroundLayerName(), myOutputName));
       }

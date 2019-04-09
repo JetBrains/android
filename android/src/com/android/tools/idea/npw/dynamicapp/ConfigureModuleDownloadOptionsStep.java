@@ -111,7 +111,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
       .init(getModel().getProject(), myValidatorPanel, isConditionalPanelActive);
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
-    myListeners.receiveAndFire(getModel().downloadInstallKind(), value ->
+    myListeners.listenAndFire(getModel().downloadInstallKind(), value ->
       setVisible(value.isPresent() && value.get() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS,
                  myDownloadConditionsForm.myRootPanel));
 

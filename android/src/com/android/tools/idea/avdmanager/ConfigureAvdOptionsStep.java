@@ -44,7 +44,6 @@ import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -612,7 +611,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setOpaque(false);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
 
-    myListeners.receive(getModel().device(), device -> {
+    myListeners.listen(getModel().device(), device -> {
       toggleOptionals(device, true);
       if (device.isPresent()) {
         myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
@@ -672,8 +671,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myListeners.receive(getModel().selectedAvdOrientation(),
-                        screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
+    myListeners.listen(getModel().selectedAvdOrientation(),
+                       screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
   }
 
   @VisibleForTesting

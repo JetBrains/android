@@ -160,7 +160,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       validateTemplate();
     });
 
-    myListeners.receiveAndFire(getModel().enableCppSupport().or(getModel().instantApp()), src -> {
+    myListeners.listenAndFire(getModel().enableCppSupport().or(getModel().instantApp()), src -> {
       TemplateRenderer[] listItems = createGalleryList(myTemplateRenderers);
       myActivityGallery.setModel(JBList.createDefaultListModel((Object[])listItems));
       myActivityGallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems, isNewModule())); // Also fires the Selection Listener

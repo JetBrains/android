@@ -51,7 +51,7 @@ public final class ListenerManagerTest {
     IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty = new IntValueProperty(10);
 
-    listeners.receive(intProperty, intReceiver);
+    listeners.listen(intProperty, intReceiver);
 
     assertThat(intReceiver.myInvalidationCount).isEqualTo(0);
     assertThat(intReceiver.myLastValue).isEqualTo(0);
@@ -91,7 +91,7 @@ public final class ListenerManagerTest {
     IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty = new IntValueProperty(10);
 
-    listeners.receiveAndFire(intProperty, intReceiver);
+    listeners.listenAndFire(intProperty, intReceiver);
 
     assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
     assertThat(intReceiver.myLastValue).isEqualTo(10);
@@ -153,7 +153,7 @@ public final class ListenerManagerTest {
 
     IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty = new IntValueProperty(10);
-    listeners.receive(intProperty, intReceiver);
+    listeners.listen(intProperty, intReceiver);
 
     intProperty.set(20);
     assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
@@ -225,7 +225,7 @@ public final class ListenerManagerTest {
     IntValueProperty intProperty1 = new IntValueProperty(10);
     IntValueProperty intProperty2 = new IntValueProperty(10);
     listeners.listen(intProperty1, intListener);
-    listeners.receive(intProperty2, intReceiver);
+    listeners.listen(intProperty2, intReceiver);
 
     intProperty1.set(20);
     intProperty2.set(20);

@@ -279,7 +279,7 @@ public class ModuleDownloadDeviceFeature {
         }
 
         // Restore UI value from temporary property when a "device feature type" item is selected
-        myBindingsListeners.receiveAndFire(myModel.deviceFeatureType(), value -> {
+        myBindingsListeners.listenAndFire(myModel.deviceFeatureType(), value -> {
           int index = 0;
           for (DeviceFeatureKind featureType : DeviceFeatureKind.values()) {
             if (value == featureType) {

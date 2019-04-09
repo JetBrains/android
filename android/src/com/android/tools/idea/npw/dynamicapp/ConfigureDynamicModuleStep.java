@@ -139,7 +139,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       myInstantModuleInfo.setVisible(false);
     }
 
-    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
+    myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     JBScrollPane sp = new JBScrollPane(myPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     sp.setBorder(BorderFactory.createEmptyBorder());
@@ -173,7 +173,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(getModel().packageName(), packageNameText);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
+    myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
