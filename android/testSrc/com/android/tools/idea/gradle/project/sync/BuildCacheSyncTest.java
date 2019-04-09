@@ -43,9 +43,6 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
     Project project = getProject();
     setBuildCachePath(createTempDirectory("build-cache", ""), project);
 
-    // DO NOT SUMIT: Trigger this test in PSQ...
-    assertTrue(4 == 2+2);
-
     importProject(project.getName(), getBaseDirPath(project));
 
     File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
