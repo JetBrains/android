@@ -21,7 +21,7 @@ package com.android.tools.idea.observable;
  *
  * Note that an {@link #onInvalidated()} event does not include the underlying value that changed;
  * it just notifies listeners that a value *has* changed. If you want to register a listener that
- * receives a value, consider using {@link ListenerManager#receive(ObservableValue, Receiver)}
+ * receives a value, consider using {@link ListenerManager#listen(ObservableValue, Receiver)}
  * instead.
  */
 public interface InvalidationListener {

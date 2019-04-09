@@ -165,7 +165,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<>(myDeviceTypeComboBox);
     myBindings.bindTwoWay(selectedDeviceType, deviceModel.deviceType());
-    myListeners.receive(selectedDeviceType, idDisplayOptional -> {
+    myListeners.listen(selectedDeviceType, idDisplayOptional -> {
       if (idDisplayOptional.isPresent()) {
         IdDisplay selectedType = idDisplayOptional.get();
         /**
