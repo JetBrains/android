@@ -38,14 +38,14 @@ public class CpuCapture implements ConfigurableDurationData {
   /**
    * ID of the trace used to generate the capture.
    */
-  private final int myTraceId;
+  private final long myTraceId;
 
   /**
    * Technology used to generate the capture.
    */
   private final CpuProfiler.CpuProfilerType myType;
 
-  public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type) {
+  public CpuCapture(@NotNull TraceParser parser, long traceId, CpuProfiler.CpuProfilerType type) {
     myParser = parser;
     myTraceId = traceId;
     myType = type;
@@ -117,7 +117,7 @@ public class CpuCapture implements ConfigurableDurationData {
     return false;
   }
 
-  public int getTraceId() {
+  public long getTraceId() {
     return myTraceId;
   }
 

@@ -28,7 +28,7 @@ public class AtraceCpuCapture extends CpuCapture {
 
   private final AtraceParser myParser;
 
-  public AtraceCpuCapture(AtraceParser parser, int traceId) {
+  public AtraceCpuCapture(AtraceParser parser, long traceId) {
     super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE);
     myParser = parser;
   }
