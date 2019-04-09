@@ -86,8 +86,8 @@ public final class NewModuleModel extends WizardModel {
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
     myProjectLocation = new StringValueProperty(project.getBasePath());
-    myIsLibrary.addListener(sender -> updateApplicationName());
-    myIsInstantApp.addListener(sender -> updateApplicationName());
+    myIsLibrary.addListener(() -> updateApplicationName());
+    myIsInstantApp.addListener(() -> updateApplicationName());
 
     myMultiTemplateRenderer = new MultiTemplateRenderer(project, projectSyncInvoker);
   }

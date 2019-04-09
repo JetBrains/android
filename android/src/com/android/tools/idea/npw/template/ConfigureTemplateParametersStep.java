@@ -242,7 +242,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       RowEntry row = createRowForParameter(getModel().getModule(), parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
-        property.addListener(sender -> {
+        property.addListener(() -> {
           // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
           if (myEvaluationState != EvaluationState.EVALUATING && myRootPanel.isShowing()) {
             myUserValues.put(parameter, property.get());
@@ -286,7 +286,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       SelectedItemProperty<NamedModuleTemplate> template = (SelectedItemProperty<NamedModuleTemplate>)row.getProperty();
       assert template != null; // ModuleTemplateComboProvider always sets this
       myBindings.bind(getModel().getTemplate(), ObjectProperty.wrap(template));
-      template.addListener(sender -> enqueueEvaluateParameters());
+      template.addListener(() -> enqueueEvaluateParameters());
     }
 
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
@@ -336,7 +336,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       assert packageName != null;
       myBindings.bindTwoWay(packageName, getModel().packageName());
       // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
-      myListeners.listen(getModel().packageName(), sender -> enqueueEvaluateParameters());
+      myListeners.listen(getModel().packageName(), () -> enqueueEvaluateParameters());
       return rowEntry;
     }
 

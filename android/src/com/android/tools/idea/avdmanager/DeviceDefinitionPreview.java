@@ -67,7 +67,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
   private InvalidationListener myRepaintListener = new InvalidationListener() {
     @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated() {
       repaint();
     }
   };

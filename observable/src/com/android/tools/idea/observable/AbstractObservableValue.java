@@ -61,14 +61,14 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
     }
 
     for (InvalidationListener listener : myListeners) {
-      listener.onInvalidated(this);
+      listener.onInvalidated();
     }
 
     Iterator<WeakReference<InvalidationListener>> it = myWeakListeners.iterator();
     while (it.hasNext()) {
       InvalidationListener listener = it.next().get();
       if (listener != null) {
-        listener.onInvalidated(this);
+        listener.onInvalidated();
       }
       else {
         it.remove();

@@ -79,7 +79,7 @@ public abstract class ObjectProperty<T> extends AbstractProperty<T> implements O
     }
 
     @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated() {
       notifyInvalidated();
     }
 

@@ -81,7 +81,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   public <T> void registerValidator(@NotNull ObservableValue<T> value, @NotNull Validator<T> validator) {
     int index = myResults.size();
     myResults.add(Validator.Result.OK);
-    myListeners.listenAndFire(value, sender -> {
+    myListeners.listenAndFire(value, () -> {
       Validator.Result oldValue = myResults.get(index);
       Validator.Result newValue = validator.validate(value.get());
       if (!newValue.equals(oldValue)) {

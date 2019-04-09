@@ -152,7 +152,7 @@ public final class ServicePanelBuilder {
 
     InvalidationListener onListModified = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated() {
         model.update();
         if (!backingList.isEmpty() && comboBox.getSelectedIndex() < 0) {
           comboBox.setSelectedIndex(0);

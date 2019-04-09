@@ -525,13 +525,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     updateBindingsAndUiForActiveIconType();
 
     // Update foreground layer asset type depending on asset type radio buttons.
-    myForegroundAssetType.addListener(sender -> {
+    myForegroundAssetType.addListener(() -> {
       AssetComponent assetComponent = myForegroundAssetPanelMap.get(myForegroundAssetType.get());
       myForegroundActiveAsset.set(assetComponent.getAsset());
     });
 
     // Update background asset depending on asset type radio buttons.
-    myBackgroundAssetType.addListener(sender -> {
+    myBackgroundAssetType.addListener(() -> {
       if (myBackgroundAssetType.get() == BackgroundAssetType.IMAGE) {
         myBackgroundImageAsset.setValue(myBackgroundImageAssetBrowser.getAsset());
       } else {
@@ -557,7 +557,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
         .with(onAssetModified);
 
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
-    myListeners.listenAndFire(myForegroundActiveAsset, sender -> {
+    myListeners.listenAndFire(myForegroundActiveAsset, () -> {
       myForegroundActiveAssetBindings.releaseAll();
       BaseAsset asset = myForegroundActiveAsset.get();
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundTrimmed, asset.trimmed());
@@ -597,7 +597,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       getIconGenerator().backgroundImageAsset().setNullableValue(asset);
       onAssetModified.run();
     };
-    myListeners.listenAndFire(myBackgroundImageAsset, sender -> onBackgroundAssetModified.run());
+    myListeners.listenAndFire(myBackgroundImageAsset, () -> onBackgroundAssetModified.run());
 
     /*
      * Hook up a bunch of UI <- boolean expressions, so that when certain conditions are met,
