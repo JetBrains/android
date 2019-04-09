@@ -59,23 +59,17 @@ data class PsDependencyScopeQuickFixPath(
   override fun execute(context: PsContext) {
     val module = context.project.findModuleByName(moduleName) ?: return
     // TODO(xof): factor into method(s) on PsDeclaredDependency classes
-    when (dependencyKind) {
-      PsDependencyKind.LIBRARY -> {
-        val spec = PsArtifactDependencySpec.create(dependencyKey) ?: return
-        module.setLibraryDependencyConfiguration(spec, oldConfigurationName, newConfigurationName)
-      }
-      PsDependencyKind.JAR -> {
-        module.dependencies.findJarDependencies(dependencyKey)
-          .filter { it.configurationName == oldConfigurationName }
-          .forEach { module.modifyDependencyConfiguration(it, oldConfigurationName, newConfigurationName) }
-      }
-      PsDependencyKind.MODULE -> {
-        module.dependencies.findModuleDependencies(dependencyKey)
-          .filter { it.configurationName == oldConfigurationName }
-          .forEach { module.modifyDependencyConfiguration(it, oldConfigurationName, newConfigurationName) }
-      }
-      else -> { /* do nothing */ }
+    // (would need dependencyKey to be unique across all kinds of dependency, or some similar mechanism)
+    val dependencies = when (dependencyKind) {
+      PsDependencyKind.LIBRARY -> module.dependencies.findLibraryDependencies(dependencyKey)
+      PsDependencyKind.JAR -> module.dependencies.findJarDependencies(dependencyKey)
+      PsDependencyKind.MODULE -> module.dependencies.findModuleDependencies(dependencyKey)
+      else -> return
     }
+
+    dependencies
+      .filter { it.configurationName == oldConfigurationName }
+      .forEach { module.modifyDependencyConfiguration(it, oldConfigurationName, newConfigurationName) }
   }
 
   override fun toString(): String = "$dependencyKey ($oldConfigurationName)"

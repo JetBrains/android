@@ -182,18 +182,6 @@ abstract class PsModule protected constructor(
       .filter { it.spec == spec && it.configurationName == configurationName }
   }
 
-  fun setLibraryDependencyConfiguration(
-    spec: PsArtifactDependencySpec,
-    configurationName: String,
-    newConfigurationName: String
-  ) {
-    val matchingDependencies = findVersionedLibraryDependenciesWithScope(spec, configurationName)
-
-    for (dependency in matchingDependencies) {
-      modifyDependencyConfiguration(dependency, configurationName, newConfigurationName)
-    }
-  }
-
   fun setLibraryDependencyVersion(
     spec: PsArtifactDependencySpec,
     configurationName: String,

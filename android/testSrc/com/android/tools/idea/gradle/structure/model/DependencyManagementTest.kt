@@ -568,11 +568,11 @@ class DependencyManagementTest : DependencyTestCase() {
 
   fun testChangeLibraryDependencyScope() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), notNullValue())
+    val libraryDependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation")
+    assertThat(libraryDependency, notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), nullValue())
 
-    module.setLibraryDependencyConfiguration(
-      PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, configurationName = "implementation", newConfigurationName = "compile")
+    module.modifyDependencyConfiguration(libraryDependency!!.first(), oldConfigurationName = "implementation", newConfigurationName = "compile")
 
     assertThat(module.isModified, equalTo(true))
     assertThat(project.isModified, equalTo(true))
