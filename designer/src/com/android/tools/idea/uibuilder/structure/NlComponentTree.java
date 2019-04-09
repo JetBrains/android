@@ -500,6 +500,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private class StructurePaneMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
+      if (mySurface != null) {
+        // Clear the secondary selection whenever the component tree is clicked.
+        mySurface.getSelectionModel().clearSecondary();
+      }
+
       if (e.getClickCount() == 2) {
         handleDoubleClick(e);
       }

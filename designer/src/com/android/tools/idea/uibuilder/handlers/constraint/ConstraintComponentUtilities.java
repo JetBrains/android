@@ -735,8 +735,7 @@ public final class ConstraintComponentUtilities {
         cleanup(modification, nlComponent);
         modification.commit();
         scene.needsLayout(Scene.ANIMATED_LAYOUT);
-        // Clear secondary selection.
-        selectionModel.setSecondarySelection(selectionModel.getPrimary(), null);
+        selectionModel.clearSecondary();
         return true;
       }
     }
