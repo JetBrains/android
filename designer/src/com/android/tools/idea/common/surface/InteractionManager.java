@@ -36,6 +36,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
@@ -705,7 +706,7 @@ public class InteractionManager {
         SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
         if (sceneView != null) {
           SelectionModel model = sceneView.getSelectionModel();
-          if (!model.isEmpty()) {
+          if (!model.isEmpty() && !ConstraintComponentUtilities.clearSelectedConstraint(mySurface)) {
             List<NlComponent> selection = model.getSelection();
             sceneView.getModel().delete(selection);
           }
