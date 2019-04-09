@@ -334,10 +334,10 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
-
     override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
-      // TODO: b/129691384 only update property panel when only secondary selection changed.
-      scheduleSelectionUpdate(surface, newSelection)
+      if (liveComponents != newSelection) {
+        scheduleSelectionUpdate(surface, newSelection)
+      }
     }
   }
 

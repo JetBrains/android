@@ -51,6 +51,8 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -58,9 +60,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -68,7 +70,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * Handles model change coming from interaction on the {@link WidgetConstraintPanel}
  */
-public class WidgetConstraintModel {
+public class WidgetConstraintModel implements SelectionListener {
 
   private static final String[][] ourConstraintString_ltr = {{
     ATTR_LAYOUT_START_TO_START_OF,
@@ -244,6 +246,7 @@ public class WidgetConstraintModel {
   @Nullable private NlComponent myComponent;
   @Nullable private NlModel myModel;
   @Nullable private DesignSurface mySurface;
+  @Nullable private Object previousSecondarySelection = null;
 
   @NotNull private final ChangeListener myChangeLiveListener = e -> fireUIUpdate();
   @NotNull private final ModelListener myModelListener = new ModelListener() {
@@ -357,12 +360,33 @@ public class WidgetConstraintModel {
   }
 
   public void setSurface(@Nullable DesignSurface surface) {
+    if (surface == mySurface) {
+      return;
+    }
+    if (mySurface != null) {
+      mySurface.getSelectionModel().removeListener(this);
+    }
     mySurface = surface;
+    if (mySurface != null) {
+      mySurface.getSelectionModel().addListener(this);
+    }
+    fireUIUpdate();
   }
 
   @Nullable
   public DesignSurface getSurface() {
     return mySurface;
+  }
+
+  @Override
+  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (myComponent == null || !selection.contains(myComponent)) {
+      previousSecondarySelection = null;
+    }
+    if (!model.isSecondarySelected(previousSecondarySelection)){
+      previousSecondarySelection = model.getSecondarySelection();
+    }
+    fireUIUpdate();
   }
 
   public void setComponent(@Nullable NlComponent component) {
