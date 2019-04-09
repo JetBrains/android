@@ -504,7 +504,7 @@ class SessionsViewTest {
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
-    val traceInfoId = 13
+    val traceInfoId = 13L
 
     val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder()
       .setTraceId(traceInfoId)
