@@ -62,7 +62,7 @@ public class ConfigureDynamicDeliveryStep extends ModelWizardStep<DynamicFeature
     myBindings.bindTwoWay(new SelectedProperty(myOnDemandCheckBox), getModel().featureOnDemand());
     myBindings.bindTwoWay(new SelectedProperty(myFusingCheckBox), getModel().featureFusing());
 
-    myListeners.receiveAndFire(getModel().featureOnDemand(), onDemandValue ->
+    myListeners.listenAndFire(getModel().featureOnDemand(), onDemandValue ->
       setEnabled(onDemandValue.booleanValue(), myFeatureTitleLabel, myFeatureTitle, myFusingCheckBox));
 
     myValidatorPanel.registerValidator(getModel().featureTitle(), value ->
