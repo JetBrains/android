@@ -75,10 +75,6 @@
               <text value="Module title (this may be visible to users)"/>
             </properties>
           </component>
-          <component id="535e2" class="com.intellij.ui.components.JBLabel" binding="myFeatureTitleHelp" custom-create="true">
-            <constraints/>
-            <properties/>
-          </component>
         </children>
       </grid>
       <grid id="ec9f" binding="myInstallTimeInclusionPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
@@ -95,10 +91,6 @@
               <text value="Install-time inclusion"/>
             </properties>
           </component>
-          <component id="9f530" class="com.intellij.ui.components.JBLabel" binding="myInstallTimeInclusionHelp" custom-create="true">
-            <constraints/>
-            <properties/>
-          </component>
         </children>
       </grid>
       <grid id="98ffb" binding="myFusingPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
@@ -114,10 +106,6 @@
               <selected value="true"/>
               <text value="Fusing (include module at install-time for pre-Lollipop devices)"/>
             </properties>
-          </component>
-          <component id="1c86d" class="com.intellij.ui.components.JBLabel" binding="myFusingHelp" custom-create="true">
-            <constraints/>
-            <properties/>
           </component>
         </children>
       </grid>
