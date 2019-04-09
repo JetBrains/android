@@ -115,10 +115,12 @@ public class UnknownViewDecorator extends SceneDecorator {
       int stringWidth = g.getFontMetrics(mFont).stringWidth(mText);
       float scaleToFit = width / ((stringWidth * 3f) / 2);
       scaleToFit = Math.min(scaleToFit, 1.0f);
+      Font originalFont = g.getFont();
       g.setFont(mFont.deriveFont(mFont.getSize() * scaleToFit));
       FontMetrics fontMetrics = g.getFontMetrics();
       Rectangle2D textBounds = fontMetrics.getStringBounds(mText, g);
       g.drawString(mText, x + (int)((width - textBounds.getWidth()) / 2f), y + (int)(height - (height - textBounds.getHeight()) / 2f));
+      g.setFont(originalFont);
     }
   }
 
