@@ -19,8 +19,11 @@ import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.components.JBList
 import com.intellij.ui.paint.EffectPainter2D
 import com.intellij.util.ui.JBDimension
@@ -37,6 +40,7 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import java.awt.Component
+import java.awt.Container
 import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -44,6 +48,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -70,10 +75,10 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   private var previousComponent: NlComponent? = null
 
   init {
-    border = JBUI.Borders.empty(4, 4, 4, 4)
     layout = BorderLayout()
 
     list = JBList<ConstraintCellData>().apply { setEmptyText("") }
+    list.border = JBUI.Borders.empty(0, 4)
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = ConstraintItemRenderer()
 
@@ -128,6 +133,10 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     add(list, BorderLayout.CENTER)
     add(warningPanel, BorderLayout.SOUTH)
 
+    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+      override fun getDefaultComponent(aContainer: Container?) = list
+    }
+
     val hasConstraintSelection = updateConstraintSelection()
     // Force expand the list if there is constraint selection
     setExpand(if (hasConstraintSelection) true else expanded)
@@ -154,7 +163,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       return JBDimension(PREFERRED_WIDTH, titleSize.height)
     }
     else {
-      val listHeight = list.preferredSize.height + COMPONENT_HEIGHT / 2
+      val listHeight = list.preferredSize.height
       val warningTextHeight = warningPanel.preferredSize.height
       return JBDimension(PREFERRED_WIDTH, titleSize.height + listHeight + warningTextHeight)
     }
@@ -215,8 +224,15 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
 
   private inner class SectionTitle: JPanel(BorderLayout()) {
 
-    private val icon = JLabel()
-    private val constraintText = object: JLabel() {
+    private val icon = object: JLabel() {
+      override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        if (hasFocus() && g is Graphics2D) {
+          DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
+        }
+      }
+    }
+    private val constraintText = object : JLabel() {
       override fun paint(g: Graphics) {
         super.paint(g)
         val hasWarning = widgetModel.isMissingHorizontalConstrained ||
@@ -236,12 +252,16 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
 
     init {
       preferredSize = JBUI.size(PREFERRED_WIDTH, COMPONENT_HEIGHT)
-      border = JBUI.Borders.empty(4)
       background = secondaryPanelBackground
+      border = JBUI.Borders.empty(0, 4)
 
       icon.icon = if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
-      icon.border = JBUI.Borders.emptyRight(4)
+      icon.isFocusable = true
+      icon.border = JBUI.Borders.empty(4)
+      icon.registerActionKey({ setExpand(!expanded) }, KeyStrokes.SPACE, "space")
+      icon.registerActionKey({ setExpand(!expanded) }, KeyStrokes.ENTER, "enter")
       constraintText.text = "Constraints"
+      constraintText.border = JBUI.Borders.empty(4, 0, 4, 4)
 
       val title = JPanel(BorderLayout())
       title.background = secondaryPanelBackground
