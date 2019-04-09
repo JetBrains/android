@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import org.mockito.Mockito
 
 class WidgetConstraintModelTest: SceneTest() {
 
@@ -131,5 +132,15 @@ class WidgetConstraintModelTest: SceneTest() {
     assertFalse(widgetModel.isMissingHorizontalConstrained)
     assertFalse(widgetModel.isMissingVerticalConstrained)
     assertFalse(widgetModel.isOverConstrained)
+  }
+
+  fun testTriggerCallbackWhenSettingSurface() {
+    // The callback in practise is used to update ui components.
+    val callback = Mockito.mock(Runnable::class.java)
+
+    val widgetModel = WidgetConstraintModel(callback)
+    widgetModel.surface = myScene.designSurface
+
+    Mockito.verify(callback, Mockito.times(1)).run()
   }
 }
