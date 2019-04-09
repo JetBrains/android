@@ -25,6 +25,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -67,7 +68,7 @@ public class WindowsPerformanceHintsChecker {
           WindowsDefenderStatus.Status overallStatus;
           if (pathStatuses.containsValue(Boolean.FALSE)) {
             if (StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get()) {
-              systemHealthMonitor.showNotification("windows.defender.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
+              systemHealthMonitor.showNotification("windows.defender.warn.message", PropertiesComponent.getInstance(project), AndroidStudioSystemHealthMonitor.detailsAction(
                 "https://developer.android.com/")); // TODO(npaige): point this at the real page once it exists
             }
             if (pathStatuses.containsValue(Boolean.TRUE)) {
