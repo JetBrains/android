@@ -497,9 +497,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   private void toggleStageLayout() {
     // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
-    boolean loading = (myProfiler.getAutoProfilingEnabled() &&
-                       myProfiler.getPreferredProcessName() != null &&
-                       myProfiler.getPreferredDeviceName() != null) && /* b/126563739 */
+    boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
                       !myProfiler.getSessionsManager().isSessionAlive();
     Common.AgentData agentData = myProfiler.getAgentData();
     loading |= (agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
