@@ -52,11 +52,12 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_coverage = True,
+    # keep sorted
     test_data = [
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/databinding/testData",
@@ -64,9 +65,9 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
         "//tools/data-binding:data_binding_runtime.zip",
+        "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
-        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

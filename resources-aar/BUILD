@@ -31,7 +31,6 @@ iml_module(
         ":framework_res",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/testData",
         "//tools/idea:platform-build-info",
     ],

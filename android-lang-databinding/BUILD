@@ -47,10 +47,10 @@ iml_module(
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
     test_coverage = True,
     test_data = [
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android-lang-databinding/testData",

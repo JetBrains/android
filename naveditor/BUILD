@@ -51,7 +51,6 @@ iml_module(
     test_data = [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/resources-aar:framework_res",
