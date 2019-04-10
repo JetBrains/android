@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -95,6 +96,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      project -> null,
       myClock);
 
     assertNull(action.getSelectedDevice(myProject));
@@ -115,6 +117,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -139,6 +142,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -162,6 +166,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -182,6 +187,44 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void getSelectedDeviceSelectionTimeIsNull() {
+    // Arrange
+    Device pixel3ApiQ = new VirtualDevice.Builder()
+      .setName("Pixel 3 API Q")
+      .setKey("Pixel_3_API_Q")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device pixel2ApiQ = new VirtualDevice.Builder()
+      .setName("Pixel 2 API Q")
+      .setKey("Pixel_2_API_Q")
+      .setConnectionTime(Instant.parse("2019-04-04T22:54:09.086Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setConnected(true)
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(pixel3ApiQ, pixel2ApiQ));
+
+    PropertiesComponent properties = Mockito.mock(PropertiesComponent.class);
+    Mockito.when(properties.getValue(DeviceAndSnapshotComboBoxAction.SELECTED_DEVICE)).thenReturn("Pixel_3_API_Q");
+
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> true,
+      () -> false,
+      project -> myDevicesGetter,
+      project -> properties,
+      myClock);
+
+    action.update(myEvent);
+
+    // Act
+    Object actualDevice = action.getSelectedDevice(myProject);
+
+    // Assert
+    assertEquals(pixel2ApiQ, actualDevice);
+  }
+
+  @Test
   public void getSelectedDeviceConnectedDeviceIsntPresent() {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(Devices.PIXEL_2_XL_API_28)
@@ -196,6 +239,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -221,6 +265,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      project -> null,
       myClock);
 
     action.update(myEvent);
@@ -244,6 +289,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -278,6 +324,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -320,6 +367,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -361,6 +409,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -396,6 +445,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> false,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -417,7 +467,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateSelectDeviceSnapshotComboBoxVisibleIsFalse() {
-    new DeviceAndSnapshotComboBoxAction(() -> false, () -> false, project -> myDevicesGetter, myClock).update(myEvent);
+    new DeviceAndSnapshotComboBoxAction(() -> false, () -> false, project -> myDevicesGetter, project -> null, myClock).update(myEvent);
     assertFalse(myPresentation.isVisible());
   }
 
@@ -510,6 +560,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      project -> null,
       myClock);
 
     action.update(myEvent);
@@ -529,6 +580,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> false,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     Device pixel2XlApiQ = new VirtualDevice.Builder()
@@ -569,6 +621,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -596,6 +649,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
@@ -631,6 +685,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.setSelectedDevice(myProject, device2);
@@ -659,6 +714,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
@@ -687,6 +743,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
@@ -716,6 +773,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
@@ -745,6 +803,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       () -> true,
       () -> true,
       project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());

@@ -35,6 +35,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       () -> true,
       () -> true,
       project -> null,
+      project -> null,
       Mockito.mock(Clock.class));
   }
 
