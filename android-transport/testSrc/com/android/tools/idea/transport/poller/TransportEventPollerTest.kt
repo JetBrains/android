@@ -103,9 +103,10 @@ class TransportEventPollerTest {
     val echoEvent = Common.Event.newBuilder()
       .setTimestamp(0)
       .setKind(Common.Event.Kind.ECHO)
+      .setGroupId(123)
       .build()
     expectedEvents.add(echoEvent)
-    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, 123, echoEvent)
+    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, echoEvent)
 
     // Create listener for ECHO event
     val echoListener = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
@@ -129,17 +130,19 @@ class TransportEventPollerTest {
     val echoEvent2 = Common.Event.newBuilder()
       .setTimestamp(3)
       .setKind(Common.Event.Kind.ECHO)
+      .setGroupId(456)
       .build()
     expectedEvents.add(echoEvent2)
-    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, 456, echoEvent2)
+    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, echoEvent2)
 
     // Third event with the same group ID
     val echoEvent3 = Common.Event.newBuilder()
       .setTimestamp(3)
       .setKind(Common.Event.Kind.ECHO)
+      .setGroupId(456)
       .build()
     expectedEvents.add(echoEvent3)
-    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, 456, echoEvent3)
+    transportService.addEventToEventGroup(FakeTransportService.FAKE_DEVICE_ID, echoEvent3)
 
     // Receive the last 2 events
     try {
