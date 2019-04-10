@@ -66,7 +66,6 @@ iml_module(
         "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",

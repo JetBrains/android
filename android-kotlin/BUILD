@@ -162,7 +162,7 @@ iml_module(
     test_data = [
         ":testData",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//prebuilts/tools/common/kotlin-plugin:kotlinc-files",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/resources-aar:framework_res",
         "//tools/idea:platform-build-info",
