@@ -112,15 +112,14 @@ public class RpcNetworkConnectionsModelTest {
       myModel = new RpcNetworkConnectionsModel(profilers.getClient().getTransportClient(), Common.Session.getDefaultInstance());
 
       for (HttpData data : FAKE_DATA) {
-        long groupId = data.getId();
         // Add the http connection events
         EventGroup group = generateNetworkConnectionData(data).build();
         for (Common.Event event : group.getEventsList()) {
-          myTransportService.addEventToEventGroup(0, groupId, event);
+          myTransportService.addEventToEventGroup(0, event);
         }
 
         // Add the thread data associated with the connection events.
-        myTransportService.addEventToEventGroup(0, groupId, generateNetworkThreadData(data).build());
+        myTransportService.addEventToEventGroup(0, generateNetworkThreadData(data).build());
       }
     }
     else {
