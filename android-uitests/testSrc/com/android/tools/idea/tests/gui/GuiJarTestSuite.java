@@ -78,13 +78,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   }
 
   private static List<File> getExternalPlugins() {
-    List<File> plugins = new ArrayList<>(2);
-
-    // Enable Kotlin plugin if available(see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    File kotlin = new File(getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin");
-    if (kotlin.exists()) {
-      plugins.add(kotlin);
-    }
+    List<File> plugins = new ArrayList<>(1);
 
     // Enable Bazel plugin if it's available
     File aswb = new File(getWorkspaceRoot(), "tools/adt/idea/android-uitests/aswb");

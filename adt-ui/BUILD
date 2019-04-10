@@ -9,7 +9,6 @@ iml_module(
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_coverage = True,
     test_data = [
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/idea:platform-build-info",
     ],
     test_resources = ["src/test/resources"],
