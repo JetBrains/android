@@ -269,7 +269,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     DrawAnchor.Mode[] modeTable = {
       DrawAnchor.Mode.DO_NOT_DRAW, //
       DrawAnchor.Mode.NORMAL,      // can_connect
-      DrawAnchor.Mode.OVER,        // mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // mIsOver
       DrawAnchor.Mode.NORMAL,      // can_connect & mIsOver
       DrawAnchor.Mode.DO_NOT_DRAW, // is_connected
       DrawAnchor.Mode.NORMAL,      // is_connected & can_connect
