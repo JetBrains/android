@@ -41,6 +41,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -372,14 +373,22 @@ class SyncExecutor {
     @Override
     public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
       notifyProgress(myIndicator, event.getDescription());
-      if (event instanceof ExternalSystemTaskExecutionEvent) {
-        Project project = myTaskId.findProject();
-        if (project == null) {
-          return;
-        }
-        BuildEvent buildEvent = convert((ExternalSystemTaskExecutionEvent)event);
-        ServiceManager.getService(project, SyncViewManager.class).onEvent(buildEvent);
+      BuildEvent buildEvent = null;
+      if (event instanceof ExternalSystemBuildEvent) {
+        buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
       }
+      else if (event instanceof ExternalSystemTaskExecutionEvent) {
+        buildEvent = convert((ExternalSystemTaskExecutionEvent)event);
+      }
+      if (buildEvent == null) {
+        return;
+      }
+
+      Project project = myTaskId.findProject();
+      if (project == null) {
+        return;
+      }
+      ServiceManager.getService(project, SyncViewManager.class).onEvent(buildEvent);
     }
 
     @Override
