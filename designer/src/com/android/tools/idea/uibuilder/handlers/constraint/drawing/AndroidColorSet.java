@@ -110,10 +110,5 @@ public class AndroidColorSet extends ColorSet {
         mDragReceiverBackground = new Color(255, 0, 255, 102);
         mDragOtherReceiversFrame = new Color(255, 0, 255, 102);
         mDragReceiverSiblingBackground = new Color(255, 0, 255, 26);
-
-        // Lasso colors
-
-        mLassoSelectionBorder = DEFAULT_LASSO_BORDER_COLOR;
-        mLassoSelectionFill = DEFAULT_LASSO_FILL_COLOR;
     }
 }
