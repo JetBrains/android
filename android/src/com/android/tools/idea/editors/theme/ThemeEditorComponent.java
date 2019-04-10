@@ -77,8 +77,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class ThemeEditorComponent extends Splitter implements Disposable {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
@@ -600,7 +600,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null) {
       @Override
       protected RenameProcessor createRenameProcessor(String newName) {
-        return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName, isSearchInComments(), isSearchInNonJavaFiles()) {
+        return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName,
+                                   getRefactoringScope(),
+                                   isSearchInComments(), isSearchInNonJavaFiles()) {
           @NotNull
           @Override
           protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
