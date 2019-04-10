@@ -36,7 +36,6 @@ import com.android.tools.idea.run.editor.SpecificActivityLaunch;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.MultiUserUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -388,10 +387,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       applicationId != null &&
       ((AndroidExecutionTarget)executionTarget).isApplicationRunning(applicationId);
 
-    if (!configuration.isAllowRunningInParallel() &&
-        !runningDescriptors.isEmpty() &&
-        isRunning &&
-        DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
+    if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId()) && !runningDescriptors.isEmpty() && isRunning) {
       // Use the system's restart icon for the default run executor.
       return AllIcons.Actions.Restart;
     }
