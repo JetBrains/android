@@ -43,7 +43,7 @@ class ProjectStructureDialogFixture(
     return ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
   }
 
-  fun clickOkExpectConfigmrtation(): ErrorsReviewConfirmationDialogFixture {
+  fun clickOkExpectConfirmation(): ErrorsReviewConfirmationDialogFixture {
     GuiTests.findAndClickOkButton(this)
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
     return ErrorsReviewConfirmationDialogFixture.find(ideFrameFixture, "Problems Found")
