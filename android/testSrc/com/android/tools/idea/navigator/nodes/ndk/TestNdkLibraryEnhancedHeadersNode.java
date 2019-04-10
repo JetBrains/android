@@ -21,6 +21,7 @@ import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;
+import com.google.common.testing.EqualsTester;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -70,14 +71,10 @@ public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
     NdkLibraryEnhancedHeadersNode nodeAlias = node;
     assertThat(node != node2).isTrue(); // They're not reference-equals
     assertThat(node.equals(nodeAlias)).isTrue();
-    assertThat(node2).isEqualTo(node2);
-    assertThat(node).isEqualTo(node2);
-    assertThat(node2).isEqualTo(node);
-    assertThat(node).isNotEqualTo("");
-    assertThat(node2).isNotEqualTo("");
-    assertThat(node).isNotEqualTo(null);
-    assertThat(node2).isNotEqualTo(null);
-    assertThat(node.hashCode()).isEqualTo(node2.hashCode());
+    new EqualsTester()
+      .addEqualityGroup(node, node2)
+      .addEqualityGroup("")
+      .testEquals();
   }
 
   public void testSimplest() throws IOException {
