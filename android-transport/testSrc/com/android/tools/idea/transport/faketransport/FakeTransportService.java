@@ -113,18 +113,20 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myProcesses.putValue(myDevices.get(device.getDeviceId()), process);
     // The event pipeline expects process started / ended events. As such depending on the process state when passed in we add such events.
     if (process.getState() == Common.Process.State.ALIVE) {
-      addEventToEventGroup(device.getDeviceId(), process.getPid(), Common.Event.newBuilder()
+      addEventToEventGroup(device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
+        .setGroupId(process.getPid())
         .setProcess(Common.ProcessData.newBuilder()
                       .setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder()
                                            .setProcess(process)))
         .build());
     }
     if (process.getState() == Common.Process.State.DEAD) {
-      addEventToEventGroup(device.getDeviceId(), process.getPid(), Common.Event.newBuilder()
+      addEventToEventGroup(device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
+        .setGroupId(process.getPid())
         .setIsEnded(true)
         .build());
     }
@@ -144,9 +146,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
     if (device.getState() == Common.Device.State.ONLINE) {
-      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, device.getDeviceId(), Common.Event.newBuilder()
+      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.STREAM)
+        .setGroupId(device.getDeviceId())
         .setStream(Common.StreamData.newBuilder().setStreamConnected(Common.StreamData.StreamConnected.newBuilder().setStream(
           Common.Stream.newBuilder()
             .setType(Common.Stream.Type.DEVICE)
@@ -155,8 +158,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
         .build());
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
-      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, device.getDeviceId(), Common.Event.newBuilder()
+      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
         .setTimestamp(myTimer.getCurrentTimeNs())
+        .setGroupId(device.getDeviceId())
         .setKind(Common.Event.Kind.STREAM)
         .setIsEnded(true)
         .build());
@@ -172,9 +176,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myDevices.remove(oldDevice.getDeviceId());
     // Update device simply kills the old device and swaps it with a new device. As such we kill the old device by creating a
     // stream disconnected event for the events pipeline.
-    addEventToEventGroup(oldDevice.getDeviceId(), oldDevice.getDeviceId(), Common.Event.newBuilder()
+    addEventToEventGroup(oldDevice.getDeviceId(), Common.Event.newBuilder()
       .setTimestamp(myTimer.getCurrentTimeNs())
       .setKind(Common.Event.Kind.STREAM)
+      .setGroupId(oldDevice.getDeviceId())
       .setIsEnded(true)
       .build());
     addDevice(newDevice);
@@ -185,7 +190,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * and are available via the GetEventGroups API.
    */
   public void addSession(Common.Session session, Common.SessionMetaData metadata) {
-    addEventToEventGroup(session.getStreamId(), session.getSessionId(), Common.Event.newBuilder()
+    addEventToEventGroup(session.getStreamId(), Common.Event.newBuilder()
       .setGroupId(session.getSessionId())
       .setPid(session.getPid())
       .setKind(Common.Event.Kind.SESSION)
@@ -202,7 +207,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
               .setType(Common.SessionData.SessionStarted.SessionType.FULL)))
       .build());
     if (session.getEndTimestamp() != Long.MAX_VALUE) {
-      addEventToEventGroup(session.getStreamId(), session.getSessionId(), Common.Event.newBuilder()
+      addEventToEventGroup(session.getStreamId(), Common.Event.newBuilder()
         .setGroupId(session.getSessionId())
         .setPid(session.getPid())
         .setKind(Common.Event.Kind.SESSION)
@@ -289,9 +294,11 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
 
   /**
    * Helper method for finding an existing event group and updating its array of events, or creating an event group if one does not exist.
+   * The group to add to is taken from the group set on the event.
    */
-  public void addEventToEventGroup(long streamId, long groupId, Common.Event event) {
+  public void addEventToEventGroup(long streamId, Common.Event event) {
     List<Transport.EventGroup.Builder> groups = getListForStream(streamId);
+    long groupId = event.getGroupId();
     Optional<Transport.EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getGroupId() == groupId).findFirst();
     if (eventGroup.isPresent()) {
       eventGroup.get().addEvents(event);
