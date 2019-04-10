@@ -52,7 +52,6 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -401,7 +400,6 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  @Ignore("b/126563739")
   public void testLoadingPanelWhileWaitingForPreferredProcess() {
     final String FAKE_PROCESS_2 = "FakeProcess2";
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
