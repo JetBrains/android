@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
@@ -59,20 +59,20 @@ public class CpuProfilerTestUtils {
   }
 
   public static CpuCapture getValidCapture() throws IOException, ExecutionException, InterruptedException {
-    return getCapture(readValidTrace(), CpuProfilerType.ART);
+    return getCapture(readValidTrace(), CpuTraceType.ART);
   }
 
   public static CpuCapture getCapture(@NotNull String fullFileName) {
     try {
       File file = TestUtils.getWorkspaceFile(fullFileName);
-      return getCapture(traceFileToByteString(file), CpuProfilerType.ART);
+      return getCapture(traceFileToByteString(file), CpuTraceType.ART);
     }
     catch (Exception e) {
       throw new RuntimeException("Failed with exception", e);
     }
   }
 
-  public static CpuCapture getCapture(ByteString traceBytes, CpuProfilerType profilerType) throws ExecutionException, InterruptedException {
+  public static CpuCapture getCapture(ByteString traceBytes, CpuTraceType profilerType) throws ExecutionException, InterruptedException {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
     return parser.parse(ProfilersTestData.SESSION_DATA, FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
   }

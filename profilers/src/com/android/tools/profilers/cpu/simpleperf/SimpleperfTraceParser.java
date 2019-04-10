@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
@@ -28,8 +28,6 @@ import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,8 +35,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
@@ -80,8 +83,7 @@ public class SimpleperfTraceParser implements TraceParser {
   /**
    * List of samples containing method trace data.
    */
-  @VisibleForTesting
-  final List<SimpleperfReport.Sample> mySamples;
+  @VisibleForTesting final List<SimpleperfReport.Sample> mySamples;
 
   /**
    * Maps a {@link CpuThreadInfo} to its correspondent method call tree.
@@ -161,7 +163,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    return new CpuCapture(this, traceId, Cpu.CpuTraceType.SIMPLEPERF);
   }
 
   @Override
@@ -207,7 +209,7 @@ public class SimpleperfTraceParser implements TraceParser {
    * LittleEndian32(record_size_N)
    * message Record(record_N) (having record_size_N bytes)
    * LittleEndian32(0)
-   *
+   * <p>
    * Parsed data is stored in {@link #myFiles} and {@link #mySamples}.
    */
   @VisibleForTesting
@@ -404,7 +406,7 @@ public class SimpleperfTraceParser implements TraceParser {
     int divergenceIndex = 0;
     while (divergenceIndex < callChain.size() && divergenceIndex < previousCallChain.size() &&
            equals(previousCallChain.get(divergenceIndex), callChain.get(divergenceIndex))) {
-      divergenceIndex ++;
+      divergenceIndex++;
     }
 
     // If there is a divergence, we update the end time of the traversal node and go up in the tree until we find the divergent node parent.

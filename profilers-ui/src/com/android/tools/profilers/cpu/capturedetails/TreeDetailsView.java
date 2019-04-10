@@ -15,9 +15,19 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_INSETS;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
+
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -32,23 +42,26 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.function.Function;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.function.Function;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A base view for {@link TopDownDetailsView} and {@link BottomUpDetailsView}.
@@ -90,7 +103,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
     CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
     assert stageView.getStage().getCapture() != null;
-    if (stageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
+    if (stageView.getStage().getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
       stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(myTree, navigator,
                                                                                              () -> getCodeLocation(myTree));
     }

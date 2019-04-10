@@ -47,18 +47,18 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
   }
 
   private fun generateTraceInfo(timestamp: Long, properties: GeneratorProperties) {
-    val threads = mutableListOf<CpuProfiler.Thread>()
+    val threadIds = mutableListOf<Int>()
     for(i in 0..NUMBER_OF_THREADS) {
-      threads.add(CpuProfiler.Thread.newBuilder().setName(i.toString()).setTid(i).build())
+      threadIds.add(i)
     }
-    val trace = CpuProfiler.TraceInfo.newBuilder()
+    val trace = Cpu.CpuTraceInfo.newBuilder()
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
       .setTraceFilePath("Some Fake Path")
       .setTraceId(random.nextLong())
-      .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_UI)
-      .setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
-      .addAllThreads(threads)
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+      .addAllTids(threadIds)
       .build()
     myTable.insertTraceInfo(properties.session, trace)
   }

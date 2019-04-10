@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
@@ -49,7 +50,7 @@ class StudioLegacyCpuTraceProfilerTest {
     val session = Common.Session.newBuilder().setPid(1)
     val profiler = StudioLegacyCpuTraceProfiler(createMockDevice("Test"), myProfilerClient.cpuClient)
     val startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder().setSession(session)
-      .setConfiguration(CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE))
+      .setConfiguration(CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE))
       .build()
     val stopRequest = CpuProfiler.CpuProfilingAppStopRequest.newBuilder().setSession(session).build()
     val statusRequest = CpuProfiler.ProfilingStateRequest.newBuilder().setSession(session).build()
@@ -64,11 +65,11 @@ class StudioLegacyCpuTraceProfilerTest {
     // Check the state of the StudioLegacyCpuTraceProfiler
     checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isTrue()
-    assertThat(checkStatusResponse.configuration.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE)
+    assertThat(checkStatusResponse.configuration.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
     // Also check the state of the service for systrace this should be true
     checkStatusResponse = myProfilerClient.cpuClient.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isTrue()
-    assertThat(checkStatusResponse.configuration.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ATRACE)
+    assertThat(checkStatusResponse.configuration.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
     val stopResponse = profiler.stopProfilingApp(stopRequest)
     assertThat(stopResponse.status).isEqualTo(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
   }

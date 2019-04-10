@@ -16,7 +16,7 @@
 package com.android.tools.profilers.analytics;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A service for tracking events that occur in our profilers, in order to understand and evaluate
  * how our users are using them.
- *
+ * <p>
  * The class that implements this should be sure to let users opt out of sending this information,
  * at which point all these methods should become no-ops.
  */
@@ -184,7 +184,7 @@ public interface FeatureTracker {
   /**
    * Track the user importing a method trace.
    */
-  void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success);
+  void trackImportTrace(@NotNull Cpu.CpuTraceType traceType, boolean success);
 
   /**
    * Track the startup CPU profiling that was started with the given {@param configuration}.
@@ -198,7 +198,7 @@ public interface FeatureTracker {
    * @param flags        Flags as a given API argument (-1 if unavailable).
    * @param intervalUs   Sampling interval as a given API argument (-1 if unavailable).
    */
-  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs);
+  void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs);
 
   /**
    * Track the user clicking on one of the threads in the thread list.

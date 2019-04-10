@@ -18,10 +18,9 @@ package com.android.tools.profilers.cpu;
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBDimension;
 import java.awt.BorderLayout;
 import javax.swing.JButton;
@@ -96,7 +95,7 @@ public abstract class CpuProfilerToolbar {
           myProfilingConfigurationView.getComponent().setEnabled(true);
           break;
         case CAPTURING:
-          if (myStage.getCaptureInitiationType().equals(CpuProfiler.TraceInitiationType.INITIATED_BY_API)) {
+          if (myStage.getCaptureInitiationType().equals(Cpu.TraceInitiationType.INITIATED_BY_API)) {
             myCaptureButton.setEnabled(false);
           }
           else {
@@ -159,7 +158,7 @@ public abstract class CpuProfilerToolbar {
         return;
       }
 
-      if (capture.getType() == CpuProfilerType.ATRACE) {
+      if (capture.getType() == CpuTraceType.ATRACE) {
         CaptureNode node = capture.getCaptureNode(capture.getMainThreadId());
         assert node != null;
         mySelectedProcessLabel.setText("Process: " + node.getData().getName());

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -30,8 +31,8 @@ class ProfilingConfigurationTest {
   fun fromProto() {
     val proto = CpuProfiler.CpuProfilerConfiguration.newBuilder()
       .setName("MyConfiguration")
-      .setProfilerMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED)
-      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
+      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+      .setTraceType(Cpu.CpuTraceType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
       .setDisableLiveAllocation(true)
@@ -39,8 +40,8 @@ class ProfilingConfigurationTest {
     val config = ProfilingConfiguration.fromProto(proto)
 
     assertThat(config.name).isEqualTo("MyConfiguration")
-    assertThat(config.mode).isEqualTo(CpuProfiler.CpuProfilerMode.INSTRUMENTED)
-    assertThat(config.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
+    assertThat(config.mode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(config.traceType).isEqualTo(Cpu.CpuTraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
     assertThat(config.isDisableLiveAllocation).isTrue()
@@ -48,8 +49,8 @@ class ProfilingConfigurationTest {
 
   @Test
   fun toProto() {
-    val configuration = ProfilingConfiguration("MyConfiguration", CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                               CpuProfiler.CpuProfilerMode.SAMPLED).apply {
+    val configuration = ProfilingConfiguration("MyConfiguration", Cpu.CpuTraceType.SIMPLEPERF,
+                                               Cpu.CpuTraceMode.SAMPLED).apply {
       profilingBufferSizeInMb = 12
       profilingSamplingIntervalUs = 1234
       isDisableLiveAllocation = true
@@ -57,8 +58,8 @@ class ProfilingConfigurationTest {
     val proto = configuration.toProto()
 
     assertThat(proto.name).isEqualTo("MyConfiguration")
-    assertThat(proto.profilerMode).isEqualTo(CpuProfiler.CpuProfilerMode.SAMPLED)
-    assertThat(proto.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF)
+    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
+    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
     assertThat(proto.disableLiveAllocation).isTrue()

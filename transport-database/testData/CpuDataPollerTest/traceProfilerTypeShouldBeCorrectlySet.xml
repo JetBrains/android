@@ -195,13 +195,13 @@ to_timestamp: 9223372036854775807
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
         <Message>configuration {
-  profiler_type: SIMPLEPERF
+  trace_type: SIMPLEPERF
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
         <message>configuration {
-  profiler_type: SIMPLEPERF
+  trace_type: SIMPLEPERF
 }
 </message>
     </GrpcCall>
@@ -212,11 +212,11 @@ to_timestamp: 9223372036854775807
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest">
-        <Message>profiler_type: SIMPLEPERF
+        <Message>trace_type: SIMPLEPERF
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
-        <message>profiler_type: SIMPLEPERF
+        <message>trace_type: SIMPLEPERF
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse">
