@@ -568,6 +568,10 @@ public final class StudioFlags {
     SYSTEM_HEALTH, "windows.defender.notification.enabled", "Enable Windows Defender system health check",
     "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
     false);
+  public static final Flag<Boolean> WINDOWS_UCRT_CHECK_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.ucrt.check.enabled", "Enable Universal C Runtime system health check",
+    "If enabled, a notification will be shown if the Universal C Runtime in Windows is not installed",
+    false);
 
   public static final Flag<Boolean> WINDOWS_DEFENDER_METRICS_ENABLED = Flag.create(
     SYSTEM_HEALTH, "windows.defender.metrics.enabled", "Enable Windows Defender metrics collection",
