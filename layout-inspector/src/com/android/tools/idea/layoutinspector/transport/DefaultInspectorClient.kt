@@ -155,7 +155,7 @@ object DefaultInspectorClient : InspectorClient {
       .setAttachAgent(
         Commands.AttachAgent.newBuilder()
           .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.abiCpuArch))
-          .setAgentConfigPath(TransportFileManager.AGENT_CONFIG_FILE))
+          .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
       .build()
 
     lateinit var listener: TransportEventListener
