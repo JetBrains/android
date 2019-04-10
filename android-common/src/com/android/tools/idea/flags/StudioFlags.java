@@ -173,7 +173,7 @@ public final class StudioFlags {
     PROFILER, "perfetto", "Allows importing and recording of perfetto traces.",
     "Toggles if we check for perfetto traces when importing. This also sets a flag on the agent config to toggle perfetto" +
     "based recording on device.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
     PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
