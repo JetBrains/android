@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrent.transform
 import com.android.utils.concurrency.AsyncSupplier
 import com.android.utils.concurrency.CachedAsyncSupplier
@@ -41,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class ThrottlingAsyncSupplier<V : Any>(
   private val compute: () -> V,
-  private val isUpToDate: (value: V) -> Boolean,
+  @AnyThread private val isUpToDate: (value: V) -> Boolean,
   private val mergingPeriod: Duration
 ) : AsyncSupplier<V>,
     Disposable,
@@ -86,11 +87,15 @@ class ThrottlingAsyncSupplier<V : Any>(
     if (cachedComputation != null
         && cachedComputation.modificationCountWhenScheduled == computation.modificationCountWhenScheduled
         && isUpToDate(cachedComputation.getResultNow())) {
-      computation.delegateTo(cachedComputation)
+      computation.complete(cachedComputation.getResultNow())
+      computation.broadcastResult()
       return
     }
+    // Set lastComputation before broadcasting the result since we don't know how long
+    // that will take and we want to offer getNow() callers as fresh a value as possible.
     computation.complete(compute())
     lastComputation.set(computation)
+    computation.broadcastResult()
   }
 
   private fun determineDelay(lastComputation: Computation<V>?): Long {
@@ -103,35 +108,27 @@ class ThrottlingAsyncSupplier<V : Any>(
 private data class ValueWithTimestamp<V>(val value: V, val timestampMs: Long)
 
 private class Computation<V>(val modificationCountWhenScheduled: Long) {
+  private val result = AtomicReference<ValueWithTimestamp<V>>(null)
   private val future = SettableFuture.create<ValueWithTimestamp<V>>()!!
 
-  fun complete(result: V) {
-    if (future.isDone) {
-      throw IllegalStateException("This Computation has already been executed, so it cannot be completed again.")
-    }
-    future.set(ValueWithTimestamp(result, System.currentTimeMillis()))
+  private fun getResultAndCheckComplete(): ValueWithTimestamp<V> {
+    return result.get() ?: throw IllegalStateException("This Computation hasn't been executed yet.")
   }
 
-  fun delegateTo(other: Computation<V>) {
-    if (future.isDone) {
-      throw IllegalStateException("This Computation has already been executed, so it cannot delegate to another.")
+  fun complete(result: V) {
+    val resultWithTimestamp = ValueWithTimestamp(result, System.currentTimeMillis())
+    if (!this.result.compareAndSet(null, resultWithTimestamp)) {
+      throw IllegalStateException("This Computation has already been executed.")
     }
-    future.setFuture(other.future)
+  }
+
+  fun broadcastResult() {
+    future.set(getResultAndCheckComplete())
   }
 
   fun getResult() = Futures.nonCancellationPropagating(future.transform { it.value })!!
 
-  fun getResultNow(): V {
-    if (!future.isDone) {
-      throw IllegalStateException("Tried to get the result of a Computation that hasn't been executed.")
-    }
-    return future.get().value
-  }
+  fun getResultNow() = getResultAndCheckComplete().value
 
-  fun getCompletionTimestamp(): Long {
-    if (!future.isDone) {
-      throw IllegalStateException("Tried to get the completion time of a Computation that hasn't been executed.")
-    }
-    return future.get().timestampMs
-  }
+  fun getCompletionTimestamp() = getResultAndCheckComplete().timestampMs
 }
