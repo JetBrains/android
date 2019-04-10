@@ -347,25 +347,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @Override
-  @NotNull
-  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
-                                                  @NotNull DataNode<ModuleData> ideModule,
-                                                  @NotNull DataNode<ProjectData> ideProject)
-    throws IllegalArgumentException, IllegalStateException {
-    // Do not drop gradle tasks for included projects (IDEA-193964)
-    // IntelliJ gradle integration heavily depends on the gradle tasks information.
-    // E.g. the build/run delegation feature and gradle test runner uses 'available' gradle tasks to run tests, applications and build sources, archives etc.
-    // All this stuff also should work for gradle project included into the gradle composite build.
-    if(IdeInfo.getInstance().isAndroidStudio()) {
-      // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
-      if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
-        return emptyList();
-      }
-    }
-    return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
-  }
-
-  @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
     populateGlobalLibraryMap(gradleProject);
