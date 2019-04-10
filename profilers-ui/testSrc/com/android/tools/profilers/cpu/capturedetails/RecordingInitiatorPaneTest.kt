@@ -20,11 +20,11 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerToolbar
@@ -108,8 +108,8 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Java",
-                                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+                                                                                        Cpu.CpuTraceType.ART,
+                                                                                        Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -122,8 +122,8 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Instrumented Java",
-                                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED)
+                                                                                        Cpu.CpuTraceType.ART,
+                                                                                        Cpu.CpuTraceMode.INSTRUMENTED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -136,8 +136,8 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Native",
-                                                                                        CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+                                                                                        Cpu.CpuTraceType.SIMPLEPERF,
+                                                                                        Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -150,8 +150,8 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("ATrace",
-                                                                                        CpuProfiler.CpuProfilerType.ATRACE,
-                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+                                                                                        Cpu.CpuTraceType.ATRACE,
+                                                                                        Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()

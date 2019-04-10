@@ -22,17 +22,39 @@ import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.EmptyCpuReply;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingRequest;
+import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class gathers sets up a CPUProfilerService and forward all commands to the connected channel with the exception of getData.
@@ -102,7 +124,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> responseObserver) {
     if (!myLastTraceInfoResponse.matches(request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
       GetTraceInfoResponse.Builder response = GetTraceInfoResponse.newBuilder();
-      List<TraceInfo> responses = myCpuTable.getTraceInfo(request);
+      List<Cpu.CpuTraceInfo> responses = myCpuTable.getTraceInfo(request);
       response.addAllTraceInfo(responses);
       myLastTraceInfoResponse = new ResponseData<>(request.getSession(),
                                                    request.getFromTimestamp(),
@@ -183,7 +205,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       // Only add successfully captured traces to the database
       if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
         myCpuTable.insertTrace(
-          request.getSession(), response.getTraceId(), request.getProfilerType(), request.getProfilerMode(), response.getTrace());
+          request.getSession(), response.getTraceId(), request.getTraceType(), request.getTraceMode(), response.getTrace());
       }
     }
     observer.onNext(response);
@@ -233,9 +255,9 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     }
     else {
       builder.setStatus(GetTraceResponse.Status.SUCCESS)
-             .setData(data.getTraceBytes())
-             .setProfilerType(data.getProfilerType())
-             .setProfilerMode(data.getProfilerMode());
+        .setData(data.getTraceBytes())
+        .setTraceType(data.getTraceType())
+        .setTraceMode(data.getTraceMode());
     }
 
     observer.onNext(builder.build());

@@ -113,8 +113,8 @@ public class CpuDataPoller extends PollRunner {
     CpuProfiler.GetTraceInfoRequest.Builder traceInfoRequest = CpuProfiler.GetTraceInfoRequest
       .newBuilder().setSession(mySession).setFromTimestamp(myTraceInfoRequestStartTimestampNs).setToTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetTraceInfoResponse traceInfoResponse = myPollingService.getTraceInfo(traceInfoRequest.build());
-    for (CpuProfiler.TraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
-      if (traceInfo.getInitiationType().equals(CpuProfiler.TraceInitiationType.INITIATED_BY_API)) {
+    for (Cpu.CpuTraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
+      if (traceInfo.getInitiationType().equals(Cpu.TraceInitiationType.INITIATED_BY_API)) {
         // Insert trace content before inserting trace info. Because once the consumer of datastore (CpuProfilerStage) sees a
         // trace info, it may decide to automatically set and select it which requires the content is in the datastore.
         CpuProfiler.GetTraceRequest.Builder traceRequest =
@@ -133,14 +133,14 @@ public class CpuDataPoller extends PollRunner {
           myLogService.getLogger(CpuDataPoller.class).warn("Failed to create temp file for automated trace.");
         }
         myCpuTable.insertTrace(
-          mySession, traceInfo.getTraceId(), traceResponse.getProfilerType(), traceResponse.getProfilerMode(), traceResponse.getData());
+          mySession, traceInfo.getTraceId(), traceResponse.getTraceType(), traceResponse.getTraceMode(), traceResponse.getData());
         // TODO(b/74358723): Revisit the logic to insert data into datastore.
         // Note the traceInfo returned by perfd is preliminary. For example, the start and end timestamps
         // are set when those events are perceived by perfd including the time spent by perfa waiting for the trace to
         // complete. They may be visibly different from the range inferred from trace content. When we work on b/74358723,
         // the trace will be automatically selected, and we will parse the trace right away. In that case, we should insert
         // the accurate traceInfo.
-        CpuProfiler.TraceInfo updatedTraceInfo = traceInfo.toBuilder().setTraceFilePath(tempTraceFile.getAbsolutePath()).build();
+        Cpu.CpuTraceInfo updatedTraceInfo = traceInfo.toBuilder().setTraceFilePath(tempTraceFile.getAbsolutePath()).build();
         myCpuTable.insertTraceInfo(mySession, updatedTraceInfo);
       }
     }

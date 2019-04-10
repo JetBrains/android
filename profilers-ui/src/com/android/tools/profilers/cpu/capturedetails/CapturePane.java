@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+
 import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
@@ -30,15 +33,14 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
-import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A base panel that contains all common components of {@link CpuCaptureView}.
@@ -75,7 +77,7 @@ abstract class CapturePane extends JPanel {
     myToolbar = new Toolbar(stageView);
 
     CpuCapture capture = myStageView.getStage().getCapture();
-    if (capture != null && capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
+    if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
       myTabs.putAll(ATRACE_TAB_NAMES);
     }
 

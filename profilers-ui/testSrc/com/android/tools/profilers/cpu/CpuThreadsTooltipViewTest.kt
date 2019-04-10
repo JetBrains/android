@@ -67,11 +67,11 @@ class CpuThreadsTooltipViewTest {
       .setTimestamp(TimeUnit.SECONDS.toNanos(2))
       .build()
     cpuService.addAdditionalThreads(3, "newThread", arrayListOf(capturedThread))
-    cpuService.addTraceInfo(CpuProfiler.TraceInfo.newBuilder()
+    cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                               .setTraceId(1)
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(2))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(4))
-                              .addThreads(CpuProfiler.Thread.newBuilder().setTid(3).setName("newThread")).build())
+                              .addTids(3).build())
   }
 
   @Test
