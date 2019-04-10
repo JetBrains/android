@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.FormFactor;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -246,8 +245,7 @@ public class DeviceMenuAction extends DropDownAction {
         boolean selected = current != null && current.getId().equals(device.getId());
 
         String avdDisplayName = "AVD: " + device.getDisplayName();
-        Icon icon = selected ? LafIconLookup.getIcon("checkmark") : null;
-        add(new SetAvdAction(myRenderContext, device, avdDisplayName, icon));
+        add(new SetAvdAction(myRenderContext, device, avdDisplayName, selected));
       }
       addSeparator();
     }
@@ -325,7 +323,7 @@ public class DeviceMenuAction extends DropDownAction {
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
       getTemplatePresentation().setText(title, false);
       if (select) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
       else if (ConfigurationAction.isBetterMatchLabel(title)) {
         getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
@@ -382,7 +380,7 @@ public class DeviceMenuAction extends DropDownAction {
       super(renderContext, CUSTOM_DEVICE_NAME);
       myDevice = device;
       if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
     }
 
@@ -411,9 +409,10 @@ public class DeviceMenuAction extends DropDownAction {
     public SetAvdAction(@NotNull ConfigurationHolder renderContext,
                         @NotNull Device avdDevice,
                         @NotNull String displayName,
-                        @Nullable Icon icon) {
-      super(renderContext, displayName, icon);
+                        final boolean select) {
+      super(renderContext, displayName);
       myAvdDevice = avdDevice;
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
     }
 
     @Override
