@@ -152,7 +152,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Whether the profiler should auto-select a process to profile.
    */
-  private boolean myAutoProfilingEnabled = true; /* b/126563739 */
+  private boolean myAutoProfilingEnabled;
 
   /**
    * The number of update count the profilers have waited for an agent status to become ATTACHED for a particular session id.
@@ -286,12 +286,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public void setPreferredProcessName(@Nullable String processName) {
     myPreferredProcessName = processName;
-  }
-
-  // b/126563739
-  @Nullable
-  String getPreferredDeviceName() {
-    return myPreferredDeviceName;
   }
 
   @Nullable
@@ -496,26 +490,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    // b/126563739 No preferred candidate. Choose any device that has online processes
-    return myAutoProfilingEnabled && myPreferredDeviceName == null ?
-           devices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(null) : null;
-  }
-
-  private boolean deviceHasAliveProcesses(@NotNull Common.Device device) {
-    if (!device.getState().equals(Common.Device.State.ONLINE)) {
-      return false;
-    }
-
-    List<Common.Process> deviceProcesses = myProcesses.get(device);
-    if (deviceProcesses == null) {
-      return false;
-    }
-    for (Common.Process process : deviceProcesses) {
-      if (process.getState().equals(Common.Process.State.ALIVE)) {
-        return true;
-      }
-    }
-    return false;
+    return null;
   }
 
   public void setMonitoringStage() {
@@ -688,8 +663,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
 
-    // b/126563739 No preferred candidate. Choose a new process if we are not already waiting for the preferred process.
-    return myAutoProfilingEnabled ? processes.get(0) : null;
+    return null;
   }
 
   @NotNull
