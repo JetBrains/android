@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.profiler.proto.CpuProfiler;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,13 +27,75 @@ public class CpuCaptureMetadata {
     /** Capture finished successfully. */
     SUCCESS,
     /** There was a failure when trying to stop the capture. */
+    /** Deprecated by STOP_FAILED_* enum constants. */
+    @Deprecated
     STOP_CAPTURING_FAILURE,
     /** There was a failure when trying to parse the capture. */
     PARSING_FAILURE,
     /** User aborted parsing the trace after being notified it was too large. */
     USER_ABORTED_PARSING,
     /** There was a failure when trying to pre-process the trace. */
-    PREPROCESS_FAILURE
+    PREPROCESS_FAILURE,
+    /** There was no ongoing capture to stop. */
+    STOP_FAILED_NO_GOING_PROFILING,
+    /** The profiled app process died. */
+    STOP_FAILED_APP_PROCESS_DIED,
+    /** The PID of the profiled app process changed (it's another process). */
+    STOP_FAILED_APP_PID_CHANGED,
+    /** The profiler process (e.g., simpleperf process) died. */
+    STOP_FAILED_PROFILER_PROCESS_DIED,
+    /** The shell/DDMS command to stop capture didn't return successfully. */
+    STOP_FAILED_STOP_COMMAND_FAILED,
+    /** The capture didn't stop after the stop command. */
+    STOP_FAILED_STILL_PROFILING_AFTER_STOP,
+    /** The wait for the trace file to complete couldn't be initiated. */
+    STOP_FAILED_CANNOT_START_WAITING,
+    /** The wait for the trace file to complete timed out. */
+    STOP_FAILED_WAIT_TIMEOUT,
+    /** The wait for the trace file to complete had unspecified failure. */
+    STOP_FAILED_WAIT_FAILED,
+    /** Couldn't read events while waiting for the trace file to complete. */
+    STOP_FAILED_CANNOT_READ_WAIT_EVENT,
+    /** Couldn't copy/move the trace file within the device. */
+    STOP_FAILED_CANNOT_COPY_FILE,
+    /** Couldn't form the trace file into the format expected by Studio. */
+    STOP_FAILED_CANNOT_FORM_FILE,
+    /** Couldn't read the content of the trace file. */
+    STOP_FAILED_CANNOT_READ_FILE
+    ;
+
+    public static CaptureStatus fromStopStatus(CpuProfiler.CpuProfilingAppStopResponse.Status status) {
+      switch (status) {
+        case NO_ONGOING_PROFILING:
+          return STOP_FAILED_NO_GOING_PROFILING;
+        case APP_PROCESS_DIED:
+          return STOP_FAILED_APP_PROCESS_DIED;
+        case APP_PID_CHANGED:
+          return STOP_FAILED_APP_PID_CHANGED;
+        case PROFILER_PROCESS_DIED:
+          return STOP_FAILED_PROFILER_PROCESS_DIED;
+        case STOP_COMMAND_FAILED:
+          return STOP_FAILED_STOP_COMMAND_FAILED;
+        case STILL_PROFILING_AFTER_STOP:
+          return STOP_FAILED_STILL_PROFILING_AFTER_STOP;
+        case CANNOT_START_WAITING:
+          return STOP_FAILED_CANNOT_START_WAITING;
+        case WAIT_TIMEOUT:
+          return STOP_FAILED_WAIT_TIMEOUT;
+        case WAIT_FAILED:
+          return STOP_FAILED_WAIT_FAILED;
+        case CANNOT_READ_WAIT_EVENT:
+          return STOP_FAILED_CANNOT_READ_WAIT_EVENT;
+        case CANNOT_COPY_FILE:
+          return STOP_FAILED_CANNOT_COPY_FILE;
+        case CANNOT_FORM_FILE:
+          return STOP_FAILED_CANNOT_FORM_FILE;
+        case CANNOT_READ_FILE:
+          return STOP_FAILED_CANNOT_READ_FILE;
+        default:
+          return SUCCESS;
+      }
+    }
   }
 
   /**

@@ -108,6 +108,48 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(AdbCommandRejectedException.class, TransportFailureMetadata.FailureType.ADB_COMMAND_REJECTED)
     .build();
 
+  private final static ImmutableMap<com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus, CpuCaptureMetadata.CaptureStatus>
+    CPU_CAPTURE_STATUS_MAP =
+    ImmutableMap.<com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus, CpuCaptureMetadata.CaptureStatus>builder()
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.SUCCESS,
+           CpuCaptureMetadata.CaptureStatus.SUCCESS)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE,
+           CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING,
+           CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE,
+           CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_NO_GOING_PROFILING,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_NO_GOING_PROFILING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PROCESS_DIED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PROCESS_DIED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PID_CHANGED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PID_CHANGED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_PROFILER_PROCESS_DIED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_PROFILER_PROCESS_DIED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STILL_PROFILING_AFTER_STOP,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STILL_PROFILING_AFTER_STOP)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_START_WAITING,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_START_WAITING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_TIMEOUT,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_TIMEOUT)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_FAILED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_FAILED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_WAIT_EVENT,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_WAIT_EVENT)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_COPY_FILE,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_COPY_FILE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_FORM_FILE,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_FORM_FILE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_FILE,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_FILE)
+      .build();
+
+
   @NotNull
   private AndroidProfilerEvent.Stage myCurrStage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
 
@@ -742,25 +784,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setCaptureDurationMs(myCpuCaptureMetadata.getCaptureDurationMs())
           .setRecordDurationMs(myCpuCaptureMetadata.getRecordDurationMs())
           .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
-          .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs());
-
-        switch (myCpuCaptureMetadata.getStatus()) {
-          case SUCCESS:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
-            break;
-          case PARSING_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-            break;
-          case STOP_CAPTURING_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
-            break;
-          case USER_ABORTED_PARSING:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
-            break;
-          case PREPROCESS_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
-            break;
-        }
+          .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs())
+          .setCaptureStatus(
+            CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
         if (myCpuCaptureMetadata.getProfilingConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.ART) {

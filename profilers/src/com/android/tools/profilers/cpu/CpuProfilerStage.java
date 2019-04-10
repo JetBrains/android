@@ -624,7 +624,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
-      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(response.getStatus()));
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
     else {
