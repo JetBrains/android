@@ -317,6 +317,16 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       });
     }
 
+    if (SystemInfo.isWindows && StudioFlags.WINDOWS_UCRT_CHECK_ENABLED.get()) {
+      application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectOpened(@NotNull Project project) {
+          application.executeOnPooledThread(
+            () -> WindowsCRuntimeChecker.checkCRT(AndroidStudioSystemHealthMonitor.this));
+        }
+      });
+    }
+
     List<DiagnosticReport> reports = myReportsDatabase.reapReports();
     processDiagnosticReports(reports);
 
