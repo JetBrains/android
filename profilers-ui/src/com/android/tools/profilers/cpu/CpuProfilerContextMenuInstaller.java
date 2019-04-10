@@ -106,7 +106,7 @@ class CpuProfilerContextMenuInstaller {
       x -> exportTrace.isEnabled() && getTraceIntersectingWithMouseX(x) != null,
       x -> myIdeComponents.createExportDialog().open(
         () -> "Export trace as",
-        () -> CpuProfiler.generateCaptureFileName(getTraceIntersectingWithMouseX(x).getProfilerType()),
+        () -> CpuProfiler.generateCaptureFileName(getTraceIntersectingWithMouseX(x).getTraceType()),
         () -> "trace",
         file -> myStage.getStudioProfilers().getIdeServices().saveFile(
           file, (output) -> CpuProfiler.saveCaptureToFile(getTraceIntersectingWithMouseX(x).getTraceInfo(), output), null)));

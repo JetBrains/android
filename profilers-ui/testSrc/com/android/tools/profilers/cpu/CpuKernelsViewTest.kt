@@ -27,6 +27,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
@@ -108,7 +109,7 @@ class CpuKernelsViewTest {
 
     stage.studioProfilers.stage = stage
     cpuService.apply {
-      profilerType = CpuProfiler.CpuProfilerType.ATRACE
+      traceType = Cpu.CpuTraceType.ATRACE
       setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
       setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
     }

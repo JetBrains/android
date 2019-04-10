@@ -15,8 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler;
-
+import com.android.tools.profiler.proto.Cpu;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,18 +36,18 @@ class TraceIdsIterator {
    */
   private final List<Long> myTraceIds;
 
-  public TraceIdsIterator(CpuProfilerStage stage, List<CpuProfiler.TraceInfo> initialTraceInfo) {
+  public TraceIdsIterator(CpuProfilerStage stage, List<Cpu.CpuTraceInfo> initialTraceInfo) {
     myStage = stage;
     myTraceIds = getOrderedInitialTraceIds(initialTraceInfo);
   }
 
   /**
-   * Returns the list of IDs of all the {@link CpuProfiler.TraceInfo} created in the current session, ordered by "from" timestamp.
+   * Returns the list of IDs of all the {@link Cpu.CpuTraceInfo} created in the current session, ordered by "from" timestamp.
    */
-  private static List<Long> getOrderedInitialTraceIds(List<CpuProfiler.TraceInfo> initialTraceInfo) {
+  private static List<Long> getOrderedInitialTraceIds(List<Cpu.CpuTraceInfo> initialTraceInfo) {
     // Gets all the trace info of the session and order them per start time. Use a copy of the list because it's immutable.
-    List<CpuProfiler.TraceInfo> allTraceInfo = new ArrayList<>(initialTraceInfo);
-    allTraceInfo.sort(Comparator.comparingLong(CpuProfiler.TraceInfo::getFromTimestamp));
+    List<Cpu.CpuTraceInfo> allTraceInfo = new ArrayList<>(initialTraceInfo);
+    allTraceInfo.sort(Comparator.comparingLong(Cpu.CpuTraceInfo::getFromTimestamp));
     List<Long> traceIds = new ArrayList<>();
     allTraceInfo.forEach((traceInfo) -> traceIds.add(traceInfo.getTraceId()));
     return traceIds;

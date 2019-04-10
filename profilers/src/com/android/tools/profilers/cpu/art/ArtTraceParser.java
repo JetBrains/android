@@ -17,12 +17,11 @@ package com.android.tools.profilers.cpu.art;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class ArtTraceParser implements TraceParser {
   public CpuCapture parse(File trace, long traceId) throws IOException {
     VmTraceParser parser = new VmTraceParser(trace, myTraceHandler);
     parser.parse();
-    return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.ART);
+    return new CpuCapture(this, traceId, Cpu.CpuTraceType.ART);
   }
 
   @Override

@@ -33,6 +33,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
@@ -161,7 +162,7 @@ class CpuProfilerStageViewTest {
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
     // Set a capture of type atrace.
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
@@ -190,7 +191,7 @@ class CpuProfilerStageViewTest {
   @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ART
+    myCpuService.traceType = Cpu.CpuTraceType.ART
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
     myCpuService.setTrace(ByteString.copyFrom(TestUtils.getWorkspaceFile(ART_TRACE_FILE).readBytes()))
     myStage.studioProfilers.sessionsManager.endCurrentSession()

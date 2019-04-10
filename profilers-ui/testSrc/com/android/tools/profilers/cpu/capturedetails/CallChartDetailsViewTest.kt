@@ -28,6 +28,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
@@ -128,7 +129,7 @@ class CallChartDetailsViewTest {
       val capture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
                                  FakeCpuService.FAKE_TRACE_ID,
                                  CpuProfilerTestUtils.traceFileToByteString(File(CPU_UI_TRACES_DIR + "atrace_processid_1.ctrace")),
-                                 CpuProfiler.CpuProfilerType.ATRACE)!!.get()
+                                 Cpu.CpuTraceType.ATRACE)!!.get()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
       setCaptureDetails(CaptureDetails.Type.CALL_CHART)

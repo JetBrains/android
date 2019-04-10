@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Objects;
@@ -40,12 +40,12 @@ public class ProfilingConfiguration {
   /**
    * Profiler type (ART or simpleperf).
    */
-  private CpuProfilerType myProfilerType;
+  private CpuTraceType myProfilerType;
 
   /**
    * Profiling mode (Sampled or Instrumented).
    */
-  private CpuProfilerMode myMode;
+  private CpuTraceMode myMode;
 
   private int myProfilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB;
 
@@ -64,27 +64,27 @@ public class ProfilingConfiguration {
   }
 
   public ProfilingConfiguration(String name,
-                                CpuProfilerType profilerType,
-                                CpuProfilerMode mode) {
+                                CpuTraceType profilerType,
+                                CpuTraceMode mode) {
     myName = name;
     myProfilerType = profilerType;
     myMode = mode;
   }
 
-  public CpuProfilerMode getMode() {
+  public CpuTraceMode getMode() {
     return myMode;
   }
 
-  public void setMode(CpuProfilerMode mode) {
+  public void setMode(CpuTraceMode mode) {
     myMode = mode;
   }
 
-  public CpuProfilerType getProfilerType() {
+  public CpuTraceType getTraceType() {
     return myProfilerType;
   }
 
-  public void setProfilerType(CpuProfilerType profilerType) {
-    myProfilerType = profilerType;
+  public void setTraceType(CpuTraceType traceType) {
+    myProfilerType = traceType;
   }
 
   public String getName() {
@@ -141,7 +141,7 @@ public class ProfilingConfiguration {
    */
   @NotNull
   public static ProfilingConfiguration fromProto(@NotNull CpuProfiler.CpuProfilerConfiguration proto) {
-    ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getProfilerType(), proto.getProfilerMode());
+    ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getTraceType(), proto.getTraceMode());
     configuration.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
     configuration.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
     configuration.setDisableLiveAllocation(proto.getDisableLiveAllocation());
@@ -156,8 +156,8 @@ public class ProfilingConfiguration {
     return CpuProfiler.CpuProfilerConfiguration
       .newBuilder()
       .setName(getName())
-      .setProfilerType(getProfilerType())
-      .setProfilerMode(getMode())
+      .setTraceType(getTraceType())
+      .setTraceMode(getMode())
       .setSamplingIntervalUs(getProfilingSamplingIntervalUs())
       .setBufferSizeInMb(getProfilingBufferSizeInMb())
       .setDisableLiveAllocation(isDisableLiveAllocation())
@@ -171,7 +171,7 @@ public class ProfilingConfiguration {
     }
     ProfilingConfiguration incoming = (ProfilingConfiguration)obj;
     return StringUtil.equals(getName(), incoming.getName()) &&
-           getProfilerType() == incoming.getProfilerType() &&
+           getTraceType() == incoming.getTraceType() &&
            getMode() == incoming.getMode() &&
            getProfilingSamplingIntervalUs() == incoming.getProfilingSamplingIntervalUs() &&
            getProfilingBufferSizeInMb() == incoming.getProfilingBufferSizeInMb() &&
@@ -181,7 +181,7 @@ public class ProfilingConfiguration {
   @Override
   public int hashCode() {
     return HashCodes
-      .mix(Objects.hashCode(getName()), Objects.hashCode(getProfilerType()), Objects.hashCode(getMode()), getProfilingSamplingIntervalUs(),
+      .mix(Objects.hashCode(getName()), Objects.hashCode(getTraceType()), Objects.hashCode(getMode()), getProfilingSamplingIntervalUs(),
            getProfilingBufferSizeInMb(), Boolean.hashCode(isDisableLiveAllocation()));
   }
 }
