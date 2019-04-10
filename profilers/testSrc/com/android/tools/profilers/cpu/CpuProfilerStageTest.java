@@ -1354,7 +1354,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
     stopCapturing();
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
-    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED);
     // Profiling Configurations should remain the same
     ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
