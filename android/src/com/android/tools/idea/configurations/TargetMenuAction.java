@@ -23,7 +23,6 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -226,7 +225,7 @@ public class TargetMenuAction extends DropDownAction {
       myManager = manager;
 
       if (manager.getStateManager().getProjectState().isPickTarget()) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
     }
 
@@ -259,8 +258,9 @@ public class TargetMenuAction extends DropDownAction {
 
     public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
                            @NotNull final IAndroidTarget target, final boolean select) {
-      super(renderContext, title, select ? LafIconLookup.getIcon("checkmark") : null);
+      super(renderContext, title);
       myTarget = target;
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
     }
 
     @Override

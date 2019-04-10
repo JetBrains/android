@@ -19,6 +19,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
@@ -38,7 +39,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
-abstract class ConfigurationAction extends AnAction implements ConfigurationListener {
+abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
   private static final String FILE_ARROW = " \u2192 ";
   protected final ConfigurationHolder myRenderContext;
   private int myFlags;

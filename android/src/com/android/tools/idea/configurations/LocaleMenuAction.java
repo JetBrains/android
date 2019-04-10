@@ -33,7 +33,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -269,7 +268,7 @@ public class LocaleMenuAction extends DropDownAction {
       // 2. Display flag for locale: Set checked icon for the current locale and set flags for all other locales except default locale.
       // The displaying setting can be get by FlagManager.showFlagsForLanguages().
       if (isCurrentLocale) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
       else if (FlagManager.showFlagsForLanguages() && locale != Locale.ANY) {
         getTemplatePresentation().setIcon(locale.getFlagImage());

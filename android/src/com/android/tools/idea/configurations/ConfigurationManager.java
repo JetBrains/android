@@ -240,7 +240,7 @@ public class ConfigurationManager implements Disposable {
     if (platform == null) {
       return null;
     }
-    Device modelDevice = platform.getSdkData().getDeviceManager().getDevice(avd.getDeviceManufacturer(), avd.getDeviceName());
+    Device modelDevice = platform.getSdkData().getDeviceManager().getDevice(avd.getDeviceName(), avd.getDeviceManufacturer());
     if (modelDevice == null) {
       return null;
     }
