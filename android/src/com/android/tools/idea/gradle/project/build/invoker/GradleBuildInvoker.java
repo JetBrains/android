@@ -51,6 +51,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -422,7 +423,11 @@ public class GradleBuildInvoker {
 
         @Override
         public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
-          if (event instanceof ExternalSystemTaskExecutionEvent) {
+          if (event instanceof ExternalSystemBuildEvent) {
+            BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
+            buildViewManager.onEvent(buildEvent);
+          }
+          else if (event instanceof ExternalSystemTaskExecutionEvent) {
             BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
             buildViewManager.onEvent(buildEvent);
           }
