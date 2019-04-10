@@ -31,7 +31,6 @@ iml_module(
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
     visibility = ["//visibility:public"],
-    exports = ["//tools/idea/.idea/libraries:kotlin-plugin"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
