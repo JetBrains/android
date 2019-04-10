@@ -106,9 +106,9 @@ public final class TransportFileManager {
     return Logger.getInstance(TransportFileManager.class);
   }
 
-  public static final String DEVICE_DIR = "/data/local/tmp/perfd/";
-  static final String DAEMON_CONFIG_FILE = "daemon.config";
-  public static final String AGENT_CONFIG_FILE = "agent.config";
+  static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+  private static final String DAEMON_CONFIG_FILE = "daemon.config";
+  private static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
   @NotNull private final IDevice myDevice;
   @NotNull private final MessageBus myMessageBus;
