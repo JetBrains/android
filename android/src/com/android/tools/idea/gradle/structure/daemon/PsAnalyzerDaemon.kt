@@ -106,11 +106,11 @@ class PsAnalyzerDaemon(
         mainPath,
         LIBRARY_UPDATES_AVAILABLE, UPDATE,
         if (!valueIsReference)
-          listOf(PsLibraryDependencyVersionQuickFixPath(dependency, update.version))
+          listOf(PsLibraryDependencyVersionQuickFixPath(dependency, update.version.orEmpty()))
         else
           listOf(
-            PsLibraryDependencyVersionQuickFixPath(dependency, update.version, updateVariable = true),
-            PsLibraryDependencyVersionQuickFixPath(dependency, update.version, updateVariable = false)
+            PsLibraryDependencyVersionQuickFixPath(dependency, update.version.orEmpty(), updateVariable = true),
+            PsLibraryDependencyVersionQuickFixPath(dependency, update.version.orEmpty(), updateVariable = false)
           ))
       issues.add(issue)
       return true
