@@ -32,7 +32,7 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
@@ -50,8 +50,8 @@ import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
-import com.android.tools.profiler.proto.CpuProfiler.TraceInfo;
-import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
+import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
@@ -219,19 +219,19 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void traceProfilerTypeShouldBeCorrectlySet() {
-    CpuProfilerType traceType = CpuProfilerType.SIMPLEPERF;
+    CpuTraceType traceType = CpuTraceType.SIMPLEPERF;
     CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest
-      .newBuilder().setConfiguration(CpuProfilerConfiguration.newBuilder().setProfilerType(traceType)).build();
+      .newBuilder().setConfiguration(CpuProfilerConfiguration.newBuilder().setTraceType(traceType)).build();
     StreamObserver<CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
     myCpuService.startProfilingApp(startRequest, startObserver);
-    CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.newBuilder().setProfilerType(traceType).build();
+    CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.newBuilder().setTraceType(traceType).build();
     StreamObserver<CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
     myFakeCpuService.setStopProfilingAppStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
     GetTraceRequest request = GetTraceRequest.newBuilder().setTraceId(TRACE_ID).build();
     GetTraceResponse expectedResponse = GetTraceResponse
-      .newBuilder().setStatus(GetTraceResponse.Status.SUCCESS).setData(TRACE_DATA).setProfilerType(traceType).build();
+      .newBuilder().setStatus(GetTraceResponse.Status.SUCCESS).setData(TRACE_DATA).setTraceType(traceType).build();
     StreamObserver<GetTraceResponse> observer = mock(StreamObserver.class);
     myCpuService.getTrace(request, observer);
     validateResponse(observer, expectedResponse);
@@ -275,7 +275,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testApiInitiatedTestHasFile() {
-    myFakeCpuService.addTraceInfo(TraceInfo.newBuilder()
+    myFakeCpuService.addTraceInfo(CpuTraceInfo.newBuilder()
                                     .setFromTimestamp(BASE_TIME_NS)
                                     .setToTimestamp(BASE_TIME_NS)
                                     .setInitiationType(TraceInitiationType.INITIATED_BY_API)
@@ -287,7 +287,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(Long.MAX_VALUE).build();
     GetTraceInfoResponse expectedResponse = GetTraceInfoResponse
       .newBuilder().addTraceInfo(
-        TraceInfo.newBuilder().setInitiationType(TraceInitiationType.INITIATED_BY_API).setFromTimestamp(BASE_TIME_NS)
+        CpuTraceInfo.newBuilder().setInitiationType(TraceInitiationType.INITIATED_BY_API).setFromTimestamp(BASE_TIME_NS)
           .setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID)
           .setTraceFilePath(String.format("%s/cpu_automated_trace_%d.trace", System.getProperty("java.io.tmpdir"), TRACE_ID)))
       .build();
@@ -412,7 +412,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     SaveTraceInfoRequest saveRequest = SaveTraceInfoRequest
       .newBuilder()
       .setSession(SESSION)
-      .setTraceInfo(TraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
+      .setTraceInfo(CpuTraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
       .build();
     myCpuService.saveTraceInfo(saveRequest, mock(StreamObserver.class));
 
@@ -420,7 +420,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(Long.MAX_VALUE).build();
     GetTraceInfoResponse expectedResponse = GetTraceInfoResponse
       .newBuilder().addTraceInfo(
-        TraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
+        CpuTraceInfo.newBuilder().setFromTimestamp(BASE_TIME_NS).setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID))
       .build();
     StreamObserver<GetTraceInfoResponse> observer = mock(StreamObserver.class);
     myCpuService.getTraceInfo(request, observer);
@@ -523,9 +523,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     private int myLastCheckBeingProfiledTimestamp = 1;
 
-    private List<TraceInfo> myTraceInfoResponses = new ArrayList<>();
+    private List<CpuTraceInfo> myTraceInfoResponses = new ArrayList<>();
 
-    public void addTraceInfo(TraceInfo info) {
+    public void addTraceInfo(CpuTraceInfo info) {
       myTraceInfoResponses.add(info);
     }
 

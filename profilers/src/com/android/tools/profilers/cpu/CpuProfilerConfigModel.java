@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
@@ -137,13 +137,13 @@ public class CpuProfilerConfigModel {
       else if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
         // If there is a preference for a native configuration, we select simpleperf.
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.SIMPLEPERF);
+          Iterables.find(defaultConfigs, pref -> pref != null && pref.getTraceType() == CpuTraceType.SIMPLEPERF);
       }
       else {
         // Otherwise we select ART sampled.
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.ART
-                                                 && pref.getMode() == CpuProfilerMode.SAMPLED);
+          Iterables.find(defaultConfigs, pref -> pref != null && pref.getTraceType() == CpuTraceType.ART
+                                                 && pref.getMode() == CpuTraceMode.SAMPLED);
       }
     }
   }
@@ -155,7 +155,7 @@ public class CpuProfilerConfigModel {
       if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
         return false;
       }
-      if (pref.getProfilerType() == CpuProfilerType.ATRACE) {
+      if (pref.getTraceType() == CpuTraceType.ATRACE) {
         return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
       }
       return true;

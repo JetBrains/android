@@ -17,16 +17,16 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
-import com.android.tools.profiler.proto.CpuProfiler.TraceInfo;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import java.sql.Connection;
@@ -276,8 +276,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return cpuData;
   }
 
-  public List<TraceInfo> getTraceInfo(GetTraceInfoRequest request) {
-    List<TraceInfo> traceInfo = new ArrayList<>();
+  public List<CpuTraceInfo> getTraceInfo(GetTraceInfoRequest request) {
+    List<CpuTraceInfo> traceInfo = new ArrayList<>();
     try {
       ResultSet results =
         executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getSession().getSessionId(), request.getToTimestamp(),
@@ -287,7 +287,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
         // QUERY_TRACE_INFO will return only one column.
         byte[] data = results.getBytes(1);
         if (data != null) {
-          traceInfo.add(TraceInfo.parseFrom(data));
+          traceInfo.add(CpuTraceInfo.parseFrom(data));
         }
       }
     }
@@ -304,10 +304,10 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       if (results.next()) {
         byte[] data = results.getBytes(DATA_COLUMN);
         if (data != null) {
-          CpuProfilerType profilerType =
-            CpuProfilerType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_DATA));
-          CpuProfilerMode profilerMode =
-            CpuProfilerMode.valueOf(results.getString(PROFILER_MODE_COLUMN_TRACE_DATA));
+          CpuTraceType profilerType =
+            CpuTraceType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_DATA));
+          CpuTraceMode profilerMode =
+            CpuTraceMode.valueOf(results.getString(PROFILER_MODE_COLUMN_TRACE_DATA));
           return new TraceData(ByteString.copyFrom(data), profilerType, profilerMode);
         }
       }
@@ -318,13 +318,13 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return null;
   }
 
-  public void insertTrace(Common.Session session, long traceId, CpuProfilerType profilerType, CpuProfilerMode profilerMode,
+  public void insertTrace(Common.Session session, long traceId, CpuTraceType profilerType, CpuTraceMode profilerMode,
                           ByteString data) {
     execute(CpuStatements.INSERT_TRACE_DATA, session.getSessionId(), traceId, profilerType.toString(), profilerMode.toString(),
             data.toByteArray());
   }
 
-  public void insertTraceInfo(Common.Session session, TraceInfo trace) {
+  public void insertTraceInfo(Common.Session session, CpuTraceInfo trace) {
     execute(CpuStatements.INSERT_TRACE_INFO, session.getSessionId(), trace.getFromTimestamp(), trace.getToTimestamp(), trace.toByteArray());
   }
 
@@ -362,25 +362,25 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
    */
   public static class TraceData {
     private final ByteString myTraceBytes;
-    private final CpuProfilerType myProfilerType;
-    private final CpuProfilerMode myProfilerMode;
+    private final CpuTraceType myTraceType;
+    private final CpuTraceMode myTraceMode;
 
-    public TraceData(ByteString traceBytes, CpuProfilerType profilerType, CpuProfilerMode profilerMode) {
+    public TraceData(ByteString traceBytes, CpuTraceType traceType, CpuTraceMode traceMode) {
       myTraceBytes = traceBytes;
-      myProfilerType = profilerType;
-      myProfilerMode = profilerMode;
+      myTraceType = traceType;
+      myTraceMode = traceMode;
     }
 
     public ByteString getTraceBytes() {
       return myTraceBytes;
     }
 
-    public CpuProfilerType getProfilerType() {
-      return myProfilerType;
+    public CpuTraceType getTraceType() {
+      return myTraceType;
     }
 
-    public CpuProfilerMode getProfilerMode() {
-      return myProfilerMode;
+    public CpuTraceMode getTraceMode() {
+      return myTraceMode;
     }
   }
 }

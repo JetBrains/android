@@ -98,7 +98,7 @@ class CpuThreadsViewTest {
     val threadsView = CpuThreadsView(stage)
     stage.studioProfilers.stage = stage
     cpuService.apply {
-      profilerType = CpuProfiler.CpuProfilerType.ATRACE
+      traceType = Cpu.CpuTraceType.ATRACE
       setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
       setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
     }

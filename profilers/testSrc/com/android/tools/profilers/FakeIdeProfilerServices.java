@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
@@ -379,9 +379,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
-  public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
+  public void addCustomProfilingConfiguration(String name, Cpu.CpuTraceType type) {
     ProfilingConfiguration config =
-      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE);
+      new ProfilingConfiguration(name, type, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
     myCustomProfilingConfigurations.add(config);
   }
 
@@ -393,17 +393,17 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
     ProfilingConfiguration artSampled = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
-                                                                   CpuProfiler.CpuProfilerType.ART,
-                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                                   Cpu.CpuTraceType.ART,
+                                                                   Cpu.CpuTraceMode.SAMPLED);
     ProfilingConfiguration artInstrumented = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
-                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+                                                                        Cpu.CpuTraceType.ART,
+                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
     ProfilingConfiguration simpleperf = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
-                                                                   CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                                   Cpu.CpuTraceType.SIMPLEPERF,
+                                                                   Cpu.CpuTraceMode.SAMPLED);
     ProfilingConfiguration atrace = new ProfilingConfiguration(FAKE_ATRACE_NAME,
-                                                               CpuProfiler.CpuProfilerType.ATRACE,
-                                                               CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                               Cpu.CpuTraceType.ATRACE,
+                                                               Cpu.CpuTraceMode.SAMPLED);
     return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
   }
 

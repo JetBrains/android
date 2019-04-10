@@ -278,7 +278,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         myIsMainThread = myThreadId == mySession.getPid();
       }
       else {
-        if (capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
+        if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
           mySeries =
           myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
         }
