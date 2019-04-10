@@ -21,7 +21,7 @@ import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.intellij.util.ui.LafIconLookup;
+import com.intellij.openapi.actionSystem.Toggleable;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -201,9 +201,7 @@ public class OrientationMenuAction extends DropDownAction {
                                  boolean isCurrentState) {
       super(renderContext, title);
       myState = state;
-      if (isCurrentState) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
-      }
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, isCurrentState);
     }
 
     @Override
@@ -218,9 +216,7 @@ public class OrientationMenuAction extends DropDownAction {
     private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
       super(renderContext, title);
       myUiMode = uiMode;
-      if (checked) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
-      }
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, checked);
     }
 
     @Override
@@ -238,9 +234,7 @@ public class OrientationMenuAction extends DropDownAction {
                                boolean checked) {
       super(renderContext, title);
       myNightMode = nightMode;
-      if (checked) {
-        getTemplatePresentation().setIcon(LafIconLookup.getIcon("checkmark"));
-      }
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, checked);
     }
 
     @Override
@@ -250,7 +244,7 @@ public class OrientationMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static class SwitchToVariationAction extends AnAction {
+  static class SwitchToVariationAction extends AnAction implements Toggleable {
     private final Project myProject;
     private final VirtualFile myFile;
 
@@ -260,7 +254,7 @@ public class OrientationMenuAction extends DropDownAction {
       myProject = project;
       if (select) {
         Presentation templatePresentation = getTemplatePresentation();
-        templatePresentation.setIcon(LafIconLookup.getIcon("checkmark"));
+        templatePresentation.putClientProperty(SELECTED_PROPERTY, true);
         templatePresentation.setEnabled(false);
       }
     }
