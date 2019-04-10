@@ -262,8 +262,7 @@ public class PostSyncProjectSetup {
       updateJavaLanguageLevel();
       notifySyncFinished(request);
 
-      ApplicationManager.getApplication()
-        .invokeLater(() -> TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject), task -> myProject.isDisposed());
+      TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
       myModuleSetup.setUpModules(null);
 
