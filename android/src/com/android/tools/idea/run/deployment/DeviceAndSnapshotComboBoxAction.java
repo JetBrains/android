@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
@@ -70,13 +71,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
-  private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
+  @VisibleForTesting
+  static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
+
   private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
+
+  @NotNull
+  private final Function<Project, PropertiesComponent> myGetProperties;
 
   private final AnAction myRunOnMultipleDevicesAction;
   private final AnAction myOpenAvdManagerAction;
@@ -91,6 +97,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(),
          () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
          project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+         PropertiesComponent::getInstance,
          Clock.systemDefaultZone());
   }
 
@@ -98,11 +105,13 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
                                   @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
                                   @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
+                                  @NotNull Function<Project, PropertiesComponent> getProperties,
                                   @NotNull Clock clock) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
     myDevicesGetterGetter = devicesGetterGetter;
+    myGetProperties = getProperties;
 
     myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction();
     myOpenAvdManagerAction = new RunAndroidAvdManagerAction();
@@ -145,7 +154,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return null;
     }
 
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    PropertiesComponent properties = myGetProperties.apply(project);
     Object key = properties.getValue(SELECTED_DEVICE);
 
     Optional<Device> optionalSelectedDevice = myDevices.stream()
@@ -167,17 +176,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .findFirst();
 
     if (optionalConnectedDevice.isPresent()) {
-      CharSequence selectionTimeString = properties.getValue(SELECTION_TIME);
-      assert selectionTimeString != null : "selected device \"" + selectedDevice + "\" has a null selection time string";
-
-      Instant selectionTime = Instant.parse(selectionTimeString);
-
       Device connectedDevice = optionalConnectedDevice.get();
 
       Instant connectionTime = connectedDevice.getConnectionTime();
       assert connectionTime != null : "connected device \"" + connectedDevice + "\" has a null connection time";
 
-      if (selectionTime.isBefore(connectionTime)) {
+      if (getSelectionTime(selectedDevice, properties).isBefore(connectionTime)) {
         return connectedDevice;
       }
     }
@@ -185,8 +189,22 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return selectedDevice;
   }
 
+  @NotNull
+  private static Instant getSelectionTime(@NotNull Device device, @NotNull PropertiesComponent properties) {
+    CharSequence time = properties.getValue(SELECTION_TIME);
+
+    if (time == null) {
+      // I don't know why this happens
+      Logger.getInstance(DeviceAndSnapshotComboBoxAction.class).warn("selected device \"" + device + "\" has a null selection time string");
+
+      return Instant.MIN;
+    }
+
+    return Instant.parse(time);
+  }
+
   void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    PropertiesComponent properties = myGetProperties.apply(project);
 
     if (selectedDevice == null) {
       properties.unsetValue(SELECTED_DEVICE);
