@@ -28,7 +28,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
-import com.android.tools.idea.resourceExplorer.actions.ShowFileInResourceManagerAction;
+import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
