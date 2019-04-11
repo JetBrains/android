@@ -48,8 +48,7 @@ class PsLibraryUpdateCheckerDaemon(
 ) : PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
-
-  private val running = AtomicBoolean(true)
+  override val isRunning: Boolean get() = !mainQueue.isEmpty || mainQueue.isFlushing
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
 
@@ -80,13 +79,11 @@ class PsLibraryUpdateCheckerDaemon(
       }, parentDisposable)
   }
 
-  override val isRunning: Boolean get() = running.get()
 
   private fun search(
     repositories: Collection<ArtifactRepository>,
     ids: Collection<LibraryUpdateId>
   ) {
-    running.set(true)
     getAvailableUpdates().clear()
 
     val requests =
@@ -145,7 +142,6 @@ class PsLibraryUpdateCheckerDaemon(
 
     override fun run() {
       eventDispatcher.multicaster.availableUpdates()
-      running.set(false)
     }
   }
 
