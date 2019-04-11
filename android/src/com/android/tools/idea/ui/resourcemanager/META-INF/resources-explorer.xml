@@ -1,0 +1,69 @@
+<!--
+  ~ Copyright (C) 2019 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin url="https://www.jetbrains.com/idea">
+
+  <extensionPoints>
+    <extensionPoint
+        qualifiedName="com.android.resourceImporter"
+        interface="com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter"/>
+    <extensionPoint
+        qualifiedName="com.android.resourceViewer"
+        interface="com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRenderer"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android">
+    <resourceImporter implementation="com.android.tools.idea.ui.resourcemanager.plugin.RasterResourceImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.ui.resourcemanager.plugin.SVGImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.ui.resourcemanager.plugin.VectorDrawableImporter"/>
+    <!--<resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.SketchImporter"/>-->
+    <resourceViewer implementation="com.android.tools.idea.ui.resourcemanager.plugin.SVGAssetRenderer"/>
+    <resourceViewer implementation="com.android.tools.idea.ui.resourcemanager.plugin.RasterAssetRenderer"/>
+    <resourceViewer implementation="com.android.tools.idea.ui.resourcemanager.plugin.DrawableAssetRenderer"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager"/>
+    <customPasteProvider implementation="com.android.tools.idea.ui.resourcemanager.ResourcePasteProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.ui.resourcemanager.importer.ImportConfigurationManager"/>
+    <toolWindow anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" id="Resources Explorer"
+                factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"
+                conditionClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
+  </extensions>
+
+  <actions>
+    <group id="ResourceExplorer">
+      <reference ref="Move"/>
+      <reference ref="$Copy"/>
+      <reference ref="RenameElement"/>
+      <reference ref="SafeDelete"/>
+      <separator/>
+      <reference ref="FindUsages"/>
+      <reference ref="SelectIn"/>
+      <reference ref="RevealIn"/>
+    </group>
+
+    <action class="com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction"
+            id="ResourceExplorer.show"
+            icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS">
+      <keyboard-shortcut first-keystroke="shift control T" keymap="$default" replace-all="true"/>
+    </action>
+  </actions>
+
+
+</idea-plugin>
