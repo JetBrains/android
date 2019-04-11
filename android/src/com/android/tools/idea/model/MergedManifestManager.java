@@ -79,7 +79,7 @@ public class MergedManifestManager {
                                                      @Nullable MergedManifestInfo mergedManifestInfo,
                                                      boolean forceLoad) {
     return ReadAction.compute(() -> {
-      if (forceLoad || mergedManifestInfo == null || !mergedManifestInfo.isUpToDate()) {
+      if (!facet.isDisposed() && (forceLoad || mergedManifestInfo == null || !mergedManifestInfo.isUpToDate())) {
         return MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet));
       }
       return null;
