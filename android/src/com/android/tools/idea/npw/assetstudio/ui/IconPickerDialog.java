@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.DocumentAdapter;
@@ -62,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A dialog to pick a pre-configured material icon in vector format.
  */
-public final class IconPickerDialog extends DialogWrapper {
+public final class IconPickerDialog extends DialogWrapper implements DataProvider {
   @NotNull private static final String[] ICON_CATEGORIES = initIconCategories();
 
   private static String[] initIconCategories() {
@@ -257,6 +262,12 @@ public final class IconPickerDialog extends DialogWrapper {
       initializeSelection(selectedIcon);
     }
 
+    DataManager.registerDataProvider(myContentPanel, this);
+    AnAction action = ActionManager.getInstance().getAction(ACTION_FIND);
+    if (action != null) {
+      new SearchTextField.FindAction().registerCustomShortcutSet(action.getShortcutSet(), getRootPane(), myDisposable);
+    }
+
     init();
   }
 
@@ -356,5 +367,11 @@ public final class IconPickerDialog extends DialogWrapper {
   @NotNull
   protected JComponent createCenterPanel() {
     return myContentPanel;
+  }
+
+  @Override
+  @Nullable
+  public Object getData(@NotNull String dataId) {
+    return SearchTextField.KEY.is(dataId) ? mySearchField : null;
   }
 }
