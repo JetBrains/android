@@ -27,8 +27,8 @@ import org.junit.Test;
 public final class BooleanExpressionsTest {
   @Test
   public void testInvariants() throws Exception {
-    assertThat(ObservableBool.ALWAYS_TRUE.get()).isTrue();
-    assertThat(ObservableBool.ALWAYS_FALSE.get()).isFalse();
+    assertThat(ObservableBool.TRUE.get()).isTrue();
+    assertThat(ObservableBool.FALSE.get()).isFalse();
   }
 
   @Test

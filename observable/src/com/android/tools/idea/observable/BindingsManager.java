@@ -58,7 +58,7 @@ public final class BindingsManager {
    * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, ObservableBool.ALWAYS_TRUE);
+    bind(dest, src, ObservableBool.TRUE);
   }
 
   /**
