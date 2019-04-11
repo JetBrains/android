@@ -38,6 +38,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
@@ -363,7 +364,6 @@ public class InteractionManager {
       int y = event.getY();
       int clickCount = event.getClickCount();
 
-      NlComponent component = getComponentAt(x, y);
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
         mySurface.onDoubleClick(x, y);
         return;
@@ -375,7 +375,7 @@ public class InteractionManager {
       }
 
       if (event.isPopupTrigger()) {
-        selectComponentAt(x, y, false, true);
+        NlComponent component = selectComponentAt(x, y, false, true);
         mySurface.getActionManager().showPopup(event, component);
       }
     }
@@ -489,8 +489,15 @@ public class InteractionManager {
         component = clicked.getNlComponent();
       }
 
+      SecondarySelector secondarySelector = Scene.getSecondarySelector(context, xDip, yDip);
+      boolean useSecondarySelector = component != null && secondarySelector != null;
+      if (useSecondarySelector) {
+        // Change clicked component to the secondary selection.
+        component = secondarySelector.getComponent();
+      }
+
       SelectionModel selectionModel = sceneView.getSelectionModel();
-      if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
+      if (ignoreIfAlreadySelected && secondarySelector == null && component != null && selectionModel.isSelected(component)) {
         return component;
       }
 
@@ -499,6 +506,9 @@ public class InteractionManager {
       }
       else if (allowToggle) {
         selectionModel.toggle(component);
+      }
+      else if (useSecondarySelector) {
+        selectionModel.setSecondarySelection(component, secondarySelector.getConstraint());
       }
       else {
         selectionModel.setSelection(Collections.singletonList(component));

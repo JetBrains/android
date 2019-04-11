@@ -576,9 +576,8 @@ public class Scene implements SelectionListener, Disposable {
     if (closestComponent == null
         || closestComponent.getNlComponent().isRoot()
            && myHitTarget == null) {
-      Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
-      if (obj != null && obj instanceof SecondarySelector) {
-        SecondarySelector ss = (SecondarySelector)obj;
+      SecondarySelector ss = getSecondarySelector(transform, x, y);
+      if (ss != null) {
         NlComponent component = ss.getComponent();
         myLastHoverConstraintComponent = ss.getComponent();
         tooltip = getConstraintToolTip(ss);
@@ -829,7 +828,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       return true;
     });
-    SecondarySelector secondarySelector = getSelector(transform, x, y);
+    SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -849,9 +848,13 @@ public class Scene implements SelectionListener, Disposable {
     myHitListener.setTargetFilter(null);
   }
 
-  private SecondarySelector getSelector(@NotNull SceneContext transform,
-                                        @AndroidDpCoordinate int x,
-                                        @AndroidDpCoordinate int y) {
+  /**
+   * @return The {@link SecondarySelector} (if any) from drawn objects at a given android coordinate.
+   */
+  @Nullable
+  public static SecondarySelector getSecondarySelector(@NotNull SceneContext transform,
+                                                       @AndroidDpCoordinate int x,
+                                                       @AndroidDpCoordinate int y) {
     Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
     if (obj != null && obj instanceof SecondarySelector) {
       return  (SecondarySelector)obj;
@@ -969,7 +972,7 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
 
-    SecondarySelector secondarySelector = getSelector(transform, x, y);
+    SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
 
     boolean same = sameSelection();
     if (secondarySelector == null && !same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
