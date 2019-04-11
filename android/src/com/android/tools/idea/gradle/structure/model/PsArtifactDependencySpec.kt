@@ -25,7 +25,7 @@ import org.gradle.tooling.model.GradleModuleVersion
 import java.util.regex.Pattern
 
 /**
- * Similar to [com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec], with the difference that for the
+ * Similar to [com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec], with the difference that for the
  * 'Project Structure Dialog' (PSD) we don't care about a dependency's classifier and extension because the PSD matches/merges
  * dependencies obtained from different models (e.g. Gradle model, 'parsed' model and POM model,) and those dependencies can be expressed
  * differently on each model.
@@ -70,7 +70,7 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
 
   companion object {
 
-    // Regex covering the format group:name:version:classifier@package. only name group and version are captured, and only name is required.
+    // Regex covering the format group:name:version:classifier@extension. only name group and version are captured, and only name is required.
     // To avoid ambiguity name must not start with a digit and version must start with a digit (otherwise a:b could be parsed as group:name or
     // name:version). This requirement does not seem to be documented anywhere but is assumed elsewhere in the code and is true for all
     // examples of this format that I have seen.
