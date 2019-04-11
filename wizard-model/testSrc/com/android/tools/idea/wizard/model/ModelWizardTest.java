@@ -674,7 +674,7 @@ public class ModelWizardTest {
     @NotNull
     @Override
     protected ObservableBool canGoForward() {
-      return ObservableBool.ALWAYS_FALSE;
+      return ObservableBool.FALSE;
     }
   }
 

@@ -101,7 +101,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
    */
   @NotNull
   public ObservableBool isResizable() {
-    return ObservableBool.ALWAYS_TRUE;
+    return ObservableBool.TRUE;
   }
 
   /**
