@@ -18,8 +18,8 @@ package com.android.tools.idea.ui.resourcemanager.actions
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
-import com.android.tools.idea.ui.resourcemanager.editor.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.editor.SUPPORTED_RESOURCES
+import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
+import com.android.tools.idea.ui.resourcemanager.SUPPORTED_RESOURCES
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction

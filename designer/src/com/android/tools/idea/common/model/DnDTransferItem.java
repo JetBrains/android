@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking;
-import com.android.tools.idea.ui.resourcemanager.viewmodel.ResourceDataManagerKt;
+import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManagerKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;

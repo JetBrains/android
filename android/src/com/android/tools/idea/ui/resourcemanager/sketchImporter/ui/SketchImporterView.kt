@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.ui
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
-import com.android.tools.idea.ui.resourcemanager.view.DesignAssetCellRenderer
+import com.android.tools.idea.ui.resourcemanager.explorer.DesignAssetCellRenderer
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.CollectionListModel
@@ -103,8 +103,9 @@ class SketchImporterView : JPanel(BorderLayout()) {
   }
 
   fun addDocumentView(documentPresenter: DocumentPresenter) {
-    documentView = DocumentView(DesignAssetCellRenderer(documentPresenter.assetPreviewManager),
-                                ColorAssetCellRenderer())
+    documentView = DocumentView(
+      DesignAssetCellRenderer(documentPresenter.assetPreviewManager),
+      ColorAssetCellRenderer())
     documentPresenter.view = documentView
     resourcesPanel.add(documentView)
     resourcesPanel.repaint()

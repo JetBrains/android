@@ -81,7 +81,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getInstance(facet).getModuleResources()!!
+    val moduleResources = ResourceRepositoryManager.getInstance(facet).moduleResources
     val items = moduleResources.allResources.sortedBy { it.resourceValue?.value }
 
     var i = 0

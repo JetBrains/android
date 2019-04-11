@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.ui.resourcemanager.editor.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.view.NoFacetView
+import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
@@ -86,7 +85,8 @@ class ResourceExplorerToolWindowTest {
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
     resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
-    assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(NoFacetView::class.java)
+    assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(
+      NoFacetView::class.java)
   }
 
   @Test
