@@ -64,7 +64,6 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     myFacet = facet;
     myNamespace = namespace;
     assert facet.requiresAndroidModel();
-
   }
 
   private void registerListeners() {
@@ -101,7 +100,13 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
     ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getNamespace();
     DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
-    repository.registerListeners();
+    try {
+      repository.registerListeners();
+    }
+    catch (Throwable t) {
+      Disposer.dispose(repository);
+      throw t;
+    }
     return repository;
   }
 
@@ -191,8 +196,8 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     notifyProjectSynced();
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
     return ImmutableSet.of();
   }

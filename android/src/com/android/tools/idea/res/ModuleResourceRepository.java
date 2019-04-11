@@ -108,18 +108,23 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     }
 
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
-    List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
 
     DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet);
-    childRepositories.add(dynamicResources);
-    addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
+    ModuleResourceRepository moduleRepository;
 
-    // We create a ModuleResourceRepository even if childRepositories.isEmpty(), because we may
-    // dynamically add children to it later (in updateRoots).
-    ModuleResourceRepository repository = new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.MAIN);
-    Disposer.register(repository, dynamicResources);
+    try {
+      List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
+      childRepositories.add(dynamicResources);
+      addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
+      moduleRepository = new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.MAIN);
+    }
+    catch (Throwable t) {
+      Disposer.dispose(dynamicResources);
+      throw t;
+    }
 
-    return repository;
+    Disposer.register(moduleRepository, dynamicResources);
+    return moduleRepository;
   }
 
   /**
