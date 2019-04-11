@@ -133,7 +133,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
    */
   @NotNull
   protected ObservableBool canGoForward() {
-    return ObservableBool.ALWAYS_TRUE;
+    return ObservableBool.TRUE;
   }
 
   /**
