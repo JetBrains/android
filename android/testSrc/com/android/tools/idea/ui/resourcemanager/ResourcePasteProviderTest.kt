@@ -17,8 +17,9 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.ui.resourcemanager.viewmodel.RESOURCE_URL_FLAVOR
+import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_URL_FLAVOR
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.model.ResourcePasteProvider
 import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFileSystem
 import com.intellij.openapi.actionSystem.CommonDataKeys

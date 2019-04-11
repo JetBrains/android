@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.actions
 
-import com.android.tools.idea.ui.resourcemanager.editor.ResourceExplorer
+import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.testing.AndroidProjectRule
