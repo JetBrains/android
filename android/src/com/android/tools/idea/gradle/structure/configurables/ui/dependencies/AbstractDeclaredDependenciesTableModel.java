@@ -102,19 +102,6 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
   public void reset() {
   }
 
-  @Nullable
-  public PsLibraryDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
-    for (PsBaseDependency dependency : getItems()) {
-      if (dependency instanceof PsLibraryDependency) {
-        PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-        if (spec.equals(libraryDependency.getSpec())) {
-          return libraryDependency;
-        }
-      }
-    }
-    return null;
-  }
-
   @NotNull
   protected PsContext getContext() {
     return myContext;
