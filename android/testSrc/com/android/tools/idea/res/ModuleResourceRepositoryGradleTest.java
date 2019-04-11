@@ -54,7 +54,7 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
    */
   public void testTestFolders() throws Exception {
     loadSimpleApplication();
-    LocalResourceRepository repository = ModuleResourceRepository.forTestResources(myAndroidFacet);
+    LocalResourceRepository repository = ModuleResourceRepository.forTestResources(myAndroidFacet, RES_AUTO);
     Disposer.register(myAndroidFacet, repository);
 
     assertThat(repository.getAllResources()).isEmpty();
