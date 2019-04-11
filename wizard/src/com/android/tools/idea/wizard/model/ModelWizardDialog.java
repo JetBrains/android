@@ -254,12 +254,12 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @NotNull
     public ObservableBool shouldBeVisible() {
-      return ObservableBool.ALWAYS_TRUE;
+      return ObservableBool.TRUE;
     }
 
     @NotNull
     public ObservableBool shouldBeDefault() {
-      return ObservableBool.ALWAYS_FALSE;
+      return ObservableBool.FALSE;
     }
   }
 
@@ -347,7 +347,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
           return not(myWizard.onLastStep().and(myWizard.canGoForward()));
         case ALWAYS_CAN_CANCEL:
         default:
-          return ObservableBool.ALWAYS_TRUE;
+          return ObservableBool.TRUE;
       }
     }
   }

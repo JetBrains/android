@@ -25,14 +25,14 @@ import org.jetbrains.annotations.NotNull;
  * Read-only handle to a {@link BoolProperty}.
  */
 public interface ObservableBool extends ObservableValue<Boolean> {
-  ObservableBool ALWAYS_TRUE = new ConstantBool() {
+  ObservableBool TRUE = new ConstantBool() {
     @Override
     @NotNull
     public Boolean get() {
       return Boolean.TRUE;
     }
   };
-  ObservableBool ALWAYS_FALSE = new ConstantBool() {
+  ObservableBool FALSE = new ConstantBool() {
     @Override
     @NotNull
     public Boolean get() {
