@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.EnumColors;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
@@ -186,9 +187,9 @@ public class ProfilerColors {
 
   public static final Color COMBOBOX_SELECTED_CELL = new JBColor(0x3875D6, 0x3875D6);
 
-  public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
+  public static final Color DEFAULT_BACKGROUND = StudioColorsKt.getPrimaryContentBackground();
 
-  public static final Color DEFAULT_STAGE_BACKGROUND = new JBColor(0xFFFFFF, 0x2B2D2E);
+  public static final Color DEFAULT_STAGE_BACKGROUND = StudioColorsKt.getPrimaryContentBackground();
 
   public static final Color MONITOR_FOCUSED = new JBColor(0xF5F7F8, 0x2B2C2D);
 
@@ -258,7 +259,7 @@ public class ProfilerColors {
 
   public static final Color MONITORS_HEADER_TEXT = new JBColor(0x545454, 0xCACACA);
 
-  public static final Color TOOLTIP_BACKGROUND = new JBColor(0xFFFFFF, 0x3D3F41);
+  public static final Color TOOLTIP_BACKGROUND = StudioColorsKt.getCanvasTooltipBackground();
 
   public static final Color TOOLTIP_TEXT = JBColor.foreground();
 
