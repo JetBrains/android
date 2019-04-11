@@ -193,6 +193,8 @@ resources](https://developer.android.com/guide/topics/resources/complex-xml-reso
 `AndroidXmlCharFilter` changes how pressing `|` behaves during completion, to make typing flags like `android:inputType` easier. This works
 in conjunction with `FlagConverter` and `AndroidCompletionContributor`.
 
+`AndroidXmlTypedHandler` opens code completion after typing '@' in relevant XML contexts.
+
 > **TODO:** This feature seems unfinished, pressing `|` should insert the current value and open completion again for a second value.
 
 `AndroidLineMarkerProvider` adds gutter icons for related Java files.
