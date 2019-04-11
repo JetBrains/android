@@ -73,7 +73,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     }
 
     private fun index(update: AvailableLibraryUpdate) {
-      myUpdatesById[LibraryUpdateId(update.name!!, update.groupId)] = update
+      myUpdatesById[LibraryUpdateId(update.groupId.orEmpty(), update.name!!)] = update
     }
 
     fun findUpdateFor(spec: PsArtifactDependencySpec): AvailableLibraryUpdate? {
@@ -81,7 +81,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       if (isNotEmpty(version)) {
         val parsedVersion = GradleVersion.tryParse(spec.version!!)
         if (parsedVersion != null) {
-          val id = LibraryUpdateId(spec.name, spec.group)
+          val id = LibraryUpdateId(spec.group.orEmpty(), spec.name)
           val update = myUpdatesById[id]
           if (update != null) {
             val foundVersion = GradleVersion.parse(update.version!!)
