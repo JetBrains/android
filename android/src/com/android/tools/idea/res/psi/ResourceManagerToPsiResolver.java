@@ -16,9 +16,11 @@
 package com.android.tools.idea.res.psi;
 
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -30,6 +32,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.resources.aar.AarResourceItem;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiReferenceExpression;
@@ -45,10 +48,12 @@ import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.DeclareStyleable;
 import org.jetbrains.android.dom.resources.ResourceValue;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
+import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -136,6 +141,30 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
     }
 
     return result.toArray(ResolveResult.EMPTY_ARRAY);
+  }
+
+  @Override
+  @NotNull
+  public PsiElement[] getXmlAttributeNameGotoDeclarationTargets(@NotNull String attributeName,
+                                                                @NotNull ResourceNamespace namespace,
+                                                                @NotNull PsiElement context,
+                                                                @NotNull AndroidFacet facet) {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    ResourceRepository repository = namespace.equals(ResourceNamespace.ANDROID) ?
+                                    repositoryManager.getFrameworkResources(false) : repositoryManager.getAppResources();
+    if (repository == null) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+    ArrayList<PsiElement> elementList = new ArrayList<>();
+    for (ResourceItem resourceItem : repository.getResources(namespace, ResourceType.ATTR, attributeName)) {
+      VirtualFile file = toVirtualFile(resourceItem.getSource());
+      if (file == null) {
+        continue;
+      }
+      elementList.add(
+        new LazyValueResourceElementWrapper(new ValueResourceInfoImpl(resourceItem, file, facet.getModule().getProject()), context));
+    }
+    return elementList.toArray(PsiElement.EMPTY_ARRAY);
   }
 
   @Override
