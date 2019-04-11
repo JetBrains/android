@@ -299,6 +299,7 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon ADD_COMPONENT = load("/studio/icons/layout-editor/toolbar/add-component.svg"); // 16x16
+      public static final Icon ADD_LOCALE = load("/studio/icons/layout-editor/toolbar/add-locale.svg"); // 16x16
       public static final Icon ANDROID_API = load("/studio/icons/layout-editor/toolbar/android-api.svg"); // 16x16
       public static final Icon ARROW_DOWN = load("/studio/icons/layout-editor/toolbar/arrow-down.svg"); // 16x16
       public static final Icon ARROW_LEFT = load("/studio/icons/layout-editor/toolbar/arrow-left.svg"); // 16x16
