@@ -70,14 +70,15 @@ public class SceneLayer extends Layer {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       mySceneView.getSize(myScreenViewSize);
 
+      Rectangle clipBounds = g.getClipBounds();
       mySizeRectangle.setBounds(mySceneView.getX(), mySceneView.getY(), myScreenViewSize.width, myScreenViewSize.height);
-      Rectangle2D.intersect(mySizeRectangle, g.getClipBounds(), mySizeRectangle);
+      Rectangle2D.intersect(mySizeRectangle, clipBounds, mySizeRectangle);
       if (mySizeRectangle.isEmpty()) {
         return;
       }
 
       myDesignSurface.getRenderableBoundsOfSceneView(mySceneView, mySurfaceRectangle);
-      Rectangle2D.intersect(mySurfaceRectangle, g.getClipBounds(), mySurfaceRectangle);
+      Rectangle2D.intersect(mySurfaceRectangle, clipBounds, mySurfaceRectangle);
       sceneContext.setRenderableBounds(mySurfaceRectangle);
 
       if (myShowAlways) {
