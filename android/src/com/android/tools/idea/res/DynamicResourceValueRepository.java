@@ -97,8 +97,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
    * up to date. The returned repository needs to be registered with a {@link Disposable} parent.
    */
   @NotNull
-  public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
-    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getNamespace();
+  public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
     try {
       repository.registerListeners();
