@@ -126,7 +126,7 @@ class PsLibraryUpdateCheckerDaemon(
               if (isNotEmpty(spec.version)) {
                 val version = GradleVersion.tryParse(spec.version!!)
                 if (version != null) {
-                  ids.add(LibraryUpdateId(spec.name, spec.group))
+                  ids.add(LibraryUpdateId(spec.group.orEmpty(), spec.name))
                 }
               }
             }
