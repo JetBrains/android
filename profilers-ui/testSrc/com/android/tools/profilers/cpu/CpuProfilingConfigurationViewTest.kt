@@ -21,7 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -100,9 +99,12 @@ class CpuProfilingConfigurationViewTest {
     assertThat(configurationView.profilingConfigurations.size).isGreaterThan(1)
 
     // API-initiated tracing starts.
-    val apiTracingconfig = CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build()
+    val apiTracingconfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_API)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build()
     val startTimestamp: Long = 100
-    cpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_API)
+    cpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp)
     stage.updateProfilingState(true)
 
     // Verify the configuration is set to the special config properly.

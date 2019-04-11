@@ -569,7 +569,9 @@ class SessionsViewTest {
     val sessionStartNs = 1L
 
     // Sets an ongoing profiling configuration in the service
-    val configuration = CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE).build()
+    val configuration = Cpu.CpuTraceConfiguration.newBuilder()
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE))
+      .build()
     myCpuService.setOngoingCaptureConfiguration(configuration, sessionStartNs + 1)
 
     myTimer.currentTimeNs = sessionStartNs

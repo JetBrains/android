@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
@@ -627,7 +628,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ProfilingStateResponse response = getClient().getCpuClient()
       .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
 
-    return response.getBeingProfiled() && response.getIsStartupProfiling();
+    return response.getBeingProfiled() && response.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP;
   }
 
   /**

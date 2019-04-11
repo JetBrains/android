@@ -195,13 +195,17 @@ to_timestamp: 9223372036854775807
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
         <Message>configuration {
-  trace_type: SIMPLEPERF
+  user_options {
+    trace_type: SIMPLEPERF
+  }
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
         <message>configuration {
-  trace_type: SIMPLEPERF
+  user_options {
+    trace_type: SIMPLEPERF
+  }
 }
 </message>
     </GrpcCall>
