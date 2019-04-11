@@ -18,11 +18,11 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 import com.intellij.util.ref.DebugReflectionUtil
 import gnu.trove.TObjectHash
 import java.lang.ref.Reference
-import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.ConcurrentModificationException
+import java.util.Vector
 
 typealias Node = HeapGraph.Node
 
@@ -62,7 +62,7 @@ abstract class Expander(val g: HeapGraph): DoNotTrace {
 
   abstract fun canExpand(obj: Any): Boolean
   abstract fun expand(n: Node)  // should use n.addEdgeTo() to add edges to the node
-  abstract fun expandCorrespondingEdge(n: Node, e: Edge): Node?
+  open fun expandCorrespondingEdge(n: Node, e: Edge): Node? = n[e] ?: n.addEdgeTo(e.end.obj, e.label)
 
   // subclasses are encouraged to override this method to improve lookup performance, e.g, an
   // index-based array expander should just look at the i'th child.
@@ -258,6 +258,64 @@ open class DefaultObjectExpander(g: HeapGraph, val shouldOmitEdge: (Any, Field, 
   companion object {
     private val FOLLOW_WEAK_REFS = System.getProperty("bleak.follow.weak.refs") == "true"
   }
+}
+
+object BootstrapClassloaderPlaceholder
+
+/** Expands a ClassLoader, with an edge to each class it defines. The bootstrap ClassLoader is represented by
+ * null in [Class.getClassLoader], but every Node must correspond to a non-null object.
+ * [BootstrapClassloaderPlaceholder] serves as a placeholder for the bootstrap class loader for this purpose.
+ */
+class ClassLoaderExpander(g: HeapGraph, val bleakHelper: BleakHelper): Expander(g) {
+  private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
+
+  override fun canExpand(obj: Any): Boolean = obj is ClassLoader || obj === BootstrapClassloaderPlaceholder
+
+  override fun expand(n: Node) {
+    val map = mutableMapOf<Label, Node>()
+    labelToNodeMap[n] = map
+    if (n.obj === BootstrapClassloaderPlaceholder) {
+      bleakHelper.allLoadedClasses().filter{ (it as Class<*>).classLoader == null }.forEach {
+        val label = ObjectLabel(it)
+        val childNode = n.addEdgeTo(it, label)
+        map[label] = childNode
+      }
+    } else {
+      val cl = n.obj as ClassLoader
+      val classesField = ClassLoader::class.java.getDeclaredField("classes")
+      classesField.isAccessible = true
+      val classes = classesField.get(cl) as Vector<Class<*>>
+      for (c in classes.filterNot { it.isArray }) {
+        val label = ObjectLabel(c)
+        val childNode = n.addEdgeTo(c, label)
+        map[label] = childNode
+      }
+    }
+  }
+
+  override fun getChildForLabel(n: Node, label: Label): Node? {
+    return labelToNodeMap[n]?.get(label) ?: super.getChildForLabel(n, label)
+  }
+
+}
+
+/** Expands the synthetic root node, whose children are the ClassLoader instances. This enables tracking growth
+ * in the number of ClassLoaders just like any other leak. This fake root node doesn't really correspond to any
+ * object, but since one must be provided, we use an instance of [BleakHelper], as it is responsible for determining
+ * the loaded classes.
+ */
+class RootExpander(g: HeapGraph): Expander(g) {
+  override fun canExpand(obj: Any): Boolean = obj is BleakHelper
+
+  override fun expand(n: Node) {
+    val classes = (n.obj as BleakHelper).allLoadedClasses() as List<Class<*>>
+    val classLoaders = classes.map{ it.classLoader }.filterNotNull().toSet() // the bootstrap class loader is represented by null
+    classLoaders.forEach {
+      n.addEdgeTo(it, ObjectLabel(it))
+    }
+    n.addEdgeTo(BootstrapClassloaderPlaceholder, ObjectLabel(BootstrapClassloaderPlaceholder))
+  }
+
 }
 
 /** When a Node is about to be expanded, an Expander must be chosen. This decision is based on the

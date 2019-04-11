@@ -44,16 +44,12 @@ import java.util.IdentityHashMap
 
 // Whitelist for known issues: don't report leak roots for which this method returns true
 private fun Signature.isWhitelisted(): Boolean =
-  first() == "com.intellij.testGuiFramework.remote.client.JUnitClientImpl\$ClientSendThread#objectOutputStream" ||
-  first() == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
-  first() == "android.graphics.NinePatch_Delegate#sChunkCache" ||
+  anyTypeContains("com.intellij.testGuiFramework") ||
+  entry(2) == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
   anyTypeContains("org.fest.swing") ||
   entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields" ||
   entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
 
-  // don't report that the total number of loaded classes has been increasing - this is generally expected.
-  size == 4 && first() == "java.lang.Thread#contextClassLoader" && entry(1) == "com.intellij.util.lang.UrlClassLoader#classes" && label(2) == "elementData" ||
-  size == 3 && first() == "com.intellij.util.lang.UrlClassLoader#classes" && label(1) == "elementData" ||
   // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
   entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
   entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
@@ -63,9 +59,9 @@ private fun Signature.isWhitelisted(): Boolean =
   entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
   entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
   entry(-3) == "com.intellij.openapi.fileEditor.impl.EditorWindow#myRemovedTabs" ||
-  first() == "sun.java2d.Disposer#records" ||
-  first() == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
-  first() == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315
+  entry(2) == "sun.java2d.Disposer#records" ||
+  entry(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
+  entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315
 
 // "Troublesome" signatures are whitelisted as well, but are removed from the set of leak roots before leakShare is determined, rather
 // than after.
@@ -109,7 +105,7 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   if (System.getProperty("enable.bleak") != "true") return  // if BLeak isn't enabled, the test will run normally.
 
   currentLogPrinter?.use {
-    var g1 = HeapGraph { obj.javaClass.isArray }.expandWholeGraph()
+    var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph()
     scenario()
     var g2 = HeapGraph().expandWholeGraph()
     g1.propagateGrowing(g2)
@@ -181,7 +177,11 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
       }
     }
     if (errorMessage.isNotEmpty()) {
-      throw MemoryLeakDetectedError(errorMessage)
+      throw MemoryLeakDetectedError(mangleSunReflect(errorMessage))
     }
   }
 }
+
+// Ant filters out lines in exception messages that contain 'sun.reflect', among other things. I have so far been unable
+// to turn this off, though in principle it's configurable. For now, intentionally misspell 'sun.reflect' to avoid this.
+private fun mangleSunReflect(s: String) = s.replace("sun.reflect", "sun.relfect")
