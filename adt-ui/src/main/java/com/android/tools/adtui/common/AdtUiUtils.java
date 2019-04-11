@@ -22,7 +22,6 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.adtui.TabularLayout;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBFont;
@@ -55,7 +54,7 @@ public final class AdtUiUtils {
    */
   public static final Color DEFAULT_FONT_COLOR = JBColor.foreground();
 
-  public static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
+  public static final Color DEFAULT_BORDER_COLOR = StudioColorsKt.getBorder();
   public static final Border DEFAULT_TOP_BORDER = BorderFactory.createMatteBorder(1, 0, 0, 0, DEFAULT_BORDER_COLOR);
   public static final Border DEFAULT_LEFT_BORDER = BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR);
   public static final Border DEFAULT_BOTTOM_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR);
