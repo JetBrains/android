@@ -58,8 +58,6 @@ class PsAnalyzerDaemon(
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
   val issues: PsIssueCollection = PsIssueCollection()
 
-  private val running = AtomicBoolean(true)
-
   private val issuesUpdatedEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
 
   init {
@@ -124,7 +122,7 @@ class PsAnalyzerDaemon(
     }, parentDisposable)
   }
 
-  override val isRunning: Boolean get() = running.get()
+  override val isRunning: Boolean get() = !mainQueue.isEmpty || mainQueue.isFlushing
 
   fun queueCheck(model: PsModule) {
     removeIssues(PROJECT_ANALYSIS, byPath = model.path)
@@ -138,7 +136,6 @@ class PsAnalyzerDaemon(
     modelAnalyzers[model.javaClass]?.cast<PsModelAnalyzer<PsModel>>()?.analyze(model) ?: sequenceOf()
 
   private fun doAnalyzeStructure(model: PsModel) {
-    running.set(true)
     val analyzer = modelAnalyzers[model.javaClass]?.cast<PsModelAnalyzer<PsModel>>()
     if (analyzer == null) {
       LOG.info("Failed to find analyzer for model of type " + model.javaClass.name)
@@ -147,7 +144,7 @@ class PsAnalyzerDaemon(
     if (!isStopped) {
       analyzer.analyze(model, issues)
     }
-    resultsUpdaterQueue.queue(IssuesComputed(stop = true))
+    resultsUpdaterQueue.queue(IssuesComputed())
   }
 
   fun removeIssues(type: PsIssueType, byPath: PsPath? = null) {
@@ -176,13 +173,10 @@ class PsAnalyzerDaemon(
     }
   }
 
-  private inner class IssuesComputed(val stop: Boolean = false) : Update(IssuesComputed::class.java) {
+  private inner class IssuesComputed() : Update(IssuesComputed::class.java) {
 
     override fun run() {
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
-      if (stop) {
-        running.set(false)
-      }
     }
   }
 
