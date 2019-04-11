@@ -104,7 +104,7 @@ class PsLibraryUpdateCheckerDaemon(
     val foundArtifacts =
       resultFutures
         .map { it.getResultSafely() }
-        .flatMap { it.artifacts }
+        .flatMap { it?.artifacts.orEmpty() }
 
     val updates = getAvailableUpdates()
     foundArtifacts.forEach { updates.add(it) }
