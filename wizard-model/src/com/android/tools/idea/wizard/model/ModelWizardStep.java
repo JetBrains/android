@@ -16,14 +16,14 @@
 package com.android.tools.idea.wizard.model;
 
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import java.util.Collection;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Collection;
 
 /**
  * A step is a single page in a wizard. It is responsible for creating a single pane of UI to
@@ -133,7 +133,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
    */
   @NotNull
   protected ObservableBool canGoForward() {
-    return BooleanExpression.ALWAYS_TRUE;
+    return ObservableBool.ALWAYS_TRUE;
   }
 
   /**
