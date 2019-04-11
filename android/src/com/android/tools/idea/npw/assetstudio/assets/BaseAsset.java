@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ColorUtil;
@@ -102,7 +101,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
    */
   @NotNull
   public ObservableBool isResizable() {
-    return BooleanExpression.ALWAYS_TRUE;
+    return ObservableBool.ALWAYS_TRUE;
   }
 
   /**
