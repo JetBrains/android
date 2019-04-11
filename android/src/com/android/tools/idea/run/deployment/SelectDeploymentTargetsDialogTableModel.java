@@ -41,6 +41,10 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
     myDevices = Collections.emptyList();
 
     Timer timer = new Timer(1_000, event -> {
+      if (project.isDisposed()) {
+        return;
+      }
+
       int oldDeviceCount = myDevices.size();
 
       myDevices = ServiceManager.getService(project, AsyncDevicesGetter.class).get();
@@ -51,7 +55,6 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
       if (oldDeviceCount != newDeviceCount) {
         mySelected = new ArrayList<>(Collections.nCopies(newDeviceCount, false));
         fireTableDataChanged();
-
         return;
       }
 
