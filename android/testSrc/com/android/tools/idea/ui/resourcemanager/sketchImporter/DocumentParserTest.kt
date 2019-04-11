@@ -71,7 +71,7 @@ class DocumentParserTest {
     val originalShapeGroup = originalMaster?.layers?.get(0)
     assertTrue(originalShapeGroup is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup)
 
-    val originalRectangle = (originalShapeGroup as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0]
+    val originalRectangle = originalShapeGroup.layers[0]
     assertTrue(originalRectangle is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath)
     assertEquals("rectangle", originalRectangle.classType)
 
@@ -81,7 +81,7 @@ class DocumentParserTest {
     val shapeGroup = symbolMaster.layers[0]
     assertTrue(shapeGroup is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup)
 
-    val rectangle = (shapeGroup as com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup).layers[0]
+    val rectangle = shapeGroup.layers[0]
     assertTrue(rectangle is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath)
     assertEquals("rectangle", rectangle.classType)
   }

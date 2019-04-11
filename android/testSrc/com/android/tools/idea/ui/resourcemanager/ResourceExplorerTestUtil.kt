@@ -96,7 +96,7 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
   }
   return ResourceRepositoryManager
     .getModuleResources(module)
-    ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore(""))!![0]
+    ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
 }
 
 fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
