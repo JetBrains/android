@@ -398,7 +398,7 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     String prefix = null;
-    if (namespace != null && !ANDROID_URI.equals(namespace)) {
+    if (namespace != null) {
       transferNamespaces(this);
       prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
     }
