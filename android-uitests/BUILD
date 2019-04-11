@@ -804,6 +804,30 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "InstallPackageTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.sdkmanager.InstallPackageTest"],
+    tags = [
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_sanity_emu",  # Run together with emulators because the test needs to run alone
+        "qa_unreliable",  # b/119505019
+        "requires-network",
+        "requires_emulator",  # Run together with emulators because the test needs to run alone
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 config_setting(
     name = "has_emulator",
     define_values = {
