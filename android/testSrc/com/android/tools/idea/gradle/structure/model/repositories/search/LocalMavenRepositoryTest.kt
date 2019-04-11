@@ -41,7 +41,8 @@ class LocalMavenRepositoryTest {
   private val LIB1 = FoundArtifact(repositoryName = "Test", groupId = "com.example.libs", name = "lib1", unsortedVersions = testVersionSet)
   private val LIB2 = FoundArtifact(repositoryName = "Test", groupId = "com.example.libs", name = "lib2", unsortedVersions = testVersionSet)
   private val JLIB3 = FoundArtifact(repositoryName = "Test", groupId = "com.example.jlib", name = "lib3", unsortedVersions = testVersionSet)
-  private val JLIB4 = FoundArtifact(repositoryName = "Test", groupId = "com.example.jlib", name = "lib4", unsortedVersions = testVersionSet)
+  private val JLIB4 = FoundArtifact(repositoryName = "Test", groupId = "com.example.jlib", name = "lib4",
+                                    unsortedVersions = testVersionSet + GradleVersion.parse("1.1-alpha"))
 
   private lateinit var repositoryDir: File
   private lateinit var repository: ArtifactRepository
