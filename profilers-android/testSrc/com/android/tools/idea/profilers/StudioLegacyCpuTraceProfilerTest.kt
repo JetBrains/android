@@ -50,7 +50,8 @@ class StudioLegacyCpuTraceProfilerTest {
     val session = Common.Session.newBuilder().setPid(1)
     val profiler = StudioLegacyCpuTraceProfiler(createMockDevice("Test"), myProfilerClient.cpuClient)
     val startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder().setSession(session)
-      .setConfiguration(CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE))
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder().setUserOptions(
+        Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE)))
       .build()
     val stopRequest = CpuProfiler.CpuProfilingAppStopRequest.newBuilder().setSession(session).build()
     val statusRequest = CpuProfiler.ProfilingStateRequest.newBuilder().setSession(session).build()
@@ -65,11 +66,11 @@ class StudioLegacyCpuTraceProfilerTest {
     // Check the state of the StudioLegacyCpuTraceProfiler
     checkStatusResponse = profiler.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isTrue()
-    assertThat(checkStatusResponse.configuration.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
+    assertThat(checkStatusResponse.configuration.userOptions.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
     // Also check the state of the service for systrace this should be true
     checkStatusResponse = myProfilerClient.cpuClient.checkAppProfilingState(statusRequest)
     assertThat(checkStatusResponse.beingProfiled).isTrue()
-    assertThat(checkStatusResponse.configuration.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
+    assertThat(checkStatusResponse.configuration.userOptions.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
     val stopResponse = profiler.stopProfilingApp(stopRequest)
     assertThat(stopResponse.status).isEqualTo(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)
   }

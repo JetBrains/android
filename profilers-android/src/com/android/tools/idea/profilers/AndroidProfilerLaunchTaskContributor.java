@@ -168,22 +168,28 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
+    String cpuAbi = "";
+    switch (startupConfig.getTechnology()) {
+      case SAMPLED_NATIVE:
+        cpuAbi = getAbiDependentLibraryName("simpleperf", "simpleperf", device);
+        break;
+      case ATRACE:
+        cpuAbi = getAbiDependentLibraryName("perfetto", "perfetto", device);
+        break;
+      default:
+        break;
+    }
     CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
       .newBuilder()
-      .setAppPackage(appPackageName)
       .setDeviceId(deviceId)
-      .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
-
-    if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.SIMPLEPERF) {
-      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("simpleperf", "simpleperf", device));
-    }
-    else if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.ATRACE) {
-      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("perfetto", "perfetto", device));
-    }
-
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setAppName(appPackageName)
+                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+                          .setAbiCpuArch(cpuAbi)
+                          .setUserOptions(CpuProfilerConfigConverter.toProto(startupConfig)));
     CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
 
-    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getTraceType() != Cpu.CpuTraceType.ART) {
+    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getUserOptions().getTraceType() != Cpu.CpuTraceType.ART) {
       return "";
     }
 
@@ -245,7 +251,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @NotNull
-  private static String getAbiDependentCommonLibName(String dir, String fileName, IDevice device) {
+  private static String getAbiDependentLibraryName(String dir, String fileName, IDevice device) {
     return getBestAbiCpuArch(device,
                              "plugins/android/resources/" + dir,
                              "../../prebuilts/tools/common/" + dir,

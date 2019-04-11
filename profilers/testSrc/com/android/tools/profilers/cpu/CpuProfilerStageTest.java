@@ -227,9 +227,11 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void testJumpToLiveIfOngoingRecording() {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
-    CpuProfiler.CpuProfilerConfiguration config =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF).build();
-    myCpuService.setOngoingCaptureConfiguration(config, 100L, Cpu.TraceInitiationType.INITIATED_BY_UI);
+    Cpu.CpuTraceConfiguration config = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF))
+      .build();
+    myCpuService.setOngoingCaptureConfiguration(config, 100L);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(timeline.isStreaming()).isFalse();
     myStage.updateProfilingState(false);
@@ -912,10 +914,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.setCaptureState(CpuProfilerStage.CaptureState.STOPPING);
 
     // API-initiated tracing starts.
-    CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
+    Cpu.CpuTraceConfiguration apiTracingconfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_API)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build();
     long startTimestamp = 100;
-    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_API);
+    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp);
 
     // Verify the STOPPING state isn't changed due to API tracing.
     myStage.updateProfilingState(true);
@@ -934,11 +938,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices.enableCpuApiTracing(true);
 
     // API-initiated tracing starts.
-    CpuProfiler.CpuProfilerConfiguration artConfig =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
+    Cpu.CpuTraceConfiguration artConfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_API)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build();
 
     long startTimestamp = 100;
-    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_API);
+    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp);
 
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setAppBeingProfiled(true);
@@ -955,11 +961,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices.enableCpuApiTracing(true);
 
     // UI-initiated tracing starts.
-    CpuProfiler.CpuProfilerConfiguration artConfig =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
+    Cpu.CpuTraceConfiguration artConfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build();
 
     long startTimestamp = 100;
-    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_UI);
+    myCpuService.setOngoingCaptureConfiguration(artConfig, startTimestamp);
 
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setAppBeingProfiled(true);
@@ -978,9 +986,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.enter();
 
     // UI-initiated tracing starts.
-    CpuProfiler.CpuProfilerConfiguration artConfig =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
-    myCpuService.setOngoingCaptureConfiguration(artConfig, 100, Cpu.TraceInitiationType.INITIATED_BY_UI);
+    Cpu.CpuTraceConfiguration artConfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build();
+    myCpuService.setOngoingCaptureConfiguration(artConfig, 100);
 
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
     // Make the server return that the app is being profiled to simulate the race condition we might have between data poller and UI threads
@@ -1002,10 +1012,12 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // API-initiated tracing starts.
-    CpuProfiler.CpuProfilerConfiguration apiTracingconfig =
-      CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
+    Cpu.CpuTraceConfiguration apiTracingconfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build();
     long startTimestamp = 100;
-    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_API);
+    myCpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp);
 
     // Verify that when cpu.api.tracing is off, an API-initiated tracing doesn't update stage's capture state.
     myServices.enableCpuApiTracing(false);
@@ -1075,7 +1087,11 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                Cpu.CpuTraceMode.SAMPLED);
     myStage.exit();
 
-    myCpuService.setOngoingCaptureConfiguration(config.toProto(), 0, Cpu.TraceInitiationType.INITIATED_BY_STARTUP);
+    myCpuService.setOngoingCaptureConfiguration(
+      Cpu.CpuTraceConfiguration.newBuilder()
+        .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+        .setUserOptions(config.toProto()).build(),
+      0);
     CpuProfilerStage stage = new CpuProfilerStage(myStage.getStudioProfilers());
     assertThat(featureTracker.getLastCpuStartupProfilingConfig()).isNull();
     stage.enter();

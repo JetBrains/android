@@ -29,6 +29,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -521,7 +522,8 @@ public final class StudioProfilersTest {
 
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, process);
-    myCpuService.setStartupProfiling(true);
+    myCpuService
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder().setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP).build());
 
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.
