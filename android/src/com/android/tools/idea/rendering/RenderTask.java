@@ -151,6 +151,7 @@ public class RenderTask {
   @Nullable private Integer myOverrideBgColor;
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
+  private boolean myHighQualityShadow = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -411,6 +412,17 @@ public class RenderTask {
     return this;
   }
 
+  /**
+   * Sets the value of the {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_RENDER_HIGH_QUALITY_SHADOW}
+   * which dictates if shadows will be rendered using the high quality algorithm by layout lib.
+   * <p>
+   * Default is {@code true}.
+   */
+  public RenderTask setHighQualityShadows(boolean highQualityShadows) {
+    myHighQualityShadow = highQualityShadows;
+    return this;
+  }
+
   /** Returns whether this parser will provide view cookies for included views. */
   public boolean getProvideCookiesForIncludedViews() {
     return myProvideCookiesForIncludedViews;
@@ -477,6 +489,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
+
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
