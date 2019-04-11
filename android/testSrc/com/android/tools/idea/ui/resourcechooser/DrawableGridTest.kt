@@ -19,8 +19,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
-import com.android.tools.idea.resourceExplorer.getTestDataDirectory
-import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRenderer
+import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
+import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRenderer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable

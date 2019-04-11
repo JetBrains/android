@@ -19,8 +19,8 @@ import static org.junit.Assert.*;
 
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
-import com.android.tools.idea.resourceExplorer.viewmodel.ResourceDataManagerKt;
+import com.android.tools.idea.ui.resourcemanager.view.ResourceDragHandlerKt;
+import com.android.tools.idea.ui.resourcemanager.viewmodel.ResourceDataManagerKt;
 import com.intellij.ide.dnd.TransferableList;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
