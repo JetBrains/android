@@ -18,8 +18,7 @@ package com.android.tools.idea.ui.resourcemanager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.ui.resourcemanager.editor.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.view.NoFacetView
+import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager

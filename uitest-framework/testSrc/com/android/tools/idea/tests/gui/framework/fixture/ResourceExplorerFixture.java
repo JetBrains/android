@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.ui.resourcemanager.editor.ResourceExplorer;
+import com.android.tools.idea.ui.resourcemanager.ResourceExplorer;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.icons.AllIcons;

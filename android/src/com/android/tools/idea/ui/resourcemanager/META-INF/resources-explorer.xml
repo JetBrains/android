@@ -36,7 +36,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager"/>
-    <customPasteProvider implementation="com.android.tools.idea.ui.resourcemanager.ResourcePasteProvider"/>
+    <customPasteProvider implementation="com.android.tools.idea.ui.resourcemanager.model.ResourcePasteProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
