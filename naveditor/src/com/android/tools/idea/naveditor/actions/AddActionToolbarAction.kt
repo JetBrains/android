@@ -24,7 +24,7 @@ import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavActionElement
 
 class AddActionToolbarAction(surface: NavDesignSurface) :
-  ToolbarAction(surface, "Add action", StudioIcons.NavEditor.Properties.ACTION) {
+  ToolbarAction(surface, "Add action", StudioIcons.NavEditor.Toolbar.ACTION) {
 
   override fun isEnabled(): Boolean = surface.selectionModel.selection.let {
     if (it.size != 1) {

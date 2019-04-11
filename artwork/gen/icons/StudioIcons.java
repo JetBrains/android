@@ -446,10 +446,12 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.svg"); // 16x16
       public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.svg"); // 16x16
       public static final Icon ASSIGN_START = load("/studio/icons/nav-editor/toolbar/assign-start.svg"); // 16x16
       public static final Icon AUTO_ARRANGE = load("/studio/icons/nav-editor/toolbar/auto-arrange.svg"); // 16x16
       public static final Icon DEEPLINK = load("/studio/icons/nav-editor/toolbar/deeplink.svg"); // 16x16
+      public static final Icon NESTED_GRAPH = load("/studio/icons/nav-editor/toolbar/nested-graph.svg"); // 16x16
     }
 
     public static class Tree {
