@@ -35,17 +35,19 @@ interface DoNotTrace
 class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTrace {
 
   private val expanderChooser: ExpanderChooser = ExpanderChooser(listOf(
+    RootExpander(this),
     ArrayObjectIdentityExpander(this),
+    ClassLoaderExpander(this, jniHelper),
     ClassStaticsExpander(this),
     DefaultObjectExpander(this)))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
-  private val rootNodes: List<Node> = traversalRoots.map{Node(it, true)}
+  private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true)) //traversalRoots.map{Node(it, true)}
   private val nodes: MutableCollection<Node>
     get() = objToNode.values
   val leakRoots: MutableList<Node> = mutableListOf()
 
-  inner class Node(val obj: Any, isRootNode: Boolean = false): DoNotTrace {
+  inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
     private val expander = expanderChooser.expanderFor(obj)
     val edges = mutableListOf<Edge>()
     val type: Class<*> = obj.javaClass
@@ -353,7 +355,6 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   companion object {
     val jniHelper: BleakHelper = if (System.getProperty("bleak.jvmti.enabled") == "true") JniBleakHelper() else JavaBleakHelper()
-    val traversalRoots = jniHelper.traversalRoots()
     val LEAK_RANKING_STRATEGY = LeakRankingStrategy.valueOf(System.getProperty("bleak.leak.ranking.strategy") ?: "LEAK_SHARE")
 
     private val objSizeMethod: Method? = try {
@@ -382,7 +383,9 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   }
   // the signature is only used for whitelisting
   fun signature(): String =
-    if (label is DefaultObjectExpander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
+    if (start.isRootNode) {
+      "ROOT#" + if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName
+    } else if (label is DefaultObjectExpander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
       label.field.declaringClass.name + "#" + label.signature()
     } else {
       start.type.name + "#" + label.signature()
@@ -404,8 +407,8 @@ typealias Signature = List<String>
 typealias Path = List<Edge>
 fun Path.root() = first().start
 fun Path.tip() = last().end
-fun Path.signature() = map{it.signature()}.plus(tip().type.name)
-fun Path.verboseSignature() = map{"${it.signature()}: ${try {it.end.obj.toString().take(90)} catch (e: Exception) {"[EXCEPTION]"}}"}.plus(tip().type.name)
+fun Path.signature() = if (isEmpty()) listOf("ROOT") else map{it.signature()}.plus(tip().type.name)
+fun Path.verboseSignature() = if (isEmpty()) listOf("ROOT") else map{"${it.signature()}: ${try {it.end.obj.toString().take(90)} catch (e: Exception) {"[EXCEPTION]"}}"}.plus(tip().type.name)
 
 private fun String.typePart(): String = substringBefore('#')
 private fun String.labelPart(): String = substringAfter('#')

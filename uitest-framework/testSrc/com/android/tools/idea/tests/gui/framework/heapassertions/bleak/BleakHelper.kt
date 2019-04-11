@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import com.intellij.testFramework.LeakHunter
 import com.intellij.util.ReflectionUtil
 import java.util.Vector
 
 interface BleakHelper {
-  fun traversalRoots(): Collection<Any>
   fun allLoadedClasses(): Collection<Any>
   fun pauseThreads()
   fun resumeThreads()
@@ -37,5 +35,4 @@ class JavaBleakHelper: BleakHelper {
     return ReflectionUtil.getField(classLoader.javaClass, classLoader, Vector::class.java, "classes").toList()
   }
 
-  override fun traversalRoots() = LeakHunter.allRoots().get().keys
 }
