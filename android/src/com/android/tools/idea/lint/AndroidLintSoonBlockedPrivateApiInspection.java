@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import com.android.tools.lint.checks.PrivateApiDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
-public class AndroidLintPrivateApiInspection extends AndroidLintInspectionBase {
-  public AndroidLintPrivateApiInspection() {
-    super(AndroidBundle.message("android.lint.inspections.private.api"), PrivateApiDetector.PRIVATE_API);
+public class AndroidLintSoonBlockedPrivateApiInspection extends AndroidLintInspectionBase {
+  public AndroidLintSoonBlockedPrivateApiInspection() {
+    super(AndroidBundle.message("android.lint.inspections.private.api"), PrivateApiDetector.SOON_BLOCKED_PRIVATE_API);
   }
 }
