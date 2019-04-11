@@ -185,9 +185,10 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
         profilers.getClient().getCpuClient().checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(session).build());
 
       if (profilingStateResponse.getBeingProfiled()) {
+        Cpu.CpuTraceConfiguration.UserOptions userOptions = profilingStateResponse.getConfiguration().getUserOptions();
         Cpu.CpuTraceInfo ongoingTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-          .setTraceType(profilingStateResponse.getConfiguration().getTraceType())
-          .setTraceMode(profilingStateResponse.getConfiguration().getTraceMode())
+          .setTraceType(userOptions.getTraceType())
+          .setTraceMode(userOptions.getTraceMode())
           .setFromTimestamp(profilingStateResponse.getStartTimestamp())
           .build();
         artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, ongoingTraceInfo, true));

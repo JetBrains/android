@@ -29,10 +29,12 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Cpu.CpuTraceConfiguration;
+import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration;
-import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
@@ -50,8 +52,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
-import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
-import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
@@ -220,8 +220,10 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Test
   public void traceProfilerTypeShouldBeCorrectlySet() {
     CpuTraceType traceType = CpuTraceType.SIMPLEPERF;
-    CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest
-      .newBuilder().setConfiguration(CpuProfilerConfiguration.newBuilder().setTraceType(traceType)).build();
+    CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest.newBuilder()
+      .setConfiguration(CpuTraceConfiguration.newBuilder()
+                          .setUserOptions(CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(traceType)))
+      .build();
     StreamObserver<CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
     myCpuService.startProfilingApp(startRequest, startObserver);
     CpuProfilingAppStopRequest stopRequest = CpuProfilingAppStopRequest.newBuilder().setTraceType(traceType).build();

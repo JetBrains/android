@@ -524,10 +524,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getCpuClient();
     assert getStudioProfilers().getProcess() != null;
+    Common.Process process = getStudioProfilers().getProcess();
     CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
       .setSession(mySession)
-      .setConfiguration(config.toProto())
-      .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setAppName(process.getName())
+                          .setAbiCpuArch(process.getAbiCpuArch())
+                          .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
+                          .setUserOptions(config.toProto()))
       .build();
 
     // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
@@ -892,21 +896,21 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingStateResponse response = checkProfilingState();
 
     if (response.getBeingProfiled()) {
-      if (response.getInitiationType() != TraceInitiationType.INITIATED_BY_API && calledFromUpdatable) {
+      if (response.getConfiguration().getInitiationType() != TraceInitiationType.INITIATED_BY_API && calledFromUpdatable) {
         // If this method was called from the CaptureStateUpdatable, we shouldn't continue if the current trace was not triggered from API.
         return;
       }
 
-      ProfilingConfiguration configuration = ProfilingConfiguration.fromProto(response.getConfiguration());
+      ProfilingConfiguration configuration = ProfilingConfiguration.fromProto(response.getConfiguration().getUserOptions());
       // Update capture state only if it was idle to avoid disrupting state that's invisible to device such as STOPPING.
       if (myCaptureState == CaptureState.IDLE) {
-        if (response.getInitiationType() == TraceInitiationType.INITIATED_BY_STARTUP) {
+        if (response.getConfiguration().getInitiationType() == TraceInitiationType.INITIATED_BY_STARTUP) {
           getStudioProfilers().getIdeServices().getFeatureTracker().trackCpuStartupProfiling(configuration);
         }
 
         // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
         // aspect that depends on the former.
-        myInProgressTraceInitiationType = response.getInitiationType();
+        myInProgressTraceInitiationType = response.getConfiguration().getInitiationType();
         setCaptureState(CaptureState.CAPTURING);
         myCaptureStartTimeNs = response.getStartTimestamp();
         myInProgressTraceSeries.clear();
