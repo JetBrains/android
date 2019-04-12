@@ -19,11 +19,8 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
-import com.intellij.idea.IdeaTestApplication;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
@@ -63,7 +60,6 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/android/testData",
         "tools/adt/idea/resources-aar/framework_res.jar",
         "tools/base/templates",
-        "tools/idea/build.txt",
         "tools/idea/java");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
@@ -73,12 +69,5 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/base/build-system/previous-versions/3.0.0.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/previous-versions/3.3.2.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
-
-    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
-
-    // Run Kotlin in-process for easier control over its JVM args.
-    System.setProperty("kotlin.compiler.execution.strategy", "in-process");
-    IdeaTestApplication.getInstance();
   }
 }

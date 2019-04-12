@@ -22,6 +22,7 @@ import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR
@@ -36,12 +37,18 @@ import com.intellij.openapi.Disposable
 import com.intellij.xml.util.XmlStringUtil.escapeString
 import java.util.regex.Pattern
 
-class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer: PsPathRenderer) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
+class PsAndroidModuleAnalyzer(
+  val parentDisposable: Disposable,
+  val pathRenderer: PsPathRenderer
+) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
   override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
-    return analyzeModuleVariants(model) + analyzeDeclaredDependencies(model) + analyzeLibraryVersionPromotions(model) + analyzeLibraryScopes(model)
+    return analyzeModuleVariants(model) +
+           analyzeDeclaredDependencies(model) +
+           analyzeLibraryVersionPromotions(model) +
+           analyzeDependencyScopes(model)
   }
 
   private fun analyzeModuleVariants(model: PsAndroidModule) : Sequence<PsIssue> =
@@ -92,9 +99,11 @@ class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer
     }
   }
 
-  private fun analyzeLibraryScopes(model: PsAndroidModule): Sequence<PsIssue> {
-    return model.dependencies.libraries
-      .flatMap { dependency -> analyzeLibraryScope(dependency) }
+  private fun analyzeDependencyScopes(model: PsAndroidModule): Sequence<PsIssue> {
+    return ((model.dependencies.libraries as List<PsDeclaredDependency>) +
+            (model.dependencies.jars as List<PsDeclaredDependency>) +
+            (model.dependencies.modules as List<PsDeclaredDependency>))
+      .flatMap { dependency -> analyzeDependencyScope(dependency) }
       .asSequence()
   }
 

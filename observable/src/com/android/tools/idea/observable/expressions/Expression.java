@@ -16,8 +16,10 @@
 package com.android.tools.idea.observable.expressions;
 
 import com.android.tools.idea.observable.AbstractObservableValue;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ObservableValue;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An expression is an observable value that wraps another observable value, modifying the result
@@ -27,11 +29,10 @@ import com.android.tools.idea.observable.InvalidationListener;
  * as this will ensure invalidation notifications propagate correctly.
  */
 public abstract class Expression<T> extends AbstractObservableValue<T> implements ObservableValue<T> {
-
   @SuppressWarnings("FieldCanBeLocal") // must be local to avoid weak garbage collection
-  private final InvalidationListener myListener = sender -> notifyInvalidated();
+  private final InvalidationListener myListener = () -> notifyInvalidated();
 
-  protected Expression(ObservableValue... values) {
+  protected Expression(@NotNull ObservableValue<?>... values) {
     if (values.length == 0) {
       throw new IllegalArgumentException("Can't create an expression without any target observables");
     }
@@ -39,5 +40,16 @@ public abstract class Expression<T> extends AbstractObservableValue<T> implement
     for (ObservableValue value : values) {
       value.addWeakListener(myListener);
     }
+  }
+
+  @NotNull
+  public static <T> Expression<T> create(@NotNull Supplier<? extends T> valueSupplier, @NotNull ObservableValue<?>... values) {
+    return new Expression<T>(values) {
+      @Override
+      @NotNull
+      public T get() {
+        return valueSupplier.get();
+      }
+    };
   }
 }

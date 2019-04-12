@@ -195,7 +195,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myClipartAssetButton.addAssetListener(assetListener);
     myFileBrowser.addAssetListener(assetListener);
 
-    myListeners.receiveAndFire(myAssetSourceType, sourceType -> {
+    myListeners.listenAndFire(myAssetSourceType, sourceType -> {
       myIconPickerPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
       myColorRowPanel.setVisible(sourceType == AssetSourceType.CLIP_ART);
       myFileBrowserPanel.setVisible(sourceType == AssetSourceType.FILE);
@@ -222,7 +222,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAll(myActiveAsset, myOverrideSize, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
         .with(this::renderPreviews);
 
-    myListeners.listenAndFire(myActiveAsset, sender -> {
+    myListeners.listenAndFire(myActiveAsset, () -> {
       myActiveAssetBindings.releaseAll();
 
       myActiveAssetBindings.bind(myOutputName, new Expression<String>(myActiveAsset.get().path()) {

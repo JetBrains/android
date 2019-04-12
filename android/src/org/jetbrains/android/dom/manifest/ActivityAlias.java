@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import static com.android.SdkConstants.CLASS_ACTIVITY;
+
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
@@ -27,13 +29,11 @@ import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 
-import java.util.List;
-
 @Styleable("AndroidManifestActivityAlias")
 public interface ActivityAlias extends ManifestElementWithRequiredName {
   @Required
   @Convert(value = PackageClassConverter.class)
-  @ExtendClass("android.app.Activity")
+  @PackageClassConverter.Options(inheriting = CLASS_ACTIVITY)
   @Attribute("targetActivity")
   AndroidAttributeValue<PsiClass> getTargetActivity();
 

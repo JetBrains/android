@@ -53,7 +53,7 @@ public final class ImageAssetBrowser extends TextFieldWithBrowseButton implement
     myBindings.bind(myImageAsset.imagePath(),
                     imagePathText.transform(s -> StringUtil.isEmptyOrSpaces(s) ? Optional.empty() : Optional.of(new File(s.trim()))));
 
-    InvalidationListener onImageChanged = sender -> {
+    InvalidationListener onImageChanged = () -> {
       ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
       for (ActionListener listener : myListeners) {
         listener.actionPerformed(event);

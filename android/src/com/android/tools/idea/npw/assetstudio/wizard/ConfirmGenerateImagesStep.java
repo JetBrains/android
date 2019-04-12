@@ -405,7 +405,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Override
   protected void onEntering() {
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
-    myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
+    myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
       File resDirectory = getResDirectory(template.getPaths());
       if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {

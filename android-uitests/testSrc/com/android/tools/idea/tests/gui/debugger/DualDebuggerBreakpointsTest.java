@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -24,20 +26,18 @@ import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 // TODO: Remove dependency on DebuggerTestBase
@@ -70,6 +70,39 @@ public class DualDebuggerBreakpointsTest extends DebuggerTestBase {
         IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
       });
     });
+  }
+
+  @Before
+  public void symlinkLldb() throws IOException {
+    if (TestUtils.runningFromBazel()) {
+      // tools/idea/bin is already symlinked to a directory that is outside the writable directory.
+      // We need to write underneath tools/idea/bin, so we remove the symlink and create a copy of
+      // the real tools/idea/bin.
+      File tmpDir = new File(System.getenv("TEST_TMPDIR"));
+      File toolsIdeaBin = new File(tmpDir, "tools/idea/bin");
+      File realToolsIdeaBin = toolsIdeaBin.getCanonicalFile();
+      toolsIdeaBin.delete();
+      toolsIdeaBin.mkdirs();
+      FileUtil.copyDir(realToolsIdeaBin, toolsIdeaBin);
+
+      String srcDir = System.getenv("TEST_SRCDIR");
+      String workspaceName = System.getenv("TEST_WORKSPACE");
+      File lldbParent = new File(srcDir, workspaceName);
+
+      File commonLldbSrc = new File(lldbParent, "prebuilts/tools/common/lldb");
+      // Also create a copy of LLDB, since we will need to modify the contents of
+      // tools/idea/bin/lldb.
+      File commonLldbDest = new File(toolsIdeaBin, "lldb");
+      FileUtil.copyDir(commonLldbSrc, commonLldbDest);
+
+      File lldbLibSrc = new File(lldbParent, "prebuilts/tools/linux-x86_64/lldb");
+      File lldbLibDest = new File(toolsIdeaBin, "lldb");
+      FileUtil.copyDir(lldbLibSrc, lldbLibDest);
+
+      File pythonSrc = new File(lldbParent, "prebuilts/python/linux-x86/lib/python2.7");
+      File pythonDest = new File(toolsIdeaBin, "lldb/lib/python2.7");
+      FileUtil.copyDir(pythonSrc, pythonDest);
+    }
   }
 
   /**
@@ -122,6 +155,7 @@ public class DualDebuggerBreakpointsTest extends DebuggerTestBase {
 
     checkAppIsPaused(ideFrame, expectedPatterns, "app-java");
     assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNotNull();
-    // TODO Stop the session.
+
+    debugToolWindowFixture.findContent("app-java").waitForStopClick();
   }
 }

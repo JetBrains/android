@@ -18,7 +18,8 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
 import java.awt.BasicStroke
 import java.awt.geom.Point2D
@@ -36,10 +37,10 @@ class DrawPlaceholderTest : NavTestCase() {
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
 
     assertContainsOrdered(drawPlaceholder.commands.toList(),
-                          DrawFilledRectangle(0, Rectangle2D.Float(X, Y, WIDTH, HEIGHT), NavColorSet.PLACEHOLDER_BACKGROUND_COLOR),
+                          DrawFilledRectangle(0, Rectangle2D.Float(X, Y, WIDTH, HEIGHT), PLACEHOLDER_BACKGROUND),
                           DrawLine(1, Point2D.Float(X, Y), Point2D.Float(X + WIDTH, Y + HEIGHT),
-                                   NavColorSet.PLACEHOLDER_BORDER_COLOR, stroke),
+                                   PLACEHOLDER_BORDER, stroke),
                           DrawLine(2, Point2D.Float(X, Y + HEIGHT), Point2D.Float(X + WIDTH, Y),
-                                   NavColorSet.PLACEHOLDER_BORDER_COLOR, stroke))
+                                   PLACEHOLDER_BORDER, stroke))
   }
 }

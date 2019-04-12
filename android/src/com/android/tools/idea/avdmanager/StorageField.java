@@ -81,7 +81,7 @@ public class StorageField extends JPanel {
     });
 
     myUnitsCombo.addActionListener(e -> updateStorageField());
-    myStorage.addListener(sender -> updateStorageField());
+    myStorage.addListener(() -> updateStorageField());
   }
 
   private void updateStorageField() {

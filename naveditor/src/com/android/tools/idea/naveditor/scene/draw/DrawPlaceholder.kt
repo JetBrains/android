@@ -23,7 +23,8 @@ import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToRect2D
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
 import java.awt.BasicStroke
 import java.awt.geom.Point2D
@@ -40,9 +41,9 @@ data class DrawPlaceholder(private val level: Int, private val rectangle: Rectan
   override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle))
 
   override fun buildCommands(): List<DrawCommand> {
-    val rect = DrawFilledRectangle(0, rectangle, NavColorSet.PLACEHOLDER_BACKGROUND_COLOR)
+    val rect = DrawFilledRectangle(0, rectangle, PLACEHOLDER_BACKGROUND)
 
-    val color = NavColorSet.PLACEHOLDER_BORDER_COLOR
+    val color = PLACEHOLDER_BORDER
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
     val p1 = Point2D.Float(rectangle.x, rectangle.y)
     val p2 = Point2D.Float(p1.x, p1.y + rectangle.height)

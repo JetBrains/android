@@ -16,22 +16,19 @@
 package com.android.tools.property.panel.impl.support
 
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
+import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.JComponent
 
 /**
  * [FocusListener] that can be used in controls using models derived from [BasePropertyEditorModel].
+ *
+ * Here: scroll the component into with when focus is gained.
  */
-class ImageFocusListener(private val component: JComponent,
-                         private val update: () -> Unit) : FocusListener {
-
-  override fun focusLost(event: FocusEvent) {
-    update()
-  }
+class ImageFocusListener(private val component: JComponent) : FocusAdapter() {
 
   override fun focusGained(event: FocusEvent) {
-    update()
     component.scrollRectToVisible(component.bounds)
   }
 }

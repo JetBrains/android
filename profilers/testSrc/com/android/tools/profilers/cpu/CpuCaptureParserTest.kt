@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException
 
 class CpuCaptureParserTest {
 
-  val ANY_TRACE_ID = 3039
+  val ANY_TRACE_ID = 3039L
 
   @Test
   fun parsingAValidTraceShouldProduceCpuCapture() {

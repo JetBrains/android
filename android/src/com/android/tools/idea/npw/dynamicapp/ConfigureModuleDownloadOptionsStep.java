@@ -111,7 +111,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
       .init(getModel().getProject(), myValidatorPanel, isConditionalPanelActive);
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
-    myListeners.receiveAndFire(getModel().downloadInstallKind(), value ->
+    myListeners.listenAndFire(getModel().downloadInstallKind(), value ->
       setVisible(value.isPresent() && value.get() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS,
                  myDownloadConditionsForm.myRootPanel));
 
@@ -122,6 +122,31 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   @Override
   protected void onEntering() {
     myFeatureTitle.selectAll();
+    // Going back to previous panel disposes help tooltips, thus dynamically adding and removing is required when onEntering.
+    if (myFeatureTitleHelp != null) {
+      myFeatureTitlePanel.remove(myFeatureTitleHelp);
+    }
+    myFeatureTitleHelp = ContextHelpLabel.createWithLink(null,
+                                                         "The platform uses this title to identify the module to users when," +
+                                                         " for example, confirming whether the user wants to download the module.",
+                                                         myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+    myFeatureTitlePanel.add(myFeatureTitleHelp);
+
+    if (myInstallTimeInclusionHelp != null) {
+      myInstallTimeInclusionPanel.remove(myInstallTimeInclusionHelp);
+    }
+    myInstallTimeInclusionHelp = ContextHelpLabel.
+      createWithLink(null, "Specify whether to include this module at install-time unconditionally, or based on device features.",
+                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+    myInstallTimeInclusionPanel.add(myInstallTimeInclusionHelp);
+
+    if (myFusingHelp != null) {
+      myFusingPanel.remove(myFusingHelp);
+    }
+    myFusingHelp = ContextHelpLabel.
+      createWithLink(null, "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
+                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+    myFusingPanel.add(myFusingHelp);
   }
 
   @NotNull
@@ -151,21 +176,6 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   @Override
   protected boolean shouldShow() {
     return !getModel().instantModule().get();
-  }
-
-  private void createUIComponents() {
-    myFeatureTitleHelp = ContextHelpLabel.createWithLink(null,
-                                                         "The platform uses this title to identify the module to users when," +
-                                                         " for example, confirming whether the user wants to download the module.",
-                                                         myLinkText, () -> BrowserUtil.browse(myLinkUrl));
-
-    myInstallTimeInclusionHelp = ContextHelpLabel.
-      createWithLink(null, "Specify whether to include this module at install-time unconditionally, or based on device features.",
-                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
-
-    myFusingHelp = ContextHelpLabel.
-      createWithLink(null, "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
-                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
   }
 
   private static void setVisible(boolean isVisible, JComponent... components) {

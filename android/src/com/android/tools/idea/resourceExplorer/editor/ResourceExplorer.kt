@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.editor
 
+import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.view.ResourceExplorerToolbar
 import com.android.tools.idea.resourceExplorer.view.ResourceExplorerView
@@ -23,11 +24,14 @@ import com.android.tools.idea.resourceExplorer.viewmodel.ProjectResourcesBrowser
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
+internal val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
+                                           ResourceType.LAYOUT, ResourceType.MIPMAP)
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
 
 /**
@@ -78,5 +82,10 @@ class ResourceExplorer private constructor(facet: AndroidFacet)
   }
 
   override fun dispose() {
+  }
+
+  fun selectAsset(facet: AndroidFacet, path: VirtualFile) {
+    updateFacet(facet)
+    resourceExplorerView.selectAsset(path)
   }
 }

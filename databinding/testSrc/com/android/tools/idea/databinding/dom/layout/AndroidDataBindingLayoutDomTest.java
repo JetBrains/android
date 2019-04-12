@@ -98,6 +98,20 @@ public final class AndroidDataBindingLayoutDomTest {
     myDomRule.testHighlighting("databinding_highlighting_unknown_attribute.xml");
   }
 
+  /**
+   * Don't highlight merge as an invalid element in layouts
+   * For context, see https://issuetracker.google.com/37150098
+   */
+  @Test
+  public void dataBindingHighlighting_mergeInLayoutIsNotAnError() {
+    myDomRule.testHighlighting("databinding_highlighting_merge_as_layout_root.xml");
+  }
+
+  @Test
+  public void dataBindingHighlighting_mergeIsInvalidIfNotRoot() {
+    myDomRule.testHighlighting("databinding_highlighting_invalid_merge_locations.xml");
+  }
+
   @Test
   public void dataBindingCompletion_caretInVariableBlockWithNoParams() {
     assertThat(myDomRule.getCompletionResults("databinding_completion_variable_no_params.xml")).containsExactly("name", "type");
@@ -129,5 +143,9 @@ public final class AndroidDataBindingLayoutDomTest {
     myDomRule.testCompletion("databinding_completion_attribute.xml", "databinding_completion_attribute_after.xml");
   }
 
+  @Test
+  public void dataBindingCompletion_caretInMerge() {
+    myDomRule.testCompletion("databinding_completion_merge.xml", "databinding_completion_merge_after.xml");
+  }
 }
 

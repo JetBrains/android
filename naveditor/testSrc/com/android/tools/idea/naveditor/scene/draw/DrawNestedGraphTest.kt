@@ -19,7 +19,7 @@ import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
 import java.awt.Color
 import java.awt.Font
@@ -42,7 +42,7 @@ class DrawNestedGraphTest : NavTestCase() {
     val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
     val font = regularFont(scale, Font.BOLD)
 
-    assertEquals(drawNestedNavigation.commands[0], DrawFilledRoundRectangle(0, roundRectangle, NavColorSet.COMPONENT_BACKGROUND_COLOR))
+    assertEquals(drawNestedNavigation.commands[0], DrawFilledRoundRectangle(0, roundRectangle, COMPONENT_BACKGROUND))
     assertEquals(drawNestedNavigation.commands[1], DrawRoundRectangle(1, roundRectangle, frameColor, frameThickness))
     assertEquals(drawNestedNavigation.commands[2], DrawTruncatedText(2, text, rectangle, textColor, font, true))
   }

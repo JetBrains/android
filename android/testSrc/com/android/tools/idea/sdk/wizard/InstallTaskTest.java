@@ -317,7 +317,7 @@ public class InstallTaskTest extends AndroidTestCase {
                                       new ArrayList<>(), mySdkHandler, true, factory, false);
     wizardBuilder = new ModelWizard.Builder(installStep2);
     CompletableFuture<Boolean> completed2 = new CompletableFuture<>();
-    installStep2.canGoForward().addListener(value -> completed2.complete(true));
+    installStep2.canGoForward().addListener(() -> completed2.complete(true));
     wizard = wizardBuilder.build();
     FutureUtils.pumpEventsAndWaitForFuture(completed2, 5, TimeUnit.SECONDS);
     wizard.goForward();

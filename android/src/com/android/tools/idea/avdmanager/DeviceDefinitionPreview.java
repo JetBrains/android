@@ -65,12 +65,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
 
-  private InvalidationListener myRepaintListener = new InvalidationListener() {
-    @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
-      repaint();
-    }
-  };
+  private InvalidationListener myRepaintListener = () -> repaint();
 
   public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
     myDeviceData = deviceData;

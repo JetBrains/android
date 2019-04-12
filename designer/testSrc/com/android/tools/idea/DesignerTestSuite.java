@@ -23,8 +23,6 @@ import com.android.tools.tests.LeakCheckerRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
-
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
@@ -48,11 +46,7 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/designer/testData",
         "tools/adt/idea/resources-aar/framework_res.jar",
         "tools/base/templates",
-        "tools/idea/build.txt",
         "tools/idea/java");
-
-    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");

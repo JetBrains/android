@@ -20,9 +20,7 @@
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.intellij.groovy</depends>
   <depends>com.android.tools.idea.smali</depends>
-
-  <!-- TODO: We can make this a permanent dependency after fixing all Bazel tests -->
-  <depends optional="true" config-file="android-kotlin.xml">org.jetbrains.kotlin</depends>
+  <depends>org.jetbrains.kotlin</depends>
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
@@ -30,6 +28,7 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
+  <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../com/android/tools/idea/resourceExplorer/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -567,7 +566,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter"
                     serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterImpl"/>
@@ -624,6 +622,7 @@
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
                    serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />
     <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
+    <moduleService serviceImplementation="org.jetbrains.android.facet.ResourceFolderManager" />
     <moduleService serviceImplementation="com.android.tools.idea.res.ResourceIdManager" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
@@ -839,6 +838,7 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.instantapp.NewInstantAppModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider"/>
+    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">

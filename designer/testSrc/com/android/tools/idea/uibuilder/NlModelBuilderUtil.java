@@ -45,13 +45,17 @@ public class NlModelBuilderUtil {
   private NlModelBuilderUtil() {}
 
   @NotNull
-  public static ModelBuilder model(@NotNull AndroidProjectRule rule, @NotNull String name, @NotNull ComponentDescriptor root) {
-    return model(AndroidFacet.getInstance(rule.module), (JavaCodeInsightTestFixture)rule.fixture, name, root);
+  public static ModelBuilder model(@NotNull AndroidProjectRule rule,
+                                   @NotNull String resourceFolder,
+                                   @NotNull String name,
+                                   @NotNull ComponentDescriptor root) {
+    return model(AndroidFacet.getInstance(rule.module), (JavaCodeInsightTestFixture)rule.fixture, resourceFolder, name, root);
   }
 
   @NotNull
   public static ModelBuilder model(@NotNull AndroidFacet facet,
                                    @NotNull JavaCodeInsightTestFixture fixture,
+                                   @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
     return new ModelBuilder(
@@ -65,7 +69,7 @@ public class NlModelBuilderUtil {
       },
       (@NotNull NlModel model, @NotNull NlModel newModel) -> LayoutlibSceneManager.updateHierarchy(
         AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root), model),
-      "layout",
+      resourceFolder,
       NlDesignSurface.class,
       (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component));
   }

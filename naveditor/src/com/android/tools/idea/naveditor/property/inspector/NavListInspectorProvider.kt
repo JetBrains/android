@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.google.common.annotations.VisibleForTesting
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -27,6 +28,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -39,7 +41,6 @@ import com.intellij.ui.InplaceButton
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point
@@ -155,6 +156,9 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           val id = displayIdSuffix(value)
           append(name)
           append(id, SimpleTextAttributes.GRAYED_ATTRIBUTES)
+          if (!selected) {
+            setBackground(secondaryPanelBackground)
+          }
         }
       }
 
@@ -194,7 +198,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
       panel.add(list, BorderLayout.CENTER)
 
-      val plus = InplaceButton(tooltip, StudioIcons.Common.ADD) {
+      val plus = InplaceButton(tooltip, AllIcons.General.Add) {
         @Suppress("UnnecessaryVariable")
         val event = it
         surface?.let { plusClicked(event, components, it) }

@@ -135,18 +135,20 @@ public class UserEventDataSeriesTest {
 
   private void buildTouchEvent(int eventId) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
                                               Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_START_TIME_NS)
+                                                .setGroupId(eventId)
                                                 .setInteraction(
                                                   Interaction.InteractionData.newBuilder()
                                                     .setType(Interaction.InteractionData.Type.TOUCH))
                                                 .build());
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
                                               Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_END_TIME_NS)
+                                                .setGroupId(eventId)
                                                 .setIsEnded(true)
                                                 .setInteraction(
                                                   Interaction.InteractionData.newBuilder()
@@ -165,10 +167,11 @@ public class UserEventDataSeriesTest {
 
   private void buildRotationEvent(int eventId) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
                                               Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_START_TIME_NS)
+                                                .setGroupId(eventId)
                                                 .setIsEnded(true)
                                                 .setInteraction(
                                                   Interaction.InteractionData.newBuilder()
@@ -187,10 +190,11 @@ public class UserEventDataSeriesTest {
 
   private void buildKeyEvent(int eventId) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID, eventId,
+      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
                                               Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_START_TIME_NS)
+                                                .setGroupId(eventId)
                                                 .setIsEnded(true)
                                                 .setInteraction(
                                                   Interaction.InteractionData.newBuilder()

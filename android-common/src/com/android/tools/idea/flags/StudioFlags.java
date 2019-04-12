@@ -23,7 +23,6 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -88,6 +87,11 @@ public final class StudioFlags {
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
     true);
+
+  public static final Flag<Boolean> NPW_BENCHMARK_TEMPLATE_MODULE = Flag.create(
+    NPW, "benchmark.template.module", "Enable benchmark module template",
+    "If enabled, the new module wizard will show an option to create a benchmark module",
+    false);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
@@ -169,7 +173,7 @@ public final class StudioFlags {
     PROFILER, "perfetto", "Allows importing and recording of perfetto traces.",
     "Toggles if we check for perfetto traces when importing. This also sets a flag on the agent config to toggle perfetto" +
     "based recording on device.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
     PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
@@ -303,7 +307,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SIMPLER_RESIZE = Flag.create(
     NELE, "simpler.resize", "Simplify resize",
     "Simplify design surface resize",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
     NELE, "constraint.section", "Constraint Section",
@@ -313,7 +317,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
-    true);
+    false);
 
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
@@ -527,7 +531,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS = Flag.create(
     TESTING, "kotlin.incorrect.scope.check", "Checks the scope of classes being used in kotlin test files",
     "If enabled, an inspection will run that shows an error when a class is used in a kotlin test file that is not is scope.",
-    false
+    true
   );
 
   public static final Flag<Boolean> NITROGEN = Flag.create(
@@ -560,10 +564,15 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
-  public static final Flag<Boolean> WINDOWS_DEFENDER_CHECK_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "windows.defender.check.enabled", "Enable Windows Defender system health check",
+  public static final Flag<Boolean> WINDOWS_DEFENDER_NOTIFICATION_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.defender.notification.enabled", "Enable Windows Defender system health check",
     "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
     false);
+
+  public static final Flag<Boolean> WINDOWS_DEFENDER_METRICS_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.defender.metrics.enabled", "Enable Windows Defender metrics collection",
+    "If enabled, metrics about the status of Windows Defender realtime scanning and excluded directories will be collected",
+    true);
 
   private StudioFlags() { }
 }

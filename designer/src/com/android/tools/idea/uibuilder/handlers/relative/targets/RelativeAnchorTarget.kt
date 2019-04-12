@@ -88,11 +88,11 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
   override fun getDrawMode(): DrawAnchor.Mode {
     return if (!myComponent.isSelected) {
       val canConnectToMe = isConnectible(myComponent.scene.filterType)
-      if (canConnectToMe) DrawAnchor.Mode.CAN_CONNECT else DrawAnchor.Mode.DO_NOT_DRAW
+      if (canConnectToMe) {
+        if (mIsOver) DrawAnchor.Mode.OVER else DrawAnchor.Mode.NORMAL
+      } else DrawAnchor.Mode.DO_NOT_DRAW
     } else if (mIsOver) {
-      DrawAnchor.Mode.OVER
-    } else if (!isConnected) {
-      DrawAnchor.Mode.NORMAL
+       if (isConnected) DrawAnchor.Mode.DELETE else DrawAnchor.Mode.OVER
     } else {
       DrawAnchor.Mode.NORMAL
     }

@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
@@ -41,7 +41,7 @@ public class EditorTabsMemoryUseTest {
   public void openAndCloseTabs() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     ideFrameFixture.getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
-    BleakKt.runWithBleak(() -> {
+    Bleak.runWithBleak(() -> {
       ideFrameFixture.getEditor()
         .open("app/src/main/AndroidManifest.xml")
         .open("app/build.gradle")

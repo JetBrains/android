@@ -351,6 +351,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
           BeginSession.JvmtiConfig.newBuilder()
             .setAttachAgent(true)
             .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
+            // TODO remove hard-coded path by sharing what's used in TransportFileManager
+            .setAgentConfigPath("/data/local/tmp/perfd/agent.config")
             .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
             .build());
       }
@@ -378,6 +380,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
           BeginSessionRequest.JvmtiConfig.newBuilder()
             .setAttachAgent(true)
             .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
+            // TODO remove hard-coded path by sharing what's used in TransportFileManager
+            .setAgentConfigPath("/data/local/tmp/perfd/agent.config")
             .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
             .build());
       }

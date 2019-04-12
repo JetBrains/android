@@ -17,8 +17,8 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*
 import com.intellij.openapi.externalSystem.model.DataNode
-import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
@@ -29,11 +29,7 @@ import org.jetbrains.kotlin.idea.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.configuration.configureFacetByGradleModule
 
 class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<AndroidModuleModel, Void>() {
-    companion object {
-        val KEY = Key<AndroidModuleModel>(AndroidModuleModel::class.qualifiedName!!, 0)
-    }
-
-    override fun getTargetDataKey() = KEY
+    override fun getTargetDataKey() = ANDROID_MODEL
 
     override fun postProcess(
             toImport: MutableCollection<DataNode<AndroidModuleModel>>,

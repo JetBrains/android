@@ -24,7 +24,11 @@ iml_module(
     iml_files = ["intellij.android.adb.tests.iml"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_coverage = True,
-    test_data = ["//prebuilts/studio/sdk:platform-tools"],
+    test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//tools/idea:platform-build-info",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",

@@ -23,7 +23,7 @@ import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToPoint2D
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Graphics2D
@@ -49,7 +49,7 @@ data class DrawLineToMouse(private val level: Int,
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     line.x2 = sceneContext.mouseX.toFloat()
     line.y2 = sceneContext.mouseY.toFloat()
-    g.color = NavColorSet.SELECTED_FRAME_COLOR
+    g.color = SELECTED
     g.stroke = LINE_TO_MOUSE_STROKE
     g.draw(line)
   }

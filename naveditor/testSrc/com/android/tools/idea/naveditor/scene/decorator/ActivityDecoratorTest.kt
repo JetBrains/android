@@ -30,7 +30,11 @@ import com.android.tools.idea.naveditor.scene.DRAW_ACTIVITY_BORDER_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
+import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
+import com.android.tools.idea.naveditor.scene.NavColors.FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
+import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import org.mockito.Mockito
 import java.awt.Font
@@ -56,12 +60,12 @@ class ActivityDecoratorTest : NavTestCase() {
     val roundRect = RoundRectangle2D.Float(419f, 469f, 50f, 100f, 6f, 6f)
     assertEquals(
       listOf(
-        DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, NavColorSet.COMPONENT_BACKGROUND_COLOR),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, NavColorSet.FRAME_COLOR, REGULAR_FRAME_THICKNESS),
+        DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, COMPONENT_BACKGROUND),
+        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, FRAME, REGULAR_FRAME_THICKNESS),
         DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f)),
-        DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), NavColorSet.ACTIVITY_BORDER_COLOR,
+        DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), ACTIVITY_BORDER,
                       ACTIVITY_BORDER_WIDTH),
-        DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", Rectangle2D.Float(419f, 556f, 50f, 13f), NavColorSet.TEXT_COLOR,
+        DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", Rectangle2D.Float(419f, 556f, 50f, 13f), TEXT,
                           Font(DEFAULT_FONT_NAME, Font.BOLD, 9), true)),
       displayList.commands)
   }
@@ -85,12 +89,12 @@ class ActivityDecoratorTest : NavTestCase() {
     val roundRect = RoundRectangle2D.Float(419f, 469f, 50f, 100f, 6f, 6f)
     assertEquals(
       listOf(
-        DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, NavColorSet.COMPONENT_BACKGROUND_COLOR),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, NavColorSet.SELECTED_FRAME_COLOR, HIGHLIGHTED_FRAME_THICKNESS),
+        DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, COMPONENT_BACKGROUND),
+        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, SELECTED, HIGHLIGHTED_FRAME_THICKNESS),
         DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f)),
-        DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), NavColorSet.ACTIVITY_BORDER_COLOR,
+        DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), ACTIVITY_BORDER,
                       ACTIVITY_BORDER_WIDTH),
-        DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", Rectangle2D.Float(419f, 556f, 50f, 13f), NavColorSet.TEXT_COLOR,
+        DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", Rectangle2D.Float(419f, 556f, 50f, 13f), TEXT,
                           Font(DEFAULT_FONT_NAME, Font.BOLD, 9), true)),
       displayList.commands)
 

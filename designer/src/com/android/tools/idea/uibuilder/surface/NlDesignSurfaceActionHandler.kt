@@ -21,6 +21,8 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
 import java.awt.datatransfer.DataFlavor
 
@@ -28,6 +30,14 @@ class NlDesignSurfaceActionHandler @JvmOverloads constructor(
   surface: NlDesignSurface,
   @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance()
 ) : DesignSurfaceActionHandler(surface, copyPasteManager) {
+
+  override fun deleteElement(dataContext: DataContext) {
+    // For layout editor we may delete selected constraints.
+    if (ConstraintComponentUtilities.clearSelectedConstraint(mySurface)){
+      return;
+    }
+    super.deleteElement(dataContext)
+  }
 
   override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
 

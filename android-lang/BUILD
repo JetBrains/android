@@ -48,10 +48,12 @@ iml_module(
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_coverage = True,
     test_data = glob(["testData/**"]) + [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
         "//tools/base/templates",
+        "//tools/idea:platform-build-info",
         "//tools/idea/java/mockJDK-1.7",
-        "//prebuilts/studio/sdk:platforms/latest",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],

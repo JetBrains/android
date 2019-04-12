@@ -26,6 +26,7 @@ import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,6 +39,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -98,8 +100,9 @@ public class AndroidImportProjectAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    Disposable wizardDisposable = Disposer.newDisposable();
     try {
-      AddModuleWizard wizard = selectFileAndCreateWizard(e.getProject());
+      AddModuleWizard wizard = selectFileAndCreateWizard(wizardDisposable, e.getProject());
       if (wizard != null) {
         if (wizard.getStepCount() > 0) {
           if (!wizard.showAndGet()) {
@@ -111,6 +114,8 @@ public class AndroidImportProjectAction extends AnAction {
     }
     catch (IOException | ConfigurationException exception) {
       handleImportException(e.getProject(), exception);
+    } finally {
+      Disposer.dispose(wizardDisposable);
     }
   }
 
@@ -121,13 +126,13 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @NotNull
-  protected FileChooserDescriptor createFileChooserDescriptor() {
+  protected FileChooserDescriptor createFileChooserDescriptor(Disposable wizardDisposable) {
+    OpenProjectFileChooserDescriptorWithAsyncIcon delegate = new OpenProjectFileChooserDescriptorWithAsyncIcon();
+    Disposer.register(wizardDisposable, delegate);
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
-      FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
-
       @Override
       public Icon getIcon(VirtualFile file) {
-        Icon icon = myDelegate.getIcon(file);
+        Icon icon = delegate.getIcon(file);
         return icon == null ? super.getIcon(file) : icon;
       }
     };
@@ -139,8 +144,8 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private AddModuleWizard selectFileAndCreateWizard(@Nullable Project project) throws IOException, ConfigurationException {
-    return selectFileAndCreateWizard(project, createFileChooserDescriptor());
+  private AddModuleWizard selectFileAndCreateWizard(Disposable disposable, @Nullable Project project) throws IOException, ConfigurationException {
+    return selectFileAndCreateWizard(project, createFileChooserDescriptor(disposable));
   }
 
   @Nullable

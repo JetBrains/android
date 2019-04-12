@@ -645,6 +645,7 @@ public class NavDesignSurface extends DesignSurface {
     return getScrollPane().getViewport().getExtentSize();
   }
 
+  @Override
   public void scrollToCenter(@NotNull List<NlComponent> list) {
     Scene scene = getScene();
     SceneView view = getCurrentSceneView();

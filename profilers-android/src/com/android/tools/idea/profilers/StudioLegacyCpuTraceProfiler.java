@@ -133,13 +133,13 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
     synchronized (myLegacyProfilingLock) {
       if (client == null) {
         myLegacyProfilingRecord.remove(pid);   // Remove the entry if there exists one.
-        return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
+        return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.APP_PROCESS_DIED)
           .setErrorMessage("App is not running.").build();
       }
 
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
       if (isMethodProfilingStatusOff(record, client)) {
-        return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
+        return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.NO_ONGOING_PROFILING)
           .setErrorMessage("The app is not being profiled.").build();
       }
 
@@ -161,7 +161,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         record.myStopLatch.await();
       }
       catch (IOException | InterruptedException e) {
-        responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+        responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
         responseBuilder.setErrorMessage("Failed: " + e);
         getLogger().error("Exception while CpuServiceProxy stopProfilingApp: " + e);
       }
@@ -229,7 +229,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         assert stopResponseBuilder != null;
         // Devices older than API 10 don't return profile results via JDWP. Instead they save the results on the
         // sdcard. We don't support this.
-        stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+        stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.CANNOT_COPY_FILE);
         stopResponseBuilder.setErrorMessage(
           "Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.");
         record.myStopLatch.countDown();
@@ -244,9 +244,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         assert stopResponseBuilder != null;
         stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.SUCCESS);
         stopResponseBuilder.setTrace(ByteString.copyFrom(data));
-        // Set the trace id to a random integer.
-        // TODO: Change to something more predictable/robust.
-        stopResponseBuilder.setTraceId((int)(Math.random() * Integer.MAX_VALUE));
+        stopResponseBuilder.setTraceId(System.nanoTime());
         record.myStopLatch.countDown();
       }
     }
@@ -277,7 +275,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       if (record != null) {
         CpuProfilingAppStopResponse.Builder stopResponseBuilder = record.getStopResponseBuilder();
         if (stopResponseBuilder != null) {
-          stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE);
+          stopResponseBuilder.setStatus(CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
           stopResponseBuilder.setErrorMessage("Failed to stop profiling: " + message);
           record.myStopLatch.countDown();
         }

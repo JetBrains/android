@@ -20,6 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 interface PsDeclaredDependency : PsBaseDependency {
   val parsedModel: DependencyModel
   val configurationName: String
+  /**
+   * @return a key which can be used to look up this (or semantically-equivalent) dependency using
+   * - [PsDependencyCollection.findModuleDependencies]
+   * - [PsDependencyCollection.findJarDependencies]
+   * - [PsDependencyCollection.findLibraryDependencies]
+   */
+  fun toKey(): String
 }
 
 interface PsResolvedDependency : PsBaseDependency {

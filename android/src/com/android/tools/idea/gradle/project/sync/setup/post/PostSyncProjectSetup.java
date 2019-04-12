@@ -46,13 +46,12 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeChecker;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -227,7 +226,7 @@ public class PostSyncProjectSetup {
             }
           }
           else {
-            RecommendedPluginVersionUpgradeChecker.checkUpgrade(myProject);
+            RecommendedPluginVersionUpgrade.checkUpgrade(myProject);
           }
         }
         else {

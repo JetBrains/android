@@ -158,7 +158,7 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File trace, int traceId) throws IOException {
+  public CpuCapture parse(File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
     return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);

@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
@@ -145,7 +145,7 @@ public class LayoutEditorMemoryUseTest {
   @RunIn(TestGroup.PERFORMANCE)
   public void navigateAndEditWithBLeak() throws Exception {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    BleakKt.runWithBleak(() -> runScenario(fixture));
+    Bleak.runWithBleak(() -> runScenario(fixture));
   }
 
   public void createHprofDump(String path) throws Exception {

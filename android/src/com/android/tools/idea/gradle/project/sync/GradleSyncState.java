@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion;
+import static com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
@@ -633,8 +635,20 @@ public class GradleSyncState {
              .setUsesBuildGradle(buildFilesTypes.contains(DOT_GRADLE))
              .setUsesBuildGradleKts(buildFilesTypes.contains(DOT_KTS));
     // @formatter:on
+    setAndroidGradlePluginVersions(syncStats);
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return UsageTrackerUtils.withProjectId(event, myProject);
+  }
+
+  private void setAndroidGradlePluginVersions(GradleSyncStats.Builder stats) {
+    String lastKnownVersion = getLastKnownAndroidGradlePluginVersion(myProject);
+    if (lastKnownVersion != null) {
+      stats.setLastKnownAndroidGradlePluginVersion(lastKnownVersion);
+    }
+    String lastSuccessfulVersion = getLastSuccessfulAndroidGradlePluginVersion(myProject);
+    if (lastSuccessfulVersion != null) {
+      stats.setAndroidGradlePluginVersion(lastSuccessfulVersion);
+    }
   }
 
   @NotNull

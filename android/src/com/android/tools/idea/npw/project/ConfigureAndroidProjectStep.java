@@ -144,14 +144,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(myProjectModel.packageName(), packageNameText);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
+    myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     Expression<String> computedLocation = myProjectModel.applicationName().transform(ConfigureAndroidProjectStep::findProjectLocation);
     TextProperty locationText = new TextProperty(myProjectLocation.getTextField());
     BoolProperty isLocationSynced = new BoolValueProperty(true);
     myBindings.bind(locationText, computedLocation, isLocationSynced);
     myBindings.bind(myProjectModel.projectLocation(), locationText);
-    myListeners.receive(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
+    myListeners.listen(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
@@ -195,7 +195,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
                                     && myProjectModel.isAndroidxAvailable());
     });
 
-    myListeners.listenAndFire(androidSdkInfo, sender -> {
+    myListeners.listenAndFire(androidSdkInfo, () -> {
       VersionItem androidVersion = androidSdkInfo.getValueOrNull();
       boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
       if (isAndroidxOnly) {

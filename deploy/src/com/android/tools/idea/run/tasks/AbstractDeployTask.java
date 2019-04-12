@@ -30,6 +30,8 @@ import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.execution.Executor;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
@@ -85,7 +87,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(@NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LogWrapper logger = new LogWrapper(LOG);
 
     AdbClient adb = new AdbClient(device, logger);
@@ -106,7 +108,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
       catch (DeployerException e) {
         logger.warning("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails());
-        return toLaunchResult(e);
+        return toLaunchResult(executor, e);
       }
     }
 
@@ -169,8 +171,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return mySubTaskDetails;
   }
 
-  public LaunchResult toLaunchResult(DeployerException e) {
-
+  public LaunchResult toLaunchResult(@NotNull Executor executor, @NotNull DeployerException e) {
     LaunchResult result = new LaunchResult();
     result.setSuccess(false);
 
@@ -182,7 +183,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
     }
 
-    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(error.getResolution());
+    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, error.getResolution());
     result.setError(bubbleError.toString());
     result.setConsoleError(FAILURE_TITLE + e.getMessage() + "\n" + e.getDetails());
     result.setConsoleHyperlink(error.getCallToAction(), hyperlinkInfo);
@@ -217,13 +218,15 @@ public abstract class AbstractDeployTask implements LaunchTask {
   private class DeploymentHyperlinkInfo implements HyperlinkInfo {
     private final @Nullable String myActionId;
 
-    public DeploymentHyperlinkInfo(@NotNull DeployerException.ResolutionAction resolutionAction) {
+    public DeploymentHyperlinkInfo(@NotNull Executor executor, @NotNull DeployerException.ResolutionAction resolutionAction) {
       switch (resolutionAction) {
         case APPLY_CHANGES:
           myActionId = ApplyChangesAction.ID;
           break;
         case RUN_APP:
-          myActionId = IdeActions.ACTION_DEFAULT_RUNNER;
+          myActionId = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId())
+                       ? IdeActions.ACTION_DEFAULT_DEBUGGER
+                       : IdeActions.ACTION_DEFAULT_RUNNER;
           break;
         case RETRY:
           myActionId = getId();

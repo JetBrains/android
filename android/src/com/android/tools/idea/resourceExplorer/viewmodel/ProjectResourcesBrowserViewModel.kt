@@ -17,10 +17,14 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
+import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resourceExplorer.ImageCache
+import com.android.tools.idea.resourceExplorer.editor.SUPPORTED_RESOURCES
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
@@ -30,13 +34,12 @@ import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
-
-private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT, ResourceType.MIPMAP)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]
@@ -80,7 +83,8 @@ class ProjectResourcesBrowserViewModel(
    */
   override var resourceTypeIndex = 0
     set(value) {
-      if (value in 0 until resourceTypes.size) {
+      if (field != value &&
+          value in 0 until resourceTypes.size) {
         field = value
         resourceChangedCallback?.invoke()
       }
@@ -104,6 +108,7 @@ class ProjectResourcesBrowserViewModel(
   override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, imageCache)
 
   override fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
+    if (newFacet == oldFacet) return
     assetPreviewManager = AssetPreviewManagerImpl(newFacet, imageCache)
     unsubscribeListener(oldFacet)
     subscribeListener(newFacet)
@@ -152,6 +157,12 @@ class ProjectResourcesBrowserViewModel(
       resources += getLibraryResources(resourceType)
     }
     resources
+  }
+
+  override fun getTabIndexForFile(virtualFile: VirtualFile): Int {
+    val folderType = if (virtualFile.isDirectory) ResourceFolderType.getFolderType(virtualFile.name) else getFolderType(virtualFile)
+    val type = folderType?.let { FolderTypeRelationship.getRelatedResourceTypes(it) }?.firstOrNull()
+    return resourceTypes.indexOf(type)
   }
 
   override fun dispose() {

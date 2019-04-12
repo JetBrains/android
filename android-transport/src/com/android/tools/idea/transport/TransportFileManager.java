@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.MultiLineReceiver;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
@@ -27,6 +29,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Common.CommonConfig;
+import com.android.tools.profiler.proto.Transport;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -103,7 +107,8 @@ public final class TransportFileManager {
   }
 
   static final String DEVICE_DIR = "/data/local/tmp/perfd/";
-  static final String AGENT_CONFIG_FILE = "agent.config";
+  private static final String DAEMON_CONFIG_FILE = "daemon.config";
+  private static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
   @NotNull private final IDevice myDevice;
   @NotNull private final MessageBus myMessageBus;
@@ -132,7 +137,9 @@ public final class TransportFileManager {
       copyFileToDevice(HostFiles.TRACED);
       copyFileToDevice(HostFiles.TRACED_PROBE);
     }
-    pushAgentConfig(null);
+
+    pushDaemonConfig();
+    pushAgentConfig(AGENT_CONFIG_FILE, null);
   }
 
   @NotNull
@@ -141,7 +148,12 @@ public final class TransportFileManager {
   }
 
   @NotNull
-  static String getAgentConfigPath() {
+  public static String getDaemonConfigPath() {
+    return DEVICE_DIR + DAEMON_CONFIG_FILE;
+  }
+
+  @NotNull
+  public static String getAgentConfigFile() {
     return DEVICE_DIR + AGENT_CONFIG_FILE;
   }
 
@@ -165,25 +177,46 @@ public final class TransportFileManager {
   }
 
   /**
-   * Creates and pushes a config file that lives in transport but is shared between both transport daemon and app agent.
+   * Creates and pushes a config file for configuring the daemon.
    */
-  public void pushAgentConfig(@Nullable AndroidRunConfigurationBase runConfig)
+  private void pushDaemonConfig()
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
-    Agent.SocketType socketType = isAtLeastO(myDevice) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
-    Agent.AgentConfig.Builder agentConfigBuilder =
-      Agent.AgentConfig.newBuilder()
-        .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
-        // Using "@" to indicate an abstract socket in unix.
-        .setServiceSocketName("@" + TransportDeviceManager.DEVICE_SOCKET_NAME)
-        .setAndroidFeatureLevel(myDevice.getVersion().getFeatureLevel());
+    Transport.DaemonConfig.Builder configBuilder = Transport.DaemonConfig.newBuilder().setCommon(buildCommonConfig());
+    myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeDaemonConfig(configBuilder);
+
+    File configFile = FileUtil.createTempFile(DAEMON_CONFIG_FILE, null, true);
+    OutputStream oStream = new FileOutputStream(configFile);
+    configBuilder.build().writeTo(oStream);
+    myDevice.executeShellCommand("rm -f " + DEVICE_DIR + DAEMON_CONFIG_FILE, new NullOutputReceiver());
+    myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + DAEMON_CONFIG_FILE);
+  }
+
+  /**
+   * Creates and pushes a config file used for configuring the agent.
+   */
+  public void pushAgentConfig(@NotNull String configName, @Nullable AndroidRunConfigurationBase runConfig)
+    throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
+    Agent.AgentConfig.Builder agentConfigBuilder = Agent.AgentConfig.newBuilder().setCommon(buildCommonConfig());
     myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeAgentConfig(agentConfigBuilder, runConfig);
 
-    File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);
+    File configFile = FileUtil.createTempFile(configName, null, true);
     OutputStream oStream = new FileOutputStream(configFile);
     agentConfigBuilder.build().writeTo(oStream);
-    myDevice.executeShellCommand("rm -f " + DEVICE_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
-    myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
+    myDevice.executeShellCommand("rm -f " + DEVICE_DIR + configName, new NullOutputReceiver());
+    myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + configName);
   }
+
+  @NotNull
+  private CommonConfig.Builder buildCommonConfig() {
+    CommonConfig.SocketType socketType =
+      isAtLeastO(myDevice) ? CommonConfig.SocketType.ABSTRACT_SOCKET : CommonConfig.SocketType.UNSPECIFIED_SOCKET;
+    return CommonConfig.newBuilder()
+      .setSocketType(socketType)
+      .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
+      // Using "@" to indicate an abstract socket in unix.
+      .setServiceSocketName("@" + TransportDeviceManager.DEVICE_SOCKET_NAME);
+  }
+
 
   /**
    * Copies a file from host (where Studio is running) to the device.
@@ -247,6 +280,84 @@ public final class TransportFileManager {
     catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Pushes the necessary filers into the package's folder for supporting attaching agent on startup.
+   *
+   * @param packageName The package to launch agent with.
+   * @param configName  The agent config file name that should be passed along into the agent. This assumes it already existing under
+ *                      {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
+   *
+   * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
+   * accessible, empty string otherwise.
+   */
+  public String configureStartupAgent(@NotNull String packageName, @NotNull String configName) {
+    // Startup agent feature was introduced from android API level 27.
+    if (myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
+      return "";
+    }
+
+    String packageDataPath = getPackageDataPath(packageName);
+    if (packageDataPath.isEmpty()) {
+      return "";
+    }
+
+    String agentName = String.format(HostFiles.JVMTI_AGENT.getOnDeviceAbiFileNameFormat(), getBestAbi(HostFiles.JVMTI_AGENT).getCpuArch());
+    String[] requiredAgentFiles = {agentName, HostFiles.PERFA.getFileName()};
+    try {
+      for (String agentFile : requiredAgentFiles) {
+        // First remove the file if it already exists in the package folder.
+        // If old file exists and this fails to copy the new one, the app would attach using the old files and some weird bugs may occur.
+        myDevice.executeShellCommand(buildRunAsCommand(packageName, String.format("rm -rf %s", agentFile)), new NullOutputReceiver());
+        myDevice
+          .executeShellCommand(buildRunAsCommand(packageName, String.format("cp %s .", DEVICE_DIR + agentFile)), new NullOutputReceiver());
+      }
+    }
+    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException ignored) {
+      return "";
+    }
+
+    // Example: --attach-agent /data/data/package_name/libjvmtiagent_x86.so=/data/local/tmp/perfd/startupagent.config
+    return String.format("--attach-agent %s/%s=%s", packageDataPath, agentName, DEVICE_DIR + configName);
+  }
+
+  /**
+   * @return the on-device package's data path if it is available, empty string otherwise.
+   */
+  @NotNull
+  private String getPackageDataPath(@NotNull String packageName) {
+    String[] result = new String[1];
+    try {
+      myDevice.executeShellCommand(buildRunAsCommand(packageName, "pwd"), new MultiLineReceiver() {
+        @Override
+        public void processNewLines(@NonNull String[] lines) {
+          if (result[0] == null) {
+            result[0] = lines[0];
+          }
+        }
+
+        @Override
+        public boolean isCancelled() {
+          return false;
+        }
+      });
+    }
+    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException ignored) {
+    }
+
+    // If the command returns "run-as: ...", the package cannot be found or run-as.
+    if (result[0] == null || result[0].startsWith("run-as: ")) {
+      return "";
+    }
+    else {
+      return result[0];
+    }
+  }
+
+  @NotNull
+  private String buildRunAsCommand(@NotNull String packageName, @NotNull String command) {
+    return String.format("run-as %s sh -c '%s'", packageName, command);
   }
 
   @NotNull

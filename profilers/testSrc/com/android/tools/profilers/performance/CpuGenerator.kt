@@ -55,7 +55,7 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
       .setTraceFilePath("Some Fake Path")
-      .setTraceId(random.nextInt())
+      .setTraceId(random.nextLong())
       .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_UI)
       .setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
       .addAllThreads(threads)

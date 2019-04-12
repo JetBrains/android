@@ -183,7 +183,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
         catch (IOException e) {
           assertFalse("delete failed " + e, false);
         }
-        ResourceFolderManager.getInstance(myFacet).invalidate();
+        ResourceFolderManager.getInstance(myFacet).checkForChanges();
         repository.updateRoots();
       }
     });

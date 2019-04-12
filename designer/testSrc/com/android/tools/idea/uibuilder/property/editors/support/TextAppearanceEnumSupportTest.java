@@ -132,6 +132,7 @@ public class TextAppearanceEnumSupportTest {
   private ModelBuilder createModel() {
     return NlModelBuilderUtil.model(
       myProjectRule,
+      "layout",
       "constraint.xml",
       new ComponentDescriptor(CONSTRAINT_LAYOUT.defaultName())
         .id("@id/root")

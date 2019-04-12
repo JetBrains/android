@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -59,6 +58,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -74,7 +74,8 @@ public class BuildVariantUpdater {
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final AndroidVariantChangeModuleSetup myAndroidModuleSetupSteps;
   @NotNull private final NdkVariantChangeModuleSetup myNdkModuleSetupSteps;
-  @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners;
+  @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
+      ContainerUtil.createLockFreeCopyOnWriteList();
 
   @NotNull
   public static BuildVariantUpdater getInstance(@NotNull Project project) {
@@ -97,7 +98,6 @@ public class BuildVariantUpdater {
     myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
     myAndroidModuleSetupSteps = androidModuleSetup;
     myNdkModuleSetupSteps = ndkModuleSetup;
-    mySelectionChangeListeners = new ArrayList<>();
   }
 
   /**
@@ -105,18 +105,14 @@ public class BuildVariantUpdater {
    * invoked when the project's selected build variant changes.
    */
   public void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
-    synchronized (mySelectionChangeListeners) {
-      mySelectionChangeListeners.add(listener);
-    }
+    mySelectionChangeListeners.add(listener);
   }
 
   /**
    * Remove the {@link BuildVariantView.BuildVariantSelectionChangeListener} from the updater.
    */
   public void removeSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
-    synchronized (mySelectionChangeListeners) {
-      mySelectionChangeListeners.remove(listener);
-    }
+    mySelectionChangeListeners.remove(listener);
   }
 
   /**
@@ -209,10 +205,8 @@ public class BuildVariantUpdater {
       return false;
     }
     Runnable invokeVariantSelectionChangeListeners = () -> {
-      synchronized (mySelectionChangeListeners) {
-        for (BuildVariantView.BuildVariantSelectionChangeListener listener : mySelectionChangeListeners) {
-          listener.selectionChanged();
-        }
+      for (BuildVariantView.BuildVariantSelectionChangeListener listener : mySelectionChangeListeners) {
+        listener.selectionChanged();
       }
     };
 

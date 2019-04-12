@@ -42,7 +42,7 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
@@ -284,17 +284,17 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       myOutputPreviewLabel.setText("Preview");
       renderIconPreviews();
     };
-    myListeners.receiveAndFire(myOutputIconType, iconType -> {
+    myListeners.listenAndFire(myOutputIconType, iconType -> {
       ((CardLayout)myConfigureIconPanels.getLayout()).show(myConfigureIconPanels, iconType.toString());
       updatePreview.run();
     });
-    myListeners.receiveAndFire(myShowGridProperty, selected -> updatePreview.run());
-    myListeners.receiveAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
-    myListeners.receiveAndFire(myPreviewDensityProperty, value -> updatePreview.run());
+    myListeners.listenAndFire(myShowGridProperty, selected -> updatePreview.run());
+    myListeners.listenAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
+    myListeners.listenAndFire(myPreviewDensityProperty, value -> updatePreview.run());
 
     // Show interactive preview components only if creating adaptive icons.
-    BooleanExpression isAdaptiveIconOutput =
-        BooleanExpression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
+    Expression<Boolean> isAdaptiveIconOutput =
+        Expression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
     myBindings.bind(new VisibleProperty(myShowGrid), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myShowSafeZone), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myPreviewResolutionComboBox), isAdaptiveIconOutput);
@@ -493,7 +493,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class LauncherIconsPreviewPanel extends PreviewIconsPanel {
-    public LauncherIconsPreviewPanel() {
+    LauncherIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -585,13 +585,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class ActionBarIconsPreviewPanel extends PreviewIconsPanel {
-    public ActionBarIconsPreviewPanel() {
+    ActionBarIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
   }
 
   private static class NotificationIconsPreviewPanel extends PreviewIconsPanel {
-    public NotificationIconsPreviewPanel() {
+    NotificationIconsPreviewPanel() {
       super("", Theme.DARK, CategoryIconMap.ACCEPT_ALL);
     }
   }

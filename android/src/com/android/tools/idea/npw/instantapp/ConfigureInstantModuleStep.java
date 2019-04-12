@@ -63,7 +63,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
     myBindings.bind(packageNameText, computedFeatureModulePackageName, isPackageNameSynced);
 
     myBindings.bindTwoWay(splitFieldText, model.splitName());
-    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedFeatureModulePackageName.get())));
+    myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedFeatureModulePackageName.get())));
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerValidator(splitFieldText, new ModuleValidator(projectLocation));

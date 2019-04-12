@@ -66,46 +66,85 @@ class HostPanelTest : NavTestCase() {
 
   fun testFindReferences() {
     // This has a navHostFragment referencing our nav file
-    myFixture.addFileToProject("res/layout/file1.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                   "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                   "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
-                                                   "\n" +
-                                                   "    <fragment\n" +
-                                                   "        android:id=\"@+id/fragment3\"\n" +
-                                                   "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
-                                                   "        app:defaultNavHost=\"true\"\n" +
-                                                   "        app:navGraph=\"@navigation/nav\" />\n" +
-                                                   "\n" +
-                                                   "</LinearLayout>")
+    myFixture.addFileToProject("res/layout/file1.xml", """
+      .<?xml version="1.0" encoding="utf-8"?>
+      .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      .    xmlns:app="http://schemas.android.com/apk/res-auto">
+      .
+      .    <fragment
+      .       android:id="@+id/fragment3"
+      .       android:name="androidx.navigation.fragment.NavHostFragment"
+      .       app:defaultNavHost="true"
+      .       app:navGraph="@navigation/nav"/>
+      .
+      .</LinearLayout>
+      """.trimMargin("."))
+
     // This has a navHostFragment referencing a different nav file
-    myFixture.addFileToProject("res/layout/file2.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                       "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
-                                                       "\n" +
-                                                       "    <fragment\n" +
-                                                       "        android:id=\"@+id/fragment3\"\n" +
-                                                       "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
-                                                       "        app:defaultNavHost=\"true\"\n" +
-                                                       "        app:navGraph=\"@navigation/navigation\" />\n" +
-                                                       "\n" +
-                                                       "</LinearLayout>")
+    myFixture.addFileToProject("res/layout/file2.xml", """
+      .<?xml version="1.0" encoding="utf-8"?>
+      .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      .   xmlns:app="http://schemas.android.com/apk/res-auto">
+      .
+      .   <fragment
+      .     android:id="@+id/fragment3"
+      .     android:name="androidx.navigation.fragment.NavHostFragment"
+      .     app:defaultNavHost="true"
+      .     app:navGraph="@navigation/navigation"/>
+      .
+      .</LinearLayout>
+      """.trimMargin("."))
+
     // This has a fragment referencing this file, but it's not a navHostFragment
-    myFixture.addFileToProject("res/layout/file3.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                       "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
-                                                       "\n" +
-                                                       "    <fragment\n" +
-                                                       "        android:id=\"@+id/fragment3\"\n" +
-                                                       "        android:name=\"com.example.MyFragment\"\n" +
-                                                       "        app:defaultNavHost=\"true\"\n" +
-                                                       "        app:navGraph=\"@navigation/navigation\" />\n" +
-                                                       "\n" +
-                                                       "</LinearLayout>")
+    myFixture.addFileToProject("res/layout/file3.xml", """
+      .<?xml version="1.0" encoding="utf-8"?>
+      .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      .   xmlns:app="http://schemas.android.com/apk/res-auto">
+      .
+      .   <fragment
+      .       android:id="@+id/fragment3"
+      .       android:name="com.example.MyFragment"
+      .       app:defaultNavHost="true"
+      .       app:navGraph="@navigation/navigation"/>
+      .
+      .</LinearLayout>
+      """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
-    val panel = HostPanel(model.surface as NavDesignSurface)
 
-    val references = findReferences(model.file)
+    val references = findReferences(model.file, model.module)
+    assertEquals(1, references.size)
+    assertEquals("file1.xml", references[0].containingFile.name)
+    assertEquals(174, references[0].textOffset)
+  }
+
+  fun testFindDerivedClassReference() {
+    // This has a subclass of NavHostFragment referencing this file
+    myFixture.addFileToProject("res/layout/file1.xml", """
+      .<?xml version="1.0" encoding="utf-8"?>
+      .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      .    xmlns:app="http://schemas.android.com/apk/res-auto">
+      .
+      .    <fragment
+      .        android:id="@+id/fragment3"
+      .        android:name="mytest.navtest.NavHostFragmentChild"
+      .        app:defaultNavHost="true"
+      .        app:navGraph="@navigation/nav" />
+      .
+      .</LinearLayout>
+      """.trimMargin("."))
+
+    myFixture.addFileToProject("src/mytest/navtest/NavHostFragmentChild.java", """
+      .package mytest.navtest;
+      .import androidx.navigation.fragment.NavHostFragment;
+      .
+      .public class NavHostFragmentChild extends NavHostFragment {
+      .}
+      """.trimMargin("."))
+
+    val model = model("nav.xml") { navigation() }
+
+    val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)
     assertEquals("file1.xml", references[0].containingFile.name)
     assertEquals(174, references[0].textOffset)

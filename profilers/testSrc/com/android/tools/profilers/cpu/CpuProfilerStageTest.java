@@ -187,7 +187,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     startCapturingSuccess();
 
     // Stop a capture unsuccessfully
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.CANNOT_READ_FILE);
     myCpuService.setValidTrace(false);
     myServices.setOnExecute(() -> {
       assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
@@ -204,7 +204,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     startCapturingSuccess();
 
     // Stop a capture unsuccessfully, but with a valid trace
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.STILL_PROFILING_AFTER_STOP);
     myCpuService.setValidTrace(true);
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myServices.setOnExecute(() -> {
@@ -1351,10 +1351,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     long elapsedTimeUs = TimeUnit.SECONDS.toMicros(3);
     dataRange.setMax(dataRange.getMax() + elapsedTimeUs);
 
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED);
     stopCapturing();
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
-    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED);
     // Profiling Configurations should remain the same
     ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
@@ -1628,7 +1628,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     startCapturingSuccess();
-    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.WAIT_TIMEOUT);
 
     // Sequence of states that should happen after stopping a capture and failing to do so
     Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
@@ -2143,7 +2143,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     @Nullable
     @Override
     public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                               int traceId,
+                                               long traceId,
                                                @NotNull ByteString traceData,
                                                CpuProfiler.CpuProfilerType profilerType) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();

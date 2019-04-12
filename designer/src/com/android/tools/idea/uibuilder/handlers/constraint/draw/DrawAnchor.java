@@ -47,6 +47,7 @@ public class DrawAnchor extends DrawRegion {
   public enum Mode {
     NORMAL,
     OVER,
+    DELETE,
     /**
      * used during connection to say you CAN connect to me
      */
@@ -81,7 +82,7 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public int getLevel() {
-    if (myMode == Mode.OVER) {
+    if (myMode == Mode.OVER || myMode == Mode.DELETE) {
       return TARGET_OVER_LEVEL;
     }
     return TARGET_LEVEL;
@@ -96,11 +97,10 @@ public class DrawAnchor extends DrawRegion {
 
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getComponentObligatoryBackground();
-    // TODO: Consider making deletion a mode.
-    boolean willDelete = myMode == Mode.OVER && myIsConnected;
+    boolean willDelete = myMode == Mode.DELETE;
     Color color = willDelete ? colorSet.getAnchorDisconnectionCircle() : colorSet.getSelectedFrames();
 
-    if (myMode == Mode.OVER) {
+    if (myMode == Mode.OVER || willDelete) {
       // Draw a ring around the anchor Should go a bit over the white background.
       int overRingOffset = width * PAINT_HOVER_SIZE_PERCENT / 100;
       int overRingWidth = width + (overRingOffset * 2);
@@ -143,8 +143,8 @@ public class DrawAnchor extends DrawRegion {
 
   public void paintBaseline(Graphics2D g, SceneContext sceneContext) {
     int inset = width / 10;
-    boolean willDelete = myMode == Mode.OVER && myIsConnected;
-    boolean drawAsHover = myMode == Mode.OVER && !myIsConnected;
+    boolean willDelete = myMode == Mode.DELETE;
+    boolean drawAsHover = myMode == Mode.OVER;
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getComponentObligatoryBackground();
     Color color = willDelete ? colorSet.getAnchorDisconnectionCircle() : colorSet.getSelectedFrames();

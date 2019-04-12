@@ -105,7 +105,7 @@ public class GradleModuleSetup {
     GradleWrapper gradleWrapper = GradleWrapper.find(module.getProject());
     if (gradleWrapper != null) {
       try {
-        return gradleWrapper.getGradleVersion();
+        return gradleWrapper.getGradleFullVersion();
       }
       catch (IOException ignore) {
         return null;

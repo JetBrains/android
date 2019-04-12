@@ -43,7 +43,7 @@ public class FakeTraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File file, int traceId) {
+  public CpuCapture parse(File file, long traceId) {
     return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
   }
 

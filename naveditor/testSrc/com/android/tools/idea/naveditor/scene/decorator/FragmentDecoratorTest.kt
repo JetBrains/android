@@ -25,7 +25,9 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import org.mockito.Mockito
 import java.awt.BasicStroke
@@ -51,7 +53,7 @@ class FragmentDecoratorTest : NavTestCase() {
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
     assertEquals(
       listOf(
-        DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), NavColorSet.FRAME_COLOR, REGULAR_FRAME_THICKNESS),
+        DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), FRAME, REGULAR_FRAME_THICKNESS),
         DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f))
       ),
       displayList.commands)
@@ -76,10 +78,10 @@ class FragmentDecoratorTest : NavTestCase() {
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
     assertEquals(
       listOf(
-        DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), NavColorSet.HIGHLIGHTED_FRAME_COLOR,
+        DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), HIGHLIGHTED_FRAME,
                       REGULAR_FRAME_THICKNESS),
         DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f)),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, RoundRectangle2D.Float(417f, 467f, 54f, 104f, 2f, 2f), NavColorSet.SELECTED_FRAME_COLOR,
+        DrawRoundRectangle(DRAW_FRAME_LEVEL, RoundRectangle2D.Float(417f, 467f, 54f, 104f, 2f, 2f), SELECTED,
                            HIGHLIGHTED_FRAME_THICKNESS)
       ),
       displayList.commands)

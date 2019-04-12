@@ -26,7 +26,9 @@ import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.getEffectiveSource
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.ACTION
+import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_ACTION
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.draw.DrawAction
 import com.android.tools.idea.naveditor.scene.draw.DrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction
@@ -72,12 +74,10 @@ object ActionDecorator : NavBaseDecorator() {
   }
 
   private fun actionColor(context: SceneContext, component: SceneComponent): Color {
-    val colorSet = context.colorSet as NavColorSet
-
     return when {
-      component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> colorSet.selectedActions
-      component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> colorSet.highlightedActions
-      else -> colorSet.actions
+      component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
+      component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION
+      else -> ACTION
     }
   }
 }

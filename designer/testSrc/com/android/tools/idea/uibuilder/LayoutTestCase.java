@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder;
 
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -68,7 +69,12 @@ public abstract class LayoutTestCase extends AndroidTestCase {
 
   @NotNull
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
-    return NlModelBuilderUtil.model(myFacet, myFixture, name, root);
+    return model(SdkConstants.FD_RES_LAYOUT, name, root);
+  }
+
+  @NotNull
+  protected ModelBuilder model(@NotNull String resourceFolder, @NotNull String name, @NotNull ComponentDescriptor root) {
+    return NlModelBuilderUtil.model(myFacet, myFixture, resourceFolder, name, root);
   }
 
   protected ComponentDescriptor component(@NotNull String tag) {

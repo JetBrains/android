@@ -118,7 +118,7 @@ public class NewProjectModel extends WizardModel {
     myProjectSyncInvoker = projectSyncInvoker;
     myMultiTemplateRenderer = new MultiTemplateRenderer(null, myProjectSyncInvoker);
     // Save entered company domain
-    myCompanyDomain.addListener(sender -> {
+    myCompanyDomain.addListener(() -> {
       String domain = myCompanyDomain.get();
       if (AndroidUtils.isValidAndroidPackageName(domain)) {
         PropertiesComponent.getInstance().setValue(PROPERTIES_DOMAIN_KEY, domain);
@@ -126,7 +126,7 @@ public class NewProjectModel extends WizardModel {
     });
 
     // Save entered android package
-    myPackageName.addListener(sender -> {
+    myPackageName.addListener(() -> {
       String androidPackage = myPackageName.get();
       int lastDotIdx = androidPackage.lastIndexOf('.');
       if (lastDotIdx >= 0) {

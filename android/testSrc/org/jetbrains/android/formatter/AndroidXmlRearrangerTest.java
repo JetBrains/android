@@ -15,13 +15,17 @@
  */
 package org.jetbrains.android.formatter;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.psi.codeStyle.arrangement.Rearranger;
 import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
-import com.intellij.xml.arrangement.XmlRearranger;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Collections;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -31,19 +35,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-
 public final class AndroidXmlRearrangerTest {
   @Rule
   public final TestRule myRule = AndroidProjectRule.inMemory();
 
   @Test
   public void deserializeAndroidAttributeOrder() {
-    StdArrangementMatchRule rule = XmlRearranger.attrArrangementRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE);
+    StdArrangementMatchRule rule = AndroidXmlRearranger.newAttributeRule(".*", SdkConstants.ANDROID_URI, AndroidAttributeOrder.INSTANCE);
     Object expected = StdArrangementSettings.createByMatchRules(Collections.emptyList(), Collections.singletonList(rule));
 
     Element arrangement = newArrangementElement();
@@ -64,6 +62,7 @@ public final class AndroidXmlRearrangerTest {
         "        <match>\n" +
         "          <AND>\n" +
         "            <NAME>.*</NAME>\n" +
+        "            <XML_ATTRIBUTE />\n" +
         "            <XML_NAMESPACE>http://schemas.android.com/apk/res/android</XML_NAMESPACE>\n" +
         "          </AND>\n" +
         "        </match>\n" +

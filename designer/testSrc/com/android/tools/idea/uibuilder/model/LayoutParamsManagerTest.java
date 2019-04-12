@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.resources.Density;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.configurations.Configuration;
-import com.google.common.collect.ImmutableMap;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
-
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.NoSuchElementException;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.resources.Density;
+import com.android.tools.idea.configurations.Configuration;
+import com.google.common.collect.ImmutableMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
 public class LayoutParamsManagerTest extends AndroidTestCase {
 
@@ -163,5 +161,24 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     assertThat(layoutParams.flagAttribute).isEqualTo(0b111); // This should be the three flags combined
     assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", null, myModule, configurationMock)).isTrue();
     assertThat(layoutParams.flagAttribute).isEqualTo(987); // Check that default value restored
+  }
+
+  /**
+   * Regression test for b/130048025
+   * This checks that even if an attribute does not define {@link AttributeFormat}, we do not crash.
+   */
+  public void testEmptyAttributeFormat() {
+    DefaultValues layoutParams = new DefaultValues(0, 0);
+    Configuration configurationMock = mock(Configuration.class);
+    when(configurationMock.getResourceResolver()).thenReturn(null);
+    when(configurationMock.getDensity()).thenReturn(Density.HIGH);
+
+    // Test flag attribute
+    AttributeDefinition flagDefinition =
+      new AttributeDefinition(ResourceNamespace.RES_AUTO, "flagAttribute", null, EnumSet.noneOf(AttributeFormat.class));
+    flagDefinition.setValueMappings(ImmutableMap.of("value1", 0b001, "value2", 0b010, "value3", 0b111));
+    // The set will fail but will not crash
+    assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "value3", myModule, configurationMock))
+      .isFalse();
   }
 }

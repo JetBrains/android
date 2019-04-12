@@ -117,17 +117,17 @@ public class CpuThreadsModelTest {
       long streamId = ProfilersTestData.SESSION_DATA.getStreamId();
       int pid = ProfilersTestData.SESSION_DATA.getPid();
       myTransportService.addEventToEventGroup(
-        streamId, 104, ProfilersTestData.generateCpuThreadEvent(1, 104, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 104, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
       myTransportService.addEventToEventGroup(
-        streamId, 100, ProfilersTestData.generateCpuThreadEvent(1, 100, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 100, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
       myTransportService.addEventToEventGroup(
-        streamId, pid, ProfilersTestData.generateCpuThreadEvent(1, pid, "Main", Cpu.CpuThreadData.State.RUNNING).build());
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, pid, "Main", Cpu.CpuThreadData.State.RUNNING).build());
       myTransportService.addEventToEventGroup(
-        streamId, 101, ProfilersTestData.generateCpuThreadEvent(1, 101, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 101, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
       myTransportService.addEventToEventGroup(
-        streamId, 102, ProfilersTestData.generateCpuThreadEvent(1, 102, "A Named Thread", Cpu.CpuThreadData.State.RUNNING).build());
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 102, "A Named Thread", Cpu.CpuThreadData.State.RUNNING).build());
       myTransportService.addEventToEventGroup(
-        streamId, 103, ProfilersTestData.generateCpuThreadEvent(1, 103, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 103, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
     }
     else {
       myCpuService.addAdditionalThreads(104, "Thread 100", new ArrayList<>());

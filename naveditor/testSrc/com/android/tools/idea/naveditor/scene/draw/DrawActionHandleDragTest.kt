@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import java.awt.geom.Point2D
 
 private const val CENTER_X = 100f
@@ -35,9 +36,9 @@ class DrawActionHandleDragTest : NavTestCase() {
     val drawHandle = DrawActionHandleDrag(0, center, INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, INNER_RADIUS, DURATION)
 
     assertEquals(drawHandle.commands[0],
-                 DrawFilledCircle(0, center, NavColorSet.BACKGROUND_COLOR, LerpFloat(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, DURATION)))
+                 DrawFilledCircle(0, center, primaryPanelBackground, LerpFloat(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, DURATION)))
     assertEquals(drawHandle.commands[1],
-                 DrawFilledCircle(1, center, NavColorSet.SELECTED_FRAME_COLOR, LerpFloat(INNER_RADIUS, INNER_RADIUS, 0)))
+                 DrawFilledCircle(1, center, SELECTED, LerpFloat(INNER_RADIUS, INNER_RADIUS, 0)))
     assertEquals(drawHandle.commands[2],
                  DrawLineToMouse(2, center))
   }

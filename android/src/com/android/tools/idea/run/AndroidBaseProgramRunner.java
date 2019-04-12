@@ -74,9 +74,9 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
     if (descriptor == null) {
       descriptor = DefaultProgramRunnerKt.showRunContent(result, env);
     }
-    else {
-      // Since we got to this branch, it implies we're swapping. In that case, create a wrapper
-      // descriptor so that the ExecutionManager doesn't try to "show" it
+    else if (!(descriptor instanceof HidableRunContentDescriptor)) {
+      // Since we got to this branch, it implies we're swapping for the first time. In this case,
+      // create a wrapper descriptor so that the ExecutionManager doesn't try to "show" it
       // (which actually creates a new descriptor and wipes out the old one).
       descriptor = new HidableRunContentDescriptor(descriptor, true);
     }

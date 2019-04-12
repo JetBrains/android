@@ -60,7 +60,7 @@
     </action>
 
     <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedHeapDumpSnapshotAction" id="UserInvokedHeapDumpSnapshot"
-            text="Analyze Memory Use">
+            text="Analyze Memory Usage">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="CollectTroubleshootingInformation" />
     </action>
 

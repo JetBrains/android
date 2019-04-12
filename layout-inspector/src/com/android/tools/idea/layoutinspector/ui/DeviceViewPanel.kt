@@ -28,8 +28,9 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspector.LayoutInspectorEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -184,7 +185,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
 
   // TODO: Replace this with the process selector from the profiler
   private class SelectProcessAction(val client: InspectorClient) :
-    DropDownAction("Select Process", "Select a process to connect to.", StudioIcons.Common.ADD) {
+    DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
 
     override fun updateActions(): Boolean {
       removeAll()

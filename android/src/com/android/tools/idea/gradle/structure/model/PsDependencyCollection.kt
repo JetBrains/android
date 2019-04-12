@@ -37,6 +37,7 @@ interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out JarDep
   fun isEmpty(): Boolean
 
   fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT>
+  fun findLibraryDependencies(compactNotation: String): List<LibraryDependencyT>
   fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT>
   fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT>
   fun findJarDependencies(filePath: String): List<JarDependencyT>
@@ -68,6 +69,14 @@ abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDe
 
   override fun findJarDependencies(filePath: String): List<JarDependencyT> =
     jarDependenciesByPath[filePath].toList()
+
+  // FIXME(xof): untangle the confusion between PsArtifactDependencySpec (which can have versions) and PsLibraryKey (which can't)
+  override fun findLibraryDependencies(compactNotation: String): List<LibraryDependencyT> {
+    val spec = PsArtifactDependencySpec.create(compactNotation) ?: return listOf()
+    return libraryDependenciesBySpec[PsLibraryKey(spec.group.orEmpty(), spec.name)]
+      .filter { it.spec == spec }
+      .toList()
+  }
 
   override fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
     libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()

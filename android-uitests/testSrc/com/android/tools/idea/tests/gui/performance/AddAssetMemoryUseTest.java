@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
@@ -44,7 +44,7 @@ public class AddAssetMemoryUseTest {
   @UseBleak
   public void addImageAsset() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    BleakKt.runWithBleak(() -> {
+    Bleak.runWithBleak(() -> {
       ideFrameFixture.getProjectView()
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app")
@@ -65,7 +65,7 @@ public class AddAssetMemoryUseTest {
   @UseBleak
   public void addVectorAsset() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    BleakKt.runWithBleak(() -> {
+    Bleak.runWithBleak(() -> {
       ideFrameFixture.getProjectView()
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app")

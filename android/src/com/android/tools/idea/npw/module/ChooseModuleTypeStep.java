@@ -164,6 +164,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
       ANDROID_THINGS_MODULE_NAME, message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.import.title"),
       JAVA_LIBRARY_MODULE_NAME, GOOGLE_CLOUD_MODULE_NAME,
+      message("android.wizard.module.new.benchmark.module.app"),
     };
     Map<String, ModuleGalleryEntry> entryMap = moduleTypesProviders.stream().collect(toMap(ModuleGalleryEntry::getName, c -> c));
 

@@ -1181,19 +1181,25 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         ResourceValue unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
         unresolved.setValue(dialog.getResourceName());
         ResourceValue value = resolver.resolveResValue(unresolved);
+        String marginDp = getMarginInDp(value);
 
-        if (value != null && value.getValue() != null && value.getValue().endsWith("dp")) {
-          try {
-            String valueInString = value.getValue();
-            String marginDp = valueInString.substring(0, valueInString.length() - 2);
-            int marginInInt = Integer.parseInt(marginDp);
-            setMargin(dialog.getResourceName(), marginInInt);
-          } catch (NumberFormatException nfe) {
-            setMargin(null, Scout.DEFAULT_MARGIN);
-            Logger.getInstance(MarginPopup.class).warn("Was unable to resolve the resValue from ResourceDialog.");
-          }
-        } else {
+        if (marginDp == null) {
+          Messages.showWarningDialog(
+            "\"" + dialog.getResourceName() + "\' cannot be used for default margin. Please choose a resource with \"dp\" type instead.",
+            "Warning");
           setMargin(null, Scout.DEFAULT_MARGIN);
+          return;
+        }
+
+        try {
+          int marginInInt = Integer.parseInt(marginDp);
+          setMargin(dialog.getResourceName(), marginInInt);
+        } catch (NumberFormatException nfe) {
+          Messages.showWarningDialog(
+            "\"" + dialog.getResourceName() + "\' is not a valid dimension. Please choose a resource with correct dimension value instead.",
+            "Warning");
+          setMargin(null, Scout.DEFAULT_MARGIN);
+          Logger.getInstance(MarginPopup.class).warn("Was unable to resolve the resValue from ResourceDialog.");
         }
       }
 
@@ -1203,6 +1209,29 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         updateIcon();
       }
     };
+
+    private @Nullable String getMarginInDp(ResourceValue resourceValue) {
+      if (resourceValue == null) {
+        return null;
+      }
+      String value = resourceValue.getValue();
+      if (value == null) {
+        return null;
+      }
+
+      String toReturn = null;
+      if (value.endsWith("dp") ||
+        value.endsWith("px") ||
+        value.endsWith("pt") ||
+        value.endsWith("in") ||
+        value.endsWith("mm") ||
+        value.endsWith("sp")) {
+        toReturn = value.substring(0, value.length() - 2);
+      } else if (value.endsWith("dip")) {
+        toReturn = value.substring(0, value.length() - 3);
+      }
+      return toReturn;
+    }
 
     MarginPopup myMarginPopup = new MarginPopup(myResourcePickerIconClickListener);
     private String myPreviousDisplay;

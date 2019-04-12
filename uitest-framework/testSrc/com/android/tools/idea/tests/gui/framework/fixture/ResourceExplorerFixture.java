@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.resourceExplorer.editor.ResourceExplorer;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import icons.StudioIcons;
+import com.intellij.icons.AllIcons;
 import javax.swing.JPanel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JPanelFixture;
@@ -38,7 +38,7 @@ public class ResourceExplorerFixture extends JPanelFixture {
 
   @NotNull
   public ResourceExplorerFixture clickAddButton() {
-    ActionButtonFixture.findByIcon(StudioIcons.Common.ADD, robot(), target()).click();
+    ActionButtonFixture.findByIcon(AllIcons.General.Add, robot(), target()).click();
     return this;
   }
 }

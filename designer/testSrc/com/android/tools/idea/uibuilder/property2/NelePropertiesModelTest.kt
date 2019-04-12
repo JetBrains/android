@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
@@ -31,11 +32,13 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.toArray
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import java.util.EnumSet
+import kotlin.test.assertNotEquals
 
 class NelePropertiesModelTest: LayoutTestCase() {
 
@@ -220,7 +223,50 @@ class NelePropertiesModelTest: LayoutTestCase() {
     assertThat(listener.called).isEqualTo(2)
   }
 
-  private fun createNlModel(tag: String): SyncNlModel {
+  fun testDoNotUpdateWhenOnlySecondarySelectionIsChanged() {
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW, BUTTON)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    val button = nlModel.find(BUTTON)!!
+    model.surface = nlModel.surface
+
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+
+    var lastSelectionUpdate = model.lastSelectionUpdate
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, null)
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, null)
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, null)
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(button, null)
+    waitUntilEventsProcessed(model)
+    assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    lastSelectionUpdate = model.lastSelectionUpdate
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
+    waitUntilEventsProcessed(model)
+    assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+  }
+
+  private fun createNlModel(vararg tag: String): SyncNlModel {
     val builder = model(
       "linear.xml",
       component(LINEAR_LAYOUT)
@@ -230,11 +276,13 @@ class NelePropertiesModelTest: LayoutTestCase() {
         .matchParentHeight()
         .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
         .children(
-          component(tag)
-            .withBounds(100, 100, 100, 100)
-            .id("@id/$tag")
-            .width("wrap_content")
-            .height("wrap_content")
+          *tag.map {
+            component(it)
+              .withBounds(100, 100, 100, 100)
+              .id("@id/$it")
+              .width("wrap_content")
+              .height("wrap_content")
+          }.toArray(emptyArray())
         )
     )
     return builder.build()

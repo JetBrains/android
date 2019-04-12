@@ -51,10 +51,12 @@ iml_module(
     test_data = [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/resources-aar:framework_res",
         "//tools/adt/idea/android:test_deps.zip",
+        "//tools/idea:platform-build-info",
         "//prebuilts/studio/sdk:platforms/latest",
     ] + glob(["testData/**"]),
     # do not sort: must match IML order

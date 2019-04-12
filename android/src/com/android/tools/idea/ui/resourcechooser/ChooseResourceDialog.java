@@ -1088,7 +1088,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       return;
     }
 
-    XmlFile newFile = CreateResourceFileAction.createFileResource(myFacet, folderType, null, null, null, true, null, null, null);
+    XmlFile newFile = CreateResourceFileAction.createFileResource(myFacet, folderType, null, null, null, true, null, null, null, false);
     if (newFile != null) {
       String name = newFile.getName();
       int index = name.lastIndexOf('.');

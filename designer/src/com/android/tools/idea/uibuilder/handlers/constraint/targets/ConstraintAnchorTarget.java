@@ -258,44 +258,47 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   @Override
   protected DrawAnchor.Mode getDrawMode() {
     Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    // While creating a constraint, this anchor is a valid target for the connection.
     boolean can_connect = state != null && (state & myType.getMask()) != 0;
+    // There is a connection being created in the space of this anchor.
+    boolean doing_connection = state != null;
     boolean is_connected = isConnected();
     int drawState =
-      ((can_connect) ? 1 : 0) | (mIsOver ? 2 : 0) | (is_connected ? 4 : 0) | (isTargeted() ? 8 : 0) | (myComponent.isSelected() ? 16 : 0);
+      (can_connect ? 1 : 0) | (mIsOver ? 2 : 0) | (is_connected ? 4 : 0) | (doing_connection ? 8 : 0) | (myComponent.isSelected() ? 16 : 0);
 
     DrawAnchor.Mode[] modeTable = {
       DrawAnchor.Mode.DO_NOT_DRAW, //
-      DrawAnchor.Mode.CAN_CONNECT, // can_connect
-      DrawAnchor.Mode.OVER,        // mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // is_connected
-      DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & can_connect
-      DrawAnchor.Mode.DO_NOT_DRAW, // myThisIsTheTarget & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected &
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.Mode.CANNOT_CONNECT, // myThisIsTheTarget & is_cnnected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // mIsOver
+      DrawAnchor.Mode.NORMAL,      // can_connect & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // is_connected
+      DrawAnchor.Mode.NORMAL,      // is_connected & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // is_connected & mIsOver
+      DrawAnchor.Mode.NORMAL,      // is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection
+      DrawAnchor.Mode.NORMAL,      // doing_connection & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection & mIsOver
+      DrawAnchor.Mode.OVER,        // doing_connection & can_connect & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection & is_connected &
+      DrawAnchor.Mode.NORMAL,      // doing_connection & is_connected & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // doing_connection & is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected
       DrawAnchor.Mode.NORMAL,      // isSelected & can_connect
       DrawAnchor.Mode.OVER,        // isSelected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // isSelected & is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & is_connected & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & can_connect
-      DrawAnchor.Mode.CANNOT_CONNECT,   // isSelected & myThisIsTheTarget & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & myThisIsTheTarget & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & is_connected &
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // isSelected & myThisIsTheTarget & is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & myThisIsTheTarget & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.DELETE,      // isSelected & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & can_connect
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & doing_connection & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & is_connected &
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & is_connected & can_connect
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & doing_connection & is_connected & can_connect & mIsOver
     };
     return modeTable[drawState];
   }
@@ -809,7 +812,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
               myComponent.getScene().setFilterType(Scene.FilterType.NONE);
             }
           });
-          menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+          if (menu.getComponentCount() > 0) {
+            menu
+              .show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+          }
         }
       }
     }

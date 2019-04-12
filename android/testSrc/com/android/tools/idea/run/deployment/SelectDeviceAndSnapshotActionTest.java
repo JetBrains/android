@@ -45,7 +45,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of())
-      .build(null);
+      .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -62,7 +62,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
-      .build(null);
+      .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -79,7 +79,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
-      .build(null);
+      .build();
 
     try {
       new SelectDeviceAndSnapshotAction.Builder()
