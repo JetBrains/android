@@ -16,9 +16,12 @@
 package org.jetbrains.android.refactoring
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X
+import com.google.common.truth.Truth
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
@@ -38,6 +41,19 @@ private fun String.replaceCompileSdkWith(version: String) =
  * This class tests Migration to AndroidX for a Gradle project.
  */
 class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
+  // Temporary instrumentation for b/129308279.
+  override fun tearDown() {
+    super.tearDown()
+    val leak1 = DisposerExplorer.findFirst {
+      it is TextEditor
+    }
+    Truth.assertThat(leak1).isNull()
+
+    val leak2 = DisposerExplorer.findFirst {
+      it.javaClass.name.startsWith("com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider")
+    }
+    Truth.assertThat(leak2).isNull()
+  }
 
   fun testMigrationRefactoring() {
     loadProject(MIGRATE_TO_ANDROID_X)
