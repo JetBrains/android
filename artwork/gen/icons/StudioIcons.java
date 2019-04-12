@@ -624,4 +624,8 @@ public class StudioIcons {
       public static final Icon USER_PROFILE = load("/studio/icons/shell/toolbar/user-profile.svg"); // 16x16
     }
   }
+
+  public static class Test {
+    public static final Icon RECORD_ESPRESSO_TEST = load("/studio/icons/test/record-espresso-test.svg"); // 16x16
+  }
 }
