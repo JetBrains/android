@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.SyncNlModel;
@@ -66,7 +65,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -98,7 +96,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 
 public class PalettePanelTest extends LayoutTestCase {
   private NlTreeDumper myTreeDumper;
@@ -261,20 +258,6 @@ public class PalettePanelTest extends LayoutTestCase {
       checkTypingStartsFiltering(myPanel.getCategoryList(), ch, false);
       checkTypingStartsFiltering(myPanel.getItemList(), ch, false);
     }
-  }
-
-  public void testCommandFStartsFiltering() {
-    TestToolWindow toolWindow = new TestToolWindow();
-    myPanel.registerCallbacks(toolWindow);
-
-    @SuppressWarnings("MagicConstant")
-    ActionListener listener = myPanel.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()));
-    assertThat(listener).isNotNull();
-
-    ActionEvent event = mock(ActionEvent.class);
-    listener.actionPerformed(event);
-
-    assertThat(toolWindow.getInitialSearchString()).isEqualTo("");
   }
 
   public void testShiftHelpOnPaletteItem() {
