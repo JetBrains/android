@@ -18,13 +18,16 @@ package org.jetbrains.android.actions;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -40,8 +43,15 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   @Override
-  public void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setEnabled(AndroidSdkUtils.isAndroidSdkAvailable());
+  public void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
+
+    if (SystemInfo.isChromeOS) {
+      presentation.setVisible(false);
+      return;
+    }
+
+    presentation.setEnabled(AndroidSdkUtils.isAndroidSdkAvailable());
   }
 
   @Override
@@ -50,6 +60,10 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   public void openAvdManager(@Nullable Project project) {
+    if (SystemInfo.isChromeOS) {
+      return;
+    }
+
     if (myDialog == null) {
       myDialog = new AvdListDialog(project);
       myDialog.init();

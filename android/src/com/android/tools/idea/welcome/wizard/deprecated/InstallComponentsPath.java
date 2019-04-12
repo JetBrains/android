@@ -60,6 +60,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
@@ -182,7 +183,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
 
-    myComponentTree = createComponentTree(myMode, myState, myMode.shouldCreateAvd());
+    myComponentTree = createComponentTree(myMode, myState, !SystemInfo.isChromeOS && myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
 
     myComponentsStep = new SdkComponentsStep(
