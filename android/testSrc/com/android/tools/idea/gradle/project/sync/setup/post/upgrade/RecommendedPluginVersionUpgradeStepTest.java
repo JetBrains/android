@@ -41,8 +41,11 @@ public class RecommendedPluginVersionUpgradeStepTest {
       {"2.0.0-alpha9", "2.0.0", true},
       {"1.5.0-beta1", "2.0.0-alpha10", false},
       {"2.3.0-alpha1", "2.3.0-dev", false},
-
-      // Upgrade to alpha/beta version. We never suggest to upgrade to alpha/beta version. It is handled by force upgrade.
+      // Upgrade ancient preview version to newer stable version
+      {"1.5.0-beta1", "3.4.0", true},
+      {"2.3.0-alpha1", "3.4.0", true},
+      // We never suggest to upgrade from alpha/beta version to another alpha/beta version.
+      // It is handled by force upgrade.
       {"3.0.0-alpha02", "3.0.0-alpha01", false},
       {"3.0.0-alpha01", "3.0.0-alpha02", false},
       {"3.0.0-beta01", "3.0.0-alpha01", false},
@@ -52,10 +55,12 @@ public class RecommendedPluginVersionUpgradeStepTest {
       {"3.1.0-alpha01", "3.0.0-beta01", false},
       {"3.1.0-beta01", "3.0.0-alpha01", false},
       {"3.1.0-beta01", "3.0.0-beta01", false},
+      // Recommend to upgrade from stable version to newer alpha/beta version.
       {"3.0.0", "3.0.0-alpha1", false},
       {"3.0.0", "3.0.0-beta01", false},
-      {"3.0.0", "3.1.0-alpha01", false},
-      {"3.0.0", "3.1.0-beta01", false},
+      {"3.0.0", "3.1.0-alpha01", true},
+      {"3.0.0", "3.1.0-beta01", true},
+      // Never ask for upgrading from dev version to alpha/beta version. Dev version is for internal development only.
       {"3.0.0-dev", "3.0.0-alpha1", false},
       {"3.0.0-dev", "3.0.0-beta01", false},
       {"3.0.0-dev", "3.1.0-alpha01", false},
@@ -78,6 +83,9 @@ public class RecommendedPluginVersionUpgradeStepTest {
       {"3.0.0", "3.1.0", true},
       {"3.0.0", "3.0.1", true},
       {"3.0.1", "3.0.0", false},
+      // Upgrade ancient stable version to stable version.
+      {"1.5.0", "3.4.0", true},
+      {"2.2.0", "3.4.0", true},
     });
   }
 
