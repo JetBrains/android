@@ -52,10 +52,10 @@ class PsLibraryUpdateCheckerDaemon(
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
 
-  fun getAvailableUpdates(): AvailableLibraryUpdates = AvailableLibraryUpdateStorage.getInstance(project.ideProject).getState()
+  fun getAvailableUpdates(): AvailableLibraryUpdateStorage = AvailableLibraryUpdateStorage.getInstance(project.ideProject)
 
   fun queueAutomaticUpdateCheck() {
-    val searchTimeMillis = getAvailableUpdates().lastSearchTimeMillis
+    val searchTimeMillis = getAvailableUpdates().state.lastSearchTimeMillis
     if (searchTimeMillis > 0) {
       val elapsed = System.currentTimeMillis() - searchTimeMillis
       val daysPastSinceLastUpdate = TimeUnit.MILLISECONDS.toDays(elapsed)
@@ -103,8 +103,8 @@ class PsLibraryUpdateCheckerDaemon(
         .flatMap { it?.artifacts.orEmpty() }
 
     val updates = getAvailableUpdates()
-    foundArtifacts.forEach { updates.add(it) }
-    updates.lastSearchTimeMillis = System.currentTimeMillis()
+    foundArtifacts.forEach { updates.addOrUpdate(it) }
+    updates.state.lastSearchTimeMillis = System.currentTimeMillis()
 
     resultsUpdaterQueue.queue(UpdatesAvailable())
   }

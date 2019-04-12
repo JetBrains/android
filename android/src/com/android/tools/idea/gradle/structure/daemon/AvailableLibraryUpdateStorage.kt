@@ -18,14 +18,18 @@ package com.android.tools.idea.gradle.structure.daemon
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
-import com.google.common.collect.Maps
-import com.intellij.openapi.components.*
+import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.Transient
 import com.intellij.util.xmlb.annotations.XCollection
-
-import com.intellij.openapi.util.text.StringUtil.isNotEmpty
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Stores available library updates to disk. These stored updates are displayed to the user in the "Project Structure" dialog, until the
@@ -33,66 +37,72 @@ import com.intellij.openapi.util.text.StringUtil.isNotEmpty
  */
 @State(name = "AvailableLibraryUpdateStorage", storages = [Storage(StoragePathMacros.WORKSPACE_FILE)])
 class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryUpdateStorage.AvailableLibraryUpdates> {
+  private val lock: Lock = ReentrantLock()
+  private val updatesById = mutableMapOf<LibraryUpdateId, AvailableLibraryUpdate>()
   private var myState = AvailableLibraryUpdates()
 
-  override fun getState(): AvailableLibraryUpdates = myState
+  override fun getState(): AvailableLibraryUpdates = lock.withLock { myState }
 
   override fun loadState(state: AvailableLibraryUpdates) {
-    myState = state
-    myState.index()
+    lock.withLock {
+      myState = state
+      index()
+    }
+  }
+
+  fun clear() {
+    lock.withLock {
+      myState.updates.clear()
+      updatesById.clear()
+    }
+  }
+
+  fun addOrUpdate(artifact: FoundArtifact) {
+    lock.withLock {
+      val updateId = LibraryUpdateId(artifact.groupId, artifact.name)
+      updatesById[updateId]?.let { myState.updates.remove(it) }
+
+      val update = AvailableLibraryUpdate().apply {
+        groupId = artifact.groupId
+        name = artifact.name
+        version = artifact.versions.firstOrNull()?.toString()
+        repository = artifact.repositoryNames.joinToString(",")
+      }
+      myState.updates.add(update)
+      updatesById[updateId] = update
+    }
+  }
+
+  fun retainAll(predicate: (AvailableLibraryUpdate) -> Boolean): List<AvailableLibraryUpdate> {
+    return lock.withLock {
+      myState.updates.retainAll(predicate)
+      index()
+      myState.updates.toList()
+    }
+  }
+
+  fun findUpdatedVersionFor(spec: PsArtifactDependencySpec): GradleVersion? {
+    lock.withLock {
+      val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
+      val parsedVersion = GradleVersion.tryParse(version) ?: return null
+      val id = LibraryUpdateId(spec.group.orEmpty(), spec.name)
+      val update = updatesById[id] ?: return null
+      val foundVersion = GradleVersion.tryParse(update.version ?: return null) ?: return null
+      return if (foundVersion > parsedVersion) foundVersion else null
+    }
+  }
+
+  private fun index() {
+    updatesById.clear()
+    myState.updates.forEach { updatesById[LibraryUpdateId(it.groupId.orEmpty(), it.name.orEmpty())] = it }
   }
 
   class AvailableLibraryUpdates {
-    @XCollection(propertyElementName = "library-updates")
-    var updates: MutableList<AvailableLibraryUpdate> = mutableListOf()
-
     @Tag("last-search-timestamp")
     var lastSearchTimeMillis = -1L
 
-    @Transient
-    private val myUpdatesById = mutableMapOf<LibraryUpdateId, AvailableLibraryUpdate>()
-
-    fun clear() {
-      updates.clear()
-      myUpdatesById.clear()
-    }
-
-    internal fun index() {
-      myUpdatesById.clear()
-      updates.forEach { this.index(it) }
-    }
-
-    fun add(artifact: FoundArtifact) {
-      val update = AvailableLibraryUpdate()
-      update.groupId = artifact.groupId
-      update.name = artifact.name
-      update.version = artifact.versions[0].toString()
-      update.repository = artifact.repositoryNames.joinToString(",")
-      updates.add(update)
-      index(update)
-    }
-
-    private fun index(update: AvailableLibraryUpdate) {
-      myUpdatesById[LibraryUpdateId(update.groupId.orEmpty(), update.name!!)] = update
-    }
-
-    fun findUpdateFor(spec: PsArtifactDependencySpec): AvailableLibraryUpdate? {
-      val version = spec.version
-      if (isNotEmpty(version)) {
-        val parsedVersion = GradleVersion.tryParse(spec.version!!)
-        if (parsedVersion != null) {
-          val id = LibraryUpdateId(spec.group.orEmpty(), spec.name)
-          val update = myUpdatesById[id]
-          if (update != null) {
-            val foundVersion = GradleVersion.parse(update.version!!)
-            if (foundVersion.compareTo(parsedVersion) > 0) {
-              return update
-            }
-          }
-        }
-      }
-      return null
-    }
+    @XCollection(propertyElementName = "library-updates")
+    var updates: MutableList<AvailableLibraryUpdate> = mutableListOf()
   }
 
   @Tag("library-update")
