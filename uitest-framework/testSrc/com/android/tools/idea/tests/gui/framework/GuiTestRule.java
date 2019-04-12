@@ -120,6 +120,7 @@ public class GuiTestRule implements TestRule {
   @Override
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
+      .around(new AspectsAgentLogger())
       .around(new LogStartAndStop())
       .around(myRobotTestRule)
       .around(myOuterTimeout) // Rules should be inside this timeout when possible
