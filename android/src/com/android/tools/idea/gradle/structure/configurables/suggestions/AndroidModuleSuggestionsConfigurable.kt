@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
@@ -55,11 +56,12 @@ class AndroidModuleSuggestionsConfigurable(
       renderIssues(getIssues(context, psModulePath), psModulePath)
 
       context.analyzerDaemon.onIssuesChange(this) {
-        invokeLaterIfNeeded {
-          if (!uiDisposed) {
-            renderIssues(getIssues(context, psModulePath), psModulePath)
-          }
+        if (!uiDisposed) {
+          renderIssues(getIssues(context, psModulePath), psModulePath)
         }
+      }
+      context.analyzerDaemon.onRunningChange(this) @UiThread {
+        updateLoading()
       }
     }
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
@@ -101,10 +102,10 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }, this)
 
     @Suppress("LeakingThis")
-    context.analyzerDaemon.onIssuesChange(this) {
+    context.analyzerDaemon.onIssuesChange(this) @UiThread {
       if (myTree.isShowing) {
         // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
-        invokeLaterIfNeeded { revalidateAndRepaint(myTree) }
+        revalidateAndRepaint(myTree)
       }
       Unit
     }

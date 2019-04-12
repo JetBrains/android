@@ -85,8 +85,7 @@ class ObsoleteScopesTest {
     val psd = ide.openPsd()
     val suggestionsConfigurable = psd.selectSuggestionsConfigurable()
 
-    // TODO(xof) investigate weird only-analyses-the-second-time-almost-always problem
-    // suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(100))
+    suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(100))
 
     // our obsolete scopes messages are warnings.  There may be other warnings, but none
     // of them should have the same messages as ours.  There may also be suggestions in
@@ -120,17 +119,18 @@ class ObsoleteScopesTest {
   fun testQuickFixDisappearOnClick() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     val psd = ide.openPsd()
-    var suggestionsConfigurable = psd.selectSuggestionsConfigurable()
-    suggestionsConfigurable.waitForGroup("Warnings")
+    val suggestionsConfigurable = psd.selectSuggestionsConfigurable()
     expectedIssuesAndFixes
       .forEachIndexed { i, issueAndFix ->
+        suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(1))
+        suggestionsConfigurable.waitForGroup("Warnings")
         var warningsGroup = suggestionsConfigurable.findGroup("Warnings")
         val pattern = issueAndFix.let { "${it.moduleName} » ${it.dependencyName}\nObsolete scope found" }
         var message = warningsGroup.findMessageMatching(pattern)
         assertNotNull(message)
         assertTrue(message.isActionActionAvailable())
         message.clickAction()
-        suggestionsConfigurable = psd.selectSuggestionsConfigurable()
+        suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(1))
         // if we have just acted on the last issueAndFix, then the "Warnings" group might no longer be present
         // (it might still be if there are other, unrelated warnings, so simply skip the test)
         if (i != expectedIssuesAndFixes.lastIndex) {
@@ -148,10 +148,10 @@ class ObsoleteScopesTest {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     expectedIssuesAndFixes
       .forEach { issueAndFix ->
-        println(issueAndFix)
         val origBuildGradleContent = issueAndFix.let { ide.editor.open("/${it.moduleName}/build.gradle").currentFileContents }
         val psd = ide.openPsd()
         val suggestionsConfigurable = psd.selectSuggestionsConfigurable()
+        suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(1))
         suggestionsConfigurable.waitForGroup("Warnings")
         val warningsGroup = suggestionsConfigurable.findGroup("Warnings")
         val pattern = issueAndFix.let { "${it.moduleName} » ${it.dependencyName}\nObsolete scope found" }

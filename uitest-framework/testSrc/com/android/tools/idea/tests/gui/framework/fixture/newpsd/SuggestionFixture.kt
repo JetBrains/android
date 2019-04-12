@@ -64,6 +64,7 @@ class SuggestionFixture(
   fun clickAction() {
     val buttonFixture = findButton()
     buttonFixture.click()
+    waitForIdle()
   }
 
   fun findButton(): JButtonFixture {

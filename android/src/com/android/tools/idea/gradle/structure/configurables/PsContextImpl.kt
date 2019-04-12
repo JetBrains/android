@@ -107,9 +107,16 @@ class PsContextImpl constructor(
           .filter { it.dependencies.modules.any { moduleDependency -> moduleDependency.gradlePath == module.gradlePath } }
           .forEach { analyzerDaemon.queueCheck(it) }
       }
+      project.forEachModule(Consumer { module ->
+        module.addDependencyChangedListener(this) { e -> if (e !is PsModule.DependenciesReloadedEvent) dependencyChanged() }
+      })
     }
 
     Disposer.register(parentDisposable, this)
+  }
+
+  private fun dependencyChanged() {
+    analyzerDaemon.recreateUpdateIssues()
   }
 
   private fun requestGradleModels() {
