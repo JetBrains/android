@@ -68,8 +68,9 @@ public class WindowsPerformanceHintsChecker {
           WindowsDefenderStatus.Status overallStatus;
           if (pathStatuses.containsValue(Boolean.FALSE)) {
             if (StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get()) {
-              systemHealthMonitor.showNotification("windows.defender.warn.message", PropertiesComponent.getInstance(project), AndroidStudioSystemHealthMonitor.detailsAction(
-                "https://developer.android.com/")); // TODO(npaige): point this at the real page once it exists
+              systemHealthMonitor.showNotification("virus.scanning.warn.message", PropertiesComponent.getInstance(project),
+                   AndroidStudioSystemHealthMonitor.detailsAction("https://d.android.com/r/studio-ui/antivirus-check"), false,
+                   getNotificationTextForNonExcludedPaths(pathStatuses));
             }
             if (pathStatuses.containsValue(Boolean.TRUE)) {
               overallStatus = WindowsDefenderStatus.Status.SOME_EXCLUDED;
@@ -254,6 +255,13 @@ public class WindowsPerformanceHintsChecker {
       }
     }
     return result;
+  }
+
+  @NotNull
+  private static String getNotificationTextForNonExcludedPaths(@NotNull Map<Path, Boolean> pathStatuses) {
+    StringBuilder sb = new StringBuilder();
+    pathStatuses.entrySet().stream().filter(entry -> !entry.getValue()).forEach(entry -> sb.append("<br/>" + entry.getKey()));
+    return sb.toString();
   }
 
 }
