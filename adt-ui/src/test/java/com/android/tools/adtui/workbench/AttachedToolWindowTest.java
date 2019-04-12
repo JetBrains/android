@@ -15,30 +15,57 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.annotations.Nullable;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.SearchTextField;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Mock private AttachedToolWindow.ButtonDragListener<String> myDragListener;
@@ -46,7 +73,10 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Mock private ActionManagerEx myActionManager;
   @Mock private ActionPopupMenu myActionPopupMenu;
   @Mock private JPopupMenu myPopupMenu;
+  @Mock private KeyboardFocusManager myKeyboardFocusManager;
 
+  @SuppressWarnings("MagicConstant")
+  private KeyStroke myCommandF = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
   private AttachedToolWindow<String> myToolWindow;
@@ -55,19 +85,24 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+    SearchTextField.FindAction globalFindAction = new SearchTextField.FindAction();
+    globalFindAction.registerCustomShortcutSet(new CustomShortcutSet(myCommandF), null);
     registerApplicationComponentImplementation(ActionManager.class, myActionManager);
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));
     when(myActionManager.getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(new SomeAction("ClearText"));
+    when(myActionManager.getAction(IdeActions.ACTION_FIND)).thenReturn(globalFindAction);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myActionPopupMenu);
+    when(myActionManager.getRegistrationOrderComparator()).thenReturn(String.CASE_INSENSITIVE_ORDER);
     when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
 
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myDefinition = PalettePanelToolContent.getDefinition();
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, "DESIGNER", myModel);
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
 
   @Override
@@ -76,6 +111,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
       if (myToolWindow != null) {
         Disposer.dispose(myToolWindow);
       }
+      KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
     }
     catch (Throwable e) {
       addSuppressedException(e);
@@ -597,6 +633,15 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(myToolWindow.getProperty(PropertyType.SPLIT)).isFalse();
   }
 
+  public void testCommandFStartsFiltering() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    when(myKeyboardFocusManager.getFocusOwner()).thenReturn(panel.getComponent());
+    IdeKeyEventDispatcher dispatcher = new IdeKeyEventDispatcher(null);
+    dispatcher.dispatchKeyEvent(
+      new KeyEvent(panel.getComponent(), KeyEvent.KEY_PRESSED, 0, myCommandF.getModifiers(), myCommandF.getKeyCode(), 'F'));
+    assertThat(myToolWindow.getSearchField().isVisible()).isTrue();
+  }
+
   private static void fireFocusLost(@NotNull JComponent component) {
     for (FocusListener listener : component.getFocusListeners()) {
       listener.focusLost(new FocusEvent(component, FocusEvent.FOCUS_LOST));
@@ -621,6 +666,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   private static void fireKey(@NotNull JComponent component, int keyCode) {
     KeyEvent event = new KeyEvent(component, 0, 0, 0, keyCode, '\0');
     for (KeyListener listener : component.getKeyListeners()) {
@@ -725,13 +771,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     DataContext dataContext = mock(DataContext.class);
     return new AnActionEvent(null, dataContext, TOOL_WINDOW_TOOLBAR_PLACE, action.getTemplatePresentation().clone(),
                              ActionManager.getInstance(), 0);
-  }
-
-  private static void fireFocusLost(@NotNull Component component) {
-    FocusEvent event = mock(FocusEvent.class);
-    for (FocusListener listener : component.getFocusListeners()) {
-      listener.focusLost(event);
-    }
   }
 
   private static class SomeAction extends AnAction {
