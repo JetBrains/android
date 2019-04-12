@@ -113,7 +113,7 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
   }
 
   @Test
-  fun testStopUpdateDeadProcessses() {
+  fun testStopUpdateDeadProcesses() {
     myProfilerService.setProcessAgentMap(PROCESS_AGENT_MAP)
     myProcessPoller.poll()
     val processRequest = GetProcessesRequest.newBuilder().setDeviceId(DataStorePollerTest.DEVICE.deviceId).build()
@@ -124,6 +124,19 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
     processResponse = myTable.getProcesses(processRequest)
     val deadProcessSet = PROCESS_AGENT_MAP.keys.map { p -> p.toBuilder().setState(Common.Process.State.DEAD).build() }
     assertThat(processResponse.processList).containsExactlyElementsIn(deadProcessSet)
+
+    // Validate agent status of dead processes.
+    val newAgentStatusMap = PROCESS_AGENT_MAP.mapValues {
+      when (it.value.status) {
+        Common.AgentData.Status.UNSPECIFIED -> Common.AgentData.Status.UNATTACHABLE
+        else -> it.value.status
+      }
+    }
+    for (process in PROCESS_AGENT_MAP.keys) {
+      val agentData = myTable.getAgentStatus(
+        AgentStatusRequest.newBuilder().setPid(process.pid).setDeviceId(DataStorePollerTest.DEVICE.deviceId).build())
+      assertThat(agentData.status).isEqualTo(newAgentStatusMap[process])
+    }
   }
 
   private class FakeTransportService : TransportServiceGrpc.TransportServiceImplBase() {
