@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
@@ -32,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -173,6 +175,11 @@ public class ThumbnailManagerTest extends NavTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 1f;
 
   public void testGeneratedImage() throws Exception {
+    // TODO: Add support for retina images: b/119616215
+    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+      return;
+    }
+
     File goldenFile = new File(Companion.getTestDataPath() + "/thumbnails/basic_activity_1.png");
     BufferedImage goldenImage = ImageIO.read(goldenFile);
 
