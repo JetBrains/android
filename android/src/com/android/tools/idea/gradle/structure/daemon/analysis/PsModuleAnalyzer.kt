@@ -95,7 +95,7 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> 
     val fixes = fixesFor(configurationName)
     val path = dependency.path
     if (path != null) {
-      val issue = PsGeneralIssue(text, "", path, PsIssueType.OBSOLETE_SCOPE, WARNING, fixes)
+      val issue = PsGeneralIssue(text, "", path, PsIssueType.PROJECT_ANALYSIS, WARNING, fixes)
       issues.add(issue)
     }
   }

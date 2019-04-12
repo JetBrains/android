@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
 import com.android.tools.idea.gradle.structure.configurables.JavaModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
@@ -41,7 +42,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
       fireCountChangeListener()
     }
 
-    context.analyzerDaemon.onIssuesChange(this) { invokeLaterIfNeeded { issuesChanged() } }
+    context.analyzerDaemon.onIssuesChange(this) @UiThread { issuesChanged() }
   }
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS

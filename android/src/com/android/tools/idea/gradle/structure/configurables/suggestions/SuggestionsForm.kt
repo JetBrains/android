@@ -13,17 +13,17 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
 import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueType.OBSOLETE_SCOPE
-import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
-import java.util.function.Consumer
+import com.intellij.util.ExceptionUtil.currentStackTrace
+import org.jetbrains.kotlin.cli.common.repl.renderReplStackTrace
 
 class SuggestionsForm(
     private val context: PsContext,
@@ -39,27 +39,11 @@ class SuggestionsForm(
   init {
     setViewComponent(issuesViewer.panel)
     renderIssues(listOf(), scope = null)
-
-    context.project.forEachModule(Consumer { module ->
-      module.addDependencyChangedListener(this) { dependencyChanged() }
-    })
   }
 
-  private fun dependencyChanged() {
-    context.analyzerDaemon.recreateUpdateIssues()
-    analyzeProject()
-  }
-
-  private fun analyzeProject() {
-    val daemon = context.analyzerDaemon
-    daemon.removeIssues(PROJECT_ANALYSIS)
-    daemon.removeIssues(OBSOLETE_SCOPE)
-    context.project.forEachModule(Consumer { daemon.queueCheck(it) })
-    updateLoading()
-  }
-
-  private fun updateLoading() {
-    myLoadingLabel.isVisible = context.analyzerDaemon.isRunning || context.libraryUpdateCheckerDaemon.isRunning
+  @UiThread
+  fun updateLoading() {
+    myLoadingLabel.isVisible = (context.analyzerDaemon.isRunning || context.libraryUpdateCheckerDaemon.isRunning)
   }
 
   internal fun renderIssues(issues: List<PsIssue>, scope: PsPath?) {
