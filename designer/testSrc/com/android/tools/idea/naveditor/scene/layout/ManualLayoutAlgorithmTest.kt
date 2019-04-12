@@ -29,7 +29,6 @@ import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito.mock
-import java.nio.charset.StandardCharsets.UTF_8
 
 /**
  * Tests for [ManualLayoutAlgorithm]
@@ -151,7 +150,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     PlatformTestUtil.saveProject(project)
 
     // Tests always use file-based storage, not directory-based
-    assertTrue(project.projectFile!!.contentsToByteArray().toString(UTF_8).contains("fragment1"))
+    assertTrue(project.projectFile!!.contentsToByteArray().toString(Charsets.UTF_8).contains("fragment1"))
 
     // Now create everything anew and verify the old position is restored
     model = model("nav.xml") {
