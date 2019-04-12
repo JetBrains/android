@@ -125,10 +125,13 @@ public class DeviceProcessPoller extends PollRunner {
       Common.Process updatedProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
       myTable.insertOrUpdateProcess(deviceId, updatedProcess);
 
-      // The process is already dead, just mark it as agent non-attachable.
+      // The process is already dead, but we still show past sessions in the UI. To preserve their agent status we only mark it unattachable
+      // if an agent was never attached.
       AgentData agentData =
         myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(deviceId).setPid(process.getPid()).build());
-      myTable.updateAgentStatus(deviceId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
+      if (agentData.getStatus() == AgentData.Status.UNSPECIFIED) {
+        myTable.updateAgentStatus(deviceId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
+      }
     }
   }
 }
