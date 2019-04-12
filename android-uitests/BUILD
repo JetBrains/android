@@ -76,6 +76,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/idea/.idea/libraries:jna[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -890,12 +891,29 @@ java_test(
 # sanity test
 java_test(
     name = "CreateAndRunInstantAppTest",
-    data = COMMON_DATA,
+    data = COMMON_DATA + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/studio/sdk:instant-apps-sdk",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.CreateAndRunInstantAppTest"],
-    tags = COMMON_TAGS + [
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
         "no_psq",
+        "no_windows",
         "qa_sanity",
-        "qa_unreliable",  # http://b/79937083
+        "qa_sanity_emu",
+        "qa_unreliable",  # b/79937083
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
