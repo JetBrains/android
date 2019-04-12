@@ -40,7 +40,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import java.io.IOException
 import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
 
 /**
  * Opens the resource using the resource resolver in the configuration.
@@ -69,7 +68,7 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
   val path = MaterialDesignIcons.getPathForBasename(asset)
 
   try {
-    InputStreamReader(IconGenerator::class.java.classLoader.getResourceAsStream(path), StandardCharsets.UTF_8).use {
+    InputStreamReader(IconGenerator::class.java.classLoader.getResourceAsStream(path), Charsets.UTF_8).use {
       reader -> createResourceFile(project, facet, FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader))
     }
   }

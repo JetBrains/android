@@ -63,7 +63,7 @@ abstract class AbstractQuickFixMultiFileTest : LightCodeInsightFixtureTestCase()
   private fun createTestFile(testFile: TestFile): VirtualFile {
     return runWriteAction {
       val vFile = myFixture.tempDirFixture.createFile(testFile.path)
-      vFile.charset = CharsetToolkit.UTF8_CHARSET
+      vFile.charset = Charsets.UTF_8
       VfsUtil.saveText(vFile, testFile.content)
       vFile
     }
