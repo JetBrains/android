@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,17 +22,14 @@ import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectDeploymentTargetsDialogTable extends JBTable {
-  SelectDeploymentTargetsDialogTable(@NotNull Project project) {
-    super(new SelectDeploymentTargetsDialogTableModel(project));
+  SelectDeploymentTargetsDialogTable(@NotNull SelectDeploymentTargetsDialogTableModel model) {
+    super(model);
 
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
     setTableHeader(null);
-
-    TableModel model = getModel();
 
     model.addTableModelListener(this::synchronizeRowSelectionWithSelectedColumn);
     model.addTableModelListener(event -> setSelectedAndIconColumnMaxWidthsToFit());

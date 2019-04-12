@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
 import java.util.Collection;
@@ -34,7 +35,11 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
 
   SelectDeploymentTargetsDialog(@NotNull Project project) {
     super(project);
-    myTable = new SelectDeploymentTargetsDialogTable(project);
+
+    SelectDeploymentTargetsDialogTableModel model = new SelectDeploymentTargetsDialogTableModel(project);
+    Disposer.register(getDisposable(), model);
+
+    myTable = new SelectDeploymentTargetsDialogTable(model);
 
     init();
     setTitle("Select Deployment Targets");
