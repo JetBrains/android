@@ -29,7 +29,7 @@ public class WindowsCRuntimeChecker {
     if (!dllPath.toFile().exists()) {
       systemHealthMonitor.showNotification("windows.ucrt.warn.message", PropertiesComponent.getInstance(),
                                            AndroidStudioSystemHealthMonitor.detailsAction(
-        "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"));
+        "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"), true);
     }
   }
 }
