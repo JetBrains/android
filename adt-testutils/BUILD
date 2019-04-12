@@ -6,7 +6,6 @@ iml_module(
     iml_files = ["intellij.android.adt.testutils.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/platform/usageView:intellij.platform.usageView",
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
         "//tools/idea/xml/xml-analysis-impl:intellij.xml.analysis.impl",
         "//tools/idea/images:intellij.platform.images",
@@ -26,11 +25,11 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
-        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:Gradle[test]",
         "//tools/idea/.idea/libraries:jna[test]",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )
