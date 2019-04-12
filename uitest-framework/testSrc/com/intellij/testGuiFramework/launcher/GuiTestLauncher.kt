@@ -17,9 +17,9 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.tests.IdeaTestSuiteBase
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
@@ -83,6 +83,10 @@ object GuiTestLauncher {
     val processBuilder = ProcessBuilder().inheritIO().command(args)
     vmOptionsFile?.let {
       processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
+    }
+    val aspectsAgentLogPath = AspectsAgentLogger.getAspectsAgentLog()?.absolutePath
+    if (aspectsAgentLogPath != null) {
+      processBuilder.environment()["ASPECTS_AGENT_LOG"] = aspectsAgentLogPath
     }
     process = processBuilder.start()
   }
