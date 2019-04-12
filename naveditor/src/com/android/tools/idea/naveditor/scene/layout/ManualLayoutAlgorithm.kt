@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.layout
 
-import com.android.SdkConstants.*
-import com.google.common.annotations.VisibleForTesting
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_GRAPH
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.NAVIGATION_PREFIX
+import com.android.SdkConstants.TAG_INCLUDE
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.editor.NavEditor
@@ -25,6 +29,7 @@ import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.command.WriteCommandAction
@@ -97,11 +102,10 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       return true
     }
 
-    val tag = SmartPointerManager.createPointer(component.nlComponent.tagDeprecated)
-    var positions = tagPositionMap[tag]
+    var positions = getPosition(component.nlComponent.tag)
     if (positions == null) {
       reload(component.nlComponent.model.file, true)
-      positions = tagPositionMap[SmartPointerManager.createPointer(component.nlComponent.tagDeprecated)]
+      positions = getPosition(component.nlComponent.tag)
     }
     if (positions == null) {
       positions = tryToFindNewNestedGraphPosition(component)
@@ -126,7 +130,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     // if a tag is recreated (e.g. by delete/undo) we might be coming in with the same "positions"
     // but a new tag. Delete the existing entry first.
     tagPositionMap.inverse().remove(positions)
-    tagPositionMap[SmartPointerManager.createPointer(tag)] = positions
+    setPosition(tag, positions)
     for ((id, position) in positions.myPositions) {
       for (subtag in tag.subTags) {
         var subtagId = NlComponent.stripId(subtag.getAttributeValue(ATTR_ID, ANDROID_URI))
@@ -174,15 +178,14 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       val newPositions = getPositions(component)
       newPositions.myPosition = newPoint
       tagPositionMap.inverse().remove(newPositions)
-      tagPositionMap[component.nlComponent.tagPointer] = newPositions
+      setPosition(component.nlComponent.tag, newPositions)
       val fileName = component.nlComponent.model.virtualFile.name
       rectifyIds(model.components.flatMap { it.children }, storage.state[fileName]!!)
     }
   }
 
   private fun getPositions(component: SceneComponent): LayoutPositions {
-    val tag = component.nlComponent.tagPointer
-    var componentPositions = tagPositionMap[tag]
+    var componentPositions = getPosition(component.nlComponent.tag)
     if (componentPositions == null) {
       val nlComponent = component.nlComponent
 
@@ -258,8 +261,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
                          layoutPositions: LayoutPositions) {
     val seenComponents = mutableSetOf<String>()
     for (component in components) {
-      val tag = component.tagPointer
-      val cachedPositions = tagPositionMap[tag] ?: LayoutPositions()
+      val cachedPositions = getPosition(component.tag) ?: LayoutPositions()
       val id = if (component.isInclude) {
         component.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
       }
@@ -283,6 +285,14 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       rectifyIds(component.children, cachedPositions)
     }
     layoutPositions.myPositions.keys.retainAll(seenComponents)
+  }
+
+  private fun getPosition(tag: XmlTag?): LayoutPositions? {
+    return tag?.let { tagPositionMap[SmartPointerManager.createPointer(it)] }
+  }
+
+  private fun setPosition(tag: XmlTag?, positions: LayoutPositions) {
+    tag?.let { tagPositionMap[SmartPointerManager.createPointer(it)] = positions }
   }
 
   @VisibleForTesting
