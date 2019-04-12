@@ -27,11 +27,16 @@ import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.util.TestGroupItem
 import com.android.tools.property.panel.impl.model.util.FakePTableModel
 import com.android.tools.property.panel.impl.model.util.TestTableItem
+import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
+import org.junit.Rule
 import org.junit.Test
 import javax.swing.JPanel
 
 class TableEditorTest {
+
+  @JvmField @Rule
+  val appRule = PropertyAppRule()
 
   @Test
   fun testRequestFocusInBestMatch() {

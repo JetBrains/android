@@ -28,11 +28,27 @@ import com.android.tools.property.panel.impl.model.util.FakeFlagsPropertyItem
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.EditorPanel
 import com.android.tools.property.panel.impl.table.PTableCellEditorProviderImpl
+import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import javax.swing.JScrollPane
 
 class FlagPropertyEditorTest {
+
+  @JvmField @Rule
+  val appRule = PropertyAppRule()
+
+  @Before
+  fun setUp() {
+    `when`(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
+  }
 
   @Test
   fun testRestoreComponentIsTableWhenEditingFlagPropertyInTable() {
@@ -113,4 +129,8 @@ private class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
     return column == PTableColumn.VALUE
   }
+}
+
+private class SomeAction internal constructor(title: String) : AnAction(title) {
+  override fun actionPerformed(e: AnActionEvent) {}
 }
