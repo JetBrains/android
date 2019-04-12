@@ -46,7 +46,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Collection;
@@ -813,32 +812,33 @@ public class NlComponent implements NlAttributesHolder {
    * and transfer all those namespace declarations to the current document root.
    */
   private void transferNamespaces(@NotNull NlComponent receiver) {
-    XmlTag rootTag = getDocumentRoot();
-    XmlTag tag = receiver.getTag();
-    while (tag != null && tag != rootTag) {
-      if (!tag.getLocalNamespaceDeclarations().isEmpty()) {
+    NlComponent root = receiver.getRoot();
+    while (receiver != null && receiver != root) {
+      XmlTag tag = receiver.getTag();
+      if (tag != null && !tag.getLocalNamespaceDeclarations().isEmpty()) {
         // This is done to cleanup after a manual change of the Xml file.
         // See b/78318923
-        receiver.transferLocalNamespaces();
+        receiver.transferLocalNamespaces(root);
       }
 
       receiver = receiver.getParent();
-      tag = receiver != null ? receiver.getTag() : null;
     }
-    transferLocalNamespaces();
+    if (receiver != this) {
+      transferLocalNamespaces(root);
+    }
   }
 
   /**
    * Given a tag on the current component:
    * <ul>
-   *   <li>transfer any namespaces to the rootTag of the current document</li>
+   *   <li>transfer any namespaces to the specified root</li>
    *   <li>update all attribute prefixes for namespaces to match those in the rootTag</li>
    * </ul>
    */
-  private void transferLocalNamespaces() {
-    XmlTag rootTag = getDocumentRoot();
+  private void transferLocalNamespaces(@NotNull NlComponent root) {
+    XmlTag rootTag = root.getTag();
     XmlTag tag = getTag();
-    if (tag == null || rootTag == tag) {
+    if (tag == null || rootTag == null || rootTag == tag) {
       return;
     }
     // Transfer namespace attributes to the root tag
@@ -877,16 +877,6 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     removeNamespaceAttributes();
-  }
-
-  @NotNull
-  private XmlTag getDocumentRoot() {
-    XmlFile file = getModel().getFile();
-    XmlDocument xmlDocument = file.getDocument();
-    assert xmlDocument != null;
-    XmlTag rootTag = xmlDocument.getRootTag();
-    assert rootTag != null;
-    return rootTag;
   }
 
   /**
