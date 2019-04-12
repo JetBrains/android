@@ -59,7 +59,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void testGetWithDefaultOptions() {
     List<String> args = myArgs.get(getProject());
     check(args);
-    verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
   }
 
   public void testGetWhenIncludingLocalMavenRepo() {
@@ -69,7 +69,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
     Project project = getProject();
     List<String> args = myArgs.get(project);
     check(args);
-    verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 

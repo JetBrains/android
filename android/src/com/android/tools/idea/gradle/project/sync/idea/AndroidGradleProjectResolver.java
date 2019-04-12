@@ -54,6 +54,7 @@ import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.java.model.GradlePluginModel;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -78,6 +79,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -295,8 +297,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Note: currently getModelVersion() matches the AGP version and it is the only way to get the AGP version.
     // Note: agpVersion is currently not available for Java modules.
     String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
+    GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
+    // We need to make a copy of the Collection since it originates from the Gradle classloader
+    List<String> gradlePluginList = new ArrayList<>();
+    if (gradlePluginModel != null) {
+      gradlePluginList.addAll(gradlePluginModel.getGradlePluginList());
+    }
     GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(moduleName, gradleProject, emptyList(), buildFilePath, gradleVersion, agpVersion);
+      new GradleModuleModel(moduleName, gradleProject, gradlePluginList, buildFilePath, gradleVersion, agpVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
@@ -449,6 +457,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     modelClasses.add(AndroidProject.class);
     modelClasses.add(NativeAndroidProject.class);
     modelClasses.add(GlobalLibraryMap.class);
+    modelClasses.add(GradlePluginModel.class);
     return modelClasses;
   }
 

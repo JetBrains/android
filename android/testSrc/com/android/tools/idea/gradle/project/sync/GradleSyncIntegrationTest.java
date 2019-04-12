@@ -82,11 +82,13 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
@@ -122,6 +124,7 @@ import com.intellij.testFramework.LeakHunter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -616,6 +619,41 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     for (Module module : modules) {
       ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
+    }
+  }
+
+  public void testSyncGetsGradlePluginModel() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertSize(2, modules);
+    for (Module module : modules) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (module.getName().equals("app")) {
+        assertThat(gradleFacet).isNotNull();
+        Collection<String> plugins = gradleFacet.getGradleModuleModel().getGradlePlugins();
+        // The main project module will not contain a list of plugins
+        List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
+          "com.android.java.model.builder.JavaLibraryPlugin",
+          "org.gradle.buildinit.plugins.BuildInitPlugin",
+          "org.gradle.buildinit.plugins.WrapperPlugin",
+          "org.gradle.api.plugins.HelpTasksPlugin",
+          "com.android.build.gradle.api.AndroidBasePlugin",
+          "org.gradle.language.base.plugins.LifecycleBasePlugin",
+          "org.gradle.api.plugins.BasePlugin",
+          "org.gradle.api.plugins.ReportingBasePlugin",
+          "org.gradle.api.plugins.JavaBasePlugin",
+          "com.android.build.gradle.AppPlugin",
+          useNewSyncInfrastructure() ? "KaptModelBuilderPlugin" : "org.gradle.plugins.ide.idea.IdeaPlugin"
+        ));
+        if (useNewSyncInfrastructure()) {
+          expectedPlugins.add("BuildScriptClasspathModelBuilderPlugin");
+        }
+        assertThat(plugins).containsExactlyElementsIn(expectedPlugins);
+      }
+      else {
+        assertThat(gradleFacet).isNull();
+      }
     }
   }
 
