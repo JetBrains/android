@@ -77,9 +77,9 @@ public class CommandLineArgs {
   public List<String> get(@Nullable Project project) {
     List<String> args = new ArrayList<>();
 
-    // TODO: figure out why this is making sync fail.
+    myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+
     if (myIsNewSync) {
-      myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
       myInitScripts.addApplyKaptModelBuilderInitScript(args);
       myInitScripts.addApplyBuildScriptClasspathModelBuilderInitScript(args);
     }
