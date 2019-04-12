@@ -21,7 +21,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.lint.checks.FontDetector;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -29,6 +28,7 @@ import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
@@ -246,7 +246,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     VirtualFile resourceFolder = checkNotNull(resourceDirectory.findChild(type.getName()));
     VirtualFile file = checkNotNull(resourceFolder.findChild(fileName));
     file.refresh(false, false);
-    return new String(file.contentsToByteArray(), CharsetToolkit.UTF8_CHARSET);
+    return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
   }
 
   @SuppressWarnings("SameParameterValue")
