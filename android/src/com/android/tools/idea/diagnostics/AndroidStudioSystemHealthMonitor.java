@@ -573,7 +573,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private void warnIfOpenJDK() {
     if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
         !SystemInfo.isJetBrainsJvm && !SystemInfo.isStudioJvm) {
-      showNotification("unsupported.jvm.openjdk.message", myProperties, null);
+      showNotification("unsupported.jvm.openjdk.message", myProperties, null, true);
     }
   }
 
@@ -585,7 +585,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
         !SystemInfo.isJavaVersionAtLeast("1.8.0_76")) {
       // Upstream JDK8 bug tracked by https://bugs.openjdk.java.net/browse/JDK-8134917, affecting 1.8.0_60 up to 1.8.0_76.
       // Fixed by Jetbrains in their 1.8.0_40-b108 JRE and tracked in https://youtrack.jetbrains.com/issue/IDEA-146691
-      showNotification("unsupported.jvm.dragndrop.message", myProperties, null);
+      showNotification("unsupported.jvm.dragndrop.message", myProperties, null, true);
     }
   }
 
@@ -632,7 +632,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       AndroidBundle.message("sys.health.send.feedback"),
       (event, notification) -> sendFeedback.actionPerformed(event)
     );
-    showNotification("sys.health.too.many.exceptions", myProperties, notificationAction);
+    showNotification("sys.health.too.many.exceptions", myProperties, notificationAction, true);
   }
 
   private static void processDiagnosticReports(@NotNull List<DiagnosticReport> reports) {
@@ -737,6 +737,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   void showNotification(@PropertyKey(resourceBundle = "messages.AndroidBundle") String key,
                         @Nullable PropertiesComponent properties,
                         @Nullable NotificationAction action,
+                        boolean fullContent,
                         Object... params) {
     boolean ignored = false;
     if (properties != null) {
@@ -745,7 +746,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
     if (ignored) return;
 
-    Notification notification = new MyNotification(AndroidBundle.message(key, params));
+    Notification notification = fullContent ? new MyFullContentNotification(AndroidBundle.message(key, params)) :
+                                new MyNotification(AndroidBundle.message(key, params));
     if (action != null) {
       notification.addAction(action);
     }
@@ -763,7 +765,13 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     ApplicationManager.getApplication().invokeLater(() -> Notifications.Bus.notify(notification));
   }
 
-  private final class MyNotification extends Notification implements NotificationFullContent {
+  private final class MyFullContentNotification extends MyNotification implements NotificationFullContent {
+    public MyFullContentNotification (@NotNull String content) {
+      super(content);
+    }
+  }
+
+  private class MyNotification extends Notification {
     public MyNotification(@NotNull String content) {
       super(myGroup.getDisplayId(), "", content, NotificationType.WARNING);
     }
