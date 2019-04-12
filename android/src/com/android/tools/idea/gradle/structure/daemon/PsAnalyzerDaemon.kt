@@ -39,7 +39,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
@@ -96,9 +95,9 @@ class PsAnalyzerDaemon(
   private fun checkForUpdates(dependency: PsDeclaredLibraryDependency): Boolean {
     val results = libraryUpdateCheckerDaemon.getAvailableUpdates()
     val spec = dependency.spec
-    val update = results.findUpdateFor(spec)
-    if (update != null) {
-      val text = String.format("Newer version available: <b>%1\$s</b> (%2\$s)", update.version, update.repository)
+    val versionToUpdateTo = results.findUpdatedVersionFor(spec)
+    if (versionToUpdateTo != null) {
+      val text = String.format("Newer version available: <b>%1\$s</b>", versionToUpdateTo)
 
       val mainPath = dependency.path
       val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
@@ -109,11 +108,11 @@ class PsAnalyzerDaemon(
         mainPath,
         LIBRARY_UPDATES_AVAILABLE, UPDATE,
         if (!valueIsReference)
-          listOf(PsLibraryDependencyVersionQuickFixPath(dependency, update.version.orEmpty()))
+          listOf(PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString()))
         else
           listOf(
-            PsLibraryDependencyVersionQuickFixPath(dependency, update.version.orEmpty(), updateVariable = true),
-            PsLibraryDependencyVersionQuickFixPath(dependency, update.version.orEmpty(), updateVariable = false)
+            PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true),
+            PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false)
           ))
       issues.add(issue)
       return true
