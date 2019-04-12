@@ -107,9 +107,10 @@ class NewSyncKotlinIntegrationTest : AndroidGradleTestCase() {
     assertEquals(oldGradleModuleModel.taskNames.size, gradleModuleModel.taskNames.size + extraOldSyncTasks.size)
 
     assertEquals(oldGradleModuleModel.buildFilePath, gradleModuleModel.buildFilePath)
-    // Old plugin list is not populated
-    assertSize(0, oldGradleModuleModel.gradlePlugins)
     assertContainsElements(gradleModuleModel.gradlePlugins,
+                           if (isKotlinLib()) "org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper"
+                           else "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper")
+    assertContainsElements(oldGradleModuleModel.gradlePlugins,
                            if (isKotlinLib()) "org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper"
                            else "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper")
   }
