@@ -19,7 +19,6 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
-import com.intellij.psi.util.PsiTypesUtil
 
 /**
  * PSI wrapper around psi methods that additionally expose information particularly useful in data binding expressions.
@@ -27,9 +26,6 @@ import com.intellij.psi.util.PsiTypesUtil
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelMethod] from db-compiler.
  */
 class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
-
-  val declaringClass: PsiModelClass?
-    get() = psiMethod.containingClass?.let { PsiModelClass(PsiTypesUtil.getClassType(it), mode) }
 
   val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
     psiMethod.parameterList.parameters.map { PsiModelClass(it.type, mode) }.toTypedArray()
@@ -62,102 +58,8 @@ class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
       parameterTypes[index]
     }
     else {
-      parameterTypes[parameterTypes.size - 1].componentType
+      null
     }
-  }
-
-  private fun isBoxingConversion(class1: PsiModelClass, class2: PsiModelClass): Boolean {
-    return if (class1.isPrimitive != class2.isPrimitive) {
-      class1.box() == class2.box()
-    }
-    else {
-      false
-    }
-  }
-
-  private fun getImplicitConversionLevel(primitive: PsiModelClass?): Int {
-    return when {
-      primitive == null -> -1
-      primitive.isByte -> 0
-      primitive.isChar -> 1
-      primitive.isShort -> 2
-      primitive.isInt -> 3
-      primitive.isLong -> 4
-      primitive.isFloat -> 5
-      primitive.isDouble -> 6
-      else -> -1
-    }
-  }
-
-  private fun compareParameter(arg: PsiModelClass, thisParameter: PsiModelClass,
-                               thatParameter: PsiModelClass): Int {
-    when {
-      thatParameter == arg -> return 1
-      thisParameter == arg -> return -1
-      isBoxingConversion(thatParameter, arg) -> return 1
-      isBoxingConversion(thisParameter, arg) -> // Boxing/unboxing is second best
-        return -1
-      else -> {
-        val argConversionLevel = getImplicitConversionLevel(arg)
-        if (argConversionLevel != -1) {
-          val oldConversionLevel = getImplicitConversionLevel(thatParameter)
-          val newConversionLevel = getImplicitConversionLevel(thisParameter)
-          if (newConversionLevel != -1 && (oldConversionLevel == -1 || newConversionLevel < oldConversionLevel)) {
-            return -1
-          }
-          else if (oldConversionLevel != -1) {
-            return 1
-          }
-        }
-        // Look for more exact match
-        if (thatParameter.isAssignableFrom(thisParameter)) {
-          return -1
-        }
-      }
-    }
-    return 0 // no difference
-  }
-
-  /**
-   * Returns true if this method matches the args better than the other.
-   */
-  fun isBetterArgMatchThan(other: PsiModelMethod, args: List<PsiModelClass>): Boolean {
-    val otherParameterTypes = other.parameterTypes
-    for (i in args.indices) {
-      val arg = args[i]
-      val thisParameter = getParameter(i, parameterTypes) ?: continue
-      val thatParameter = other.getParameter(i, otherParameterTypes) ?: continue
-      if (thisParameter == thatParameter) {
-        continue
-      }
-      val diff = compareParameter(arg, thisParameter, thatParameter)
-      if (diff != 0) {
-        return diff < 0
-      }
-    }
-    return false
-  }
-
-  private fun isImplicitConversion(from: PsiModelClass?, to: PsiModelClass?): Boolean {
-    if (from == null || to == null) {
-      return false
-    }
-    if (from.isPrimitive && to.isPrimitive) {
-      if (from.isBoolean || to.isBoolean || to.isChar) {
-        return false
-      }
-      val fromConversionLevel = getImplicitConversionLevel(from)
-      val toConversionLevel = getImplicitConversionLevel(to)
-      return fromConversionLevel <= toConversionLevel
-    }
-    else {
-      val unboxedFrom = from.unbox()
-      val unboxedTo = to.unbox()
-      if (from != unboxedFrom || to != unboxedTo) {
-        return isImplicitConversion(unboxedFrom, unboxedTo)
-      }
-    }
-    return false
   }
 
   /**
@@ -173,11 +75,12 @@ class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
     var i = 0
     while (i < args.size && parametersMatch) {
       var parameterType = getParameter(i, parameterTypes)!!
-      var arg = args[i]
+      val arg = args[i]
       if (parameterType.isIncomplete) {
         parameterType = parameterType.erasure()
       }
-      if (!parameterType.isAssignableFrom(arg) && !isImplicitConversion(arg, parameterType)) {
+      // TODO: b/130429958 check if the parameterType is an implicit conversion from the arg
+      if (!parameterType.isAssignableFrom(arg)) {
         parametersMatch = false
       }
       i++
