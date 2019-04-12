@@ -217,15 +217,15 @@ class IndexingSuspenderTest : IdeaTestCase() {
     syncState.syncEnded()
 
     assertFalse(syncState.isSyncInProgress)
-    // must be still within a batch update session - sync has finished, but it should have not deactivated the suspender
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Build does not suspend indexing. Indexing should have resumed by this point.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
 
-    // must be still within a batch update session - suspender is still active
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // No change.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertFalse(buildState.isBuildInProgress)
     assertEquals(0, currentBatchUpdateLevel)
@@ -255,12 +255,14 @@ class IndexingSuspenderTest : IdeaTestCase() {
     buildState.buildExecutorCreated(buildRequest)
     syncState.syncEnded()
 
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Indexing should have resumed by this point.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Build does not suspend indexing.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertFalse(buildState.isBuildInProgress)
@@ -302,13 +304,13 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     syncState.syncEnded()
     // No change
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
-    // No change even during build (for template-rendering initiated suspension only).
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Build does not suspend indexing.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertEquals(0, currentBatchUpdateLevel)
@@ -366,14 +368,16 @@ class IndexingSuspenderTest : IdeaTestCase() {
   }
 
   private fun doTestGradleBuildWhen(buildStatus: BuildStatus) {
-    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
+    // Build does not suspend indexing.
+    setUpIndexingSpecificExpectations(batchUpdateCount = 0, batchFileUpdateCount = 0)
 
     val buildContext = mock(BuildContext::class.java)
     val buildState = GradleBuildState.getInstance(project)
     buildState.buildStarted(buildContext)
 
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, actualBatchFileUpdateCount)
+    // Build does not suspend indexing.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, actualBatchFileUpdateCount)
 
     buildState.buildFinished(buildStatus)
     assertEquals(0, currentBatchUpdateLevel)
