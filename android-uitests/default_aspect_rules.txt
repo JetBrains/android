@@ -1,16 +1,16 @@
 # Network
-sun.net.www.protocol.ftp.Handler.openConnection=#assertIsNotEdt
-sun.net.www.protocol.http.Handler.openConnection=#assertIsNotEdt
-sun.net.www.protocol.https.Handler.openConnection=#assertIsNotEdt
-com.intellij.util.io.HttpRequests.openConnection=#assertIsNotEdt
+sun.net.www.protocol.ftp.Handler.openConnection=com.android.tools.checker.AspectsLogger#logIfEdt
+sun.net.www.protocol.http.Handler.openConnection=com.android.tools.checker.AspectsLogger#logIfEdt
+sun.net.www.protocol.https.Handler.openConnection=com.android.tools.checker.AspectsLogger#logIfEdt
+com.intellij.util.io.HttpRequests.openConnection=com.android.tools.checker.AspectsLogger#logIfEdt
 
 # Android Debug Bridge
-com.android.ddmlib.Device.executeShellCommand=#assertIsNotEdt
+com.android.ddmlib.Device.executeShellCommand=com.android.tools.checker.AspectsLogger#logIfEdt
 
 # Android Studio
-com.android.tools.idea.common.model.NlDependencyManager.addDependencies=#assertIsNotEdt
+com.android.tools.idea.common.model.NlDependencyManager.addDependencies=com.android.tools.checker.AspectsLogger#logIfEdt
 
 # Annotations
-@com.android.annotations.concurrency.UiThread=#assertIsEdt
+@com.android.annotations.concurrency.UiThread=com.android.tools.checker.AspectsLogger#logIfNotEdt
 # Baseline: b/128894267
-@com.android.annotations.concurrency.Slow=#assertIsNotEdt
+@com.android.annotations.concurrency.Slow=com.android.tools.checker.AspectsLogger#logIfEdt
