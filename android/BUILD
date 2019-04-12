@@ -408,6 +408,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-common/2.0.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-runtime/2.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-gradle-plugin/1.0.0-alpha01-SNAPSHOT01:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark/1.0.0-alpha01-SNAPSHOT01:aar",
         "//prebuilts/tools/common/m2/repository/androidx/browser/browser/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/car/car/1.0.0-alpha7:aar",
         "//prebuilts/tools/common/m2/repository/androidx/cardview/cardview/1.0.0:aar",

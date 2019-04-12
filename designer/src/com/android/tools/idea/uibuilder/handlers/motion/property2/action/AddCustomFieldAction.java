@@ -21,11 +21,11 @@ import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAt
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
-import icons.StudioIcons;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +35,7 @@ public class AddCustomFieldAction extends AnAction {
   private final MotionLayoutAttributesModel myModel;
 
   public AddCustomFieldAction(@NotNull FilteredPTableModel<NelePropertyItem> tableModel, @NotNull NelePropertyItem property) {
-    super(null, "Add Custom Property", StudioIcons.Common.ADD);
+    super(null, "Add Custom Property", AllIcons.General.Add);
     myTableModel = tableModel;
     myProperty = property;
     myModel = (MotionLayoutAttributesModel)myProperty.getModel();

@@ -28,6 +28,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.resourceExplorer.actions.ShowFileInResourceManagerAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -90,6 +91,7 @@ public class AndroidStudioInitializer implements Runnable {
     hideRarelyUsedIntellijActions();
     renameSynchronizeAction();
     initializeCodeStyleDefaults();
+    setupResourceManagerActions();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -97,6 +99,10 @@ public class AndroidStudioInitializer implements Runnable {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+  }
+
+  private static void setupResourceManagerActions() {
+    replaceAction("Images.ShowThumbnails", new ShowFileInResourceManagerAction());
   }
 
   /*

@@ -16,6 +16,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsIssueType.OBSOLETE_SCOPE
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
@@ -52,6 +53,7 @@ class SuggestionsForm(
   private fun analyzeProject() {
     val daemon = context.analyzerDaemon
     daemon.removeIssues(PROJECT_ANALYSIS)
+    daemon.removeIssues(OBSOLETE_SCOPE)
     context.project.forEachModule(Consumer { daemon.queueCheck(it) })
     updateLoading()
   }

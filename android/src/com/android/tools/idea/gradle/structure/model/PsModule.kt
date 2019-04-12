@@ -153,36 +153,33 @@ abstract class PsModule protected constructor(
     isModified = true
   }
 
-  fun setLibraryDependencyConfiguration(
-    spec: PsArtifactDependencySpec,
-    configurationName: String,
+  fun modifyDependencyConfiguration(
+    dependency: PsDeclaredDependency,
+    oldConfigurationName: String,
     newConfigurationName: String
   ) {
-    var modified = false
-    // TODO (xof): OAOO (with setLibraryDependencyVersion(...) below)
-    var matchingDependencies = findLibraryDependencies(spec.group, spec.name)
-      .filter { it -> it.spec == spec }
-      .map { it as PsDeclaredDependency }
-      .filter { it.configurationName == configurationName }
+    dependency.parsedModel.setConfigurationName(newConfigurationName)
 
-    for (dependency in matchingDependencies) {
-      val parsedDependency = dependency.parsedModel
-      assert(parsedDependency is ArtifactDependencyModel)
-      val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
-      artifactDependencyModel.setConfigurationName(newConfigurationName)
-      modified = true
-    }
+    resetDependencies()
 
-    if (modified) {
-      resetDependencies()
-      for (dependency in matchingDependencies) {
-        fireDependencyModifiedEvent(lazy {
-          // FIXME (xof): given that we're modifying the configuration name, this is unlikely to be the right way of grabbing the modified dependency
-          dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == dependency.configurationName }
-        })
-      }
-      isModified = true;
-    }
+    // TODO(xof): do we need the complexity below...?
+    // TODO(xof): assumes LibraryDependency.  generalize
+    //    val spec = (dependency as PsLibraryDependency).spec
+    //    fireDependencyModifiedEvent(lazy {
+    //      dependencies.findLibraryDependencies(spec.group, spec.name)
+    //        .firstOrNull { it.spec == spec && it.configurationName == oldConfigurationName }
+    //    })
+    // TODO(xof): ... because this seems to work?
+    fireDependencyModifiedEvent(lazy { dependency } )
+    isModified = true
+  }
+
+  private fun findVersionedLibraryDependenciesWithScope(
+    spec: PsArtifactDependencySpec,
+    configurationName: String
+  ): List<PsDeclaredLibraryDependency> {
+    return findLibraryDependencies(spec.group, spec.name)
+      .filter { it.spec == spec && it.configurationName == configurationName }
   }
 
   fun setLibraryDependencyVersion(
@@ -192,13 +189,10 @@ abstract class PsModule protected constructor(
     updateVariable: Boolean
   ) {
     var modified = false
-    val matchingDependencies = findLibraryDependencies(spec.group, spec.name)
-      .filter { it -> it.spec == spec }
-      .map { it as PsDeclaredDependency }
-      .filter { it.configurationName == configurationName }
+
     // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
     // it might differ. We update all of them.
-
+    val matchingDependencies = findVersionedLibraryDependenciesWithScope(spec, configurationName)
     for (dependency in matchingDependencies) {
       val parsedDependency = dependency.parsedModel
       assert(parsedDependency is ArtifactDependencyModel)

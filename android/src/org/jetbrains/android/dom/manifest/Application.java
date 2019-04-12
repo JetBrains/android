@@ -15,11 +15,15 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import static com.android.SdkConstants.CLASS_ACTIVITY;
+import static com.android.SdkConstants.CLASS_APPLICATION;
+import static com.android.SdkConstants.CLASS_BACKUP_AGENT;
+
 import com.intellij.ide.presentation.Presentation;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.ExtendClass;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
@@ -28,8 +32,6 @@ import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.structure.manifest.ApplicationPresentationProvider;
-
-import java.util.List;
 
 @Presentation(provider = ApplicationPresentationProvider.class)
 @Styleable("AndroidManifestApplication")
@@ -56,17 +58,17 @@ public interface Application extends ManifestElement {
   AndroidAttributeValue<String> getDebuggable();
 
   @Convert(PackageClassConverter.class)
-  @ExtendClass("android.app.Activity")
+  @PackageClassConverter.Options(inheriting = CLASS_ACTIVITY)
   @Attribute("manageSpaceActivity")
   AndroidAttributeValue<PsiClass> getManageSpaceActivity();
 
   @Convert(PackageClassConverter.class)
-  @ExtendClass("android.app.backup.BackupAgent")
+  @PackageClassConverter.Options(inheriting = CLASS_BACKUP_AGENT)
   @Attribute("backupAgent")
   AndroidAttributeValue<PsiClass> getBackupAgent();
 
   @Convert(PackageClassConverter.class)
-  @ExtendClass("android.app.Application")
+  @PackageClassConverter.Options(inheriting = CLASS_APPLICATION)
   AndroidAttributeValue<PsiClass> getName();
 
   @Convert(ResourceReferenceConverter.class)

@@ -78,7 +78,7 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
           cpuService.setValidTrace(true)
           CpuProfilingAppStopResponse.Status.SUCCESS
         }
-        false -> CpuProfilingAppStopResponse.Status.FAILURE
+        false -> CpuProfilingAppStopResponse.Status.STOP_COMMAND_FAILED
       }
     )
 
@@ -93,7 +93,7 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
    * @param toUs ending timestamp of the trace
    * @param profilerType the profiler type of the trace
    */
-  fun captureTrace(id: Int = 0,
+  fun captureTrace(id: Long = 0,
                    fromUs: Long = 0,
                    toUs: Long = 0,
                    profilerType: CpuProfilerType = CpuProfilerType.ART) {

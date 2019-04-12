@@ -19,7 +19,6 @@ import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
-import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,22 +40,8 @@ public abstract class BooleanExpression extends Expression<Boolean> implements O
     }
   };
 
-  protected BooleanExpression(ObservableValue... values) {
+  protected BooleanExpression(@NotNull ObservableValue... values) {
     super(values);
-  }
-
-  /**
-   * Allows boolean expressions to be created using lambda syntax.
-   */
-  @NotNull
-  public static BooleanExpression create(Supplier<Boolean> valueSupplier, ObservableValue... values) {
-    return new BooleanExpression(values) {
-      @Override
-      @NotNull
-      public Boolean get() {
-        return valueSupplier.get();
-      }
-    };
   }
 
   private static abstract class ConstantBool implements ObservableBool {

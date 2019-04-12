@@ -972,6 +972,23 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
   }
 
+  fun testFragmentCompletion1_androidX() {
+    myFixture.addClass("package androidx.fragment.app; public class Fragment {}")
+
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package p1.p2;
+
+      public class MyFragmentActivity {
+        public static class MyFragment extends androidx.fragment.app.Fragment {}
+      }
+      """.trimIndent()
+    )
+
+    toTestCompletion("fragmentCompletion1.xml", "fragmentCompletion1_after.xml")
+  }
+
   fun testFragmentCompletion2() {
     toTestFirstCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml")
   }

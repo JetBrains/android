@@ -33,6 +33,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Transport;
 import com.google.common.base.Charsets;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -252,7 +253,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      */
     private void startTransportDaemon(@NotNull Common.Device transportDevice)
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-      String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getAgentConfigPath();
+      String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getDaemonConfigPath();
       getLogger().info("[Transport]: Executing " + command);
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
         @Override
@@ -459,8 +460,18 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     void customizeProxyService(@NotNull TransportProxy proxy);
 
     /**
+     * Allows for subscribers to customize the daemon config before it is being pushed to the device, which is then used to initialized
+     * the transport daemon.
+     *
+     * @param configBuilder the DaemonConfig.Builder to customize. Note that it is up to the subscriber to not override fields that are set
+     *                      in {@link TransportFileManager#pushDaemonConfig(AndroidRunConfigurationBase)} which are primarily used for
+     *                      establishing connection to the transport daemon and app agent.
+     */
+    void customizeDaemonConfig(@NotNull Transport.DaemonConfig.Builder configBuilder);
+
+    /**
      * Allows for subscribers to customize the agent config before it is being pushed to the device, which is then used to initialized
-     * the transport daemon and app agent.
+     * the transport app agent.
      *
      * @param configBuilder the AgentConifg.Builder to customize. Note that it is up to the subscriber to not override fields that are set
      *                      in {@link TransportFileManager#pushAgentConfig(AndroidRunConfigurationBase)} which are primarily used for

@@ -20,11 +20,11 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +52,7 @@ public class BackNavigationComponent extends JPanel {
     super(new FlowLayout(FlowLayout.LEFT));
     setName(BACK_NAVIGATION_COMPONENT_NAME);
     mySurfaceListener = createDesignSurfaceListener();
-    myBackLabel = new JLabel(StudioIcons.Common.BACK_ARROW);
+    myBackLabel = new JLabel(AllIcons.Actions.Back);
     myBackLabel.setIconTextGap(8);
     myMouseAdapter = new BackNavigationListener();
     addMouseListener(myMouseAdapter);

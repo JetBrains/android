@@ -602,7 +602,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     handleCaptureNavigation(myTraceIdsIterator.previous());
   }
 
-  private void handleCaptureNavigation(int traceId) {
+  private void handleCaptureNavigation(long traceId) {
     // Sanity check to see if myTraceIdsIterator returned a valid trace. Return early otherwise.
     if (traceId == TraceIdsIterator.INVALID_TRACE_ID) {
       return;
@@ -624,7 +624,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
-      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(response.getStatus()));
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
     else {
@@ -748,7 +748,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * and sets the capture in the main executor after it's done. This method also takes care of updating the {@link CpuCaptureMetadata}
    * corresponding to the capture after parsing is finished (successfully or not).
    */
-  private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
+  private void handleCaptureParsing(long traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
     long beforeParsingTime = System.currentTimeMillis();
     myCaptureParser.updateParsingStateWhenStarting();
     CompletableFuture<CpuCapture> capture =
@@ -816,7 +816,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }
 
-  private void saveTraceInfo(int traceId, @NotNull CpuCapture capture, CpuProfilerMode mode) {
+  private void saveTraceInfo(long traceId, @NotNull CpuCapture capture, CpuProfilerMode mode) {
     long captureFrom = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin());
     long captureTo = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax());
 
@@ -997,7 +997,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
-  private void setCapture(int traceId) {
+  private void setCapture(long traceId) {
     CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
     if (future != null) {
       future.handleAsync((capture, exception) -> {
@@ -1008,7 +1008,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  public void setAndSelectCapture(int traceId) {
+  public void setAndSelectCapture(long traceId) {
     CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
     if (future != null) {
       future.handleAsync((capture, exception) -> {
@@ -1159,7 +1159,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @VisibleForTesting
   @Nullable
-  CompletableFuture<CpuCapture> getCaptureFuture(int traceId) {
+  CompletableFuture<CpuCapture> getCaptureFuture(long traceId) {
     CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
     if (capture == null) {
       // Parser doesn't have any information regarding the capture. We need to request trace data from CPU service and tell the parser

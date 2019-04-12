@@ -101,7 +101,7 @@ public final class MenuTest {
                       "    <item\n" +
                       "        android:id=\"@+id/media_route_menu_item\"\n" +
                       "        android:title=\"Cast\"\n" +
-                      "        app:actionProviderClass=\"android.support.v7.app.MediaRouteActionProvider\"\n" +
+                      "        app:actionProviderClass=\"androidx.mediarouter.app.MediaRouteActionProvider\"\n" +
                       "        app:showAsAction=\"always\"\n" +
                       "        tools:icon=\"@drawable/mr_button_light\" />\n" +
                       "    <item\n" +

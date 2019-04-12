@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -35,7 +36,6 @@ import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.Border
 import kotlin.properties.Delegates
@@ -144,14 +144,14 @@ abstract class AssetView : JPanel(BorderLayout()) {
    */
   var metadata: String by Delegates.observable("") { _, _, newValue -> thirdLineLabel.text = newValue }
 
-  protected val titleLabel = JLabel().apply {
+  protected val titleLabel = JBLabel().apply {
     font = PRIMARY_FONT
   }
-  protected val secondLineLabel = JLabel().apply {
+  protected val secondLineLabel = JBLabel().apply {
     font = font.deriveFont(SECONDARY_FONT_SIZE)
     foreground = SECONDARY_FONT_COLOR
   }
-  protected val thirdLineLabel = JLabel().apply {
+  protected val thirdLineLabel = JBLabel().apply {
     font = font.deriveFont(SECONDARY_FONT_SIZE)
     foreground = SECONDARY_FONT_COLOR
   }
@@ -166,11 +166,11 @@ abstract class AssetView : JPanel(BorderLayout()) {
 
   var issueLevel: IssueLevel by Delegates.observable(IssueLevel.NONE) { _, _, level -> issueIcon.icon = level.icon }
 
-  protected val issueIcon = JLabel(issueLevel.icon)
+  protected val issueIcon = JBLabel(issueLevel.icon)
 
   var isNew: Boolean by Delegates.observable(false) { _, _, new -> newLabel.isVisible = new }
 
-  protected val newLabel = object : JLabel(" NEW ") {
+  protected val newLabel = object : JBLabel(" NEW ") {
 
     init {
       font = UIUtil.getLabelFont().deriveFont(8f)
@@ -232,6 +232,7 @@ class SingleAssetCard : AssetView() {
   }
 
   init {
+    isOpaque = false
     border = LARGE_MAIN_CELL_BORDER
     add(contentWrapper)
     add(bottomPanel, BorderLayout.SOUTH)

@@ -86,6 +86,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -99,6 +100,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1042,5 +1044,45 @@ public final class GradleUtil {
         result.add(DOT_KTS);
       }
     }
+  }
+
+  /**
+   * Get last known AGP version from a project. It can be null if it has not been setup.
+   */
+  @Nullable
+  public static String getLastKnownAndroidGradlePluginVersion(@NotNull Project project) {
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleFacetConfiguration configuration = gradleFacet.getConfiguration();
+      String version = configuration.LAST_KNOWN_AGP_VERSION;
+      if (version != null) {
+        // All versions should be the same, return version from first module found
+        return version;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get last successful AGP version from a project. It can be null if sync has never been successful.
+   */
+  @Nullable
+  public static String getLastSuccessfulAndroidGradlePluginVersion(@NotNull Project project) {
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleFacetConfiguration configuration = gradleFacet.getConfiguration();
+      String version = configuration.LAST_SUCCESSFUL_SYNC_AGP_VERSION;
+      if (version != null) {
+        // All versions should be the same, return version from first module found
+        return version;
+      }
+    }
+    return null;
   }
 }

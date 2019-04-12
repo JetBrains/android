@@ -273,7 +273,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
       recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, REMIND_ME_TOMORROW);
 
       // Schedule checking after 1 days.
-      RecommendedPluginVersionUpgradeChecker.scheduleNextReminder(myProject, 1, TimeUnit.DAYS);
+      RecommendedPluginVersionUpgrade.scheduleNextReminder(myProject, 1, TimeUnit.DAYS);
 
       close(CANCEL_EXIT_CODE);
     }

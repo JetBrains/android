@@ -16,7 +16,9 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import com.android.annotations.VisibleForTesting;
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
+import static com.intellij.openapi.util.text.StringUtil.getPackageName;
+
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions.Execution;
 import com.android.builder.model.Variant;
@@ -24,21 +26,37 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.ApkProvider;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.ConsoleProvider;
+import com.android.tools.idea.run.LaunchOptions;
+import com.android.tools.idea.run.NonGradleApkProvider;
+import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTrackerTestRunListener;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.ProgramRunnerUtil;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
+import com.intellij.execution.configurations.RefactoringListenerProvider;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
@@ -54,9 +72,18 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -64,11 +91,6 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
-import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 
 /**
  * Run Configuration for "Android Instrumented Tests"
@@ -91,6 +113,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
+
+    putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
   @Override
@@ -146,6 +170,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
+    return checkConfiguration(facet, AndroidModuleModel.get(facet.getModule()));
+  }
+
+  @NotNull
+  @VisibleForTesting
+  List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet, @Nullable AndroidModuleModel androidModel) {
     List<ValidationError> errors = Lists.newArrayList();
 
     Module module = facet.getModule();
@@ -196,6 +226,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           }
         };
         errors.add(ValidationError.fatal(shortMessage, quickFix));
+      }
+    }
+
+    if (androidModel != null) {
+      IdeAndroidArtifact testArtifact = androidModel.getArtifactForAndroidTest();
+      if (testArtifact == null) {
+        IdeVariant selectedVariant = androidModel.getSelectedVariant();
+        errors.add(ValidationError.warning("Active build variant \"" + selectedVariant.getName() + "\" does not have a test artifact."));
       }
     }
 

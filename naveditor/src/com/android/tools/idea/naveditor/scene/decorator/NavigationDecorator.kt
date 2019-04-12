@@ -44,10 +44,10 @@ object NavigationDecorator : NavBaseDecorator() {
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
     val scale = sceneContext.scale.toFloat()
-    val frameColor = frameColor(sceneContext, component)
+    val frameColor = frameColor(component)
     val frameThickness = frameThickness(component)
     val text = component.nlComponent.includeFileName ?: "Nested Graph"
-    val textColor = textColor(sceneContext, component)
+    val textColor = textColor(component)
 
     list.add(DrawNestedGraph(drawRectangle, scale, frameColor, frameThickness, text, textColor))
   }

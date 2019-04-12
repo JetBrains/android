@@ -46,7 +46,8 @@ constructor(
         val hprofPath = Paths.get(properties["hprofPath"] ?: throw IllegalArgumentException("Missing hprofPath entry"))
         val heapReportProperties =
           HeapReportProperties(
-            properties["reason"]?.let { MemoryReportReason.valueOf(it) } ?: MemoryReportReason.None
+            properties["reason"]?.let { MemoryReportReason.valueOf(it) } ?: MemoryReportReason.None,
+            properties["liveStats"] ?: ""
           )
         return UnanalyzedHeapReport(hprofPath, heapReportProperties, baseProperties)
       }

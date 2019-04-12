@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
 import com.android.repository.io.FileOpUtils;
@@ -45,7 +44,6 @@ import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -57,6 +55,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -211,6 +210,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JRadioButton myFastBootRadioButton;
   private JRadioButton myChooseBootRadioButton;
   private JComboBox myChosenSnapshotComboBox;
+  private JBLabel myDeviceFrameTitle;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private Project myProject;
@@ -580,7 +580,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                                                       : EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES;
   }
 
-  private void addListeners() {
+  @VisibleForTesting
+  void addListeners() {
     myAvdId.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
@@ -610,7 +611,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setOpaque(false);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
 
-    myListeners.receive(getModel().device(), device -> {
+    myListeners.listen(getModel().device(), device -> {
       toggleOptionals(device, true);
       if (device.isPresent()) {
         myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
@@ -633,30 +634,35 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
             if (FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN)) {
               myDeviceFrameCheckbox.setSelected(false);
             }
+            else {
+              myDeviceFrameCheckbox.setSelected(true);
+            }
           }
           else {
             getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
+            myDeviceFrameCheckbox.setSelected(false);
           }
         }
+        Device device = getModel().device().getValueOrNull();
+        boolean enabled = true;
+        if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
+          enabled = false;
+          // Only override the value for Folded device; otherwise, respect the assignment from above
+          myDeviceFrameCheckbox.setSelected(false);
+        }
+        myDeviceFrameCheckbox.setEnabled(enabled);
+        myDeviceFrameTitle.setEnabled(enabled);
+        mySkinDefinitionLabel.setEnabled(enabled);
+        mySkinComboBox.setEnabled(enabled);
       }
     });
 
-    myListeners.listen(getModel().systemImage(), new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        updateSystemImageData();
-      }
-    });
+    myListeners.listen(getModel().systemImage(), () -> updateSystemImageData());
 
-    myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        toggleSystemOptionals(true);
-      }
-    });
+    myListeners.listen(getModel().useQemu2(), () -> toggleSystemOptionals(true));
 
-    myListeners.receive(getModel().selectedAvdOrientation(),
-                        screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
+    myListeners.listen(getModel().selectedAvdOrientation(),
+                       screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
   }
 
   @VisibleForTesting
@@ -694,6 +700,26 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       updateGpuControlsAfterSystemImageChange();
       toggleSystemOptionals(false);
     }
+  }
+
+  @VisibleForTesting
+  JBLabel getDeviceFrameTitle() {
+    return myDeviceFrameTitle;
+  }
+
+  @VisibleForTesting
+  JCheckBox getDeviceFrameCheckbox() {
+    return myDeviceFrameCheckbox;
+  }
+
+  @VisibleForTesting
+  JBLabel getSkinDefinitionLabel() {
+    return mySkinDefinitionLabel;
+  }
+
+  @VisibleForTesting
+  SkinChooser getSkinComboBox() {
+    return mySkinComboBox;
   }
 
   @VisibleForTesting
@@ -885,7 +911,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), ObjectProperty.wrap(getModel().sdCardStorage()));
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myHostGraphics), getModel().hostGpuMode());
-
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
     myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
     myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
@@ -1146,7 +1171,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myVmHeapStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
-    mySkinComboBox.setEnabled(enable);
+    Device device = getModel().device().getValueOrNull();
+    if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
+      mySkinComboBox.setEnabled(false);
+    }
+    else {
+      mySkinComboBox.setEnabled(enable);
+    }
+
     if (!enable) {
       // Selectively disable, but don't enable
       myCoreCount.setEnabled(false);
@@ -1398,5 +1430,4 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     }
   };
-
 }

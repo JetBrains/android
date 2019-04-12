@@ -56,17 +56,17 @@ public class CpuCaptureParser {
    * Used as ID of imported traces. Importing a trace will happen once per session,
    * so we can have an arbitrary ID as it's going to be unique within a session.
    */
-  static final int IMPORTED_TRACE_ID = 42;
+  static final long IMPORTED_TRACE_ID = 42L;
 
   /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
    */
-  private final Map<Integer, CompletableFuture<CpuCapture>> myCaptures;
+  private final Map<Long, CompletableFuture<CpuCapture>> myCaptures;
 
   /**
    * Maps a trace id to the path of a temporary file containing the trace content.
    */
-  private final Map<Integer, String> myTraceFiles;
+  private final Map<Long, String> myTraceFiles;
 
   /**
    * Services containing the {@link java.util.concurrent.Executor} responsible for parsing the capture.
@@ -107,12 +107,12 @@ public class CpuCaptureParser {
    * Returns a capture (or a promise of one) in case {@link #parse} was already called for the given trace id.
    */
   @Nullable
-  public CompletableFuture<CpuCapture> getCapture(int traceId) {
+  public CompletableFuture<CpuCapture> getCapture(long traceId) {
     return myCaptures.get(traceId);
   }
 
   @Nullable
-  String getTraceFilePath(int traceId) {
+  String getTraceFilePath(long traceId) {
     return myTraceFiles.get(traceId);
   }
 
@@ -269,7 +269,7 @@ public class CpuCaptureParser {
    */
   @Nullable
   public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                             int traceId,
+                                             long traceId,
                                              @NotNull ByteString traceData,
                                              CpuProfilerType profilerType) {
     if (!myCaptures.containsKey(traceId)) {
@@ -299,7 +299,7 @@ public class CpuCaptureParser {
     return myCaptures.get(traceId);
   }
 
-  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, int traceId, ByteString traceBytes,
+  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, long traceId, ByteString traceBytes,
                                                             CpuProfilerType profilerType) {
     CompletableFuture<CpuCapture> future =
       CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType), myServices.getPoolExecutor());
@@ -307,7 +307,7 @@ public class CpuCaptureParser {
     return future;
   }
 
-  private CpuCapture traceBytesToCapture(@NotNull Common.Session session, int traceId, @NotNull ByteString traceData,
+  private CpuCapture traceBytesToCapture(@NotNull Common.Session session, long traceId, @NotNull ByteString traceData,
                                          CpuProfilerType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {

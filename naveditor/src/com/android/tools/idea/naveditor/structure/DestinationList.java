@@ -27,18 +27,18 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.scene.NavColors;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -78,7 +78,6 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Left panel for the nav editor, showing a list of available destinations.
@@ -232,8 +231,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myList.addMouseListener(myMouseListener);
     myModel.addListener(myModelListener);
 
-    ColorSet colorSet = SceneContext.get(surface.getCurrentSceneView()).getColorSet();
-    myList.setBackground(colorSet.getSubduedBackground());
+    myList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     updateComponentList();
     myList.putClientProperty(CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
       if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {

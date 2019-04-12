@@ -30,6 +30,7 @@ import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseAction extends AnAction {
   private static final Logger LOG = Logger.getInstance(BaseAction.class);
+  public static final Key<Boolean> SHOW_APPLY_CHANGES_UI = Key.create("android.deploy.ApplyChanges.ShowUI");
 
   @NotNull
   protected final String myName;
@@ -100,40 +102,67 @@ public abstract class BaseAction extends AnAction {
     }
   }
 
+  /**
+   * Apply Changes UI is:
+   * - Visible if it's relevant to the currently selected run configuration.  E.g. Apply Changes UI is irrelevant
+   *   if the run configuration isn't an android app run configuration or android test configuration.
+   * - Visible and enabled if it's applicable to the current run configuration and the project is compatible.
+   */
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-
     if (project == null) {
-      presentation.setEnabled(false);
+      presentation.setVisible(false);
       return;
     }
 
-    boolean canRun = true;
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
     if (configSettings == null) {
-      canRun = false;
+      presentation.setVisible(false);
+      return;
     }
-    else {
-      RunConfiguration config = configSettings.getConfiguration();
 
-      // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
-      Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
-      for (Executor executor : executors) {
-        ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), config);
-        if (programRunner == null) {
-          continue;
-        }
-        canRun &= !ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId());
+    RunConfiguration selectedRunConfig = configSettings.getConfiguration();
+    boolean isRelevant = isApplyChangesRelevant(selectedRunConfig);
+    presentation.setVisible(isRelevant);
+
+    if (isRelevant) {
+      presentation.setEnabled(isApplyChangesApplicable(project, selectedRunConfig) && checkCompatibility(project));
+    }
+  }
+
+  private static boolean isApplyChangesRelevant(@NotNull RunConfiguration runConfiguration) {
+    if (runConfiguration instanceof RunConfigurationBase) {
+      RunConfigurationBase configBase = (RunConfigurationBase) runConfiguration;
+      configBase.putUserDataIfAbsent(SHOW_APPLY_CHANGES_UI, false); // This is needed to prevent a NPE if the boolean isn't set.
+      //noinspection ConstantConditions
+      return configBase.getUserData(SHOW_APPLY_CHANGES_UI);
+    }
+
+    return false;
+  }
+
+  private static boolean isApplyChangesApplicable(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+    // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
+    Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
+    for (Executor executor : executors) {
+      ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
+      if (programRunner == null) {
+        continue;
       }
-
-      // Check if we have a running ProcessHandler/Executor corresponding to the current ExecutionTarget/RunConfiguration.
-      ProcessHandler processHandler = findRunningProcessHandler(project, config);
-      canRun &= processHandler != null && getExecutor(processHandler, null) != null;
+      if (ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId())) {
+        return false;
+      }
     }
 
-    presentation.setEnabled(canRun && checkCompatibility(project));
+    // Check if we have a running ProcessHandler/Executor corresponding to the current ExecutionTarget/RunConfiguration.
+    ProcessHandler processHandler = findRunningProcessHandler(project, runConfiguration);
+    if (processHandler == null || getExecutor(processHandler, null) == null) {
+      return false;
+    }
+
+    return true;
   }
 
   @Override
@@ -204,7 +233,7 @@ public abstract class BaseAction extends AnAction {
           handler.isStartNotified() &&
           !handler.isProcessTerminating() &&
           !handler.isProcessTerminated()) {
-          return handler;
+        return handler;
       }
     }
     return null;

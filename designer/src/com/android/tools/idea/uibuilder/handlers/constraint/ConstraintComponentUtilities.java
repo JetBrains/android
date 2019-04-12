@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -690,6 +691,56 @@ public final class ConstraintComponentUtilities {
       }
       setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
     }
+  }
+
+  /**
+   * Clear the currently selected constraint on the design surface. Removes from XML as well.
+   *
+   * @return Whether it deleted a constraint or not.
+   */
+  public static boolean clearSelectedConstraint(@NotNull DesignSurface surface) {
+    // TODO: Move uses to a more common place for deletion.
+    SelectionModel selectionModel = surface.getSelectionModel();
+    Object secondarySelection = selectionModel.getSecondarySelection();
+    Scene scene = surface.getScene();
+    if (secondarySelection instanceof SecondarySelector.Constraint && scene != null) {
+      SecondarySelector.Constraint constraint = (SecondarySelector.Constraint) secondarySelection;
+      AnchorTarget.Type type = null;
+      switch (constraint) {
+        case LEFT:
+          type = AnchorTarget.Type.LEFT;
+          break;
+        case TOP:
+          type = AnchorTarget.Type.TOP;
+          break;
+        case RIGHT:
+          type = AnchorTarget.Type.RIGHT;
+          break;
+        case BOTTOM:
+          type = AnchorTarget.Type.BOTTOM;
+          break;
+        case BASELINE:
+          type = AnchorTarget.Type.BASELINE;
+          break;
+      }
+      SceneComponent component = scene.getSceneComponent(selectionModel.getPrimary());
+      if (component == null) {
+        return false;
+      }
+      ConstraintAnchorTarget selectedTarget = (ConstraintAnchorTarget) AnchorTarget.findAnchorTarget(component, type);
+      if (selectedTarget != null) {
+        NlComponent nlComponent = component.getNlComponent();
+        ComponentModification modification = new ComponentModification(nlComponent, "Constraint Disconnected");
+        clearAnchor(type, modification, component.useRtlAttributes(), scene.isInRTL());
+        cleanup(modification, nlComponent);
+        modification.commit();
+        scene.needsLayout(Scene.ANIMATED_LAYOUT);
+        // Clear secondary selection.
+        selectionModel.setSecondarySelection(selectionModel.getPrimary(), null);
+        return true;
+      }
+    }
+    return false;
   }
 
   private static void clearAllAttributes(NlComponent component, NlAttributesHolder transaction) {
@@ -1619,7 +1670,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean wouldCreateLoop(NlComponent source, Direction sourceDirection, NlComponent target) {
-    HashSet<String> connected;
+    HashSet<NlComponent> connected;
     if (source.getParent() == null) {
       return true;
     }
@@ -1627,16 +1678,19 @@ public final class ConstraintComponentUtilities {
     switch (sourceDirection) {
       case TOP:
       case BOTTOM:
-        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
-        return connected.contains(target.getId());
+        connected =
+          DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
+        return connected.contains(target);
       case RIGHT:
       case LEFT:
-        connected = getConnected(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
-        return connected.contains(target.getId());
+        connected = DecoratorUtilities
+          .getConnectedNlComponents(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
+        return connected.contains(target);
 
       case BASELINE:
-        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
-        return connected.contains(target.getId());
+        connected =
+          DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
+        return connected.contains(target);
     }
     return false;
   }

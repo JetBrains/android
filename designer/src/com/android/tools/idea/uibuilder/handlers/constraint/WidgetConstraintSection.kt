@@ -19,8 +19,11 @@ import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.components.JBList
 import com.intellij.ui.paint.EffectPainter2D
 import com.intellij.util.ui.JBDimension
@@ -37,6 +40,7 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import java.awt.Component
+import java.awt.Container
 import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -44,6 +48,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -68,12 +73,13 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   private var expanded: Boolean = false
 
   private var previousComponent: NlComponent? = null
+  private var selectedData: ConstraintCellData? = null
 
   init {
-    border = JBUI.Borders.empty(4, 4, 4, 4)
     layout = BorderLayout()
 
     list = JBList<ConstraintCellData>().apply { setEmptyText("") }
+    list.border = JBUI.Borders.empty(0, 4)
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = ConstraintItemRenderer()
 
@@ -83,6 +89,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         if (index < 0 || index >= listData.size) {
           return
         }
+        selectedData = listData[index] ?: null
         val itemData = listData[index] ?: return
         val scene = widgetModel.surface?.scene ?: return
         val apiLevel = scene.renderedApiLevel
@@ -90,6 +97,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         val constraint = getConstraintForAttribute(itemData.attribute, apiLevel, rtl)
         widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
         widgetModel.surface?.invalidate()
+        widgetModel.surface?.repaint()
       }
     })
 
@@ -105,6 +113,9 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         }
         else if (e.keyCode == KeyEvent.VK_ESCAPE) {
           list.clearSelection()
+          widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, null)
+          widgetModel.surface?.invalidate()
+          widgetModel.surface?.repaint()
           e.consume()
         }
         else {
@@ -123,6 +134,10 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     })
     add(list, BorderLayout.CENTER)
     add(warningPanel, BorderLayout.SOUTH)
+
+    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+      override fun getDefaultComponent(aContainer: Container?) = list
+    }
 
     val hasConstraintSelection = updateConstraintSelection()
     // Force expand the list if there is constraint selection
@@ -150,7 +165,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       return JBDimension(PREFERRED_WIDTH, titleSize.height)
     }
     else {
-      val listHeight = list.preferredSize.height + COMPONENT_HEIGHT / 2
+      val listHeight = list.preferredSize.height
       val warningTextHeight = warningPanel.preferredSize.height
       return JBDimension(PREFERRED_WIDTH, titleSize.height + listHeight + warningTextHeight)
     }
@@ -204,15 +219,34 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         }
       }
     }
-    // Didn't find any secondary constraint
+    else if (selectedData != null) {
+      // Didn't find any secondary constraint, keep previous selection if exist. (e.g. horizontal or vertical bias)
+      val index = listData.indexOf(selectedData)
+      if (index != -1) {
+        list.selectedIndex = index
+        return false
+      }
+      else {
+        // Previous selected data is expired, reset it.
+        selectedData = null
+      }
+    }
+    // No previous selection or previous selected attribute is gone, clear selection.
     list.clearSelection()
     return false
   }
 
   private inner class SectionTitle: JPanel(BorderLayout()) {
 
-    private val icon = JLabel()
-    private val constraintText = object: JLabel() {
+    private val icon = object: JLabel() {
+      override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        if (hasFocus() && g is Graphics2D) {
+          DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
+        }
+      }
+    }
+    private val constraintText = object : JLabel() {
       override fun paint(g: Graphics) {
         super.paint(g)
         val hasWarning = widgetModel.isMissingHorizontalConstrained ||
@@ -232,12 +266,16 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
 
     init {
       preferredSize = JBUI.size(PREFERRED_WIDTH, COMPONENT_HEIGHT)
-      border = JBUI.Borders.empty(4)
       background = secondaryPanelBackground
+      border = JBUI.Borders.empty(0, 4)
 
       icon.icon = if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
-      icon.border = JBUI.Borders.emptyRight(4)
+      icon.isFocusable = true
+      icon.border = JBUI.Borders.empty(4)
+      icon.registerActionKey({ setExpand(!expanded) }, KeyStrokes.SPACE, "space")
+      icon.registerActionKey({ setExpand(!expanded) }, KeyStrokes.ENTER, "enter")
       constraintText.text = "Constraints"
+      constraintText.border = JBUI.Borders.empty(4, 0, 4, 4)
 
       val title = JPanel(BorderLayout())
       title.background = secondaryPanelBackground
@@ -320,11 +358,11 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   }
 }
 
-private class ConstraintCellData(val namespace: String,
-                                 val attribute: String,
-                                 val displayName: String,
-                                 val boldValue: String?,
-                                 val fadingValue: String?)
+private data class ConstraintCellData(val namespace: String,
+                                      val attribute: String,
+                                      val displayName: String,
+                                      val boldValue: String?,
+                                      val fadingValue: String?)
 
 private val constraintIcon = StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT
 private val highlightConstraintIcon = ColoredIconGenerator.generateWhiteIcon(constraintIcon)
@@ -388,19 +426,19 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
     fadingLabel.text = if (item.fadingValue != null) "(${item.fadingValue})" else ""
 
     if (selected) {
-      iconLabel.icon = highlightConstraintIcon
+      iconLabel.icon = if (list.isFocusOwner) highlightConstraintIcon else constraintIcon
 
-      iconLabel.background = list.selectionBackground
-      panel.background = list.selectionBackground
-      nameLabel.background = list.selectionBackground
-      boldLabel.background = list.selectionBackground
-      fadingLabel.background = list.selectionBackground
+      iconLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      panel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      nameLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      boldLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
+      fadingLabel.background = UIUtil.getTreeSelectionBackground(list.isFocusOwner)
 
-      iconLabel.foreground = list.selectionForeground
-      panel.foreground = list.selectionForeground
-      nameLabel.foreground = list.selectionForeground
-      boldLabel.foreground = list.selectionForeground
-      fadingLabel.foreground = list.selectionForeground
+      iconLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      panel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      nameLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      boldLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
+      fadingLabel.foreground = UIUtil.getTreeSelectionForeground(list.isFocusOwner)
     }
     else {
       iconLabel.icon = constraintIcon
@@ -411,10 +449,10 @@ private class ConstraintItemRenderer : DefaultListCellRenderer() {
       boldLabel.background = secondaryPanelBackground
       fadingLabel.background = secondaryPanelBackground
 
-      iconLabel.foreground = list.foreground
-      panel.foreground = list.foreground
-      nameLabel.foreground = list.foreground
-      boldLabel.foreground = list.foreground
+      iconLabel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
+      panel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
+      nameLabel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
+      boldLabel.foreground = UIUtil.getTreeForeground(false, list.isFocusOwner)
       fadingLabel.foreground = FADING_LABEL_COLOR
     }
 

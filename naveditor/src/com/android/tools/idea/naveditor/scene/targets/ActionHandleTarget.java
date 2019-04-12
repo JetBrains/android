@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import static com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME;
+import static com.android.tools.idea.naveditor.scene.NavColors.SELECTED;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.ACTION_HANDLE_OFFSET;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_DRAG_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_LEVEL;
@@ -23,6 +25,7 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.INNER_RADIU
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIUS_LARGE;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.OUTER_RADIUS_SMALL;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -38,7 +41,6 @@ import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -191,9 +193,8 @@ public class ActionHandleTarget extends NavBaseTarget {
 
     int duration = (int)Math.abs(DURATION * (myHandleState.myOuterRadius - newState.myOuterRadius) / OUTER_RADIUS_LARGE);
 
-    ColorSet colorSet = sceneContext.getColorSet();
-    Color outerColor = colorSet.getBackground();
-    Color innerColor = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
+    Color outerColor = StudioColorsKt.getPrimaryPanelBackground();
+    Color innerColor = getComponent().isSelected() ? SELECTED : HIGHLIGHTED_FRAME;
 
     if (myIsDragging) {
       list.add(new DrawActionHandleDrag(DRAW_ACTION_HANDLE_DRAG_LEVEL, center, initialOuterRadius, finalOuterRadius,

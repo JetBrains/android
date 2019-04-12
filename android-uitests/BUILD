@@ -875,7 +875,10 @@ java_test(
             "@externsdk//:emulator",
         ],
         "//conditions:default": [],
-    }),
+    }) + [
+        "//prebuilts/tools:lldb",
+        "//prebuilts/python/linux-x86:linux-x86",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.DualDebuggerBreakpointsTest"],
     tags = [
         "block-network",

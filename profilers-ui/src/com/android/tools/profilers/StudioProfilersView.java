@@ -44,6 +44,7 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -266,7 +267,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
+    JButton button = new CommonButton(AllIcons.Actions.Back);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
@@ -295,8 +296,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
-    myZoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
-    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
+    myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
+    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
     myZoomOut.addActionListener(event -> {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
@@ -310,8 +311,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myZoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
     rightToolbar.add(myZoomOut);
 
-    myZoomIn = new CommonButton(StudioIcons.Common.ZOOM_IN);
-    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
+    myZoomIn = new CommonButton(AllIcons.General.ZoomIn);
+    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomIn));
     myZoomIn.addActionListener(event -> {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
@@ -496,9 +497,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   private void toggleStageLayout() {
     // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
-    boolean loading = (myProfiler.getAutoProfilingEnabled() &&
-                       myProfiler.getPreferredProcessName() != null &&
-                       myProfiler.getPreferredDeviceName() != null) && /* b/126563739 */
+    boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
                       !myProfiler.getSessionsManager().isSessionAlive();
     Common.AgentData agentData = myProfiler.getAgentData();
     loading |= (agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());

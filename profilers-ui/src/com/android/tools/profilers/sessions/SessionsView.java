@@ -42,6 +42,7 @@ import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -183,7 +184,7 @@ public class SessionsView extends AspectObserver {
       }
     });
 
-    myProcessSelectionAction = new CommonAction("", StudioIcons.Common.ADD);
+    myProcessSelectionAction = new CommonAction("", AllIcons.General.Add);
     myProcessSelectionAction.setAction(() -> myProfilers.getIdeServices().getFeatureTracker().trackSessionDropdownClicked());
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
     myProcessSelectionDropDown.setToolTipText("Start a new profiling session.");

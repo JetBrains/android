@@ -29,5 +29,6 @@ constructor(type: String,
 
   override fun serializeReportProperties(writer: JsonWriter) {
     writer.name("reason").value(heapProperties.reason.toString())
+    writer.name("liveStats").value(heapProperties.liveStats)
   }
 }

@@ -22,11 +22,11 @@ import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ObservableValue;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -70,7 +70,7 @@ public class LayoutTreePanel extends JPanel implements ToolContent<LayoutInspect
   private JComponent createBackPanel() {
     // TODO(kelvinhanma b/69255011) refactor to be a common component with DestinationList's back panel.
     myBackPanel = new JPanel(new BorderLayout());
-    myBackLabel = new JLabel("Back", StudioIcons.Common.BACK_ARROW, SwingConstants.LEFT);
+    myBackLabel = new JLabel("Back", AllIcons.Actions.Back, SwingConstants.LEFT);
     myBackLabel.setBorder(new EmptyBorder(8, 6, 8, 0));
     myBackPanel.setBackground(JBColor.WHITE);
     myBackPanel.setVisible(false);
@@ -115,7 +115,7 @@ public class LayoutTreePanel extends JPanel implements ToolContent<LayoutInspect
   }
 
   @Override
-  public void onInvalidated(@NotNull ObservableValue<?> sender) {
+  public void onInvalidated() {
     if (!myContext.getSubviewList().isEmpty()) {
       ViewNode parentNode = myContext.getSubviewList().get(myContext.getSubviewList().size() - 1);
       if (parentNode == null) return;

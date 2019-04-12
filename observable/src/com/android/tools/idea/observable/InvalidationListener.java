@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.observable;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Listener that is notified any time an observable value may have changed (either directly or
  * because a value it is bound to has become invalidated).
+ *
+ * Note that an {@link #onInvalidated()} event does not include the underlying value that changed;
+ * it just notifies listeners that a value *has* changed. If you want to register a listener that
+ * receives a value, consider using {@link ListenerManager#listen(ObservableValue, Receiver)}
+ * instead.
  */
 public interface InvalidationListener {
-  void onInvalidated(@NotNull ObservableValue<?> sender);
+  void onInvalidated();
 }

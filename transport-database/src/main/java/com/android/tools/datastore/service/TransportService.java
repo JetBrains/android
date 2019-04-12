@@ -33,8 +33,6 @@ import com.android.tools.profiler.proto.Common.StreamData;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
-import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentRequest;
-import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentResponse;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
 import com.android.tools.profiler.proto.Transport.ExecuteResponse;
@@ -226,20 +224,6 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
     responseObserver.onNext(response);
     responseObserver.onCompleted();
-  }
-
-  @Override
-  public void configureStartupAgent(ConfigureStartupAgentRequest request,
-                                    StreamObserver<ConfigureStartupAgentResponse> observer) {
-    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(request.getStreamId());
-    if (client != null) {
-      observer.onNext(client.configureStartupAgent(request));
-    }
-    else {
-      observer.onNext(ConfigureStartupAgentResponse.getDefaultInstance());
-    }
-
-    observer.onCompleted();
   }
 
   @Override

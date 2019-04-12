@@ -21,7 +21,6 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
 import com.google.common.collect.ImmutableList
 import java.awt.Dimension
@@ -41,7 +40,11 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView
     return result
   }
 
-  private val colorSet = NavColorSet()
+  private val colorSet = ColorSet()
 
+  /**
+   * This color set does not provide the navigation colors.
+   * Navigation-specific colors are defined in NavColors.
+   */
   override fun getColorSet(): ColorSet = colorSet
 }

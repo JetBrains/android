@@ -61,6 +61,7 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
         .setToTimestamp(endTimestamp)
       eventListener.streamId?.invoke()?.let { builder.streamId = it }
       eventListener.processId?.invoke()?.let { builder.pid = it }
+      eventListener.groupId?.invoke()?.let { builder.groupId = it }
 
       val request = builder.build()
 

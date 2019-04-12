@@ -176,12 +176,16 @@ class ShowReportDialog(report: AnalyzedHeapReport) : DialogWrapper(false) {
   private val textArea: JTextArea = JTextArea(30, 130)
 
   init {
-    textArea.text = report.text
+    textArea.text = getReportText(report)
     textArea.isEditable = false
     textArea.caretPosition = 0
     init()
     title = AndroidBundle.message("heap.dump.analysis.report.dialog.title")
     isModal = true
+  }
+
+  private fun getReportText(report: AnalyzedHeapReport): String {
+    return "${report.text}$SECTION_SEPARATOR\n${report.heapProperties.liveStats}"
   }
 
   override fun createCenterPanel(): JComponent? {
@@ -215,6 +219,10 @@ class ShowReportDialog(report: AnalyzedHeapReport) : DialogWrapper(false) {
     super.createDefaultActions()
     okAction.putValue(Action.NAME, AndroidBundle.message("heap.dump.analysis.report.dialog.action.send"))
     cancelAction.putValue(Action.NAME, AndroidBundle.message("heap.dump.analysis.report.dialog.action.dont.send"))
+  }
+
+  companion object {
+    private const val SECTION_SEPARATOR = "================"
   }
 }
 

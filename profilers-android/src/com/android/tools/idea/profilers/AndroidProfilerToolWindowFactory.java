@@ -26,6 +26,7 @@ import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -162,6 +163,20 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     }
 
     @Override
+    public void customizeDaemonConfig(@NotNull Transport.DaemonConfig.Builder configBuilder) {
+      configBuilder
+        .setCommon(
+          configBuilder.getCommonBuilder()
+            .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()))
+        .setCpu(
+          Transport.DaemonConfig.CpuConfig.newBuilder()
+            .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
+            .setSimpleperfHost(StudioFlags.PROFILER_SIMPLEPERF_HOST.get())
+            .setUsePerfetto(StudioFlags.PROFILER_USE_PERFETTO.get()));
+    }
+
+    @Override
     public void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder,
                                      @Nullable AndroidRunConfigurationBase runConfig) {
       int liveAllocationSamplingRate;
@@ -181,22 +196,20 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
         liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
       }
       configBuilder
-        .setMemConfig(
-          Agent.AgentConfig.MemoryConfig
-            .newBuilder()
+        .setCommon(
+          configBuilder.getCommonBuilder()
+            .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()))
+        .setMem(
+          Agent.AgentConfig.MemoryConfig.newBuilder()
             .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
             .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
             .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
-            .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
+            .setSamplingRate(
+              MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
             .build())
-        .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
         .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
-        .setCpuConfig(
-          Agent.AgentConfig.CpuConfig.newBuilder()
-            .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
-            .setSimpleperfHost(StudioFlags.PROFILER_SIMPLEPERF_HOST.get())
-            .setUsePerfetto(StudioFlags.PROFILER_USE_PERFETTO.get()))
-        .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get());
+        .setStartupProfilingEnabled(runConfig != null);
     }
 
     private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {

@@ -122,6 +122,8 @@ class AddDestinationMenuTest : NavTestCase() {
     addIncludeFile("include2")
     addIncludeFile("include1")
 
+    addDestination("NavHostFragmentChild", "androidx.navigation.fragment.NavHostFragment")
+
     val parent = model.components[0]
 
     val placeHolder = Destination.PlaceholderDestination(parent)

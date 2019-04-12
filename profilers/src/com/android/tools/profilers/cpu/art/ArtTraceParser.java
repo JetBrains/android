@@ -35,7 +35,7 @@ public class ArtTraceParser implements TraceParser {
   private final ArtTraceHandler myTraceHandler = new ArtTraceHandler();
 
   @Override
-  public CpuCapture parse(File trace, int traceId) throws IOException {
+  public CpuCapture parse(File trace, long traceId) throws IOException {
     VmTraceParser parser = new VmTraceParser(trace, myTraceHandler);
     parser.parse();
     return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.ART);

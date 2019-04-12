@@ -32,6 +32,8 @@ interface PsLibraryDependency : PsBaseDependency {
 interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
   var version: ParsedValue<String>
   val versionProperty: ModelSimpleProperty<Unit, String>
+
+  override fun toKey() = spec.toString()
 }
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {

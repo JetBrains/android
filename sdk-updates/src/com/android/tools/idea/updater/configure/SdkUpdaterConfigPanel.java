@@ -218,7 +218,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     if (!sdkLocations.isEmpty()) {
       mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
     }
-    mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
+    mySelectedSdkLocation.addListener(() -> ApplicationManager.getApplication().invokeLater(this::reset));
 
     ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
     setUpSingleSdkChooser();

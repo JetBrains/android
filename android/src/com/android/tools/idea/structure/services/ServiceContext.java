@@ -57,12 +57,7 @@ public final class ServiceContext {
   private final BoolValueProperty myModified = new BoolValueProperty();
   private final BoolValueProperty myHiddenFromStructureDialog = new BoolValueProperty();
 
-  private final InvalidationListener myWatchedListener = new InvalidationListener() {
-    @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
-      myModified.set(true);
-    }
-  };
+  private final InvalidationListener myWatchedListener = () -> myModified.set(true);
 
   @NotNull private final String myBuildSystemId;
 

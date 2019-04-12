@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.Coordinates.getSwingDimension
@@ -31,10 +30,12 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.DRAW_ACTIVITY_BORDER_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
+import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.convertToRoundRect
 import com.android.tools.idea.naveditor.scene.growRectangle
 import com.android.tools.idea.naveditor.scene.scaledFont
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.geom.Rectangle2D
@@ -62,8 +63,8 @@ object ActivityDecorator : NavScreenDecorator() {
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
     @SwingCoordinate val roundRect = convertToRoundRect(sceneView, drawRectangle, ACTIVITY_ARC_SIZE)
-    list.add(DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, sceneContext.colorSet.componentBackground))
-    list.add(DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, frameColor(sceneContext, component), frameThickness(component)))
+    list.add(DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, COMPONENT_BACKGROUND))
+    list.add(DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, frameColor(component), frameThickness(component)))
 
     val imageRectangle = Rectangle2D.Float(drawRectangle.x, drawRectangle.y, drawRectangle.width, drawRectangle.height)
 
@@ -79,11 +80,11 @@ object ActivityDecorator : NavScreenDecorator() {
     imageBorder.setRect(imageRectangle)
 
     growRectangle(imageBorder, ACTIVITY_BORDER_WIDTH, ACTIVITY_BORDER_WIDTH)
-    list.add(DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, imageRectangle, NavColorSet.ACTIVITY_BORDER_COLOR, ACTIVITY_BORDER_WIDTH))
+    list.add(DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, imageRectangle, ACTIVITY_BORDER, ACTIVITY_BORDER_WIDTH))
 
     val textRectangle = Rectangle2D.Float(drawRectangle.x, imageRectangle.y + imageRectangle.height, drawRectangle.width,
                                   activityTextHeight)
-    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", textRectangle, textColor(sceneContext, component),
+    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", textRectangle, textColor(component),
                                scaledFont(sceneContext, Font.BOLD), true))
   }
 }

@@ -33,6 +33,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/testData",
+        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

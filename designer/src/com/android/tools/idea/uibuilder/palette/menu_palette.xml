@@ -14,14 +14,27 @@
   ~ limitations under the License.
   -->
 <palette>
-  <item tag="item" title="Cast Button" handler-class="com.android.tools.idea.uibuilder.menu.CastButtonHandler"
-        id="cast" coordinate="com.android.support:mediarouter-v7" icon="StudioIcons.LayoutEditor.Menu.CAST">
+  <item tag="android.support.item" title="Cast Button" handler-class="com.android.tools.idea.uibuilder.menu.CastButtonHandler"
+        id="SupportCast" coordinate="com.android.support:mediarouter-v7" icon="StudioIcons.LayoutEditor.Menu.CAST">
     <xml>
       <![CDATA[
         <item xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/media_route_menu_item"
             android:title="Cast"
             app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+            tools:icon="@drawable/mr_button_light" />
+      ]]>
+    </xml>
+  </item>
+
+  <item tag="androidx.item" title="Cast Button" handler-class="com.android.tools.idea.uibuilder.menu.CastButtonHandler"
+        id="AndroidxCast" coordinate="androidx.mediarouter:mediarouter" icon="StudioIcons.LayoutEditor.Menu.CAST">
+    <xml>
+      <![CDATA[
+        <item xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/media_route_menu_item"
+            android:title="Cast"
+            app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"
             tools:icon="@drawable/mr_button_light" />
       ]]>
     </xml>

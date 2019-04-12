@@ -785,14 +785,10 @@ public class AndroidUtils {
   }
 
   @NotNull
-  public static Set<Module> getSetWithBackwardDependencies(@NotNull Collection<Module> modules) {
-    if (modules.isEmpty()) return Collections.emptySet();
-    Module next = modules.iterator().next();
-    Graph<Module> graph = ModuleManager.getInstance(next.getProject()).moduleGraph();
+  public static Set<Module> getSetWithBackwardDependencies(@NotNull Module module) {
+    Graph<Module> graph = ModuleManager.getInstance(module.getProject()).moduleGraph();
     final Set<Module> set = new HashSet<>();
-    for (Module module : modules) {
-      GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
-    }
+    GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
     return set;
   }
 

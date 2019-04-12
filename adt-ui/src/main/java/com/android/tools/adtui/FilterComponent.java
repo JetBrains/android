@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
@@ -307,7 +308,7 @@ public final class FilterComponent extends JPanel {
 
   @NotNull
   static public CommonToggleButton createFilterToggleButton() {
-    CommonToggleButton filterButton = new CommonToggleButton("", StudioIcons.Common.FILTER);
+    CommonToggleButton filterButton = new CommonToggleButton("", AllIcons.General.Filter);
     filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(FILTER_KEY_STROKE)));
     return filterButton;
   }

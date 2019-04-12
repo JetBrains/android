@@ -94,7 +94,7 @@ public class LayoutLibraryLoader {
   public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target,
                                    @NotNull Map<String, Map<String, Integer>> enumMap) throws RenderingException {
     LayoutLibrary library = ourLibraryCache.get(target);
-    if (library == null) {
+    if (library == null || library.isDisposed()) {
       library = loadImpl(target, enumMap);
 
       if (library != null) {

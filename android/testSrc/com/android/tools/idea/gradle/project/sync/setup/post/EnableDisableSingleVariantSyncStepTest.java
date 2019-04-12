@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
-import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.*;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.BUILDSRC_MODULE;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.ELIGIBLE;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.PURE_JAVA;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.isEligibleForSingleVariantSync;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
-import static com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.project.Project;
+import java.io.File;
 
 /**
  * Tests for {@link EnableDisableSingleVariantSyncStep}.
@@ -77,5 +77,17 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
     setSingleVariantSyncState(project);
     // Verify the flag is updated to true.
     assertTrue(PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC));
+  }
+
+  public void testIsEligibleWithBuildSrcModule() throws Exception {
+    prepareProjectForImport(SIMPLE_APPLICATION);
+    // Create buildSrc folder under root project.
+    Project project = getProject();
+    File buildSrcDir = new File(project.getBasePath(), "buildSrc");
+    File buildFile = new File(buildSrcDir, "build.gradle");
+    writeToFile(buildFile, "repositories {}");
+    importProject(project.getName(), getBaseDirPath(project));
+    // Verify that project is not eligible due to buildSrc module.
+    assertEquals(BUILDSRC_MODULE, isEligibleForSingleVariantSync(project));
   }
 }

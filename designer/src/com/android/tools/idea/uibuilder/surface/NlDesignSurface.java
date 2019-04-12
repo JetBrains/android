@@ -32,6 +32,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -669,6 +670,48 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return Math.abs(getScale() - getFitScale(true)) > 0.01;
   }
 
+  @Override
+  public void scrollToCenter(@NotNull List<NlComponent> list) {
+    Scene scene = getScene();
+    SceneView view = getCurrentSceneView();
+    if (list.isEmpty() || scene == null || view == null) {
+      return;
+    }
+    @AndroidDpCoordinate Rectangle componentsArea = new Rectangle(0, 0, -1, -1);
+    @AndroidDpCoordinate Rectangle componentRect = new Rectangle();
+    list.stream().filter(nlComponent -> !nlComponent.isRoot()).forEach(nlComponent -> {
+      SceneComponent component = scene.getSceneComponent(nlComponent);
+      if (component == null) {
+        return;
+      }
+      component.fillRect(componentRect);
+
+      if (componentsArea.width < 0) {
+        componentsArea.setBounds(componentRect);
+      } else {
+        componentsArea.add(componentRect);
+      }
+    });
+
+    @SwingCoordinate Rectangle areaToCenter = Coordinates.getSwingRectDip(view, componentsArea);
+    if(areaToCenter.isEmpty() || getLayeredPane().getVisibleRect().contains(areaToCenter)) {
+      // No need to scroll to components if they are all fully visible on the surface.
+      return;
+    }
+
+    @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
+    @SwingCoordinate int targetSwingX = (int) areaToCenter.getCenterX();
+    @SwingCoordinate int targetSwingY = (int) areaToCenter.getCenterY();
+    // Center to position.
+    setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
+    double fitScale = getFitScale(areaToCenter.getSize(), true);
+
+    if (getScale() > fitScale) {
+      // Scale down to fit selection.
+      setScale(fitScale, targetSwingX, targetSwingY);
+    }
+  }
+
   public boolean isResizeAvailable() {
     Configuration configuration = getConfiguration();
     if (configuration == null) {
@@ -684,6 +727,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     return Configuration.CUSTOM_DEVICE_ID.equals(device.getId());
+  }
+
+  @Override
+  protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
+    super.notifySelectionListeners(newSelection);
+    scrollToCenter(newSelection);
   }
 
   @VisibleForTesting(visibility = Visibility.PROTECTED)

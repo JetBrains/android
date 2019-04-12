@@ -26,6 +26,7 @@ import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
 import com.intellij.concurrency.JobScheduler
+import com.intellij.icons.AllIcons
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -114,6 +116,7 @@ class ResourceExplorerView(
 
   private var updatePending = false
 
+  private var fileToSelect: VirtualFile? = null
 
   private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
@@ -338,7 +341,11 @@ class ResourceExplorerView(
     })
 
   private fun selectIndicesIfNeeded(selectedValue: Any?, selectedIndices: List<IntArray?>) {
-    if (selectedValue != null) {
+    val finalFileToSelect = fileToSelect
+    if (finalFileToSelect != null) {
+      selectAsset(finalFileToSelect)
+    }
+    else if (selectedValue != null) {
         // Attempt to reselect the previously selected element
       // If the value still exist in the list, just reselect it
       sectionList.selectedValue = selectedValue
@@ -349,6 +356,35 @@ class ResourceExplorerView(
         sectionList.selectedIndices = selectedIndices
       }
     }
+  }
+
+  fun selectAsset(virtualFile: VirtualFile) {
+    resourcesBrowserViewModel.resourceTypeIndex = resourcesBrowserViewModel.getTabIndexForFile(virtualFile)
+    if (virtualFile.isDirectory) {
+      return
+    }
+    if (updatePending) {
+      fileToSelect = virtualFile
+    }
+    else {
+      doSelectAsset(virtualFile)
+    }
+  }
+
+  private fun doSelectAsset(file: VirtualFile) {
+    fileToSelect = null
+    sectionList.getLists()
+      .filterIsInstance<AssetListView>()
+      .forEachIndexed { listIndex, list ->
+        for (assetIndex in 0 until list.model.size) {
+          if (list.model.getElementAt(assetIndex).designAssets.any { it.file == file }) {
+            sectionList.selectedIndex = listIndex to assetIndex
+            sectionList.scrollToSelection()
+            list.requestFocusInWindow()
+            return
+          }
+        }
+      }
   }
 
   private fun createSection(section: ResourceSection) =
@@ -450,7 +486,7 @@ class ResourceExplorerView(
   /**
    * Button to scale down the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", StudioIcons.Common.ZOOM_OUT), DumbAware {
+  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.General.ZoomOut), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
@@ -464,7 +500,7 @@ class ResourceExplorerView(
   /**
    * Button to scale up the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", StudioIcons.Common.ZOOM_IN), DumbAware {
+  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.General.ZoomIn), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())

@@ -19,19 +19,21 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NAV_GRAPH
-import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
 import com.android.SdkConstants.VIEW_FRAGMENT
-import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.naveditor.model.isNavHostFragment
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
@@ -94,6 +96,7 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
     cardLayout.show(this, "LOADING")
 
     list.emptyText.text = "No NavHostFragments found"
+    list.background = secondaryPanelBackground
     if (GeneralSettings.getInstance().isSupportScreenReaders) {
       list.addFocusListener(object: FocusListener {
         override fun focusLost(e: FocusEvent?) {
@@ -186,8 +189,11 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
           surface.model?.project?.let { project ->
             val listModel = list.model as DefaultListModel
             listModel.clear()
-            DumbService.getInstance(project).runReadActionInSmartMode {
-              findReferences(psi).forEach { listModel.addElement(SmartPointerManager.createPointer(it)) }
+            val module = surface.model?.module
+            if (module != null) {
+              DumbService.getInstance(project).runReadActionInSmartMode {
+                findReferences(psi, module).forEach { listModel.addElement(SmartPointerManager.createPointer(it)) }
+              }
             }
           }
           cardLayout.show(this, "LIST")
@@ -197,7 +203,7 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
 }
 
 @VisibleForTesting
-fun findReferences(psi: XmlFile): List<XmlTag> {
+fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
   val result = mutableListOf<XmlTag>()
   val query: Query<PsiReference> = ReferencesSearch.search(psi)
   for (ref: PsiReference in query) {
@@ -214,8 +220,8 @@ fun findReferences(psi: XmlFile): List<XmlTag> {
     if (tag.name != VIEW_FRAGMENT) {
       continue
     }
-    val className = tag.getAttributeValue(ATTR_NAME, ANDROID_URI)
-    if (className != FQCN_NAV_HOST_FRAGMENT) {
+    val className = tag.getAttributeValue(ATTR_NAME, ANDROID_URI) ?: continue
+    if (!isNavHostFragment(className, module)) {
       continue
     }
     result.add(tag)

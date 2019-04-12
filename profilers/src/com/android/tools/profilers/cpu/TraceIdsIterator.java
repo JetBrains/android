@@ -26,7 +26,7 @@ import java.util.List;
  */
 class TraceIdsIterator {
 
-  static final int INVALID_TRACE_ID = -1;
+  static final long INVALID_TRACE_ID = -1L;
 
   private final CpuProfilerStage myStage;
 
@@ -35,7 +35,7 @@ class TraceIdsIterator {
    * traces existing in the session at the moment we create the stage, and inserting the trace IDs of newly parsed captures to the end of
    * the list.
    */
-  private final List<Integer> myTraceIds;
+  private final List<Long> myTraceIds;
 
   public TraceIdsIterator(CpuProfilerStage stage, List<CpuProfiler.TraceInfo> initialTraceInfo) {
     myStage = stage;
@@ -45,11 +45,11 @@ class TraceIdsIterator {
   /**
    * Returns the list of IDs of all the {@link CpuProfiler.TraceInfo} created in the current session, ordered by "from" timestamp.
    */
-  private static List<Integer> getOrderedInitialTraceIds(List<CpuProfiler.TraceInfo> initialTraceInfo) {
+  private static List<Long> getOrderedInitialTraceIds(List<CpuProfiler.TraceInfo> initialTraceInfo) {
     // Gets all the trace info of the session and order them per start time. Use a copy of the list because it's immutable.
     List<CpuProfiler.TraceInfo> allTraceInfo = new ArrayList<>(initialTraceInfo);
     allTraceInfo.sort(Comparator.comparingLong(CpuProfiler.TraceInfo::getFromTimestamp));
-    List<Integer> traceIds = new ArrayList<>();
+    List<Long> traceIds = new ArrayList<>();
     allTraceInfo.forEach((traceInfo) -> traceIds.add(traceInfo.getTraceId()));
     return traceIds;
   }
@@ -58,14 +58,14 @@ class TraceIdsIterator {
     return findNextTraceId() != INVALID_TRACE_ID;
   }
 
-  public Integer next() {
+  public long next() {
     return findNextTraceId();
   }
 
   /**
    * Returns the trace ID of the next capture in the session, or {@link #INVALID_TRACE_ID} if there is none.
    */
-  private int findNextTraceId() {
+  private long findNextTraceId() {
     if (myTraceIds.isEmpty()) {
       // We can't navigate anywhere.
       return INVALID_TRACE_ID;
@@ -90,14 +90,14 @@ class TraceIdsIterator {
     return findPreviousTraceId() != INVALID_TRACE_ID;
   }
 
-  public Integer previous() {
+  public long previous() {
     return findPreviousTraceId();
   }
 
   /**
    * Returns the trace ID of the previous capture in the session, or {@link #INVALID_TRACE_ID} if there is none.
    */
-  private int findPreviousTraceId() {
+  private long findPreviousTraceId() {
     if (myTraceIds.isEmpty()) {
       // We don't have a previous capture we can navigate to.
       return INVALID_TRACE_ID;
@@ -120,14 +120,14 @@ class TraceIdsIterator {
   /**
    * Adds the given trace to {@link #myTraceIds}.
    */
-  public void addTrace(int traceId) {
+  public void addTrace(long traceId) {
     myTraceIds.add(traceId);
   }
 
   /**
    * Returns true if the given trace is already added.
    */
-  public boolean contains(int traceId) {
+  public boolean contains(long traceId) {
     return myTraceIds.contains(traceId);
   }
 }

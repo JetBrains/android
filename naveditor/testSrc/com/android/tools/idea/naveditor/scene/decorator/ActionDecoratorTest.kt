@@ -22,7 +22,7 @@ import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.ACTION
 import com.android.tools.idea.naveditor.scene.draw.DrawAction
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction
@@ -57,9 +57,9 @@ class ActionDecoratorTest : NavTestCase() {
 
     val drawAction = displayList.commands[0]
     assertNotNull(drawAction as DrawAction) // TODO: Convert DrawAction to data class
-    assertEquals(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, Rectangle2D.Float(561.75f, 532.0f, 6.0f, 5.0f), NavColorSet.ACTION_COLOR),
+    assertEquals(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, Rectangle2D.Float(561.75f, 532.0f, 6.0f, 5.0f), ACTION),
                  displayList.commands[1])
-    assertEquals(DrawIcon(Rectangle2D.Float(487.2728f, 654.0313f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, NavColorSet.ACTION_COLOR),
+    assertEquals(DrawIcon(Rectangle2D.Float(487.2728f, 654.0313f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, ACTION),
                  displayList.commands[2])
   }
 
@@ -83,11 +83,11 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f1)
 
-    assertEquals(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, Rectangle2D.Float(440f, 573.0f, 6.0f, 5.0f), NavColorSet.ACTION_COLOR),
+    assertEquals(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.UP, Rectangle2D.Float(440f, 573.0f, 6.0f, 5.0f), ACTION),
                  displayList.commands[0])
-    assertEquals(DrawSelfAction(Point2D.Float(459f, 519f), Point2D.Float(443f, 577f), NavColorSet.ACTION_COLOR),
+    assertEquals(DrawSelfAction(Point2D.Float(459f, 519f), Point2D.Float(443f, 577f), ACTION),
                  displayList.commands[1])
-    assertEquals(DrawIcon(Rectangle2D.Float(477f, 536.34937f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, NavColorSet.ACTION_COLOR),
+    assertEquals(DrawIcon(Rectangle2D.Float(477f, 536.34937f, 8.0f, 8.0f), DrawIcon.IconType.POP_ACTION, ACTION),
                  displayList.commands[2])
   }
 }

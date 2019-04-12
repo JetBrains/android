@@ -19,21 +19,22 @@ import com.android.SdkConstants.FD_MAIN
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_SOURCES
 import com.android.builder.model.AndroidArtifact
-import com.android.tools.idea.concurrency.withLockAndReadAccess
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
+import com.android.tools.idea.gradle.variant.view.BuildVariantView
 import com.android.tools.idea.res.AndroidProjectRootListener
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.base.Splitter
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.util.containers.hash.HashSet
-import com.intellij.util.containers.isNullOrEmpty
+import com.intellij.util.messages.Topic
 import java.io.File
-import java.util.concurrent.locks.ReentrantLock
-import javax.annotation.concurrent.GuardedBy
 
 /**
  * The resource folder manager is responsible for returning the current set of resource folders used in the project. It provides hooks for
@@ -41,7 +42,31 @@ import javax.annotation.concurrent.GuardedBy
  * editing the gradle files or after a delayed project initialization), and it also provides some state caching between IDE sessions such
  * that before the gradle initialization is done, it returns the folder set as it was before the IDE exited.
  */
-class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFacetScopedService(facet), ModificationTracker {
+class ResourceFolderManager(
+  val module: Module,
+  private val buildVariantUpdater: BuildVariantUpdater
+) : ModificationTracker, Disposable {
+
+  companion object {
+    private val FOLDERS_KEY = Key.create<Folders>(ResourceFolderManager::class.qualifiedName!!)
+
+    /**
+     * Separator used when encoding the list of res folders in the facet's state. Deliberately using ';' instead of [File.pathSeparator]
+     * since on Unix [File.pathSeparator] is ":" which is also used in URLs, meaning we could end up with something like
+     * `file://foo:file://bar`
+     */
+    private const val SEPARATOR = ";"
+
+    private val emptyFolders = Folders(emptyList(), emptyList())
+
+    @JvmStatic
+    fun getInstance(facet: AndroidFacet): ResourceFolderManager {
+      return ModuleServiceManager.getService(facet.module, ResourceFolderManager::class.java)!!
+    }
+
+    @JvmField
+    val TOPIC = Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java)
+  }
 
   /** Listeners for resource folder changes  */
   interface ResourceFolderListener {
@@ -64,24 +89,26 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
 
   private data class Folders(val main: List<VirtualFile>, val test: List<VirtualFile>)
 
-  private val lock = ReentrantLock()
-  @GuardedBy("this") private var foldersCache: Folders? = null
-  @GuardedBy("lock") private var variantListenerAdded: Boolean = false
-  @GuardedBy("lock") private val listeners = mutableListOf<ResourceFolderListener>()
+  private val listener = BuildVariantView.BuildVariantSelectionChangeListener { checkForChanges() }
   @Volatile private var generation: Long = 0
 
-  fun addListener(listener: ResourceFolderListener) = lock.withLockAndReadAccess { listeners.add(listener) }
-  fun removeListener(listener: ResourceFolderListener) = lock.withLockAndReadAccess { listeners.remove(listener) }
-  override fun getModificationCount() = generation
-  override fun onServiceDisposal(facet: AndroidFacet) = facet.putUserData(KEY, null)
+  init {
+    AndroidProjectRootListener.ensureSubscribed(module.project)
+    buildVariantUpdater.addSelectionChangeListener(listener)
+  }
 
+  override fun getModificationCount() = generation
+
+  override fun dispose() {
+    buildVariantUpdater.removeSelectionChangeListener(listener)
+  }
 
   /**
    * Returns main (production) resource directories, in increasing precedence order.
    *
    * @see IdeaSourceProvider.getCurrentSourceProviders
    */
-  val folders get() = lock.withLockAndReadAccess { mainAndTestFolders.main }
+  val folders get() = mainAndTestFolders.main
 
   /**
    * Returns test resource directories, in the overlay order.
@@ -91,8 +118,9 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
   val testFolders get() = mainAndTestFolders.test
 
   private val mainAndTestFolders: Folders
-    @Synchronized get() {
-      return foldersCache ?: computeFolders().also { foldersCache = it }
+    get() {
+      val facet = module.androidFacet ?: return emptyFolders
+      return facet.getUserData(FOLDERS_KEY) ?: facet.putUserDataIfAbsent(FOLDERS_KEY, computeFolders(facet))
     }
 
   /**
@@ -108,12 +136,11 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
   val primaryFolder get() = folders.firstOrNull()
 
   /** Notifies the resource folder manager that the resource folder set may have changed.  */
-  fun invalidate() = lock.withLockAndReadAccess {
-    val before = foldersCache
-    if (before == null || isDisposed) {
-      return@withLockAndReadAccess
-    }
-    foldersCache = null
+  fun checkForChanges() {
+    if (module.isDisposed) return
+    val facet = module.androidFacet ?: return
+    val before = facet.getUserData(FOLDERS_KEY) ?: return
+    facet.putUserData(FOLDERS_KEY, null)
     val after = mainAndTestFolders
     notifyIfChanged(before, after, Folders::main, ResourceFolderListener::mainResourceFoldersChanged)
     notifyIfChanged(before, after, Folders::test, ResourceFolderListener::testResourceFoldersChanged)
@@ -137,20 +164,19 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       removed.addAll(before.main)
       removed.removeAll(after.main)
 
-      for (listener in listeners) {
-        listener.callback(facet, after.filesToCheck(), added, removed)
-      }
+      val facet = module.androidFacet ?: return
+      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck(), added, removed)
     }
   }
 
-  private fun computeFolders(): Folders {
-    val facet = this.facet
+
+  private fun computeFolders(facet: AndroidFacet): Folders {
     return if (!facet.requiresAndroidModel()) {
       Folders(main = facet.mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
-    } else {
+    }
+    else {
       // Listen to root change events. Be notified when project is initialized so we can update the
       // resource set, if necessary.
-      AndroidProjectRootListener.ensureSubscribed(facet.module.project)
       if (facet.configuration.model == null) readFromFacetState(facet) else readFromModel(facet)
     }
   }
@@ -179,12 +205,6 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       TEST_RES_FOLDERS_RELATIVE_PATH = testResDirectories.joinToString(SEPARATOR) { it.url }
     }
 
-    // Also refresh the app resources whenever the variant changes.
-    if (!variantListenerAdded) {
-      variantListenerAdded = true
-      BuildVariantUpdater.getInstance(facet.module.project).addSelectionChangeListener(this::invalidate)
-    }
-
     return Folders(mainResDirectories, testResDirectories)
   }
 
@@ -204,7 +224,7 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       fromProviders
     }
     else {
-      fromProviders + generated!!.asSequence().mapNotNull { it.toVirtualFile() }
+      fromProviders + generated.asSequence().mapNotNull { it.toVirtualFile() }
     }
   }
 
@@ -239,30 +259,5 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
       .trimResults()
       .split(this)
       .mapNotNull(manager::findFileByUrl)
-  }
-
-  companion object {
-    private val KEY = Key.create<ResourceFolderManager>(ResourceFolderManager::class.java.name)
-
-    /**
-     * Separator used when encoding the list of res folders in the facet's state. Deliberately using ';' instead of [File.pathSeparator]
-     * since on Unix [File.pathSeparator] is ":" which is also used in URLs, meaning we could end up with something like
-     * `file://foo:file://bar`
-     */
-    private const val SEPARATOR = ";"
-
-    private val emptyFolders = Folders(emptyList(), emptyList())
-
-    @JvmStatic
-    fun getInstance(facet: AndroidFacet): ResourceFolderManager {
-      synchronized(KEY) {
-        var resourceFolderManager = facet.getUserData(KEY)
-        if (resourceFolderManager == null) {
-          resourceFolderManager = ResourceFolderManager(facet)
-          facet.putUserData(KEY, resourceFolderManager)
-        }
-        return resourceFolderManager
-      }
-    }
   }
 }

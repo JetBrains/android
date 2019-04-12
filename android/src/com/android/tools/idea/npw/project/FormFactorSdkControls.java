@@ -68,7 +68,7 @@ public class FormFactorSdkControls implements Disposable {
     Disposer.register(parentDisposable, this);
 
     myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myMinSdkCombobox));
-    myListeners.receive(androidSdkInfo, value ->
+    myListeners.listen(androidSdkInfo, value ->
       value.ifPresent(item -> myApiPercentLabel.setText(getApiHelpText(item.getMinApiLevel())))
     );
 

@@ -9,8 +9,10 @@ iml_module(
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
     test_coverage = True,
     test_data = [
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

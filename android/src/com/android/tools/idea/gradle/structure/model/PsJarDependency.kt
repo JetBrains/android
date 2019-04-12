@@ -32,7 +32,9 @@ interface PsJarDependency : PsBaseDependency {
   override val icon: Icon get() = PlatformIcons.JAR_ICON
 }
 
-interface PsDeclaredJarDependency : PsJarDependency, PsDeclaredDependency
+interface PsDeclaredJarDependency : PsJarDependency, PsDeclaredDependency {
+  override fun toKey() = filePath
+}
 
 interface PsResolvedJarDependency : PsJarDependency, PsResolvedDependency {
   override val kind: PsJarDependency.Kind get() = PsJarDependency.Kind.FILE

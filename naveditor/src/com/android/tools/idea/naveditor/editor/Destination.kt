@@ -25,9 +25,9 @@ import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.model.startDestinationId
-import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
-import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
-import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_TEXT_COLOR
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
+import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.uibuilder.model.createChild
 import com.intellij.openapi.application.ApplicationManager
@@ -113,7 +113,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       drawThumbnailContents(model, thumbnailDimension, graphics)
 
       graphics.clip = oldClip
-      graphics.color = PLACEHOLDER_BORDER_COLOR
+      graphics.color = PLACEHOLDER_BORDER
       graphics.stroke = THUMBNAIL_BORDER_STROKE
       roundRect.width = roundRect.width + THUMBNAIL_BORDER_THICKNESS
       roundRect.height = roundRect.height + THUMBNAIL_BORDER_THICKNESS
@@ -129,7 +129,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
     abstract fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D)
 
     protected fun drawBackground(thumbnailDimension: Dimension, graphics: Graphics2D) {
-      graphics.color = PLACEHOLDER_BACKGROUND_COLOR
+      graphics.color = PLACEHOLDER_BACKGROUND
       graphics.fillRect(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(),
                         thumbnailDimension.width, thumbnailDimension.height)
     }
@@ -158,7 +158,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
         graphics.font = graphics.font.deriveFont(13).deriveFont(Font.BOLD)
         val unknownString = "?"
         val stringWidth = graphics.fontMetrics.charWidth('?')
-        graphics.color = PLACEHOLDER_TEXT_COLOR
+        graphics.color = PLACEHOLDER_TEXT
         graphics.drawString(unknownString, (thumbnailDimension.width - stringWidth) / 2 + THUMBNAIL_BORDER_THICKNESS,
                             (thumbnailDimension.height + graphics.fontMetrics.ascent) / 2 + THUMBNAIL_BORDER_THICKNESS)
       }
@@ -234,7 +234,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
 
     override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D) {
       drawBackground(thumbnailDimension, graphics)
-      graphics.color = PLACEHOLDER_BORDER_COLOR
+      graphics.color = PLACEHOLDER_BORDER
       graphics.drawLine(0, 0, thumbnailDimension.width, thumbnailDimension.height)
       graphics.drawLine(thumbnailDimension.width, 0, 0, thumbnailDimension.height)
     }

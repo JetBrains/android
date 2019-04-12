@@ -13,8 +13,6 @@
 // limitations under the License.
 package com.android.tools.idea.naveditor.editor
 
-import com.android.SdkConstants
-import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
@@ -22,15 +20,17 @@ import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.naveditor.model.includeFile
-import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
+import com.android.tools.idea.naveditor.scene.NavColors.LIST_MOUSEOVER
+import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnAction
@@ -123,7 +123,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
           val query = ClassInheritorsSearch.search(psiClass, GlobalSearchScope.moduleWithDependenciesScope(module), true, true, false)
           for (child in query) {
-            if (isNavHostFragment(child) || classToDestination.containsKey(child) || existingClasses.contains(child.qualifiedName)) {
+            if (extendsNavHostFragment(child) || classToDestination.containsKey(child) || existingClasses.contains(child.qualifiedName)) {
               continue
             }
 
@@ -136,7 +136,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
-      val hosts = findReferences(model.file).map { it.containingFile }
+      val hosts = findReferences(model.file, module).map { it.containingFile }
       for (resourceFile in
           resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
         // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
@@ -177,10 +177,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       result.sort()
       return result
     }
-
-  private fun isNavHostFragment(psiClass: PsiClass): Boolean {
-    return psiClass.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }
-  }
 
   @VisibleForTesting
   lateinit var destinationsList: JBList<Destination>
@@ -227,7 +223,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout())
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.SUBDUED_FRAME_COLOR))
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME))
     buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
     val scrollable = AdtSecondaryPanel(BorderLayout())
     scrollable.add(buttonPanel, BorderLayout.NORTH)
@@ -424,7 +420,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     private val SECONDARY_TEXT_RENDERER = JBLabel()
 
     init {
-      SECONDARY_TEXT_RENDERER.foreground = NavColorSet.SUBDUED_TEXT_COLOR
+      SECONDARY_TEXT_RENDERER.foreground = SUBDUED_TEXT
       val leftPanel = JPanel(VerticalLayout(0, SwingConstants.CENTER))
       leftPanel.isOpaque = false
       THUMBNAIL_RENDERER.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
@@ -437,7 +433,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       rightPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
       rightPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
       RENDERER.add(rightPanel, BorderLayout.CENTER)
-      RENDERER.background = NavColorSet.LIST_MOUSEOVER_COLOR
+      RENDERER.background = LIST_MOUSEOVER
       RENDERER.isOpaque = false
     }
   }

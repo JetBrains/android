@@ -96,7 +96,7 @@ public class DataBindingCompletionSupportImpl implements DataBindingCompletionSu
       DomFileElement<Layout> file = domManager.getFileElement((XmlFile)containingFile, Layout.class);
       if (file != null) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-        for (Data data : file.getRootElement().getDatas()) {
+        for (Data data : file.getRootElement().getDataElements()) {
           for (Import anImport : data.getImports()) {
             String alias = DataBindingUtil.getAlias(anImport);
             if (packagePrefix.isEmpty()) {

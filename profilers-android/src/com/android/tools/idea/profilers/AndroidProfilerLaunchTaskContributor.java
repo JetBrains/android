@@ -41,8 +41,6 @@ import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentRequest;
-import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
@@ -60,7 +58,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.util.messages.MessageBus;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -73,6 +70,8 @@ import org.jetbrains.annotations.Nullable;
  * extra option to "am start ..." command.
  */
 public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunchTaskContributor {
+  private static final String STARTUP_AGENT_CONFIG_NAME = "startupagent.config";
+
   private static Logger getLogger() {
     return Logger.getInstance(AndroidProfilerLaunchTaskContributor.class);
   }
@@ -110,16 +109,17 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    pushNewAgentConfig(project, transportService.getMessageBus(), device);
-    String agentArgs = getAttachAgentArgs(applicationId, client, device, deviceId);
+    TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
+    pushStartupAgentConfig(fileManager, project);
+    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
     String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
-  private void pushNewAgentConfig(@NotNull Project project, @NotNull MessageBus messageBus, @NotNull IDevice device) {
+  private void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
-      new TransportFileManager(device, messageBus).pushAgentConfig(getSelectedRunConfiguration(project));
+      fileManager.pushAgentConfig(STARTUP_AGENT_CONFIG_NAME, getSelectedRunConfiguration(project));
     }
     catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
       throw new RuntimeException(e);
@@ -127,29 +127,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     catch (AdbCommandRejectedException | IOException e) {
       // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
       // We don't want to crash in this case.
-      getLogger().warn("Error when trying to push AgentConfig:");
-      getLogger().warn(e);
+      getLogger().warn("Error when trying to push AgentConfig:", e);
     }
-  }
-
-
-  @NotNull
-  private static String getAttachAgentArgs(@NotNull String appPackageName,
-                                           @NotNull ProfilerClient client,
-                                           @NotNull IDevice device,
-                                           long deviceId) {
-    // --attach-agent flag was introduced from android API level 27.
-    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
-      return "";
-    }
-    ConfigureStartupAgentResponse response = client.getTransportClient()
-      .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder()
-                               .setStreamId(deviceId)
-                               // TODO: Find a way of finding the correct ABI
-                               .setAgentLibFileName(getAbiDependentLibPerfaName(device))
-                               .setAppPackageName(appPackageName)
-                               .build());
-    return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
   }
 
   /**
@@ -262,15 +241,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     return Common.Device.getDefaultInstance();
-  }
-
-  @NotNull
-  private static String getAbiDependentLibPerfaName(IDevice device) {
-    String abi = getBestAbiCpuArch(device,
-                                   "plugins/android/resources/transport/agent",
-                                   "../../bazel-bin/tools/base/transport/agent/android",
-                                   "libjvmtiagent.so");
-    return abi.isEmpty() ? "" : String.format("libjvmtiagent_%s.so", abi);
   }
 
   @NotNull

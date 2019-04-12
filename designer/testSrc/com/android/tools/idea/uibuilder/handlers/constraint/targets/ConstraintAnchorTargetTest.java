@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Point;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -331,6 +332,20 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     assertNotSame(topTarget, myScene.getInteractingTarget());
   }
 
+  public void testTryingToConnectWithNullId() {
+    AnchorTarget target = AnchorTarget.findAnchorTarget(myScene.getSceneComponent("button2"), AnchorTarget.Type.TOP);
+    float targetX = target.getCenterX();
+    float targetY = target.getCenterY();
+
+    myInteraction.select("button2", true);
+    // Button2 has a connection from a component with a null id.
+    myInteraction.mouseDown("button2", AnchorTarget.Type.TOP);
+    myInteraction.mouseDrag(targetX, targetY + 1);
+
+    // Should be able to connect to button 1.
+    assertNotNull(DecoratorUtilities.getTryingToConnectState(myScene.getSceneComponent("button1").getNlComponent()));
+  }
+
   @Override
   public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())
@@ -342,6 +357,10 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                 component(BUTTON)
                   .id("@id/button2")
                   .withBounds(10, 30, 10, 10),
+                component(BUTTON)
+                  // Button with no id defined.
+                  .withBounds(10, 40, 10, 10)
+                  .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, "@id/button2"),
                  component(CONSTRAINT_LAYOUT.defaultName())
                   .id("@+id/inner")
                   .withBounds(200, 200, 200, 200)

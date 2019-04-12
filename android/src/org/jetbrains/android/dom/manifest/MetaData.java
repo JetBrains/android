@@ -31,7 +31,6 @@ interface MetaData extends ManifestElementWithName {
   AndroidAttributeValue<String> getName();
 
   @Convert(MetadataValueConverter.class)
-  @ExtendClass("android.app.Activity")
   AndroidAttributeValue<Object> getValue();
 
   @Convert(NonExpansibleResourceReferenceConverter.class)

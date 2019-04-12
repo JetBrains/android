@@ -346,7 +346,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   }
 
   private boolean getDrawAsConnected() {
-    return (isConnected() || myIsDragging) && !isTargeted();
+    return isConnected() || myIsDragging;
   }
 
   @Override

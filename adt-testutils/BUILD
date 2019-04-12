@@ -26,6 +26,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",

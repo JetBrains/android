@@ -151,7 +151,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         // perform each task
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
-        LaunchResult result = task.run(device, launchStatus, consolePrinter);
+        LaunchResult result = task.run(myLaunchInfo.executor, device, launchStatus, consolePrinter);
         success = result.getSuccess();
         myStats.endLaunchTask(task, details, success);
         if (!success) {

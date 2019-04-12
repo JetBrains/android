@@ -29,7 +29,7 @@ import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -63,7 +63,7 @@ data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
     val arcSize = NAVIGATION_ARC_SIZE * scale
     val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
 
-    val fillRectangle = DrawFilledRoundRectangle(0, roundRectangle, NavColorSet.COMPONENT_BACKGROUND_COLOR)
+    val fillRectangle = DrawFilledRoundRectangle(0, roundRectangle, COMPONENT_BACKGROUND)
     val drawRectangle = DrawRoundRectangle(1, roundRectangle, frameColor, frameThickness)
 
     val font = regularFont(scale, Font.BOLD)

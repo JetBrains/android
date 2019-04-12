@@ -26,7 +26,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.google.common.truth.Truth.assertThat
-import icons.StudioIcons
+import com.intellij.icons.AllIcons
 import org.junit.Test
 import java.awt.Color
 
@@ -92,7 +92,7 @@ class LegendComponentTest {
     val legend4 = FakeLegend("Test4", "Value4")
     val config2 = LegendConfig(LegendConfig.IconType.BOX, Color.GREEN)
     val config3 = LegendConfig(LegendConfig.IconType.LINE, Color.BLUE)
-    val icon = StudioIcons.Common.ADD
+    val icon = AllIcons.General.Add
     val croppedIcon = LegendComponent.cropAndCacheIcon(icon)
     val config4 = LegendConfig({ s -> if ("Value4" == s) icon else null }, Color.RED)
 
@@ -268,7 +268,7 @@ class LegendComponentTest {
         val legend = FakeLegend(type.name, "1 b/s")
         val legendConfig =
           if (type == LegendConfig.IconType.CUSTOM)
-            LegendConfig({ _ -> StudioIcons.Common.ADD }, Color.RED)
+            LegendConfig({ _ -> AllIcons.General.Add }, Color.RED)
           else
             LegendConfig(type, Color.BLUE)
         legendComponent.configure(legend, legendConfig)

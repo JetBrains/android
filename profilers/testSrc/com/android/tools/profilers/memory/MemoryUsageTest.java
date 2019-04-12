@@ -52,7 +52,7 @@ public class MemoryUsageTest {
 
     // insert memory data for new pipeline.
     for (int i = 0; i < 10; i++) {
-      myService.addEventToEventGroup(STREAM_ID, UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+      myService.addEventToEventGroup(STREAM_ID,
                                      // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
                                      ProfilersTestData.generateMemoryUsageData(
                                        TimeUnit.SECONDS.toMicros(i * 10),

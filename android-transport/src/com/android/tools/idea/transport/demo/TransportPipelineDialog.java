@@ -21,6 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.idea.transport.TransportClient;
+import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
@@ -30,6 +31,7 @@ import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -38,7 +40,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -100,7 +101,7 @@ public class TransportPipelineDialog extends DialogWrapper {
 
     myClient = new TransportClient(TransportService.getInstance().getChannelName());
 
-    myProcessSelectionAction = new CommonAction("Select Process", StudioIcons.Common.ADD);
+    myProcessSelectionAction = new CommonAction("Select Process", AllIcons.General.Add);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
     myProcessSelectionDropDown.setToolTipText("Select a process to connect to.");
     myProcessAgentStatus = new JLabel("");
@@ -316,7 +317,9 @@ public class TransportPipelineDialog extends DialogWrapper {
             .setPid(mySelectedProcess.getPid())
             .setType(Command.CommandType.ATTACH_AGENT)
             .setAttachAgent(
-              Commands.AttachAgent.newBuilder().setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch())))
+              Commands.AttachAgent.newBuilder()
+                .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
             .build();
           myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
           toggleControls(false);

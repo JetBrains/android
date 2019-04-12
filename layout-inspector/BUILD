@@ -6,7 +6,11 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.layout-inspector.iml"],
     test_coverage = True,
-    test_data = ["//tools/adt/idea/layout-inspector/testData"],
+    test_data = [
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//tools/adt/idea/layout-inspector/testData",
+        "//tools/idea:platform-build-info",
+    ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

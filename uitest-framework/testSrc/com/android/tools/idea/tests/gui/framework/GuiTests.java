@@ -15,6 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Files.createTempDir;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.ensureExists;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -46,21 +60,9 @@ import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.util.containers.ConcurrentLongObjectMap;
 import com.intellij.util.net.HttpConfigurable;
-import org.fest.swing.core.ComponentFinder;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.*;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.AssumptionViolatedException;
-
-import javax.annotation.Nonnull;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -71,16 +73,28 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-
-import static com.google.common.base.Joiner.on;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Files.createTempDir;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import javax.annotation.Nonnull;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
+import org.fest.swing.core.ComponentFinder;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JLabelFixture;
+import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.AssumptionViolatedException;
 
 public final class GuiTests {
 
@@ -161,11 +175,11 @@ public final class GuiTests {
 
   public static void setUpSdks() {
     File androidSdkPath = GuiTestOptions.INSTANCE.isStandaloneMode() ? getAndroidSdk() : TestUtils.getSdk();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
 
     GuiTask.execute(
       () -> {
-        IdeSdks ideSdks = IdeSdks.getInstance();
-        File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
         if (!filesEqual(androidSdkPath, currentAndroidSdkPath)) {
           ApplicationManager.getApplication().runWriteAction(
             () -> {

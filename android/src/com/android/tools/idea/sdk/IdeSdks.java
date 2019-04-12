@@ -101,7 +101,7 @@ public class IdeSdks {
   }
 
   /**
-   * @return what the IDE is using as the home path for the Android SDK for new projects.
+   * Returns the directory that the IDE is using as the home path for the Android SDK for new projects.
    */
   @Nullable
   public File getAndroidSdkPath() {
@@ -395,7 +395,7 @@ public class IdeSdks {
   }
 
   /**
-   * @return {@code true} if the given Android SDK path points to a valid Android SDK.
+   * Returns true if the given Android SDK path points to a valid Android SDK.
    */
   public boolean isValidAndroidSdkPath(@NotNull File path) {
     return validateAndroidSdk(path, false).success;
@@ -446,7 +446,7 @@ public class IdeSdks {
   }
 
   /**
-   * @return {@code true} if an IntelliJ SDK with the default naming convention already exists for the given Android build target.
+   * Returns true if an IntelliJ SDK with the default naming convention already exists for the given Android build target.
    */
   private boolean doesIdeAndroidSdkExist(@NotNull IAndroidTarget target) {
     for (Sdk sdk : getEligibleAndroidSdks()) {
