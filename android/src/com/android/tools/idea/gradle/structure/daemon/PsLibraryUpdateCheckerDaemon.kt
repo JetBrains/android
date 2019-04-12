@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
@@ -48,7 +49,6 @@ class PsLibraryUpdateCheckerDaemon(
 ) : PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
-  override val isRunning: Boolean get() = !mainQueue.isEmpty || mainQueue.isFlushing
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
 
@@ -72,13 +72,12 @@ class PsLibraryUpdateCheckerDaemon(
     mainQueue.queue(SearchForAvailableUpdates())
   }
 
-  fun add(listener: () -> Unit, parentDisposable: Disposable) {
+  fun add(@UiThread listener: () -> Unit, parentDisposable: Disposable) {
     eventDispatcher.addListener(
       object : AvailableUpdatesListener {
         override fun availableUpdates() = listener()
       }, parentDisposable)
   }
-
 
   private fun search(
     repositories: Collection<ArtifactRepository>,
@@ -130,7 +129,7 @@ class PsLibraryUpdateCheckerDaemon(
           }
         })
       })
-      if (!repositories.isEmpty() && !ids.isEmpty()) {
+      if (repositories.isNotEmpty() && ids.isNotEmpty()) {
         search(repositories, ids)
       } else {
         resultsUpdaterQueue.queue(UpdatesAvailable())
@@ -140,12 +139,14 @@ class PsLibraryUpdateCheckerDaemon(
 
   private inner class UpdatesAvailable : Update(project) {
 
+    @UiThread
     override fun run() {
       eventDispatcher.multicaster.availableUpdates()
     }
   }
 
   private interface AvailableUpdatesListener : EventListener {
+    @UiThread
     fun availableUpdates()
   }
 }

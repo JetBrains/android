@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
+import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
@@ -34,6 +36,7 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.UIUtil
@@ -42,7 +45,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.util.EventListener
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
@@ -58,36 +60,39 @@ class PsAnalyzerDaemon(
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
   val issues: PsIssueCollection = PsIssueCollection()
 
+  private val onRunningEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
   private val issuesUpdatedEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
 
   init {
     libraryUpdateCheckerDaemon.add({ addApplicableUpdatesAsIssues() }, this)
   }
 
+  @UiThread
   fun recreateUpdateIssues() {
-    removeIssues(LIBRARY_UPDATES_AVAILABLE)
+    removeIssues(LIBRARY_UPDATES_AVAILABLE, now = true)
     addApplicableUpdatesAsIssues()
   }
 
+  @UiThread
   private fun addApplicableUpdatesAsIssues() {
-    UIUtil.invokeAndWaitIfNeeded(Runnable {
-      project.forEachModule(Consumer { module ->
-        var updatesFound = false
-        if ((module is PsAndroidModule) || (module is PsJavaModule)) {
-          module.dependencies.forEachLibraryDependency { dependency ->
-            val found = checkForUpdates(dependency)
-            if (found) {
-              updatesFound = true
-            }
+    project.forEachModule(Consumer { module ->
+      var updatesFound = false
+      if ((module is PsAndroidModule) || (module is PsJavaModule)) {
+        module.dependencies.forEachLibraryDependency { dependency ->
+          val found = checkForUpdates(dependency)
+          if (found) {
+            updatesFound = true
           }
         }
-        if (updatesFound) {
-          resultsUpdaterQueue.queue(IssuesComputed())
-        }
-      })
+      }
+      if (updatesFound) {
+        notifyUpdated(now = false)
+      }
     })
+    notifyRunning()
   }
 
+  @UiThread
   private fun checkForUpdates(dependency: PsDeclaredLibraryDependency): Boolean {
     val results = libraryUpdateCheckerDaemon.getAvailableUpdates()
     val spec = dependency.spec
@@ -116,17 +121,28 @@ class PsAnalyzerDaemon(
     return false
   }
 
-  fun onIssuesChange(parentDisposable: Disposable, listener: () -> Unit) {
+  fun onIssuesChange(parentDisposable: Disposable, @UiThread listener: () -> Unit) {
     issuesUpdatedEventDispatcher.addListener(object : IssuesUpdatedListener {
       override fun issuesUpdated() = listener()
     }, parentDisposable)
   }
 
-  override val isRunning: Boolean get() = !mainQueue.isEmpty || mainQueue.isFlushing
+  /**
+   * Registers a listener which is notified when the running state has changed (but may also be called in other cases).
+   * NOTE: Current implementation may miss some cases when the state changes to not-running. However, it should be enough to handle both
+   *       [onRunningChange] and [onIssuesChange].
+   */
+  fun onRunningChange(parentDisposable: Disposable, @UiThread listener: () -> Unit) {
+    onRunningEventDispatcher.addListener(object : IssuesUpdatedListener {
+      override fun issuesUpdated() = listener()
+    }, parentDisposable)
+  }
 
+  @UiThread
   fun queueCheck(model: PsModule) {
-    removeIssues(PROJECT_ANALYSIS, byPath = model.path)
+    removeIssues(PROJECT_ANALYSIS, byPath = model.path, now = false)
     mainQueue.queue(AnalyzeModuleStructure(model))
+    notifyRunning()
   }
 
   /**
@@ -147,15 +163,29 @@ class PsAnalyzerDaemon(
     resultsUpdaterQueue.queue(IssuesComputed())
   }
 
-  fun removeIssues(type: PsIssueType, byPath: PsPath? = null) {
+  fun removeIssues(type: PsIssueType, byPath: PsPath? = null, now: Boolean) {
     issues.remove(type, byPath)
-    resultsUpdaterQueue.queue(IssuesComputed())
+    notifyUpdated(now)
   }
 
+  @UiThread
   fun addAll(newIssues: List<PsIssue>, now: Boolean = true) {
     newIssues.forEach(issues::add)
-    if (now) issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
+    notifyUpdated(now)
+  }
+
+  @AnyThread
+  private fun notifyUpdated(now: Boolean) {
+    if (now) {
+      ApplicationManager.getApplication().assertIsDispatchThread()
+      issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
+    }
     else resultsUpdaterQueue.queue(IssuesComputed())
+  }
+
+  @UiThread
+  private fun notifyRunning() {
+    onRunningEventDispatcher.multicaster.issuesUpdated()
   }
 
   private inner class AnalyzeModuleStructure internal constructor(private val myModel: PsModule) : Update(myModel) {
@@ -175,6 +205,7 @@ class PsAnalyzerDaemon(
 
   private inner class IssuesComputed() : Update(IssuesComputed::class.java) {
 
+    @UiThread
     override fun run() {
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
     }
