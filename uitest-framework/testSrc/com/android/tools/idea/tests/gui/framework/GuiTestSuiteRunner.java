@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogTest;
 import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.ClassPath;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
@@ -40,7 +38,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /**
@@ -64,7 +61,7 @@ public class GuiTestSuiteRunner extends Suite {
   private static final String ANDROID_UITESTS_PACKAGE = "com.android.tools.idea.tests.gui";
 
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError, IOException {
-    super(builder, suiteClass, getGuiTestClasses(suiteClass));
+    super(builder, suiteClass, getGuiTestClasses(suiteClass, System.getProperty(TEST_GROUP_PROPERTY_NAME)));
     System.setProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, "true");
     try {
       String testGroupProperty = System.getProperty(TEST_GROUP_PROPERTY_NAME);
@@ -82,7 +79,8 @@ public class GuiTestSuiteRunner extends Suite {
   }
 
   @NotNull
-  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError, IOException {
+  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass, @Nullable String testGroup)
+    throws InitializationError, IOException {
     List<Class<?>> guiTestClasses = Lists.newArrayList();
     if (System.getProperty("idea.gui.test.from.standalone.runner") != null) {
       ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
@@ -99,7 +97,8 @@ public class GuiTestSuiteRunner extends Suite {
           }
         }
       }
-    } else {
+    }
+    else {
       List<File> guiTestClassFiles = Lists.newArrayList();
       File parentDir = getParentDir(suiteClass);
 
@@ -123,6 +122,10 @@ public class GuiTestSuiteRunner extends Suite {
           throw new InitializationError(e);
         }
       }
+    }
+    if (testGroup != null && TestGroup.valueOf(testGroup) == TestGroup.DEFAULT) {
+      // When running the default tests, we need to run the aspects agent log checker to verify no tests violated the aspect rules defined.
+      guiTestClasses.add(AspectsAgentLogTest.class);
     }
     return guiTestClasses.toArray(new Class<?>[guiTestClasses.size()]);
   }
