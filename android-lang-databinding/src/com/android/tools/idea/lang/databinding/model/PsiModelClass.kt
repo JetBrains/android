@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
-import android.databinding.tool.BindableCompat
 import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingUtil
@@ -23,7 +22,6 @@ import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiType
-import com.intellij.psi.util.PsiTypesUtil
 import java.util.ArrayList
 
 /**
@@ -35,77 +33,14 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Constructs a [PsiClass] of the given [.type]. Returns null if [.type] is not an instance of [PsiClassType].
    */
+
   val psiClass: PsiClass?
     get() = (type as? PsiClassType)?.resolve()
-
-  /**
-   * For arrays, lists, and maps, this returns the contained value. For other types, null
-   * is returned.
-   *
-   * @return The component type for arrays, the value type for maps, and the element type
-   * for lists.
-   */
-  val componentType: PsiModelClass?
-    get() {
-      // TODO: Support list and map type.
-      // For list, it's the return type of the method get(int). For method, it's the second generic type.
-      return (type as? PsiArrayType)?.let { PsiModelClass(it, mode).componentType }
-    }
 
   /**
    * Returns true if this ModelClass represents an array.
    */
   val isArray = type is PsiArrayType
-
-  /**
-   * Returns true if this ModelClass represents a primitive type.
-   */
-  val isPrimitive: Boolean
-    get() {
-      val canonicalText = type.getCanonicalText(false)
-      val boxed = PsiTypesUtil.boxIfPossible(canonicalText)
-      return boxed != canonicalText
-    }
-
-  /**
-   * Returns true if this ModelClass represents an array.
-   */
-  val isBoolean = PsiType.BOOLEAN.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java char
-   */
-  val isChar = PsiType.CHAR.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java byte
-   */
-  val isByte = PsiType.BYTE.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java short
-   */
-  val isShort = PsiType.SHORT.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java int
-   */
-  val isInt = PsiType.INT.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java long
-   */
-  val isLong = PsiType.LONG.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java float
-   */
-  val isFloat = PsiType.FLOAT.equalsToText(type.canonicalText)
-
-  /**
-   * Returns true if this ModelClass represents a Java double
-   */
-  val isDouble = PsiType.DOUBLE.equalsToText(type.canonicalText)
 
   /**
    * Returns true if this is a Generic e.g. List&lt;String>.
@@ -131,17 +66,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   val isTypeVar = false
 
   /**
-   * Returns true if this ModelClass is an interface
-   */
-  val isInterface: Boolean
-    get() = (type as? PsiClassType)?.resolve()?.isInterface ?: false
-
-  /**
    * Returns true if this ModelClass or its type arguments contains any type variable or wildcard.
    */
   // b/129719057 implement typeVar and wildCard so isIncomplete could return true
   val isIncomplete: Boolean
-    get()  = isTypeVar || isWildcard || typeArguments.any{ typeArg -> typeArg.isIncomplete}
+    get() = isTypeVar || isWildcard || typeArguments.any { typeArg -> typeArg.isIncomplete }
 
   /**
    * Returns a list of Generic type parameters for the class. For example, if the class
@@ -157,7 +86,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns the list of fields in the class and all its superclasses.
    */
   val allFields: List<PsiModelField>
-    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(it, mode) } ?: listOf()
+    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(it) } ?: listOf()
 
   /**
    * Returns the list of methods in the class and all its superclasses.
@@ -217,26 +146,6 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       // For Non-Generics (ObservableInt, ObservableChar etc.) return the returnType of its getter method
         getMethod("get", listOf(), staticOnly = false, allowProtected = false)?.returnType?.unwrapped
     } ?: this
-
-  fun toJavaCode() = type.canonicalText
-
-  /**
-   * When this is a boxed type, such as Integer, this will return the unboxed value,
-   * such as int. If this is not a boxed type, this is returned.
-   *
-   * @return The unboxed type of the class that this ModelClass represents or this if it isn't a
-   * boxed type.
-   */
-  fun unbox() = this
-
-  /**
-   * When this is a primitive type, such as boolean, this will return the boxed value,
-   * such as Boolean. If this is not a primitive type, this is returned.
-   *
-   * @return The boxed type of the class that this ModelClass represents or this if it isn't a
-   * primitive type.
-   */
-  fun box() = this
 
   /**
    * Returns whether or not the type associated with `that` can be assigned to
@@ -317,22 +226,8 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
                              staticOnly = staticOnly,
                              allowProtected = allowProtected,
                              unwrapObservableFields = unwrapObservableFields)
-    return if (methods.isEmpty()) null else methods.fold(methods[0]) {
-      best, cur -> if (cur.isBetterArgMatchThan(best, args)) cur else best
-    }
-  }
-
-  private fun findSetter(getter: PsiModelMethod, originalName: String): PsiModelMethod? {
-    val capitalized = StringUtils.capitalize(originalName)
-    val possibleNames = when {
-      originalName == getter.name -> arrayOf(originalName, "set" + capitalized!!)
-      getter.name.startsWith("is") -> arrayOf("set" + capitalized!!, "setIs$capitalized")
-      else -> arrayOf("set" + capitalized!!)
-    }
-    return possibleNames
-      .map { findMethods(it, getter.isStatic) }
-      .flatten()
-      .firstOrNull { method -> method.parameterTypes.size == 1 && method.parameterTypes[0] == getter.returnType && method.isStatic == getter.isStatic }
+    // TODO: b/130429958 Choose method based on args matching
+    return if (methods.isEmpty()) null else methods[0]
   }
 
   private fun getField(name: String, allowPrivate: Boolean, isStatic: Boolean): PsiModelField? {
@@ -363,51 +258,17 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       for (method in methods) {
         if (method.isPublic && (!staticOnly || method.isStatic) &&
             method.returnType?.isVoid != true) {
-          var flags = PsiCallable.DYNAMIC
-          if (method.isStatic) {
-            flags = flags or PsiCallable.STATIC
-          }
-
-          val bindable: BindableCompat?
-          // if method is not bindable, look for a backing field
-          val backingField = getField(name, true, method.isStatic)
-          if (backingField != null && backingField.isBindable) {
-            flags = flags or PsiCallable.CAN_BE_INVALIDATED
-            bindable = backingField.bindableAnnotation
-          }
-          else {
-            bindable = null
-          }
-          val setterMethod = findSetter(method, name)
-          val setterName = setterMethod?.name
-          return PsiCallable(PsiCallable.Type.METHOD, methodName,
-                             setterName, method.returnType, method.parameterTypes.size,
-                             flags, method, bindable)
+          return PsiCallable(PsiCallable.Type.METHOD, methodName)
         }
       }
     }
 
     // could not find a method. Look for a public field
-    val publicField =
-      if (staticOnly) {
-        getField(name, false, true)
-      }
-      else {
-        getField(name, false, false) ?: getField(name, false, true)
-      } ?: return null
-
-    val fieldType = publicField.fieldType
-    var flags = 0
-    var setterFieldName: String? = name
-    if (publicField.isStatic) {
-      flags = flags or PsiCallable.STATIC
+    return if (getField(name, allowPrivate = false, isStatic = true) != null
+               || (!staticOnly && getField(name, allowPrivate = false, isStatic = false) != null)) {
+      PsiCallable(PsiCallable.Type.FIELD, name)
     }
-    if (!publicField.isFinal) {
-      setterFieldName = null
-      flags = flags or PsiCallable.DYNAMIC
-    }
-
-    return PsiCallable(PsiCallable.Type.FIELD, name, setterFieldName, fieldType, 0, flags, null, publicField.bindableAnnotation)
+    else null
   }
 
 
