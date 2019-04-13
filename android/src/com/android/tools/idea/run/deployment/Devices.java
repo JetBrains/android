@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,26 @@
  */
 package com.android.tools.idea.run.deployment;
 
-final class Devices {
-  static final String PIXEL_2_XL_API_28 = "Pixel 2 XL API 28";
-  static final String LGE_NEXUS_5X = "LGE Nexus 5X";
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
+final class Devices {
   private Devices() {
+  }
+
+  @NotNull
+  static String getName(@NotNull Device device, @NotNull Collection<Device> devices) {
+    String name = device.getName();
+
+    boolean match = devices.stream()
+      .filter(d -> !d.equals(device))
+      .map(Device::getName)
+      .anyMatch(name::equals);
+
+    if (match) {
+      return name + " - " + device.getKey();
+    }
+
+    return name;
   }
 }
