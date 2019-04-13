@@ -33,7 +33,7 @@ class InspectorPanel(val project: Project) : JPanel(BorderLayout()) {
 
   init {
     val workbench = WorkBench<LayoutInspector>(project, "Layout Inspector", null)
-    val layoutInspector = LayoutInspector(InspectorModel(project, ViewNode(0, "empty", null, 0, 0, 1, 1, "", "")))
+    val layoutInspector = LayoutInspector(InspectorModel(project, ViewNode(0, "empty", null, 0, 0, 1, 1, null, "")))
     deviceViewPanel = DeviceViewPanel(layoutInspector)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()))

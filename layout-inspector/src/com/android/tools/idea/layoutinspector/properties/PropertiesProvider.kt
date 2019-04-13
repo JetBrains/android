@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -61,7 +62,8 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
     private val model: InspectorPropertiesModel
   ) {
     // TODO: The module namespace probably should be retrieved from the module. Use the layout namespace for now:
-    private val stringTable = StringTable(properties.stringList, properties.layout.namespace)
+    private val stringTable = StringTable(properties.stringList)
+    private val layout = stringTable[properties.layout]
     private val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
 
     fun generate(): Table<String, String, InspectorPropertyItem> {
@@ -83,13 +85,19 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
           Type.INT64 -> fromInt64(property)?.toString()
           Type.DOUBLE -> fromDouble(property)?.toString()
           Type.FLOAT -> fromFloat(property)?.toString()
-          Type.RESOURCE -> stringTable[property.resourceValue]
+          Type.RESOURCE -> fromResource(property, layout)
           Type.COLOR -> fromColor(property)
           else -> ""
         }
         add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, isDeclared, source, view, model))
       }
       return table
+    }
+
+    private fun fromResource(property: Property, layout: ResourceReference?): String {
+      val reference = stringTable[property.resourceValue]
+      val url = layout?.let { reference?.getRelativeResourceUrl(layout.namespace) } ?: reference?.resourceUrl
+      return url?.toString() ?: ""
     }
 
     private fun fromFlags(flagValue: FlagValue): String {
