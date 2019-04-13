@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.ide.common.rendering.api.ResourceReference
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.xml.XmlTag
 import java.awt.Image
 
 /**
@@ -34,8 +38,10 @@ class ViewNode(val drawId: Long,
                var y: Int,
                var width: Int,
                var height: Int,
-               var viewId: String,
+               var viewId: ResourceReference?,
                var textValue: String) {
+  private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
+
   val children = mutableMapOf<Long, ViewNode>()
 
   // imageBottom: the image painted before the sub views
@@ -43,6 +49,12 @@ class ViewNode(val drawId: Long,
 
   // imageTop: the image painted after the sub views
   var imageTop: Image? = null
+
+  var tag: XmlTag?
+    get() = tagPointer?.element
+    set(value) {
+      tagPointer = value?.let { SmartPointerManager.getInstance(value.project).createSmartPsiElementPointer(value) }
+    }
 
   fun flatten(): Collection<ViewNode> {
     return children.values.flatMap { it.flatten() }.plus(this)

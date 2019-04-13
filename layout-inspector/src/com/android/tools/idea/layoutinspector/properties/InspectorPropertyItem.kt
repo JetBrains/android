@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.DesignLookup
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ActionIconButton
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
@@ -49,7 +52,7 @@ data class InspectorPropertyItem(
   val isDeclared: Boolean,
 
   /** A reference to the resource where the value was set e.g. "@layout/my_form.xml" */
-  val source: String?,
+  val source: ResourceReference?,
 
   /** The view this attribute belongs to */
   val view: ViewNode,
@@ -63,6 +66,10 @@ data class InspectorPropertyItem(
 
   override fun equals(other: Any?): Boolean =
     other is InspectorPropertyItem && namespace == other.namespace && name == other.name
+
+  override val helpSupport = object : HelpSupport {
+    override fun browse() { DesignLookup.gotoLayoutAttributeDefinition(this@InspectorPropertyItem) }
+  }
 
   override val colorButton = createColorButton()
 
