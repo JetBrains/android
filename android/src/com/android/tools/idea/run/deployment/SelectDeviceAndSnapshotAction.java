@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -85,7 +85,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
       return;
     }
 
-    presentation.setText(builder.myDevice.getName());
+    presentation.setText(Devices.getName(builder.myDevice, builder.myComboBoxAction.getDevices()));
     presentation.setIcon(builder.myDevice.getIcon());
   }
 
