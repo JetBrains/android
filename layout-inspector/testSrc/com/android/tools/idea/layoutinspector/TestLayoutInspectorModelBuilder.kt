@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.project.Project
@@ -30,11 +31,11 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val y: Int,
                               private val width: Int,
                               private val height: Int,
-                              private val viewId: String,
+                              private val viewId: ResourceReference?,
                               private val textValue: String) {
   private val children = mutableListOf<InspectorViewDescriptor>()
 
-  constructor(drawId: Long, qualifiedName: String, rect: Rectangle, viewId: String, textValue: String)
+  constructor(drawId: Long, qualifiedName: String, rect: Rectangle, viewId: ResourceReference?, textValue: String)
     : this(drawId, qualifiedName, rect.x, rect.y, rect.width, rect.height, viewId, textValue)
 
   fun view(drawId: Long,
@@ -43,7 +44,7 @@ class InspectorViewDescriptor(private val drawId: Long,
            width: Int = 0,
            height: Int = 0,
            qualifiedName: String = CLASS_VIEW,
-           viewId: String = "",
+           viewId: ResourceReference? = null,
            textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) =
     children.add(InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue).apply(body))
@@ -51,7 +52,7 @@ class InspectorViewDescriptor(private val drawId: Long,
   fun view(drawId: Long,
            rect: Rectangle,
            qualifiedName: String = CLASS_VIEW,
-           viewId: String = "",
+           viewId: ResourceReference? = null,
            textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) =
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)
@@ -72,7 +73,7 @@ class InspectorModelDescriptor {
            width: Int = 0,
            height: Int = 0,
            qualifiedName: String = CLASS_VIEW,
-           viewId: String = "",
+           viewId: ResourceReference? = null,
            textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) {
     root = InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue).apply(body)
@@ -81,7 +82,7 @@ class InspectorModelDescriptor {
   fun view(drawId: Long,
            rect: Rectangle,
            qualifiedName: String = CLASS_VIEW,
-           viewId: String = "",
+           viewId: ResourceReference? = null,
            textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) =
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)

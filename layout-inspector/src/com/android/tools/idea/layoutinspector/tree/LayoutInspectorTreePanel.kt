@@ -138,7 +138,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   private class ComponentTreeLoader(private val tree: ComponentTreeEvent) {
-    val stringTable = StringTable(tree.stringList, 0)  // temporary
+    val stringTable = StringTable(tree.stringList)
 
     fun loadRootView(): ViewNode {
       return loadView(tree.root, null)
