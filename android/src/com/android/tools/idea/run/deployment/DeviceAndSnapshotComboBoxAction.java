@@ -70,7 +70,7 @@ import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
+public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
   static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
 
@@ -132,13 +132,13 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @VisibleForTesting
-  AnAction getRunOnMultipleDevicesAction() {
+  final AnAction getRunOnMultipleDevicesAction() {
     return myRunOnMultipleDevicesAction;
   }
 
   @NotNull
   @VisibleForTesting
-  AnAction getOpenAvdManagerAction() {
+  final AnAction getOpenAvdManagerAction() {
     return myOpenAvdManagerAction;
   }
 
@@ -149,7 +149,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
-  Device getSelectedDevice(@NotNull Project project) {
+  final Device getSelectedDevice(@NotNull Project project) {
     if (myDevices.isEmpty()) {
       return null;
     }
@@ -203,7 +203,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Instant.parse(time);
   }
 
-  void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
+  final void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
     PropertiesComponent properties = myGetProperties.apply(project);
 
     if (selectedDevice == null) {
@@ -219,17 +219,17 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
-  String getSelectedSnapshot() {
+  final String getSelectedSnapshot() {
     return mySelectedSnapshot;
   }
 
-  void setSelectedSnapshot(@Nullable String selectedSnapshot) {
+  final void setSelectedSnapshot(@Nullable String selectedSnapshot) {
     mySelectedSnapshot = selectedSnapshot;
   }
 
   @NotNull
   @Override
-  public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
+  public final JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
     JComponent panel = new JPanel(null);
     GroupLayout layout = new GroupLayout(panel);
     Component button = createComboBoxButton(presentation);
@@ -250,7 +250,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @Override
-  protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
+  protected final ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
     ComboBoxButton button = new ComboBoxButton(presentation) {
       @Override
       protected JBPopup createPopup(@NotNull Runnable runnable) {
@@ -276,19 +276,19 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Override
-  protected boolean shouldShowDisabledActions() {
+  protected final boolean shouldShowDisabledActions() {
     return true;
   }
 
   @NotNull
   @Override
-  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
+  protected final DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
+  protected final DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     Project project = context.getData(CommonDataKeys.PROJECT);
@@ -377,7 +377,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Override
-  public void update(@NotNull AnActionEvent event) {
+  public final void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
 
     if (!mySelectDeviceSnapshotComboBoxVisible.get()) {
@@ -410,7 +410,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert device != null;
 
     presentation.setIcon(device.getIcon());
-    presentation.setText(mySelectedSnapshot == null ? device.getName() : device + " - " + mySelectedSnapshot);
+
+    String name = Devices.getName(device, myDevices);
+    presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot);
 
     updateExecutionTargetManager(project, device);
   }
