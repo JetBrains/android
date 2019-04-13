@@ -106,7 +106,7 @@ class MigrateToAppCompatUtil {
       List<PsiReference> refs = new ArrayList<>();
       for (PsiMethod method : methods) {
         RenamePsiElementProcessor processor = RenamePsiElementProcessor.forElement(method);
-        refs.addAll(processor.findReferences(methods[0], false));
+        refs.addAll(processor.findReferences(methods[0], GlobalSearchScope.projectScope(project), false));
       }
       return refs;
     }

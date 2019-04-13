@@ -24,7 +24,9 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
@@ -51,6 +53,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightElement;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -508,11 +511,13 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   @NotNull
   @Override
-  public Collection<PsiReference> findReferences(@NotNull PsiElement element, boolean searchInCommentsAndStrings) {
+  public Collection<PsiReference> findReferences(@NotNull PsiElement element,
+                                                 @NotNull SearchScope searchScope,
+                                                 boolean searchInCommentsAndStrings) {
     if (element instanceof ResourceFieldElementWrapper) {
       element = ((ResourceFieldElementWrapper)element).getWrappedElement();
     }
-    return super.findReferences(element, searchInCommentsAndStrings);
+    return super.findReferences(element, searchScope, searchInCommentsAndStrings);
   }
 
   @Override
