@@ -27,8 +27,10 @@ import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
-import com.intellij.openapi.command.impl.DummyProject;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import java.util.Collections;
 import org.easymock.EasyMock;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -50,11 +52,13 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
   private static final String APPLICATION_ID = "FooApp";
   private static final int CLIENT_PID = 1493;
 
+  private Project myProject;
+  private AndroidProcessHandler myProcessHandler;
   private AndroidLogcatService myLogcatService;
   private CountDownLatch myExecuteShellCommandLatch;
+  private CountDownLatch myFindClientLatch;
   private IDevice myDevice;
   private Client myClient;
-
 
   @Override
   protected void setUp() throws Exception {
@@ -66,6 +70,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     EasyMock.expect(myDevice.getVersion()).andReturn(new AndroidVersion(DEVICE_API_LEVEL)).anyTimes();
     EasyMock.expect(myDevice.getClientName(EasyMock.anyInt())).andReturn(APPLICATION_ID).anyTimes();
     EasyMock.expect(myDevice.getClient(APPLICATION_ID)).andAnswer(() -> myClient).anyTimes();
+    EasyMock.expect(myDevice.getClients()).andAnswer(() -> new Client[]{myClient}).anyTimes();
     EasyMock.expect(myDevice.getSerialNumber()).andReturn(DEVICE_SERIAL_NUMBER).anyTimes();
     EasyMock.expect(myDevice.isOnline()).andReturn(true).anyTimes();
 
@@ -96,6 +101,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
     ClientData clientData = EasyMock.createMock(ClientData.class);
     EasyMock.expect(clientData.getClientDescription()).andReturn(APPLICATION_ID).anyTimes();
+    EasyMock.expect(clientData.getPackageName()).andReturn(APPLICATION_ID).anyTimes();
     EasyMock.expect(clientData.getPid()).andReturn(CLIENT_PID).anyTimes();
 
     myClient = EasyMock.createMock(Client.class);
@@ -103,9 +109,35 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     EasyMock.expect(myClient.getClientData()).andReturn(clientData).anyTimes();
     EasyMock.expect(myClient.isValid()).andReturn(true).anyTimes();
 
-    EasyMock.replay(myDevice, myClient, clientData);
+    myFindClientLatch = new CountDownLatch(0);
+    DeploymentApplicationService service = EasyMock.createMock(DeploymentApplicationService.class);
+    EasyMock.expect(service.findClient(EasyMock.same(myDevice), EasyMock.same(APPLICATION_ID)))
+      .andAnswer(() -> {
+        if (myFindClientLatch.getCount() == 0) {
+          return Collections.singletonList(myClient);
+        }
+        myFindClientLatch.countDown();
+        return Collections.emptyList();
+      }).anyTimes();
+
+    CountDownLatch projectDisposedLatch = new CountDownLatch(1);
+    myProject = EasyMock.createMock(Project.class);
+    myProject.dispose();
+    EasyMock.expectLastCall().andAnswer(() -> {
+      projectDisposedLatch.countDown();
+      return null;
+    }).once();
+    EasyMock.expect(myProject.isDisposed()).andAnswer(() -> projectDisposedLatch.getCount() == 0).anyTimes();
+    EasyMock.expect(myProject.getDisposed()).andAnswer(() -> o -> myProject.isDisposed()).anyTimes();
+
+    EasyMock.replay(myDevice, myClient, clientData, service, myProject);
 
     myLogcatService = AndroidLogcatService.getInstance();
+
+    myProcessHandler = new AndroidProcessHandler.Builder(myProject)
+      .setApplicationId(APPLICATION_ID)
+      .setDeploymentApplicationService(service)
+      .build();
   }
 
   @Override
@@ -116,6 +148,8 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
       }
       StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.clearOverride();
       LogcatOutputSettings.getInstance().reset();
+      Disposer.dispose(myProject);
+      Disposer.dispose(DeploymentApplicationService.getInstance());
     }
     finally {
       super.tearDown();
@@ -126,23 +160,16 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     // Prepare
     myExecuteShellCommandLatch = new CountDownLatch(2);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
-      .setApplicationId(APPLICATION_ID)
-      .build();
     Collection<String> text = new ArrayList<>();
-
-    processHandler.addProcessListener(new ProcessAdapter() {
+    myProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         text.add(event.getText());
       }
     });
 
-    processHandler.addTargetDevice(myDevice);
-    processHandler.clientChanged(myClient, Client.CHANGE_NAME);
-
     // Act
-    myLogcatService.deviceConnected(myDevice);
+    myProcessHandler.addTargetDevice(myDevice);
     myExecuteShellCommandLatch.await();
 
     assertThat(text).isEqualTo(Arrays.asList(
@@ -152,64 +179,84 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
       "    First Line2\n",
       "    First Line3\n",
       "W/DummySecond: Second Line1\n"));
+
+    myProcessHandler.deviceDisconnected(myDevice);
+  }
+
+  public void testLogcatMessagesAreForwardedWhenClientDelayed() throws Exception {
+    // Prepare
+    myExecuteShellCommandLatch = new CountDownLatch(2);
+    myFindClientLatch = new CountDownLatch(1);
+
+    Collection<String> text = new ArrayList<>();
+    myProcessHandler.addProcessListener(new ProcessAdapter() {
+      @Override
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
+        text.add(event.getText());
+      }
+    });
+
+    // Act
+    myProcessHandler.addTargetDevice(myDevice);
+    myExecuteShellCommandLatch.await();
+
+    assertThat(text).isEqualTo(Arrays.asList(
+      "Waiting for process to come online...\n",
+      "Connected to process 1493 on device 'myDevice'.\n",
+      LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n',
+      "W/DummyFirst: First Line1\n",
+      "    First Line2\n",
+      "    First Line3\n",
+      "W/DummySecond: Second Line1\n"));
+
+    myProcessHandler.deviceDisconnected(myDevice);
   }
 
   public void testLogcatMessagesAreNotForwardedIfFeatureDisabled() throws Exception {
     // Prepare
-    myExecuteShellCommandLatch = new CountDownLatch(2);
+    myExecuteShellCommandLatch = new CountDownLatch(0);
     StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.override(false);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
-      .setApplicationId(APPLICATION_ID)
-      .build();
-
     List<ProcessEvent> events = new ArrayList<>();
-    processHandler.addProcessListener(new ProcessAdapter() {
+    myProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         events.add(event);
       }
     });
-    processHandler.addTargetDevice(myDevice);
-    processHandler.clientChanged(myClient, Client.CHANGE_NAME);
 
     // Act
-    myLogcatService.deviceConnected(myDevice);
-    myExecuteShellCommandLatch.await();
+    myProcessHandler.addTargetDevice(myDevice);
 
     // Assert
     assertThat(events.size()).isEqualTo(1);
     assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device 'myDevice'.\n");
+    myProcessHandler.deviceDisconnected(myDevice);
   }
 
   public void testLogcatMessagesAreNotForwardedIfSettingDisabled() throws Exception {
     // Prepare
-    myExecuteShellCommandLatch = new CountDownLatch(2);
+    myExecuteShellCommandLatch = new CountDownLatch(0);
 
     LogcatOutputSettings.getInstance().setRunOutputEnabled(false);
     LogcatOutputSettings.getInstance().setDebugOutputEnabled(false);
 
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
-      .setApplicationId(APPLICATION_ID)
-      .build();
-
     List<ProcessEvent> events = new ArrayList<>();
-    processHandler.addProcessListener(new ProcessAdapter() {
+    myProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         events.add(event);
       }
     });
-    processHandler.addTargetDevice(myDevice);
-    processHandler.clientChanged(myClient, Client.CHANGE_NAME);
 
     // Act
-    myLogcatService.deviceConnected(myDevice);
-    myExecuteShellCommandLatch.await();
+    myProcessHandler.addTargetDevice(myDevice);
 
     // Assert
     assertThat(events.size()).isEqualTo(1);
     assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device 'myDevice'.\n");
+
+    myProcessHandler.deviceDisconnected(myDevice);
   }
 
   private static void sendTextLine(@NotNull IShellOutputReceiver receiver, @NotNull String s) {
