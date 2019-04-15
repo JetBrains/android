@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
+import com.android.tools.idea.gradle.structure.model.PsLibraryKey
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
@@ -37,7 +39,7 @@ import kotlin.concurrent.withLock
 @State(name = "AvailableLibraryUpdateStorage", storages = [Storage(StoragePathMacros.CACHE_FILE)])
 class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryUpdateStorage.AvailableLibraryUpdates> {
   private val lock: Lock = ReentrantLock()
-  private val updatesById = mutableMapOf<LibraryUpdateId, AvailableLibraryUpdate>()
+  private val updatesById = mutableMapOf<PsLibraryKey, AvailableLibraryUpdate>()
   private var myState = AvailableLibraryUpdates()
 
   override fun getState(): AvailableLibraryUpdates = lock.withLock { myState }
@@ -51,7 +53,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
 
   fun addOrUpdate(artifact: FoundArtifact, timestamp: Long) {
     lock.withLock {
-      val updateId = LibraryUpdateId(artifact.groupId, artifact.name)
+      val updateId = PsLibraryKey(artifact.groupId, artifact.name)
       updatesById[updateId]?.let { myState.updates.remove(it) }
 
       val update = AvailableLibraryUpdate().apply {
@@ -79,7 +81,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     lock.withLock {
       val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
       val parsedVersion = GradleVersion.tryParse(version) ?: return null
-      val id = LibraryUpdateId(spec.group.orEmpty(), spec.name)
+      val id = spec.toLibraryKey()
       val update = updatesById[id] ?: return null
       val foundVersion =
         GradleVersion.tryParse(
@@ -90,7 +92,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
 
   private fun index() {
     updatesById.clear()
-    myState.updates.forEach { updatesById[LibraryUpdateId(it.groupId.orEmpty(), it.name.orEmpty())] = it }
+    myState.updates.forEach { updatesById[PsLibraryKey(it.groupId.orEmpty(), it.name.orEmpty())] = it }
   }
 
   class AvailableLibraryUpdates {
