@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.dependencies.treevi
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import javax.swing.JTree
 import javax.swing.tree.DefaultTreeModel
 
