@@ -573,7 +573,15 @@ public class Scene implements SelectionListener, Disposable {
     NlComponent component = ss.getComponent();
     String tooltip;
     String connect = "", target = "";
-    switch (ss.getConstraint()) {
+    SecondarySelector.Constraint connection = ss.getConstraint();
+    if (isInRTL()) {
+      if (connection == SecondarySelector.Constraint.LEFT) {
+        connection = SecondarySelector.Constraint.RIGHT;
+      } else  if (connection == SecondarySelector.Constraint.RIGHT) {
+        connection = SecondarySelector.Constraint.LEFT;
+      }
+    }
+    switch (connection) {
 
       case LEFT:
         connect = SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
