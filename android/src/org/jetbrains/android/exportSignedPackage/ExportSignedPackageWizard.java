@@ -460,17 +460,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private void createAndAlignApk(final String apkPath) {
     AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
     assert platform != null;
-    String sdkPath = platform.getSdkData().getLocation().getPath();
-    String zipAlignPath = AndroidBuildCommonUtils.getZipAlign(sdkPath, platform.getTarget());
-
+    BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
+    String zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
     File zipalign = new File(zipAlignPath);
-    if (!zipalign.isFile()) {
-      BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
-      if (buildTool != null) {
-        zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
-        zipalign = new File(zipAlignPath);
-      }
-    }
+
     final boolean runZipAlign = zipalign.isFile();
     File destFile = null;
     try {

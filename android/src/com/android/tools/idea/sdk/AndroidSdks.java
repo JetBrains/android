@@ -15,6 +15,32 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.SdkConstants.FD_ADDONS;
+import static com.android.SdkConstants.FD_DOCS;
+import static com.android.SdkConstants.FD_DOCS_REFERENCE;
+import static com.android.SdkConstants.FD_PKG_SOURCES;
+import static com.android.SdkConstants.FD_SOURCES;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.sdklib.IAndroidTarget.RESOURCES;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
+import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
+import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+
 import com.android.annotations.NonNull;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
@@ -31,7 +57,13 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.JdkOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -39,6 +71,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -46,26 +84,6 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
-import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
-import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 
 public class AndroidSdks {
   @NonNls public static final String SDK_NAME_PREFIX = "Android ";
@@ -118,27 +136,17 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
-    Set<String> foundSdkHomePaths = new HashSet<>();
-    List<Sdk> notCompatibleSdks = new ArrayList<>();
-
     for (Sdk sdk : getAllAndroidSdks()) {
       AndroidSdkAdditionalData originalData = getAndroidSdkAdditionalData(sdk);
       if (originalData == null) {
         continue;
       }
-      String sdkHomePath = sdk.getHomePath();
-      if (!foundSdkHomePaths.contains(sdkHomePath) && targetHash.equals(originalData.getBuildTargetHashString())) {
-        if (VersionCheck.isCompatibleVersion(sdkHomePath)) {
-          return sdk;
-        }
-        notCompatibleSdks.add(sdk);
-        if (sdkHomePath != null) {
-          foundSdkHomePaths.add(sdkHomePath);
-        }
+      if (targetHash.equals(originalData.getBuildTargetHashString())) {
+        return sdk;
       }
     }
 
-    return notCompatibleSdks.isEmpty() ? null : notCompatibleSdks.get(0);
+    return null;
   }
 
   @Nullable
@@ -553,7 +561,7 @@ public class AndroidSdks {
 
   /**
    * Refreshes the docs for a given SDK if required
-   *
+   * <p>
    * After installing or uninstalling docs we need to check if the doc roots need updating to reflect the new status of the installed
    * documentation
    */
@@ -581,7 +589,7 @@ public class AndroidSdks {
 
   /**
    * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.
-   *
+   * <p>
    * After changes to installed Android SDK components, the contents of the {@link Sdk}s do not automatically get refreshed.
    * The referenced {@link VirtualFile}s can be obsolete, new files may be created, or files may be deleted. The result is that
    * references to Android classes may not be found in editors.

@@ -61,7 +61,7 @@ public class StudioFirstRunWelcomeScreen implements WelcomeScreen {
     if (initialSdkLocation.isDirectory()) {
       AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
       ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-      sdkExists = sdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
+      sdkExists = !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
     }
 
     wizardBuilder.addStep(new FirstRunWelcomeStep(sdkExists));

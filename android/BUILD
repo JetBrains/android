@@ -187,7 +187,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
-        "//prebuilts/studio/sdk:typos",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/annotations",

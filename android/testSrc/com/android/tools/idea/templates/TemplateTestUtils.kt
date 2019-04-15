@@ -21,7 +21,6 @@ package com.android.tools.idea.templates
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.TestUtils
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.LintIdeClient
@@ -30,7 +29,6 @@ import com.android.tools.idea.lint.LintIdeRequest
 import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.sdk.VersionCheck
 import com.android.tools.idea.templates.Parameter.Type
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.Template.CATEGORY_PROJECTS
@@ -59,11 +57,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.util.WaitFor
 import junit.framework.TestCase
 import junit.framework.TestCase.assertTrue
@@ -82,23 +78,6 @@ import java.nio.file.Files
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
-
-fun printSdkInfo(location: String) {
-  println("getTestSdkPath= " + TestUtils.getSdk())
-  println("getPlatformDir=" + TestUtils.getLatestAndroidPlatform())
-  println("Using SDK at $location")
-  val result = VersionCheck.checkVersion(location)
-  println("Version check=" + result.revision)
-  val file = File(location)
-  if (!file.exists()) {
-    println("SDK doesn't exist")
-  }
-  else {
-    val folder = File(location, SdkConstants.FD_TOOLS + File.separator + SdkConstants.FD_TEMPLATES)
-    val existsMessage = if (folder.exists()) "exists" else "does not exist"
-    println("$folder $existsMessage")
-  }
-}
 
 /**
  * Is the given api level interesting for testing purposes? This is used to skip gaps,
