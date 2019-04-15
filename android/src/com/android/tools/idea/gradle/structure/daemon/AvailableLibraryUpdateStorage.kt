@@ -25,7 +25,6 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.annotations.Tag
-import com.intellij.util.xmlb.annotations.Transient
 import com.intellij.util.xmlb.annotations.XCollection
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -35,7 +34,7 @@ import kotlin.concurrent.withLock
  * Stores available library updates to disk. These stored updates are displayed to the user in the "Project Structure" dialog, until the
  * next scheduled check for updates is executed or until the user manually triggers a check for updates.
  */
-@State(name = "AvailableLibraryUpdateStorage", storages = [Storage(StoragePathMacros.WORKSPACE_FILE)])
+@State(name = "AvailableLibraryUpdateStorage", storages = [Storage(StoragePathMacros.CACHE_FILE)])
 class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryUpdateStorage.AvailableLibraryUpdates> {
   private val lock: Lock = ReentrantLock()
   private val updatesById = mutableMapOf<LibraryUpdateId, AvailableLibraryUpdate>()
@@ -50,14 +49,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     }
   }
 
-  fun clear() {
-    lock.withLock {
-      myState.updates.clear()
-      updatesById.clear()
-    }
-  }
-
-  fun addOrUpdate(artifact: FoundArtifact) {
+  fun addOrUpdate(artifact: FoundArtifact, timestamp: Long) {
     lock.withLock {
       val updateId = LibraryUpdateId(artifact.groupId, artifact.name)
       updatesById[updateId]?.let { myState.updates.remove(it) }
@@ -65,8 +57,10 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       val update = AvailableLibraryUpdate().apply {
         groupId = artifact.groupId
         name = artifact.name
-        version = artifact.versions.firstOrNull()?.toString()
+        stableVersion = artifact.versions.firstOrNull { !it.isPreview }?.toString()
+        stableOrPreviewVersion = artifact.versions.firstOrNull()?.toString()
         repository = artifact.repositoryNames.joinToString(",")
+        lastSearchTimeMillis = timestamp
       }
       myState.updates.add(update)
       updatesById[updateId] = update
@@ -87,7 +81,9 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       val parsedVersion = GradleVersion.tryParse(version) ?: return null
       val id = LibraryUpdateId(spec.group.orEmpty(), spec.name)
       val update = updatesById[id] ?: return null
-      val foundVersion = GradleVersion.tryParse(update.version ?: return null) ?: return null
+      val foundVersion =
+        GradleVersion.tryParse(
+          (if (parsedVersion.isPreview) update.stableOrPreviewVersion else update.stableVersion) ?: return null) ?: return null
       return if (foundVersion > parsedVersion) foundVersion else null
     }
   }
@@ -98,27 +94,19 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
   }
 
   class AvailableLibraryUpdates {
-    @Tag("last-search-timestamp")
-    var lastSearchTimeMillis = -1L
-
     @XCollection(propertyElementName = "library-updates")
     var updates: MutableList<AvailableLibraryUpdate> = mutableListOf()
   }
 
   @Tag("library-update")
-  class AvailableLibraryUpdate {
-    @Tag("group-id")
-    var groupId: String? = null
-
-    @Tag("name")
-    var name: String? = null
-
-    @Tag("version")
-    var version: String? = null
-
-    @Tag("repository")
-    var repository: String? = null
-  }
+  data class AvailableLibraryUpdate(
+    @Tag("group-id") var groupId: String? = null,
+    @Tag("name") var name: String? = null,
+    @Tag("stableOrPreviewVersion") var stableOrPreviewVersion: String? = null,
+    @Tag("stableVersion") var stableVersion: String? = null,
+    @Tag("repository") var repository: String? = null,
+    @Tag("last-search-timestamp") var lastSearchTimeMillis: Long = -1L
+  )
 
   companion object {
     fun getInstance(project: Project): AvailableLibraryUpdateStorage {

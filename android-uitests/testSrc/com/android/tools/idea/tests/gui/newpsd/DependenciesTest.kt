@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -32,6 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.regex.Pattern
+import kotlin.test.assertNotNull
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
@@ -93,6 +95,86 @@ class DependenciesTest {
           assertThat(
             findDependenciesTable().contents().map { it.toList()})
             .contains(listOf("com.example.jlib:lib3:0.5", "implementation"))
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun newVersionAvailableSuggestions() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        findDependenciesPanel().run {
+          clickAddLibraryDependency().run {
+            findSearchQueryTextBox().enterText("com.example.jlib:*")
+            findSearchButton().click()
+            findArtifactsView().run {
+              Wait
+                .seconds(10)
+                .expecting("Search completed")
+                .until {
+                  rowCount() == 2
+                }
+              cell(Pattern.compile("lib4")).click()
+            }
+            findVersionsView().run {
+              cell(Pattern.compile("0.6.1-alpha")).click()
+            }
+            clickOk()
+          }
+        }
+        findModuleSelector().run {
+          selectModule("mylibrary")
+        }
+        findDependenciesPanel().run {
+          clickAddLibraryDependency().run {
+            findSearchQueryTextBox().enterText("com.example.jlib:*")
+            findSearchButton().click()
+            findArtifactsView().run {
+              Wait
+                .seconds(10)
+                .expecting("Search completed")
+                .until {
+                  rowCount() == 2
+                }
+              cell(Pattern.compile("lib4")).click()
+            }
+            findVersionsView().run {
+              cell(Pattern.compile("0.6.1")).click()
+            }
+            clickOk()
+          }
+        }
+        selectSuggestionsConfigurable().run {
+          findModuleSelector().run {
+            selectModule("<All Modules>")
+          }
+          waitAnalysesCompleted(Wait.seconds(1))
+          waitForGroup("Updates")
+          findGroup("Updates").run {
+            assertNotNull(findMessageMatching("com.example.jlib:lib4:0.6.1-alpha\nNewer version available: 1.1-alpha"))
+            assertNotNull(findMessageMatching("com.example.jlib:lib4:0.6.1\nNewer version available: 1.0"))
+          }
+        }
+        clickOk()
+      }
+    }
+    ide.openPsd().run {
+      selectSuggestionsConfigurable().run {
+        findModuleSelector().run {
+          selectModule("<All Modules>")
+        }
+        waitAnalysesCompleted(Wait.seconds(1))
+        waitForGroup("Updates")
+        findGroup("Updates").run {
+          assertNotNull(findMessageMatching("com.example.jlib:lib4:0.6.1-alpha\nNewer version available: 1.1-alpha"))
+          assertNotNull(findMessageMatching("com.example.jlib:lib4:0.6.1\nNewer version available: 1.0"))
         }
       }
       clickCancel()

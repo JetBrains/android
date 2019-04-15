@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.UIUtil
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 
@@ -42,11 +43,9 @@ class PsJavaModuleAnalyzerTest : DependencyTestCase() {
       val javaModule = project.findModuleByName("jModuleK") as PsJavaModule
       val context = PsContextImpl(project, disposable, disableAnalysis = true)
       val analyzer = PsJavaModuleAnalyzer(context)
-      val messageCollection = PsIssueCollection()
-      analyzer.analyze(javaModule, messageCollection)
+      val messageCollection = analyzer.analyze(javaModule)
 
       val messages = messageCollection
-        .values
         .filter {
           val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
           dependencyName.startsWith("com.example.")
