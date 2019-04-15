@@ -17,7 +17,6 @@ package com.android.tools.idea.startup;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
-import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.moveAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
@@ -49,11 +48,9 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
@@ -76,16 +73,12 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.codeStyle.CodeStyleSchemes;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import javax.swing.event.HyperlinkEvent;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -351,7 +344,7 @@ b/137334921 */
       return true;
     }
 
-    Sdk sdk = findFirstCompatibleAndroidSdk();
+    Sdk sdk = findFirstAndroidSdk();
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
@@ -372,14 +365,8 @@ b/137334921 */
   }
 
   @Nullable
-  private static Sdk findFirstCompatibleAndroidSdk() {
+  private static Sdk findFirstAndroidSdk() {
     List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
-    for (Sdk sdk : sdks) {
-      String sdkPath = sdk.getHomePath();
-      if (isCompatibleVersion(sdkPath)) {
-        return sdk;
-      }
-    }
     if (!sdks.isEmpty()) {
       return sdks.get(0);
     }

@@ -288,17 +288,6 @@ public class SdkComponentSourceTest extends UsefulTestCase {
   }
 
   public void testStatuses() throws Exception {
-    myFileOp.recordExistingFile("/sdk/tools/package.xml",
-                                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                                "<ns4:repository xmlns:ns4=\"http://schemas.android.com/repository/android/generic/01\" " +
-                                "                xmlns:ns5=\"http://schemas.android.com/sdk/android/repo/repository2/01\"" +
-                                "                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" >" +
-                                "    <localPackage path=\"tools\">" +
-                                "        <type-details xsi:type=\"ns4:genericDetailsType\"/>" +
-                                "        <revision><major>25</major><minor>0</minor><micro>7</micro></revision>" +
-                                "        <display-name>Android SDK Tools 25.0.7</display-name>" +
-                                "    </localPackage>" +
-                                "</ns4:repository>");
     myFileOp.recordExistingFile("/sdk/platforms/android-23/package.xml",
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
                                 "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\" " +
@@ -331,7 +320,6 @@ public class SdkComponentSourceTest extends UsefulTestCase {
                                 "</ns2:repository>");
     myTestComponentSource.getRepoManager().loadSynchronously(-1, new FakeProgressIndicator(), null, null);
     Collection<? extends Pair<String, String>> statuses = myTestComponentSource.getStatuses();
-    assertTrue(statuses.contains(Pair.create("Android SDK Tools:", "25.0.7")));
     assertTrue(statuses.contains(Pair.create("Android Platform Version:", "API 23: Android 6.0 (Marshmallow) revision 2")));
   }
 

@@ -818,7 +818,7 @@ public final class AvdOptionsModel extends WizardModel {
       () -> {
         myCreatedAvd = connection.createOrUpdateAvd(
           myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-          isCircular, sdCardFinal, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
+          isCircular, sdCardFinal, skinFile, hardwareProperties, myRemovePreviousAvd.get());
       },
       "Creating Android Virtual Device", false, null
     );
