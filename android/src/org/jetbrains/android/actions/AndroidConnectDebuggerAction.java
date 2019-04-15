@@ -76,9 +76,8 @@ public class AndroidConnectDebuggerAction extends AnAction {
       if (handler instanceof AndroidProcessHandler) {
         Client client = ((AndroidProcessHandler)handler).getClient(selectedClient.getDevice());
         if (client != null && client.getClientData().getPid() == pid) {
-          ((AndroidProcessHandler)handler).setNoKill();
-          handler.detachProcess();
           handler.notifyTextAvailable("Disconnecting run session: a new debug session will be established.\n", ProcessOutputTypes.STDOUT);
+          handler.detachProcess();
           break;
         }
       }

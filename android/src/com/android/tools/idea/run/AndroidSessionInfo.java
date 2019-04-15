@@ -88,21 +88,6 @@ public class AndroidSessionInfo {
     return myExecutionTarget;
   }
 
-  @NotNull
-  public List<IDevice> getDevices() {
-    if (myProcessHandler instanceof AndroidProcessHandler) {
-      return ((AndroidProcessHandler)myProcessHandler).getDevices();
-    }
-    else {
-      Client client = myProcessHandler.getUserData(ANDROID_DEBUG_CLIENT);
-      if (client != null) {
-        return Collections.singletonList(client.getDevice());
-      }
-    }
-
-    return Collections.emptyList();
-  }
-
   public int getRunConfigurationId() {
     return myRunConfigId;
   }
