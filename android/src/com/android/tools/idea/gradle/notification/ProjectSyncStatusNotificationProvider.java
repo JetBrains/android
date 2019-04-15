@@ -112,8 +112,14 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       Disposer.dispose(oldDisposablePanel);
     }
     if (newDisposablePanel != null) {
-      Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
-      Disposer.register(editor, newDisposablePanel);
+      try {
+        Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
+        Disposer.register(editor, newDisposablePanel);
+      }
+      catch (Throwable t) {
+        Disposer.dispose(newDisposablePanel);
+        throw t;
+      }
     }
   }
 
