@@ -83,7 +83,7 @@ class PsContextImpl constructor(
     libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
       libraryUpdateCheckerDaemon.reset()
-      libraryUpdateCheckerDaemon.queueAutomaticUpdateCheck()
+      libraryUpdateCheckerDaemon.queueUpdateCheck()
     }
 
     analyzerDaemon = PsAnalyzerDaemon(

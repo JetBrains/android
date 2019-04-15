@@ -175,7 +175,7 @@ internal class DeclaredDependenciesPanel(
   }
 
   private fun updateIssues(selected: PsBaseDependency?) {
-    displayIssues(context.analyzerDaemon.issues.findIssues(selected?.path, null), selected?.path)
+    displayIssues(selected?.let { context.analyzerDaemon.issues.findIssues(selected.path, null) }.orEmpty(), selected?.path)
   }
 
   fun selectDependency(dependency: String?) {

@@ -164,10 +164,12 @@ class PsIssueCollectionTest {
 
   @Test
   fun findIssues_nullPath() {
-    issueCollection.add(PsGeneralIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
-    issueCollection.add(PsGeneralIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING))
+    val issueA = PsGeneralIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING)
+    val issueB = PsGeneralIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING)
+    issueCollection.add(issueA)
+    issueCollection.add(issueB)
     val issues = issueCollection.findIssues(null, Comparator.comparing<PsIssue, String> { it.text })
-    assertThat(issues).isEmpty()
+    assertThat(issues).containsExactly(issueA, issueB)
   }
 
   @Test
@@ -251,29 +253,5 @@ class PsIssueCollectionTest {
     issueCollection.add(issueA)
     issueCollection.add(issueB)
     assertThat(issueCollection.values).containsExactly(issueA, issueB)
-  }
-
-  @Test
-  fun getValues_byType() {
-    val issueA = PsGeneralIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING)
-    val issueB = PsGeneralIssue("b", testPath, LIBRARY_UPDATES_AVAILABLE, ERROR)
-    val issueC = PsGeneralIssue("c", testPath, LIBRARY_UPDATES_AVAILABLE, ERROR)
-    issueCollection.add(issueA)
-    issueCollection.add(issueB)
-    issueCollection.add(issueC)
-    assertThat(issueCollection.getValues(TestPath.EMPTY_PATH.javaClass)).containsExactly(issueA)
-    assertThat(issueCollection.getValues(testPath.javaClass)).containsExactly(issueB, issueC)
-  }
-
-  @Test
-  fun getValues_byParentType() {
-    val issueA = PsGeneralIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING)
-    val issueB = PsGeneralIssue("b", testPath, LIBRARY_UPDATES_AVAILABLE, ERROR)
-    val issueC = PsGeneralIssue("c", TestPath("something", testPath), LIBRARY_UPDATES_AVAILABLE, ERROR)
-    issueCollection.add(issueA)
-    issueCollection.add(issueB)
-    issueCollection.add(issueC)
-    assertThat(issueCollection.getValues(TestPath.EMPTY_PATH.javaClass)).containsExactly(issueA)
-    assertThat(issueCollection.getValues(testPath.javaClass)).containsExactly(issueB, issueC)
   }
 }
