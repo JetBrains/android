@@ -231,7 +231,7 @@ public class AvdManagerConnection {
   @Nullable
   private SystemImageUpdateDependency[] getSystemImageUpdateDependencies() {
     assert mySdkHandler != null;
-    LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_TOOLS);
+    LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_EMULATOR);
     if (info == null) {
       return null;
     }
@@ -534,9 +534,6 @@ public class AvdManagerConnection {
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
     if (sdkPackage == null) {
-      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, log);
-    }
-    if (sdkPackage == null) {
       return false;
     }
     return (sdkPackage.getVersion().compareTo(desired) >= 0);
@@ -771,7 +768,6 @@ public class AvdManagerConnection {
                                    @Nullable String sdCard,
                                    @Nullable File skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
-                                   boolean createSnapshot,
                                    boolean removePrevious) {
     if (!initIfNecessary()) {
       return null;
@@ -823,7 +819,6 @@ public class AvdManagerConnection {
                                   hardwareProperties,
                                   device.getBootProps(),
                                   device.hasPlayStore(),
-                                  createSnapshot,
                                   false,
                                   removePrevious,
                                   SDK_LOG);
