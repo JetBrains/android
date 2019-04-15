@@ -163,6 +163,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getAuthoritativeNlComponent(), useRtlAttributes(), isRtl());
   }
 
+  @Override
+  protected boolean canDisconnect() {
+    // TODO: Enable disconnect while holding down a key.
+    return false;
+  }
+
   @SuppressWarnings("UseJBColor")
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
@@ -289,7 +295,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       DrawAnchor.Mode.NORMAL,      // isSelected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected & can_connect
-      DrawAnchor.Mode.DELETE,      // isSelected & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & is_connected & mIsOver
       DrawAnchor.Mode.OVER,        // isSelected & is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & can_connect
@@ -717,7 +723,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (closestTarget != null && !closestTarget.isConnected(this)) {
         NlComponent component = myComponent.getAuthoritativeNlComponent();
         if (closestTarget == this) {
-          disconnectMe(component);
+          // TODO: Enable disconnect while holding down a key.
+          //disconnectMe(component);
         }
         else {
           String attribute = getAttribute(closestTarget);
