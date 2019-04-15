@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedJarDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.ide.projectView.PresentationData
@@ -55,9 +56,7 @@ fun <T> createResolvedLibraryDependencyNode(
       }
 
   val name = getText(parent, dependency, forceGroupId, parent.uiSettings)
-  return object : ResolvedLibraryDependencyNode(parent, dependency, name) {
-    override fun createChildren(): List<AbstractDependencyNode<*>> = setUpChildren(this, dependency)
-  }
+  return ResolvedLibraryDependencyNode(parent, dependency, name).also { it.children = setUpChildren(it, dependency) }
 }
 
 fun <T> createLibraryDependencyNode(
@@ -69,9 +68,7 @@ fun <T> createLibraryDependencyNode(
         T : PsBaseDependency {
 
   val name = getText(parent, dependencies[0], forceGroupId, parent.uiSettings)
-  return object : LibraryDependencyNode(parent, dependencies, name) {
-    override fun createChildren(): List<AbstractDependencyNode<*>> = listOf()
-  }
+  return LibraryDependencyNode(parent, dependencies, name)
 }
 
 private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, forceGroupId: Boolean, uiSettings: PsUISettings): String {
@@ -96,30 +93,28 @@ private fun getText(parent: AbstractPsNode, dependency: PsLibraryDependency, for
 }
 
 private fun getTextForSpec(name: String, version: String, group: String?, showGroupId: Boolean): String =
-    buildString {
-      if (showGroupId && isNotEmpty(group)) {
-        append(group)
-        append(GRADLE_PATH_SEPARATOR)
-      }
-      append(name)
+  buildString {
+    if (showGroupId && isNotEmpty(group)) {
+      append(group)
       append(GRADLE_PATH_SEPARATOR)
-      append(version)
     }
+    append(name)
+    append(GRADLE_PATH_SEPARATOR)
+    append(version)
+  }
 
-abstract class LibraryDependencyNode(
-    parent: AbstractPsNode,
-    dependencies: List<PsLibraryDependency>,
-    name: String
+open class LibraryDependencyNode(
+  parent: AbstractPsNode,
+  dependencies: List<PsLibraryDependency>,
+  name: String
 ) : AbstractDependencyNode<PsLibraryDependency>(parent, dependencies) {
   init {
     myName = name
   }
 
-  private var cachedChildren: Array<SimpleNode>? = null
+  internal var children: List<AbstractDependencyNode<*>> = listOf()
 
-  protected abstract fun createChildren(): List<AbstractDependencyNode<*>>
-
-  override fun getChildren(): Array<SimpleNode> = cachedChildren ?: createChildren().toTypedArray<SimpleNode>().also { cachedChildren = it }
+  override fun getChildren(): Array<SimpleNode> = children.toTypedArray()
 
   override fun matches(model: PsModel): Boolean {
     return when (model) {
@@ -142,10 +137,10 @@ abstract class LibraryDependencyNode(
   }
 }
 
-abstract class ResolvedLibraryDependencyNode(
-    parent: AbstractPsNode,
-    val dependency: PsResolvedLibraryDependency,
-    name: String
+class ResolvedLibraryDependencyNode(
+  parent: AbstractPsNode,
+  val dependency: PsResolvedLibraryDependency,
+  name: String
 ) : LibraryDependencyNode(parent, listOf(dependency), name) {
 
   override fun update(presentation: PresentationData) {
