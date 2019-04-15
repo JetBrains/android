@@ -44,12 +44,13 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
 
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
-    if(StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.get() && !hasFeaturePlugin(project)) {
+    if (StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.get() && !hasFeaturePlugin(project)) {
       return ImmutableList.of(
         new FeatureTemplateGalleryEntry(false),
         new FeatureTemplateGalleryEntry(true)
       );
-    } else {
+    }
+    else {
       return ImmutableList.of(
         new FeatureTemplateGalleryEntry(false)
       );
@@ -124,7 +125,8 @@ public class NewDynamicAppModuleDescriptionProvider implements ModuleDescription
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       Project project = model.getProject().getValue();
       String basePackage = getSuggestedProjectPackage(project, false);
-      return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle, model.getProjectSyncInvoker()), basePackage, myIsInstant);
+      return new ConfigureDynamicModuleStep(new DynamicFeatureModel(project, myTemplateHandle, model.getProjectSyncInvoker(), myIsInstant),
+                                            basePackage, myIsInstant);
     }
   }
 }
