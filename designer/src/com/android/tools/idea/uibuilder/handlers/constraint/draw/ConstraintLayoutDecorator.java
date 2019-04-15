@@ -289,6 +289,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                        boolean anyConstraintSelected,
                        boolean anyViewSelected,
                        boolean hoverConnection) {
+      // TODO: Add a condition to return MODE_DELETING.
       int ret = DrawConnection.MODE_NORMAL;
       int hoverFlag = hoverConnection ? DrawConnection.HOVER_FLAG : 0x0;
 
