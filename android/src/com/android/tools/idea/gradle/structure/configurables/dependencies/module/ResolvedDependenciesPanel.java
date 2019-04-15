@@ -145,16 +145,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   private void setHeaderActions() {
     List<AnAction> additionalActions = Lists.newArrayList();
 
-    additionalActions.add(new SelectNodesMatchingCurrentSelectionAction() {
-      @Override
-      @NotNull
-      protected AbstractPsNodeTreeBuilder getTreeBuilder() {
-        return myTreeBuilder;
-      }
-    });
-
-    additionalActions.add(Separator.getInstance());
-
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
