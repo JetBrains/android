@@ -168,9 +168,6 @@ class ObsoleteScopesTest {
               .replace("${it.fixes[0].first} ${it.dependencyGradleText}", "${it.fixes[0].second} ${it.dependencyGradleText}")
           }
         assertThat(newAppBuildGradleContent, equalTo(expectedAppBuildGradleContent))
-
-        // TODO(b/130342294) Test the effect of more than one quickfix serially
-        return@testQuickFixEffect
       }
   }
 
