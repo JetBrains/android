@@ -891,6 +891,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateAndRunInstantAppTest",
+    size = "enormous",
     data = COMMON_DATA + select({
         ":has_emulator": [
             "@externsdk//:system-images",
