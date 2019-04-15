@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.structure.daemon
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.model.PsLibraryKey
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.getResultSafely
+import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -50,7 +52,7 @@ class PsLibraryUpdateCheckerDaemon(
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
-  private val beingSearchedIds: MutableSet<LibraryUpdateId> = ContainerUtil.newConcurrentSet()
+  private val beingSearchedIds: MutableSet<PsLibraryKey> = ContainerUtil.newConcurrentSet()
   private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
   private val runningLock: Lock = ReentrantLock()
 
@@ -75,7 +77,7 @@ class PsLibraryUpdateCheckerDaemon(
   @Slow
   private fun search(
     repositories: Collection<ArtifactRepository>,
-    ids: Collection<LibraryUpdateId>
+    ids: Collection<PsLibraryKey>
   ) {
     val updateStorage = availableLibraryUpdateStorage
 
@@ -84,13 +86,13 @@ class PsLibraryUpdateCheckerDaemon(
       .retainAll {
         val searchTimeMillis = it.lastSearchTimeMillis
         (searchTimeMillis > 0 && TimeUnit.MILLISECONDS.toDays(currentTimeMillis - searchTimeMillis) < 3 &&
-         ids.contains(LibraryUpdateId(it.groupId.orEmpty(), it.name.orEmpty())))
+         ids.contains(PsLibraryKey(it.groupId.orEmpty(), it.name.orEmpty())))
       }
       .associateBy { it.groupId to it.name }
 
     val requests =
       ids
-        .filter { !existingUpdateKeys.containsKey(it.groupId to it.name) && beingSearchedIds.add(it) }
+        .filter { !existingUpdateKeys.containsKey(it.group to it.name) && beingSearchedIds.add(it) }
         .toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
@@ -98,7 +100,7 @@ class PsLibraryUpdateCheckerDaemon(
       if (isStopped) return@search
       // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
       requests.map { id ->
-        val future = searcher.search(SearchRequest(SearchQuery(id.groupId, id.name), 1, 0))
+        val future = searcher.search(SearchRequest(SearchQuery(id.group, id.name), 1, 0))
         runningSearches.add(future)
         id to future
       }
@@ -118,7 +120,7 @@ class PsLibraryUpdateCheckerDaemon(
           it.second?.artifacts?.nullize() ?: run {
             val id = it.first
             val result = it.second
-            if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", id.groupId, id.name, listOf())) else listOf()
+            if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", id.group, id.name, listOf())) else listOf()
           }
         }
     searchResults.forEach {
@@ -131,7 +133,7 @@ class PsLibraryUpdateCheckerDaemon(
   private inner class RefreshAvailableUpdates : Update(project) {
     override fun run() {
       val repositories = mutableSetOf<ArtifactRepository>()
-      val ids = mutableSetOf<LibraryUpdateId>()
+      val ids = mutableSetOf<PsLibraryKey>()
       invokeAndWaitIfNeeded(ModalityState.any()) {
         project.modules.forEach { module ->
           repositories.addAll(module.getArtifactRepositories())
@@ -139,8 +141,7 @@ class PsLibraryUpdateCheckerDaemon(
             module
               .dependencies
               .libraries
-              .map { it.spec }
-              .map { LibraryUpdateId(it.group.orEmpty(), it.name) }
+              .map { it.spec.toLibraryKey() }
           )
         }
       }
