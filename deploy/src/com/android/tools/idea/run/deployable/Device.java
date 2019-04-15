@@ -99,10 +99,8 @@ public class Device {
       clients.put(client.getClientData().getPid(), client);
     }
 
-    // Remove all existing ApplicationServices not in the new Client list.
-    Set<Integer> removedPids = new HashSet<>(myPidToProcess.keySet());
-    removedPids.removeAll(clients.keySet());
-    myPidToProcess.keySet().removeAll(removedPids);
+    // Remove all existing Processes without a corresponding pid in the Client list.
+    myPidToProcess.keySet().retainAll(clients.keySet());
 
     // If any Client was reopened, we should update the Process to point to the new Client.
     myPidToProcess.keySet().forEach(pid -> {
@@ -124,6 +122,8 @@ public class Device {
       myPidToProcess.put(pid, process);
     });
 
+    // For legacy devices, we do not know when an application is installed and we're caching results based on when
+    // the caller is calling #findClientWithApplicationId, we need to invalidate the cache when a Client comes online.
     if (isLegacyDevice() && !addedPids.isEmpty()) {
       myResolutions.values().removeIf(resolution -> {
           resolution.cancel(true);
