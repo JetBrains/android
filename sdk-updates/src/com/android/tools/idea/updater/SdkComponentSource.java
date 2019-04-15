@@ -174,10 +174,10 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
-    Revision toolsRevision = null;
-    LocalPackage toolsPackage = getRepoManager().getPackages().getLocalPackages().get(SdkConstants.FD_TOOLS);
-    if (toolsPackage != null) {
-      toolsRevision = toolsPackage.getVersion();
+    Revision platformToolsRevision = null;
+    LocalPackage platformTools = getRepoManager().getPackages().getLocalPackages().get(SdkConstants.FD_PLATFORM_TOOLS);
+    if (platformTools != null) {
+      platformToolsRevision = platformTools.getVersion();
     }
 
     Revision platformRevision = null;
@@ -193,8 +193,8 @@ public class SdkComponentSource implements ExternalComponentSource {
       }
     }
     List<Pair<String, String>> result = Lists.newArrayList();
-    if (toolsRevision != null) {
-      result.add(Pair.create("Android SDK Tools:", toolsRevision.toString()));
+    if (platformToolsRevision != null) {
+      result.add(Pair.create("Android Platform Tools:", platformToolsRevision.toString()));
     }
     if (platformVersion != null) {
       result.add(Pair.create("Android Platform Version:",

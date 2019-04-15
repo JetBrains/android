@@ -402,15 +402,6 @@ public class AndroidBuildCommonUtils {
     return sdkOsPath + File.separator + SdkConstants.FD_TOOLS + File.separator + SdkConstants.FD_PROGUARD;
   }
 
-  @NotNull
-  public static String getProguardHomeDirPath(@NotNull String sdkOsPath) {
-    return FileUtil.toSystemIndependentName(getProguardHomeDirOsPath(sdkOsPath));
-  }
-
-  public static String getProguardSystemCfgPath(@NotNull String sdkOsPath) {
-    return getProguardHomeDirPath(sdkOsPath) + '/' + SYSTEM_PROGUARD_CFG_FILE_NAME;
-  }
-
   private static String quotePath(String path) {
     if (path.indexOf(' ') >= 0) {
       path = '\'' + path + '\'';
@@ -425,10 +416,6 @@ public class AndroidBuildCommonUtils {
     packClassFilesIntoJar(classFilesDirOsPaths, libClassFilesDirOsPaths, inputJar);
 
     return FileUtil.toSystemDependentName(inputJar.getPath());
-  }
-
-  public static String toolPath(@NotNull String toolFileName) {
-    return SdkConstants.OS_SDK_TOOLS_FOLDER + toolFileName;
   }
 
   public static String platformToolPath(@NotNull String toolFileName) {
@@ -643,7 +630,6 @@ public class AndroidBuildCommonUtils {
       return messages;
     }
     String zipAlignPath = getZipAlign(sdkLocation, target);
-    boolean runZipAlign = new File(zipAlignPath).isFile();
 
     File tmpDir = null;
     try {
@@ -657,7 +643,7 @@ public class AndroidBuildCommonUtils {
         return messages;
       }
 
-      if (runZipAlign) {
+      if (zipAlignPath != null) {
         String errorMessage = executeZipAlign(zipAlignPath, tmpArtifact, artifactFile);
         if (errorMessage != null) {
           messages.get(AndroidCompilerMessageKind.ERROR).add(messagePrefix + "zip-align: " + errorMessage);
@@ -744,7 +730,7 @@ public class AndroidBuildCommonUtils {
     }
   }
 
-  @NotNull
+  @Nullable
   public static String getZipAlign(@NotNull String sdkPath, @NotNull IAndroidTarget target) {
     BuildToolInfo buildToolInfo = target.getBuildToolInfo();
 
@@ -754,11 +740,12 @@ public class AndroidBuildCommonUtils {
         path = buildToolInfo.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
       }
       catch (Throwable ignored) {
+        return null;
       }
       if (path != null && new File(path).exists()) {
         return path;
       }
     }
-    return sdkPath + File.separatorChar + toolPath(SdkConstants.FN_ZIPALIGN);
+    return null;
   }
 }

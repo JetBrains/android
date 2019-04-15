@@ -100,7 +100,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false,
       false,
       false,
-      false,
       log);
 
     assertNotNull("Could not create AVD", avd);
@@ -157,7 +156,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       false,
-      false,
       true,
       false,
       log);
@@ -174,7 +172,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
-      false,
       false,
       true,
       false,
@@ -206,7 +203,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
-      false,
       false,
       true,
       false,
@@ -357,7 +353,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       false,
-      false,
       true,
       false,
       log);
@@ -421,7 +416,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
-      false,
       false,
       true,
       false,

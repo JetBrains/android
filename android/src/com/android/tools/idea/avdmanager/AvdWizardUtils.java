@@ -19,7 +19,6 @@ import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.SdkConstants.FN_SKIN_LAYOUT;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
@@ -33,7 +32,6 @@ import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
@@ -54,6 +52,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -396,9 +395,6 @@ public class AvdWizardUtils {
   private static boolean emulatorVersionIsAtLeast(@NotNull AndroidSdkHandler sdkHandler, Revision minRevision) {
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
     LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
-    if (sdkPackage == null) {
-      sdkPackage = sdkHandler.getLocalPackage(FD_TOOLS, log);
-    }
     if (sdkPackage != null) {
       return sdkPackage.getVersion().compareTo(minRevision) >= 0;
     }

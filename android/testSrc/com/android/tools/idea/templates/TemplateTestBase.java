@@ -23,7 +23,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_S
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
@@ -40,7 +39,6 @@ import static com.android.tools.idea.templates.TemplateTestUtils.addIconsIfNeces
 import static com.android.tools.idea.templates.TemplateTestUtils.cleanupProjectFiles;
 import static com.android.tools.idea.templates.TemplateTestUtils.createNewProjectState;
 import static com.android.tools.idea.templates.TemplateTestUtils.createRenderingContext;
-import static com.android.tools.idea.templates.TemplateTestUtils.getDefaultModuleTemplate;
 import static com.android.tools.idea.templates.TemplateTestUtils.getDefaultValue;
 import static com.android.tools.idea.templates.TemplateTestUtils.getModifiedProjectName;
 import static com.android.tools.idea.templates.TemplateTestUtils.getModuleTemplateForFormFactor;
@@ -48,7 +46,6 @@ import static com.android.tools.idea.templates.TemplateTestUtils.getOption;
 import static com.android.tools.idea.templates.TemplateTestUtils.invokeGradleForProjectDir;
 import static com.android.tools.idea.templates.TemplateTestUtils.isInterestingApiLevel;
 import static com.android.tools.idea.templates.TemplateTestUtils.lintIfNeeded;
-import static com.android.tools.idea.templates.TemplateTestUtils.printSdkInfo;
 import static com.android.tools.idea.templates.TemplateTestUtils.setAndroidSupport;
 import static com.android.tools.idea.templates.TemplateTestUtils.setUpFixtureForProject;
 import static com.android.tools.idea.templates.TemplateTestUtils.validateTemplate;
@@ -57,7 +54,6 @@ import static com.android.tools.idea.templates.TemplateTestUtils.verifyLastLogge
 import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
 import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.lang.annotation.ElementType.METHOD;
 import static org.mockito.Mockito.mock;
@@ -78,7 +74,6 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
@@ -94,21 +89,15 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -200,8 +189,6 @@ public class TemplateTestBase extends AndroidGradleTestCase {
   private static final boolean TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE;
 
-  private static boolean ourValidatedTemplateManager;
-
   // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
   final static String ATTR_CREATE_ACTIVITY = "createActivity";
 
@@ -222,17 +209,7 @@ public class TemplateTestBase extends AndroidGradleTestCase {
     myUsageTracker = new TestUsageTracker(scheduler);
     UsageTracker.setWriterForTest(myUsageTracker);
     myApiSensitiveTemplate = true;
-    if (!ourValidatedTemplateManager) {
-      ourValidatedTemplateManager = true;
-      File templateRootFolder = TemplateManager.getTemplateRootFolder();
-      if (templateRootFolder == null) {
-        AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-        if (sdkData == null) {
-          fail("Couldn't find SDK manager");
-        }
-        printSdkInfo(sdkData.getLocation().getPath());
-      }
-    }
+
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
