@@ -30,13 +30,13 @@ import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -57,52 +57,39 @@ class PsAnalyzerDaemon(
   PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
+
   val issues: PsIssueCollection = PsIssueCollection()
 
   private val onRunningEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
   private val issuesUpdatedEventDispatcher = EventDispatcher.create(IssuesUpdatedListener::class.java)
 
   init {
-    libraryUpdateCheckerDaemon.add({ addApplicableUpdatesAsIssues() }, this)
+    libraryUpdateCheckerDaemon.add({ recreateUpdatesAsIssues() }, this)
   }
 
   @UiThread
   fun recreateUpdateIssues() {
-    removeIssues(LIBRARY_UPDATES_AVAILABLE, now = true)
-    addApplicableUpdatesAsIssues()
+    libraryUpdateCheckerDaemon.queueUpdateCheck()
   }
 
   @UiThread
-  private fun addApplicableUpdatesAsIssues() {
-    project.forEachModule(Consumer { module ->
-      var updatesFound = false
-      if ((module is PsAndroidModule) || (module is PsJavaModule)) {
-        module.dependencies.forEachLibraryDependency { dependency ->
-          val found = checkForUpdates(dependency)
-          if (found) {
-            updatesFound = true
-          }
-        }
-      }
-      if (updatesFound) {
-        notifyUpdated(now = false)
-      }
-    })
+  private fun recreateUpdatesAsIssues() {
+    removeIssues(LIBRARY_UPDATES_AVAILABLE, now = true)
+    addAll(project.modules.flatMap { module -> module.dependencies.libraries.mapNotNull { getAvailableUpdatesFor(it) } }, now = false)
     notifyRunning()
   }
 
   @UiThread
-  private fun checkForUpdates(dependency: PsDeclaredLibraryDependency): Boolean {
-    val results = libraryUpdateCheckerDaemon.getAvailableUpdates()
+  private fun getAvailableUpdatesFor(dependency: PsDeclaredLibraryDependency): PsGeneralIssue? {
+    val results = libraryUpdateCheckerDaemon.availableLibraryUpdateStorage
     val spec = dependency.spec
-    val versionToUpdateTo = results.findUpdatedVersionFor(spec)
-    if (versionToUpdateTo != null) {
-      val text = String.format("Newer version available: <b>%1\$s</b>", versionToUpdateTo)
+    val versionToUpdateTo = results.findUpdatedVersionFor(spec) ?: return null
+    val text = "Newer version available: <b>$versionToUpdateTo<b>"
 
-      val mainPath = dependency.path
-      val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
-      val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
-      val issue = PsGeneralIssue(
+    val mainPath = dependency.path
+    val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
+    val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
+    return PsGeneralIssue(
         text,
         "",
         mainPath,
@@ -114,10 +101,6 @@ class PsAnalyzerDaemon(
             PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true),
             PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false)
           ))
-      issues.add(issue)
-      return true
-    }
-    return false
   }
 
   fun onIssuesChange(parentDisposable: Disposable, @UiThread listener: () -> Unit) {
@@ -157,18 +140,22 @@ class PsAnalyzerDaemon(
       return
     }
     if (!isStopped) {
-      analyzer.analyze(model, issues)
+      assert(analyzer.supportedModelType.isInstance(model))
+      invokeAndWaitIfNeeded(ModalityState.any()) {
+        val newIssues = if (!analyzer.disposed) analyzer.analyze(analyzer.supportedModelType.cast(model)).toList() else emptyList()
+        addAll(newIssues, now = false)
+      }
     }
     resultsUpdaterQueue.queue(IssuesComputed())
   }
 
-  fun removeIssues(type: PsIssueType, byPath: PsPath? = null, now: Boolean) {
+  private fun removeIssues(type: PsIssueType, byPath: PsPath? = null, now: Boolean) {
     issues.remove(type, byPath)
     notifyUpdated(now)
   }
 
   @UiThread
-  fun addAll(newIssues: List<PsIssue>, now: Boolean = true) {
+  fun addAll(newIssues: List<PsIssue>, now: Boolean) {
     newIssues.forEach(issues::add)
     notifyUpdated(now)
   }
@@ -188,7 +175,6 @@ class PsAnalyzerDaemon(
   }
 
   private inner class AnalyzeModuleStructure internal constructor(private val myModel: PsModule) : Update(myModel) {
-
     override fun run() {
       try {
         if (!isDisposed && !isStopped) {
@@ -198,12 +184,10 @@ class PsAnalyzerDaemon(
       catch (e: Throwable) {
         LOG.error("Failed to analyze $myModel", e)
       }
-
     }
   }
 
   private inner class IssuesComputed() : Update(IssuesComputed::class.java) {
-
     @UiThread
     override fun run() {
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()

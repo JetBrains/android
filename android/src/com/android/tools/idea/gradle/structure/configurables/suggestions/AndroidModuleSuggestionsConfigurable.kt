@@ -71,10 +71,6 @@ class AndroidModuleSuggestionsConfigurable(
   }
 }
 
-internal fun getIssues(psContext: PsContext, psModulePath: PsModulePath?): List<PsIssue> {
-  val issueCollection = psContext.analyzerDaemon.issues
-  return if (psModulePath != null)
-    issueCollection.findIssues(psModulePath, null)
-  else issueCollection.getValues(PsModulePath::class.java)
-}
+internal fun getIssues(psContext: PsContext, psModulePath: PsModulePath?): List<PsIssue> =
+  psContext.analyzerDaemon.issues.findIssues(psModulePath, null)
 

@@ -15,61 +15,47 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
+import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.getResultSafely
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.text.StringUtil.isNotEmpty
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.EventDispatcher
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.nullize
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import java.util.EventListener
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
-
-private val LOG = Logger.getInstance(PsLibraryUpdateCheckerDaemon::class.java)
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class PsLibraryUpdateCheckerDaemon(
   parentDisposable: Disposable,
   private val project: PsProject,
   private val repositorySearchFactory: RepositorySearchFactory
 ) : PsDaemon(parentDisposable) {
+  val availableLibraryUpdateStorage = AvailableLibraryUpdateStorage.getInstance(project.ideProject)
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
+  private val beingSearchedIds: MutableSet<LibraryUpdateId> = ContainerUtil.newConcurrentSet()
+  private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
+  private val runningLock: Lock = ReentrantLock()
 
-  fun getAvailableUpdates(): AvailableLibraryUpdateStorage = AvailableLibraryUpdateStorage.getInstance(project.ideProject)
-
-  fun queueAutomaticUpdateCheck() {
-    val searchTimeMillis = getAvailableUpdates().state.lastSearchTimeMillis
-    if (searchTimeMillis > 0) {
-      val elapsed = System.currentTimeMillis() - searchTimeMillis
-      val daysPastSinceLastUpdate = TimeUnit.MILLISECONDS.toDays(elapsed)
-      if (daysPastSinceLastUpdate < 3) {
-        // Display stored updates from previous search
-        resultsUpdaterQueue.queue(UpdatesAvailable())
-        return
-      }
-    }
-    queueUpdateCheck()
-  }
-
-  private fun queueUpdateCheck() {
-    mainQueue.queue(SearchForAvailableUpdates())
+  fun queueUpdateCheck() {
+    mainQueue.queue(RefreshAvailableUpdates())
   }
 
   fun add(@UiThread listener: () -> Unit, parentDisposable: Disposable) {
@@ -79,66 +65,95 @@ class PsLibraryUpdateCheckerDaemon(
       }, parentDisposable)
   }
 
+  override fun dispose() {
+    super.dispose()
+    runningLock.withLock {
+      runningSearches.forEach { it.cancel(true) }
+    }
+  }
+
+  @Slow
   private fun search(
     repositories: Collection<ArtifactRepository>,
     ids: Collection<LibraryUpdateId>
   ) {
-    getAvailableUpdates().clear()
+    val updateStorage = availableLibraryUpdateStorage
+
+    val currentTimeMillis = System.currentTimeMillis()
+    val existingUpdateKeys = updateStorage
+      .retainAll {
+        val searchTimeMillis = it.lastSearchTimeMillis
+        (searchTimeMillis > 0 && TimeUnit.MILLISECONDS.toDays(currentTimeMillis - searchTimeMillis) < 3 &&
+         ids.contains(LibraryUpdateId(it.groupId.orEmpty(), it.name.orEmpty())))
+      }
+      .associateBy { it.groupId to it.name }
 
     val requests =
       ids
-        .map { id -> SearchRequest(SearchQuery(id.groupId, id.name), 1, 0) }
+        .filter { !existingUpdateKeys.containsKey(it.groupId to it.name) && beingSearchedIds.add(it) }
         .toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
-    val resultFutures = requests.map { searcher.search(it) }
+    val resultFutures = runningLock.withLock {
+      if (isStopped) return@search
+      // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
+      requests.map { id ->
+        val future = searcher.search(SearchRequest(SearchQuery(id.groupId, id.name), 1, 0))
+        runningSearches.add(future)
+        id to future
+      }
+    }
 
-    Disposer.register(this, Disposable {
-      resultFutures.forEach { it.cancel(true) }
-    })
+    val searchResults = resultFutures.map {
+      it.first to it.second.getResultSafely()
+    }
+
+    runningLock.withLock {
+      runningSearches.removeAll(resultFutures.map { it.second })
+    }
 
     val foundArtifacts =
-      resultFutures
-        .map { it.getResultSafely() }
-        .flatMap { it?.artifacts.orEmpty() }
-
-    val updates = getAvailableUpdates()
-    foundArtifacts.forEach { updates.addOrUpdate(it) }
-    updates.state.lastSearchTimeMillis = System.currentTimeMillis()
-
+      searchResults
+        .flatMap {
+          it.second?.artifacts?.nullize() ?: run {
+            val id = it.first
+            val result = it.second
+            if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", id.groupId, id.name, listOf())) else listOf()
+          }
+        }
+    searchResults.forEach {
+      beingSearchedIds.remove(it.first)
+    }
+    foundArtifacts.forEach { updateStorage.addOrUpdate(it, currentTimeMillis) }
     resultsUpdaterQueue.queue(UpdatesAvailable())
   }
 
-  private inner class SearchForAvailableUpdates : Update(project) {
+  private inner class RefreshAvailableUpdates : Update(project) {
     override fun run() {
       val repositories = mutableSetOf<ArtifactRepository>()
       val ids = mutableSetOf<LibraryUpdateId>()
-      UIUtil.invokeAndWaitIfNeeded(Runnable {
-        project.forEachModule(Consumer { module ->
+      invokeAndWaitIfNeeded(ModalityState.any()) {
+        project.modules.forEach { module ->
           repositories.addAll(module.getArtifactRepositories())
-          if (module is PsAndroidModule) {
-            module.dependencies.forEachLibraryDependency { dependency ->
-              val spec = dependency.spec
-              if (isNotEmpty(spec.version)) {
-                val version = GradleVersion.tryParse(spec.version!!)
-                if (version != null) {
-                  ids.add(LibraryUpdateId(spec.group.orEmpty(), spec.name))
-                }
-              }
-            }
-          }
-        })
-      })
-      if (repositories.isNotEmpty() && ids.isNotEmpty()) {
+          ids.addAll(
+            module
+              .dependencies
+              .libraries
+              .map { it.spec }
+              .map { LibraryUpdateId(it.group.orEmpty(), it.name) }
+          )
+        }
+      }
+      if (!repositories.isEmpty() && !ids.isEmpty()) {
         search(repositories, ids)
-      } else {
+      }
+      else {
         resultsUpdaterQueue.queue(UpdatesAvailable())
       }
     }
   }
 
   private inner class UpdatesAvailable : Update(project) {
-
     @UiThread
     override fun run() {
       eventDispatcher.multicaster.availableUpdates()
