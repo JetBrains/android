@@ -16,13 +16,23 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.ide.util.treeView.AbstractTreeUi;
+import com.intellij.openapi.util.ActionCallback;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
@@ -58,5 +68,76 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   private void queueUpdateAndRestoreSelection() {
     PsBaseDependency selected = myDependencySelectionSource.getSelection();
     queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(selected != null ? ImmutableList.of(selected) : null));
+  }
+
+  public ActionCallback selectMatchingNodes(@NotNull PsModel model, boolean scroll) {
+    return collectMatchingNodes(model, scroll);
+  }
+
+  private ActionCallback collectMatchingNodes(@NotNull PsModel model, boolean scroll) {
+    ActionCallback result = new ActionCallback();
+    getInitialized()
+      .doWhenDone(() -> {
+        if (isDisposed()) {
+          result.setRejected();
+          return;
+        }
+
+        List<AbstractPsModelNode> toSelect = Lists.newArrayList();
+        Queue<AbstractPsModelNode> queue = new ArrayDeque<>();
+        queue.add((AbstractPsModelNode)getRootElement());
+
+        while (!queue.isEmpty()) {
+          AbstractPsModelNode element = queue.poll();
+          if (element.matches(model)) {
+            toSelect.add(element);
+          }
+
+          if (!(element == getRootElement()
+                || element.getParent() instanceof ResolvedDependenciesTreeRootNode
+                || element.getParent() instanceof ModuleDependencyNode
+                || element.getParent() instanceof AndroidArtifactNode)) {
+            continue;
+          }
+          Arrays.stream(element.getChildren())
+            .filter(it -> it instanceof AbstractPsModelNode)
+            .forEach(it -> queue.add((AbstractPsModelNode)it));
+        }
+
+        // Expand the parents of all selected nodes, so they can be visible to the user.
+        Runnable onDone = () -> {
+          expandParents(toSelect);
+          if (scroll) {
+            scrollToFirstSelectedRow();
+          }
+          result.setDone();
+        };
+        // NOTE: This is a non-deferred select operation which may fail with a stack overflow
+        //       if multiple items are selected on a really large tree.
+        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
+      })
+      .doWhenRejected(() -> result.setRejected());
+    return result;
+  }
+
+  protected class UserRunnable implements Runnable {
+    @Nullable private final Runnable myRunnable;
+
+    public UserRunnable(@Nullable Runnable runnable) {
+      myRunnable = runnable;
+    }
+
+    @Override
+    public void run() {
+      if (myRunnable != null) {
+        AbstractTreeUi treeUi = getUi();
+        if (treeUi != null) {
+          treeUi.executeUserRunnable(myRunnable);
+        }
+        else {
+          myRunnable.run();
+        }
+      }
+    }
   }
 }
