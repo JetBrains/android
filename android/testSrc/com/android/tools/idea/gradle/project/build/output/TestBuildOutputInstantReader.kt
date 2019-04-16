@@ -53,9 +53,4 @@ class TestBuildOutputInstantReader(private val myLines: List<String>) : BuildOut
   override fun getCurrentLine(): String {
     return myLines[currentIndex]
   }
-
-  override fun append(csq: CharSequence?): BuildOutputInstantReader = this
-  override fun append(csq: CharSequence?, start: Int, end: Int): BuildOutputInstantReader = this
-  override fun append(c: Char): BuildOutputInstantReader = this
-  override fun close() = Unit
 }
