@@ -76,4 +76,10 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
     myDomRule.testCompletion(
       "databinding_xml_completion_data.xml", "databinding_xml_completion_data_after.xml")
   }
+
+  @Test
+  fun dataBindingXmlCompletion_caretInDataClassAttribute() {
+    myDomRule.testCompletion(
+      "databinding_xml_completion_data_class.xml", "databinding_xml_completion_data_class_after.xml")
+  }
 }

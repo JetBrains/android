@@ -113,6 +113,11 @@ public final class AndroidDataBindingLayoutDomTest {
   }
 
   @Test
+  public void dataBindingHighlighting_dataClassIsValidAttrbute() {
+    myDomRule.testHighlighting("databinding_highlighting_data_class.xml");
+  }
+
+  @Test
   public void dataBindingCompletion_caretInVariableBlockWithNoParams() {
     assertThat(myDomRule.getCompletionResults("databinding_completion_variable_no_params.xml")).containsExactly("name", "type");
   }
