@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
@@ -45,6 +46,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
@@ -460,6 +462,7 @@ public class GradleSyncState {
       return;
     }
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
+    quickFixes.add(new OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."));
     UseJavaHomeAsJdkHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
     if (useJavaHomeHyperlink != null) {
       quickFixes.add(useJavaHomeHyperlink);
