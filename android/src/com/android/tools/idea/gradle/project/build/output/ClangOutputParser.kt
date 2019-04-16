@@ -96,19 +96,27 @@ fun compilerMessageGroup(gradleProject: String, variant: String, abi: String?) =
 /** Parser that parses Clang output and emit [BuildEvent] indicating with compiler diagnostic messages. */
 class ClangOutputParser : BuildOutputParser {
   /**
+   * A state that caches the previous line this parser receives. We have to track this state rather than peeking the previous line from the
+   * reader because after https://github.com/JetBrains/intellij-community/commit/fbef901fa5e92867747dfc9a4c570f8d43f7a2b3, Intellij platform
+   * no longer allows a parser to pushback lines past the `currentLine`.
+   */
+  private var previousLine: String? = null
+  /**
    * Parses an build output while it's being streamed from external build systems.
    *
-   * @param ignored the most recent line acquired from the passed in [BuildOutputInstantReader]
+   * @param currentLine the most recent line acquired from the passed in [BuildOutputInstantReader]
    * @param reader a reader that is useful to actively consuming more build output or peek previous output. This can be used by parsers that
    * needs more than the current line to work. Also note that all state changes made to the reader will affect other parsers. That is, if
    * this parser reads several lines from the reader without reset the reader's state, other parsers won't be able to read such consumed
    * states. This is useful if the parser knows other parsers won't be interested in the consumed build outputs.
    * @param messageConsumer consumer of build events emitted by this parser. For example, upon encountering a syntax error in a source code
    * file, this parser can emit a [FileMessageEventImpl] so that the IDE will show a corresponding entry in the 'Build Output' UI.
+   * @return true if the current line is consumed by this parser and should not be passed to other parsers. Otherwise, false.
    */
-  override fun parse(ignored: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    val previousLine = reader.peekPrevious() ?: return false
-    val nativeBuildTaskMatch = nativeBuildTaskPattern.matchEntire(previousLine) ?: return false
+  override fun parse(currentLine: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
+    val previousLine = this.previousLine
+    this.previousLine = currentLine
+    val nativeBuildTaskMatch = nativeBuildTaskPattern.matchEntire(previousLine ?: return false) ?: return false
     val (gradleProject, variant) = nativeBuildTaskMatch.capturedRegexGroupValues
 
     var workingDir: Path? = null
