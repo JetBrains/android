@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jdesktop.swingx.JXLabel;
 
 public class JarDependencyDetailsForm {
@@ -26,8 +26,8 @@ public class JarDependencyDetailsForm {
   protected JXLabel myIncludesText;
   protected JBLabel myExcludesLabel;
   protected JXLabel myExcludesText;
-  protected JXLabel myScopeText;
   protected JBLabel myNameLabel;
   protected JBLabel myIncludesLabel;
   protected JBLabel myScopeLabel;
+  protected JTextField myScope;
 }
