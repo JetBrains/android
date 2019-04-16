@@ -17,11 +17,18 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredModuleDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.event.HyperlinkEvent;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +42,8 @@ public class ModuleDependencyDetails implements DependencyDetails {
   private JXLabel myNameLabel;
   private JXLabel myGradlePathLabel;
   private JBLabel myScopePromptLabel;
-  private JXLabel myScopeLabel;
   private HyperlinkLabel myGoToLabel;
+  private JTextField myScope;
 
   private PsModuleDependency myDependency;
 
@@ -44,7 +51,7 @@ public class ModuleDependencyDetails implements DependencyDetails {
     myContext = context;
     myShowScope = showScope;
     myScopePromptLabel.setVisible(showScope);
-    myScopeLabel.setVisible(showScope);
+    myScope.setVisible(showScope);
 
     myGoToLabel.setHyperlinkText("See Dependencies");
     myGoToLabel.addHyperlinkListener(new HyperlinkAdapter() {
@@ -61,6 +68,19 @@ public class ModuleDependencyDetails implements DependencyDetails {
           true);
       }
     });
+    myScope.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        super.focusLost(e);
+        modifyConfiguration();
+      }
+    });
+    myScope.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        modifyConfiguration();
+      }
+    });
   }
 
   @Override
@@ -75,7 +95,7 @@ public class ModuleDependencyDetails implements DependencyDetails {
     myNameLabel.setText(myDependency.getName());
     myGradlePathLabel.setText(myDependency.getGradlePath());
     if (myShowScope) {
-      myScopeLabel.setText(myDependency.getJoinedConfigurationNames());
+      myScope.setText(myDependency.getJoinedConfigurationNames());
     }
   }
 
@@ -89,5 +109,10 @@ public class ModuleDependencyDetails implements DependencyDetails {
   @Nullable
   public PsModuleDependency getModel() {
     return myDependency;
+  }
+
+  private void modifyConfiguration() {
+    PsModule module = myDependency.getParent();
+    module.modifyDependencyConfiguration((PsDeclaredModuleDependency) myDependency, myScope.getText());
   }
 }
