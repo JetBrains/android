@@ -65,13 +65,14 @@ public class RecommendedPluginVersionUpgradeStepTest {
       {"3.0.0-dev", "3.0.0-beta01", false},
       {"3.0.0-dev", "3.1.0-alpha01", false},
       {"3.0.0-dev", "3.1.0-beta01", false},
-      // upgrade to dev version. We never ask for upgrading to dev version. (Note: Force upgrade doesn't upgrade to dev version neither.)
+      // Upgrade to dev version. We only ask for upgrading to dev version when major versions are different.
+      // (Note: Force upgrade doesn't upgrade to dev version neither.)
       {"3.0.0", "3.0.0-dev", false},
       {"3.0.0-alpha01", "3.0.0-dev", false},
       {"3.0.0-beta01", "3.0.0-dev", false},
-      {"3.0.0", "3.1.0-dev", false},
-      {"3.0.0-alpha01", "3.1.0-dev", false},
-      {"3.0.0-beta01", "3.1.0-dev", false},
+      {"3.0.0", "3.1.0-dev", true},
+      {"3.0.0-alpha01", "3.1.0-dev", true},
+      {"3.0.0-beta01", "3.1.0-dev", true},
       // upgrade to stable version
       {"3.1.0-alpha01", "3.0.0", false},
       {"3.1.0-beta01", "3.0.0", false},
