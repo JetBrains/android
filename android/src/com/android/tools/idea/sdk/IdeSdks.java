@@ -539,7 +539,7 @@ public class IdeSdks {
    *
    * @return true if JAVA_HOME is the same as path
    */
-  public boolean isSameAsJavaHomeJdk(@Nullable File path) {
+  public static boolean isSameAsJavaHomeJdk(@Nullable File path) {
     String javaHome = getJdkFromJavaHome();
     return javaHome != null && filesEqual(path, toSystemDependentPath(javaHome));
   }

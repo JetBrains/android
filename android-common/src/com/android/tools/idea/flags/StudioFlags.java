@@ -93,6 +93,16 @@ public final class StudioFlags {
     "If enabled, the new module wizard will show an option to create a benchmark module",
     false);
 
+  public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
+    NPW, "first.run.wizard.show", "Show Welcome Wizard always",
+    "Show the Welcome Wizard when Studio starts",
+    false);
+
+  public static final Flag<Boolean> NPW_SHOW_JDK_STEP = Flag.create(
+    NPW, "first.run.jdk.step", "Show JDK setup step",
+    "Show JDK Setup Step in Welcome Wizard",
+    true);
+
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
