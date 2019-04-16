@@ -39,7 +39,7 @@ import kotlin.concurrent.withLock
 @State(name = "AvailableLibraryUpdateStorage", storages = [Storage(StoragePathMacros.CACHE_FILE)])
 class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryUpdateStorage.AvailableLibraryUpdates> {
   private val lock: Lock = ReentrantLock()
-  private val updatesById = mutableMapOf<PsLibraryKey, AvailableLibraryUpdate>()
+  private val updatesByKey = mutableMapOf<PsLibraryKey, AvailableLibraryUpdate>()
   private var myState = AvailableLibraryUpdates()
 
   override fun getState(): AvailableLibraryUpdates = lock.withLock { myState }
@@ -53,8 +53,8 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
 
   fun addOrUpdate(artifact: FoundArtifact, timestamp: Long) {
     lock.withLock {
-      val updateId = PsLibraryKey(artifact.groupId, artifact.name)
-      updatesById[updateId]?.let { myState.updates.remove(it) }
+      val updateKey = PsLibraryKey(artifact.groupId, artifact.name)
+      updatesByKey[updateKey]?.let { myState.updates.remove(it) }
 
       val update = AvailableLibraryUpdate().apply {
         groupId = artifact.groupId
@@ -65,7 +65,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
         lastSearchTimeMillis = timestamp
       }
       myState.updates.add(update)
-      updatesById[updateId] = update
+      updatesByKey[updateKey] = update
     }
   }
 
@@ -81,8 +81,8 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     lock.withLock {
       val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
       val parsedVersion = GradleVersion.tryParse(version) ?: return null
-      val id = spec.toLibraryKey()
-      val update = updatesById[id] ?: return null
+      val key = spec.toLibraryKey()
+      val update = updatesByKey[key] ?: return null
       val foundVersion =
         GradleVersion.tryParse(
           (if (parsedVersion.isPreview) update.stableOrPreviewVersion else update.stableVersion) ?: return null) ?: return null
@@ -91,8 +91,8 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
   }
 
   private fun index() {
-    updatesById.clear()
-    myState.updates.forEach { updatesById[PsLibraryKey(it.groupId.orEmpty(), it.name.orEmpty())] = it }
+    updatesByKey.clear()
+    myState.updates.forEach { updatesByKey[it.toLibraryKey()] = it }
   }
 
   class AvailableLibraryUpdates {
@@ -108,7 +108,9 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     @Tag("stableVersion") var stableVersion: String? = null,
     @Tag("repository") var repository: String? = null,
     @Tag("last-search-timestamp") var lastSearchTimeMillis: Long = -1L
-  )
+  ) {
+    fun toLibraryKey() = PsLibraryKey(groupId.orEmpty(), name.orEmpty())
+  }
 
   companion object {
     fun getInstance(project: Project): AvailableLibraryUpdateStorage {
