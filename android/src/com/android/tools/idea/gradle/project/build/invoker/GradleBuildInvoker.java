@@ -421,7 +421,6 @@ public class GradleBuildInvoker {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     List<BuildOutputParserWrapper> buildOutputParsersWrappers =
       Stream.of(new GradleBuildOutputParser(),
-                new ClangOutputParser(),
                 new CmakeOutputParser(),
                 new XmlErrorOutputParser(),
                 new AndroidGradlePluginOutputParser(),
