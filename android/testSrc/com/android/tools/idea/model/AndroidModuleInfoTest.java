@@ -190,7 +190,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct
-    manifestInfo = MergedManifestManager.getMergedManifest(myAndroidFacet.getModule()).get();
+    manifestInfo = MergedManifestManager.getSnapshot(myAndroidFacet, true);
     mergedActivities = manifestInfo.getActivities();
     assertEquals(4, mergedActivities.size());
     activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
@@ -214,7 +214,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct
-    manifestInfo = MergedManifestManager.getMergedManifest(myAndroidFacet.getModule()).get();
+    manifestInfo = MergedManifestManager.getSnapshot(myAndroidFacet, true);
     mergedActivities = manifestInfo.getActivities();
     assertEquals(5, mergedActivities.size());
     activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
