@@ -89,15 +89,21 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         if (index < 0 || index >= listData.size) {
           return
         }
+        val surface = widgetModel.surface ?: return
+        val selection = surface.selectionModel.selection
+        if (selection.size != 1 || selection[0] != widgetModel.component) {
+          // It is meaningless to change the secondary selection if selected component is different than mode's component,
+          return
+        }
         selectedData = listData[index] ?: null
         val itemData = listData[index] ?: return
         val scene = widgetModel.surface?.scene ?: return
         val apiLevel = scene.renderedApiLevel
         val rtl = scene.isInRTL
         val constraint = getConstraintForAttribute(itemData.attribute, apiLevel, rtl)
-        widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
-        widgetModel.surface?.invalidate()
-        widgetModel.surface?.repaint()
+        surface.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
+        surface.invalidate()
+        surface.repaint()
       }
     })
 
