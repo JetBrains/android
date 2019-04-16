@@ -709,6 +709,111 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
   @Test
   @RunsInEdt
+  fun testDataBindingCompletion_methodFromBaseClass() {
+    val psiClass = fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethods extends Base{
+        public void doSomething(View view) {}
+      }
+
+      class Base {
+        public void doSomethingBase(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.ModelWithBindableMethods"/>
+          <variable name="member" type="ModelWithBindableMethods" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::do<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    val psiMethod = psiClass.findMethodsByName("doSomething", false)[0]
+    val expectedLookupElement = JavaLookupElementBuilder.forMethod(
+      psiMethod, "doSomething", PsiSubstitutor.EMPTY, psiClass)
+    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+
+    assertThat(lookupElements[1]).isInstanceOf(LookupElementBuilder::class.java)
+    val baseLookupElementBuilder = lookupElements[1] as LookupElementBuilder
+    val basePsiMethod = psiClass.findMethodsByName("doSomethingBase", true)[0]
+    val baseExpectedLookupElement = JavaLookupElementBuilder.forMethod(
+      basePsiMethod, "doSomethingBase", PsiSubstitutor.EMPTY, null)
+    assertThat(baseLookupElementBuilder).isEqualTo(attachTracker(baseExpectedLookupElement))
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_fieldFromBaseClass() {
+    val psiClass = fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model extends Base{
+        public int field;
+      }
+
+      class Base {
+        public int fieldBase;
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{member.fi<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    val psiField = psiClass.findFieldByName("field", false)!!
+    val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
+    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+
+    assertThat(lookupElements[1]).isInstanceOf(LookupElementBuilder::class.java)
+    val baseLookupElementBuilder = lookupElements[1] as LookupElementBuilder
+    val basePsiField = psiClass.findFieldByName("fieldBase", true)!!
+    val baseExpectedLookupElement =
+      JavaLookupElementBuilder.forField(basePsiField, "fieldBase", null).withTypeText("Int")
+    assertThat(baseLookupElementBuilder).isEqualTo(attachTracker(baseExpectedLookupElement))
+  }
+
+  @Test
+  @RunsInEdt
   fun testDataBindingCompletion_fieldPresentation() {
     val psiClass = fixture.addClass("""
       package test.langdb;
