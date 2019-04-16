@@ -942,7 +942,7 @@ java_test(
     name = "RunInstrumentationTest",
     size = "enormous",
     data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
+        "testData/InstrumentationTest/**",
     ]) + select({
         ":has_emulator": [
             "@externsdk//:system-images",
