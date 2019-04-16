@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.widget
 
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -24,7 +25,7 @@ import javax.swing.border.Border
 
 class Separator(
   border: Border = JBUI.Borders.empty(0, 4),
-  background: Color = com.android.tools.adtui.common.border
+  background: Color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
 ) : JComponent() {
 
   constructor(verticalInset: Int, horizontalInset: Int) :
@@ -46,8 +47,14 @@ class Separator(
   override fun getPreferredSize(): Dimension {
     val insets = insets
     val width = lineWidth + insets.left + insets.right
-    val parentInset = parent.insets
-    val height = parent.height - parentInset.top - parentInset.bottom
+    val height: Int
+    if (parent != null) {
+      val parentInset = parent.insets
+      height = parent.height - parentInset.top - parentInset.bottom
+    }
+    else {
+      height = super.getPreferredSize().height
+    }
     return Dimension(width, height)
   }
 }
