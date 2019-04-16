@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.AndroidProcessHandler;
@@ -27,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +48,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
         return;
       }
 
-      closeOldSessionAndRun(project, dialog.getAndroidDebugger(), client);
+      AppExecutorUtil.getAppExecutorService().submit(() -> closeOldSessionAndRun(project, dialog.getAndroidDebugger(), client));
     }
   }
 
@@ -59,6 +61,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
     e.getPresentation().setVisible(isVisible);
   }
 
+  @Slow
   private static void closeOldSessionAndRun(@NotNull Project project, @NotNull AndroidDebugger androidDebugger, @NotNull Client client) {
     terminateRunSessions(project, client);
     androidDebugger.attachToClient(project, client);
