@@ -21,12 +21,14 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -64,7 +66,7 @@ final class VirtualDevice extends Device {
       .build();
   }
 
-  static final class Builder extends Device.Builder<Builder> {
+  static final class Builder extends Device.Builder {
     private boolean myConnected;
 
     @NotNull
@@ -72,6 +74,37 @@ final class VirtualDevice extends Device {
 
     Builder() {
       mySnapshots = ImmutableList.of();
+    }
+
+    @NotNull
+    Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    @NotNull
+    Builder setValid(boolean valid) {
+      myValid = valid;
+      return this;
+    }
+
+    @NotNull
+    Builder setKey(@NotNull String key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setConnectionTime(@NotNull Instant connectionTime) {
+      myConnectionTime = connectionTime;
+      return this;
+    }
+
+    @NotNull
+    Builder setAndroidDevice(@NotNull AndroidDevice androidDevice) {
+      myAndroidDevice = androidDevice;
+      return this;
     }
 
     @NotNull
@@ -83,12 +116,6 @@ final class VirtualDevice extends Device {
     @NotNull
     Builder setSnapshots(@NotNull ImmutableCollection<String> snapshots) {
       mySnapshots = snapshots;
-      return this;
-    }
-
-    @NotNull
-    @Override
-    Builder self() {
       return this;
     }
 
