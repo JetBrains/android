@@ -20,6 +20,10 @@ import com.android.tools.idea.gradle.structure.configurables.ui.properties.Model
 import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +36,8 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   private JXLabel myGroupIdLabel;
   private JXLabel myArtifactNameLabel;
-  private JXLabel myScopeLabel;
   private JPanel myRequestedVersion;
+  private JTextField myScope;
 
   @NotNull private final PsContext myContext;
   @Nullable private PsDeclaredLibraryDependency myDependency;
@@ -42,6 +46,20 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   public SingleDeclaredLibraryDependencyDetails(@NotNull PsContext context) {
     myContext = context;
+    // TODO(xof): common code with ModuleDependencyDetails.java
+    myScope.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        super.focusLost(e);
+        modifyConfiguration();
+      }
+    });
+    myScope.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        modifyConfiguration();
+      }
+    });
   }
 
   @Override
@@ -77,7 +95,7 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
       myArtifactNameLabel.setText(spec.getName());
     }
 
-    myScopeLabel.setText(dependency.getJoinedConfigurationNames());
+    myScope.setText(dependency.getJoinedConfigurationNames());
   }
 
   @Override
@@ -90,5 +108,11 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
   @Nullable
   public PsLibraryDependency getModel() {
     return myDependency;
+  }
+
+  // TODO(xof): common code with ModuleDependencyDetails
+  private void modifyConfiguration() {
+    PsModule module = myDependency.getParent();
+    module.modifyDependencyConfiguration(myDependency, myScope.getText());
   }
 }
