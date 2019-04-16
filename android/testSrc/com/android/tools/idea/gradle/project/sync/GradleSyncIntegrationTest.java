@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
@@ -336,7 +335,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(pluginInfo);
-    assertEquals(ORIGINAL, pluginInfo.getPluginGeneration());
     GradleVersion pluginVersion = pluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);
 

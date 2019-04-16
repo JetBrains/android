@@ -20,7 +20,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -73,7 +73,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     assertEquals(0, usage.getTimestamp());
     assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
     assertEquals(GradleBuildDetails.newBuilder()
-                   .setAndroidPluginVersion(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion())
+                   .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
                    .setGradleVersion(GradleVersions.removeTimestampFromGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
                    .setUserEnabledIr(true)
                    .setModelSupportsIr(true)
