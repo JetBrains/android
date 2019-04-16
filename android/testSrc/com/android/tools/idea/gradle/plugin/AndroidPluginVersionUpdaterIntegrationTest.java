@@ -104,7 +104,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   private static ArtifactDependencyModel findAndroidPlugin(@NotNull GradleBuildModel buildModel) {
     List<? extends ArtifactDependencyModel> dependencies = buildModel.buildscript().dependencies().artifacts(CLASSPATH);
     for (ArtifactDependencyModel dependency : dependencies) {
-      if (AndroidPluginGeneration.find(dependency.name().forceString(), dependency.group().toString()) != null) {
+      if (AndroidPluginInfo.isAndroidPlugin(dependency.name().forceString(), dependency.group().toString())) {
         return dependency;
       }
     }

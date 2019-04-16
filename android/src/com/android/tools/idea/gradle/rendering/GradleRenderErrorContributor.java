@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.rendering;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
@@ -66,7 +66,7 @@ public class GradleRenderErrorContributor extends RenderErrorContributor {
       @Override
       public void run() {
         FixAndroidGradlePluginVersionHyperlink
-          quickFix = new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion()), null);
+          quickFix = new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()), null);
         quickFix.executeIfClicked(facet.getModule().getProject(),
                                   new HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, quickFix.getUrl()));
       }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -78,16 +78,15 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-    String pluginVersion = pluginGeneration.getLatestKnownVersion();
+    String pluginVersion = pluginInfo.getLatestKnownPluginVersionProvider().get();
     myRecommendedPluginVersion = pluginVersion;
     GradleVersion currentVersion = pluginInfo.getPluginVersion();
     myCurrentPluginVersion = (currentVersion != null) ? pluginInfo.getPluginVersion().toString() : null;
-    myMessage = "<b>The project is using an incompatible version of the " + pluginGeneration.getDescription() + ".</b><br/<br/>" +
-                 "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
-                 "You can learn more about this version of the plugin from the " +
-                 "<a href='https://developer.android.com/studio/" + (experimental ? "build/experimental-plugin.html" : "releases/gradle-plugin.html") +
-                 "'>release notes</a>.<br/><br/>";
+    myMessage = "<b>The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/<br/>" +
+                "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
+                "You can learn more about this version of the plugin from the " +
+                "<a href='https://developer.android.com/studio/" + (experimental ? "build/experimental-plugin.html" : "releases/gradle-plugin.html") +
+                "'>release notes</a>.<br/><br/>";
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override

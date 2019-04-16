@@ -19,8 +19,8 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
@@ -65,8 +65,7 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
     if (myUpgradeReminder.shouldRecommendUpgrade(project) && shouldRecommendUpgrade(pluginInfo)) {
       GradleVersion current = pluginInfo.getPluginVersion();
       assert current != null;
-      AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-      GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
+      GradleVersion recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
 
       AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
       if (updater.canDetectPluginVersionToUpdate(recommended)) {
@@ -85,8 +84,7 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
 
     GradleVersion current = pluginInfo.getPluginVersion();
     assert current != null;
-    AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
+    GradleVersion recommended = GradleVersion.parse(pluginInfo.getLatestKnownPluginVersionProvider().get());
 
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
     if (updater.canDetectPluginVersionToUpdate(recommended)) {
@@ -119,7 +117,7 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
 
   private static boolean shouldRecommendUpgrade(@NotNull AndroidPluginInfo androidPluginInfo) {
     GradleVersion current = androidPluginInfo.getPluginVersion();
-    GradleVersion recommended = GradleVersion.parse(androidPluginInfo.getPluginGeneration().getLatestKnownVersion());
+    GradleVersion recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
     return shouldRecommendUpgrade(recommended, current);
   }
 
