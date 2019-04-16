@@ -20,6 +20,7 @@ import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.android.tools.idea.ui.resourcemanager.widget.Section
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.ui.resourcemanager.widget.SectionListModel
@@ -138,12 +139,11 @@ class ResourceExplorerView(
   private val sectionListModel: SectionListModel = SectionListModel()
   private val dragHandler = resourceDragHandler()
 
-  private val headerPanel = JTabbedPane(JTabbedPane.NORTH).apply {
-    tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
+  private val headerPanel = OverflowingTabbedPaneWrapper().apply {
     resourcesBrowserViewModel.resourceTypes.forEach {
-      addTab(it.displayName, null)
+      tabbedPane.addTab(it.displayName, null)
     }
-    addChangeListener { event ->
+    tabbedPane.addChangeListener { event ->
       val index = (event.source as JTabbedPane).model.selectedIndex
       resourcesBrowserViewModel.resourceTypeIndex = index
     }
@@ -512,3 +512,4 @@ class ResourceExplorerView(
     }
   }
 }
+
