@@ -23,6 +23,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.StudioDownloader;
@@ -182,6 +183,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
+    myState.put(WizardConstants.KEY_JDK_LOCATION, EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
 
     myComponentTree = createComponentTree(myMode, myState, !SystemInfo.isChromeOS && myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
