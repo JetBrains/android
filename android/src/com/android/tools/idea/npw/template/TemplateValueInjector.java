@@ -89,8 +89,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -500,7 +500,7 @@ public final class TemplateValueInjector {
    */
   @NotNull
   private static GradleVersion determineGradlePluginVersion(@Nullable Project project) {
-    GradleVersion defaultGradleVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+    GradleVersion defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
     if (project == null) {
       return defaultGradleVersion;
     }
