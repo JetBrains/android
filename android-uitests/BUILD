@@ -683,24 +683,6 @@ java_test(
 
 # sanity test
 java_test(
-    name = "GoogleApiIntegrationTest",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/resources-aar:framework_res",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.integration.GoogleApiIntegrationTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  # b/120686865
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# sanity test
-java_test(
     name = "CreateCppKotlinProjectTest",
     data = COMMON_DATA + [
         "//tools/adt/idea/resources-aar:framework_res",
