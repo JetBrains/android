@@ -15,21 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.robot
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.TableView
-import org.fest.swing.edt.GuiQuery
-import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.fixture.JTextComponentFixture
-import org.fest.swing.fixture.TextInputFixture
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.awt.Container
-import javax.swing.JButton
+import javax.swing.JTextField
 
 class DependenciesFixture(
   override val ideFrameFixture: IdeFrameFixture,
@@ -38,6 +32,30 @@ class DependenciesFixture(
 
   fun findDependenciesTable(): JTableFixture =
     JTableFixture(robot(), robot().finder().findByType<TableView<*>>(container))
+
+  fun findScopeEditor(): JTextComponentFixture =
+    object : JTextComponentFixture(robot(), robot().finder().findByName("scope", JTextField::class.java, true)) {
+      override fun selectAll(): JTextComponentFixture {
+        super.selectAll()
+        waitForIdle()
+        return this
+      }
+      override fun deleteText(): JTextComponentFixture {
+        super.selectAll()
+        waitForIdle()
+        return this
+      }
+      override fun enterText(text: String): JTextComponentFixture {
+        super.enterText(text)
+        waitForIdle()
+        return this
+      }
+      override fun pressAndReleaseKeys(vararg keyCodes: Int): JTextComponentFixture {
+        super.pressAndReleaseKeys(*keyCodes)
+        waitForIdle()
+        return this
+      }
+  }
 
   fun clickAddLibraryDependency(): AddLibraryDependencyDialogFixture {
     clickToolButton("Add Dependency")
