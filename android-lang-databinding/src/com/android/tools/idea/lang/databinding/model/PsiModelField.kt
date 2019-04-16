@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
-import android.databinding.tool.BindableCompat
-import com.android.tools.idea.databinding.DataBindingMode
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiModifier
 
