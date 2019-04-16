@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.setUpJdkWarningLabelAndLink;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static icons.StudioIcons.Common.INFO_INLINE;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
@@ -34,6 +33,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ComboboxWithBrowseButton;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.Function;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -46,23 +46,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class JdkSetupStep extends FirstRunWizardStep {
-  private JPanel myRootPanel;
-  private ComboboxWithBrowseButton myJdkLocationComboBox;
-  private JLabel myJdkWarningLabel;
+  @SuppressWarnings("unused") private JPanel myRootPanel;
+  @SuppressWarnings("unused") private ComboboxWithBrowseButton myJdkLocationComboBox;
+  @SuppressWarnings("unused") private HyperlinkLabel myJdkWarningLink;
+  @SuppressWarnings("unused") private JLabel myJdkWarningLabel;
 
   public JdkSetupStep() {
     super("Select default JDK Location");
     setUpJdkLocationComboBox();
-    setUpJdkWarningLabel();
+    setUpJdkWarningLabelAndLink(myJdkWarningLabel, myJdkWarningLink);
     setComponent(myRootPanel);
-  }
-
-  private void setUpJdkWarningLabel() {
-    myJdkWarningLabel.setIconTextGap(0);
-    myJdkWarningLabel.setIcon(INFO_INLINE);
-    myJdkWarningLabel.setText(JDK_LOCATION_WARNING);
-    myJdkWarningLabel.setVisible(true);
-    myJdkWarningLabel.setEnabled(true);
   }
 
   private void setUpJdkLocationComboBox() {
@@ -119,7 +112,9 @@ public class JdkSetupStep extends FirstRunWizardStep {
   }
 
   private void setJdkWarningVisibility() {
-    myJdkWarningLabel.setVisible(!isSameAsJavaHomeJdk(getJdkLocation()));
+    boolean visible = !isSameAsJavaHomeJdk(getJdkLocation());
+    myJdkWarningLink.setVisible(visible);
+    myJdkWarningLabel.setVisible(visible);
   }
 
   @NotNull
