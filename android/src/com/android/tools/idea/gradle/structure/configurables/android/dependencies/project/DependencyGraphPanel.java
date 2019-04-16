@@ -221,7 +221,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   private void initializeDependencyDetails() {
     addDetails(new MultipleLibraryDependenciesDetails());
-    addDetails(new JarDependencyDetails(getContext()));
+    addDetails(new JarDependencyDetails(getContext(), false));
     addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 
