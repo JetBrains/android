@@ -17,17 +17,29 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredJarDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import javax.swing.JPanel
 
 class JarDependencyDetails(
   private val myContext: PsContext,
-  private val showScope: Boolean
+  showScope: Boolean
 ) : JarDependencyDetailsForm(), DependencyDetails {
 
   init {
     myScopeLabel.isVisible = showScope
-    myScopeText.isVisible = showScope
+    myScope.isVisible = showScope
+    myScope.addFocusListener(object: FocusAdapter() {
+      override fun focusLost(e: FocusEvent?) {
+        super.focusLost(e)
+        modifyConfiguration()
+      }
+    })
+    myScope.addActionListener {
+      modifyConfiguration()
+    }
   }
 
   private var myDependency: PsJarDependency? = null
@@ -41,7 +53,7 @@ class JarDependencyDetails(
     myNameText.text = myDependency!!.name
     myIncludesText.text = myDependency!!.includes.toString()
     myExcludesText.text = myDependency!!.excludes.toString()
-    myScopeText.text = myDependency!!.joinedConfigurationNames
+    myScope.text = myDependency!!.joinedConfigurationNames
   }
 
   override fun getSupportedModelType(): Class<PsJarDependency> {
@@ -50,5 +62,11 @@ class JarDependencyDetails(
 
   override fun getModel(): PsJarDependency? {
     return myDependency
+  }
+
+  // TODO(xof): duplicate code with {Module,SingleLibrary}DependencyDetails
+  fun modifyConfiguration() {
+    val module = myDependency!!.parent
+    module.modifyDependencyConfiguration(myDependency as PsDeclaredJarDependency, myScope.text)
   }
 }
