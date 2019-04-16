@@ -15,105 +15,111 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
+import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static icons.StudioIcons.Common.INFO_INLINE;
 
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.Function;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class JdkSetupStep extends FirstRunWizardStep {
-  @NotNull private String myUserSelectedJdkPath = "";
-  @NotNull private final ChangeListener myListener;
   private JPanel myRootPanel;
-  private JRadioButton myUseEmbeddedJdkRadioButton;
-  private JRadioButton myOtherRadioButton;
-  private TextFieldWithBrowseButton myJdkLocationTextField;
-  private JRadioButton myUseJavaHomeEnvironmentVariableRadioButton;
+  private ComboboxWithBrowseButton myJdkLocationComboBox;
+  private JLabel myJdkWarningLabel;
 
   public JdkSetupStep() {
     super("Select default JDK Location");
-
-    myListener = new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent event) {
-        String text = "";
-        boolean enableButton = false;
-        if (myUseJavaHomeEnvironmentVariableRadioButton.isSelected()) {
-          text = nullToEmpty(getJdkFromJavaHome());
-        }
-        else if (myUseEmbeddedJdkRadioButton.isSelected()) {
-          text = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
-        }
-        else if (myOtherRadioButton.isSelected()) {
-          text = myUserSelectedJdkPath;
-          enableButton = true;
-          myJdkLocationTextField.getTextField().requestFocus();
-        }
-        setJdkFieldText(text, enableButton);
-      }
-    };
-
-    myUseJavaHomeEnvironmentVariableRadioButton.addChangeListener(myListener);
-    myUseEmbeddedJdkRadioButton.addChangeListener(myListener);
-    myOtherRadioButton.addChangeListener(myListener);
-    myJdkLocationTextField.getButton().addActionListener(e -> chooseJdkLocation());
+    setUpJdkLocationComboBox();
+    setUpJdkWarningLabel();
     setComponent(myRootPanel);
   }
 
-  private void setJdkFieldText(String path, boolean enableButton) {
-    myJdkLocationTextField.setText(path);
-    myJdkLocationTextField.setEditable(false);
-    myJdkLocationTextField.getButton().setEnabled(enableButton);
-    myState.put(KEY_JDK_LOCATION, path);
+  private void setUpJdkWarningLabel() {
+    myJdkWarningLabel.setIconTextGap(0);
+    myJdkWarningLabel.setIcon(INFO_INLINE);
+    myJdkWarningLabel.setText(JDK_LOCATION_WARNING);
+    myJdkWarningLabel.setVisible(true);
+    myJdkWarningLabel.setEnabled(true);
+  }
+
+  private void setUpJdkLocationComboBox() {
+    FileChooserDescriptor descriptor = createSingleFolderDescriptor(file -> {
+      File validatedFile = validateJdkPath(file);
+      if (validatedFile == null) {
+        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
+      }
+      setJdkLocationComboBox(file);
+      return null;
+    });
+
+    myJdkLocationComboBox.addBrowseFolderListener(getProject(), descriptor);
+    JComboBox comboBox = myJdkLocationComboBox.getComboBox();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File embeddedPath = ideSdks.getEmbeddedJdkPath();
+    if (embeddedPath != null) {
+      File validatedPath = validateJdkPath(embeddedPath);
+      if (validatedPath != null) {
+        comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("Embedded JDK", validatedPath));
+      }
+    }
+    String javaHomePath = getJdkFromJavaHome();
+    if (javaHomePath != null) {
+      File validatedPath = validateJdkPath(new File(javaHomePath));
+      if (validatedPath != null) {
+        comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("JAVA_HOME", validatedPath));
+      }
+    }
+    comboBox.setEditable(true);
+    comboBox.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent event) {
+        if (event.getStateChange() == ItemEvent.SELECTED) {
+          Object selectedItem = event.getItem();
+          if (selectedItem instanceof IdeSdksConfigurable.LabelAndFileForLocation) {
+            ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((IdeSdksConfigurable.LabelAndFileForLocation)selectedItem).getFile()));
+          }
+        }
+      }
+    });
+    setJdkLocationComboBox(embeddedPath);
+  }
+
+  private void setJdkLocationComboBox(@Nullable File path) {
+    if (path == null) {
+      myJdkLocationComboBox.getComboBox().setSelectedItem(null);
+    }
+    else {
+      myJdkLocationComboBox.getComboBox().setSelectedItem(toSystemDependentName(path.getPath()));
+    }
+    setJdkWarningVisibility();
     updateIsValidPath();
   }
 
-  private void chooseJdkLocation() {
-    if (!myOtherRadioButton.isSelected()) {
-      // Show dialog only when "Other" option is selected
-      return;
-    }
-    myJdkLocationTextField.getTextField().requestFocus();
-
-    VirtualFile suggestedDir = null;
-    File jdkLocation = getUserSelectedJdkLocation();
-    if (jdkLocation.isDirectory()) {
-      suggestedDir = findFileByIoFile(jdkLocation, false);
-    }
-    VirtualFile chosen = chooseFile(createSingleFolderDescriptor(file -> {
-      if (validateJdkPath(file) == null) {
-        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
-      }
-      return null;
-    }), null, suggestedDir);
-    if (chosen != null) {
-      File validJdkLocation = validateJdkPath(virtualToIoFile(chosen));
-      assert validJdkLocation != null;
-      myUserSelectedJdkPath = validJdkLocation.getPath();
-      myJdkLocationTextField.setText(myUserSelectedJdkPath);
-      updateIsValidPath();
-    }
+  private void setJdkWarningVisibility() {
+    myJdkWarningLabel.setVisible(!isSameAsJavaHomeJdk(getJdkLocation()));
   }
 
   @NotNull
@@ -134,7 +140,6 @@ public class JdkSetupStep extends FirstRunWizardStep {
     return descriptor;
   }
 
-
   private void updateIsValidPath() {
     invokeUpdate(null);
   }
@@ -143,21 +148,18 @@ public class JdkSetupStep extends FirstRunWizardStep {
   private File validateJdkPath(@NotNull File file) {
     File possiblePath = IdeSdks.getInstance().validateJdkPath(file);
     if (possiblePath != null) {
-      myJdkLocationTextField.setText(possiblePath.getPath());
+      setJdkLocationComboBox(possiblePath);
       return possiblePath;
     }
     return null;
   }
 
-  @NotNull
-  private File getUserSelectedJdkLocation() {
-    return toSystemDependentPath(nullToEmpty(myUserSelectedJdkPath));
-  }
-
   @Override
   public void init() {
     // Apply default selection
-    myListener.stateChanged(null);
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File embeddedPath = ideSdks.getEmbeddedJdkPath();
+    setJdkLocationComboBox(embeddedPath);
   }
 
   @Nullable
@@ -180,7 +182,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
   }
 
   private boolean isValidJdkPath() {
-    return validateJdkPath(toSystemDependentPath(myJdkLocationTextField.getText())) != null;
+    return validateJdkPath(getJdkLocation()) != null;
   }
 
   @Override
@@ -188,18 +190,19 @@ public class JdkSetupStep extends FirstRunWizardStep {
     if (!isValidJdkPath()) {
       return false;
     }
-    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(getJdkLocation()));
+    File path = toSystemDependentPath(getJdkLocation().getPath());
+    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(path));
+    myState.put(KEY_JDK_LOCATION, path.getPath());
     return true;
   }
 
   @NotNull
   private File getJdkLocation() {
-    String jdkLocation = myJdkLocationTextField.getText();
-    return toSystemDependentPath(jdkLocation);
+    return getLocationFromComboBoxWithBrowseButton(myJdkLocationComboBox);
   }
 
   @Override
-  public boolean isStepVisible(){
-    return false;
+  public boolean isStepVisible() {
+    return StudioFlags.NPW_SHOW_JDK_STEP.get() && Boolean.TRUE.equals(myState.get(FirstRunWizard.KEY_CUSTOM_INSTALL));
   }
 }
