@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -88,18 +89,26 @@ public abstract class AbstractDeployTask implements LaunchTask {
   public LaunchResult run(@NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LogWrapper logger = new LogWrapper(LOG);
 
+    // Collection that will accumulate metrics for the deployment.
+    ArrayList<DeployMetric> metrics = new ArrayList<>();
+    // VM clock timestamp used to snap metric times to wall-clock time.
+    long vmClockStartNs = System.nanoTime();
+    // Wall-clock start time for the deployment.
+    long wallClockStartMs = System.currentTimeMillis();
+
     AdbClient adb = new AdbClient(device, logger);
-    Installer installer = new AdbInstaller(getLocalInstaller(), adb, logger);
+    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics, logger);
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
-    Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer, ideService, logger);
+    Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(),
+                                     installer, ideService, metrics, logger);
     List<String> idsSkippedInstall = new ArrayList<>();
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
       try {
         Deployer.Result result = perform(device, deployer, applicationId, apkFiles);
-        addSubTaskDetails(result.metrics);
+        addSubTaskDetails(metrics, vmClockStartNs, wallClockStartMs);
         if (result.skippedInstall) {
           idsSkippedInstall.add(applicationId);
         }
@@ -147,14 +156,18 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return myProject;
   }
 
-  private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics) {
+  private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics, long startNanoTime,
+                                 long startWallClockMs) {
     for (DeployMetric metric : metrics) {
       if (!metric.getName().isEmpty()) {
         LaunchTaskDetail.Builder detail = LaunchTaskDetail.newBuilder();
 
+        long startOffsetMs = TimeUnit.NANOSECONDS.toMillis(metric.getStartTimeNs() - startNanoTime);
+        long endOffsetMs = TimeUnit.NANOSECONDS.toMillis(metric.getEndTimeNs() - startNanoTime);
+
         detail.setId(getId() + "." + metric.getName())
-          .setStartTimestampMs(metric.getStartTimeMs())
-          .setEndTimestampMs(metric.getEndTimeMs())
+          .setStartTimestampMs(startWallClockMs + startOffsetMs)
+          .setEndTimestampMs(startWallClockMs + endOffsetMs)
           .setTid((int)metric.getThreadId());
 
         if (metric.hasStatus()) {
