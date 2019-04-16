@@ -21,8 +21,14 @@ import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import javax.swing.JPanel
 
 class JarDependencyDetails(
-  private val myContext: PsContext
+  private val myContext: PsContext,
+  private val showScope: Boolean
 ) : JarDependencyDetailsForm(), DependencyDetails {
+
+  init {
+    myScopeLabel.isVisible = showScope
+    myScopeText.isVisible = showScope
+  }
 
   private var myDependency: PsJarDependency? = null
 

@@ -108,7 +108,7 @@ internal class DeclaredDependenciesPanel(
 
   private fun initializeDependencyDetails() {
     addDetails(SingleDeclaredLibraryDependencyDetails(context))
-    addDetails(JarDependencyDetails(context))
+    addDetails(JarDependencyDetails(context, true))
     addDetails(ModuleDependencyDetails(context, true))
   }
 
