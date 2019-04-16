@@ -27,20 +27,17 @@ public class BuildEnvironment {
   private static BuildEnvironment ourInstance;
 
   @NotNull private final String myGradlePluginVersion;
-  @NotNull private final String myExperimentalPluginVersion;
   @NotNull private final String myBuildToolsVersion;
   private final int myCompileSdkVersion;
   private final int myTargetSdkVersion;
   private final int myMinSdkVersion;
 
   private BuildEnvironment(@NotNull String gradlePluginVersion,
-                           @NotNull String experimentalPluginVersion,
                            @NotNull String buildToolsVersion,
                            int compileSdkVersion,
                            int targetSdkVersion,
                            int minSdkVersion) {
     myGradlePluginVersion = gradlePluginVersion;
-    myExperimentalPluginVersion = experimentalPluginVersion;
     myBuildToolsVersion = buildToolsVersion;
     myCompileSdkVersion = compileSdkVersion;
     myTargetSdkVersion = targetSdkVersion;
@@ -52,7 +49,6 @@ public class BuildEnvironment {
     if (ourInstance == null) {
       ourInstance = new BuildEnvironment(
         AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion(),
-        AndroidPluginGeneration.COMPONENT.getLatestKnownVersion(),
         CURRENT_BUILD_TOOLS_VERSION,
         CURRENT_COMPILE_VERSION,
         CURRENT_COMPILE_VERSION,
@@ -65,11 +61,6 @@ public class BuildEnvironment {
   @NotNull
   public String getGradlePluginVersion() {
     return myGradlePluginVersion;
-  }
-
-  @NotNull
-  public String getExperimentalPluginVersion() {
-    return myExperimentalPluginVersion;
   }
 
   @NotNull
