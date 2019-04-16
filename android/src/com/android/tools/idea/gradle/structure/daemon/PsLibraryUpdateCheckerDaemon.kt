@@ -52,7 +52,7 @@ class PsLibraryUpdateCheckerDaemon(
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
-  private val beingSearchedIds: MutableSet<PsLibraryKey> = ContainerUtil.newConcurrentSet()
+  private val beingSearchedKeys: MutableSet<PsLibraryKey> = ContainerUtil.newConcurrentSet()
   private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
   private val runningLock: Lock = ReentrantLock()
 
@@ -77,7 +77,7 @@ class PsLibraryUpdateCheckerDaemon(
   @Slow
   private fun search(
     repositories: Collection<ArtifactRepository>,
-    ids: Collection<PsLibraryKey>
+    keys: Collection<PsLibraryKey>
   ) {
     val updateStorage = availableLibraryUpdateStorage
 
@@ -86,23 +86,23 @@ class PsLibraryUpdateCheckerDaemon(
       .retainAll {
         val searchTimeMillis = it.lastSearchTimeMillis
         (searchTimeMillis > 0 && TimeUnit.MILLISECONDS.toDays(currentTimeMillis - searchTimeMillis) < 3 &&
-         ids.contains(PsLibraryKey(it.groupId.orEmpty(), it.name.orEmpty())))
+         keys.contains(it.toLibraryKey()))
       }
-      .associateBy { it.groupId to it.name }
+      .associateBy { it.toLibraryKey() }
 
     val requests =
-      ids
-        .filter { !existingUpdateKeys.containsKey(it.group to it.name) && beingSearchedIds.add(it) }
+      keys
+        .filter { !existingUpdateKeys.containsKey(it) && beingSearchedKeys.add(it) }
         .toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
     val resultFutures = runningLock.withLock {
       if (isStopped) return@search
       // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
-      requests.map { id ->
-        val future = searcher.search(SearchRequest(SearchQuery(id.group, id.name), 1, 0))
+      requests.map { key ->
+        val future = searcher.search(SearchRequest(SearchQuery(key.group, key.name), 1, 0))
         runningSearches.add(future)
-        id to future
+        key to future
       }
     }
 
@@ -118,13 +118,13 @@ class PsLibraryUpdateCheckerDaemon(
       searchResults
         .flatMap {
           it.second?.artifacts?.nullize() ?: run {
-            val id = it.first
+            val key = it.first
             val result = it.second
-            if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", id.group, id.name, listOf())) else listOf()
+            if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", key.group, key.name, listOf())) else listOf()
           }
         }
     searchResults.forEach {
-      beingSearchedIds.remove(it.first)
+      beingSearchedKeys.remove(it.first)
     }
     foundArtifacts.forEach { updateStorage.addOrUpdate(it, currentTimeMillis) }
     resultsUpdaterQueue.queue(UpdatesAvailable())
@@ -133,11 +133,11 @@ class PsLibraryUpdateCheckerDaemon(
   private inner class RefreshAvailableUpdates : Update(project) {
     override fun run() {
       val repositories = mutableSetOf<ArtifactRepository>()
-      val ids = mutableSetOf<PsLibraryKey>()
+      val keys = mutableSetOf<PsLibraryKey>()
       invokeAndWaitIfNeeded(ModalityState.any()) {
         project.modules.forEach { module ->
           repositories.addAll(module.getArtifactRepositories())
-          ids.addAll(
+          keys.addAll(
             module
               .dependencies
               .libraries
@@ -145,8 +145,8 @@ class PsLibraryUpdateCheckerDaemon(
           )
         }
       }
-      if (!repositories.isEmpty() && !ids.isEmpty()) {
-        search(repositories, ids)
+      if (!repositories.isEmpty() && !keys.isEmpty()) {
+        search(repositories, keys)
       }
       else {
         resultsUpdaterQueue.queue(UpdatesAvailable())
