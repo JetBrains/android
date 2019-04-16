@@ -107,7 +107,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR_FORMAT = "Please choose a valid JDK %s directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
-  private static final String JDK_LOCATION_WARNING = "To use the same Gradle daemon between Android Studio and the command line, select JAVA_HOME from the drop-down";
+  public static final String JDK_LOCATION_WARNING = "To use the same Gradle daemon between Android Studio and the command line, select JAVA_HOME from the drop-down";
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
@@ -732,7 +732,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   @NotNull
-  private static File getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
+  public static File getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
     Object item = comboboxWithBrowseButton.getComboBox().getEditor().getItem();
     if (item instanceof LabelAndFileForLocation) {
       return ((LabelAndFileForLocation)item).getFile();
@@ -806,11 +806,11 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     place.putPath(SDKS_PLACE, mySelectedComponentId);
   }
 
-  static class LabelAndFileForLocation {
+  public static class LabelAndFileForLocation {
     @NotNull private String myLabel;
     @NotNull private File myFile;
 
-    LabelAndFileForLocation(@NotNull String label, @NotNull File file) {
+    public LabelAndFileForLocation(@NotNull String label, @NotNull File file) {
       myLabel = label;
       myFile = file;
     }
