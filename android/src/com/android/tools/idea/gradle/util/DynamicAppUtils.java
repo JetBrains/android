@@ -22,7 +22,7 @@ import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -187,7 +187,7 @@ public class DynamicAppUtils {
     if (result == UPDATE_BUTTON_INDEX) {
       ApplicationManager.getApplication().invokeLater(() -> {
         GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-        GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+        GradleVersion pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
         AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
         updater.updatePluginVersion(pluginVersion, gradleVersion);
       });

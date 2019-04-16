@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
@@ -51,8 +51,7 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
   @Override
   @Slow
   public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
-    AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
+    GradleVersion recommended = GradleVersion.parse(pluginInfo.getLatestKnownPluginVersionProvider().get());
 
     return shouldPreviewBeForcedToUpgradePluginVersion(recommended, pluginInfo.getPluginVersion());
   }
@@ -64,8 +63,9 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
       return false;
     }
 
-    AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
-    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
+    LatestKnownPluginVersionProvider latestKnownPluginVersionProvider = pluginInfo.getLatestKnownPluginVersionProvider();
+
+    GradleVersion recommended = GradleVersion.parse(latestKnownPluginVersionProvider.get());
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     syncState.syncEnded(); // Update the sync state before starting a new one.
@@ -83,12 +83,12 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
     }
     else {
       String[] text = {
-        "The project is using an incompatible version of the " + pluginGeneration.getDescription() + ".",
-        "Please update your project to use version " + pluginGeneration.getLatestKnownVersion() + "."
+        "The project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".",
+        "Please update your project to use version " + latestKnownPluginVersionProvider.get() + "."
       };
       SyncMessage msg = new SyncMessage(SyncMessage.DEFAULT_GROUP, ERROR, text);
 
-      String pluginName = AndroidPluginGeneration.getGroupId() + GRADLE_PATH_SEPARATOR + pluginGeneration.getArtifactId();
+      String pluginName = AndroidPluginInfo.GROUP_ID + GRADLE_PATH_SEPARATOR + AndroidPluginInfo.ARTIFACT_ID;
       NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(pluginName);
       msg.add(quickFix);
 
