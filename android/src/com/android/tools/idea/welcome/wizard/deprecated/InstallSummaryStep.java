@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -137,11 +141,20 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     mySummaryText.setText(builder.toString());
   }
 
+  @NotNull
   private Section getJdkFolderSection() {
-    String jdkLocation = myState.get(myKeyJdkLocation);
-    return new Section("JDK Location", jdkLocation);
+    String title = "JDK Location";
+    String jdkLocation = "";
+    if (StudioFlags.NPW_SHOW_JDK_STEP.get()) {
+      jdkLocation = myState.get(myKeyJdkLocation);
+    }
+    if (!isEmptyOrSpaces(jdkLocation)) {
+      if (!isSameAsJavaHomeJdk(new File(jdkLocation))) {
+        jdkLocation += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line)";
+      }
+    }
+    return new Section(title, jdkLocation);
   }
-
   private Section getSdkFolderSection() {
     File location = getSdkDirectory();
 
@@ -182,13 +195,13 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     @NotNull private final String myTitle;
     @NotNull private final String myText;
 
-    public Section(@NotNull String title, @Nullable String text) {
+    private Section(@NotNull String title, @Nullable String text) {
       myTitle = title;
       myText = StringUtil.notNullize(text);
     }
 
     public boolean isEmpty() {
-      return StringUtil.isEmptyOrSpaces(myText);
+      return isEmptyOrSpaces(myText);
     }
 
     public String toHtml() {
