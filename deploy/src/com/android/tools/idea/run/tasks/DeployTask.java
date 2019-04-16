@@ -94,6 +94,11 @@ public class DeployTask extends AbstractDeployTask {
 
   @NotNull
   @Override
+  public String getFailureTitle() { return "Installation did not succeed."; }
+
+
+  @NotNull
+  @Override
   protected String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all) {
     if (all) {
       return "App restart successful without requiring a re-install.";
