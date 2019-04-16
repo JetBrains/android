@@ -65,8 +65,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
 
-  private static final String FAILURE_TITLE = "Changes were not applied.\n";
-
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
   public AbstractDeployTask(
@@ -126,6 +124,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return new LaunchResult();
   }
 
+  abstract protected String getFailureTitle();
+
   abstract protected Deployer.Result perform(
     IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
@@ -175,7 +175,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     LaunchResult result = new LaunchResult();
     result.setSuccess(false);
 
-    StringBuilder bubbleError = new StringBuilder(FAILURE_TITLE);
+    StringBuilder bubbleError = new StringBuilder(getFailureTitle());
+    bubbleError.append("\n");
     bubbleError.append(e.getMessage());
 
     DeployerException.Error error = e.getError();
@@ -185,7 +186,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
     DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, error.getResolution());
     result.setError(bubbleError.toString());
-    result.setConsoleError(FAILURE_TITLE + e.getMessage() + "\n" + e.getDetails());
+    result.setConsoleError(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
     result.setConsoleHyperlink(error.getCallToAction(), hyperlinkInfo);
     result.setNotificationListener(new DeploymentErrorNotificationListener(error.getResolution(),
                                                                            hyperlinkInfo));
