@@ -30,12 +30,6 @@ public class AndroidPluginGenerationTest {
   }
 
   @Test
-  public void findWithComponentArtifactIdAndGroupId() {
-    AndroidPluginGeneration generation = AndroidPluginGeneration.find("gradle-experimental", "com.android.tools.build");
-    assertSame(AndroidPluginGeneration.COMPONENT, generation);
-  }
-
-  @Test
   public void findWithWRONGArtifactIdAndGroupId() {
     AndroidPluginGeneration generation = AndroidPluginGeneration.find("HELLO", "WORLD");
     assertNull(generation);
