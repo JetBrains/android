@@ -162,7 +162,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
     for (PsiReference reference : childReferences) {
       ModelClassResolvable ref = (ModelClassResolvable)reference;
       PsiModelClass resolvedType = ref.getResolvedType();
-      if (resolvedType != null) {
+      if (resolvedType != null && resolvedType.getPsiClass() != null) {
         resolvedType = resolvedType.getUnwrapped();
         for (PsiModelField psiModelField : resolvedType.getAllFields()) {
           if (onlyValidCompletions) {
@@ -170,9 +170,11 @@ public class DataBindingCompletionContributor extends CompletionContributor {
               continue;
             }
           }
+          // Pass resolvedType.getPsiClass into JavaLookupElementBuilder.forField as qualifierClass
+          // so that only fields declared in current class are bold.
           LookupElementBuilder lookupBuilder = JavaLookupElementBuilder
             .forField(psiModelField.getPsiField(), StringUtil.notNullize(psiModelField.getPsiField().getName()),
-                      psiModelField.getPsiField().getContainingClass())
+                      resolvedType.getPsiClass())
             .withTypeText(
               PsiFormatUtil.formatVariable(psiModelField.getPsiField(), PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY));
           resultBuilder.add(attachTracker(lookupBuilder));
@@ -205,7 +207,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
       if (reference instanceof ModelClassResolvable) {
         ModelClassResolvable ref = (ModelClassResolvable)reference;
         PsiModelClass resolvedType = ref.getResolvedType();
-        if (resolvedType == null) {
+        if (resolvedType == null || resolvedType.getPsiClass() == null) {
           continue;
         }
         resolvedType = resolvedType.getUnwrapped();
@@ -229,8 +231,10 @@ public class DataBindingCompletionContributor extends CompletionContributor {
               name = StringUtil.decapitalize(psiModelMethod.getName().substring(2));
             }
           }
+          // Pass resolvedType.getPsiClass into JavaLookupElementBuilder.forMethod as qualifierClass
+          // so that only methods declared in current class are bold.
           LookupElementBuilder lookupBuilder =
-            JavaLookupElementBuilder.forMethod(psiMethod, name, PsiSubstitutor.EMPTY, psiMethod.getContainingClass());
+            JavaLookupElementBuilder.forMethod(psiMethod, name, PsiSubstitutor.EMPTY, resolvedType.getPsiClass());
           resultBuilder.add(attachTracker(lookupBuilder));
         }
       }
