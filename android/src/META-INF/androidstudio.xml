@@ -20,6 +20,10 @@
     <component>
       <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
     </component>
+
+    <component>
+      <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>
+    </component>
   </application-components>
 
   <extensions defaultExtensionNs="com.intellij">
