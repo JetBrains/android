@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -27,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
@@ -66,11 +64,6 @@ public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null || !androidModel.getFeatures().isExternalBuildSupported()) {
       return false;
-    }
-
-    AndroidPluginGeneration pluginGeneration = AndroidPluginGeneration.find(module);
-    if (pluginGeneration == COMPONENT) {
-      return false; // Updating experimental plugin DSL is not yet supported.
     }
 
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);

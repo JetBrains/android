@@ -34,89 +34,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
 
-public abstract class AndroidPluginGeneration {
-  public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {
-    @Override
-    @NotNull
-    public String getArtifactId() {
-      return "gradle";
-    }
-
-    @Override
-    @NotNull
-    protected String getApplicationPluginId() {
-      return "com.android.application";
-    }
-
-    @Override
-    @NotNull
-    protected String getLibraryPluginId() {
-      return "com.android.library";
-    }
-
-    @Override
-    @NotNull
-    public String getLatestKnownVersion() {
-      return getLatestKnownVersion(this);
-    }
-
-    @Override
-    @NotNull
-    protected String getRecommendedVersion() {
-      return GRADLE_PLUGIN_RECOMMENDED_VERSION;
-    }
-
-    @Override
-    @NotNull
-    public String getDescription() {
-      return "Android Gradle plugin";
-    }
-  };
-
-  // This is the "experimental" plugin.
-  public static final AndroidPluginGeneration COMPONENT = new AndroidPluginGeneration() {
-    @Override
-    @NotNull
-    public String getArtifactId() {
-      return "gradle-experimental";
-    }
-
-    @Override
-    @NotNull
-    protected String getApplicationPluginId() {
-      return "com.android.model.application";
-    }
-
-    @Override
-    @NotNull
-    protected String getLibraryPluginId() {
-      return "com.android.model.library";
-    }
-
-    @Override
-    @NotNull
-    public String getLatestKnownVersion() {
-      return getLatestKnownVersion(this);
-    }
-
-    @Override
-    @NotNull
-    protected String getRecommendedVersion() {
-      return "";
-    }
-
-    @Override
-    @NotNull
-    public String getDescription() {
-      return "Android Gradle \"experimental\" plugin";
-    }
-  };
-
-  private static AndroidPluginGeneration[] ourValues = { ORIGINAL, COMPONENT };
+public class AndroidPluginGeneration {
+  public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration();
 
   /**
    * Indicates whether the given collection of plugin IDs contains the Android "app" plugin ID.
@@ -129,23 +51,29 @@ public abstract class AndroidPluginGeneration {
   }
 
   @NotNull
-  protected abstract String getApplicationPluginId();
+  protected String getApplicationPluginId() {
+    return "com.android.application";
+  }
 
-  protected abstract String getLibraryPluginId();
+  @NotNull
+  protected String getLibraryPluginId() {
+    return "com.android.library";
+  }
+
 
   public boolean isAndroidPlugin(@NotNull String artifactId, @Nullable String groupId) {
     return getArtifactId().equals(artifactId) && getGroupId().equals(groupId);
   }
 
   @NotNull
-  public abstract String getArtifactId();
+  public String getArtifactId() {
+    return "gradle";
+  }
 
   @Nullable
   public static AndroidPluginGeneration find(@NotNull String artifactId, @Nullable String groupId) {
-    for (AndroidPluginGeneration generation : ourValues) {
-      if (generation.isAndroidPlugin(artifactId, groupId)) {
-        return generation;
-      }
+    if (ORIGINAL.isAndroidPlugin(artifactId, groupId)) {
+      return ORIGINAL;
     }
     return null;
   }
@@ -155,18 +83,13 @@ public abstract class AndroidPluginGeneration {
     return "com.android.tools.build";
   }
 
-  @NotNull
-  public static AndroidPluginGeneration[] values() {
-    return ourValues;
-  }
-
   @Nullable
   public static AndroidPluginGeneration find(@NotNull Module module) {
     AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     if (gradleModel != null) {
       try {
-        // only true for experimental plugin 0.6.0-betaX (or whenever the getPluginGeneration() was added) or later.
-        return gradleModel.getAndroidProject().getPluginGeneration() == GENERATION_COMPONENT ? COMPONENT : ORIGINAL;
+        gradleModel.getAndroidProject().getPluginGeneration();
+        return ORIGINAL;
       }
       catch (UnsupportedOperationException t) {
         // happens for 2.0.0-alphaX or earlier stable version plugins and 0.6.0-alphax or earlier experimental plugin versions.
@@ -177,10 +100,8 @@ public abstract class AndroidPluginGeneration {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
       List<String> appliedPlugins = PluginModel.extractNames(buildModel.plugins());
-      for (AndroidPluginGeneration generation : ourValues) {
-        if (appliedPlugins.contains(generation.getApplicationPluginId()) || appliedPlugins.contains(generation.getLibraryPluginId())) {
-          return generation;
-        }
+      if (appliedPlugins.contains(ORIGINAL.getApplicationPluginId()) || appliedPlugins.contains(ORIGINAL.getLibraryPluginId())) {
+        return ORIGINAL;
       }
     }
 
@@ -188,7 +109,9 @@ public abstract class AndroidPluginGeneration {
   }
 
   @NotNull
-  public abstract String getLatestKnownVersion();
+  public String getLatestKnownVersion() {
+    return getLatestKnownVersion(this);
+  }
 
   @NotNull
   protected String getLatestKnownVersion(@NotNull AndroidPluginGeneration generation) {
@@ -213,7 +136,10 @@ public abstract class AndroidPluginGeneration {
   }
 
   @NotNull
-  protected abstract String getRecommendedVersion();
+  protected String getRecommendedVersion() {
+    return GRADLE_PLUGIN_RECOMMENDED_VERSION;
+  }
+
 
   @NotNull
   private Logger getLog() {
@@ -221,5 +147,7 @@ public abstract class AndroidPluginGeneration {
   }
 
   @NotNull
-  public abstract String getDescription();
+  public String getDescription() {
+    return "Android Gradle plugin";
+  }
 }
