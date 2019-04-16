@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
@@ -28,9 +29,11 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
@@ -40,6 +43,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +72,17 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     // There is no need to add whitespace on the top
     mySummaryText.setBorder(new EmptyBorder(0, WizardConstants.STUDIO_WIZARD_INSET_SIZE, WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                             WizardConstants.STUDIO_WIZARD_INSET_SIZE));
+    mySummaryText.addHyperlinkListener(new HyperlinkListener() {
+      @Override
+      public void hyperlinkUpdate(HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          URL url = event.getURL();
+          if (url != null) {
+            BrowserUtil.browse(url);
+          }
+        }
+      }
+    });
     setComponent(myRoot);
   }
 
@@ -150,7 +166,8 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     }
     if (!isEmptyOrSpaces(jdkLocation)) {
       if (!isSameAsJavaHomeJdk(new File(jdkLocation))) {
-        jdkLocation += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line)";
+        jdkLocation += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line. " +
+                       "<a href=\"" + JDK_LOCATION_WARNING_URL + "\">More info...</a>)";
       }
     }
     return new Section(title, jdkLocation);
