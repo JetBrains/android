@@ -15,7 +15,7 @@
  * limitations under the License.
  *
   -->
-<idea-plugin url="https://www.jetbrains.com/idea">
+<idea-plugin>
 <!--
   <application-components>
     <component>
