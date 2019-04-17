@@ -50,15 +50,14 @@ class SynchronizationManager(facet: AndroidFacet)
     return AndroidResourceUtil
         .getResourceSubdirs(ResourceFolderType.DRAWABLE, resourcesDirectories)
         .flatMap { it.allChildren() }
-        .associate { it.sha1() to it }.toMutableMap()
+        .associate { sha1(it) to it }.toMutableMap()
   }
 
   /**
    * Check if the files in [assetSet] are synchronized with the resources of the [AndroidFacet]
    */
   fun getSynchronizationStatus(assetSet: DesignAssetSet): SynchronizationStatus {
-    val syncedFilesCount = assetSet.designAssets.count { hashToFile.containsKey(it.file.sha1()) }
-    return when (syncedFilesCount) {
+    return when (assetSet.designAssets.count { hashToFile.containsKey(sha1(it.file)) }) {
       assetSet.designAssets.size -> SynchronizationStatus.SYNCED
       0 -> SynchronizationStatus.NOT_SYNCED
       else -> SynchronizationStatus.PARTIALLY_SYNCED
@@ -81,7 +80,7 @@ class SynchronizationManager(facet: AndroidFacet)
 
   override fun fileCreated(event: VirtualFileEvent) {
     if (isModuleResourceFile(event.file)) {
-      hashToFile.put(event.file.sha1(), event.file)
+      hashToFile.put(sha1(event.file), event.file)
       notifyResourceCreated(event.file)
     }
   }
@@ -142,6 +141,6 @@ interface SynchronizationListener {
 private fun VirtualFile.allChildren(): List<VirtualFile> =
     if (!isDirectory) listOf(this) else children.flatMap { it.allChildren() }
 
-private fun VirtualFile.sha1(): String {
-  return String(DigestUtil.sha1().digest(this.contentsToByteArray()))
+private fun sha1(virtualFile: VirtualFile): String {
+  return DigestUtil.sha1().digest(virtualFile.contentsToByteArray()).toString(Charsets.UTF_8)
 }
