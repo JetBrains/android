@@ -98,8 +98,8 @@
         <stepElement>
           <section>
             <![CDATA[If your device appears below after restarting the ADB server, try deploying your app to the device.
-            If you continue to experience issues, please <a href="https://issuetracker.google.com/issues/new?component=328290&template=1">
-            submit a bug report</a>.]]>
+            If you continue to experience issues, read about additional steps you can try to
+            <a href="https://d.android.com/r/studio-ui/troubleshoot-usb-connection">resolve USB connection issues</a>.]]>
           </section>
         </stepElement>
         <stepElement>
