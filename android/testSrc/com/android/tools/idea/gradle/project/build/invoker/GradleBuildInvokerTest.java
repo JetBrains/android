@@ -261,7 +261,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     return tasks;
   }
 
-  private static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {
+  static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {
     @NotNull private final GradleTasksExecutor myTasksExecutor;
     private GradleBuildInvoker.Request myRequest;
 
