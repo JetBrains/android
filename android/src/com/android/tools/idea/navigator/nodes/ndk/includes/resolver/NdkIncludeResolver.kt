@@ -47,9 +47,11 @@ class NdkIncludeResolver : IncludeResolver() {
       // Contains NDK native app glue header files
       literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/native_app_glue(/.*))$", "Native App Glue"),
       // Contains NDK helper files
-      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/ndk_helper(/.*))$", "NDK Helper"),
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/ndk_helper(/.*))$", "Helper"),
+      // Contains NDK helper files
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sources/android/support(/.*))$", "Support"),
       // Contains header files for Android sysroot
-      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sysroot(/.*))$", "Android Sysroot"))
+      literalNamed("^(?<home>{NDKFOLDER})(?<relative>/sysroot(/.*))$", "Sysroot"))
       .flatten()
   }
 

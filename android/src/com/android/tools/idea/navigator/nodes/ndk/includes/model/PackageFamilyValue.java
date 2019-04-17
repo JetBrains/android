@@ -46,6 +46,12 @@ public class PackageFamilyValue extends ClassifiedIncludeValue {
     myIncludes = ImmutableList.copyOf(includes);
   }
 
+  @NotNull
+  @Override
+  public String getPackageDescription() {
+    return myKey.getDescription();
+  }
+
   @Override
   public String toString() {
     return String.format("%s (%s)", myKey.getDescription(), getPackageFamilyBaseFolder());
