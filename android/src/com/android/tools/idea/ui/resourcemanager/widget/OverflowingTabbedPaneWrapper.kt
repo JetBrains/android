@@ -71,6 +71,9 @@ class OverflowingTabbedPaneWrapper : JComponent() {
   }
 
   init {
+    background = tabbedPane.background
+    tabbedPane.isOpaque = false
+    isOpaque = true
     add(overflowButton)
     add(tabbedPane)
     enableEvents(AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK)
