@@ -28,7 +28,7 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final Key<Boolean> KEY = Key.create(ID);
 
-  public static final String NAME = "Apply Changes";
+  public static final String NAME = "Apply Changes and Restart Activity";
 
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
