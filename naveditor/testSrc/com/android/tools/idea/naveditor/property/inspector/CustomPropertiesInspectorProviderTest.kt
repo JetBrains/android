@@ -28,35 +28,42 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
-import com.intellij.openapi.command.WriteCommandAction
 
 class CustomPropertiesInspectorProviderTest : NavTestCase() {
   fun testCustomPropertiesInspector() {
-    WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.addClass("import androidx.navigation.*;\n" +
-                         "\n" +
-                         "@Navigator.Name(\"mycustomdestination\")\n" +
-                         "public class CustomNavigator extends Navigator<CustomNavigator.Destination> {\n" +
-                         "  public static class Destination extends NavDestination {}\n" +
-                         "}\n")
-      myFixture.addClass("import androidx.navigation.*;\n" +
-                         "\n" +
-                         "@Navigator.Name(\"mycustomactivity\")\n" +
-                         "public class CustomActivityNavigator extends ActivityNavigator {}\n")
-      myFixture.addFileToProject("res/values/attrs2.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                         "<resources>\n" +
-                                                         "    <declare-styleable name=\"CustomNavigator\">\n" +
-                                                         "        <attr format=\"string\" name=\"myString\"/>\n" +
-                                                         "        <attr format=\"boolean\" name=\"myBoolean\"/>\n" +
-                                                         "        <attr format=\"integer\" name=\"myInteger\"/>\n" +
-                                                         "    </declare-styleable>\n" +
-                                                         "    <declare-styleable name=\"CustomActivityNavigator\">\n" +
-                                                         "        <attr format=\"string\" name=\"myString2\"/>\n" +
-                                                         "        <attr format=\"boolean\" name=\"myBoolean2\"/>\n" +
-                                                         "        <attr format=\"integer\" name=\"myInteger2\"/>\n" +
-                                                         "    </declare-styleable>\n" +
-                                                         "</resources>\n")
-    }
+    myFixture.addClass("""
+      import androidx.navigation.*;
+
+      @Navigator.Name("mycustomdestination")
+      public class CustomNavigator extends Navigator<CustomNavigator.Destination> {
+        public static class Destination extends NavDestination {}
+      }
+      """.trimIndent())
+
+    myFixture.addClass("""
+      import androidx.navigation.*;
+
+      @Navigator.Name("mycustomactivity")
+      public class CustomActivityNavigator extends ActivityNavigator {}
+      """.trimIndent())
+
+    val psiFile = myFixture.addFileToProject("res/values/attrs2.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <resources>
+          <declare-styleable name="CustomNavigator">\
+              <attr format="string" name="myString"/>
+              <attr format="boolean" name="myBoolean"/>
+              <attr format="integer" name="myInteger"/>
+          </declare-styleable>
+          <declare-styleable name="CustomActivityNavigator">\
+              <attr format="string" name="myString2"/>
+              <attr format="boolean" name="myBoolean2"/>
+              <attr format="integer" name="myInteger2"/>
+          </declare-styleable>
+      </resources>
+      """.trimIndent())
+    assertTrue(psiFile.isValid)
+
     ResourceRepositoryManager.getAppResources(myFacet).sync()
 
     // Temporary logging to help diagnose sporadic test failures
