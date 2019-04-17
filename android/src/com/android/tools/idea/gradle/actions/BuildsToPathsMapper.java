@@ -97,7 +97,8 @@ public class BuildsToPathsMapper {
 
     if (postBuildModel != null) {
 
-      if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+      if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP ||
+          androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
         if (isAppBundle) {
           outputFolderOrFile = tryToGetOutputPostBuildBundleFile(module, postBuildModel, buildVariant);
         }
