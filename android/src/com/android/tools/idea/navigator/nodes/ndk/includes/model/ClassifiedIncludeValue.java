@@ -31,9 +31,7 @@ abstract public class ClassifiedIncludeValue extends IncludeValue {
   public abstract PackageType getPackageType();
 
   @NotNull
-  public String getPackageDescription() {
-    return getPackageType().myDescription;
-  }
+  public abstract String getPackageDescription();
 
   /**
    * The home folder for the packaging system that owns this include expression.
