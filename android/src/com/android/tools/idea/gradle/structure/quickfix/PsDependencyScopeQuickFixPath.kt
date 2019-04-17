@@ -69,7 +69,7 @@ data class PsDependencyScopeQuickFixPath(
 
     dependencies
       .filter { it.configurationName == oldConfigurationName }
-      .forEach { module.modifyDependencyConfiguration(it, oldConfigurationName, newConfigurationName) }
+      .forEach { module.modifyDependencyConfiguration(it, newConfigurationName) }
   }
 
   override fun toString(): String = "$dependencyKey ($oldConfigurationName)"

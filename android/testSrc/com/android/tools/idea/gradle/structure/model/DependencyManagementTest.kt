@@ -572,7 +572,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(libraryDependency, notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), nullValue())
 
-    module.modifyDependencyConfiguration(libraryDependency!!.first(), oldConfigurationName = "implementation", newConfigurationName = "compile")
+    module.modifyDependencyConfiguration(libraryDependency!!.first(), newConfigurationName = "compile")
 
     assertThat(module.isModified, equalTo(true))
     assertThat(project.isModified, equalTo(true))

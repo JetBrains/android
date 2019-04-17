@@ -153,23 +153,11 @@ abstract class PsModule protected constructor(
     isModified = true
   }
 
-  fun modifyDependencyConfiguration(
-    dependency: PsDeclaredDependency,
-    oldConfigurationName: String,
-    newConfigurationName: String
-  ) {
+  fun modifyDependencyConfiguration(dependency: PsDeclaredDependency, newConfigurationName: String) {
     dependency.parsedModel.setConfigurationName(newConfigurationName)
 
     resetDependencies()
 
-    // TODO(xof): do we need the complexity below...?
-    // TODO(xof): assumes LibraryDependency.  generalize
-    //    val spec = (dependency as PsLibraryDependency).spec
-    //    fireDependencyModifiedEvent(lazy {
-    //      dependencies.findLibraryDependencies(spec.group, spec.name)
-    //        .firstOrNull { it.spec == spec && it.configurationName == oldConfigurationName }
-    //    })
-    // TODO(xof): ... because this seems to work?
     fireDependencyModifiedEvent(lazy { dependency } )
     isModified = true
   }
