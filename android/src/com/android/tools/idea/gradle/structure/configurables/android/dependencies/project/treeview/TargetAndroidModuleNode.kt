@@ -40,8 +40,6 @@ class TargetAndroidModuleNode internal constructor(
 
   override fun getText(): String = myName
 
-  override fun customize(renderer: HtmlListCellRenderer<*>) {}
-
   override fun customize(component: SimpleColoredComponent) {
     if (!isEmpty(version)) {
       component.append(" ")
