@@ -58,6 +58,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
@@ -337,7 +338,7 @@ class ResourceExplorerView(
   private fun createEmptySection() = AssetSection<DesignAssetSet>(
     resourcesBrowserViewModel.facet.module.name, null,
     AssetListView(emptyList(), null).apply {
-      setEmptyText("No ${resourcesBrowserViewModel.selectedTabName.toLowerCase()} available")
+      setEmptyText("No ${resourcesBrowserViewModel.selectedTabName.toLowerCase(Locale.US)} available")
       background = this@ResourceExplorerView.background
     })
 
