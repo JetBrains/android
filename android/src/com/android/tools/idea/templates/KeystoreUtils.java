@@ -29,6 +29,7 @@ import com.google.common.io.BaseEncoding;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
+import com.intellij.util.io.DigestUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -170,7 +170,7 @@ public class KeystoreUtils {
                             @Nullable/*When default android keystore password should be used*/ String keyStorePassword) throws Exception {
     Certificate signingCert = getCertificate(keyStoreFile, keyAlias, keyStorePassword);
     try {
-      byte[] certBytes = MessageDigest.getInstance("SHA1").digest(signingCert.getEncoded());
+      byte[] certBytes = DigestUtil.sha1().digest(signingCert.getEncoded());
       // Add a separator every 2 characters (i.e. every byte from hash)
       return BaseEncoding.base16().withSeparator(":", 2).encode(certBytes);
     }

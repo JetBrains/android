@@ -30,6 +30,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.io.DigestUtil;
 import io.grpc.*;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
@@ -38,7 +39,6 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,17 +100,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
   @NotNull
   private static Common.Device profilerDeviceFromIDevice(@NotNull IDevice device, @NotNull Common.Device.Builder builder) {
     long device_id;
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      digest.update(builder.getBootId().getBytes());
-      digest.update(device.getSerialNumber().getBytes());
-      device_id = ByteBuffer.wrap(digest.digest()).getLong();
-    }
-    catch (NoSuchAlgorithmException e) {
-      getLog().info("SHA-256 is not available", e);
-      // Randomly generate an id if we cannot SHA.
-      device_id = new Random(System.currentTimeMillis()).nextLong();
-    }
+    MessageDigest digest = DigestUtil.sha256();
+    digest.update(builder.getBootId().getBytes());
+    digest.update(device.getSerialNumber().getBytes());
+    device_id = ByteBuffer.wrap(digest.digest()).getLong();
 
     return builder.setDeviceId(device_id)
       .setSerial(device.getSerialNumber())
