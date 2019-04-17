@@ -56,21 +56,20 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public NewModuleWizardFixture setModuleName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).deleteText().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(name);
     return this;
   }
 
   @NotNull
   public NewModuleWizardFixture setFileName(String name) {
     TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
-    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).deleteText().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).setText(name);
     return this;
   }
 
   @NotNull
   public NewModuleWizardFixture setSubprojectName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class))
-      .deleteText().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class)).setText(name);
     return this;
   }
 
