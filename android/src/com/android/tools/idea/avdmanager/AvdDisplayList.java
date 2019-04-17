@@ -66,7 +66,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   private static final String MOBILE_TAG_STRING = "mobile-device";
 
-  private final Project myProject;
+  @Nullable private final Project myProject;
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
   private final AvdListDialog myDialog;
