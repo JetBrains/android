@@ -35,6 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiReference
 import com.intellij.psi.util.PsiTreeUtil
+import java.util.Locale
 
 /**
  * Inspection for the RoomSql language that only does something when running on a PSI file that's injected into a Room query.
@@ -103,7 +104,7 @@ class RoomUnresolvedReferenceInspection : RoomQueryOnlyInspection() {
        */
       private fun isRowIdReference(reference: PsiReference): Boolean {
         return if (reference is RoomColumnPsiReference) {
-          when (reference.element.nameAsString.toLowerCase()) {
+          when (reference.element.nameAsString.toLowerCase(Locale.US)) {
             "rowid", "_rowid_", "oid" -> true
             "docid" -> true // TODO(b/120407095): do this only in FTS tables.
             else -> false
