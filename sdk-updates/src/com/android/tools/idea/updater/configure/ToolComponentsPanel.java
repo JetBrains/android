@@ -92,20 +92,18 @@ public class ToolComponentsPanel {
     myToolsSummaryRootNode.removeAllChildren();
     myStates.clear();
 
-    ParentTreeNode mavenSummaryParent = new ParentTreeNode("Support Repository");
-    ParentTreeNode mavenDetailsParent = new ParentTreeNode("Support Repository");
-
     for (String prefix : myMultiVersionPackages.keySet()) {
       Collection<UpdatablePackage> versions = myMultiVersionPackages.get(prefix);
       Set<DetailsTreeNode> detailsNodes = new TreeSet<>();
-      boolean isMaven = false;
       for (UpdatablePackage info : versions) {
         RepoPackage representative = info.getRepresentative();
         if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
           continue;
         }
         if (representative.getTypeDetails() instanceof DetailsTypes.MavenType) {
-          isMaven = true;
+          // Maven repository in the SDK manager is deprecated. So we should not visualise it here.
+          // TODO: Mark the packages as deprecated on the server side.
+          continue;
         }
 
         PackageNodeModel model = new PackageNodeModel(info);
@@ -115,21 +113,11 @@ public class ToolComponentsPanel {
       }
       if (!detailsNodes.isEmpty()) {
         MultiVersionTreeNode summaryNode = new MultiVersionTreeNode(detailsNodes);
-        if (isMaven) {
-          mavenSummaryParent.add(summaryNode);
-        }
-        else {
-          myToolsSummaryRootNode.add(summaryNode);
-        }
+        myToolsSummaryRootNode.add(summaryNode);
 
         UpdaterTreeNode multiVersionParent = new ParentTreeNode(summaryNode.getDisplayName());
         detailsNodes.forEach(multiVersionParent::add);
-        if (isMaven) {
-          mavenDetailsParent.add(multiVersionParent);
-        }
-        else {
-          myToolsDetailsRootNode.add(multiVersionParent);
-        }
+        myToolsDetailsRootNode.add(multiVersionParent);
       }
     }
     for (UpdatablePackage info : myToolsPackages) {
@@ -137,28 +125,19 @@ public class ToolComponentsPanel {
       if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
         continue;
       }
+      boolean isMaven = info.getPath().endsWith(RepoPackage.PATH_SEPARATOR + MavenInstallListener.MAVEN_DIR_NAME);
+      if (isMaven) {
+        continue;
+      }
+
       PackageNodeModel holder = new PackageNodeModel(info);
       myStates.add(holder);
       UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
-      boolean isMaven = info.getPath().endsWith(RepoPackage.PATH_SEPARATOR + MavenInstallListener.MAVEN_DIR_NAME);
-      if (isMaven) {
-        mavenDetailsParent.add(node);
-      }
-      else {
-        myToolsDetailsRootNode.add(node);
-      }
+      myToolsDetailsRootNode.add(node);
       UpdaterTreeNode summaryNode = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
-      if (isMaven) {
-        mavenSummaryParent.add(summaryNode);
-      }
-      else {
-        myToolsSummaryRootNode.add(summaryNode);
-      }
+      myToolsSummaryRootNode.add(summaryNode);
     }
-    if (mavenSummaryParent.getChildCount() > 0) {
-      myToolsSummaryRootNode.add(mavenSummaryParent);
-      myToolsDetailsRootNode.add(mavenDetailsParent);
-    }
+
     refreshModified();
     SdkUpdaterConfigPanel.resizeColumnsToFit(myToolsDetailTable);
     SdkUpdaterConfigPanel.resizeColumnsToFit(myToolsSummaryTable);
