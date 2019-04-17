@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.attachTracker
+import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.Companion.attachTracker
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -37,6 +37,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.Companion as DataBindingCompletionContributor
 
 /**
  * A collection of various code completion tests that verify data binding completions work as
