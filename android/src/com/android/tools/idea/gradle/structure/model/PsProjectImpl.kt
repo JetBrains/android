@@ -28,6 +28,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import java.util.Locale
 import java.util.function.Consumer
 import javax.swing.Icon
 
@@ -84,7 +85,7 @@ class PsProjectImpl(
     moduleCollection.firstOrNull { it -> it.gradlePath == gradlePath }
 
   override fun forEachModule(consumer: Consumer<PsModule>) {
-    moduleCollection.sortedBy { it.name.toLowerCase() }.forEach(consumer)
+    moduleCollection.sortedBy { it.name.toLowerCase(Locale.US) }.forEach(consumer)
   }
 
   override fun removeModule(gradlePath: String) {
