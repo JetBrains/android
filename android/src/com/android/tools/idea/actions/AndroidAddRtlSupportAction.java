@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
 
   public AndroidAddRtlSupportAction() {
-    super("Add right-to-left (RTL) support...");
+    super("Add Right-to-Left (RTL) Support...");
   }
 
   @Override
