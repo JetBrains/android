@@ -34,11 +34,14 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludeP
  */
 data class PackageValue(
   private val key: PackageKey,
+  val description : String,
   val includes: List<SimpleIncludeValue>) : ClassifiedIncludeValue() {
 
   // Relative path that is common to the complete set of includes.
   private val commonRelativeFolder : String
     get() =  findCommonParentFolder(includes.map { it.relativeIncludeSubFolder } )
+
+  override fun getPackageDescription() = description
 
   val descriptiveText: String
     get() {

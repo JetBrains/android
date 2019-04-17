@@ -22,6 +22,13 @@ import java.util.List;
 
 public class RealWorldExamples {
 
+  public final static String[] NDK_R18_SXS_EXAMPLE = {
+    "-I/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045/sysroot/usr/include",
+    "-I/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045/sources/cxx-stl/llvm-libc++/include",
+    "-I/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045/sources/android/support/include",
+    "-I/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045/sources/cxx-stl/llvm-libc++abi/include",
+    "-I/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045/sysroot/usr/include/i686-linux-android"
+  };
 
   public final static String[] NDK_R19_LEGACY_EXAMPLE = {
     "--sysroot={ndkPath}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"

@@ -58,7 +58,7 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.getSimplePackageName()).isEqualTo("Android Sysroot");
+    assertThat(resolution.getSimplePackageName()).isEqualTo("Sysroot");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sysroot/usr/include/aarch64-linux-android/");
 
@@ -219,7 +219,7 @@ public class NdkIncludeResolverTest {
     SimpleIncludeValue resolution = resolutions.get(0);
     assertThat(resolution).isNotNull();
     assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
-    assertThat(resolution.getSimplePackageName()).isEqualTo("NDK Helper");
+    assertThat(resolution.getSimplePackageName()).isEqualTo("Helper");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/sources/android/ndk_helper/");
     assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(PATH_TO_NDK);
@@ -238,7 +238,7 @@ public class NdkIncludeResolverTest {
           dependencies.add(nativeDependency);
         }
       }
-      List<IncludeValue> organizedIncludeValues = IncludeValues.organize(dependencies);
+      List<IncludeValue> organizedIncludeValues = IncludeValues.INSTANCE.organize(dependencies);
       assertThat(organizedIncludeValues).isNotEmpty();
     }
   }

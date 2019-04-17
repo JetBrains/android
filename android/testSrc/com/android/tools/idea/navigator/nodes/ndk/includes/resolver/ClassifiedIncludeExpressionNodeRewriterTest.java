@@ -240,7 +240,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
                           "jni (Include Folders, /path/to/ndk-bundle/samples/Teapot/jni, /)",
                           "NDK Components (/path/to/ndk-bundle)",
                           "    CPU Features (NDK Components, /path/to/ndk-bundle, /sources/android/cpufeatures/)",
-                          "    NDK Helper (NDK Components, /path/to/ndk-bundle, /sources/android/ndk_helper/)",
+                          "    Helper (NDK Components, /path/to/ndk-bundle, /sources/android/ndk_helper/)",
                           "    Native App Glue (NDK Components, /path/to/ndk-bundle, /sources/android/native_app_glue/)",
                           "    android-21 (NDK Components, /path/to/ndk-bundle, /platforms/android-21/arch-arm64/usr/include/)",
                           "    gabi++ (NDK Components, /path/to/ndk-bundle, /sources/cxx-stl/gabi++/include/)",
@@ -258,11 +258,31 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
                           "NDK r19c (/usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600)",
                           "LLVM (NDK r19c, /usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600, " +
                           "/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/usr/include/)");
+  }
+
+  @Test
+  public void testNdk18SxsExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.NDK_R18_SXS_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.println(result);
+    assertThat(dependencies).hasSize(1);
+    assertContainsInOrder(result,
+                          "NDK r18b (/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045)",
+                          "    Support (NDK r18b, /usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045, /sources/android/support/include/)",
+                          "    Sysroot (NDK, sysroot/usr/include)");
   }
 
   @Test
@@ -376,6 +396,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
       assert resolved != null;
       simpleIncludes.add(resolved);
     }
-    return IncludeValues.organize(simpleIncludes);
+    return IncludeValues.INSTANCE.organize(simpleIncludes);
   }
 }
