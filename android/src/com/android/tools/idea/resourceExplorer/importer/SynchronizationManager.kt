@@ -21,9 +21,9 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.*
+import com.intellij.util.io.DigestUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
-import java.security.MessageDigest
 
 /**
  * Manager to keep track of the differences between the facet's modules' resources and
@@ -143,6 +143,5 @@ private fun VirtualFile.allChildren(): List<VirtualFile> =
     if (!isDirectory) listOf(this) else children.flatMap { it.allChildren() }
 
 private fun VirtualFile.sha1(): String {
-  return String(MessageDigest.getInstance("SHA1")
-      .digest(this.contentsToByteArray()))
+  return String(DigestUtil.sha1().digest(this.contentsToByteArray()))
 }

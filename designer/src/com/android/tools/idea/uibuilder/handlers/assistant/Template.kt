@@ -20,13 +20,13 @@ import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
 import com.android.tools.idea.util.dependsOnOldSupportLib
 import com.intellij.openapi.module.Module
+import com.intellij.util.io.DigestUtil
 import libcore.io.Streams
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.security.MessageDigest
 
 private fun hash(content: String): ByteArray =
-  MessageDigest.getInstance("SHA-1").digest(content.toByteArray(Charsets.UTF_8))
+  DigestUtil.sha1().digest(content.toByteArray(Charsets.UTF_8))
 
 internal enum class TemplateTag {
   /** This template only supports the old version of the androidx */
@@ -67,7 +67,7 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
   fun availableFor(module: Module): Boolean = tags.all { it.availableFor(module) }
 
   fun hasSameContent(content: String?): Boolean {
-    return !content.isNullOrBlank() && content!!.length == myTemplate.length && hash.contentEquals(hash(content))
+    return !content.isNullOrBlank() && content.length == myTemplate.length && hash.contentEquals(hash(content))
   }
 
   fun hasTag(tag : TemplateTag) = tags.contains(tag)
