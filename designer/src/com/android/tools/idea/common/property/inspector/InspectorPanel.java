@@ -460,8 +460,8 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
 
   private static class ExpandableGroup {
     private static final String KEY_PREFIX = "inspector.open.";
-    private static final Icon EXPANDED_ICON = (Icon)UIManager.get("Tree.expandedIcon");
-    private static final Icon COLLAPSED_ICON = (Icon)UIManager.get("Tree.collapsedIcon");
+    private static final Icon EXPANDED_ICON = UIUtil.getTreeExpandedIcon();
+    private static final Icon COLLAPSED_ICON = UIUtil.getTreeCollapsedIcon();
     private final JLabel myLabel;
     private final ExpandableGroup myParent;
     private final List<Component> myComponents;

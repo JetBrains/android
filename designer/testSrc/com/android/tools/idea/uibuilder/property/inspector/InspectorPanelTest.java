@@ -262,10 +262,10 @@ public class InspectorPanelTest extends PropertyTestCase {
   private Boolean isGroupOpen(@NotNull String labelName) {
     JLabel label = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(labelName)));
     assert label != null : "Cannot find label for group property: " + labelName;
-    if (Objects.equals(label.getIcon(), UIManager.get("Tree.expandedIcon"))) {
+    if (Objects.equals(label.getIcon(), UIUtil.getTreeExpandedIcon())) {
       return Boolean.TRUE;
     }
-    if (Objects.equals(label.getIcon(), UIManager.get("Tree.collapsedIcon"))) {
+    if (Objects.equals(label.getIcon(), UIUtil.getTreeCollapsedIcon())) {
       return Boolean.FALSE;
     }
     return null;

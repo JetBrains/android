@@ -20,6 +20,7 @@ import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 import javax.swing.UIManager
@@ -105,10 +106,10 @@ open class CollapsibleLabelModel(
 
   companion object {
     @JvmField @VisibleForTesting
-    val EXPANDED_ICON = UIManager.get("Tree.expandedIcon") as Icon
+    val EXPANDED_ICON = UIUtil.getTreeExpandedIcon()
 
     @JvmField @VisibleForTesting
-    val COLLAPSED_ICON = UIManager.get("Tree.collapsedIcon") as Icon
+    val COLLAPSED_ICON = UIUtil.getTreeCollapsedIcon()
   }
 
   override fun isMatch(matcher: Matcher) = editorModel != null && matcher.matches(name)
