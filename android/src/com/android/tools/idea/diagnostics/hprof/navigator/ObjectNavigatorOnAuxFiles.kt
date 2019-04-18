@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.hprof.navigator
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
+import com.android.tools.idea.diagnostics.hprof.parser.Type
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongObjectHashMap
 import java.nio.ByteBuffer
@@ -40,6 +41,7 @@ class ObjectNavigatorOnAuxFiles(
   }
 
   private var currentObjectId = 0L
+  private var arraySize = 0
   private var currentClass: ClassDefinition? = null
   private val references = TLongArrayList()
 
@@ -72,7 +74,7 @@ class ObjectNavigatorOnAuxFiles(
     return id == 0L
   }
 
-  override fun goTo(id: Long, includeSoftWeakReferences: Boolean) {
+  override fun goTo(id: Long, referenceResolution: ReferenceResolution) {
     auxOffsets.position((id * 4).toInt())
     aux.position(auxOffsets.int)
     currentObjectId = id
@@ -92,36 +94,59 @@ class ObjectNavigatorOnAuxFiles(
     }
     currentClass = classDefinition
     if (classId == 0) {
-      preloadClass(id.toInt())
+      preloadClass(id.toInt(), referenceResolution)
       return
     }
-    if (classDefinition.isPrimitiveArray())
+    if (classDefinition.isPrimitiveArray()) {
+      preloadPrimitiveArray()
       return
+    }
     if (classDefinition.isArray()) {
-      preloadObjectArray()
+      preloadObjectArray(referenceResolution)
       return
     }
-    preloadInstance(classDefinition, includeSoftWeakReferences)
+    preloadInstance(classDefinition, referenceResolution)
   }
 
-  private fun preloadClass(classId: Int) {
-    // References
-    val classDefinition = classStore[classId]
-    classDefinition.constantFields.forEach(references::add)
-    classDefinition.staticFields.forEach { references.add(it.objectId) }
+  private fun preloadPrimitiveArray() {
+    arraySize = aux.readNonNegativeLEB128Int()
   }
 
-  private fun preloadObjectArray() {
-    val numOfElements = aux.readId()
-    for (i in 0 until numOfElements) {
-      references.add(aux.readId().toLong())
+  private fun preloadClass(classId: Int,
+                           referenceResolution: ReferenceResolution) {
+    arraySize = 0
+
+    if (referenceResolution != ReferenceResolution.NO_REFERENCES) {
+      val classDefinition = classStore[classId]
+      classDefinition.constantFields.forEach(references::add)
+      classDefinition.staticFields.forEach { references.add(it.objectId) }
+    }
+  }
+
+  private fun preloadObjectArray(referenceResolution: ReferenceResolution) {
+    val nullElementsCount = aux.readNonNegativeLEB128Int()
+    val nonNullElementsCount = aux.readNonNegativeLEB128Int()
+
+    arraySize = nullElementsCount + nonNullElementsCount
+
+    if (referenceResolution != ReferenceResolution.NO_REFERENCES) {
+      for (i in 0 until nonNullElementsCount) {
+        references.add(aux.readId().toLong())
+      }
     }
   }
 
   private fun preloadInstance(classDefinition: ClassDefinition,
-                              includeSoftWeakReferences: Boolean) {
+                              referenceResolution: ReferenceResolution) {
+    arraySize = 0
+
+    if (referenceResolution == ReferenceResolution.NO_REFERENCES) {
+      return
+    }
+
     var c = classDefinition
     var isSoftOrWeakReference = false
+    val includeSoftWeakReferences = referenceResolution == ReferenceResolution.ALL_REFERENCES
     do {
       isSoftOrWeakReference =
         isSoftOrWeakReference || classStore.isSoftOrWeakReferenceClass(c)
@@ -142,6 +167,16 @@ class ObjectNavigatorOnAuxFiles(
       c = classStore[superClassId]
     }
     while (true)
+  }
+
+  override fun getObjectSize(): Int {
+    val localClass = currentClass ?: return REFERENCE_SIZE // size of null value
+
+    return when {
+      localClass.isPrimitiveArray() -> localClass.instanceSize + Type.getType(localClass.name).size * arraySize
+      localClass.isArray() -> localClass.instanceSize + REFERENCE_SIZE * arraySize
+      else -> localClass.instanceSize
+    }
   }
 
   override fun copyReferencesTo(outReferences: TLongArrayList) {
@@ -192,6 +227,10 @@ class ObjectNavigatorOnAuxFiles(
       shift += 7
     }
     return v
+  }
+
+  companion object {
+    private const val REFERENCE_SIZE = 4
   }
 }
 

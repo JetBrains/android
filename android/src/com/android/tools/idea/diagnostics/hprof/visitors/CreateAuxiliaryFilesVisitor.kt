@@ -63,6 +63,9 @@ class CreateAuxiliaryFilesVisitor(
     offsets.writeInt(aux.position())
 
     aux.writeId(classStore.getClassForPrimitiveArray(elementType)!!.id.toInt())
+
+    assert(numberOfElements <= Int.MAX_VALUE) // arrays in java don't support more than Int.MAX_VALUE elements
+    aux.writeNonNegativeLEB128Int(numberOfElements.toInt())
   }
 
   override fun visitClassDump(classId: Long,
@@ -90,7 +93,14 @@ class CreateAuxiliaryFilesVisitor(
 
     aux.writeId(arrayClassObjectId.toInt())
     val nonNullElementsCount = objects.count { it != 0L }
-    aux.writeId(nonNullElementsCount)
+    val nullElementsCount = objects.count() - nonNullElementsCount
+
+    // To minimize serialized size, store (nullElementsCount, nonNullElementsCount) pair instead of
+    // (objects.count, nonNullElementsCount) pair.
+
+    aux.writeNonNegativeLEB128Int(nullElementsCount)
+    aux.writeNonNegativeLEB128Int(nonNullElementsCount)
+
     objects.forEach {
       if (it == 0L) return@forEach
       assert(it <= Int.MAX_VALUE)
