@@ -81,7 +81,7 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
     val gradlePath = moduleDependencyModel.path().forceString()
     val artifacts = artifactsByConfigurationNames[moduleDependencyModel.configurationName()] ?: listOf()
     return PsDeclaredModuleAndroidDependency(
-      parent, gradlePath, artifacts.toList(), moduleDependencyModel.configurationName(),
+      parent, gradlePath, artifacts.toList(),
       moduleDependencyModel)
   }
 

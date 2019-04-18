@@ -156,8 +156,6 @@ abstract class PsModule protected constructor(
   fun modifyDependencyConfiguration(dependency: PsDeclaredDependency, newConfigurationName: String) {
     dependency.parsedModel.setConfigurationName(newConfigurationName)
 
-    resetDependencies()
-
     fireDependencyModifiedEvent(lazy { dependency } )
     isModified = true
   }
