@@ -89,7 +89,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
       projectName = projectPath.getName();
     }
     String executionName = "Build " + projectName;
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.ALL);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.ALL);
 
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
@@ -138,7 +138,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     private int myErrors;
     private int myWarnings;
 
-    public MergedProjectTaskNotification(ProjectTaskNotification callback, int expectedResults) {
+    MergedProjectTaskNotification(ProjectTaskNotification callback, int expectedResults) {
       myCallback = callback;
       myExpectedResults = expectedResults;
     }

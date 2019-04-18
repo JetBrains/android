@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -25,7 +29,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -37,7 +44,7 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Integration test with composite build.
- *
+ * <p>
  * The dependencies from the root app looks like this:
  * :app:debugCompileClasspath
  * +--- project :lib
@@ -46,7 +53,7 @@ import static java.util.stream.Collectors.toList;
  * |    \--- com.test.composite3:lib:1.0 -> project :TestCompositeLib3:lib
  * |         \--- com.test.composite4:composite4:1.0 -> project :composite4
  * \--- com.test.composite4:composite4:1.0 -> project :composite4
- *
+ * <p>
  * The modules in included project are of the following types:
  * TestCompositeLib1 :app        -> android app
  * TestCompositeLib1 :lib        -> android lib
@@ -132,5 +139,54 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     assertAbout(moduleDependencies()).that(appModule).hasDependency("composite2", COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib3-lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency("composite4", COMPILE, false);
+  }
+
+  public void testGetAssembleTasks() throws Exception {
+    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    Module[] modules = new Module[]{
+      myModules.getModule("TestCompositeLib1-app"),
+      myModules.getModule("TestCompositeLib3-app"),
+      myModules.getModule(getProject().getName() + "-app")};
+    ListMultimap<Path, String> tasksPerProject = GradleTaskFinder.getInstance().findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
+    // Verify that each included project has task list.
+    assertThat(tasksPerProject.asMap()).hasSize(3);
+
+    File rootProjectPath = getBaseDirPath(getProject());
+    File compositeLib1Path = new File(rootProjectPath, "TestCompositeLib1");
+    File compositeLib3Path = new File(rootProjectPath, "TestCompositeLib3");
+
+    assertThat(tasksPerProject.get(rootProjectPath.toPath())).containsExactly(":app:assembleDebug");
+    assertThat(tasksPerProject.get(compositeLib1Path.toPath())).containsExactly(":app:assembleDebug");
+    assertThat(tasksPerProject.get(compositeLib3Path.toPath())).containsExactly(":app:assembleDebug");
+  }
+
+  public void testGetSourceGenerationTasks() throws Exception {
+    loadProject(COMPOSITE_BUILD_ROOT_PROJECT);
+    Module[] modules = new Module[]{
+      myModules.getModule("TestCompositeLib1-app"),
+      myModules.getModule("composite2"),
+      myModules.getModule("TestCompositeLib3-lib"),
+      myModules.getModule("composite4"),
+      myModules.getModule(getProject().getName() + "-app")};
+    ListMultimap<Path, String> tasksPerProject =
+      GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.ALL);
+
+    // Verify that each included project has task list.
+    assertThat(tasksPerProject.asMap()).hasSize(5);
+
+    File rootProjectPath = getBaseDirPath(getProject());
+    File compositeLib1Path = new File(rootProjectPath, "TestCompositeLib1");
+    File compositeLib2Path = new File(rootProjectPath, "TestCompositeLib2");
+    File compositeLib3Path = new File(rootProjectPath, "TestCompositeLib3");
+    File compositeLib4Path = new File(rootProjectPath, "TestCompositeLib4");
+
+    assertThat(tasksPerProject.get(rootProjectPath.toPath()))
+      .containsExactly(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:createMockableJar");
+    assertThat(tasksPerProject.get(compositeLib1Path.toPath()))
+      .containsExactly(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:createMockableJar");
+    assertThat(tasksPerProject.get(compositeLib2Path.toPath())).containsExactly(":testClasses");
+    assertThat(tasksPerProject.get(compositeLib3Path.toPath()))
+      .containsExactly(":lib:generateDebugSources", ":lib:generateDebugAndroidTestSources", ":lib:createMockableJar");
+    assertThat(tasksPerProject.get(compositeLib4Path.toPath())).containsExactly(":testClasses");
   }
 }
