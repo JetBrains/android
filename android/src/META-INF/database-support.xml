@@ -17,8 +17,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <database.dataSourceManager implementation="org.jetbrains.android.database.AndroidDataSourceManager" order="first"/>
-    <projectService serviceInterface="org.jetbrains.android.database.AndroidDataSourceStorage"
-                    serviceImplementation="org.jetbrains.android.database.AndroidDataSourceStorage"/>
+    <projectService serviceImplementation="org.jetbrains.android.database.AndroidDataSourceStorage"/>
     <applicationService serviceImplementation="org.jetbrains.android.database.AndroidRemoteDataBaseManager"/>
     <database.synchronizeHandler implementation="org.jetbrains.android.database.AndroidSynchronizeHandler"/>
   </extensions>
