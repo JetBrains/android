@@ -13,15 +13,14 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.intellij.openapi.module.Module;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
 
 class GradleRootPathFinder {
-  @Nullable
-  String getProjectRootPath(@NotNull Module module) {
-    return getExternalRootProjectPath(module);
+  @NotNull
+  Path getProjectRootPath(@NotNull Module module) {
+    return ProjectStructure.getInstance(module.getProject()).getModuleFinder().getRootProjectPath(module);
   }
 }
