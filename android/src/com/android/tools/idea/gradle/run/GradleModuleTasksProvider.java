@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.Projects;
+import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -24,12 +25,8 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 import java.nio.file.Path;
-
-import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleModuleTasksProvider {
   @NotNull private final Project myProject;
@@ -47,8 +44,7 @@ public class GradleModuleTasksProvider {
   public ListMultimap<Path, String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myProject, myModules);
-    File projectPath = Projects.getBaseDirPath(myProject);
-    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(projectPath, affectedModules, myModules, buildMode, UNIT_TESTS);
+    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(affectedModules, myModules, buildMode, UNIT_TESTS);
   }
 
   @NotNull
@@ -60,7 +56,6 @@ public class GradleModuleTasksProvider {
 
   @NotNull
   public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull TestCompileType testCompileType) {
-    File projectPath = Projects.getBaseDirPath(myProject);
-    return GradleTaskFinder.getInstance().findTasksToExecute(projectPath, myModules, buildMode, testCompileType);
+    return GradleTaskFinder.getInstance().findTasksToExecute(myModules, buildMode, testCompileType);
   }
 }
