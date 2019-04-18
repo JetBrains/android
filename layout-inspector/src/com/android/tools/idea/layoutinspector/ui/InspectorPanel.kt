@@ -28,11 +28,11 @@ import javax.swing.JPanel
 /**
  * Main (center) panel of the layout inspector
  */
-class InspectorPanel(val project: Project) : JPanel(BorderLayout()) {
-  private val deviceViewPanel: DeviceViewPanel
+class InspectorPanel(val project: Project, toolName: String) : JPanel(BorderLayout()) {
+  val deviceViewPanel: DeviceViewPanel
 
   init {
-    val workbench = WorkBench<LayoutInspector>(project, "Layout Inspector", null)
+    val workbench = WorkBench<LayoutInspector>(project, toolName, null)
     val layoutInspector = LayoutInspector(InspectorModel(project, ViewNode(0, "empty", null, 0, 0, 1, 1, null, "")))
     deviceViewPanel = DeviceViewPanel(layoutInspector)
     workbench.init(deviceViewPanel, layoutInspector, listOf(

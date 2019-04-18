@@ -23,4 +23,7 @@
                       icon="StudioIcons.Shell.Menu.LAYOUT_INSPECTOR"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.run">
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorAndroidLaunchTaskContributor"/>
+  </extensions>
 </idea-plugin>

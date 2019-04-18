@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -27,10 +28,14 @@ import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.application.ApplicationManager
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
+
+private const val MAX_RETRY_COUNT = 60
 
 object DefaultInspectorClient : InspectorClient {
   private var client = TransportClient(TransportService.getInstance().channelName)
@@ -40,10 +45,14 @@ object DefaultInspectorClient : InspectorClient {
 
   private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
-  private var agentConnected = false
+
+  // TODO: Hook this up based on status of the connection
   private var captureStarted = false
 
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
+
+  override var isConnected = false
+    private set
 
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
@@ -57,7 +66,7 @@ object DefaultInspectorClient : InspectorClient {
       groupId = { groupId.number.toLong() },
       processId = selectedProcess::getPid) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
-          selectedProcess != Common.Process.getDefaultInstance() && agentConnected &&
+          selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
           it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
         callback(it.layoutInspectorEvent)
         lastResponseTimePerGroup[it.groupId] = it.timestamp
@@ -68,7 +77,7 @@ object DefaultInspectorClient : InspectorClient {
   override fun execute(command: LayoutInspectorCommand) {
     if (selectedStream == Common.Stream.getDefaultInstance() ||
         selectedProcess == Common.Process.getDefaultInstance() ||
-        !agentConnected) {
+        !isConnected) {
       return
     }
     val transportCommand = Command.newBuilder()
@@ -144,7 +153,7 @@ object DefaultInspectorClient : InspectorClient {
     // TODO: Probably need to detach from an existing process here
     selectedStream = stream
     selectedProcess = process
-    agentConnected = false
+    isConnected = false
     captureStarted = false
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
@@ -166,7 +175,7 @@ object DefaultInspectorClient : InspectorClient {
       processId = process::getPid,
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
-      agentConnected = true
+      isConnected = true
       execute(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START).build())
       // TODO: verify that capture started successfully
 
@@ -175,6 +184,36 @@ object DefaultInspectorClient : InspectorClient {
     transportPoller.registerListener(listener)
 
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+  }
+
+  /**
+   * Attempt to connect to the specified [preferredProcess].
+   *
+   * The method called will retry itself up to MAX_RETRY_COUNT times.
+   */
+  override fun attach(preferredProcess: LayoutInspectorPreferredProcess) {
+    ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
+  }
+
+  private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
+    if (selectedStream != Common.Stream.getDefaultInstance() ||
+        selectedProcess != Common.Process.getDefaultInstance()) {
+      return
+    }
+    val processesMap = loadProcesses()
+    for ((stream, processes) in processesMap) {
+      if (preferredProcess.isDeviceMatch(stream.device)) {
+        for (process in processes) {
+          if (process.name == preferredProcess.packageName) {
+            attach(stream, process)
+            return
+          }
+        }
+      }
+    }
+    if (timesAttempted < MAX_RETRY_COUNT) {
+      JobScheduler.getScheduler().schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
+    }
   }
 
   /**
