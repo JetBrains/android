@@ -23,7 +23,7 @@
   <name>Android Lang Data Binding Tests</name>
   <id>com.android.tools.idea.android.lang.databinding.tests</id>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="android-lang-databinding-test.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
