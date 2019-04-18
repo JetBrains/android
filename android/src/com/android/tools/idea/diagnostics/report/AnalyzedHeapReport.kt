@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics.report
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.gson.stream.JsonWriter
+import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
 class AnalyzedHeapReport(val text: String,
@@ -35,7 +36,7 @@ class AnalyzedHeapReport(val text: String,
       override fun serialize(builder: MultipartEntityBuilder) {
         super.serialize(builder)
         builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, EMPTY_OOM_STACKTRACE)
-        builder.addTextBody("heapReport", text)
+        builder.addBinaryBody("heapReport", text.toByteArray(), ContentType.TEXT_PLAIN, "heapReport.txt")
       }
     }
   }
