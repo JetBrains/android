@@ -63,6 +63,7 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "moderate",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
