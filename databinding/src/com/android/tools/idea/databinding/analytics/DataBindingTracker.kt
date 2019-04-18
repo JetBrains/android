@@ -28,8 +28,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.getProjectCacheFileName
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.FileBasedIndex
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
 
 /**
@@ -112,6 +114,11 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
                             layoutXmlCount = layoutCount
                             this.importCount = importCount
                             this.variableCount = variableCount
+                            // We only care about Android modules (modules with an android facet).
+                            moduleCount = ModuleManager.getInstance(project).modules.count { it.androidFacet != null }
+                            dataBindingEnabledModuleCount = ModuleManager.getInstance(project).modules
+                              .mapNotNull { it.androidFacet }
+                              .count { DataBindingUtil.isDataBindingEnabled(it) }
                           }.build())
       }
     }
