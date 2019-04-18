@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.Companion.attachTracker
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -37,7 +36,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.Companion as DataBindingCompletionContributor
 
 /**
  * A collection of various code completion tests that verify data binding completions work as
@@ -55,7 +53,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(EdtRule())
+  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private val fixture: JavaCodeInsightTestFixture by lazy {
     projectRule.fixture as JavaCodeInsightTestFixture
@@ -415,7 +413,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.complete(CompletionType.BASIC, 2)
-    fixture.assertPreferredCompletionItems(0, "doPrivate",  "doPrivateStatic", "doSomethingStatic")
+    fixture.assertPreferredCompletionItems(0, "doPrivate", "doPrivateStatic", "doSomethingStatic")
   }
 
   @Test
@@ -705,7 +703,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val expectedLookupElement = JavaLookupElementBuilder.forMethod(
       psiMethod, "doSomething", PsiSubstitutor.EMPTY, psiClass)
 
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
   }
 
   @Test
@@ -751,14 +749,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val psiMethod = psiClass.findMethodsByName("doSomething", false)[0]
     val expectedLookupElement = JavaLookupElementBuilder.forMethod(
       psiMethod, "doSomething", PsiSubstitutor.EMPTY, psiClass)
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
 
     assertThat(lookupElements[1]).isInstanceOf(LookupElementBuilder::class.java)
     val baseLookupElementBuilder = lookupElements[1] as LookupElementBuilder
     val basePsiMethod = psiClass.findMethodsByName("doSomethingBase", true)[0]
     val baseExpectedLookupElement = JavaLookupElementBuilder.forMethod(
       basePsiMethod, "doSomethingBase", PsiSubstitutor.EMPTY, null)
-    assertThat(baseLookupElementBuilder).isEqualTo(attachTracker(baseExpectedLookupElement))
+    assertThat(baseLookupElementBuilder).isEqualTo(baseExpectedLookupElement)
   }
 
   @Test
@@ -803,14 +801,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
     val psiField = psiClass.findFieldByName("field", false)!!
     val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
 
     assertThat(lookupElements[1]).isInstanceOf(LookupElementBuilder::class.java)
     val baseLookupElementBuilder = lookupElements[1] as LookupElementBuilder
     val basePsiField = psiClass.findFieldByName("fieldBase", true)!!
     val baseExpectedLookupElement =
       JavaLookupElementBuilder.forField(basePsiField, "fieldBase", null).withTypeText("Int")
-    assertThat(baseLookupElementBuilder).isEqualTo(attachTracker(baseExpectedLookupElement))
+    assertThat(baseLookupElementBuilder).isEqualTo(baseExpectedLookupElement)
   }
 
   @Test
@@ -854,7 +852,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val psiField = psiClass.findFieldByName("field1", false)!!
     val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
 
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
   }
 
   @Test
