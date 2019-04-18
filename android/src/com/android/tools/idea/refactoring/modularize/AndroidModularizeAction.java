@@ -24,12 +24,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringActionHandler;
-import com.intellij.refactoring.actions.BaseRefactoringAction;
+import com.intellij.refactoring.actions.BaseJavaRefactoringAction;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidModularizeAction extends BaseRefactoringAction {
+public class AndroidModularizeAction extends BaseJavaRefactoringAction {
 
   @Override
   protected boolean isAvailableInEditorOnly() {
