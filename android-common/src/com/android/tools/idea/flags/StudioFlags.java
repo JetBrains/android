@@ -560,7 +560,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RECOMMENDATION_ENABLED = Flag.create(
     MEMORY_SETTINGS, "recommendation.enabled", "Enable memory recommendation",
     "If enabled, users could get memory settings recommendation",
-    false);
+    true);
 
   public static final Flag<Boolean> LOW_IDE_XMX_CAP = Flag.create(
     MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
