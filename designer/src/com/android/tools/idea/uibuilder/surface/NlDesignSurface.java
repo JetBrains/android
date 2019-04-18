@@ -208,27 +208,43 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    if (mySceneMode != SceneMode.BOTH) {
-      return getBounds(rectangle);
+    if (rectangle == null) {
+      rectangle = new Rectangle();
+    }
+    Rectangle viewRect = myScrollPane.getViewport().getViewRect();
+
+    LayoutlibSceneManager sceneManager = getSceneManager();
+    assert sceneManager != null;
+    SceneView primary = sceneManager.getSceneView();
+    SceneView secondary = sceneManager.getSecondarySceneView();
+
+    if (secondary == null) {
+      rectangle.setBounds(viewRect);
+      return rectangle;
     }
 
     // When displaying both Design and Blueprint, we need to make sure they didn't overlap each other.
-    Rectangle viewRect = myScrollPane.getViewport().getViewRect();
-    // TODO: find better way to determine the position of SceneView.
     if (isStackVertically()) {
-      viewRect.height /= 2;
-      if (sceneView instanceof BlueprintView) {
-        viewRect.y += viewRect.height;
+      int primaryBottom = primary.getY() + primary.getSize().height;
+      int gapMidY = (primaryBottom + secondary.getY()) / 2;
+      if (sceneView == primary) {
+        viewRect.height = gapMidY;
+      }
+      else {
+        viewRect.y = gapMidY;
+        viewRect.height = viewRect.height - gapMidY + viewRect.y;
       }
     }
     else {
-      viewRect.width /= 2;
-      if (sceneView instanceof BlueprintView) {
-        viewRect.x += viewRect.width;
+      int primaryRight = primary.getX() + primary.getSize().width;
+      int gapMidX = (primaryRight + secondary.getX()) / 2;
+      if (sceneView == primary) {
+        viewRect.width = gapMidX;
       }
-    }
-    if (rectangle == null) {
-      rectangle = new Rectangle();
+      else {
+        viewRect.x = gapMidX;
+        viewRect.width = viewRect.width - gapMidX + viewRect.x;
+      }
     }
     rectangle.setBounds(viewRect);
     return rectangle;

@@ -21,34 +21,23 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
-import java.time.Clock;
-import org.junit.Before;
+import com.intellij.openapi.actionSystem.AnAction;
+import java.util.Arrays;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class SelectDeviceAndSnapshotActionTest {
-  private DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  @Before
-  public void newComboBoxAction() {
-    myComboBoxAction = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      () -> true,
-      project -> null,
-      Mockito.mock(Clock.class));
-  }
-
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsIsEmpty() {
     Device device = new VirtualDevice.Builder()
-      .setName(Devices.PIXEL_2_XL_API_28)
+      .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of())
       .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(myComboBoxAction)
+      .setComboBoxAction(Mockito.mock(DeviceAndSnapshotComboBoxAction.class))
       .setDevice(device)
       .build();
 
@@ -57,15 +46,18 @@ public final class SelectDeviceAndSnapshotActionTest {
 
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsEqualsDefaultSnapshotCollection() {
+    DeviceAndSnapshotComboBoxAction comboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+    Mockito.when(comboBoxAction.areSnapshotsEnabled()).thenReturn(true);
+
     Device device = new VirtualDevice.Builder()
-      .setName(Devices.PIXEL_2_XL_API_28)
+      .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
       .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(myComboBoxAction)
+      .setComboBoxAction(comboBoxAction)
       .setDevice(device)
       .build();
 
@@ -74,8 +66,11 @@ public final class SelectDeviceAndSnapshotActionTest {
 
   @Test
   public void selectDeviceAndSnapshotActionThrowsIllegalArgumentException() {
+    DeviceAndSnapshotComboBoxAction comboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+    Mockito.when(comboBoxAction.areSnapshotsEnabled()).thenReturn(true);
+
     Device device = new VirtualDevice.Builder()
-      .setName(Devices.PIXEL_2_XL_API_28)
+      .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
@@ -83,7 +78,7 @@ public final class SelectDeviceAndSnapshotActionTest {
 
     try {
       new SelectDeviceAndSnapshotAction.Builder()
-        .setComboBoxAction(myComboBoxAction)
+        .setComboBoxAction(comboBoxAction)
         .setDevice(device)
         .build();
 
@@ -91,5 +86,33 @@ public final class SelectDeviceAndSnapshotActionTest {
     }
     catch (IllegalArgumentException ignored) {
     }
+  }
+
+  @Test
+  public void selectDeviceAndSnapshotActionTwoDevicesHaveSameName() {
+    // Arrange
+    Device lgeNexus5x1 = new PhysicalDevice.Builder()
+      .setName("LGE Nexus 5X")
+      .setKey("00fff9d2279fa601")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device lgeNexus5x2 = new PhysicalDevice.Builder()
+      .setName("LGE Nexus 5X")
+      .setKey("00fff9d2279fa602")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    DeviceAndSnapshotComboBoxAction comboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+    Mockito.when(comboBoxAction.getDevices()).thenReturn(Arrays.asList(lgeNexus5x1, lgeNexus5x2));
+
+    // Act
+    AnAction action = new SelectDeviceAndSnapshotAction.Builder()
+      .setComboBoxAction(comboBoxAction)
+      .setDevice(lgeNexus5x1)
+      .build();
+
+    // Assert
+    assertEquals("LGE Nexus 5X - 00fff9d2279fa601", action.getTemplatePresentation().getText());
   }
 }

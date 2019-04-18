@@ -17,22 +17,17 @@ package org.jetbrains.android.compiler;
 
 import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
-import com.android.SdkConstants;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
-import com.google.common.collect.Iterables;
+import com.android.tools.idea.res.PsiProjectListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileTypes.FileNameMatcher;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -41,7 +36,6 @@ import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -56,8 +50,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidResourceFilesListener implements Disposable, BulkFileListener {
   private static final Key<String> CACHED_PACKAGE_KEY = Key.create("ANDROID_RESOURCE_LISTENER_CACHED_PACKAGE");
-
-  private static final List<FileNameMatcher> RENDERSCRIPT_MATCHERS = Arrays.asList(AndroidRenderscriptFileType.fileNameMatchers());
 
   private final MergingUpdateQueue myQueue;
   private final Project myProject;
@@ -84,48 +76,11 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     for (VFileEvent event : events) {
       VirtualFile file = event.getFile();
 
-      if (file != null && shouldScheduleUpdate(file)) {
+      if (file != null && PsiProjectListener.isRelevantFile(file)) {
         result.add(file);
       }
     }
     return result;
-  }
-
-  public static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
-    // This method is called frequently so we try to avoid as much as possible I/O access. VirtualFile#getFileType will try to read
-    // from the file the first time is called so we try to avoid it as much as possible. Instead we will just try to infer the type
-    // based on the extension.
-    // We care about the following files:
-    // - XML resource files
-    // - AIDL files
-    // - Renderscript files
-    // - AndroidManifest.xml
-
-    String extension = file.getExtension();
-    if (StringUtil.isEmpty(extension)) {
-      return false;
-    }
-
-    if (StdFileTypes.XML.getDefaultExtension().equals(extension)) {
-      VirtualFile parent = file.getParent();
-
-      if (parent != null && parent.isDirectory()) {
-        ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
-        return ResourceFolderType.VALUES == resType;
-      }
-    }
-
-    String fileName = file.getName();
-
-    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension) || SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName)) {
-      return true;
-    }
-
-    if (Iterables.any(RENDERSCRIPT_MATCHERS, (matcher) -> matcher != null && matcher.accept(fileName))) {
-      return true;
-    }
-
-    return false;
   }
 
   @Override

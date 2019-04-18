@@ -19,7 +19,6 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.api.DragType;
@@ -272,11 +271,6 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myItemList.registerKeyboardAction(event -> keyboardActionPerformed(event, myAndroidDocAction),
                                       KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK),
                                       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-    //noinspection MagicConstant
-    registerKeyboardAction(event -> startFiltering(""),
-                           KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()),
-                           JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
   private void startFiltering(@NotNull String initialSearchString) {

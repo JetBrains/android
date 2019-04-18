@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
@@ -24,8 +25,9 @@ import javax.swing.Icon;
 import javax.swing.Timer;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
+final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel implements Disposable {
   static final int SELECTED_MODEL_COLUMN_INDEX = 0;
   static final int ICON_MODEL_COLUMN_INDEX = 1;
   private static final int NAME_MODEL_COLUMN_INDEX = 2;
@@ -36,11 +38,18 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
   @NotNull
   private List<Device> myDevices;
 
+  @Nullable
+  private Timer myTimer;
+
   SelectDeploymentTargetsDialogTableModel(@NotNull Project project) {
     mySelected = Collections.emptyList();
     myDevices = Collections.emptyList();
 
-    Timer timer = new Timer(1_000, event -> {
+    myTimer = new Timer(1_000, event -> {
+      if (project.isDisposed()) {
+        return;
+      }
+
       int oldDeviceCount = myDevices.size();
 
       myDevices = ServiceManager.getService(project, AsyncDevicesGetter.class).get();
@@ -51,15 +60,22 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
       if (oldDeviceCount != newDeviceCount) {
         mySelected = new ArrayList<>(Collections.nCopies(newDeviceCount, false));
         fireTableDataChanged();
-
         return;
       }
 
       fireTableRowsUpdated(0, newDeviceCount - 1);
     });
 
-    timer.setInitialDelay(0);
-    timer.start();
+    myTimer.setInitialDelay(0);
+    myTimer.start();
+  }
+
+  @Override
+  public void dispose() {
+    assert myTimer != null;
+    myTimer.stop();
+
+    myTimer = null;
   }
 
   @NotNull

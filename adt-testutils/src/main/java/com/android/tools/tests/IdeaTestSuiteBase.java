@@ -60,8 +60,6 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setupKotlinPlugin() {
-    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    System.setProperty("plugin.path", TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
     // Platform major version is needed to match the Kotlin plugin's compatibility range
     symlinkToIdeaHome("tools/idea/build.txt");
     // Run Kotlin in-process for easier control over its JVM args.

@@ -84,15 +84,31 @@ public class FirstRunWizard extends DynamicWizard {
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
       addPath(new SingleStepPath(new MissingSdkAlertStep()));
     }
+
     addPath(myComponentsPath);
-    if (SystemInfo.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
-      addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
-    }
+    conditionallyAddEmulatorSettingsStep();
+
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     }
     addPath(new SingleStepPath(progressStep));
     super.init();
+  }
+
+  private void conditionallyAddEmulatorSettingsStep() {
+    if (!SystemInfo.isLinux) {
+      return;
+    }
+
+    if (SystemInfo.isChromeOS) {
+      return;
+    }
+
+    if (!myMode.equals(FirstRunWizardMode.NEW_INSTALL)) {
+      return;
+    }
+
+    addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
   }
 
   @Override

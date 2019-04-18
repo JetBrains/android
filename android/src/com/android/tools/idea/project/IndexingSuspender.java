@@ -206,23 +206,6 @@ public class IndexingSuspender {
       }
     });
 
-    GradleBuildState.subscribe(myProject, new GradleBuildListener() {
-      @Override
-      public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {
-        consumeActivationEvent(ActivationEvent.BUILD_EXECUTOR_CREATED);
-      }
-
-      @Override
-      public void buildStarted(@NotNull BuildContext context) {
-        consumeActivationEvent(ActivationEvent.BUILD_STARTED);
-      }
-
-      @Override
-      public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
-        consumeDeactivationEvent(DeactivationEvent.BUILD_FINISHED);
-      }
-    });
-
     MultiTemplateRenderer.subscribe(myProject, new MultiTemplateRenderer.TemplateRendererListener() {
       @Override
       public void multiRenderingStarted() {

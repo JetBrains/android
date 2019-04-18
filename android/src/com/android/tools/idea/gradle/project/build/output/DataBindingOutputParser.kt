@@ -28,7 +28,7 @@ import java.io.File
 import java.util.function.Consumer
 import com.android.tools.idea.gradle.output.parser.androidPlugin.DataBindingOutputParser as PluginDataBindingOutputParser
 
-private const val DATABINDING_GROUP = "Data Binding compiler"
+const val DATABINDING_GROUP = "Data Binding compiler"
 
 /**
  * Parser for data binding output errors. This class supports parsing both JSON data binding

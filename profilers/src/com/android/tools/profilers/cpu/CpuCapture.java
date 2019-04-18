@@ -19,7 +19,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +43,9 @@ public class CpuCapture implements ConfigurableDurationData {
   /**
    * Technology used to generate the capture.
    */
-  private final CpuProfiler.CpuProfilerType myType;
+  private final Cpu.CpuTraceType myType;
 
-  public CpuCapture(@NotNull TraceParser parser, long traceId, CpuProfiler.CpuProfilerType type) {
+  public CpuCapture(@NotNull TraceParser parser, long traceId, Cpu.CpuTraceType type) {
     myParser = parser;
     myTraceId = traceId;
     myType = type;
@@ -152,7 +152,7 @@ public class CpuCapture implements ConfigurableDurationData {
     return myParser.supportsDualClock();
   }
 
-  public CpuProfiler.CpuProfilerType getType() {
+  public Cpu.CpuTraceType getType() {
     return myType;
   }
 }

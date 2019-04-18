@@ -55,6 +55,7 @@ public class MemorySettingsUtil {
   private static final int HIGH_GRADLE_DAEMON_XMX_IN_MB = 1536;
 
   public static final int MAX_GRADLE_DAEMON_XMX_IN_MB = 2048;
+  public static final int MAX_KOTLIN_DAEMON_XMX_IN_MB = 2048;
   public static final int NO_XMX_IN_VM_ARGS = -1;
 
   public static final int getIdeXmxCapInGB() {
@@ -111,35 +112,47 @@ public class MemorySettingsUtil {
     return DaemonMemorySettingsUtil.getGradleDaemonXmx(getCurrentProjectProperties());
   }
 
+  public static int getDefaultKotlinDaemonXmx() {
+    // Kotlin Daemon inherits the memory settings from the Gradle daemon, unless specified explicitly.
+    return getProjectGradleDaemonXmx();
+  }
+
+  public static int getProjectKotlinDaemonXmx() {
+    int xmx = DaemonMemorySettingsUtil.getKotlinDaemonXmx(getCurrentProjectProperties());
+    return xmx > 0 ? xmx : getDefaultKotlinDaemonXmx();
+  }
+
+
   @Nullable
   public static GradleProperties getCurrentProjectProperties() {
     return getProjectProperties(getCurrentProject());
   }
 
-  public static void saveProjectGradleDaemonXmx(int newValue) {
-    LOG.info(String.format(Locale.US, "saving new Gradle daemon Xmx value %d", newValue));
+  public static void saveProjectDaemonXmx(int newGradleValue, int newKotlinValue) {
+    LOG.info(String.format(Locale.US, "saving new daemon Xmx value: Gradle %d, Kotlin %d", newGradleValue, newKotlinValue));
     Project project = getCurrentProject();
     GradleProperties properties = getProjectProperties(project);
     if (properties == null) {
       reportSaveError(project, "Null gradle properties", null);
     } else try {
-      DaemonMemorySettingsUtil.setGradleDaemonXmx(getProjectProperties(project), newValue);
+      DaemonMemorySettingsUtil.setDaemonXmx(getProjectProperties(project), newGradleValue, newKotlinValue);
     } catch (IOException e) {
       String err = "Failed to save new Xmx value to gradle.properties";
       reportSaveError(project, err, e);
     }
   }
 
-  public static void log(MemorySettingsEvent.EventKind kind, int currentIdeXmx, int currentGradleXmx,
-                         int recommendedIdeXmx, int recommendedGradleXmx,
-                         int changedIdeXmx, int changedGradleXmx) {
+  public static void log(MemorySettingsEvent.EventKind kind,
+                         int currentIdeXmx, int currentGradleXmx, int currentKotlinXmx,
+                         int recommendedIdeXmx, int recommendedGradleXmx, int recommendedKotlinXmx,
+                         int changedIdeXmx, int changedGradleXmx, int changedKotlinXmx) {
     if (!ApplicationManager.getApplication().isInternal() && StatisticsUploadAssistant.isSendAllowed()) {
       MemorySettingsEvent.Builder eventBuilder =
         MemorySettingsEvent.newBuilder()
           .setKind(kind)
-          .setCurrent(createMemorySettings(currentIdeXmx, currentGradleXmx, -1))
-          .setRecommended(createMemorySettings(recommendedIdeXmx, recommendedGradleXmx, -1))
-          .setChanged(createMemorySettings(changedIdeXmx, changedGradleXmx, -1));
+          .setCurrent(createMemorySettings(currentIdeXmx, currentGradleXmx, currentKotlinXmx))
+          .setRecommended(createMemorySettings(recommendedIdeXmx, recommendedGradleXmx, recommendedKotlinXmx))
+          .setChanged(createMemorySettings(changedIdeXmx, changedGradleXmx, changedKotlinXmx));
 
       UsageTracker.log(AndroidStudioEvent.newBuilder()
                          .setKind(AndroidStudioEvent.EventKind.MEMORY_SETTINGS_EVENT)

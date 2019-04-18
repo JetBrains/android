@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.UIUtil
 
 abstract class PsModelAnalyzer<T : PsModel>(parentDisposable: Disposable) {
   var disposed: Boolean = false
@@ -31,13 +30,6 @@ abstract class PsModelAnalyzer<T : PsModel>(parentDisposable: Disposable) {
 
   abstract val supportedModelType: Class<T>
 
-  fun analyze(model: T, issueCollection: PsIssueCollection) {
-    assert(supportedModelType.isInstance(model))
-    UIUtil.invokeAndWaitIfNeeded(Runnable {
-      if (!disposed)
-        analyze(supportedModelType.cast(model)).forEach { issueCollection.add(it) }
-    })
-  }
-
+  @UiThread
   abstract fun analyze(model: T): Sequence<PsIssue>
 }

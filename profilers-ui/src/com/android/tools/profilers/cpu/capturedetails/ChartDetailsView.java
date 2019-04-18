@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -36,16 +36,18 @@ import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.ui.DoubleClickListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
@@ -115,7 +117,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       }
     }
 
-    if (myStageView.getStage().getCapture() != null && myStageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
+    if (myStageView.getStage().getCapture() != null && myStageView.getStage().getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
       CodeNavigator navigator = myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);

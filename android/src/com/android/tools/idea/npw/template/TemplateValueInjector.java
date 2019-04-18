@@ -15,6 +15,72 @@
  */
 package com.android.tools.idea.npw.template;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion;
+import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
+import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
+import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_AIDL_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_AIDL_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_RES_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_REVISION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_COMPANY_DOMAIN;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DEBUG_KEYSTORE_SHA1;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_EXPLICIT_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INSTANT_APP_API_MIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_BASE_FEATURE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_GRADLE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO_URL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MONOLITHIC_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SDK_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SRC_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SRC_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_DIR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.KOTLIN_EAP_REPO_URL;
+import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
@@ -40,12 +106,9 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Iterables;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -56,29 +119,16 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.java.JpsJavaSdkType;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
-import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion;
-import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
-import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
-import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
-import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JpsJavaSdkType;
 
 /**
  * Utility class that sets common Template values used by a project Module.
@@ -394,10 +444,6 @@ public final class TemplateValueInjector {
   }
 
   private void addKotlinVersion() {
-    assert PluginManager.getPlugin(PluginId.findId(("org.jetbrains.kotlin"))) != null ||
-           !GuiTestingService.getInstance().isGuiTestingMode()
-      : "Run Test Configuration missing. You should set -Dplugin.path=../../../../prebuilts/tools/common/kotlin-plugin/Kotlin";
-
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
     String kotlinVersion = provider.getKotlinVersion();

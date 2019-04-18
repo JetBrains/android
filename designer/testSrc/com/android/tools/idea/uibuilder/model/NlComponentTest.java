@@ -21,11 +21,11 @@ import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,17 +37,14 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
@@ -174,20 +171,22 @@ public final class NlComponentTest extends LayoutTestCase {
   }
 
   public void testAttributeTransactions() {
-    myModel = createModelWithEmptyLayout();
-
-    XmlTag textViewXmlTag = createTagFromXml(
-      "<TextView" +
-      " xmlns:android=\"" + ANDROID_URI + "\"" +
-      " xmlns:tools=\"" + TOOLS_URI + "\"" +
-      " android:text=\"Initial\"" +
-      " android:layout_width=\"wrap_content\"" +
-      " android:layout_height=\"wrap_content\" />");
+    myModel = model("linear.xml",
+                    component(LINEAR_LAYOUT)
+                      .withBounds(0, 0, 1000, 1000)
+                      .id("@id/linear")
+                      .matchParentWidth()
+                      .matchParentHeight()
+                      .children(component(TEXT_VIEW)
+                                  .withBounds(0, 0, 100, 100)
+                                  .id("@id/textView")
+                                  .wrapContentHeight()
+                                  .wrapContentWidth()
+                                  .text("Initial"))).build();
 
     NlComponent linearLayout = myModel.find("linear");
-    NlComponent textView = createComponent(textViewXmlTag);
-
-    linearLayout.addChild(textView);
+    NlComponent textView = myModel.find("textView");
+    XmlTag textViewXmlTag = textView.getTag();
 
     AttributesTransaction transaction = textView.startAttributeTransaction();
     assertEquals(transaction, textView.startAttributeTransaction());
@@ -221,11 +220,11 @@ public final class NlComponentTest extends LayoutTestCase {
     assertNotEquals(oldTransaction, transaction);
     assertFalse(transaction.commit()); // Empty commit
 
-    transaction = textView.startAttributeTransaction();
-    transaction.setAttribute(ANDROID_URI, "layout_width", "150dp");
+    AttributesTransaction transaction2 = textView.startAttributeTransaction();
+    transaction2.setAttribute(ANDROID_URI, "layout_width", "150dp");
     // Check the namespace handling
-    transaction.setAttribute(TOOLS_URI, "layout_width", "TOOLS-WIDTH");
-    transaction.setAndroidAttribute("text", "Hello world");
+    transaction2.setAttribute(TOOLS_URI, "layout_width", "TOOLS-WIDTH");
+    transaction2.setAndroidAttribute("text", "Hello world");
 
     // Before commit
     // - The XML tag will have the old values
@@ -235,12 +234,12 @@ public final class NlComponentTest extends LayoutTestCase {
     assertEquals("Initial", textViewXmlTag.getAttribute("android:text").getValue());
     assertEquals("wrap_content", textView.getAndroidAttribute("layout_width"));
     assertEquals("Initial", textView.getAndroidAttribute("text"));
-    assertEquals("150dp", transaction.getAndroidAttribute("layout_width"));
-    assertEquals("Hello world", transaction.getAndroidAttribute("text"));
+    assertEquals("150dp", transaction2.getAndroidAttribute("layout_width"));
+    assertEquals("Hello world", transaction2.getAndroidAttribute("text"));
 
-    assertTrue(transaction.commit());
-    assertTrue(transaction.isSuccessful());
-    assertTrue(transaction.isComplete());
+    assertTrue(NlWriteCommandActionUtil.compute(textView, "update", transaction2::commit));
+    assertTrue(transaction2.isSuccessful());
+    assertTrue(transaction2.isComplete());
 
     // Check XML tag values after the commit
     assertEquals("150dp", textViewXmlTag.getAttribute("android:layout_width").getValue());
@@ -269,7 +268,7 @@ public final class NlComponentTest extends LayoutTestCase {
     // Change the XML tag content before the transaction is committed and remove one tag
     textViewXmlTag.setAttribute("android:layout_width", "300dp");
     textViewXmlTag.setAttribute("android:layout_height", "900dp");
-    assertTrue(transaction.commit());
+    assertTrue(NlWriteCommandActionUtil.compute(textView, "update", () -> transaction.commit()));
     assertTrue(transaction.isComplete());
     assertTrue(transaction.isSuccessful());
 
@@ -280,13 +279,45 @@ public final class NlComponentTest extends LayoutTestCase {
   }
 
   public void testRemoveObsoleteAttributes() {
+    myModel = model("relative.xml",
+                    component(RELATIVE_LAYOUT)
+                      .withBounds(0, 0, 1000, 1000)
+                      .id("@+id/linear")
+                      .matchParentWidth()
+                      .matchParentHeight()
+                      .children(component(BUTTON)
+                                  .withBounds(0, 0, 100, 100)
+                                  .id("@+id/button")
+                                  .wrapContentHeight()
+                                  .wrapContentWidth()
+                                  .withAttribute(ANDROID_URI, "ems", "10")
+                                  .withAttribute(ANDROID_URI, "inputType", "textEmailAddress")
+                                  .withAttribute(ANDROID_URI, "orientation", "vertical")
+                                  .withAttribute(TOOLS_URI, "layout_editor_absoluteX", "32dp")
+                                  .withAttribute(TOOLS_URI, "layout_editor_absoluteY", "43dp"))).build();
+
+    NlComponent component = myModel.find("button");
+    NlWriteCommandActionUtil.run(component, "Remove obsolete attrs", component::removeObsoleteAttributes);
+
+    @Language("XML")
+    String expected = "<Button\n" +
+                      "        android:id=\"@+id/button\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:ems=\"10\"\n" +
+                      "        android:inputType=\"textEmailAddress\" />";
+    assertEquals(expected, component.getBackend().getTag().getText());
+  }
+
+  public void testSetAppAttributeWithLayoutRoot() {
     @Language("XML")
     String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<layout>\n" +
                       "<RelativeLayout\n" +
                       "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "  xmlns:tools=\"http://schemas.android.com/tools\">" +
+                      "  xmlns:tools=\"http://schemas.android.com/tools\">\n" +
                       "  <Button\n" +
-                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:id=\"@+id/button\"\n" +
                       "         android:layout_width=\"wrap_content\"\n" +
                       "         android:layout_height=\"wrap_content\"\n" +
                       "         android:ems=\"10\"\n" +
@@ -294,25 +325,39 @@ public final class NlComponentTest extends LayoutTestCase {
                       "         android:orientation=\"vertical\"\n" +
                       "         tools:layout_editor_absoluteX=\"32dp\"\n" +
                       "         tools:layout_editor_absoluteY=\"43dp\"\n/>" +
-                      "</RelativeLayout>";
+                      "</RelativeLayout>\n" +
+                      "</layout>";
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
-    assertEquals(1, subTags.length);
+    DesignSurface surface = ModelBuilder.createSurface(NlDesignSurface.class);
+    Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
+    when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
+    myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
+    myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
 
-    NlComponent component = MockNlComponent.create(subTags[0]);
-    CommandProcessor.getInstance().runUndoTransparentAction(component::removeObsoleteAttributes);
+    NlComponent component = myModel.find("button");
+    NlWriteCommandActionUtil.run(component, "set myAttr", () -> component.setAttribute(AUTO_URI, "myAttr", "5"));
 
     @Language("XML")
-    String expected = "<Button\n" +
-                      "         android:id=\"@+id/editText\"\n" +
-                      "         android:layout_width=\"wrap_content\"\n" +
-                      "         android:layout_height=\"wrap_content\"\n" +
-                      "         android:ems=\"10\"\n" +
-                      "         android:inputType=\"textEmailAddress\"\n" +
-                      "         />";
-    assertEquals(expected, component.getBackend().getTag().getText());
+    String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
+                      "<RelativeLayout>\n" +
+                      "\n" +
+                      "    <Button\n" +
+                      "        android:id=\"@+id/button\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:ems=\"10\"\n" +
+                      "        android:inputType=\"textEmailAddress\"\n" +
+                      "        android:orientation=\"vertical\"\n" +
+                      "        app:myAttr=\"5\"\n" +
+                      "        tools:layout_editor_absoluteX=\"32dp\"\n" +
+                      "        tools:layout_editor_absoluteY=\"43dp\" /></RelativeLayout>\n" +
+                      "</layout>";
+    assertEquals(expected, xmlFile.getText());
   }
 
   public void testIdFromMixin() {
@@ -400,6 +445,53 @@ public final class NlComponentTest extends LayoutTestCase {
                       "            tools123:text=\"ToolText\" />\n" +
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
+    assertEquals(expected, xmlFile.getText());
+  }
+
+  public void testNamespaceTransferFromRoot() {
+    @Language("XML")
+    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<RelativeLayout\n" +
+                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "  xmlns:tools123=\"http://schemas.android.com/tools\">" +
+                      "  <Button\n" +
+                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:layout_width=\"wrap_content\"\n" +
+                      "         android:layout_height=\"wrap_content\"\n" +
+                      "         android:ems=\"10\"\n" +
+                      "         android:inputType=\"textEmailAddress\"\n" +
+                      "         android:orientation=\"vertical\"\n" +
+                      "         tools123:layout_editor_absoluteX=\"32dp\"\n" +
+                      "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
+                      "</RelativeLayout>\n";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+    DesignSurface surface = ModelBuilder.createSurface(NlDesignSurface.class);
+    Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
+    when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
+    myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
+    myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
+    NlComponent relativeLayout = myModel.getComponents().get(0);
+
+    NlWriteCommandActionUtil.run(relativeLayout, "set attr", () -> relativeLayout.setAttribute(AUTO_URI, "something", "1"));
+    UIUtil.dispatchAllInvocationEvents();
+
+    @Language("XML")
+    String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    xmlns:tools123=\"http://schemas.android.com/tools\"\n" +
+                      "    app:something=\"1\">\n" +
+                      "\n" +
+                      "    <Button\n" +
+                      "        android:id=\"@+id/editText\"\n" +
+                      "        android:layout_width=\"wrap_content\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:ems=\"10\"\n" +
+                      "        android:inputType=\"textEmailAddress\"\n" +
+                      "        android:orientation=\"vertical\"\n" +
+                      "        tools123:layout_editor_absoluteX=\"32dp\"\n" +
+                      "        tools123:layout_editor_absoluteY=\"43dp\" />\n" +
+                      "</RelativeLayout>\n";
     assertEquals(expected, xmlFile.getText());
   }
 

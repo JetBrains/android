@@ -20,14 +20,15 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import org.junit.Test;
 
 public final class BooleanExpressionsTest {
   @Test
   public void testInvariants() throws Exception {
-    assertThat(BooleanExpression.ALWAYS_TRUE.get()).isTrue();
-    assertThat(BooleanExpression.ALWAYS_FALSE.get()).isFalse();
+    assertThat(ObservableBool.TRUE.get()).isTrue();
+    assertThat(ObservableBool.FALSE.get()).isFalse();
   }
 
   @Test

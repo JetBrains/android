@@ -68,7 +68,13 @@ import java.io.File
  * details on the way in which the file names are constructed.
  *
  * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_SYNC_TEST_SNAPSHOTS to update the files.
+ *       from IDE with -DUPDATE_SYNC_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 3) to
+ *       update multiple snapshots used in one test.
+ *
+ *       Or with bazel:
+ *       bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
+ *             --test_filter="GradleSyncProjectComparisonTest" --nocache_test_results --strategy=TestRunner=standalone \
+ *             --jvmopt='-DUPDATE_SYNC_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
     private val useNewSync: Boolean,

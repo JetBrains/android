@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.MoreExecutors
 import java.util.ArrayList
@@ -114,7 +115,8 @@ class TransportEventPollerTest {
                                                 assertThat(event).isEqualTo(expectedEvents.removeAt(0))
                                                 waitLatch.countDown()
                                                 eventLatch.countDown()
-                                              }, executor = MoreExecutors.directExecutor())
+                                              },
+                                              executor = MoreExecutors.directExecutor())
     transportEventPoller.registerListener(echoListener)
 
     // Wait for the first event to be received
@@ -152,6 +154,168 @@ class TransportEventPollerTest {
       e.printStackTrace()
       fail("Test interrupted")
     }
+  }
 
+  /**
+   * Tests that listeners receive the right events
+   */
+  private fun checkNonCustomFilter(
+    eventKind: Common.Event.Kind? = null,
+    groupId: Long? = null,
+    processId: Int? = null
+  ) {
+    val transportClient = TransportClient(grpcServer.name)
+    val positiveLatch = CountDownLatch(2)
+    val negativeLatch = CountDownLatch(2)
+
+    val transportEventPoller = TransportEventPoller.createPoller(
+      transportClient.transportStub,
+      TimeUnit.MILLISECONDS.toNanos(250))
+
+    val otherEventKind = if (eventKind != null) {
+      // get the next kind, but skip 0 (so wrap one place early and then add one after)
+      val nextKindId = eventKind.ordinal.rem(Common.Event.Kind.values().size - 1) + 1
+      Common.Event.Kind.values()[nextKindId]
+    }
+    else {
+      Common.Event.Kind.ECHO
+    }
+    val otherGroupId = groupId?.let { it + 1 } ?: 0
+    val otherProcessId = processId?.let { it + 1 } ?: 0
+
+    val realEventKind = eventKind ?: Common.Event.Kind.ECHO
+    val realGroupId = groupId ?: 0
+    val realProcessId = processId ?: 0
+
+    val positiveEventListener = TransportEventListener(
+      streamId = { 1 },
+      eventKind = realEventKind,
+      groupId = { realGroupId },
+      processId = { realProcessId },
+      callback = { event ->
+        assertThat(event.pid).isEqualTo(realProcessId)
+        assertThat(event.groupId).isEqualTo(realGroupId)
+        assertThat(event.kind).isEqualTo(realEventKind)
+        positiveLatch.countDown()
+      },
+      executor = MoreExecutors.directExecutor())
+    transportEventPoller.registerListener(positiveEventListener)
+
+    val negativeEventListener = TransportEventListener(
+      streamId = { 1 },
+      eventKind = otherEventKind,
+      groupId = { otherGroupId },
+      processId = { otherProcessId },
+      callback = { event ->
+        assertThat(event.pid).isEqualTo(otherProcessId)
+        assertThat(event.groupId).isEqualTo(otherGroupId)
+        assertThat(event.kind).isEqualTo(otherEventKind)
+        negativeLatch.countDown()
+      },
+      executor = MoreExecutors.directExecutor())
+    transportEventPoller.registerListener(negativeEventListener)
+
+    val positiveEvent1Builder =
+      Common.Event.newBuilder()
+        .setTimestamp(1)
+        .setKind(realEventKind)
+        .setGroupId(realGroupId)
+        .setPid(realProcessId)
+
+    val negativeEvent1Builder = Common.Event.newBuilder()
+      .setTimestamp(2)
+      .setKind(otherEventKind)
+      .setGroupId(otherGroupId)
+      .setPid(otherProcessId)
+
+    val positiveEvent2Builder = Common.Event.newBuilder()
+      .setTimestamp(3)
+      .setKind(realEventKind)
+      .setGroupId(realGroupId)
+      .setPid(realProcessId)
+
+    val negativeEvent2Builder = Common.Event.newBuilder()
+      .setTimestamp(4)
+      .setKind(otherEventKind)
+      .setGroupId(otherGroupId)
+      .setPid(otherProcessId)
+
+    transportService.addEventToEventGroup(1L, positiveEvent1Builder.build())
+    transportService.addEventToEventGroup(1L, negativeEvent1Builder.build())
+    transportService.addEventToEventGroup(1L, positiveEvent2Builder.build())
+    transportService.addEventToEventGroup(1L, negativeEvent2Builder.build())
+
+    assertThat(positiveLatch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    assertThat(negativeLatch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+  }
+
+  @Test
+  fun testKindFilter() {
+    checkNonCustomFilter(eventKind = Common.Event.Kind.CPU_USAGE)
+  }
+
+  @Test
+  fun testProcessFilter() {
+    checkNonCustomFilter(processId = 123)
+  }
+
+  @Test
+  fun testGroupFilter() {
+    checkNonCustomFilter(groupId = 321L)
+  }
+
+  @Test
+  fun testAllFilters() {
+    checkNonCustomFilter(eventKind = Common.Event.Kind.CPU_USAGE, processId = 123, groupId = 321L)
+  }
+
+  @Test
+  fun testCustomFilter() {
+
+    val transportClient = TransportClient(grpcServer.name)
+    val latch = CountDownLatch(2)
+
+    val transportEventPoller = TransportEventPoller.createPoller(
+      transportClient.transportStub,
+      TimeUnit.MILLISECONDS.toNanos(250))
+
+    val positiveEventListener = TransportEventListener(
+      eventKind = Common.Event.Kind.ECHO,
+      streamId = { 1 },
+      filter = { event -> event.echo.data == "blah" },
+      callback = { event ->
+        assertThat(event.echo.data).isEqualTo("blah")
+        latch.countDown()
+      },
+      executor = MoreExecutors.directExecutor())
+    transportEventPoller.registerListener(positiveEventListener)
+
+    val positiveEvent1Builder =
+      Common.Event.newBuilder()
+        .setTimestamp(1)
+        .setKind(Common.Event.Kind.ECHO)
+        .setEcho(Echo.EchoData.newBuilder().setData("blah"))
+
+    val negativeEvent1Builder = Common.Event.newBuilder()
+      .setTimestamp(2)
+      .setKind(Common.Event.Kind.ECHO)
+      .setEcho(Echo.EchoData.newBuilder().setData("foo"))
+
+    val negativeEvent2Builder = Common.Event.newBuilder()
+      .setTimestamp(3)
+      .setKind(Common.Event.Kind.ECHO)
+
+    val positiveEvent2Builder = Common.Event.newBuilder()
+      .setTimestamp(4)
+      .setKind(Common.Event.Kind.ECHO)
+      .setEcho(Echo.EchoData.newBuilder().setData("blah"))
+
+
+    transportService.addEventToEventGroup(1L, positiveEvent1Builder.build())
+    transportService.addEventToEventGroup(1L, negativeEvent1Builder.build())
+    transportService.addEventToEventGroup(1L, negativeEvent2Builder.build())
+    transportService.addEventToEventGroup(1L, positiveEvent2Builder.build())
+
+    assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
   }
 }

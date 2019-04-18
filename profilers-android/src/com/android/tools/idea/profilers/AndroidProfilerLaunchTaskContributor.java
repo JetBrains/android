@@ -40,6 +40,7 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
@@ -173,16 +174,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       .setDeviceId(deviceId)
       .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
 
-    if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
+    if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.SIMPLEPERF) {
       requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("simpleperf", "simpleperf", device));
     }
-    else if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+    else if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.ATRACE) {
       requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("perfetto", "perfetto", device));
     }
 
     CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
 
-    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getProfilerType() != CpuProfiler.CpuProfilerType.ART) {
+    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getTraceType() != Cpu.CpuTraceType.ART) {
       return "";
     }
 

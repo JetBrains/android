@@ -48,7 +48,6 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android:test_deps.zip",

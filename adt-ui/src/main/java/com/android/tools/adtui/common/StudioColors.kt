@@ -40,12 +40,26 @@ val secondaryPanelBackground = JBColor.namedColor("UIDesigner.Panel.background",
  *
  * Example : Between the component tree and the main panel of the layout editor
  */
-val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9, 0x242627))
+val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9, 0x282828))
 
 /**
  * Border color to use when separating element inside the same panel.
  *
- * Example: boder between the category list and widget list in the
+ * Example: border between the category list and widget list in the
  * layout editor's palette
  */
-val borderLight = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xe8e6e6, 0x3c3f41))
+val borderLight = JBColor.namedColor("Canvas.Tooltip.borderColor", JBColor(0xD9D9D9, 0x4A4A4A))
+
+/**
+ * Background color for tooltips on canvases
+ *
+ * Example: Hover tooltips for chart data points, tooltips on designer surfaces
+ */
+val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JBColor(0xf7f7f7, 0x4A4C4C))
+
+/**
+ * Background color for content (same background colors as Editors)
+ *
+ * Example: Background for charts, editors
+ */
+val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))

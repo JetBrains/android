@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers.profilingconfig;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
@@ -30,21 +30,38 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.AnActionButton;
+import com.intellij.ui.AnActionButtonRunnable;
+import com.intellij.ui.AnActionButtonUpdater;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBDimension;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.function.Consumer;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
@@ -326,8 +343,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       private void addConfiguration() {
         ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
-                                                                          CpuProfiler.CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                                          Cpu.CpuTraceType.ART,
+                                                                          Cpu.CpuTraceMode.SAMPLED);
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration

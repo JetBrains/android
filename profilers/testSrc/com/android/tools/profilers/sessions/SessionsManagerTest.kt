@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -360,7 +360,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val legacyAllocationsInfoTimestamp = 30L
     val liveAllocationsInfoTimestamp = 40L
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
     val allocationInfos = MemoryProfiler.MemoryData.newBuilder()
       .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(legacyAllocationsInfoTimestamp).setEndTime(
         legacyAllocationsInfoTimestamp + 1).setLegacy(true).build())
@@ -410,7 +410,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 1)
-    val simpleperfTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build()
+    val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF).build()
     myCpuService.addTraceInfo(simpleperfTraceInfo)
     myManager.update()
 
@@ -444,7 +444,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
 
     val cpuTraceTimestamp = 20L
-    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
     myCpuService.addTraceInfo(cpuTraceInfo)
     myManager.update()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(3)

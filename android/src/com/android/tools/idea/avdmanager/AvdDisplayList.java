@@ -66,7 +66,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   private static final String MOBILE_TAG_STRING = "mobile-device";
 
-  private final Project myProject;
+  @Nullable private final Project myProject;
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
   private final AvdListDialog myDialog;
@@ -486,7 +486,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return targetString(info.getAndroidVersion(), info.getTag());
       }
     },
-    new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
+    new AvdColumnInfo("CPU/ABI", JBUI.scale(70)) {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {

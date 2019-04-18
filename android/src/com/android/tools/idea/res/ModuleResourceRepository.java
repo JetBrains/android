@@ -44,40 +44,10 @@ import org.jetbrains.annotations.Nullable;
  * @see ResourceRepositoryManager#getModuleResources()
  */
 final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
-  @NotNull
-  private final AndroidFacet myFacet;
-
-  @NotNull
-  private final ResourceNamespace myNamespace;
-
-  @NotNull
-  private final SourceSet mySourceSet;
-
-  @NotNull
-  private final ResourceFolderRegistry myRegistry;
-
-  @NotNull
-  private final ResourceFolderListener myResourceFolderListener = new ResourceFolderListener() {
-      @Override
-      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                             @NotNull List<? extends VirtualFile> folders,
-                                             @NotNull Collection<? extends VirtualFile> added,
-                                             @NotNull Collection<? extends VirtualFile> removed) {
-        if (mySourceSet == SourceSet.MAIN) {
-          updateRoots(folders);
-        }
-      }
-
-      @Override
-      public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                             @NotNull List<? extends VirtualFile> folders,
-                                             @NotNull Collection<? extends VirtualFile> added,
-                                             @NotNull Collection<? extends VirtualFile> removed) {
-        if (mySourceSet == SourceSet.TEST) {
-          updateRoots(folders);
-        }
-      }
-    };
+  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final ResourceNamespace myNamespace;
+  @NotNull private final SourceSet mySourceSet;
+  @NotNull private final ResourceFolderRegistry myRegistry;
 
   private enum SourceSet { MAIN, TEST }
 
@@ -87,11 +57,11 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    * <p>The returned repository needs to be registered with a {@link com.intellij.openapi.Disposable} parent.
    *
    * @param facet the facet for the module
+   * @param namespace the namespace for the repository
    * @return the resource repository
    */
   @NotNull
-  static LocalResourceRepository forMainResources(@NotNull AndroidFacet facet) {
-    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getNamespace();
+  static LocalResourceRepository forMainResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
@@ -108,18 +78,23 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     }
 
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
-    List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
 
-    DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet);
-    childRepositories.add(dynamicResources);
-    addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
+    DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet, namespace);
+    ModuleResourceRepository moduleRepository;
 
-    // We create a ModuleResourceRepository even if childRepositories.isEmpty(), because we may
-    // dynamically add children to it later (in updateRoots).
-    ModuleResourceRepository repository = new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.MAIN);
-    Disposer.register(repository, dynamicResources);
+    try {
+      List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
+      childRepositories.add(dynamicResources);
+      addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
+      moduleRepository = new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.MAIN);
+    }
+    catch (Throwable t) {
+      Disposer.dispose(dynamicResources);
+      throw t;
+    }
 
-    return repository;
+    Disposer.register(moduleRepository, dynamicResources);
+    return moduleRepository;
   }
 
   /**
@@ -128,11 +103,11 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    * <p>The returned repository needs to be registered with a {@link com.intellij.openapi.Disposable} parent.
    *
    * @param facet the facet for the module
+   * @param namespace the namespace for the repository
    * @return the resource repository
    */
   @NotNull
-  static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet) {
-    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getTestNamespace();
+  static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
@@ -183,7 +158,29 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     myRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
 
     setChildren(delegates, ImmutableList.of());
-    myFacet.getModule().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, myResourceFolderListener);
+
+    ResourceFolderListener resourceFolderListener = new ResourceFolderListener() {
+      @Override
+      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
+                                             @NotNull List<? extends VirtualFile> folders,
+                                             @NotNull Collection<? extends VirtualFile> added,
+                                             @NotNull Collection<? extends VirtualFile> removed) {
+        if (mySourceSet == SourceSet.MAIN) {
+          updateRoots(folders);
+        }
+      }
+
+      @Override
+      public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
+                                             @NotNull List<? extends VirtualFile> folders,
+                                             @NotNull Collection<? extends VirtualFile> added,
+                                             @NotNull Collection<? extends VirtualFile> removed) {
+        if (mySourceSet == SourceSet.TEST) {
+          updateRoots(folders);
+        }
+      }
+    };
+    myFacet.getModule().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
   }
 
   @VisibleForTesting

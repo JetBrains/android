@@ -126,12 +126,12 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
   @VisibleForTesting
   static boolean shouldRecommendUpgrade(@NotNull GradleVersion recommended, @Nullable GradleVersion current) {
     if (current != null) {
-      if (recommended.isSnapshot()) {
-        // e.g recommended: 3.3.0-dev, we never ask for upgrading to dev version.
+      if (recommended.isSnapshot() && current.compareIgnoringQualifiers(recommended) == 0) {
+        // Do not upgrade to snapshot version when major versions are same.
         return false;
       }
-      if (current.isPreview() && recommended.isPreview()) {
-        // This should be handled by force upgrade.
+      if (current.isPreview() && recommended.isPreview() && !recommended.isSnapshot()) {
+        // Upgrade from preview to non-snapshot preview version is handled by force upgrade.
         return false;
       }
       if (!current.isPreview() && recommended.isPreview() && current.compareIgnoringQualifiers(recommended) < 0) {

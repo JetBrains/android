@@ -552,7 +552,7 @@ public class Scene implements SelectionListener, Disposable {
 
     if (closestComponent == null
         || closestComponent.getNlComponent().isRoot()
-           && myHitTarget == null) {
+           && myOverTarget == null) {
       Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
       if (obj != null && obj instanceof SecondarySelector) {
         SecondarySelector ss = (SecondarySelector)obj;
@@ -573,7 +573,15 @@ public class Scene implements SelectionListener, Disposable {
     NlComponent component = ss.getComponent();
     String tooltip;
     String connect = "", target = "";
-    switch (ss.getConstraint()) {
+    SecondarySelector.Constraint connection = ss.getConstraint();
+    if (isInRTL()) {
+      if (connection == SecondarySelector.Constraint.LEFT) {
+        connection = SecondarySelector.Constraint.RIGHT;
+      } else  if (connection == SecondarySelector.Constraint.RIGHT) {
+        connection = SecondarySelector.Constraint.LEFT;
+      }
+    }
+    switch (connection) {
 
       case LEFT:
         connect = SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
@@ -942,6 +950,8 @@ public class Scene implements SelectionListener, Disposable {
       select(myNewSelectedComponentsOnRelease);
     }
     else {
+      // TODO: Clear in findSelectionOfCurve.
+      myDesignSurface.getSelectionModel().clearSecondary();
       findSelectionOfCurve(secondarySelector);
     }
     myHitTarget = null;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.psi;
 
-import com.android.tools.idea.lang.databinding.DbLanguage;
+import com.android.tools.idea.lang.databinding.config.DbLanguage;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

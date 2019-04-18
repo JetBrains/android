@@ -2,9 +2,9 @@
 package com.android.tools.adtui.workbench;
 
 import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -17,6 +17,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -118,6 +119,10 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
+    AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);
+    if (globalFindAction != null) {
+      new FindAction().registerCustomShortcutSet(globalFindAction.getShortcutSet(), myPanel, this);
+    }
   }
 
   @Override
@@ -281,6 +286,11 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   @VisibleForTesting
+  public SearchTextField getSearchField() {
+    return mySearchField;
+  }
+
+  @VisibleForTesting
   @Nullable
   ToolContent<T> getContent() {
     return myContent;
@@ -344,6 +354,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private void showSearchField(boolean show) {
+    if (myContent == null || !myContent.supportsFiltering()) {
+      return;
+    }
     Container parent = mySearchField.getParent();
     CardLayout layout = (CardLayout)parent.getLayout();
     if (show) {
@@ -778,6 +791,13 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
           addCurrentTextToHistory();
         }
       }
+    }
+  }
+
+  private final class FindAction extends DumbAwareAction {
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      showSearchField(true);
     }
   }
 }

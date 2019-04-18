@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import static com.android.SdkConstants.DOT_XML;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -42,27 +53,21 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import java.util.function.Consumer;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static com.android.SdkConstants.DOT_XML;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Fixture for building up models for tests
@@ -70,7 +75,7 @@ import static org.mockito.Mockito.*;
 public class ModelBuilder {
   private final ComponentDescriptor myRoot;
   private final AndroidFacet myFacet;
-  private final JavaCodeInsightTestFixture myFixture;
+  private final CodeInsightTestFixture myFixture;
   private String myName;
   private final Function<? super SyncNlModel, ? extends SceneManager> myManagerFactory;
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
@@ -80,7 +85,7 @@ public class ModelBuilder {
   private Device myDevice;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
-                      @NotNull JavaCodeInsightTestFixture fixture,
+                      @NotNull CodeInsightTestFixture fixture,
                       @NotNull String name,
                       @NotNull ComponentDescriptor root,
                       @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
@@ -152,9 +157,7 @@ public class ModelBuilder {
         fail("Invalid XML created for the model (" + xml + ")");
       }
       String relativePath = "res/" + myPath + "/" + myName;
-      VirtualFile root = LocalFileSystem.getInstance().findFileByIoFile(new File(myFixture.getTempDirPath()));
-      assertThat(root).isNotNull();
-      VirtualFile virtualFile = root.findFileByRelativePath(relativePath);
+      VirtualFile virtualFile = findVirtualFile(relativePath);
       XmlFile xmlFile;
       if (virtualFile != null) {
         xmlFile = (XmlFile)PsiManager.getInstance(project).findFile(virtualFile);
@@ -204,6 +207,16 @@ public class ModelBuilder {
 
       return model;
     });
+  }
+
+  @Nullable
+  private VirtualFile findVirtualFile(@NotNull String relativePath) {
+    if (myFixture instanceof JavaCodeInsightTestFixture) {
+      VirtualFile root = LocalFileSystem.getInstance().findFileByIoFile(new File(myFixture.getTempDirPath()));
+      assertThat(root).isNotNull();
+      return root.findFileByRelativePath(relativePath);
+    }
+    return null;
   }
 
   public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {

@@ -145,26 +145,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   private void setHeaderActions() {
     List<AnAction> additionalActions = Lists.newArrayList();
 
-    additionalActions.add(new SelectNodesMatchingCurrentSelectionAction() {
-      @Override
-      @NotNull
-      protected AbstractPsNodeTreeBuilder getTreeBuilder() {
-        return myTreeBuilder;
-      }
-    });
-
-    additionalActions.add(Separator.getInstance());
-
-    additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        myIgnoreTreeSelectionEvents = true;
-        myTree.requestFocusInWindow();
-        myTreeBuilder.expandAllNodes();
-        myIgnoreTreeSelectionEvents = false;
-      }
-    });
-
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
@@ -173,40 +153,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     });
 
     additionalActions.add(Separator.getInstance());
-    //DefaultActionGroup settingsGroup = new DefaultActionGroup();
-    //settingsGroup.add(new ToggleAction("Group Similar") {
-    //  @Override
-    //  public boolean isSelected(AnActionEvent e) {
-    //    return PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
-    //  }
-    //
-    //  @Override
-    //  public void setSelected(AnActionEvent e, boolean state) {
-    //    PsUISettings settings = PsUISettings.getInstance();
-    //    if (settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS != state) {
-    //      settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS = state;
-    //      settings.fireUISettingsChanged();
-    //    }
-    //  }
-    //});
-    //
-    //additionalActions.add(new DumbAwareAction("", "", AllIcons.General.Gear) {
-    //  @Override
-    //  public void actionPerformed(AnActionEvent e) {
-    //    InputEvent inputEvent = e.getInputEvent();
-    //    ActionManagerImpl actionManager = (ActionManagerImpl)ActionManager.getInstance();
-    //    ActionPopupMenu popupMenu =
-    //      actionManager.createActionPopupMenu(POPUP_PLACE, settingsGroup, new MenuItemPresentationFactory(true));
-    //    int x = 0;
-    //    int y = 0;
-    //    if (inputEvent instanceof MouseEvent) {
-    //      x = ((MouseEvent)inputEvent).getX();
-    //      y = ((MouseEvent)inputEvent).getY();
-    //    }
-    //    popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
-    //  }
-    //});
-
     getHeader().setAdditionalActions(additionalActions);
   }
 

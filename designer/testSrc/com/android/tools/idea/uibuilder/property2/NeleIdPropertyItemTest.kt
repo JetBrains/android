@@ -17,9 +17,17 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START
 import com.android.SdkConstants.ATTR_LAYOUT_BELOW
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.CHECK_BOX
+import com.android.SdkConstants.RELATIVE_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
@@ -56,7 +64,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueChangeReferences() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "label"
@@ -69,7 +77,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetAndroidValueChangeReferences() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "@android:id/text2"
@@ -81,7 +89,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueDoNotChangeReferences() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.NO }
     property.value = "label"
@@ -100,7 +108,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueAndYesToChangeReferencesAndDoNotCheckAgain() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "other"
@@ -124,7 +132,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueAndYesWillNotEnablePreviewBeforeRun() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
@@ -137,7 +145,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueAndPreviewWillEnablePreviewBeforeRun() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.PREVIEW }
     try {
@@ -151,7 +159,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueAndNoWillChangeTheValueButRenameProcessWillNotRun() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.NO }
     BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
@@ -164,7 +172,7 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueAndCancelNotExecuteRenameProcess() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.CANCEL }
     BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
@@ -181,7 +189,7 @@ class NeleIdPropertyItemTest {
     addManifest(projectRule.fixture)
     val activityFile = projectRule.fixture.addFileToProject("src/MainActivity.java", testActivity)
     projectRule.fixture.addFileToProject("gen/R.java", testRFile)
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "checkBox1")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("checkBox1").clearSnapshots()
     val property = util.makeIdProperty()
     NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "checkBox30"
@@ -192,14 +200,14 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testNoValueToolTip() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     assertThat(property.tooltipForValue).isEqualTo("")
   }
 
   @Test
   fun testValidation() {
-    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
     assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("@+id/hello")).isEqualTo(EDITOR_NO_ERROR)
@@ -208,35 +216,33 @@ class NeleIdPropertyItemTest {
     assertThat(property.editingSupport.validation("hello")).isEqualTo(EDITOR_NO_ERROR)
   }
 
-  @Language("XML")
-  private val testLayout = """
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <CheckBox
-        android:id="@+id/checkBox1"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/textView"
-        android:layout_toRightOf="@id/textView" />
-
-    <CheckBox
-        android:id="@+id/checkBox2"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/button1"
-        android:layout_toRightOf="@id/textView" />
-
-</RelativeLayout>
-"""
+  private fun createTestLayout(): ComponentDescriptor =
+    ComponentDescriptor(RELATIVE_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        ComponentDescriptor(TEXT_VIEW)
+          .withBounds(0, 0, 100, 100)
+          .id("@+id/textView")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "100dp")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "100dp")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_LEFT, "true")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_START, "true"),
+        ComponentDescriptor(CHECK_BOX)
+          .withBounds(0, 0, 200, 200)
+          .id("@+id/checkBox1")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "100dp")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "100dp")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW, "@id/textView")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF, "@id/textView"),
+        ComponentDescriptor(CHECK_BOX)
+          .withBounds(0, 0, 200, 300)
+          .id("@+id/checkBox2")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "100dp")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "100dp")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW, "@id/button1")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF, "@id/textView"))
 
   @Language("JAVA")
   private val testActivity = """

@@ -15,12 +15,24 @@
  */
 package org.jetbrains.android.dom.layout;
 
+import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.DefinesXml;
 
+import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
 
 @DefinesXml
 public interface Data extends LayoutElement, DataBindingElement {
   List<Variable> getVariables();
   List<Import> getImports();
+
+  /**
+   * The value of this attribute directs data binding to generate a binding class with a custom
+   * name / path.
+   * <p>
+   * See also:
+   * <a href="https://developer.android.com/topic/libraries/data-binding/generated-binding#custom_binding_class_names">related docs</a>
+   */
+  @Attribute("class")
+  GenericAttributeValue<String> getCustomBindingClass();
 }

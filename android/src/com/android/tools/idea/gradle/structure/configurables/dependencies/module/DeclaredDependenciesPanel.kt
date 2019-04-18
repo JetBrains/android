@@ -108,7 +108,7 @@ internal class DeclaredDependenciesPanel(
 
   private fun initializeDependencyDetails() {
     addDetails(SingleDeclaredLibraryDependencyDetails(context))
-    addDetails(JarDependencyDetails(context))
+    addDetails(JarDependencyDetails(context, true))
     addDetails(ModuleDependencyDetails(context, true))
   }
 
@@ -175,7 +175,7 @@ internal class DeclaredDependenciesPanel(
   }
 
   private fun updateIssues(selected: PsBaseDependency?) {
-    displayIssues(context.analyzerDaemon.issues.findIssues(selected?.path, null), selected?.path)
+    displayIssues(selected?.let { context.analyzerDaemon.issues.findIssues(selected.path, null) }.orEmpty(), selected?.path)
   }
 
   fun selectDependency(dependency: String?) {

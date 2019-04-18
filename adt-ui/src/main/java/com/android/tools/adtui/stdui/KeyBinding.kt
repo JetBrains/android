@@ -18,6 +18,7 @@ package com.android.tools.adtui.stdui
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -59,4 +60,13 @@ fun JComponent.registerAnActionKey(getAction: () -> AnAction?, keyStroke: KeyStr
       return getAction()?.templatePresentation?.isEnabledAndVisible ?: false
     }
   })
+}
+
+fun JComponent.registerActionShortCutSet(action: () -> Unit, shortCut: ShortcutSet) {
+  val actionObject = object : AnAction() {
+    override fun actionPerformed(event: AnActionEvent) {
+      action()
+    }
+  }
+  actionObject.registerCustomShortcutSet(shortCut, this)
 }

@@ -49,7 +49,6 @@ iml_module(
     test_coverage = True,
     test_data = glob(["testData/**"]) + [
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
         "//tools/base/templates",
         "//tools/idea:platform-build-info",

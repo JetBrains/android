@@ -39,6 +39,7 @@ import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
@@ -47,6 +48,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -388,6 +390,16 @@ class AddDestinationMenuTest : NavTestCase() {
       menu.addDestination(destination)
       verify(destination).addToGraph()
       Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(ADD_INCLUDE).build())
+    }
+  }
+
+  fun testDumbMode() {
+    DumbServiceImpl.getInstance(project).isDumb = true
+    try {
+      AddDestinationMenu(surface).mainPanel
+    }
+    finally {
+      DumbServiceImpl.getInstance(project).isDumb = false
     }
   }
 

@@ -30,7 +30,7 @@
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="../com/android/tools/idea/resourceExplorer/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="../com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/inspections/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
@@ -221,31 +221,31 @@
       <add-to-group group-id="RunMenu"/>
     </action>
     <action id="AndroidModularizeAction" class="com.android.tools.idea.refactoring.modularize.AndroidModularizeAction" text="Modularize..."
-            description="Move classes and their associated resources to another module">
+            description="Moves classes and their associated resources to another module">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
-            description="Removes Unused Resources">
+            description="Removes unused resources">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate App To AppCompat..."
-            description="Migrate App To AppCompat">
+    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate to AppCompat..."
+            description="Migrates app to AppCompat">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Migrate to AndroidX..."
-            description="Migrate To AndroidX Package Names">
+            description="Migrates to AndroidX package names">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
-            description="Migrate To Resource Namespaces">
+            description="Migrates to resource namespaces">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidExtractStyleAction" class="org.jetbrains.android.refactoring.AndroidExtractStyleAction" text="St_yle..."
-            description="Pull out style-related attributes from layout and extract them as a new style">
+            description="Pulls out style-related attributes from layout and extract them as a new style">
       <add-to-group group-id="IntroduceActionsGroup"/>
     </action>
     <action id="AndroidExtractAsIncludeAction" class="org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction"
-            text="_Layout..." description="Extract one or more views into a separate layout">
+            text="_Layout..." description="Extracts one or more views into a separate layout">
       <add-to-group group-id="IntroduceActionsGroup"/>
     </action>
     <action id="AndroidInlineStyleReferenceAction" class="org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction"
@@ -259,7 +259,7 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
+            text="Add RTL Support Where Possible..." description="Add light-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
@@ -557,6 +557,7 @@
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.apk.debugging.DexSourceFiles"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.actions.BuildsToPathsMapper"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectStructure"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.RunConfigurationChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
@@ -876,7 +877,6 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSupportRepoErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsErrorHandler"/>

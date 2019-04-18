@@ -15,6 +15,8 @@
  */
 package com.android.tools.property.ptable2.impl
 
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditorProvider
 import com.android.tools.property.ptable2.PTableCellRendererProvider
@@ -22,8 +24,6 @@ import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.adtui.stdui.registerActionKey
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.Gray
@@ -39,8 +39,6 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Font
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
@@ -117,10 +115,6 @@ class PTableImpl(override val tableModel: PTableModel,
     super.setFocusTraversalPolicyProvider(true)
     super.setFocusTraversalPolicy(PTableFocusTraversalPolicy())
 
-    super.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(event: ComponentEvent) = updateColumnWidths()
-    })
-
     super.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent) {
         // If this table gains focus from focus traversal,
@@ -137,6 +131,16 @@ class PTableImpl(override val tableModel: PTableModel,
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
     super.setExpandableItemsEnabled(false)
+
+    getColumnModel().getColumn(0).resizable = false
+    getColumnModel().getColumn(1).resizable = false
+  }
+
+  override fun doLayout() {
+    val nameColumn = getColumnModel().getColumn(0)
+    val valueColumn = getColumnModel().getColumn(1)
+    nameColumn.width = min((width * LEFT_FRACTION).roundToInt(), SCALED_MAX_LABEL_WIDTH)
+    valueColumn.width = width - nameColumn.width
   }
 
   override val component: JComponent
@@ -254,13 +258,6 @@ class PTableImpl(override val tableModel: PTableModel,
         }
       }
     }
-  }
-
-  private fun updateColumnWidths() {
-    val nameColumn = getColumnModel().getColumn(0)
-    val valueColumn = getColumnModel().getColumn(1)
-    nameColumn.preferredWidth = min((width * LEFT_FRACTION).roundToInt(), SCALED_MAX_LABEL_WIDTH)
-    valueColumn.preferredWidth = width - nameColumn.preferredWidth
   }
 
   // Bug: 221565

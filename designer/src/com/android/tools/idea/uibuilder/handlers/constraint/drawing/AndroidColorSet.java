@@ -78,7 +78,7 @@ public class AndroidColorSet extends ColorSet {
 
         mAnchorCircle = Color.black;
         mAnchorCreationCircle = Color.white;
-        mAnchorDisconnectionCircle = new Color(180, 0, 0);
+        mAnchorDisconnectionCircle = new Color(0xDB5860);
         mAnchorConnectionCircle = new Color(10, 130, 10);
 
         // Widget actions

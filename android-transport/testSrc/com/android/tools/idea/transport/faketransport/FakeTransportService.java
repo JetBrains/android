@@ -297,14 +297,16 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * The group to add to is taken from the group set on the event.
    */
   public void addEventToEventGroup(long streamId, Common.Event event) {
-    List<Transport.EventGroup.Builder> groups = getListForStream(streamId);
-    long groupId = event.getGroupId();
-    Optional<Transport.EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getGroupId() == groupId).findFirst();
-    if (eventGroup.isPresent()) {
-      eventGroup.get().addEvents(event);
-    }
-    else {
-      groups.add(Transport.EventGroup.newBuilder().setGroupId(groupId).addEvents(event));
+    synchronized (myStreamEvents) {
+      List<Transport.EventGroup.Builder> groups = getListForStream(streamId);
+      long groupId = event.getGroupId();
+      Optional<Transport.EventGroup.Builder> eventGroup = groups.stream().filter(group -> group.getGroupId() == groupId).findFirst();
+      if (eventGroup.isPresent()) {
+        eventGroup.get().addEvents(event);
+      }
+      else {
+        groups.add(Transport.EventGroup.newBuilder().setGroupId(groupId).addEvents(event));
+      }
     }
   }
 
@@ -337,28 +339,33 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     // This logic mirrors that logic of transport-database. We do proper filtering of all events here so our test, behave as close to runtime as
     // possible.
     HashMap<Long, Transport.EventGroup.Builder> eventGroups = new HashMap<>();
-    for (long streamId : myStreamEvents.keySet()) {
-      if (request.getStreamId() != EMPTY_REQUEST_VALUE && streamId != request.getStreamId()) {
-        continue;
-      }
-      for (Transport.EventGroup.Builder eventGroup : myStreamEvents.get(streamId)) {
-        for (Common.Event event : eventGroup.getEventsList()) {
-          if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
-            continue;
+    synchronized (myStreamEvents) {
+      for (long streamId : myStreamEvents.keySet()) {
+        if (request.getStreamId() != EMPTY_REQUEST_VALUE && streamId != request.getStreamId()) {
+          continue;
+        }
+        for (Transport.EventGroup.Builder eventGroup : myStreamEvents.get(streamId)) {
+          for (Common.Event event : eventGroup.getEventsList()) {
+            if (request.getPid() != EMPTY_REQUEST_VALUE && request.getPid() != event.getPid()) {
+              continue;
+            }
+            if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
+              continue;
+            }
+            if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
+              continue;
+            }
+            if (request.getToTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
+              continue;
+            }
+            if (request.getKind() != event.getKind()) {
+              continue;
+            }
+            if (!eventGroups.containsKey(eventGroup.getGroupId())) {
+              eventGroups.put(eventGroup.getGroupId(), Transport.EventGroup.newBuilder().setGroupId(eventGroup.getGroupId()));
+            }
+            eventGroups.get(eventGroup.getGroupId()).addEvents(event);
           }
-          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
-            continue;
-          }
-          if (request.getToTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
-            continue;
-          }
-          if (request.getKind() != event.getKind()) {
-            continue;
-          }
-          if (!eventGroups.containsKey(eventGroup.getGroupId())) {
-            eventGroups.put(eventGroup.getGroupId(), Transport.EventGroup.newBuilder().setGroupId(eventGroup.getGroupId()));
-          }
-          eventGroups.get(eventGroup.getGroupId()).addEvents(event);
         }
       }
     }

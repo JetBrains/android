@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.common.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
-import com.android.tools.idea.resourceExplorer.viewmodel.ResourceDataManagerKt;
-import com.intellij.ide.dnd.TransferableList;
+import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManagerKt;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 

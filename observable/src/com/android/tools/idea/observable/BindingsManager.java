@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.observable;
 
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import java.util.Iterator;
@@ -58,7 +58,7 @@ public final class BindingsManager {
    * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, BooleanExpression.ALWAYS_TRUE);
+    bind(dest, src, ObservableBool.TRUE);
   }
 
   /**

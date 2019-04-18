@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import android.databinding.tool.reflection.Callable
-import android.databinding.tool.reflection.ModelClass
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.lang.databinding.DbFileType
 import com.android.tools.idea.lang.databinding.JAVA_LANG
+import com.android.tools.idea.lang.databinding.config.DbFileType
+import com.android.tools.idea.lang.databinding.model.PsiCallable
+import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
@@ -94,7 +94,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // qualified) class in their expression without a corresponding <import> or <variable>
       // declaration. In that case, we search the current module to see if we can find it directly.
       val modelResolvable = prefixExpr.toModelClassResolvable()
-      val psiModelClass = modelResolvable?.resolvedType ?: return findFullyQualifiedReference(refExpr)
+      val psiModelClass = modelResolvable?.resolvedType?.unwrapped ?: return findFullyQualifiedReference(refExpr)
 
       val fieldText = refExpr.id.text
       if (fieldText.isBlank()) {
@@ -104,18 +104,19 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // Resolve fully qualified methods / fields, e.g. "variable.value" or "variable.method"
       // TODO: Search for methods with args also. The following only searches for methods with no args.
       //  This results in attributes like 'android:onClick="@{variable.method}"' being left unresolved.
-      val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
+      val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
+
 
       // TODO: If psiClass is ObservableField<Foo> or ObservablePrimitive, change it to Foo (by an implicit call to #get()).
       when (getterOrField?.type) {
-        Callable.Type.METHOD -> {
+        PsiCallable.Type.METHOD -> {
           val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
           if (methodsByName.isNotEmpty()) {
             return arrayOf(PsiMethodReference(refExpr, methodsByName[0]))
           }
         }
-        Callable.Type.FIELD -> {
+        PsiCallable.Type.FIELD -> {
           val fieldsByName = psiClass.findFieldByName(getterOrField.name, true)
           if (fieldsByName != null) {
             return arrayOf(PsiFieldReference(refExpr, fieldsByName))
@@ -191,14 +192,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
       val callExpr = element as PsiDbCallExpr
       val methodExpr = callExpr.refExpr.expr ?: return PsiReference.EMPTY_ARRAY
-      val psiModelClass = methodExpr.toModelClassResolvable()?.resolvedType ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = methodExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
-      val methodArgs: MutableList<ModelClass?> = mutableListOf()
+      val methodArgs: MutableList<PsiModelClass?> = mutableListOf()
       callExpr.expressionList?.exprList?.forEach { expr -> methodArgs.add(expr.toModelClassResolvable()?.resolvedType) }
 
       // First, see if we can find a name match that also matches all args
       if (!methodArgs.contains(null)) {
-        @Suppress("NAME_SHADOWING") // We reframe List<ModelClass?> as List<ModelClass>
+        @Suppress("NAME_SHADOWING") // We reframe List<PsiModelClass?> as List<PsiModelClass>
         val methodArgs = methodArgs.requireNoNulls()
         val method = psiModelClass.getMethod(callExpr.refExpr.id.text, methodArgs, staticOnly = false, allowProtected = false)
         if (method is PsiModelMethod) {
@@ -208,7 +209,6 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
 
       // As a fallback, see if we can find a method by just its name
       return psiModelClass.findMethods(callExpr.refExpr.id.text, staticOnly = false)
-        .filterIsInstance<PsiModelMethod>()
         .map { modelMethod -> PsiMethodReference(callExpr, modelMethod.psiMethod) }
         .toTypedArray()
     }
@@ -232,10 +232,9 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val funRefExpr = element as PsiDbFunctionRefExpr
       val classExpr = funRefExpr.expr
       val methodExpr = funRefExpr.id
-      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
       return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
-        .filterIsInstance<PsiModelMethod>()
         .map { modelMethod -> PsiMethodReference(element, modelMethod.psiMethod) }
         .toTypedArray()
     }

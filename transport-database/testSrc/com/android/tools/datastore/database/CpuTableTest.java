@@ -74,9 +74,9 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       table.insertSnapshot(Common.Session.getDefaultInstance(), 0, snapshots);
     });
     methodCalls.add((table) -> table
-      .insertTrace(Common.Session.getDefaultInstance(), 0, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER,
-                   CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE, ByteString.EMPTY));
-    methodCalls.add((table) -> table.insertTraceInfo(Common.Session.getDefaultInstance(), CpuProfiler.TraceInfo.getDefaultInstance()));
+      .insertTrace(Common.Session.getDefaultInstance(), 0, Cpu.CpuTraceType.UNSPECIFIED_TYPE,
+                   Cpu.CpuTraceMode.UNSPECIFIED_MODE, ByteString.EMPTY));
+    methodCalls.add((table) -> table.insertTraceInfo(Common.Session.getDefaultInstance(), Cpu.CpuTraceInfo.getDefaultInstance()));
     return methodCalls;
   }
 
@@ -124,13 +124,13 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     getTable().insertActivities(SESSION_THOUSANDS, SESSION_TWO_OFFSET, "Thread " + SESSION_TWO_OFFSET, activities);
 
     for (int i = 0; i < TEST_DATA_COUNT; i++) {
-      CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo
+      Cpu.CpuTraceInfo trace = Cpu.CpuTraceInfo
         .newBuilder().setTraceId(SESSION_ONE_OFFSET + i)
-        .setProfilerType(CpuProfiler.CpuProfilerType.ART).setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
+        .setTraceType(Cpu.CpuTraceType.ART).setTraceMode(Cpu.CpuTraceMode.SAMPLED)
         .setFromTimestamp(SESSION_ONE_OFFSET + i).setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
         .build();
 
-      getTable().insertTrace(SESSION_HUNDREDS, trace.getTraceId(), trace.getProfilerType(), trace.getProfilerMode(),
+      getTable().insertTrace(SESSION_HUNDREDS, trace.getTraceId(), trace.getTraceType(), trace.getTraceMode(),
                              ByteString.copyFromUtf8("100s club: " + i));
       getTable().insertTraceInfo(SESSION_HUNDREDS, trace);
     }
@@ -266,7 +266,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   public void testGetTraceInfo() {
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest
       .newBuilder().setSession(SESSION_HUNDREDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
-    List<CpuProfiler.TraceInfo> traceInfo = getTable().getTraceInfo(request);
+    List<Cpu.CpuTraceInfo> traceInfo = getTable().getTraceInfo(request);
     assertThat(traceInfo.size()).isEqualTo(TEST_DATA_COUNT);
     for (int i = 0; i < traceInfo.size(); i++) {
       assertThat(traceInfo.get(i).getFromTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
@@ -285,19 +285,19 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   public void testGetTraceByRequestInvalidSession() {
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest
       .newBuilder().setSession(SESSION_THOUSANDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
-    List<CpuProfiler.TraceInfo> traceInfo = getTable().getTraceInfo(request);
+    List<Cpu.CpuTraceInfo> traceInfo = getTable().getTraceInfo(request);
     assertThat(traceInfo.size()).isEqualTo(0);
   }
 
   @Test
   public void beingProfiledStateIsBasedOnSession() {
     CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration
-      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build();
+      .newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF).build();
     CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse
       .newBuilder().setBeingProfiled(true).setConfiguration(simpleperfConfig).build();
 
     CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration
-      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+      .newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
     CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse
       .newBuilder().setBeingProfiled(true).setConfiguration(artConfig).build();
 
@@ -310,23 +310,23 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     CpuProfiler.ProfilingStateResponse response = getTable().getProfilingStateData(SESSION_HUNDREDS);
     assertThat(response).isNotNull();
     assertThat(response.getBeingProfiled()).isTrue();
-    assertThat(response.getConfiguration().getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    assertThat(response.getConfiguration().getTraceType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
 
     response = getTable().getProfilingStateData(aliveSession);
     assertThat(response).isNotNull();
     assertThat(response.getBeingProfiled()).isTrue();
-    assertThat(response.getConfiguration().getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(response.getConfiguration().getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
   }
 
   @Test
   public void latestBeingProfiledStateShouldBeReturned() {
     CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration
-      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build();
+      .newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF).build();
     CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse
       .newBuilder().setBeingProfiled(true).setCheckTimestamp(1).setConfiguration(simpleperfConfig).build();
 
     CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration
-      .newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build();
+      .newBuilder().setTraceType(Cpu.CpuTraceType.ART).build();
     CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse
       .newBuilder().setBeingProfiled(true).setCheckTimestamp(10).setConfiguration(artConfig).build();
 
@@ -342,6 +342,6 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     CpuProfiler.ProfilingStateResponse response = getTable().getProfilingStateData(SESSION_HUNDREDS);
     assertThat(response).isNotNull();
     assertThat(response.getBeingProfiled()).isTrue();
-    assertThat(response.getConfiguration().getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(response.getConfiguration().getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
   }
 }

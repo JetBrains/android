@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.res.DataBindingLayoutInfo
@@ -39,7 +40,9 @@ internal class XmlVariableReference(element: PsiElement,
       val project = element.project
       return DataBindingUtil.getQualifiedType(variable.typeDeclaration, layoutInfo, false)
         ?.let { type -> JavaPsiFacade.getInstance(project).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false)) }
-        ?.let { psiType -> PsiModelClass(PsiTypesUtil.getClassType(psiType)) }
+        ?.let { psiType ->
+          PsiModelClass(PsiTypesUtil.getClassType(psiType), DataBindingMode.fromPsiElement(element))
+        }
     }
 
   override val isStatic: Boolean

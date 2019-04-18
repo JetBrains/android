@@ -7,7 +7,6 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.iml"],
     test_coverage = True,
     test_data = [
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/layout-inspector/testData",
         "//tools/idea:platform-build-info",
     ],

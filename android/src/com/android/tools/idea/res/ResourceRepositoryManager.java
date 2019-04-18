@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
@@ -28,6 +28,7 @@ import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Throwables;
@@ -300,9 +301,12 @@ public final class ResourceRepositoryManager implements Disposable {
 
     getLibraryResources(); // Precompute library resources to do less work inside the read action below.
 
-    return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null) {
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getNamespace());
+          }
           myAppResources = AppResourceRepository.create(myFacet, getLibraryResources());
           Disposer.register(this, myAppResources);
         }
@@ -345,9 +349,12 @@ public final class ResourceRepositoryManager implements Disposable {
       return projectResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<ProjectResourceRepository>)() -> {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (PROJECT_RESOURCES_LOCK) {
         if (myProjectResources == null) {
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getNamespace());
+          }
           myProjectResources = ProjectResourceRepository.create(myFacet);
           Disposer.register(this, myProjectResources);
         }
@@ -391,7 +398,10 @@ public final class ResourceRepositoryManager implements Disposable {
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (MODULE_RESOURCES_LOCK) {
         if (myModuleResources == null) {
-          myModuleResources = ModuleResourceRepository.forMainResources(myFacet);
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getNamespace());
+          }
+          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
           Disposer.register(this, myModuleResources);
         }
         return myModuleResources;
@@ -421,6 +431,9 @@ public final class ResourceRepositoryManager implements Disposable {
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (TEST_APP_RESOURCES_LOCK) {
         if (myTestAppResources == null) {
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getTestNamespace());
+          }
           myTestAppResources = computeTestAppResources();
           Disposer.register(this, myTestAppResources);
         }
@@ -434,7 +447,7 @@ public final class ResourceRepositoryManager implements Disposable {
     // For disposal, the newly created test module repository ends up owned by the repository manager if returned from this method or the
     // TestAppResourceRepository if passed to it. This is slightly different to the main module repository, which is always owned by the
     // manager and stored in myModuleResources.
-    LocalResourceRepository moduleTestResources = ModuleResourceRepository.forTestResources(myFacet);
+    LocalResourceRepository moduleTestResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
 
     if (myNamespacing == AaptOptions.Namespacing.REQUIRED) {
       // TODO(namespaces): Confirm that's how test resources will work.

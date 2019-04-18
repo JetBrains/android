@@ -29,11 +29,11 @@ import com.google.wireless.android.sdk.stats.EditorFileType.PROPERTIES
 import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
 import com.google.wireless.android.sdk.stats.EditorFileType.XML
 import com.google.wireless.android.sdk.stats.TypingLatencyStats
-import com.intellij.ide.toProto
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.analytics.toProto
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 

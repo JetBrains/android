@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 class NestedGraphToolbarAction(surface: NavDesignSurface) :
-  ToolbarAction(surface, "Group into nested graph", StudioIcons.NavEditor.Tree.NESTED_GRAPH) {
+  ToolbarAction(surface, "Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
 
   override fun isEnabled() = surface.selectionModel.selection.any {
     it.isDestination && it != surface.currentNavigation

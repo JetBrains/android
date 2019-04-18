@@ -20,13 +20,14 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.SIMPLEPERF
+import com.android.tools.profiler.proto.Cpu.CpuTraceType.ART
+import com.android.tools.profiler.proto.Cpu.CpuTraceType.ATRACE
+import com.android.tools.profiler.proto.Cpu.CpuTraceType.SIMPLEPERF
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.ReferenceWalker
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStage
@@ -84,7 +85,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
@@ -145,7 +146,7 @@ class CpuCaptureViewTest {
   fun testTraceEventTitleForATrace() {
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
-      captureTrace(profilerType = ATRACE)
+      captureTrace(traceType = ATRACE)
     }
 
     val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
@@ -178,7 +179,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(id = 1, fromUs = 0, toUs = 100, profilerType = ART)
+      captureTrace(id = 1, fromUs = 0, toUs = 100, traceType = ART)
     }
 
     stageView.stage.selectionModel.apply {
@@ -193,7 +194,7 @@ class CpuCaptureViewTest {
   fun showsDetailsPaneWhenSelectingCapture() {
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     assertThat(getCapturePane()).isInstanceOf(DetailsCapturePane::class.java)
@@ -227,7 +228,7 @@ class CpuCaptureViewTest {
   @Test
   fun technologyIsPresentInParsingPane() {
     stageView.stage.profilerConfigModel.profilingConfiguration =
-      ProfilingConfiguration("simpleperf", SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED)
+      ProfilingConfiguration("simpleperf", SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED)
     stageView.stage.captureParser.updateParsingStateWhenStarting()
     val parsingPane = getCapturePane()
     val technologyLabel = TreeWalker(parsingPane).descendants().filterIsInstance<JLabel>().first {
@@ -242,7 +243,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     // In one chart, we'll open our filter and set it to something
@@ -305,7 +306,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)

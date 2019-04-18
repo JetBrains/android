@@ -27,6 +27,8 @@ import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.util.Processor
@@ -54,8 +56,7 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
   override fun getIcon(flags: Int): Icon? = ROOM_ICON
 
   fun findHostRoomAnnotation(): UAnnotation? {
-    return InjectedLanguageManager.getInstance(project)
-      .getInjectionHost(this)
+    return findHost()
       ?.getUastParentOfType<UAnnotation>()
       ?.takeIf {
         val qualifiedName = it.qualifiedName
@@ -65,6 +66,16 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
           else -> false
         }
       }
+  }
+
+  private fun findHost(): PsiLanguageInjectionHost? {
+    // InjectedLanguageUtil is deprecated, but works in more cases than InjectedLanguageManager, e.g. when using [QuickEditAction] ("Edit
+    // RoomSql fragment" intention) it navigates from the created light VirtualFile back to the original host string. We start with the
+    // recommended method, fall back to a known solution to the situation described above and eventually fall back to the deprecated method
+    // which seems to handle even more cases.
+    return InjectedLanguageManager.getInstance(project).getInjectionHost(this)
+           ?: context as? PsiLanguageInjectionHost
+           ?: InjectedLanguageUtil.findInjectionHost(this)
   }
 
   fun processTables(processor: Processor<SqlTable>): Boolean {

@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.intellij.notification.NotificationType.INFORMATION;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
@@ -36,14 +39,14 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+/**
+ * Tests for {@link GoToApkLocationTask}.
+ */
 public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
-
   @Mock private AndroidNotification myMockNotification;
   private GoToApkLocationTask myTask;
-  boolean isShowFilePathActionSupported;
-  private List<Module> modules;
-  private List<String> buildVariants;
+  private boolean isShowFilePathActionSupported;
   private SortedMap<String, File> buildsToPaths;
   private static final String buildVariant1 = "FreeDebug";
   private static final String buildVariant2 = "PaidDebug";
@@ -53,8 +56,8 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
     super.setUp();
     MockitoAnnotations.initMocks(this);
     isShowFilePathActionSupported = true;
-    modules = new ArrayList<>();
-    buildVariants = new ArrayList<>();
+    List<Module> modules = Collections.singletonList(getModule());
+    List<String> buildVariants = new ArrayList<>();
     buildVariants.add(buildVariant1);
     buildVariants.add(buildVariant2);
     File myApkPath1 = createTempDir(buildVariant1 + "apkLocation");
@@ -63,19 +66,16 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
     buildsToPaths = new TreeMap<>();
     buildsToPaths.put(buildVariant1, myApkPath1);
     buildsToPaths.put(buildVariant2, myApkPath2);
-    modules.add(getModule());
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
+    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(buildsToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants) {
       @Override
       boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
       }
-
-      @Override
-      void getBuildsAndPaths(@Nullable Object model, @Nullable List<String> buildVariants) {
-        this.setMyBuildsAndApkPaths(buildsToPaths);
-      }
     };
-    new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myMockNotification);
+    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
   }
 
   public void testExecuteWithCancelledBuild() {
@@ -102,7 +102,6 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
     isShowFilePathActionSupported = false;
-
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     String message = getExpectedModuleNotificationMessageNoShowFilePathAction(getModule().getName());
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
@@ -111,18 +110,18 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
 
   @NotNull
   private static String getExpectedModuleNotificationMessage(@NotNull String moduleName,
-                                                             @Nullable String buildVaraint1Name,
-                                                             @Nullable String buildVaraint2Name) {
+                                                             @Nullable String buildVariant1Name,
+                                                             @Nullable String buildVariant2Name) {
     return "APK(s) generated successfully for module '" +
            moduleName +
-           "' with 2 builds:" +
-           getExpectedModuleLineNotificationMessage(buildVaraint1Name) +
-           getExpectedModuleLineNotificationMessage(buildVaraint2Name);
+           "' with 2 build variants:" +
+           getExpectedModuleLineNotificationMessage(buildVariant1Name) +
+           getExpectedModuleLineNotificationMessage(buildVariant2Name);
   }
 
   @NotNull
   private static String getExpectedModuleLineNotificationMessage(@NotNull String buildVariantName) {
-    return "<br/>Build '" +
+    return "<br/>Build variant '" +
            buildVariantName +
            "': <a href=\"" +
            GoToApkLocationTask.MODULE +
@@ -135,7 +134,7 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
 
   @NotNull
   private static String getExpectedModuleNotificationMessageNoShowFilePathAction(@NotNull String moduleName) {
-    return "APK(s) generated successfully for module '" + moduleName + "' with 2 builds";
+    return "APK(s) generated successfully for module '" + moduleName + "' with 2 build variants";
   }
 
   @NotNull

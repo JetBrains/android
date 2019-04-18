@@ -31,7 +31,6 @@ iml_module(
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
     visibility = ["//visibility:public"],
-    exports = ["//tools/idea/.idea/libraries:kotlin-plugin"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
@@ -163,7 +162,7 @@ iml_module(
     test_data = [
         ":testData",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//prebuilts/tools/common/kotlin-plugin:kotlinc-files",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/resources-aar:framework_res",
         "//tools/idea:platform-build-info",

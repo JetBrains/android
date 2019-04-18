@@ -57,7 +57,9 @@ class InspectorView(
     UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB).let {
       image = it
       imageGenerationTime = System.currentTimeMillis()
-      it.createGraphics().drawImage(tmpimage, 0, 0, null)
+      val g = it.createGraphics()
+      g.drawImage(tmpimage, 0, 0, null)
+      g.dispose()
     }
   }
 

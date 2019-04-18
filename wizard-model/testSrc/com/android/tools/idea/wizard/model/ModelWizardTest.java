@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.wizard.model;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
 import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 public class ModelWizardTest {
 
@@ -603,7 +602,7 @@ public class ModelWizardTest {
   private static class FakeModelException extends RuntimeException {
     private final WizardModel myModel;
 
-    public FakeModelException(WizardModel model) {
+    FakeModelException(WizardModel model) {
       myModel = model; }
 
     public WizardModel getModel() {
@@ -628,7 +627,7 @@ public class ModelWizardTest {
    * class.
    */
   private static abstract class NoUiStep<M extends WizardModel> extends ModelWizardStep<M> {
-    public NoUiStep(@NotNull M model) {
+    NoUiStep(@NotNull M model) {
       super(model, "");
     }
 
@@ -640,7 +639,7 @@ public class ModelWizardTest {
   }
 
   private static class DummyStep extends NoUiStep<DummyModel> {
-    public DummyStep(@NotNull DummyModel model) {
+    DummyStep(@NotNull DummyModel model) {
       super(model);
     }
   }
@@ -648,7 +647,7 @@ public class ModelWizardTest {
   private static class ShouldSkipStep extends NoUiStep<DummyModel> {
     private boolean myEntered;
 
-    public ShouldSkipStep(@NotNull DummyModel model) {
+    ShouldSkipStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -668,19 +667,19 @@ public class ModelWizardTest {
   }
 
   private static class PreventNavigatingForwardStep extends NoUiStep<DummyModel> {
-    public PreventNavigatingForwardStep(@NotNull DummyModel model) {
+    PreventNavigatingForwardStep(@NotNull DummyModel model) {
       super(model);
     }
 
     @NotNull
     @Override
     protected ObservableBool canGoForward() {
-      return BooleanExpression.ALWAYS_FALSE;
+      return ObservableBool.FALSE;
     }
   }
 
   private static class PreventNavigatingBackwardStep extends NoUiStep<DummyModel> {
-    public PreventNavigatingBackwardStep(@NotNull DummyModel model) {
+    PreventNavigatingBackwardStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -693,7 +692,7 @@ public class ModelWizardTest {
   private static class DisposedStep extends NoUiStep<DummyModel> {
     private boolean myDisposed;
 
-    public DisposedStep(@NotNull DummyModel model) {
+    DisposedStep(@NotNull DummyModel model) {
       super(model);
     }
 
@@ -710,7 +709,7 @@ public class ModelWizardTest {
   private static class RecordFinishedModel extends WizardModel {
     private final List<RecordFinishedModel> myRecordInto;
 
-    public RecordFinishedModel(List<RecordFinishedModel> recordInto) {
+    RecordFinishedModel(List<RecordFinishedModel> recordInto) {
       myRecordInto = recordInto;
     }
 
@@ -723,7 +722,7 @@ public class ModelWizardTest {
   private static class RecordFinishedStep extends NoUiStep<RecordFinishedModel> {
     private boolean myShouldShow = true;
 
-    public RecordFinishedStep(@NotNull RecordFinishedModel model) {
+    RecordFinishedStep(@NotNull RecordFinishedModel model) {
       super(model);
     }
 
