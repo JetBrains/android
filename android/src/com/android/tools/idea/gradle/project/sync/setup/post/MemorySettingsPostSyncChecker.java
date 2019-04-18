@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
 import com.android.tools.idea.memorysettings.MemorySettingsUtil;
+import com.google.wireless.android.sdk.stats.MemorySettingsEvent.EventKind;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
@@ -50,7 +51,7 @@ public class MemorySettingsPostSyncChecker {
    * are recommended: users may save the recommended settings and restart,
    * or go to memory settings configuration dialog to configure themselves,
    * or set a reminder in a day, or completely ignore the notification.
-   * */
+   */
   public static void checkSettings(
     Project project,
     TimeBasedMemorySettingsCheckerReminder reminder) {
@@ -84,6 +85,7 @@ public class MemorySettingsPostSyncChecker {
     int currentXmx,
     int recommended,
     TimeBasedMemorySettingsCheckerReminder reminder) {
+    log(EventKind.SHOW_RECOMMENDATION, currentXmx, recommended);
     Notification notification = new MemorySettingsNotification(
       AndroidBundle.message("memory.settings.postsync.message",
                             String.valueOf(currentXmx),
@@ -92,6 +94,7 @@ public class MemorySettingsPostSyncChecker {
 
     NotificationAction saveRestartAction =
       NotificationAction.createSimple("Save and restart", () -> {
+        log(EventKind.SAVE_AND_RESTART, currentXmx, recommended);
         MemorySettingsUtil.saveXmx(recommended);
         Application app = ApplicationManager.getApplication();
         if (app instanceof ApplicationEx) {
@@ -100,7 +103,8 @@ public class MemorySettingsPostSyncChecker {
       });
     NotificationAction configAction =
       NotificationAction.createSimple("Configure", () -> {
-        ShowSettingsUtilImpl.showSettingsDialog(project,"memory.settings", "");
+        log(EventKind.CONFIGURE, currentXmx, recommended);
+        ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
         notification.expire();
       });
 
@@ -110,6 +114,7 @@ public class MemorySettingsPostSyncChecker {
       new NotificationAction(AndroidBundle.message("memory.settings.postsync.later")) {
         @Override
         public void actionPerformed(AnActionEvent e, Notification n) {
+          log(EventKind.REMIND_ME_LATER, currentXmx, recommended);
           n.expire();
           reminder.storeLastCheckTimestamp(project);
         }
@@ -118,11 +123,18 @@ public class MemorySettingsPostSyncChecker {
       new NotificationAction(AndroidBundle.message("memory.settings.do.not.ask")) {
         @Override
         public void actionPerformed(AnActionEvent e, Notification n) {
+          log(EventKind.DO_NOT_ASK, currentXmx, recommended);
           n.expire();
           reminder.setDoNotAsk(project);
         }
       });
     notification.notify(project);
+  }
+
+  private static void log(EventKind kind, int currentXmx, int recommended) {
+    MemorySettingsUtil.log(kind, currentXmx, -1, -1,
+                           recommended, -1, -1,
+                           -1, -1, -1);
   }
 
   static class MemorySettingsNotification extends Notification {
