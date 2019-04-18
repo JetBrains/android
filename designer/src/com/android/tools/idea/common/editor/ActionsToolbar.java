@@ -67,6 +67,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private Configuration myConfiguration;
   private DesignerEditorFileType myLayoutType;
   private ToolbarActionGroups myToolbarActionGroups;
+  private NlModel myModel = null;
 
   public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface surface) {
     Disposer.register(parent, this);
@@ -91,8 +92,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     if (myConfiguration != null) {
       myConfiguration.removeListener(this);
     }
-    if (mySurface.getModel() != null) {
-      mySurface.getModel().removeListener(this);
+    if (myModel != null) {
+      myModel.removeListener(this);
+      myModel = null;
     }
   }
 
@@ -182,8 +184,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
           selection = Collections.singletonList(roots.get(0));
         }
         else {
-          // Model not yet rendered: when it's done, update. Listener is removed as soon as palette fires from listener callback.
-          view.getModel().addListener(this);
           updateBottomActionBarBorder();
           return;
         }
@@ -219,6 +219,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    if (myModel != null) {
+      myModel.removeListener(this);
+    }
+    if (model != null) {
+      model.addListener(this);
+    }
+    myModel = model;
     myNorthToolbar.updateActionsImmediately();
     Configuration surfaceConfiguration = surface.getConfiguration();
     if (surfaceConfiguration != myConfiguration) {
@@ -258,7 +265,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     ApplicationManager.getApplication().invokeLater(() -> {
       if (model.getComponents().size() == 1) {
         updateActions();
-        model.removeListener(this);
       }
     });
   }
