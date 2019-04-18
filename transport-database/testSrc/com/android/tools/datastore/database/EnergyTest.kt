@@ -18,6 +18,7 @@ package com.android.tools.datastore.database
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -62,8 +63,9 @@ class EnergyTableTest {
       for (i in 0 until numSamples) {
         table.insertOrReplace(
           session, EnergyProfiler.EnergySample.newBuilder()
-          .setCpuUsage(i * 100)
-          .setNetworkUsage((numSamples - i) * 100)
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder()
+                            .setCpuUsage(i * 100)
+                            .setNetworkUsage((numSamples - i) * 100))
           .setTimestamp((samplePeriod * i).toLong())
           .build()
         )

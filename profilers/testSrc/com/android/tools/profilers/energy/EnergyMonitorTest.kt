@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -37,7 +38,10 @@ class EnergyMonitorTest {
   private val timer = FakeTimer()
   private val service = FakeEnergyService(
     listOf(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2000).setNetworkUsage(20).setCpuUsage(30).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(2000)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(20).setCpuUsage(30))
+        .build()
     ))
   private val transportService = FakeTransportService(timer, false)
   private val profilerService = FakeProfilerService(timer)

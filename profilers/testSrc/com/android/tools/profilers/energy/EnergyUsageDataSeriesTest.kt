@@ -14,8 +14,9 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.EnergyProfiler.EnergySample
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Energy
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
@@ -28,10 +29,22 @@ class EnergyUsageDataSeriesTest {
 
   private val service = FakeEnergyService(
       listOf(
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(5)).setCpuUsage(20).setNetworkUsage(30).build(),
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(10)).setCpuUsage(20).setNetworkUsage(40).build(),
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(15)).setCpuUsage(20).setNetworkUsage(50).build(),
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(20)).setNetworkUsage(10).build()
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(5))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(20).setNetworkUsage(30))
+          .build(),
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(10))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(20).setNetworkUsage(40))
+          .build(),
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(15))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(20).setNetworkUsage(50))
+          .build(),
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(20))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(10))
+          .build()
       )
   )
 
