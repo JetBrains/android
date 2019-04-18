@@ -25,10 +25,19 @@ import gnu.trove.TLongArrayList
 import java.nio.channels.FileChannel
 
 abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Int) {
+
+  enum class ReferenceResolution {
+    ALL_REFERENCES,
+    ONLY_STRONG_REFERENCES,
+    NO_REFERENCES
+  }
+
   abstract val id: Long
 
   abstract fun createRootsIterator(): Iterator<Long>
-  abstract fun goTo(id: Long, includeSoftWeakReferences: Boolean = false)
+
+  abstract fun goTo(id: Long, referenceResolution: ReferenceResolution = ReferenceResolution.ONLY_STRONG_REFERENCES)
+
   abstract fun getClass(): ClassDefinition
 
   abstract fun getReferencesCopy(): TLongArrayList
@@ -37,9 +46,11 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: In
   abstract fun getClassForObjectId(id: Long): ClassDefinition
   abstract fun getRootReasonForObjectId(id: Long): RootReason?
 
+  abstract fun getObjectSize(): Int
+
   fun goToInstanceField(className: String?, fieldName: String) {
     val objectId = getInstanceFieldObjectId(className, fieldName)
-    goTo(objectId, true)
+    goTo(objectId, ReferenceResolution.ALL_REFERENCES)
   }
 
   fun getInstanceFieldObjectId(className: String?, name: String): Long {
@@ -53,7 +64,7 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: In
 
   fun goToStaticField(className: String, fieldName: String) {
     val objectId = getStaticFieldObjectId(className, fieldName)
-    goTo(objectId, true)
+    goTo(objectId, ReferenceResolution.ALL_REFERENCES)
   }
 
   private fun getStaticFieldObjectId(className: String, fieldName: String) =

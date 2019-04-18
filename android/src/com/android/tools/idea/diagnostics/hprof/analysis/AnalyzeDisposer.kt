@@ -17,11 +17,16 @@ package com.android.tools.idea.diagnostics.hprof.analysis
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
+import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.Companion.toPaddedShortStringAsSize
+import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.Companion.toShortStringAsCount
+import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.Companion.toShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
+import gnu.trove.TIntHashSet
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongHashSet
 import gnu.trove.TObjectIntHashMap
+import java.util.ArrayDeque
 
 class AnalyzeDisposer(private val nav: ObjectNavigator) {
 
@@ -43,8 +48,10 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
     }
   }
 
+  data class DisposedDominatorReportEntry(val classDefinition: ClassDefinition, val count: Long, val size: Long)
+
   companion object {
-    val topReportedClasses = hashSetOf(
+    val TOP_REPORTED_CLASSES = setOf(
       "com.intellij.openapi.project.impl.ProjectImpl"
     )
   }
@@ -157,9 +164,8 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
   private fun printDisposerTreeReportLine(buffer: TruncatingPrintBuffer,
                                           mapping: Grouping,
                                           groupedObjects: InstanceStats) {
-    val sourceClass = mapping.childClass
-    val parentClass = mapping.parentClass
-    val rootClass = mapping.rootClass
+    val (sourceClass, parentClass, rootClass) = mapping
+
     val objectCount = groupedObjects.objectCount()
     val parentCount = groupedObjects.parentCount()
 
@@ -175,52 +181,67 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
       val parentClassName = nav.classStore.getShortPrettyNameForClass(parentClass)
       val rootCount = groupedObjects.rootCount()
       if (rootClass != parentClass || rootCount != parentCount) {
-        val rootClassName = nav.classStore.getShortPrettyNameForClass(rootClass)
-        parentString = "<-- $parentCount $parentClassName [...] $rootCount $rootClassName"
+        parentString = "<-- $parentCount $parentClassName [...] $rootCount"
       }
       else
-        parentString = "<-- $parentCount $parentClassName"
+        parentString = "<-- $parentCount"
     }
 
     val sourceClassName = nav.classStore.getShortPrettyNameForClass(sourceClass)
     buffer.println("  ${String.format("%6d", objectCount)} $sourceClassName $parentString")
   }
 
-  fun analyzeDisposedObjects(parentList: IntList): String {
+  fun computeDisposedObjectsIDsSet(parentList: IntList): TIntHashSet {
+    val result = TIntHashSet()
+
     if (!nav.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
-      return ""
+      return result
     }
 
-    val result = StringBuilder()
     nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
     assert(!nav.isNull())
     nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myDisposedObjects")
     nav.goToInstanceField("com.intellij.util.containers.WeakHashMap", "myMap")
     nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "_set")
     val weakKeyClass = nav.classStore["com.intellij.util.containers.WeakHashMap\$WeakKey"]
-    val leakedByClass = HashMap<Pair<ClassDefinition, ClassDefinition>, TLongArrayList>()
-    val countByClass = TObjectIntHashMap<ClassDefinition>()
-    var totalCount = 0
+
     nav.getReferencesCopy().forEach {
       if (it == 0L) {
         return@forEach true
       }
-      nav.goTo(it, true)
+      nav.goTo(it, ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
       if (nav.getClass() != weakKeyClass) {
         return@forEach true
       }
       nav.goToInstanceField("com.intellij.util.containers.WeakHashMap\$WeakKey", "referent")
       if (nav.id == 0L) return@forEach true
 
+      val leakId = nav.id.toInt()
+      if (parentList[leakId] == 0) {
+        // If there is no parent, then the object does not have a strong-reference path to GC root
+        return@forEach true
+      }
+      result.add(leakId)
+      true
+    }
+    return result
+  }
+
+  fun analyzeDisposedObjects(disposedObjectsIDs: TIntHashSet,
+                             parentList: IntList,
+                             sizesList: IntList): String {
+    val result = StringBuilder()
+
+    val leakedInstancesByClass = HashMap<ClassDefinition, TLongArrayList>()
+    val countByClass = TObjectIntHashMap<ClassDefinition>()
+    var totalCount = 0
+    disposedObjectsIDs.forEach {
+      nav.goTo(it.toLong(), ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
+
       val leakClass = nav.getClass()
       val leakId = nav.id
-      nav.goTo(parentList[nav.id.toInt()].toLong())
 
-      // If there is no parent, then the object does not have a strong-reference path to GC root
-      if (nav.isNull()) return@forEach true
-
-      val parentClass = nav.getClass()
-      leakedByClass.getOrPut(Pair(leakClass, parentClass)) { TLongArrayList() }.add(leakId)
+      leakedInstancesByClass.getOrPut(leakClass) { TLongArrayList() }.add(leakId)
 
       countByClass.put(leakClass, countByClass[leakClass] + 1)
       totalCount++
@@ -230,6 +251,7 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
 
     // Convert TObjectIntHashMap to list of entries
     data class TObjectIntMapEntry<T>(val key: T, val value: Int)
+
     val entries = mutableListOf<TObjectIntMapEntry<ClassDefinition>>()
     countByClass.forEachEntry { key, value ->
       entries.add(TObjectIntMapEntry(key, value))
@@ -241,7 +263,7 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
       buffer.println("Count of disposed-but-strong-referenced objects: $totalCount")
       entries
         .sortedByDescending { it.value }
-        .partition { topReportedClasses.contains(it.key.name) }
+        .partition { TOP_REPORTED_CLASSES.contains(it.key.name) }
         .let { it.first + it.second }
         .forEach { entry ->
           buffer.println("  ${entry.value} ${entry.key.prettyName}")
@@ -249,17 +271,53 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
     }
     result.appendln()
 
+    val disposedTree = GCRootPathsTree(disposedObjectsIDs, parentList, sizesList, nav, null)
+    for (disposedObjectsID in disposedObjectsIDs) {
+      disposedTree.registerObject(disposedObjectsID)
+    }
+
+    val disposedDominatorNodesByClass = disposedTree.getDisposedDominatorNodes()
+    var allDominatorsCount = 0L
+    var allDominatorsSubgraphSize = 0L
+    val disposedDominatorClassSizeList = mutableListOf<DisposedDominatorReportEntry>()
+    disposedDominatorNodesByClass.forEach { (classDefinition, nodeList) ->
+      var dominatorClassSubgraphSize = 0L
+      var dominatorClassInstanceCount = 0L
+      nodeList.forEach {
+        dominatorClassInstanceCount += it.instances.size()
+        dominatorClassSubgraphSize += it.totalSizeInDwords.toLong() * 4
+      }
+      allDominatorsCount += dominatorClassInstanceCount
+      allDominatorsSubgraphSize += dominatorClassSubgraphSize
+      disposedDominatorClassSizeList.add(
+        DisposedDominatorReportEntry(classDefinition, dominatorClassInstanceCount, dominatorClassSubgraphSize))
+    }
+
+    TruncatingPrintBuffer(30, 0, result::appendln).use { buffer ->
+      buffer.println("Disposed-but-strong-referenced dominator object count: $allDominatorsCount")
+      buffer.println(
+        "Disposed-but-strong-referenced dominator sub-graph size: ${toShortStringAsSize(allDominatorsSubgraphSize)}")
+      disposedDominatorClassSizeList
+        .sortedByDescending { it.size }
+        .forEach { entry ->
+          buffer.println(
+            "  ${toPaddedShortStringAsSize(entry.size)} - ${toShortStringAsCount(entry.count)} ${entry.classDefinition.name}")
+        }
+    }
+    result.appendln()
+
+    val instancesListInOrder = getInstancesListInPriorityOrder(
+      leakedInstancesByClass,
+      disposedDominatorClassSizeList
+    )
+
     TruncatingPrintBuffer(700, 0, result::appendln).use { buffer ->
-      leakedByClass.entries
-        .sortedByDescending { it.value.size() }
-        .partition { topReportedClasses.contains(it.key.first.name) }
-        .let { it.first + it.second }
-        .map { it.value }
+      instancesListInOrder
         .forEach { instances ->
           nav.goTo(instances[0])
           buffer.println(
             "Disposed but still strong-referenced objects: ${instances.size()} ${nav.getClass().prettyName}, most common paths from GC-roots:")
-          val gcRootPathsTree = GCRootPathsTree(parentList, nav)
+          val gcRootPathsTree = GCRootPathsTree(disposedObjectsIDs, parentList, sizesList, nav, nav.getClass())
           instances.forEach { leakId ->
             gcRootPathsTree.registerObject(leakId.toInt())
             true
@@ -268,6 +326,56 @@ class AnalyzeDisposer(private val nav: ObjectNavigator) {
         }
     }
     return result.toString()
+  }
+
+  private fun getInstancesListInPriorityOrder(
+    classToLeakedIdsList: HashMap<ClassDefinition, TLongArrayList>,
+    disposedDominatorReportEntries: List<DisposedDominatorReportEntry>): List<TLongArrayList> {
+    val result = mutableListOf<TLongArrayList>()
+
+    // Make a mutable copy. When a class instances are added to the result list, remove the class entry from the copy.
+    val classToLeakedIdsListCopy = HashMap(classToLeakedIdsList)
+
+    // First, all top classes
+    TOP_REPORTED_CLASSES.forEach { topClassName ->
+      classToLeakedIdsListCopy
+        .filterKeys { it.name == topClassName }
+        .forEach { (classDefinition, list) ->
+          result.add(list)
+          classToLeakedIdsListCopy.remove(classDefinition)
+        }
+    }
+
+    // Alternate between class with most instances leaked and class with most bytes leaked
+
+    // Prepare instance count class list by priority
+    val classOrderByInstanceCount = ArrayDeque<ClassDefinition>(
+      classToLeakedIdsListCopy
+        .entries
+        .sortedByDescending { it.value.size() }
+        .map { it.key }
+    )
+
+    // Prepare dominator bytes count class list by priority
+    val classOrderByByteCount = ArrayDeque<ClassDefinition>(
+      disposedDominatorReportEntries
+        .sortedByDescending { it.size }
+        .map { it.classDefinition }
+    )
+
+    // zip, but ignore duplicates
+    var nextByInstanceCount = true
+    while (!classOrderByInstanceCount.isEmpty() ||
+           !classOrderByByteCount.isEmpty()) {
+      val nextCollection = if (nextByInstanceCount) classOrderByInstanceCount else classOrderByByteCount
+      if (!nextCollection.isEmpty()) {
+        val nextClass = nextCollection.removeFirst()
+        val list = classToLeakedIdsListCopy.remove(nextClass) ?: continue
+        result.add(list)
+      }
+      nextByInstanceCount = !nextByInstanceCount
+    }
+    return result
   }
 
 }

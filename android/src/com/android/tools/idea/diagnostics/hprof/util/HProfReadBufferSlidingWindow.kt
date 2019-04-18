@@ -16,10 +16,9 @@
 package com.android.tools.idea.diagnostics.hprof.util
 
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
+import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import sun.nio.ch.DirectBuffer
-
 
 
 class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HProfEventBasedParser) :
