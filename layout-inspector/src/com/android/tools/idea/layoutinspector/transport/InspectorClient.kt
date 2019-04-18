@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
@@ -36,6 +37,11 @@ interface InspectorClient {
   fun loadProcesses(): Map<Common.Stream, List<Common.Process>>
 
   /**
+   * Attach to a preferred process.
+   */
+  fun attach(preferredProcess: LayoutInspectorPreferredProcess)
+
+  /**
    * Attach to a specific process.
    */
   fun attach(stream: Common.Stream, process: Common.Process)
@@ -49,6 +55,11 @@ interface InspectorClient {
    * Fetch the payload from a given payload [id].
    */
   fun getPayload(id: Int): ByteArray
+
+  /**
+   * True, if a connection to a device is currently open.
+   */
+  val isConnected: Boolean
 
   companion object {
 
