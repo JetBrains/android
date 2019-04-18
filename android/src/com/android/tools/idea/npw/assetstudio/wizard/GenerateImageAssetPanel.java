@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
@@ -396,13 +395,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private boolean iconExists() {
-    File resDirectory = getResDirectory(myPaths);
-    if (resDirectory != null) {
-      Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(resDirectory);
-      for (File path : pathImageMap.keySet()) {
-        if (path.exists()) {
-          return true;
-        }
+    Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths);
+    for (File path : pathImageMap.keySet()) {
+      if (path.exists()) {
+        return true;
       }
     }
 
@@ -562,7 +558,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class LauncherLegacyIconsPreviewPanel extends PreviewIconsPanel {
-    public LauncherLegacyIconsPreviewPanel() {
+    LauncherLegacyIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
