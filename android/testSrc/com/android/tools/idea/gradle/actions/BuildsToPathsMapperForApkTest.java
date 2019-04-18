@@ -68,7 +68,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
     Map<String, File> myBuildsAndBundlePaths = myTask.getBuildsToPaths(createPostBuildModel(Collections.singleton(output), myBuildVariant),
                                                                        myBuildVariants,
                                                                        Collections.singleton(myModule),
-                                                                       false);
+                                                                       false,
+                                                                       null);
     assertSameElements(myBuildsAndBundlePaths.keySet(), myModule.getName());
     assertEquals(output, myBuildsAndBundlePaths.get(myModule.getName()));
   }
@@ -84,7 +85,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
       myTask.getBuildsToPaths(createPostBuildModel(Lists.newArrayList(output1, output2), myBuildVariant),
                               myBuildVariants,
                               Collections.singleton(myModule),
-                              false);
+                              false,
+                              null);
     assertSameElements(myBuildsAndBundlePaths.keySet(), myModule.getName());
     assertEquals(output1.getParentFile(), myBuildsAndBundlePaths.get(myModule.getName()));
   }
@@ -97,14 +99,15 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
     Map<String, File> myBuildsAndBundlePaths = myTask.getBuildsToPaths(createInstantAppPostBuildModel(output, myBuildVariant),
                                                                        myBuildVariants,
                                                                        Collections.singleton(myModule),
-                                                                       false);
+                                                                       false,
+                                                                       null);
     assertSameElements(myBuildsAndBundlePaths.keySet(), myModule.getName());
     assertEquals(output, myBuildsAndBundlePaths.get(myModule.getName()));
   }
 
   public void testSingleOutputFromPreBuildModel() throws Exception {
     initSimpleApp();
-    Map<String, File> myBuildsAndBundlePaths = myTask.getBuildsToPaths(null, myBuildVariants, Collections.singleton(myModule), false);
+    Map<String, File> myBuildsAndBundlePaths = myTask.getBuildsToPaths(null, myBuildVariants, Collections.singleton(myModule), false, null);
     assertSameElements(myBuildsAndBundlePaths.keySet(), myModule.getName());
 
     File expectedOutput =
@@ -133,7 +136,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
       myTask.getBuildsToPaths(createPostBuildModel(Collections.singleton(output), myBuildVariants.get(0)),
                               myBuildVariants,
                               Collections.singleton(myModule),
-                              false);
+                              false,
+                              "");
     assertSameElements(myBuildsAndBundlePaths.keySet(), myBuildVariants.get(0));
     assertEquals(output, myBuildsAndBundlePaths.get(myBuildVariants.get(0)));
   }
@@ -147,7 +151,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
       myTask.getBuildsToPaths(createPostBuildModel(Lists.newArrayList(output1, output2), myBuildVariants.get(0)),
                               myBuildVariants,
                               Collections.singleton(myModule),
-                              false);
+                              false,
+                              "");
     assertSameElements(myBuildsAndBundlePaths.keySet(), myBuildVariants.get(0));
     assertEquals(output1.getParentFile(), myBuildsAndBundlePaths.get(myBuildVariants.get(0)));
   }
@@ -158,7 +163,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
     Map<String, File> myBuildsAndBundlePaths = myTask.getBuildsToPaths(createInstantAppPostBuildModel(output, myBuildVariants.get(0)),
                                                                        myBuildVariants,
                                                                        Collections.singleton(myModule),
-                                                                       false);
+                                                                       false,
+                                                                       "");
     assertSameElements(myBuildsAndBundlePaths.keySet(), myBuildVariants.get(0));
     assertEquals(output, myBuildsAndBundlePaths.get(myBuildVariants.get(0)));
   }
