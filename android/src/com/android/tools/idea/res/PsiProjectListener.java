@@ -54,12 +54,13 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * the {@link ResourceFolderRepository}, {@link com.android.ide.common.resources.ResourceRepository}
  * and/or {@link SampleDataResourceRepository} corresponding to the file being changed.
  *
- * For {@link ResourceFolderRepository}, this is accomplished by passing the event to {{@link ResourceFolderRepository#getPsiListener()}}.
- * In the case of sample data, the event is forwarded to the project's {@link SampleDataListener}.
+ * <p>For {@link ResourceFolderRepository}, this is accomplished by passing the event to
+ * {{@link ResourceFolderRepository#getPsiListener()}}. In the case of sample data, the
+ * event is forwarded to the project's {@link SampleDataListener}.
  *
- * All event happening on resources file are also forwarded to the {@link ResourceNotificationManager}.
+ * <p>All events happening on resource files are also forwarded to the {@link ResourceNotificationManager}.
  *
- * PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
+ * <p>PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
 public class PsiProjectListener implements PsiTreeChangeListener {
   private final ResourceFolderRegistry myRegistry;
@@ -86,14 +87,14 @@ public class PsiProjectListener implements PsiTreeChangeListener {
    * Because there should only be a single instance of {@link SampleDataListener} per project
    * (it's a project service), this method can only be called once.
    *
-   * We register the listener with this method instead of doing it right away in the constructor
+   * <p>We register the listener with this method instead of doing it right away in the constructor
    * because {@link SampleDataListener} only needs to know about PSI updates if the user is working
    * with resource or activity files.
    *
    * @param sampleDataListener the project's {@link SampleDataListener}
    */
   void setSampleDataListener(SampleDataListener sampleDataListener) {
-    assert mySampleDataListener == null: "SampleDataListener already set!";
+    assert mySampleDataListener == null : "SampleDataListener already set!";
     mySampleDataListener = sampleDataListener;
   }
 
@@ -148,7 +149,8 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
     if (isRelevantFileType(fileType)) {
       return true;
-    } else {
+    }
+    else {
       VirtualFile parent = file.getParent();
       if (parent != null) {
         String parentName = parent.getName();
@@ -169,7 +171,8 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
     if (isRelevantFileType(fileType)) {
       return true;
-    } else {
+    }
+    else {
       PsiDirectory parent = file.getParent();
       if (parent != null) {
         String parentName = parent.getName();
@@ -232,13 +235,16 @@ public class PsiProjectListener implements PsiTreeChangeListener {
             dispatchChildAdded(event, file);
           }
         }
-      } else if (child instanceof PsiDirectory) {
+      }
+      else if (child instanceof PsiDirectory) {
         PsiDirectory directory = (PsiDirectory)child;
         dispatchChildAdded(event, directory.getVirtualFile());
       }
-    } else if (isRelevantFile(psiFile)) {
+    }
+    else if (isRelevantFile(psiFile)) {
       dispatchChildAdded(event, psiFile.getVirtualFile());
-    } else if (isGradleFileEdit(psiFile)) {
+    }
+    else if (isGradleFileEdit(psiFile)) {
       notifyGradleEdit(psiFile);
     }
 
@@ -269,17 +275,20 @@ public class PsiProjectListener implements PsiTreeChangeListener {
         if (file != null && isRelevantFile(file)) {
           dispatchChildRemoved(event, file);
         }
-      } else if (child instanceof PsiDirectory) {
+      }
+      else if (child instanceof PsiDirectory) {
         PsiDirectory directory = (PsiDirectory)child;
         if (ResourceFolderType.getFolderType(directory.getName()) != null) {
           VirtualFile file = directory.getVirtualFile();
           dispatchChildRemoved(event, file);
         }
       }
-    } else if (isRelevantFile(psiFile)) {
+    }
+    else if (isRelevantFile(psiFile)) {
       VirtualFile file = psiFile.getVirtualFile();
       dispatchChildRemoved(event, file);
-    } else if (isGradleFileEdit(psiFile)) {
+    }
+    else if (isGradleFileEdit(psiFile)) {
       notifyGradleEdit(psiFile);
     }
 
@@ -307,14 +316,16 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
       if (isRelevantFile(psiFile)) {
         dispatchChildReplaced(event, file);
-      } else if (isGradleFileEdit(psiFile)) {
+      }
+      else if (isGradleFileEdit(psiFile)) {
         notifyGradleEdit(psiFile);
       }
 
       if (mySampleDataListener != null) {
         mySampleDataListener.childReplaced(event);
       }
-    } else {
+    }
+    else {
       PsiElement parent = event.getParent();
       if (parent instanceof PsiDirectory) {
         PsiDirectory directory = (PsiDirectory)parent;
@@ -394,7 +405,8 @@ public class PsiProjectListener implements PsiTreeChangeListener {
           dispatchChildMoved(event, dir);
         }
       }
-    } else {
+    }
+    else {
       // Change inside a file
       VirtualFile file = psiFile.getVirtualFile();
       if (file != null) {
