@@ -55,11 +55,11 @@ class PsDeclaredLibraryJavaDependency(
       versionResolvedProperty.toString()
     )
 
-  override val configurationName: String = parsedModel.configurationName()
+  override val configurationName: String get() = parsedModel.configurationName()
 
   override val isDeclared: Boolean = true
 
-  override val joinedConfigurationNames: String = configurationName
+  override val joinedConfigurationNames: String get() = configurationName
 
   override val name: String get() = spec.name
 
