@@ -18,13 +18,17 @@ package com.android.tools.datastore.energy;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.energy.PowerProfile.LocationStats;
 import com.android.tools.datastore.energy.PowerProfile.LocationType;
+import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A battery model is an modeled representation of a battery's state over time. It can be queried
@@ -83,7 +87,7 @@ public final class BatteryModel {
     myPowerProfile = powerProfile;
     mySampleIntervalNs = sampleIntervalNs;
     mySmoothingEndDeltaTime = LOCATION_SMOOTHING_SAMPLES * mySampleIntervalNs;
-    mySparseSamples.add(0, EnergySample.getDefaultInstance());
+    mySparseSamples.add(0, EnergySample.newBuilder().setEnergyUsage(Energy.EnergyUsageData.getDefaultInstance()).build());
   }
 
   /**
@@ -194,16 +198,16 @@ public final class BatteryModel {
   }
 
   private void addNewCpuSample(long timestampNs) {
-    addNewSample(timestampNs, sample -> sample.setCpuUsage(myPowerProfile.getCpuUsage(myLastCpuCoresUsage)));
+    addNewSample(timestampNs, usage -> usage.setCpuUsage(myPowerProfile.getCpuUsage(myLastCpuCoresUsage)));
   }
 
   private void addNewNetworkSample(long timestampNs, @NotNull PowerProfile.NetworkStats networkStats) {
-    addNewSample(timestampNs, sample -> sample.setNetworkUsage(myPowerProfile.getNetworkUsage(networkStats)));
+    addNewSample(timestampNs, usage -> usage.setNetworkUsage(myPowerProfile.getNetworkUsage(networkStats)));
   }
 
   @NotNull
   private EnergySample addNewLocationSample(long timestampNs, @NotNull LocationStats locationStats) {
-    return addNewSample(timestampNs, sample -> sample.setLocationUsage(myPowerProfile.getLocationUsage(locationStats)));
+    return addNewSample(timestampNs, usage -> usage.setLocationUsage(myPowerProfile.getLocationUsage(locationStats)));
   }
 
   private void removeLocationSample(long timestampNs) {
@@ -212,7 +216,7 @@ public final class BatteryModel {
 
   @NotNull
   private EnergySample addNewSample(long timestampNs,
-                                    @NotNull Function<EnergySample.Builder, EnergySample.Builder> produceNewSample) {
+                                    @NotNull Function<Energy.EnergyUsageData.Builder, Energy.EnergyUsageData.Builder> produceNewUsage) {
     timestampNs = alignToSampleInterval(timestampNs);
 
     int prevSampleIndex = getSampleIndexFor(timestampNs);
@@ -221,7 +225,10 @@ public final class BatteryModel {
       throw new IllegalArgumentException("Received energy events out of order");
     }
 
-    EnergySample newSample = produceNewSample.apply(prevSample.toBuilder().setTimestamp(timestampNs)).build();
+    EnergySample newSample = EnergySample.newBuilder()
+      .setTimestamp(timestampNs)
+      .setEnergyUsage(produceNewUsage.apply(prevSample.getEnergyUsage().toBuilder()))
+      .build();
 
     // We want to compare samples to see if their usage amounts are the same even if they are at
     // different timestamps. The easiest way to do this is to make a copy of the two samples
@@ -243,7 +250,8 @@ public final class BatteryModel {
     return newSample;
   }
 
-  private void removeDataFromSample(long timestampNs, @NotNull Function<EnergySample.Builder, EnergySample.Builder> resetSample) {
+  private void removeDataFromSample(long timestampNs,
+                                    @NotNull Function<Energy.EnergyUsageData.Builder, Energy.EnergyUsageData.Builder> resetSample) {
     timestampNs = alignToSampleInterval(timestampNs);
 
     int sampleIndex = getSampleIndexFor(timestampNs);
@@ -253,7 +261,10 @@ public final class BatteryModel {
       return;
     }
 
-    EnergySample updatedSample = resetSample.apply(originalSample.toBuilder().setTimestamp(timestampNs)).build();
+    EnergySample updatedSample = EnergySample.newBuilder()
+      .setTimestamp(timestampNs)
+      .setEnergyUsage(resetSample.apply(originalSample.getEnergyUsage().toBuilder()))
+      .build();
 
     // If the sample usage amounts are all the default values, we want to remove the sample.
     // This is easiest done by removing the time value and comparing against the default EnergySample.

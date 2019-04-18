@@ -17,38 +17,39 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import com.android.tools.profilers.ProfilerClient;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class EnergyUsageDataSeries implements DataSeries<Long> {
 
   @NotNull private final ProfilerClient myClient;
   private final Common.Session mySession;
-  @NotNull private final Function<EnergySample, Integer> mySampleToUsage;
+  @NotNull private final Function<Energy.EnergyUsageData, Integer> myUsageExtractor;
 
-  private static int getTotalUsage(@NotNull EnergySample sample) {
-    return sample.getCpuUsage() + sample.getNetworkUsage() + sample.getLocationUsage();
+  private static int getTotalUsage(@NotNull Energy.EnergyUsageData usage) {
+    return usage.getCpuUsage() + usage.getNetworkUsage() + usage.getLocationUsage();
   }
 
   /**
-   * Construct a data series which adds up all the different sources of energy in any given {@link EnergySample}
+   * Construct a data series which adds up all the different sources of energy in any given {@link Energy.EnergyUsageData}
    */
   public EnergyUsageDataSeries(@NotNull ProfilerClient client, Common.Session session) {
     this(client, session, EnergyUsageDataSeries::getTotalUsage);
   }
 
-  EnergyUsageDataSeries(@NotNull ProfilerClient client, Common.Session session, @NotNull Function<EnergySample, Integer> sampleToUsage) {
+  EnergyUsageDataSeries(@NotNull ProfilerClient client,
+                        Common.Session session,
+                        @NotNull Function<Energy.EnergyUsageData, Integer> usageExtractor) {
     myClient = client;
     mySession = session;
-    mySampleToUsage = sampleToUsage;
+    myUsageExtractor = usageExtractor;
   }
 
   @Override
@@ -60,7 +61,8 @@ public class EnergyUsageDataSeries implements DataSeries<Long> {
     EnergyProfiler.EnergySamplesResponse samples = myClient.getEnergyClient().getSamples(builder.build());
 
     return samples.getSamplesList().stream()
-      .map(data -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(data.getTimestamp()), (long)mySampleToUsage.apply(data)))
+      .map(
+        data -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(data.getTimestamp()), (long)myUsageExtractor.apply(data.getEnergyUsage())))
       .collect(Collectors.toList());
   }
 }

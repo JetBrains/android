@@ -40,13 +40,13 @@ class BatteryModelTest {
   }
 
   private fun assertNoPowerUsage(sample: EnergyProfiler.EnergySample) {
-    assertThat(sample.cpuUsage).isEqualTo(0)
-    assertThat(sample.networkUsage).isEqualTo(0)
+    assertThat(sample.energyUsage.cpuUsage).isEqualTo(0)
+    assertThat(sample.energyUsage.networkUsage).isEqualTo(0)
   }
 
   private fun assertLowPowerUsage(sample: EnergyProfiler.EnergySample) {
-    assertThat(sample.cpuUsage).isLessThan(50)
-    assertThat(sample.networkUsage).isAtMost(1)
+    assertThat(sample.energyUsage.cpuUsage).isLessThan(50)
+    assertThat(sample.energyUsage.networkUsage).isAtMost(1)
   }
 
   @Test
@@ -101,13 +101,13 @@ class BatteryModelTest {
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 3)
 
       assertThat(samples[0].timestamp).isEqualTo(timeCurrNs)
-      assertThat(samples[1].cpuUsage).isGreaterThan(0)
+      assertThat(samples[1].energyUsage.cpuUsage).isGreaterThan(0)
 
       assertThat(samples[1].timestamp).isGreaterThan(samples[0].timestamp)
-      assertThat(samples[1].cpuUsage).isEqualTo(samples[0].cpuUsage)
+      assertThat(samples[1].energyUsage.cpuUsage).isEqualTo(samples[0].energyUsage.cpuUsage)
 
       assertThat(samples[2].timestamp).isGreaterThan(samples[1].timestamp)
-      assertThat(samples[2].cpuUsage).isEqualTo(samples[0].cpuUsage)
+      assertThat(samples[2].energyUsage.cpuUsage).isEqualTo(samples[0].energyUsage.cpuUsage)
 
       timeCurrNs = fastForward(timeCurrNs, samples.size)
       batteryModel.handleEvent(
@@ -133,16 +133,16 @@ class BatteryModelTest {
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 4)
 
       assertThat(samples[0].timestamp).isEqualTo(timeCurrNs)
-      assertThat(samples[0].networkUsage).isGreaterThan(0)
+      assertThat(samples[0].energyUsage.networkUsage).isGreaterThan(0)
 
       assertThat(samples[1].timestamp).isGreaterThan(samples[0].timestamp)
-      assertThat(samples[1].networkUsage).isEqualTo(samples[0].networkUsage)
+      assertThat(samples[1].energyUsage.networkUsage).isEqualTo(samples[0].energyUsage.networkUsage)
 
       assertThat(samples[2].timestamp).isGreaterThan(samples[1].timestamp)
-      assertThat(samples[2].networkUsage).isGreaterThan(0)
+      assertThat(samples[2].energyUsage.networkUsage).isGreaterThan(0)
 
       assertThat(samples[3].timestamp).isGreaterThan(samples[2].timestamp)
-      assertThat(samples[3].networkUsage).isEqualTo(samples[2].networkUsage)
+      assertThat(samples[3].energyUsage.networkUsage).isEqualTo(samples[2].energyUsage.networkUsage)
 
       timeCurrNs = fastForward(timeCurrNs, samples.size)
 
@@ -182,7 +182,7 @@ class BatteryModelTest {
     val sample = batteryModel.getNSamplesStartingAt(timeCurrNs, 1)[0]
 
     assertThat(sample.timestamp).isEqualTo(timeCurrNs)
-    assertThat(sample.networkUsage).isEqualTo(0)
-    assertThat(sample.cpuUsage).isGreaterThan(0)
+    assertThat(sample.energyUsage.networkUsage).isEqualTo(0)
+    assertThat(sample.energyUsage.cpuUsage).isGreaterThan(0)
   }
 }

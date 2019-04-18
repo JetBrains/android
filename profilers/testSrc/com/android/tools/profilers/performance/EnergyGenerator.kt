@@ -16,6 +16,7 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.EnergyTable
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 
 import java.sql.Connection
@@ -51,9 +52,11 @@ class EnergyGenerator(connection: Connection) : DataGenerator(connection) {
 
   private fun generateEnergySample(timestamp: Long, properties: GeneratorProperties) {
     val sample = EnergyProfiler.EnergySample.newBuilder()
-      .setCpuUsage(random.nextInt() % 100)
-      .setLocationUsage(random.nextInt() % 100)
-      .setNetworkUsage(random.nextInt() % 100)
+      .setEnergyUsage(
+        Energy.EnergyUsageData.newBuilder()
+          .setCpuUsage(random.nextInt() % 100)
+          .setLocationUsage(random.nextInt() % 100)
+          .setNetworkUsage(random.nextInt() % 100))
       .setTimestamp(timestamp)
       .build()
     myTable.insertOrReplace(properties.session, sample)
