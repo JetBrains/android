@@ -62,11 +62,11 @@ internal class DeclaredDependenciesPanel(
 
   private val eventDispatcher = SelectionChangeEventDispatcher<PsBaseDependency>()
 
-  private var skipSelectionChangeNotification: Boolean = false
-
   init {
     context.analyzerDaemon.onIssuesChange(this) {
-      updateQueue.enqueueTagged(DeclaredDependenciesPanel::class.java) { updateDetailsAndIssues() }
+      updateQueue.enqueueTagged(DeclaredDependenciesPanel::class.java) {
+        updateIssues(selection)
+      }
     }
 
     placeName = createPlaceName(module.name)
@@ -81,17 +81,20 @@ internal class DeclaredDependenciesPanel(
     dependenciesTable = DeclaredDependenciesTableView(dependenciesTableModel, context)
 
     module.addDependencyChangedListener(this) { event ->
-      val oldSelection = dependenciesTable.selection
-      dependenciesTableModel.reset()
-      var toSelect: PsBaseDependency? = null
       when (event) {
         is PsModule.DependencyAddedEvent -> {
+          dependenciesTableModel.reset()
           dependenciesTable.clearSelection()
-          toSelect = event.dependency.value
+          dependenciesTable.selection = listOf(event.dependency.value)
         }
-        is PsModule.DependencyModifiedEvent -> toSelect = event.dependency.value
+        is PsModule.DependencyModifiedEvent -> {
+          updateDetails(event.dependency.value)
+          dependenciesTableModel.reset(event.dependency.value)
+        }
+        else -> {
+          dependenciesTableModel.reset()
+        }
       }
-      dependenciesTable.selection = toSelect?.let { listOf(it) } ?: oldSelection
     }
 
     dependenciesTable.selectionModel.addListSelectionListener { updateDetailsAndIssues() }
@@ -142,7 +145,6 @@ internal class DeclaredDependenciesPanel(
   override fun getSelection(): PsBaseDependency? = dependenciesTable.selectionIfSingle
 
   override fun setSelection(selection: Collection<PsBaseDependency>?): ActionCallback {
-    skipSelectionChangeNotification = true
     if (selection == null || selection.isEmpty()) {
       dependenciesTable.clearSelection()
     }
@@ -150,21 +152,14 @@ internal class DeclaredDependenciesPanel(
       dependenciesTable.setSelection(selection.toSet())
     }
     updateDetailsAndIssues()
-    skipSelectionChangeNotification = false
+    history?.pushQueryPlace()
     return ActionCallback.DONE
   }
 
   private fun updateDetailsAndIssues() {
-    if (!skipSelectionChangeNotification) {
-      notifySelectionChanged()
-    }
-
     val selected = selection
     super.updateDetails(selected)
     updateIssues(selected)
-
-    val history = history
-    history?.pushQueryPlace()
   }
 
   private fun notifySelectionChanged() {
