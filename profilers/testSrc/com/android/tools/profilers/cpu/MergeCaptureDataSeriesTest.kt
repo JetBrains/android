@@ -75,7 +75,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTrace() {
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
     val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
       Range(
@@ -91,7 +91,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTraceStartOverlap() {
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
     val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
       Range(
@@ -107,7 +107,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTraceEndOverlap() {
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
     val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
       Range(
@@ -122,7 +122,7 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataTraceDataOnly() {
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
     val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
       Range(
@@ -170,12 +170,12 @@ class MergeCaptureDataSeriesTest {
     assertThat(threadStateSeries.calledWithRanges[1].max).isWithin(EPSILON).of(TimeUnit.MILLISECONDS.toMicros(200).toDouble())
   }
 
-  private fun buildTraceInfo(fromTime: Long, toTime: Long): com.android.tools.profiler.proto.CpuProfiler.TraceInfo {
-    return CpuProfiler.TraceInfo.newBuilder()
+  private fun buildTraceInfo(fromTime: Long, toTime: Long): com.android.tools.profiler.proto.Cpu.CpuTraceInfo {
+    return Cpu.CpuTraceInfo.newBuilder()
       .setFromTimestamp(TimeUnit.MILLISECONDS.toNanos(fromTime))
       .setToTimestamp(TimeUnit.MILLISECONDS.toNanos(toTime))
-      .addThreads(CpuProfiler.Thread.newBuilder().setTid(1))
-      .setProfilerType(CpuProfiler.CpuProfilerType.ATRACE)
+      .addTids(1)
+      .setTraceType(Cpu.CpuTraceType.ATRACE)
       .build()
   }
 

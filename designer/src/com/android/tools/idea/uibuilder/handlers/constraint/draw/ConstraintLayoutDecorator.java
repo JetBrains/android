@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
@@ -100,6 +101,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   private final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"}; // order matches SecondarySelector.Constraint.ordinal()
   private final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"}; // order matches
   private final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"}; // order matches
+  private final static AnchorTarget.Type[] ourAnchorTypes =
+    {AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT, AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM}; // order matches
   private final static boolean[] isLeftRight = {true, true, false, false}; // order matches
   private final static int[] ourOppositeDirection = {1, 0, 3, 2}; // order matches
 
@@ -281,6 +284,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
      * @param anyConstraintSelected
      * @param anyViewSelected
      * @param hoverConnection
+     * @param onDelete
      * @return
      */
     int getCurrentMode(int direction,
@@ -288,18 +292,22 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                        boolean fade,
                        boolean anyConstraintSelected,
                        boolean anyViewSelected,
-                       boolean hoverConnection) {
+                       boolean hoverConnection,
+                       boolean onDelete) {
       int ret = DrawConnection.MODE_NORMAL;
       int hoverFlag = hoverConnection ? DrawConnection.HOVER_FLAG : 0x0;
 
-      if (thisConstraintSelected) {
-        return hoverFlag|DrawConnection.MODE_CONSTRAINT_SELECTED;
+      if (onDelete) {
+        return hoverFlag | DrawConnection.MODE_DELETING;
+      }
+      else if (thisConstraintSelected) {
+        return hoverFlag | DrawConnection.MODE_CONSTRAINT_SELECTED;
       }
       else if (anyConstraintSelected) {
-        return hoverFlag|DrawConnection.MODE_SUBDUED;
+        return hoverFlag | DrawConnection.MODE_SUBDUED;
       }
       else if (anyViewSelected && !mMyViewSelected) {
-        return hoverFlag|DrawConnection.MODE_SUBDUED;
+        return hoverFlag | DrawConnection.MODE_SUBDUED;
       }
 
       if (mStartTime[direction] == -1) {
@@ -311,7 +319,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       if (ret == DrawConnection.MODE_NORMAL && fade) {
         ret = DrawConnection.MODE_SUBDUED;
       }
-      return hoverFlag|ret;
+      return hoverFlag | ret;
     }
 
     long getTime(int direction) {
@@ -461,9 +469,12 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (destType == DrawConnection.DEST_GUIDELINE) { // connections to guidelines are always Opposite
           connect = ourOppositeDirection[i];
         }
+        AnchorTarget anchorTarget = AnchorTarget.findAnchorTarget(child, ourAnchorTypes[i]);
+        boolean onDelete = anchorTarget != null && anchorTarget.canDisconnect() && anchorTarget.isMouseHovered();
         changeStart = connectStatus.getTime(i);
         int previousMode = connectStatus.getPreviousMode(i);
-        int currentMode = connectStatus.getCurrentMode(i, selectedConnection, fade, constraintSelected, anyViewSelected, hoverConnection);
+        int currentMode =
+          connectStatus.getCurrentMode(i, selectedConnection, fade, constraintSelected, anyViewSelected, hoverConnection, onDelete);
 
         int x1 = getX(source_rect, i);
         int x2 = getX(dest_rect, connect);
@@ -486,7 +497,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                                   : SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
                             source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);
-        if (currentMode == DrawConnection.MODE_DELETING) {
+        if ((currentMode & DrawConnection.HOVER_MASK) == DrawConnection.MODE_DELETING) {
           if (destType == DrawConnection.DEST_GUIDELINE) {
             int over_size_line = 3000;
             dest_rect.grow((connect < 2) ? 1 : over_size_line, (connect < 2) ? over_size_line : 1);
@@ -507,10 +518,12 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
       changeStart = connectStatus.getTime(ConnectionStatus.DIRECTION_BASELINE);
+      AnchorTarget anchorTarget = AnchorTarget.findAnchorTarget(child, AnchorTarget.Type.BASELINE);
+      boolean onDelete = anchorTarget != null && anchorTarget.canDisconnect() && anchorTarget.isMouseHovered();
       int previousMode = connectStatus.getPreviousMode(4);
       boolean secondary = selectedDirection == SecondarySelector.Constraint.BASELINE.ordinal();
       boolean hoverConnection = hover == SecondarySelector.Constraint.BASELINE.ordinal();
-      int currentMode = connectStatus.getCurrentMode(4, secondary, fade, constraintSelected, anyViewSelected, hoverConnection);
+      int currentMode = connectStatus.getCurrentMode(4, secondary, fade, constraintSelected, anyViewSelected, hoverConnection, onDelete);
 
       DrawConnection
         .buildDisplayList(list,

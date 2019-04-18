@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
@@ -271,7 +271,7 @@ public class CpuCaptureParser {
   public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
                                              long traceId,
                                              @NotNull ByteString traceData,
-                                             CpuProfilerType profilerType) {
+                                             CpuTraceType profilerType) {
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
       if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
@@ -300,7 +300,7 @@ public class CpuCaptureParser {
   }
 
   private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, long traceId, ByteString traceBytes,
-                                                            CpuProfilerType profilerType) {
+                                                            CpuTraceType profilerType) {
     CompletableFuture<CpuCapture> future =
       CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType), myServices.getPoolExecutor());
     updateParsingStateWhenDone(future);
@@ -308,7 +308,7 @@ public class CpuCaptureParser {
   }
 
   private CpuCapture traceBytesToCapture(@NotNull Common.Session session, long traceId, @NotNull ByteString traceData,
-                                         CpuProfilerType profilerType) {
+                                         CpuTraceType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", traceId), ".trace", true);
@@ -318,13 +318,13 @@ public class CpuCaptureParser {
       myTraceFiles.put(traceId, trace.getAbsolutePath());
 
       TraceParser parser;
-      if (profilerType == CpuProfilerType.ART) {
+      if (profilerType == CpuTraceType.ART) {
         parser = new ArtTraceParser();
       }
-      else if (profilerType == CpuProfilerType.SIMPLEPERF) {
+      else if (profilerType == CpuTraceType.SIMPLEPERF) {
         parser = new SimpleperfTraceParser();
       }
-      else if (profilerType == CpuProfilerType.ATRACE) {
+      else if (profilerType == CpuTraceType.ATRACE) {
         parser = new AtraceParser(session.getPid());
       }
       else {

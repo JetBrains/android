@@ -88,6 +88,12 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
 
   @NotNull
   @Override
+  public String getFailureTitle() {
+    return "Changes were not applied.";
+  }
+
+  @NotNull
+  @Override
   protected String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all) {
     if (all) {
       return "No code changes detected.";

@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
-import com.android.tools.property.panel.api.PropertiesPanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesView
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
@@ -53,7 +51,6 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
-    registerActionKey({ toolWindow?.startFiltering("") }, KeyStrokes.CMD_F, "search", { true }, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerAnActionKey({ showResolvedValueAction }, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                         WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }

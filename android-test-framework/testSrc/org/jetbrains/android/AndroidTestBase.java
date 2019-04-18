@@ -18,12 +18,16 @@ package org.jetbrains.android;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
@@ -33,6 +37,7 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -81,6 +86,31 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     }
     myFixture = null;
     super.tearDown();
+    checkUndisposedAndroidRelatedObjects();
+  }
+
+  /**
+   * Checks that there are no undisposed Android-related objects.
+   */
+  private static void checkUndisposedAndroidRelatedObjects() {
+    DisposerExplorer.visitTree(disposable -> {
+      if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
+          disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
+          (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
+          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
+        // Ignore application services and light projects and modules that are not disposed by tearDown.
+        return DisposerExplorer.VisitResult.SKIP_CHILDREN;
+      }
+      if (disposable.getClass().getName().startsWith("com.android.")) {
+        Disposable root = disposable;
+        Disposable parent;
+        while ((parent = DisposerExplorer.getParent(root)) != null) {
+          root = parent;
+        }
+        fail("Undisposed object: " + root);
+      }
+      return DisposerExplorer.VisitResult.CONTINUE;
+    });
   }
 
   public void refreshProjectFiles() {

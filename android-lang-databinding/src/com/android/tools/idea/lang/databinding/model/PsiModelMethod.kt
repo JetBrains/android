@@ -15,34 +15,76 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
-import android.databinding.tool.reflection.ModelClass
-import android.databinding.tool.reflection.ModelMethod
-import com.intellij.psi.*
-import com.intellij.psi.util.PsiTypesUtil
+import com.android.tools.idea.databinding.DataBindingMode
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiType
 
-class PsiModelMethod(val psiMethod: PsiMethod) : ModelMethod() {
+/**
+ * PSI wrapper around psi methods that additionally expose information particularly useful in data binding expressions.
+ *
+ * Note: This class is adapted from [android.databinding.tool.reflection.ModelMethod] from db-compiler.
+ */
+class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
 
-  override fun getDeclaringClass() = psiMethod.containingClass?.let { PsiModelClass(PsiTypesUtil.getClassType(it)) }
+  val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
+    psiMethod.parameterList.parameters.map { PsiModelClass(it.type, mode) }.toTypedArray()
+  }
 
-  override fun getParameterTypes() = psiMethod.parameterList.parameters.map { PsiModelClass(it.type) }.toTypedArray()
+  val name: String
+    get() = psiMethod.name
 
-  override fun getName() = psiMethod.name
+  val returnType: PsiModelClass?
+    get() = psiMethod.returnType?.let { PsiModelClass(it, mode) }
 
-  override fun getReturnType(list: List<ModelClass>?): ModelClass? = psiMethod.returnType?.let { PsiModelClass(it) }
+  val isVoid = PsiType.VOID == psiMethod.returnType
 
-  override fun isVoid() = PsiType.VOID == psiMethod.returnType
+  val isPublic = psiMethod.hasModifierProperty(PsiModifier.PUBLIC)
 
-  override fun isPublic() = psiMethod.hasModifierProperty(PsiModifier.PUBLIC)
+  val isProtected = psiMethod.hasModifierProperty(PsiModifier.PROTECTED)
 
-  override fun isProtected() = psiMethod.hasModifierProperty(PsiModifier.PROTECTED)
+  val isStatic = psiMethod.hasModifierProperty(PsiModifier.STATIC)
 
-  override fun isStatic() = psiMethod.hasModifierProperty(PsiModifier.STATIC)
+  val isAbstract = psiMethod.hasModifierProperty(PsiModifier.ABSTRACT)
 
-  override fun isAbstract() = psiMethod.hasModifierProperty(PsiModifier.ABSTRACT)
+  /**
+   * Returns true if the final parameter is a varargs parameter.
+   */
+  val isVarArgs = psiMethod.isVarArgs
 
-  override fun getMinApi() = 0
+  private fun getParameter(index: Int, parameterTypes: Array<PsiModelClass>): PsiModelClass? {
+    val normalParamCount = if (isVarArgs) parameterTypes.size - 1 else parameterTypes.size
+    return if (index < normalParamCount) {
+      parameterTypes[index]
+    }
+    else {
+      null
+    }
+  }
 
-  override fun getJniDescription() = psiMethod.name
-
-  override fun isVarArgs() = psiMethod.isVarArgs
+  /**
+   * @param args The arguments to the method
+   * @return Whether the arguments would be accepted as parameters to this method.
+   */
+  // b/129771951 revisit the case when unwrapObservableFields is true
+  fun acceptsArguments(args: List<PsiModelClass>): Boolean {
+    if (!isVarArgs && args.size != parameterTypes.size || isVarArgs && args.size < parameterTypes.size - 1) {
+      return false // The wrong number of parameters
+    }
+    var parametersMatch = true
+    var i = 0
+    while (i < args.size && parametersMatch) {
+      var parameterType = getParameter(i, parameterTypes)!!
+      val arg = args[i]
+      if (parameterType.isIncomplete) {
+        parameterType = parameterType.erasure()
+      }
+      // TODO: b/130429958 check if the parameterType is an implicit conversion from the arg
+      if (!parameterType.isAssignableFrom(arg)) {
+        parametersMatch = false
+      }
+      i++
+    }
+    return parametersMatch
+  }
 }

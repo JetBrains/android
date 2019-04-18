@@ -42,10 +42,4 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }
-
-  @Override
-  @Nullable
-  public PsLibraryDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
-    return super.findDependency(spec);
-  }
 }

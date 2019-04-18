@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Immutable;
 import com.android.annotations.concurrency.Slow;
-import com.android.builder.model.*;
-import com.android.manifmerger.*;
+import com.android.builder.model.BaseConfig;
+import com.android.builder.model.BuildType;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavor;
+import com.android.manifmerger.Actions;
+import com.android.manifmerger.ManifestMerger2;
+import com.android.manifmerger.ManifestSystemProperty;
+import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.XmlDocument;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.SyncTimestampUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -45,25 +53,21 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import gnu.trove.TObjectLongHashMap;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXParseException;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.ANDROID_URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXParseException;
 
 /**
  * Immutable data object encapsulating the result of merging all of the manifest files related to a particular
@@ -285,7 +289,7 @@ final class MergedManifestInfo {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
 
-    final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
+    File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
     ILogger logger = NullLogger.getLogger();
     ManifestMerger2.MergeType mergeType =
@@ -369,8 +373,8 @@ final class MergedManifestInfo {
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);
     }
 
-    final Module module = facet.getModule();
-    final Project project = module.getProject();
+    Module module = facet.getModule();
+    Project project = module.getProject();
 
     manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
       @Override
@@ -387,7 +391,7 @@ final class MergedManifestInfo {
           // Gracefully handle case where file doesn't exist; this can happen for example
           // when a Gradle sync is needed after version control etc (see issue 65541477)
           //noinspection ZeroLengthArrayAllocation
-          return new ByteArrayInputStream("<manifest/>".getBytes(StandardCharsets.UTF_8));
+          return new ByteArrayInputStream("<manifest/>".getBytes(UTF_8));
         }
 
         // We do not want to do this check if we have no library manifests.
@@ -403,7 +407,7 @@ final class MergedManifestInfo {
               // such that I can pass back a fully merged DOM document instead of
               // an XML string since it will need to turn around and parse it anyway.
               String text = XmlUtils.toXml(document);
-              return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+              return new ByteArrayInputStream(text.getBytes(UTF_8));
             }
           }
         }
@@ -412,7 +416,7 @@ final class MergedManifestInfo {
           PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
           if (psiFile != null) {
             String text = psiFile.getText();
-            return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+            return new ByteArrayInputStream(text.getBytes(UTF_8));
           }
         }
         catch (ProcessCanceledException ignore) {

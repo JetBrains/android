@@ -13,6 +13,8 @@ message GradleProject {
     optional string name = 4; // required
     optional string project_path = 5; // required
     optional string description = 6;
+     // This is a string insead of GradleProject because protos do not support links/pointers
+    repeated string children = 7;
 }
 
 message GradleScript {

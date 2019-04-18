@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.*;
@@ -114,7 +115,7 @@ public class CaptureModelTest {
                                              new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                                .put(info, root)
                                                .build(), false);
-    CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture capture = new CpuCapture(parser, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureDetails.Type.CALL_CHART);
@@ -148,7 +149,7 @@ public class CaptureModelTest {
                                              new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                                .put(info, root)
                                                .build(), false);
-    CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture capture = new CpuCapture(parser, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureDetails.Type.CALL_CHART);
@@ -171,9 +172,9 @@ public class CaptureModelTest {
                                                            .put(info, root)
                                                            .build(), true);
 
-    CpuCapture globalOnlyCapture = new CpuCapture(globalOnlyClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
-    CpuCapture dualCapture1 = new CpuCapture(dualClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
-    CpuCapture dualCapture2 = new CpuCapture(dualClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture globalOnlyCapture = new CpuCapture(globalOnlyClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture dualCapture1 = new CpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture dualCapture2 = new CpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(globalOnlyCapture);
     assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
     myModel.setClockType(ClockType.THREAD);

@@ -163,7 +163,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/studio/sdk:typos",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/annotations",

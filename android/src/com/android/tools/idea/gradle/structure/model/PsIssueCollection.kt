@@ -30,6 +30,29 @@ class PsIssueCollection {
 
   val isEmpty: Boolean get() = synchronized(lock) { myIssues.isEmpty }
 
+  /**
+   * Returns all issues optionally filtered by [filterByParentPath].
+   */
+  fun findIssues(filterByParentPath: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> {
+    val unorderedIssues =
+      synchronized(lock) {
+        if (filterByParentPath != null) {
+          myIssues
+            .get(filterByParentPath)
+            .toList()
+        }
+        else {
+          myIssues
+            .entries()
+            .asSequence()
+            .filter { it.key.parent == null }
+            .map { it.value }
+            .toList()
+        }
+      }
+    return if (comparator != null) unorderedIssues.sortedWith(comparator) else unorderedIssues
+  }
+
   fun add(issue: PsIssue) {
     val path = issue.path
     synchronized(lock) {
@@ -39,23 +62,6 @@ class PsIssueCollection {
       }
     }
   }
-
-  fun findIssues(path: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> =
-    synchronized(lock) {
-      myIssues.get(path).toList()
-    }
-      .let {
-        if (comparator != null) it.sortedWith(comparator) else it
-      }
-
-  fun getValues(pathType: Class<out PsPath>): List<PsIssue> =
-    synchronized(lock) {
-      myIssues
-        .entries()
-        .mapNotNull { (k, v) -> if (pathType.isInstance(k)) v else null }
-        .distinct()
-        .toList()
-    }
 
   fun remove(type: PsIssueType, byPath: PsPath? = null) {
     synchronized(lock) {

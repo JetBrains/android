@@ -20,22 +20,28 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Since the 'am' (activity manager) command line in older releases of Android has limited functionalities for
  * CPU method-level tracing, we therefore need to employ JDWP (DDMS).
- *
+ * <p>
  * In this class, 'profiling' means method-level tracing using either instrumentation or profiling.
  * Within this class 'profiling' is not a general concept as in 'CPU profiler'.
  */
@@ -91,15 +97,15 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       record = new LegacyProfilingRecord(request, nowNs, responseBuilder);
       myLegacyProfilingRecord.put(pid, record);
       try {
-        if (request.getConfiguration().getProfilerType() == CpuProfilerType.ATRACE) {
+        if (request.getConfiguration().getTraceType() == CpuTraceType.ATRACE) {
           responseBuilder.mergeFrom(myServiceStub.startProfilingApp(request));
         }
-        else if (request.getConfiguration().getProfilerMode() == CpuProfilerMode.SAMPLED) {
-          assert request.getConfiguration().getProfilerType() == CpuProfilerType.ART;
+        else if (request.getConfiguration().getTraceMode() == CpuTraceMode.SAMPLED) {
+          assert request.getConfiguration().getTraceType() == CpuTraceType.ART;
           client.startSamplingProfiler(request.getConfiguration().getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
         }
         else {
-          assert request.getConfiguration().getProfilerType() == CpuProfilerType.ART;
+          assert request.getConfiguration().getTraceType() == CpuTraceType.ART;
           client.startMethodTracer();
         }
         // startSamplingProfiler() and startMethodTracer() calls above always return immediately.
@@ -145,17 +151,17 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
       record.setStopResponseBuilder(responseBuilder);
       try {
-        if (record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ATRACE) {
+        if (record.myStartRequest.getConfiguration().getTraceType() == CpuTraceType.ATRACE) {
           CpuProfilingAppStopResponse response = myServiceStub.stopProfilingApp(request);
           responseBuilder.mergeFrom(response);
           record.myStopLatch.countDown();
         }
-        else if (record.myStartRequest.getConfiguration().getProfilerMode() == CpuProfilerMode.SAMPLED) {
-          assert record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART;
+        else if (record.myStartRequest.getConfiguration().getTraceMode() == CpuTraceMode.SAMPLED) {
+          assert record.myStartRequest.getConfiguration().getTraceType() == CpuTraceType.ART;
           client.stopSamplingProfiler();
         }
         else {
-          assert record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART;
+          assert record.myStartRequest.getConfiguration().getTraceType() == CpuTraceType.ART;
           client.stopMethodTracer();
         }
         record.myStopLatch.await();
@@ -202,7 +208,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
    */
   private boolean isMethodProfilingStatusOff(LegacyProfilingRecord record, Client client) {
     return record == null || (client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF &&
-                       record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART);
+                              record.myStartRequest.getConfiguration().getTraceType() == CpuTraceType.ART);
   }
 
   private static class LegacyProfilingHandler implements ClientData.IMethodProfilingHandler {

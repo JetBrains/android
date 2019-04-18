@@ -156,19 +156,10 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void setMouseHovered(boolean over) {
     if (over != mIsOver) {
-      changeMouseOverState(over);
+      mIsOver = over;
       myComponent.getScene().needsRebuildList();
       myComponent.getScene().repaint();
     }
-  }
-
-  private void changeMouseOverState(boolean newValue) {
-    mIsOver = newValue;
-    DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
-    if (mIsOver) {
-      mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
-    }
-    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), myType.toString(), mode);
   }
 
   /**
@@ -176,6 +167,12 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
    */
   protected boolean isTargeted() {
     return mIsOver && !myComponent.isSelected();
+  }
+
+  /** Returns true if this anchor can disconnect itself. */
+  public boolean canDisconnect() {
+    // TODO: Make use of this on a common function to disconnect for constraint and relative anchor targets.
+    return true;
   }
 
   //endregion
@@ -274,6 +271,10 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     DrawAnchor.Mode mode = getDrawMode();
     DrawAnchor.Type type = getDrawType();
     boolean drawAsConnected = getDrawAsConnected();
+    if (mode == DrawAnchor.Mode.DELETE && !canDisconnect()) {
+      // TODO: This should be done in getDrawMode().
+      mode = DrawAnchor.Mode.OVER;
+    }
 
     if (mode != DrawAnchor.Mode.DO_NOT_DRAW) {
       if (type != DrawAnchor.Type.BASELINE) {
@@ -417,12 +418,12 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
         side = "Baseline";
         break;
       default:
-        return isConnected() ? "Delete Constraint" : "Create Constraint";
+        return isConnected() && canDisconnect() ? "Delete Constraint" : "Create Constraint";
     }
 
     StringBuilder builder = new StringBuilder();
     builder
-      .append(isConnected() ? "Delete " : "Create ")
+      .append(isConnected() && canDisconnect() ? "Delete " : "Create ")
       .append(side)
       .append(" Constraint");
 

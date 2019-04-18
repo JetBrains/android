@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.structure.configurables.dependencies.treevi
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.SelectNodesMatchingCurrentSelectionAction;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeRootNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeStructure;
@@ -46,7 +45,6 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.*;
@@ -70,12 +68,6 @@ import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
-import static com.intellij.icons.AllIcons.Actions.Collapseall;
-import static com.intellij.icons.AllIcons.Actions.Expandall;
-import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
-import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
 class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull private final PsContext myContext;
@@ -229,7 +221,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   private void initializeDependencyDetails() {
     addDetails(new MultipleLibraryDependenciesDetails());
-    addDetails(new JarDependencyDetails(getContext()));
+    addDetails(new JarDependencyDetails(getContext(), false));
     addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 
@@ -247,21 +239,6 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull
   protected List<AnAction> getExtraToolbarActions(@NotNull JComponent focusComponent) {
     List<AnAction> actions = Lists.newArrayList();
-
-    actions.add(new SelectNodesMatchingCurrentSelectionAction() {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        myIgnoreTreeSelectionEvents = true;
-        super.actionPerformed(e);
-      }
-
-      @Override
-      @NotNull
-      protected AbstractPsNodeTreeBuilder getTreeBuilder() {
-        return myTreeBuilder;
-      }
-    });
-    actions.add(new Separator());
 
     actions.add(new AbstractBaseExpandAllAction(myTree, Expandall) {
       @Override

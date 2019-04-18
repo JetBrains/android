@@ -163,6 +163,11 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getAuthoritativeNlComponent(), useRtlAttributes(), isRtl());
   }
 
+  @Override
+  public boolean canDisconnect() {
+    return myComponent.getScene().isControlDown();
+  }
+
   @SuppressWarnings("UseJBColor")
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
@@ -717,7 +722,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (closestTarget != null && !closestTarget.isConnected(this)) {
         NlComponent component = myComponent.getAuthoritativeNlComponent();
         if (closestTarget == this) {
-          disconnectMe(component);
+          if (canDisconnect()) {
+            disconnectMe(component);
+          }
         }
         else {
           String attribute = getAttribute(closestTarget);

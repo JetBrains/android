@@ -43,11 +43,9 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
       val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
       val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val messageCollection = PsIssueCollection()
-      analyzer.analyze(mainModule, messageCollection)
+      val messageCollection = analyzer.analyze(mainModule)
 
       val messages = messageCollection
-        .values
         .filter {
           val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
           dependencyName.startsWith("com.example.")

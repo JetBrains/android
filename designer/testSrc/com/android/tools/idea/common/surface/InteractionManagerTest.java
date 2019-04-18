@@ -399,13 +399,9 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = manager.getSurface();
     Point moved = new Point(0, 0);
     when(surface.getScrollPosition()).thenReturn(moved);
-    int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
-                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
-                                            : InputEvent.CTRL_DOWN_MASK);
+    int modifierKeyMask = InputEvent.BUTTON2_DOWN_MASK;
 
     assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask)));
-    manager.handlePanInteraction(0, 0);
-    Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);
   }
 
   public void testInterceptPanModifiedKeyReleased() {

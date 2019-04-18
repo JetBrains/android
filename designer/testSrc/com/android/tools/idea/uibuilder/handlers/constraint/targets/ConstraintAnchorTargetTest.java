@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Point;
+import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -312,6 +313,22 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myInteraction.mouseRelease(90, 90);
   }
 
+  public void testClickOnConnectedAnchor() {
+    myInteraction.select("button3", true);
+    myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
+    ConstraintAnchorTarget target =
+      (ConstraintAnchorTarget)AnchorTarget.findAnchorTarget(myScene.getSceneComponent("button3"), AnchorTarget.Type.TOP);
+
+    assertTrue(target.isConnected());
+    myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
+    assertTrue(target.isConnected());
+
+    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
+    myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
+    myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
+    assertFalse(target.isConnected());
+  }
+
   private void renderAnchorTargetsToDisplayList(@NotNull SceneComponent component, @NotNull DisplayList displayList) {
     SceneContext context = SceneContext.get(mySceneManager.getSceneView());
     component.getTargets()
@@ -357,6 +374,11 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                 component(BUTTON)
                   .id("@id/button2")
                   .withBounds(10, 30, 10, 10),
+                component(BUTTON)
+                  .id("@+id/button3")
+                  .withBounds(30, 40, 10, 10)
+                  .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "@id/root")
+                  .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "20dp"),
                 component(BUTTON)
                   // Button with no id defined.
                   .withBounds(10, 40, 10, 10)

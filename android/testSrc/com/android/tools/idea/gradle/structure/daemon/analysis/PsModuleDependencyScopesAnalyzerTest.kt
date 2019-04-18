@@ -18,13 +18,11 @@ package com.android.tools.idea.gradle.structure.daemon.analysis
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
 import com.android.tools.idea.gradle.structure.model.PsIssue
-import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.util.Disposer
@@ -43,10 +41,9 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesLibrary") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues,
+      checkIssuesFor(issues.toList(),
                      "junit:junit:4.12",
                      setOf("Obsolete scope found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
@@ -66,8 +63,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesLibrary") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module).toList()
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
@@ -89,10 +85,9 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("app") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues,
+      checkIssuesFor(issues.toList(),
                      "junit:junit:4.12",
                      setOf("Obsolete scope found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
@@ -112,8 +107,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("app") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module).toList()
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
@@ -144,10 +138,9 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesTest") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues,
+      checkIssuesFor(issues.toList(),
                      "androidx.appcompat:appcompat:1.0.2",
                      setOf("Obsolete scope found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
@@ -168,8 +161,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("instantApp") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module).toList()
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
@@ -192,8 +184,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesFeature") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module).toList()
 
       checkIssuesFor(issues,
                      "junit:junit:4.12",
@@ -216,8 +207,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesFeature") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module).toList()
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
@@ -239,10 +229,9 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesJava") as PsJavaModule
 
       val analyzer = PsJavaModuleAnalyzer(context)
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues,
+      checkIssuesFor(issues.toList(),
                      "junit:junit:4.12",
                      setOf("Obsolete scope found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
@@ -262,8 +251,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
       val module = project.findModuleByName("obsoleteScopesJava") as PsJavaModule
 
       val analyzer = PsJavaModuleAnalyzer(context)
-      val issues = PsIssueCollection()
-      analyzer.analyze(module, issues)
+      val issues = analyzer.analyze(module).toList()
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
@@ -277,7 +265,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
   // TODO(b/129135682): write DynamicFeature tests when bug is fixed
 
   private fun checkIssuesFor(
-    issues: PsIssueCollection,
+    issues: List<PsIssue>,
     name: String,
     expectedMessages: Set<Pair<String, String>>,
     expectedChanges: Set<Pair<String, String>>
@@ -289,8 +277,8 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
     assertThat(quickFixChanges, equalTo(expectedChanges))
   }
 
-  private fun issueSetFor(issues: PsIssueCollection, name: String): Set<PsIssue> {
-    return issues.values.filter { it.path.toString() == name }.toSet()
+  private fun issueSetFor(issues: List<PsIssue>, name: String): Set<PsIssue> {
+    return issues.filter { it.path.toString() == name }.toSet()
   }
 
   private fun quickFixChangesFor(issueSet: Set<PsIssue>): Set<Pair<String,String>> {

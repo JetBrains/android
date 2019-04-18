@@ -15,63 +15,79 @@
  */
 package com.android.tools.idea.tests.gui.instantapp
 
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
-import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import com.sun.jna.Library
+import com.sun.jna.Native
+import org.fest.swing.edt.GuiTask
+import org.fest.swing.fixture.JCheckBoxFixture
+import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
+import javax.swing.JCheckBox
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateAndRunInstantAppTest {
-  @Rule @JvmField val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
-  @Rule @JvmField val emulator = EmulatorTestRule()
+  private val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  private val avdTestRule = AvdTestRule.buildAvdTestRule {
+    AvdSpec.Builder().setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+      .setSystemImageSpec(ChooseSystemImageStepFixture.SystemImage(
+        "Oreo",
+        "26",
+        "x86",
+        "Android 8.0 (Google APIs)"
+      ))
+  }
+
+  @Rule @JvmField val myTestRules = RuleChain.emptyRuleChain()
+    .around(avdTestRule)
+    .around(guiTest)
 
   private val projectApplicationId = "com.android.devtools.simple"
-  private lateinit var fakeAdbServer: FakeAdbServer
+  private var oldAndroidHomeEnv: String? = null
+  private var oldPathEnv: String? = null
 
   @Before
-  fun setupFakeAdbServer() {
-    /**
-     * ActivityManager "start" command handler for an invocation like
-     *
-     *    am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example'
-     */
-    val startCmdHandler = object: ActivityManagerCommandHandler.ProcessStarter {
-      override fun startProcess(deviceState: DeviceState): String {
-        deviceState.startClient(1234, 1235, projectApplicationId, false)
-        return "Starting: Intent { act=android.intent.action.VIEW cat=[android.intent.category.BROWSABLE] dat=https://example.com/... }"
+  fun setupSdk() {
+    val newSdk = avdTestRule.generatedSdkLocation!!
+    GuiTask.execute {
+      ApplicationManager.getApplication().runWriteAction {
+        IdeSdks.getInstance().setAndroidSdkPath(newSdk, null)
       }
     }
 
-    fakeAdbServer = FakeAdbServer.Builder()
-      .installDefaultCommandHandlers()
-      .addDeviceHandler(ActivityManagerCommandHandler(startCmdHandler))
-      .addDeviceHandler(JdwpCommandHandler())
-      .build()
+    // Set ANDROID_HOME and PATH environment variables because the instant apps
+    // SDK searches for ADB on its own. We don't want the SDK to use a different
+    // ADB than the one we already have in the Android SDK:
+    oldAndroidHomeEnv = System.getenv("ANDROID_HOME")
+    oldPathEnv = System.getenv("PATH")
 
-    val fakeDevice = fakeAdbServer.connectDevice(
-      "test_device",
-      "Google",
-      "Nexus 5X",
-      "8.0",
-      "26",
-      DeviceState.HostConnectionType.LOCAL
-    ).get()
-    fakeDevice.deviceStatus = DeviceState.DeviceStatus.ONLINE
+    Environment.libC.setenv("ANDROID_HOME", newSdk.absolutePath, 1)
 
-    fakeAdbServer.start()
-    AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.port)
+    val currentPath = System.getenv("PATH") ?: ""
+    val newPath = if (currentPath.isNotEmpty()) {
+      "${newSdk.absolutePath}:${currentPath}"
+    } else {
+      newSdk.absolutePath
+    }
+    Environment.libC.setenv("PATH", newPath, 1)
   }
 
   /**
@@ -90,9 +106,11 @@ class CreateAndRunInstantAppTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/79937083
+  @RunIn(TestGroup.SANITY_BAZEL)
   fun createAndRun() {
     val runConfigName = "app"
+    val avdName = avdTestRule.myAvd?.name ?: throw IllegalStateException("AVD does not have a name")
+
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -108,21 +126,60 @@ class CreateAndRunInstantAppTest {
     // TODO remove the following workaround wait for http://b/72666461
     ideFrame.waitForGradleProjectSyncToFinish()
 
-    ideFrame.runApp(runConfigName, "Google Nexus 5X")
+    // The project is not deployed as an instant app by default anymore. Enable
+    // deploying the project as an instant app:
+    ideFrame.invokeMenuPath("Run", "Edit Configurations...")
+    val configDialog = EditConfigurationsDialogFixture.find(ideFrame.robot())
+    val instantAppCheckbox = GuiTests.waitUntilShowing(
+      ideFrame.robot(),
+      configDialog.target(),
+      Matchers.byText(JCheckBox::class.java, "Deploy as instant app")
+    )
+    val instantAppCheckBoxFixture = JCheckBoxFixture(
+      ideFrame.robot(),
+      instantAppCheckbox
+    )
+    instantAppCheckBoxFixture.select()
+    configDialog.clickOk()
+    configDialog.waitUntilNotShowing()
+
+    ideFrame.runApp(runConfigName, avdName)
 
     val runWindow = ideFrame.runToolWindow
     runWindow.activate()
     val runWindowContent = runWindow.findContent(runConfigName)
-    emulator.waitForProcessToStart(runWindowContent)
+
+    val runOutputPattern = Pattern.compile(".*Connected to process.*", Pattern.DOTALL)
+    runWindowContent.waitForOutput(PatternTextMatcher(runOutputPattern), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
 
     runWindowContent.waitForStopClick()
   }
 
   @After
-  fun shutdownFakeAdb() {
-    AndroidDebugBridge.terminate()
-    AndroidDebugBridge.disableFakeAdbServerMode()
-    fakeAdbServer.close()
+  fun restoreEnvironment() {
+    val oldAndroidHome = oldAndroidHomeEnv
+    if (oldAndroidHome != null) {
+      Environment.libC.setenv("ANDROID_HOME", oldAndroidHome, 1)
+    } else {
+      Environment.libC.unsetenv("ANDROID_HOME")
+    }
+
+    val oldPath = oldPathEnv
+    if (oldPath != null) {
+      Environment.libC.setenv("PATH", oldPath, 1)
+    } else {
+      Environment.libC.unsetenv("PATH")
+    }
   }
 
+  private class Environment {
+    companion object {
+      val libC = Native.loadLibrary("c", LibC::class.java)
+    }
+
+    interface LibC: Library {
+      fun setenv(name: String, value: String, overwrite: Int): Int
+      fun unsetenv(name: String): Int
+    }
+  }
 }

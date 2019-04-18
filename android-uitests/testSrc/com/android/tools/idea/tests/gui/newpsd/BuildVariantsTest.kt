@@ -160,7 +160,7 @@ class BuildVariantsTest {
           }
         }
       }
-      clickOkExpectConfigmrtation().run {
+      clickOkExpectConfirmation().run {
         clickReview()
       }
       findSuggestionsConfigurable().run {

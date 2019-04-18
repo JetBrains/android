@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
 import com.intellij.CommonBundle;
@@ -66,7 +67,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JComponent;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -208,7 +208,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           return;
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
-
         List<String> projectProperties = Lists.newArrayList();
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
         projectProperties.add(
@@ -220,11 +219,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
-        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), new File(myApkPath));
 
         assert myProject != null;
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
+        List<Module> modules = ImmutableList.of(myFacet.getModule());
         if (myTargetType.equals(BUNDLE)) {
           File exportedKeyFile = null;
           if (myExportPrivateKey) {
@@ -247,19 +246,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
               return;
             }
           }
-
-          GoToBundleLocationTask task;
-          if (exportedKeyFile != null) {
-            task = new GoToBundleLocationTask(myProject, "Generate Signed Bundle", appModulesToOutputs, exportedKeyFile);
-          }
-          else {
-            task = new GoToBundleLocationTask(myProject, "Generate Signed Bundle", appModulesToOutputs);
-          }
-          gradleBuildInvoker.add(task);
+          gradleBuildInvoker.add(new GoToBundleLocationTask(myProject,
+                                                            modules,
+                                                            "Generate Signed Bundle",
+                                                            myBuildVariants, exportedKeyFile));
         }
         else {
-          List<Module> modules = new ArrayList<>();
-          modules.add(myFacet.getModule());
           gradleBuildInvoker.add(new GoToApkLocationTask(modules, "Generate Signed APK", myBuildVariants));
         }
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties,

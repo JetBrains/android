@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForIdle

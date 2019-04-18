@@ -357,19 +357,19 @@ to_timestamp: 9223372036854775807
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetTraceInfo" Class="class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoResponse">
         <Message>trace_info {
+  trace_id: 1111
   initiation_type: INITIATED_BY_API
   from_timestamp: 86400000000000
   to_timestamp: 86400000000000
-  trace_id: 1111
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoResponse</clazz>
         <functionCalled>profiler.proto.CpuService/GetTraceInfo</functionCalled>
         <message>trace_info {
+  trace_id: 1111
   initiation_type: INITIATED_BY_API
   from_timestamp: 86400000000000
   to_timestamp: 86400000000000
-  trace_id: 1111
 }
 </message>
     </GrpcCall>

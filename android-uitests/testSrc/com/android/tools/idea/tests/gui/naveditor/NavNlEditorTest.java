@@ -111,9 +111,9 @@ public class NavNlEditorTest {
 
     guiTest.robot().type('\b');
 
-    layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
-
     ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+
+    layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
 
     List<NlComponent> selectedComponents = fixture.getSelectedComponents();
     assertEquals(0, selectedComponents.size());

@@ -39,6 +39,8 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -47,6 +49,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
+import org.gradle.internal.impldep.org.simpleframework.util.thread.DirectExecutor;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +67,9 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SdkToolsVersionSetupStep() {
-    this(IdeSdks.getInstance(), REPO_MANAGER_SUPPLIER, () -> AppExecutorUtil.getAppExecutorService());
+    this(IdeSdks.getInstance(), REPO_MANAGER_SUPPLIER, () -> ApplicationManager.getApplication().isUnitTestMode()
+                                                             ? MoreExecutors.newDirectExecutorService()
+                                                             : AppExecutorUtil.getAppExecutorService());
   }
 
   @VisibleForTesting

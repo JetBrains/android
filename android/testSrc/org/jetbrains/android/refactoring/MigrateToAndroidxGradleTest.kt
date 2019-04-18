@@ -38,7 +38,6 @@ private fun String.replaceCompileSdkWith(version: String) =
  * This class tests Migration to AndroidX for a Gradle project.
  */
 class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
-
   fun testMigrationRefactoring() {
     loadProject(MIGRATE_TO_ANDROID_X)
     runProcessor()

@@ -15,72 +15,72 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.tools.profiler.proto.CpuProfiler.*
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode
+import com.android.tools.profiler.proto.Cpu.CpuTraceType
 import com.google.common.truth.Truth.assertThat
-
 import org.junit.Test
 
 class ProfilingTechnologyTest {
   @Test
   fun fromConfigArtSampled() {
-    val artSampledConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfilerType.ART,
-                                                         CpuProfilerMode.SAMPLED)
+    val artSampledConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ART,
+                                                         CpuTraceMode.SAMPLED)
     assertThat(ProfilingTechnology.fromConfig(artSampledConfiguration)).isEqualTo(ProfilingTechnology.ART_SAMPLED)
   }
 
   @Test
   fun fromConfigArtInstrumented() {
-    val artInstrumentedConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfilerType.ART,
-                                                              CpuProfilerMode.INSTRUMENTED)
+    val artInstrumentedConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ART,
+                                                              CpuTraceMode.INSTRUMENTED)
     assertThat(ProfilingTechnology.fromConfig(artInstrumentedConfiguration))
       .isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
   }
 
   @Test
   fun fromConfigArtUnspecified() {
-    val artUnspecifiedConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfilerType.ART,
-                                                             CpuProfilerMode.UNSPECIFIED_MODE)
+    val artUnspecifiedConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ART,
+                                                             CpuTraceMode.UNSPECIFIED_MODE)
     assertThat(ProfilingTechnology.fromConfig(artUnspecifiedConfiguration)).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED)
   }
 
   @Test
   fun fromConfigSimpleperf() {
-    val simpleperfConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfilerType.SIMPLEPERF,
-                                                         CpuProfilerMode.SAMPLED)
+    val simpleperfConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.SIMPLEPERF,
+                                                         CpuTraceMode.SAMPLED)
     assertThat(ProfilingTechnology.fromConfig(simpleperfConfiguration)).isEqualTo(ProfilingTechnology.SIMPLEPERF)
   }
 
   @Test
   fun fromConfigAtrace() {
-    val atraceConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfilerType.ATRACE,
-                                                     CpuProfilerMode.SAMPLED)
+    val atraceConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ATRACE,
+                                                     CpuTraceMode.SAMPLED)
     assertThat(ProfilingTechnology.fromConfig(atraceConfiguration)).isEqualTo(ProfilingTechnology.ATRACE)
   }
 
   @Test(expected = IllegalStateException::class)
   fun fromConfigUnexpectedConfig() {
-    val unexpectedConfiguration = ProfilingConfiguration("MyConfiguration", CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                         CpuProfilerMode.SAMPLED)
+    val unexpectedConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.UNSPECIFIED_TYPE,
+                                                         CpuTraceMode.SAMPLED)
     assertThat(ProfilingTechnology.fromConfig(unexpectedConfiguration)).isEqualTo("any config. it should fail before.")
   }
 
   @Test
   fun getType() {
-    assertThat(ProfilingTechnology.SIMPLEPERF.type).isEqualTo(CpuProfilerType.SIMPLEPERF)
-    assertThat(ProfilingTechnology.ATRACE.type).isEqualTo(CpuProfilerType.ATRACE)
+    assertThat(ProfilingTechnology.SIMPLEPERF.type).isEqualTo(CpuTraceType.SIMPLEPERF)
+    assertThat(ProfilingTechnology.ATRACE.type).isEqualTo(CpuTraceType.ATRACE)
 
-    assertThat(ProfilingTechnology.ART_INSTRUMENTED.type).isEqualTo(CpuProfilerType.ART)
-    assertThat(ProfilingTechnology.ART_SAMPLED.type).isEqualTo(CpuProfilerType.ART)
-    assertThat(ProfilingTechnology.ART_UNSPECIFIED.type).isEqualTo(CpuProfilerType.ART)
+    assertThat(ProfilingTechnology.ART_INSTRUMENTED.type).isEqualTo(CpuTraceType.ART)
+    assertThat(ProfilingTechnology.ART_SAMPLED.type).isEqualTo(CpuTraceType.ART)
+    assertThat(ProfilingTechnology.ART_UNSPECIFIED.type).isEqualTo(CpuTraceType.ART)
   }
 
   @Test
   fun getMode() {
-    assertThat(ProfilingTechnology.SIMPLEPERF.mode).isEqualTo(CpuProfilerMode.SAMPLED)
-    assertThat(ProfilingTechnology.ATRACE.mode).isEqualTo(CpuProfilerMode.INSTRUMENTED)
+    assertThat(ProfilingTechnology.SIMPLEPERF.mode).isEqualTo(CpuTraceMode.SAMPLED)
+    assertThat(ProfilingTechnology.ATRACE.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
 
-    assertThat(ProfilingTechnology.ART_INSTRUMENTED.mode).isEqualTo(CpuProfilerMode.INSTRUMENTED)
-    assertThat(ProfilingTechnology.ART_SAMPLED.mode).isEqualTo(CpuProfilerMode.SAMPLED)
-    assertThat(ProfilingTechnology.ART_UNSPECIFIED.mode).isEqualTo(CpuProfilerMode.UNSPECIFIED_MODE)
+    assertThat(ProfilingTechnology.ART_INSTRUMENTED.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
+    assertThat(ProfilingTechnology.ART_SAMPLED.mode).isEqualTo(CpuTraceMode.SAMPLED)
+    assertThat(ProfilingTechnology.ART_UNSPECIFIED.mode).isEqualTo(CpuTraceMode.UNSPECIFIED_MODE)
   }
 }

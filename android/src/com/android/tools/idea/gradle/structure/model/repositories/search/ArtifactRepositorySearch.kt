@@ -32,7 +32,9 @@ class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepo
     val futures = repositories.map { it.search(request) }
     return Futures
       .whenAllComplete(futures)
-      .call(Callable { futures.map { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } }, PooledThreadExecutor.INSTANCE)
+      .call(
+        Callable { futures.mapNotNull { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } },
+        PooledThreadExecutor.INSTANCE)
   }
 }
 

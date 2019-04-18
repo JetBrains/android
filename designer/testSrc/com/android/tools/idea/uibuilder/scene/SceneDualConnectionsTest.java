@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
+import java.awt.event.InputEvent;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -28,6 +29,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 public class SceneDualConnectionsTest extends SceneTest {
 
   public void testDeleteLeft() {
+    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.LEFT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT);
@@ -52,6 +54,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteTop() {
+    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP);
@@ -76,6 +79,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteRight() {
+    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.RIGHT);
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT);
@@ -100,6 +104,7 @@ public class SceneDualConnectionsTest extends SceneTest {
   }
 
   public void testDeleteBottom() {
+    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
     myInteraction.select("button", true);
     myInteraction.mouseDown("button", AnchorTarget.Type.BOTTOM);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM);

@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
@@ -201,7 +202,7 @@ public class CpuProfilingConfigPanel {
       setEnabledTraceTechnologyPanel(true);
       setRadioButtons(myConfiguration);
       setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
-      boolean isSamplingEnabled = myConfiguration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
+      boolean isSamplingEnabled = myConfiguration.getMode() == Cpu.CpuTraceMode.SAMPLED;
       setEnabledSamplingIntervalPanel(isSamplingEnabled);
       myFileSize.setValue(myConfiguration.getProfilingBufferSizeInMb());
 
@@ -332,7 +333,7 @@ public class CpuProfilingConfigPanel {
         if (bt.isSelected()) {
           // This is only called when a radio button is selected, so myConfiguration should never be null.
           assert myConfiguration != null;
-          myConfiguration.setProfilerType(technology.getType());
+          myConfiguration.setTraceType(technology.getType());
           myConfiguration.setMode(technology.getMode());
           updateFields();
         }

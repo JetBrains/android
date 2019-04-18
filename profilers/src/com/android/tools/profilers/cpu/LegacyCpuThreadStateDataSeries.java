@@ -20,13 +20,15 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Legacy class responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
@@ -53,23 +55,23 @@ public class LegacyCpuThreadStateDataSeries implements DataSeries<CpuProfilerSta
     long min = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     GetThreadsResponse threads = myClient.getThreads(GetThreadsRequest.newBuilder()
-                                                                      .setSession(mySession)
-                                                                      .setStartTimestamp(min)
-                                                                      .setEndTimestamp(max)
-                                                                      .build());
+                                                       .setSession(mySession)
+                                                       .setStartTimestamp(min)
+                                                       .setEndTimestamp(max)
+                                                       .build());
 
     GetTraceInfoResponse traces = myClient.getTraceInfo(GetTraceInfoRequest.newBuilder()
-                                                                           .setSession(mySession)
-                                                                           .setFromTimestamp(min)
-                                                                           .setToTimestamp(max)
-                                                                           .build());
+                                                          .setSession(mySession)
+                                                          .setFromTimestamp(min)
+                                                          .setToTimestamp(max)
+                                                          .build());
 
     for (GetThreadsResponse.Thread thread : threads.getThreadsList()) {
       if (thread.getTid() == myThreadId) {
         // Merges information from traces and samples:
         ArrayList<Double> captureTimes = new ArrayList<>(traces.getTraceInfoCount() * 2);
-        for (TraceInfo traceInfo : traces.getTraceInfoList()) {
-          if (traceInfo.getThreadsList().stream().anyMatch(t -> t.getTid() == myThreadId)) {
+        for (Cpu.CpuTraceInfo traceInfo : traces.getTraceInfoList()) {
+          if (traceInfo.getTidsList().contains(myThreadId)) {
             captureTimes.add((double)TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()));
             captureTimes.add((double)TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
           }

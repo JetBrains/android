@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.deployable.Deployable;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import java.time.Instant;
 import java.util.Collection;
@@ -122,7 +121,6 @@ public abstract class Device {
   abstract boolean isConnected();
 
   @NotNull
-  @VisibleForTesting
   public final String getName() {
     return myName;
   }

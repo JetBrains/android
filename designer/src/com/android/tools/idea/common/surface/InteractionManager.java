@@ -387,8 +387,9 @@ public class InteractionManager {
         return;
       }
 
-      // If shift is down, the user is multi-selecting the component, no need to navigate XML file in this case.
-      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown()) {
+      boolean isControlMetaDown = SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
+      // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
+      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !isControlMetaDown) {
         // TODO: find a way to move layout-specific logic elsewhere.
         if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
           NlComponentHelperKt.tryNavigateTo(component, false);
@@ -676,6 +677,15 @@ public class InteractionManager {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = modifiers;
 
+      Scene scene = mySurface.getScene();
+      if (scene != null) {
+        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyPressed().
+        // Update scene modifiers. Since holding some of these keys might change some visuals, repaint.
+        scene.updateModifiers(ourLastStateMask);
+        scene.needsRebuildList();
+        scene.repaint();
+      }
+
       // Give interactions a first chance to see and consume the key press
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
@@ -719,6 +729,14 @@ public class InteractionManager {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = event.getModifiers();
 
+      Scene scene = mySurface.getScene();
+      if (scene != null) {
+        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyReleased().
+        // Update scene modifiers. Since holding some of these keys might change some visuals, repaint.
+        scene.updateModifiers(ourLastStateMask);
+        scene.needsRebuildList();
+        scene.repaint();
+      }
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
       }
@@ -1004,18 +1022,13 @@ public class InteractionManager {
   }
 
   /**
-   * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key.
+   * Check if the mouse wheel button is down.
    *
    * @param event {@link MouseEvent} passed by {@link MouseMotionListener#mouseDragged}
    * @return true if the event has been intercepted and handled, false otherwise.
    */
   public boolean interceptPanInteraction(@NotNull MouseEvent event) {
-    int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
-                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
-                                            : InputEvent.CTRL_DOWN_MASK);
-    if (myIsPanning
-        || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
-        || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
+    if (myIsPanning || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0) {
       return true;
     }
     return false;

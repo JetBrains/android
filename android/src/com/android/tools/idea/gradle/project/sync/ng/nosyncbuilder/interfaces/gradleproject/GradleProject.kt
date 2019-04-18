@@ -32,6 +32,7 @@ fun GradleProject.toProto(converter: PathConverter): GradleProjectProto.GradlePr
     .addAllTasks(tasks.map(GradleTask::toProto))
     .setName(name)
     .setProjectPath(path)
+    .addAllChildren(children.map { it.name })
     .also {
       description?.run { it.description = this }
     }.build()

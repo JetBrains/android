@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.Color
@@ -146,7 +147,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, initialScale: Dou
       if (selection != null && view != selection) {
         g2.composite = AlphaComposite.SrcOver.derive(0.6f)
       }
-      g2.drawImage(bufferedImage, view.x, view.y, null)
+      UIUtil.drawImage(g2, bufferedImage, view.x, view.y, null)
       g2.composite = composite
     }
     if (drawBorders && view == selection) {

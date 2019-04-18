@@ -16,20 +16,19 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class AtraceCpuCapture extends CpuCapture {
 
   private final AtraceParser myParser;
 
   public AtraceCpuCapture(AtraceParser parser, long traceId) {
-    super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE);
+    super(parser, traceId, Cpu.CpuTraceType.ATRACE);
     myParser = parser;
   }
 

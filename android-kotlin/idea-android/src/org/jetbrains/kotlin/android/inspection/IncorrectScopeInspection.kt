@@ -16,6 +16,7 @@
 package org.jetbrains.kotlin.android.inspection
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -33,9 +34,10 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class IncorrectScopeInspection : AbstractKotlinInspection() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
-    return if (!StudioFlags.KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS.get() || !TestSourcesFilter.isTestSources(session.file.virtualFile,
-                                                                                                            session.file.project)) {
-      return PsiElementVisitor.EMPTY_VISITOR
+    return if (!StudioFlags.KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS.get() ||
+               session.file.androidFacet == null ||
+               !TestSourcesFilter.isTestSources(session.file.virtualFile, session.file.project)) {
+      PsiElementVisitor.EMPTY_VISITOR
     }
     else {
       object : KtVisitorVoid() {

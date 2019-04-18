@@ -17,13 +17,19 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.FD_RES_RAW;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
+import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
+import com.google.common.collect.Iterables;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -33,13 +39,15 @@ import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Consumer;
+import java.util.Arrays;
+import java.util.List;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
-import org.jetbrains.android.compiler.AndroidResourceFilesListener;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 /**
  * A project-wide {@link PsiTreeChangeListener} that tracks events that are potentially relevant to
@@ -58,6 +66,8 @@ public class PsiProjectListener implements PsiTreeChangeListener {
   private SampleDataListener mySampleDataListener;
   @NotNull private final Project myProject;
   @NotNull private final ResourceNotificationManager myResourceNotificationManager;
+
+  private static final List<FileNameMatcher> RENDERSCRIPT_MATCHERS = Arrays.asList(AndroidRenderscriptFileType.fileNameMatchers());
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
@@ -82,13 +92,13 @@ public class PsiProjectListener implements PsiTreeChangeListener {
    *
    * @param sampleDataListener the project's {@link SampleDataListener}
    */
-   void setSampleDataListener(SampleDataListener sampleDataListener) {
+  void setSampleDataListener(SampleDataListener sampleDataListener) {
     assert mySampleDataListener == null: "SampleDataListener already set!";
     mySampleDataListener = sampleDataListener;
   }
 
   static boolean isRelevantFileType(@NotNull FileType fileType) {
-    if (fileType == StdFileTypes.JAVA) { // fail fast for vital file type
+    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) { // fail fast for vital file type
       return false;
     }
     if (fileType == StdFileTypes.XML) {
@@ -104,9 +114,35 @@ public class PsiProjectListener implements PsiTreeChangeListener {
     return false;
   }
 
-  static boolean isRelevantFile(@NotNull VirtualFile file) {
+  public static boolean isRelevantFile(@NotNull VirtualFile file) {
+    // VirtualFile#getFileType will try to read from the file the first time it's
+    // called so we try to avoid it as much as possible. Instead we will just
+    // try to infer the type based on the extension.
+    String extension = file.getExtension();
+    if (StringUtil.isEmpty(extension)) {
+      return false;
+    }
+
+    if (StdFileTypes.JAVA.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
+      return false;
+    }
+
+    if (StdFileTypes.XML.getDefaultExtension().equals(extension)) {
+      return true;
+    }
+
+    String fileName = file.getName();
+    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension) || SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName)) {
+      return true;
+    }
+
+    if (Iterables.any(RENDERSCRIPT_MATCHERS, (matcher) -> matcher != null && matcher.accept(fileName))) {
+      return true;
+    }
+
+    // Unable to determine based on filename, use old slow method
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.JAVA) {
+    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
       return false;
     }
 
@@ -127,7 +163,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
   static boolean isRelevantFile(@NotNull PsiFile file) {
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.JAVA) {
+    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
       return false;
     }
 
@@ -193,7 +229,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
         if (file != null) {
           computeModulesToInvalidateAttributeDefs(file);
           if (isRelevantFile(file)) {
-           dispatchChildAdded(event, file);
+            dispatchChildAdded(event, file);
           }
         }
       } else if (child instanceof PsiDirectory) {
@@ -430,7 +466,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
    * Invalidates attribute definitions of relevant modules after changes to a given file
    */
   private void computeModulesToInvalidateAttributeDefs(@NotNull VirtualFile file) {
-    if (!AndroidResourceFilesListener.shouldScheduleUpdate(file)) {
+    if (!isRelevantFile(file)) {
       return;
     }
 

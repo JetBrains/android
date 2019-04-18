@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import org.jetbrains.annotations.NotNull;
 
 public enum ProfilingTechnology {
@@ -76,48 +76,48 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public CpuProfiler.CpuProfilerType getType() {
+  public Cpu.CpuTraceType getType() {
     switch (this) {
       case ART_SAMPLED:
-        return CpuProfiler.CpuProfilerType.ART;
+        return Cpu.CpuTraceType.ART;
       case ART_INSTRUMENTED:
-        return CpuProfiler.CpuProfilerType.ART;
+        return Cpu.CpuTraceType.ART;
       case ART_UNSPECIFIED:
-        return CpuProfiler.CpuProfilerType.ART;
+        return Cpu.CpuTraceType.ART;
       case SIMPLEPERF:
-        return CpuProfiler.CpuProfilerType.SIMPLEPERF;
+        return Cpu.CpuTraceType.SIMPLEPERF;
       case ATRACE:
-        return CpuProfiler.CpuProfilerType.ATRACE;
+        return Cpu.CpuTraceType.ATRACE;
     }
     throw new IllegalArgumentException("Unreachable code");
   }
 
   @NotNull
-  public CpuProfiler.CpuProfilerMode getMode() {
+  public Cpu.CpuTraceMode getMode() {
     switch (this) {
       case ART_SAMPLED:
-        return CpuProfiler.CpuProfilerMode.SAMPLED;
+        return Cpu.CpuTraceMode.SAMPLED;
       case ART_INSTRUMENTED:
-        return CpuProfiler.CpuProfilerMode.INSTRUMENTED;
+        return Cpu.CpuTraceMode.INSTRUMENTED;
       case ART_UNSPECIFIED:
-        return CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE;
+        return Cpu.CpuTraceMode.UNSPECIFIED_MODE;
       case SIMPLEPERF:
-        return CpuProfiler.CpuProfilerMode.SAMPLED;
+        return Cpu.CpuTraceMode.SAMPLED;
       case ATRACE:
-        return CpuProfiler.CpuProfilerMode.INSTRUMENTED;
+        return Cpu.CpuTraceMode.INSTRUMENTED;
     }
     throw new IllegalArgumentException("Unreachable code");
   }
 
   @NotNull
-  public static ProfilingTechnology fromTypeAndMode(@NotNull CpuProfiler.CpuProfilerType type,
-                                                    @NotNull CpuProfiler.CpuProfilerMode mode) {
+  public static ProfilingTechnology fromTypeAndMode(@NotNull Cpu.CpuTraceType type,
+                                                    @NotNull Cpu.CpuTraceMode mode) {
     switch (type) {
       case ART:
-        if (mode == CpuProfiler.CpuProfilerMode.SAMPLED) {
+        if (mode == Cpu.CpuTraceMode.SAMPLED) {
           return ART_SAMPLED;
         }
-        else if (mode == CpuProfiler.CpuProfilerMode.INSTRUMENTED) {
+        else if (mode == Cpu.CpuTraceMode.INSTRUMENTED) {
           return ART_INSTRUMENTED;
         }
         else {
@@ -134,6 +134,6 @@ public enum ProfilingTechnology {
 
   @NotNull
   public static ProfilingTechnology fromConfig(@NotNull ProfilingConfiguration config) {
-    return fromTypeAndMode(config.getProfilerType(), config.getMode());
+    return fromTypeAndMode(config.getTraceType(), config.getMode());
   }
 }

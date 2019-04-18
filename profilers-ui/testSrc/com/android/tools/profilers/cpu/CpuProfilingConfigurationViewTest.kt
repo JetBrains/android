@@ -16,14 +16,15 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
@@ -90,8 +91,8 @@ class CpuProfilingConfigurationViewTest {
 
   @Test
   fun apiInitiatedCaptureShouldShowSpecialConfig() {
-    assertThat(cpuService.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
-    val config = ProfilingConfiguration("My Config", CpuProfiler.CpuProfilerType.SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED)
+    assertThat(cpuService.traceType).isEqualTo(Cpu.CpuTraceType.ART)
+    val config = ProfilingConfiguration("My Config", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED)
     stage.profilerConfigModel.profilingConfiguration = config
 
     // Verify non-API-initiated config before the API tracing starts.
@@ -99,14 +100,14 @@ class CpuProfilingConfigurationViewTest {
     assertThat(configurationView.profilingConfigurations.size).isGreaterThan(1)
 
     // API-initiated tracing starts.
-    val apiTracingconfig = CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ART).build()
+    val apiTracingconfig = CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build()
     val startTimestamp: Long = 100
-    cpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_API)
+    cpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_API)
     stage.updateProfilingState(true)
 
     // Verify the configuration is set to the special config properly.
     assertThat(configurationView.profilingConfiguration.name).isEqualTo("Debug API (Java)")
-    assertThat(configurationView.profilingConfiguration.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.ART)
+    assertThat(configurationView.profilingConfiguration.traceType).isEqualTo(Cpu.CpuTraceType.ART)
     assertThat(configurationView.profilingConfigurations.size).isEqualTo(1)
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING)
 
@@ -129,8 +130,8 @@ class CpuProfilingConfigurationViewTest {
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
     val instrumented = ProfilingConfiguration(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME,
-                                              CpuProfiler.CpuProfilerType.ART,
-                                              CpuProfiler.CpuProfilerMode.INSTRUMENTED)
+                                              Cpu.CpuTraceType.ART,
+                                              Cpu.CpuTraceMode.INSTRUMENTED)
     configurationView.profilingConfiguration = instrumented
     assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
 

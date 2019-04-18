@@ -46,7 +46,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Collection;
@@ -398,7 +397,8 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     String prefix = null;
-    if (namespace != null && !ANDROID_URI.equals(namespace)) {
+    if (namespace != null) {
+      transferNamespaces(this);
       prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
     }
     String previous = getAttribute(namespace, attribute);
@@ -519,6 +519,7 @@ public class NlComponent implements NlAttributesHolder {
     if (tag == null) {
       return null;
     }
+    transferNamespaces(this);
     return AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, suggestedPrefix);
   }
 
@@ -799,40 +800,45 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
-   * Given a tag on the current component which is not yet part of the current
-   * document and a receiver component where the tag is going to be added:
+   * Transfer the namespace declarations to the root of the document.
+   *
+   * The current component may not be part of the current document yet
+   * (if this happens while adding components) and a receiver component
+   * where the tag is going to be added:
    * <ul>
    *   <li>look up any namespaces defined on the receiver or its parents</li>
    *   <li>look up any namespaces defined on the current new tag</li>
    * </ul>
-   * and transfer all those namespace declarations to the current document
+   * and transfer all those namespace declarations to the current document root.
    */
   private void transferNamespaces(@NotNull NlComponent receiver) {
-    XmlTag rootTag = getDocumentRoot();
-    XmlTag tag = receiver.getTagDeprecated();
-    while (tag != null && tag != rootTag) {
-      if (!tag.getLocalNamespaceDeclarations().isEmpty()) {
+    NlComponent root = receiver.getRoot();
+    while (receiver != null && receiver != root) {
+      XmlTag tag = receiver.getTag();
+      if (tag != null && !tag.getLocalNamespaceDeclarations().isEmpty()) {
         // This is done to cleanup after a manual change of the Xml file.
         // See b/78318923
-        receiver.transferLocalNamespaces();
+        receiver.transferLocalNamespaces(root);
       }
 
       receiver = receiver.getParent();
-      tag = receiver != null ? receiver.getTagDeprecated() : null;
     }
-    transferLocalNamespaces();
+    if (receiver != this) {
+      transferLocalNamespaces(root);
+    }
   }
 
   /**
    * Given a tag on the current component:
    * <ul>
-   *   <li>transfer any namespaces to the rootTag of the current document</li>
+   *   <li>transfer any namespaces to the specified root</li>
    *   <li>update all attribute prefixes for namespaces to match those in the rootTag</li>
    * </ul>
    */
-  private void transferLocalNamespaces() {
-    XmlTag rootTag = getDocumentRoot();
-    if (rootTag == this) {
+  private void transferLocalNamespaces(@NotNull NlComponent root) {
+    XmlTag rootTag = root.getTag();
+    XmlTag tag = getTag();
+    if (tag == null || rootTag == null || rootTag == tag) {
       return;
     }
     // Transfer namespace attributes to the root tag
@@ -843,7 +849,7 @@ public class NlComponent implements NlAttributesHolder {
     }
     Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
 
-    for (Map.Entry<String, String> entry : getTagDeprecated().getLocalNamespaceDeclarations().entrySet()) {
+    for (Map.Entry<String, String> entry : tag.getLocalNamespaceDeclarations().entrySet()) {
       String namespace = entry.getValue();
       String prefix = entry.getKey();
       String currentPrefix = namespaceToPrefix.get(namespace);
@@ -866,20 +872,11 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     if (!oldPrefixToPrefix.isEmpty()) {
-      updatePrefixes(getTagDeprecated(), oldPrefixToPrefix);
+
+      updatePrefixes(tag, oldPrefixToPrefix);
     }
 
     removeNamespaceAttributes();
-  }
-
-  @NotNull
-  private XmlTag getDocumentRoot() {
-    XmlFile file = getModel().getFile();
-    XmlDocument xmlDocument = file.getDocument();
-    assert xmlDocument != null;
-    XmlTag rootTag = xmlDocument.getRootTag();
-    assert rootTag != null;
-    return rootTag;
   }
 
   /**
@@ -911,9 +908,12 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   private void removeNamespaceAttributes() {
-    for (XmlAttribute attribute : getTagDeprecated().getAttributes()) {
-      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
-        attribute.delete();
+    XmlTag tag = getTag();
+    if (tag != null) {
+      for (XmlAttribute attribute : tag.getAttributes()) {
+        if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+          attribute.delete();
+        }
       }
     }
   }

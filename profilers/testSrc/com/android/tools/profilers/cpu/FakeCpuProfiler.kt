@@ -17,15 +17,15 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu.CpuTraceInfo
+import com.android.tools.profiler.proto.Cpu.CpuTraceType
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse
-import com.android.tools.profiler.proto.CpuProfiler.TraceInfo
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
@@ -91,28 +91,28 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
    * @param id ID of the trace
    * @param fromUs starting timestamp of the trace
    * @param toUs ending timestamp of the trace
-   * @param profilerType the profiler type of the trace
+   * @param traceType the profiler type of the trace
    */
   fun captureTrace(id: Long = 0,
                    fromUs: Long = 0,
                    toUs: Long = 0,
-                   profilerType: CpuProfilerType = CpuProfilerType.ART) {
+                   traceType: CpuTraceType = CpuTraceType.ART) {
 
     // Change the selected configuration, so that startCapturing() will use the correct one.
-    selectConfig(profilerType)
+    selectConfig(traceType)
     startCapturing()
 
     cpuService.apply {
       setTraceId(id)
-      this.profilerType = profilerType
+      this.traceType = traceType
     }
     stopCapturing()
     // In production, stopCapturing would insert the trace info for us.
     // However, in tests, it is useful to pass a fake trace info.
     cpuService.setGetTraceResponseStatus(GetTraceResponse.Status.SUCCESS)
-    cpuService.addTraceInfo(TraceInfo.newBuilder()
+    cpuService.addTraceInfo(CpuTraceInfo.newBuilder()
                               .setTraceId(id)
-                              .setProfilerType(profilerType)
+                              .setTraceType(traceType)
                               .setTraceFilePath("fake_path_$id.trace")
                               .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(fromUs))
                               .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(toUs))
@@ -131,9 +131,9 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
   /**
    * Selects a configuration from [CpuProfilerStage] with the given profiler type.
    */
-  private fun selectConfig(profilerType: CpuProfilerType) {
-    when (profilerType) {
-      CpuProfilerType.ATRACE -> ideServices.enableAtrace(true)
+  private fun selectConfig(traceType: CpuTraceType) {
+    when (traceType) {
+      CpuTraceType.ATRACE -> ideServices.enableAtrace(true)
       else -> {
       }
     }
@@ -141,7 +141,7 @@ class FakeCpuProfiler(val grpcChannel: com.android.tools.idea.transport.faketran
     stage.profilerConfigModel.apply {
       // We are manually updating configurations, as enabling a feature flag could introduce additional configs.
       updateProfilingConfigurations()
-      profilingConfiguration = defaultProfilingConfigurations.first { it.profilerType == profilerType }
+      profilingConfiguration = defaultProfilingConfigurations.first { it.traceType == traceType }
     }
   }
 }

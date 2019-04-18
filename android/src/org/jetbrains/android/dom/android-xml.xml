@@ -73,7 +73,6 @@
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
     <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
-    <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
@@ -82,6 +81,8 @@
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidXmlCompletionContributor"
                             id="compositieAttributeValues" order="first"/>
+    <typedHandler implementation="org.jetbrains.android.dom.AndroidXmlTypedHandler" />
+    <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
     <localInspection language="XML" shortName="AndroidMissingOnClickHandler" bundle="messages.AndroidBundle"
                      key="android.inspections.on.click.missing.name" groupKey="android.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection"/>

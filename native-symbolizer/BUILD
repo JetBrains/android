@@ -10,7 +10,6 @@ iml_module(
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_coverage = True,
     test_data = glob(["testData/**"]) + [
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/tools:lldb",
         "//tools/idea:platform-build-info",
     ],

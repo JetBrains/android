@@ -116,8 +116,16 @@ public class StudioIcons {
   }
 
   public static class DeviceExplorer {
+    public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_PHONE = load("/studio/icons/device-explorer/physical-device-phone.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_TV = load("/studio/icons/device-explorer/physical-device-tv.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_WEAR = load("/studio/icons/device-explorer/physical-device-wear.svg"); // 16x16
     public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.svg"); // 16x16
     public static final Icon SHARED_PREFS = load("/studio/icons/device-explorer/shared-prefs.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_CAR = load("/studio/icons/device-explorer/virtual-device-car.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_PHONE = load("/studio/icons/device-explorer/virtual-device-phone.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_TV = load("/studio/icons/device-explorer/virtual-device-tv.svg"); // 16x16
+    public static final Icon VIRTUAL_DEVICE_WEAR = load("/studio/icons/device-explorer/virtual-device-wear.svg"); // 16x16
   }
 
   public static class LayoutEditor {
@@ -299,6 +307,7 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon ADD_COMPONENT = load("/studio/icons/layout-editor/toolbar/add-component.svg"); // 16x16
+      public static final Icon ADD_LOCALE = load("/studio/icons/layout-editor/toolbar/add-locale.svg"); // 16x16
       public static final Icon ANDROID_API = load("/studio/icons/layout-editor/toolbar/android-api.svg"); // 16x16
       public static final Icon ARROW_DOWN = load("/studio/icons/layout-editor/toolbar/arrow-down.svg"); // 16x16
       public static final Icon ARROW_LEFT = load("/studio/icons/layout-editor/toolbar/arrow-left.svg"); // 16x16
@@ -445,10 +454,12 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.svg"); // 16x16
       public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.svg"); // 16x16
       public static final Icon ASSIGN_START = load("/studio/icons/nav-editor/toolbar/assign-start.svg"); // 16x16
       public static final Icon AUTO_ARRANGE = load("/studio/icons/nav-editor/toolbar/auto-arrange.svg"); // 16x16
       public static final Icon DEEPLINK = load("/studio/icons/nav-editor/toolbar/deeplink.svg"); // 16x16
+      public static final Icon NESTED_GRAPH = load("/studio/icons/nav-editor/toolbar/nested-graph.svg"); // 16x16
     }
 
     public static class Tree {
@@ -620,5 +631,9 @@ public class StudioIcons {
       public static final Icon USER_PROFILE_ACTIVE = load("/studio/icons/shell/toolbar/user-profile-active.svg"); // 16x16
       public static final Icon USER_PROFILE = load("/studio/icons/shell/toolbar/user-profile.svg"); // 16x16
     }
+  }
+
+  public static class Test {
+    public static final Icon RECORD_ESPRESSO_TEST = load("/studio/icons/test/record-espresso-test.svg"); // 16x16
   }
 }

@@ -18,22 +18,18 @@ package com.android.tools.idea.databinding.analytics
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
+import com.android.tools.idea.databinding.index.DataBindingXmlIndex
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiManager
-import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.xml.XmlAttributeValue
-import com.intellij.psi.xml.XmlFile
+import com.intellij.util.indexing.FileBasedIndex
 
 
 /**
@@ -41,11 +37,6 @@ import com.intellij.psi.xml.XmlFile
  */
 @VisibleForTesting // This class uses inheritance to override threading behavior for tests only
 open class DataBindingTracker constructor(private val project: Project) : DataBindingTracker {
-
-  override fun trackDataBindingEnabled() {
-    trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT,
-                      DataBindingEvent.DataBindingPollMetadata.newBuilder().setDataBindingEnabled(isDataBindingEnabled()).build())
-  }
 
   override fun trackPolledMetaData() {
     if (isDataBindingEnabled()) {
@@ -66,23 +57,23 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
     .any { DataBindingUtil.isDataBindingEnabled(it) }
 
   private fun trackUserEvent(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
-    val studioEventBuilder = createStudioEventBuilder()
-      .setDataBindingEvent(
-        DataBindingEvent.newBuilder()
-          .setType(eventType)
-          .setContext(context))
-
+    val studioEventBuilder = createStudioEventBuilder().apply {
+      dataBindingEvent = DataBindingEvent.newBuilder().apply {
+        type = eventType
+        this.context = context
+      }.build()
+    }
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
   private fun trackPollingEvent(eventType: DataBindingEvent.EventType,
-                                pollMetaData: DataBindingEvent.DataBindingPollMetadata?) {
-    val studioEventBuilder = createStudioEventBuilder()
-      .setDataBindingEvent(
-        DataBindingEvent.newBuilder()
-          .setType(eventType)
-          .setPollMetadata(pollMetaData))
-
+                                metadata: DataBindingEvent.DataBindingPollMetadata?) {
+    val studioEventBuilder = createStudioEventBuilder().apply {
+      dataBindingEvent = DataBindingEvent.newBuilder().apply {
+        type = eventType
+        pollMetadata = metadata
+      }.build()
+    }
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
@@ -92,38 +83,36 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
   private inner class TrackPollingMetadataTask(val project: Project) : Runnable {
     override fun run() {
       DumbService.getInstance(project).runReadActionInSmartMode {
-        val files = FileTypeIndex.getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
         var layoutCount = 0
-        var variableCount = 0
         var importCount = 0
-        var expressionCount = 0
-        for (file in files) {
-          val psiFile = PsiManager.getInstance(project).findFile(file)
-          if (psiFile is XmlFile) {
-            val rootTag = psiFile.rootTag
+        var variableCount = 0
+        val index = FileBasedIndex.getInstance()
 
-            // A layout xml file is a data binding layout if the root tag is "layout" with a child tag "data"
-            val dataTag = rootTag?.findFirstSubTag("data")
-            if (dataTag != null) {
-              layoutCount++
-              variableCount += dataTag.findSubTags("variable").size
-              importCount += dataTag.findSubTags("import").size
-              expressionCount += PsiTreeUtil.findChildrenOfType(psiFile, XmlAttributeValue::class.java)
-                .count { DataBindingUtil.isBindingExpression(it.value) }
-            }
-          }
-        }
-
+        index.processAllKeys(
+          DataBindingXmlIndex.NAME,
+          { key ->
+            index.processValues(
+              DataBindingXmlIndex.NAME,
+              key,
+              null,
+              { _, layoutInfo ->
+                layoutCount++
+                importCount += layoutInfo.importCount
+                variableCount += layoutInfo.variableCount
+                true
+              },
+              GlobalSearchScope.projectScope(project)
+            )
+          },
+          project
+        )
         trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
-                          DataBindingEvent.DataBindingPollMetadata.newBuilder()
-                            .setLayoutXmlCount(layoutCount)
-                            .setImportCount(importCount)
-                            .setVariableCount(variableCount)
-                            .setExpressionCount(expressionCount)
-                            .setObservableMetrics(trackObservables(project))
-                            .setLiveDataMetrics(trackLiveData(project))
-                            .setBindingAdapterMetrics(trackBindingAdapters(project))
-                            .build())
+                          DataBindingEvent.DataBindingPollMetadata.newBuilder().apply {
+                            dataBindingEnabled = isDataBindingEnabled()
+                            layoutXmlCount = layoutCount
+                            this.importCount = importCount
+                            this.variableCount = variableCount
+                          }.build())
       }
     }
   }

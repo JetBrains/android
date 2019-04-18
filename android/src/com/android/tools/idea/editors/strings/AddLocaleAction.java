@@ -45,7 +45,7 @@ final class AddLocaleAction extends AnAction {
   private final StringResourceViewPanel myPanel;
 
   AddLocaleAction(@NotNull StringResourceViewPanel panel) {
-    super("Add Locale", null, Icons.newLayeredIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE, (ScalableIcon)AllIcons.General.Add));
+    super("Add Locale", null, StudioIcons.LayoutEditor.Toolbar.ADD_LOCALE);
     myPanel = panel;
   }
 

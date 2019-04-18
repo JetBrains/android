@@ -23,7 +23,6 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/tools/common/aspects-agent:aspects_agent",
     "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
-    "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
     "//prebuilts/tools:bazel-dist",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
@@ -76,6 +75,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/idea/.idea/libraries:jna[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -682,24 +682,6 @@ java_test(
 
 # sanity test
 java_test(
-    name = "GoogleApiIntegrationTest",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/resources-aar:framework_res",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.integration.GoogleApiIntegrationTest"],
-    tags = COMMON_TAGS + [
-        "no_psq",
-        "qa_sanity",
-        "qa_unreliable",  # b/120686865
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# sanity test
-java_test(
     name = "CreateCppKotlinProjectTest",
     data = COMMON_DATA + [
         "//tools/adt/idea/resources-aar:framework_res",
@@ -804,6 +786,30 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# sanity test
+java_test(
+    name = "InstallPackageTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.sdkmanager.InstallPackageTest"],
+    tags = [
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_sanity_emu",  # Run together with emulators because the test needs to run alone
+        "qa_unreliable",  # b/119505019
+        "requires-network",
+        "requires_emulator",  # Run together with emulators because the test needs to run alone
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 config_setting(
     name = "has_emulator",
     define_values = {
@@ -865,6 +871,38 @@ java_test(
 
 # sanity test
 java_test(
+    name = "CreateAndRunInstantAppTest",
+    size = "enormous",
+    data = COMMON_DATA + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }) + [
+        "//prebuilts/studio/sdk:instant-apps-sdk",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.CreateAndRunInstantAppTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_psq",
+        "no_windows",
+        "qa_sanity",
+        "qa_sanity_emu",
+        "qa_unreliable",  # b/79937083
+        "requires-fakeroot",
+        "requires_emulator",
+        "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
     name = "DualDebuggerBreakpointsTest",
     size = "enormous",
     data = COMMON_DATA + glob([
@@ -885,7 +923,10 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
+        "no_psq",
         "no_windows",
+        "qa_sanity",  # b/128932526
+        "qa_sanity_emu",  # b/128932526
         "qa_unreliable",  # b/128932526
         "requires-fakeroot",
         "requires_emulator",
@@ -900,7 +941,7 @@ java_test(
     name = "RunInstrumentationTest",
     size = "enormous",
     data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
+        "testData/InstrumentationTest/**",
     ]) + select({
         ":has_emulator": [
             "@externsdk//:system-images",

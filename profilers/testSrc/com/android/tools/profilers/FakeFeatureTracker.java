@@ -16,7 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
@@ -57,9 +57,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private ProfilingConfiguration myLastCpuStartupProfilingConfig;
 
   /**
-   * Stores the last {@link CpuProfiler.CpuProfilerType} passed to the tracker.
+   * Stores the last {@link Cpu.CpuTraceType} passed to the tracker.
    */
-  private CpuProfiler.CpuProfilerType myLastCpuProfilerType;
+  public Cpu.CpuTraceType myLastCpuTraceType;
 
   /**
    * Whether the last import trace was tracked as success.
@@ -226,13 +226,13 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success) {
-    myLastCpuProfilerType = profilerType;
+  public void trackImportTrace(@NotNull Cpu.CpuTraceType profilerType, boolean success) {
+    myLastCpuTraceType = profilerType;
     myLastImportTraceSucceeded = success;
   }
 
-  public CpuProfiler.CpuProfilerType getLastCpuProfilerType() {
-    return myLastCpuProfilerType;
+  public Cpu.CpuTraceType getLastCpuTraceType() {
+    return myLastCpuTraceType;
   }
 
   public Boolean getLastImportTraceStatus() {
