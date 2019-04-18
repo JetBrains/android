@@ -56,7 +56,8 @@ public class BuildsToPathsMapper {
   Map<String, File> getBuildsToPaths(@Nullable Object model,
                                      @NotNull List<String> buildVariants,
                                      @NotNull Collection<Module> modules,
-                                     boolean isAppBundle) {
+                                     boolean isAppBundle,
+                                     @Nullable String signedApkOrBundlePath) {
     boolean isSigned = !buildVariants.isEmpty();
     if (isSigned) {
       assert modules.size() == 1;
@@ -79,7 +80,8 @@ public class BuildsToPathsMapper {
       }
 
       for (String buildVariant : buildVariants) {
-        collectBuildsToPaths(androidModel, postBuildModel, module, buildVariant, buildsToPathsCollector, isAppBundle, isSigned);
+        collectBuildsToPaths(androidModel, postBuildModel, module, buildVariant, buildsToPathsCollector, isAppBundle, isSigned,
+                             signedApkOrBundlePath);
       }
     }
 
@@ -92,11 +94,11 @@ public class BuildsToPathsMapper {
                                            @NotNull String buildVariant,
                                            @NotNull Map<String, File> buildsToPathsCollector,
                                            boolean isAppBundle,
-                                           boolean isSigned) {
+                                           boolean isSigned,
+                                           @Nullable String signedApkOrBundlePath) {
     File outputFolderOrFile = null;
 
     if (postBuildModel != null) {
-
       if (androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP ||
           androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
         if (isAppBundle) {
@@ -111,8 +113,17 @@ public class BuildsToPathsMapper {
       }
     }
 
-    if (outputFolderOrFile == null && !isSigned && !isAppBundle) {
-      outputFolderOrFile = tryToGetOutputPreBuild(androidModel);
+    // When post-build model is not supported,
+    // if it's apk build, pre-build model is still in use to handle old versions of plugin,
+    // if it's signed apk/bundle build, path is from user input of 'Generate Signed bundle or APK'.
+    if (outputFolderOrFile == null) {
+      if (isSigned) {
+        assert signedApkOrBundlePath != null;
+        outputFolderOrFile = new File(signedApkOrBundlePath);
+      }
+      else if (!isAppBundle) {
+        outputFolderOrFile = tryToGetOutputPreBuild(androidModel);
+      }
     }
 
     if (outputFolderOrFile == null) {

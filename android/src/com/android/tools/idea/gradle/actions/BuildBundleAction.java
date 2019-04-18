@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -24,14 +26,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BuildBundleAction extends DumbAwareAction {
   private static final String ACTION_TEXT = "Build Bundle(s)";
@@ -55,10 +54,11 @@ public class BuildBundleAction extends DumbAwareAction {
       List<Module> appModules = DynamicAppUtils.getModulesSupportingBundleTask(project);
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-        gradleBuildInvoker.add(new GoToBundleLocationTask(project, appModules, ACTION_TEXT, Collections.emptyList(), null));
+        gradleBuildInvoker.add(new GoToBundleLocationTask(project, appModules, ACTION_TEXT));
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
         gradleBuildInvoker.bundle(modulesToBuild, Collections.emptyList(), new OutputBuildAction(getModuleGradlePaths(appModules)));
-      } else {
+      }
+      else {
         DynamicAppUtils.promptUserForGradleUpdate(project);
       }
     }
