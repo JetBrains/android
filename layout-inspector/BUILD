@@ -44,5 +44,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
     ],
 )
