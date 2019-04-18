@@ -86,6 +86,7 @@ public final class NewBenchmarkModuleModel extends WizardModel {
 
     Map<String, Object> myTemplateValues = Maps.newHashMap();
     new TemplateValueInjector(myTemplateValues)
+      .setProjectDefaults(myProject, moduleName().get())
       .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
       .setJavaVersion(myProject);
 
