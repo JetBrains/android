@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -73,7 +72,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     @Override
     @NotNull
     public List<File> getResDirectories() {
-      return ImmutableList.of(new File("/other/root"), new File(getModuleRoot(), "res"));
+      return ImmutableList.of(new File("/other/root"), new File(getModuleRoot(), "resources"));
     }
 
     @Override
@@ -85,7 +84,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     @Override
     @Nullable
     public File getManifestDirectory() {
-      return getModuleRoot();
+      return new File(getModuleRoot(), "manifests");
     }
   };
 
@@ -136,7 +135,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
   }
 
   private void checkGeneratedIcons(String[] expectedFilenames) throws IOException {
-    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(getResDirectory(myProjectPaths));
+    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(myProjectPaths);
     Set<File> unexpectedFiles = new HashSet<>(pathIconMap.keySet());
     File goldenDir = new File(FileUtil.join(getTestDataPath(), getTestName(true), "golden"));
     for (String filename : expectedFilenames) {
@@ -185,21 +184,21 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
 
   public void testDrawableBackgroundAndForeground() throws Exception {
     String[] expectedFilenames = {
-        "res/mipmap-anydpi-v26/ic_launcher.xml",
-        "res/mipmap-anydpi-v26/ic_launcher_round.xml",
-        "res/drawable/ic_launcher_background.xml",
-        "res/drawable-v24/ic_launcher_foreground.xml",
-        "res/mipmap-xxxhdpi/ic_launcher.png",
-        "res/mipmap-xxxhdpi/ic_launcher_round.png",
-        "res/mipmap-xxhdpi/ic_launcher.png",
-        "res/mipmap-xxhdpi/ic_launcher_round.png",
-        "res/mipmap-xhdpi/ic_launcher.png",
-        "res/mipmap-xhdpi/ic_launcher_round.png",
-        "res/mipmap-hdpi/ic_launcher.png",
-        "res/mipmap-hdpi/ic_launcher_round.png",
-        "res/mipmap-mdpi/ic_launcher.png",
-        "res/mipmap-mdpi/ic_launcher_round.png",
-        "ic_launcher-web.png"};
+        "resources/mipmap-anydpi-v26/ic_launcher.xml",
+        "resources/mipmap-anydpi-v26/ic_launcher_round.xml",
+        "resources/drawable/ic_launcher_background.xml",
+        "resources/drawable-v24/ic_launcher_foreground.xml",
+        "resources/mipmap-xxxhdpi/ic_launcher.png",
+        "resources/mipmap-xxxhdpi/ic_launcher_round.png",
+        "resources/mipmap-xxhdpi/ic_launcher.png",
+        "resources/mipmap-xxhdpi/ic_launcher_round.png",
+        "resources/mipmap-xhdpi/ic_launcher.png",
+        "resources/mipmap-xhdpi/ic_launcher_round.png",
+        "resources/mipmap-hdpi/ic_launcher.png",
+        "resources/mipmap-hdpi/ic_launcher_round.png",
+        "resources/mipmap-mdpi/ic_launcher.png",
+        "resources/mipmap-mdpi/ic_launcher_round.png",
+        "manifests/ic_launcher-web.png"};
     myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.xml"));
     myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.xml"));
     checkGeneratedIcons(expectedFilenames);
@@ -207,29 +206,29 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
 
   public void testImageBackgroundAndForeground() throws Exception {
     String[] expectedFilenames = {
-        "res/mipmap-anydpi-v26/ic_launcher.xml",
-        "res/mipmap-anydpi-v26/ic_launcher_round.xml",
-        "res/mipmap-xxxhdpi/ic_launcher.png",
-        "res/mipmap-xxxhdpi/ic_launcher_background.png",
-        "res/mipmap-xxxhdpi/ic_launcher_foreground.png",
-        "res/mipmap-xxxhdpi/ic_launcher_round.png",
-        "res/mipmap-xxhdpi/ic_launcher.png",
-        "res/mipmap-xxhdpi/ic_launcher_background.png",
-        "res/mipmap-xxhdpi/ic_launcher_foreground.png",
-        "res/mipmap-xxhdpi/ic_launcher_round.png",
-        "res/mipmap-xhdpi/ic_launcher.png",
-        "res/mipmap-xhdpi/ic_launcher_background.png",
-        "res/mipmap-xhdpi/ic_launcher_foreground.png",
-        "res/mipmap-xhdpi/ic_launcher_round.png",
-        "res/mipmap-hdpi/ic_launcher.png",
-        "res/mipmap-hdpi/ic_launcher_background.png",
-        "res/mipmap-hdpi/ic_launcher_foreground.png",
-        "res/mipmap-hdpi/ic_launcher_round.png",
-        "res/mipmap-mdpi/ic_launcher.png",
-        "res/mipmap-mdpi/ic_launcher_background.png",
-        "res/mipmap-mdpi/ic_launcher_foreground.png",
-        "res/mipmap-mdpi/ic_launcher_round.png",
-        "ic_launcher-web.png"};
+        "resources/mipmap-anydpi-v26/ic_launcher.xml",
+        "resources/mipmap-anydpi-v26/ic_launcher_round.xml",
+        "resources/mipmap-xxxhdpi/ic_launcher.png",
+        "resources/mipmap-xxxhdpi/ic_launcher_background.png",
+        "resources/mipmap-xxxhdpi/ic_launcher_foreground.png",
+        "resources/mipmap-xxxhdpi/ic_launcher_round.png",
+        "resources/mipmap-xxhdpi/ic_launcher.png",
+        "resources/mipmap-xxhdpi/ic_launcher_background.png",
+        "resources/mipmap-xxhdpi/ic_launcher_foreground.png",
+        "resources/mipmap-xxhdpi/ic_launcher_round.png",
+        "resources/mipmap-xhdpi/ic_launcher.png",
+        "resources/mipmap-xhdpi/ic_launcher_background.png",
+        "resources/mipmap-xhdpi/ic_launcher_foreground.png",
+        "resources/mipmap-xhdpi/ic_launcher_round.png",
+        "resources/mipmap-hdpi/ic_launcher.png",
+        "resources/mipmap-hdpi/ic_launcher_background.png",
+        "resources/mipmap-hdpi/ic_launcher_foreground.png",
+        "resources/mipmap-hdpi/ic_launcher_round.png",
+        "resources/mipmap-mdpi/ic_launcher.png",
+        "resources/mipmap-mdpi/ic_launcher_background.png",
+        "resources/mipmap-mdpi/ic_launcher_foreground.png",
+        "resources/mipmap-mdpi/ic_launcher_round.png",
+        "manifests/ic_launcher-web.png"};
     myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.png"));
     myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.png"));
     checkGeneratedIcons(expectedFilenames);
@@ -237,16 +236,16 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
 
   public void testClipart() throws Exception {
     String[] expectedFilenames = {
-        "res/mipmap-anydpi-v26/ic_launcher.xml",
-        "res/mipmap-anydpi-v26/ic_launcher_round.xml",
-        "res/drawable/ic_launcher_foreground.xml",
-        "res/mipmap-xxxhdpi/ic_launcher.png",
-        "res/mipmap-xxhdpi/ic_launcher.png",
-        "res/mipmap-xhdpi/ic_launcher.png",
-        "res/mipmap-hdpi/ic_launcher.png",
-        "res/mipmap-mdpi/ic_launcher.png",
-        "res/values/ic_launcher_background.xml",
-        "ic_launcher-web.png"};
+        "resources/mipmap-anydpi-v26/ic_launcher.xml",
+        "resources/mipmap-anydpi-v26/ic_launcher_round.xml",
+        "resources/drawable/ic_launcher_foreground.xml",
+        "resources/mipmap-xxxhdpi/ic_launcher.png",
+        "resources/mipmap-xxhdpi/ic_launcher.png",
+        "resources/mipmap-xhdpi/ic_launcher.png",
+        "resources/mipmap-hdpi/ic_launcher.png",
+        "resources/mipmap-mdpi/ic_launcher.png",
+        "resources/values/ic_launcher_background.xml",
+        "manifests/ic_launcher-web.png"};
     ImageAsset asset = createClipartAsset("ic_android_black_24dp.xml");
     asset.color().setValue(new Color(0xA4C639)); // Android green.
     myIconGenerator.sourceAsset().setValue(asset);
