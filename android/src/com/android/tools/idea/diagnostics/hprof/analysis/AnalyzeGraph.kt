@@ -16,9 +16,11 @@
 package com.android.tools.idea.diagnostics.hprof.analysis
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
+import com.android.tools.idea.diagnostics.hprof.histogram.Histogram
 import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
 import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.PartialProgressIndicator
+import com.android.tools.idea.diagnostics.hprof.visitors.HistogramVisitor
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.progress.ProgressIndicator
 import gnu.trove.TIntArrayList
@@ -27,9 +29,13 @@ import gnu.trove.TLongArrayList
 
 class AnalyzeGraph(private val nav: ObjectNavigator,
                    private val parentList: IntList,
+                   private val sizesList: IntList,
+                   private val visitedList: IntList,
                    private val nominatedClassNames: Set<String>,
                    private val includeMetaInfo: Boolean) {
   private fun ObjectNavigator.getParentId(): Long = getParentIdForObjectId(id)
+
+  private var strongRefHistogram: Histogram? = null
 
   private fun setParentForObjectId(objectId: Long, parentId: Long) {
     parentList[objectId.toInt()] = parentId.toInt()
@@ -39,10 +45,13 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
     return parentList[objectId.toInt()].toLong()
   }
 
-  fun prepareReport(progress: ProgressIndicator): String {
+  private val nominatedInstances = HashMap<ClassDefinition, TIntHashSet>()
+
+  fun analyze(progress: ProgressIndicator): String {
     val result = StringBuilder()
     val roots = nav.createRootsIterator()
-    val nominatedInstances = HashMap<ClassDefinition, TIntHashSet>()
+    nominatedInstances.clear()
+
     nominatedClassNames.forEach {
       nominatedInstances[nav.classStore[it]] = TIntHashSet()
     }
@@ -87,10 +96,14 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
     result.appendln("Classes count: ${nav.classStore.size()}")
 
     progress.text2 = "Walking object graph"
+
+    val strongRefHistogramEntires = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
+
     val walkProgress = PartialProgressIndicator(progress, 0.1, 0.5)
     var visitedInstancesCount = 0
     val stopwatch = Stopwatch.createStarted()
     val references = TLongArrayList()
+    var visitedCount = 0
     while (!toVisit.isEmpty) {
       for (i in 0 until toVisit.size()) {
         val id = toVisit[i]
@@ -99,7 +112,8 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
 
         nav.copyReferencesTo(references)
 
-        nominatedInstances[nav.getClass()]?.add(id)
+        val currentObjectClass = nav.getClass()
+        nominatedInstances[currentObjectClass]?.add(id)
 
         var isLeaf = true
         for (j in 0 until references.size()) {
@@ -110,6 +124,14 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
             isLeaf = false
           }
         }
+        visitedList[visitedCount++] = id
+        val size = nav.getObjectSize()
+        var sizeDivBy4 = (nav.getObjectSize() + 3) / 4
+        if (sizeDivBy4 == 0) sizeDivBy4 = 1
+        sizesList[id] = sizeDivBy4
+        strongRefHistogramEntires.getOrPut(currentObjectClass) {
+          HistogramVisitor.InternalHistogramEntry(currentObjectClass)
+        }.addInstance(size.toLong())
         if (isLeaf) leafCounter++
       }
       walkProgress.fraction = (1.0 * visitedInstancesCount / nav.instanceCount)
@@ -118,21 +140,47 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
       toVisit = toVisit2
       toVisit2 = tmp
     }
+    strongRefHistogram = Histogram(
+      strongRefHistogramEntires
+        .values
+        .map { it.asHistogramEntry() }
+        .sortedByDescending { it.totalInstances },
+      visitedCount)
+
+    val stopwatchUpdateSizes = Stopwatch.createStarted()
+    // Update sizes for non-leaves
+    var index = visitedCount - 1
+    while (index >= 0) {
+      val id = visitedList[index]
+      val parentId = parentList[id]
+      if (id != parentId) {
+        sizesList[parentId] += sizesList[id]
+      }
+      index--
+    }
+    stopwatchUpdateSizes.stop()
+
     if (includeMetaInfo) {
       result.appendln("Analysis completed! Visited instances: $visitedInstancesCount, time: $stopwatch")
+      result.appendln("Update sizes time: $stopwatchUpdateSizes")
       result.appendln("Leaves found: $leafCounter")
     }
+    return result.toString()
+  }
 
-    progress.text2 = "Calculating most frequent paths to roots"
-    val generateReportProgress = PartialProgressIndicator(progress, 0.6, 0.4)
+  fun prepareReport(progress: ProgressIndicator,
+                    disposedObjectIDs: TIntHashSet): String {
+    val result = StringBuilder()
 
     var counter = 0
+    val stopwatch = Stopwatch.createUnstarted()
     nominatedInstances.forEach { classDefinition, set ->
-      generateReportProgress.fraction = counter.toDouble() / nominatedInstances.size
+      progress.fraction = counter.toDouble() / nominatedInstances.size
+      progress.text2 = "Processing: ${set.size()} ${classDefinition.prettyName}"
       stopwatch.reset().start()
       result.appendln()
       result.appendln("CLASS: ${classDefinition.prettyName} (${set.size()} objects)")
-      val referenceRegistry = GCRootPathsTree(parentList, nav)
+      val referenceRegistry = GCRootPathsTree(disposedObjectIDs, parentList, sizesList, nav, classDefinition)
       set.forEach { objectId ->
         referenceRegistry.registerObject(objectId)
         true
@@ -143,8 +191,12 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
       }
       counter++
     }
-    generateReportProgress.fraction = 1.0
+    progress.fraction = 1.0
     return result.toString()
+  }
+
+  fun getStrongRefHistogram(): Histogram {
+    return strongRefHistogram ?: throw IllegalStateException("Graph not analyzed.")
   }
 
 
