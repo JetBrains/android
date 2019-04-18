@@ -25,10 +25,8 @@ import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
@@ -37,7 +35,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -51,7 +48,7 @@ import javax.swing.JPanel
 /**
  * Panel that shows the device screen in the layout inspector.
  */
-class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
+class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
   private val client = layoutInspector.client
 
   enum class ViewMode(val icon: Icon) {
@@ -196,7 +193,8 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
             deviceAction.add(noProcessAction)
           }
           else {
-            for (process in processes) {
+            val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
+            for (process in sortedProcessList) {
               val processAction = object : AnAction("${process.name} (${process.pid})") {
                 override fun actionPerformed(event: AnActionEvent) {
                   client.attach(stream, process)
