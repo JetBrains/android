@@ -30,27 +30,32 @@ public class TimeBasedMemorySettingsCheckerReminderTest extends IdeaTestCase {
     myReminder = new TimeBasedMemorySettingsCheckerReminder();
   }
 
-  public void testShouldNotCheckWhenDoNotAskIsSet() {
+  public void testShouldNotCheckWhenDoNotAskForAppIsSet() {
+    myReminder.setDoNotAskForApplication();
+    assertFalse(myReminder.shouldCheck(myProject));
+  }
+
+  public void testShouldNotCheckWhenDoNotAskForProjectIsSet() {
     myReminder.setDoNotAsk(myProject);
     assertFalse(myReminder.shouldCheck(myProject));
   }
 
   public void testShouldNotCheckWhenTimePassedIsLessThanOneDay() {
-    myReminder.storeLastCheckTimestamp(myProject, myCalendar.getTimeInMillis());
+    myReminder.storeLastCheckTimestamp(myCalendar.getTimeInMillis());
     myCalendar.add(Calendar.HOUR, 10);
     assertFalse(myReminder.shouldCheck(myProject, myCalendar.getTimeInMillis()));
   }
 
   public void testShouldCheckAfterOneDay() {
-    myReminder.storeLastCheckTimestamp(myProject, myCalendar.getTimeInMillis());
+    myReminder.storeLastCheckTimestamp(myCalendar.getTimeInMillis());
     myCalendar.add(Calendar.DATE, 1);
     assertTrue(myReminder.shouldCheck(myProject, myCalendar.getTimeInMillis()));
   }
 
   public void testStoreLastCheckTimeStamp() {
     long current = myCalendar.getTimeInMillis();
-    myReminder.storeLastCheckTimestamp(myProject, current);
-    String stored = myReminder.getStoredTimestamp(myProject);
+    myReminder.storeLastCheckTimestamp(current);
+    String stored = myReminder.getStoredTimestamp();
     assertNotNull(stored);
     assertEquals(current, Long.parseLong(stored));
   }
