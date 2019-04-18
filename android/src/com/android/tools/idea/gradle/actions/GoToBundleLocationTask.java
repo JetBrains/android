@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
@@ -29,6 +30,9 @@ import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -40,6 +44,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -58,33 +63,35 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
   @NotNull private final Collection<Module> myModules;
   @Nullable private final File myExportedKeyFile;
   @NotNull private final List<String> myBuildVariants;
+  @Nullable private final String mySignedBundlePath;
+
+  public GoToBundleLocationTask(@NotNull Project project,
+                                @NotNull Collection<Module> modules,
+                                @NotNull String notificationTitle) {
+    this(project, modules, notificationTitle, Collections.emptyList(), null, null);
+  }
 
   public GoToBundleLocationTask(@NotNull Project project,
                                 @NotNull Collection<Module> modules,
                                 @NotNull String notificationTitle,
                                 @NotNull List<String> buildVariants,
-                                @Nullable File exportedKeyFile) {
+                                @Nullable File exportedKeyFile,
+                                @Nullable String signedBundlePath) {
     myProject = project;
     myNotificationTitle = notificationTitle;
     myModules = modules;
     myExportedKeyFile = exportedKeyFile;
     myBuildVariants = buildVariants;
+    mySignedBundlePath = signedBundlePath;
   }
 
   @Override
   public void execute(@NotNull GradleInvocationResult result) {
-    boolean isSigned = !myBuildVariants.isEmpty();
     try {
       BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
       Map<String, File> bundleBuildsToPath =
-        buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, true);
-      if (isSigned) {
-        String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
-        showNotification(result, moduleName, bundleBuildsToPath);
-      }
-      else {
-        showNotification(result, null, bundleBuildsToPath);
-      }
+        buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
+      showNotification(result, bundleBuildsToPath);
     }
     finally {
       // See https://code.google.com/p/android/issues/detail?id=195369
@@ -93,11 +100,10 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
   }
 
   private void showNotification(@NotNull GradleInvocationResult result,
-                                @Nullable String moduleName,
                                 @NotNull Map<String, File> buildsAndBundlePaths) {
     AndroidNotification notification = AndroidNotification.getInstance(myProject);
     if (result.isBuildSuccessful()) {
-      notifySuccess(notification, moduleName, buildsAndBundlePaths);
+      notifySuccess(notification, buildsAndBundlePaths);
     }
     else if (result.isBuildCancelled()) {
       notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
@@ -109,13 +115,13 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
   }
 
   private void notifySuccess(@NotNull AndroidNotification notification,
-                             @Nullable String moduleName,
                              @NotNull Map<String, File> bundleBuildsToPath) {
-    boolean isSigned = moduleName != null;
+    boolean isSigned = !myBuildVariants.isEmpty();
     StringBuilder builder = new StringBuilder();
     int count = bundleBuildsToPath.size();
     builder.append("App bundle(s) generated successfully for ");
     if (isSigned) {
+      String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
       builder.append("module '").append(moduleName).append("' with ").append(count)
         .append(count == 1 ? " build variant" : " build variants");
     }
@@ -158,6 +164,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       StringBuilder balloonBuilder = new StringBuilder();
       balloonBuilder.append("App bundle(s) generated successfully for ");
       if (isSigned) {
+        String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
         balloonBuilder.append("module '").append(moduleName).append("' with ").append(count)
           .append(count == 1 ? " build variant" : " build variants");
       }
@@ -217,20 +224,28 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
         getLog().warn(String.format("Error finding bundle file \"%s\"", bundlePath));
         return;
       }
-      if (!bundleFile.isFile()) {
-        getLog().warn(String.format("Bundle file is not a file (directory?) \"%s\"", bundlePath));
-        return;
-      }
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(bundleFile);
+
+      VirtualFile virtualFile = !bundleFile.isFile() ? askUserForBundleFile(bundleFile)
+                                                     : LocalFileSystem.getInstance().findFileByIoFile(bundleFile);
+
       if (virtualFile == null) {
         getLog().warn(String.format("Bundle file not found in virtual file system \"%s\"", bundlePath));
         return;
       }
+
       OpenFileDescriptor fd = new OpenFileDescriptor(myProject, virtualFile);
       List<FileEditor> editors = FileEditorManager.getInstance(myProject).openEditor(fd, true);
       if (editors.isEmpty()) {
         getLog().warn(String.format("Could not open editor for bundle file \"%s\"", bundlePath));
       }
+    }
+
+    @Nullable
+    VirtualFile askUserForBundleFile(@NotNull File bundleFile) {
+      FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
+        .withDescription("Select Bundle file to analyze")
+        .withFileFilter(file -> SdkConstants.EXT_APP_BUNDLE.equalsIgnoreCase(file.getExtension()));
+      return FileChooser.chooseFile(descriptor, myProject, LocalFileSystem.getInstance().findFileByIoFile(bundleFile));
     }
 
     private void openBundleDirectory(String path) {
