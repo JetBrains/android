@@ -90,6 +90,8 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
           assertThat(dataBindingPollMetadata.layoutXmlCount).isEqualTo(4)
           assertThat(dataBindingPollMetadata.importCount).isEqualTo(0)
           assertThat(dataBindingPollMetadata.variableCount).isEqualTo(7)
+          assertThat(dataBindingPollMetadata.moduleCount).isEqualTo(1)
+          assertThat(dataBindingPollMetadata.dataBindingEnabledModuleCount).isEqualTo(1)
         }
       }
       finally {
