@@ -576,6 +576,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
+    <projectService serviceImplementation="com.android.tools.idea.project.AndroidKtsSupportNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.project.IndexingSuspender"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
@@ -856,6 +857,7 @@
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
+    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.GradleKtsBuildFilesWarningStep"/>
 
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.TestArtifactSearchScopeSetupStep"/>
     <postSyncModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.module.AndroidRunConfigurationSetupStep"/>
