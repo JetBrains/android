@@ -37,9 +37,9 @@ import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperKt;
 import com.android.tools.idea.gradle.project.build.output.ClangOutputParser;
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper;
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
 import com.android.tools.idea.gradle.project.build.output.DataBindingOutputParser;
 import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
@@ -63,7 +63,6 @@ import com.intellij.build.events.impl.SkippedResultImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
-import com.intellij.build.output.BuildOutputParser;
 import com.intellij.build.output.JavacOutputParser;
 import com.intellij.build.output.KotlincOutputParser;
 import com.intellij.icons.AllIcons;
@@ -157,7 +156,7 @@ public class GradleBuildInvoker {
     // Add source generation tasks only if source gen is enabled.
     if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
       Module[] modules = ModuleManager.getInstance(myProject).getModules();
-      tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, SOURCE_GEN, TestCompileType.NONE));
+      tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
       tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
       commandLineArgs.add(createGenerateSourcesOnlyProperty());
     }
@@ -182,9 +181,8 @@ public class GradleBuildInvoker {
     setProjectBuildMode(buildMode);
 
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    File projectPath = getBaseDirPath(myProject);
     GradleTaskFinder gradleTaskFinder = GradleTaskFinder.getInstance();
-    ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     if (cleanProject) {
       if (stopNativeDebugSessionOrStopBuild()) {
         return;
@@ -271,8 +269,7 @@ public class GradleBuildInvoker {
   public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = COMPILE_JAVA;
     setProjectBuildMode(buildMode);
-    File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, testCompileType);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath));
     }
@@ -288,8 +285,7 @@ public class GradleBuildInvoker {
                        @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = ASSEMBLE;
     setProjectBuildMode(buildMode);
-    File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, testCompileType);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
     }
@@ -300,9 +296,8 @@ public class GradleBuildInvoker {
                      @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = BUNDLE;
     setProjectBuildMode(buildMode);
-    File projectPath = getBaseDirPath(myProject);
     ListMultimap<Path, String> tasks =
-      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+      GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
     }
@@ -312,9 +307,8 @@ public class GradleBuildInvoker {
     BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    File projectPath = getBaseDirPath(myProject);
     ListMultimap<Path, String> tasks =
-      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, moduleManager.getModules(), buildMode, TestCompileType.NONE);
+      GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath));
     }
