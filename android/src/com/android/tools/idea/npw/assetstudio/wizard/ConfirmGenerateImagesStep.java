@@ -39,6 +39,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -405,15 +406,16 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Override
   protected void onEntering() {
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
-    myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
+    myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate namedTemplate) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDirectory = getResDirectory(template.getPaths());
+      AndroidModuleTemplate template = namedTemplate.getPaths();
+      File resDirectory = getResDirectory(template);
       if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
         return;
       }
 
       myFilesAlreadyExist.set(false);
-      myPathToPreviewImage = iconGenerator.generateIntoIconMap(resDirectory);
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(template);
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since
