@@ -17,6 +17,7 @@ package com.android.tools.idea.memorysettings;
 
 import static com.intellij.openapi.util.LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC;
 
+import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.notification.Notification;
@@ -46,6 +47,10 @@ public class AndroidLowMemoryNotifier implements ApplicationComponent {
       notification.addAction(new NotificationAction(IdeBundle.message("low.memory.notification.action")) {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+          MemorySettingsUtil.log(MemorySettingsEvent.EventKind.CONFIGURE,
+                                 currentXmx, -1, -1,
+                                 -1, -1, -1,
+                                 -1, -1, -1);
           Project project = e.getProject();
           ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
           notification.expire();
