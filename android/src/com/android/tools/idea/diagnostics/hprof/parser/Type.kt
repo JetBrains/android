@@ -38,16 +38,22 @@ enum class Type(val typeId: Int, val size: Int, private val arrayName: String) {
   }
 
   companion object {
-    private val sTypeMap = HashMap<Int, Type>()
+    private val sIdTypeMap = HashMap<Int, Type>()
+    private val sNameTypeMap = HashMap<String, Type>()
 
     init {
       for (type in Type.values()) {
-        sTypeMap[type.typeId] = type
+        sIdTypeMap[type.typeId] = type
+        sNameTypeMap[type.arrayName] = type
       }
     }
 
     fun getType(id: Int): Type {
-      return sTypeMap[id]!!
+      return sIdTypeMap[id]!!
+    }
+
+    fun getType(name: String): Type {
+      return sNameTypeMap[name]!!
     }
   }
 }

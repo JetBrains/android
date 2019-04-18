@@ -40,9 +40,11 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
         do {
           i++
           newName = classDefinition.name + "($i)"
-        } while (stringToClassDefinition.containsKey(newName))
+        }
+        while (stringToClassDefinition.containsKey(newName))
         stringToClassDefinition[newName] = classDefinition.copyWithName(newName)
-      } else {
+      }
+      else {
         stringToClassDefinition[classDefinition.name] = classDefinition
       }
       true
