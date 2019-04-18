@@ -25,6 +25,7 @@ import com.android.tools.datastore.service.EnergyService
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuServiceGrpc
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyServiceGrpc
 import com.android.tools.profiler.proto.NetworkProfiler
@@ -247,7 +248,11 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
     for (timeNs in 0 until ONE_SEC_NS step SAMPLE_INTERVAL_NS) {
       // Intentionally leave energy usage values at 0
-      responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(timeNs).build())
+      responseBuilder.addSamples(
+        EnergyProfiler.EnergySample.newBuilder()
+          .setTimestamp(timeNs)
+          .setEnergyUsage(Energy.EnergyUsageData.getDefaultInstance())
+      )
     }
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
@@ -293,15 +298,31 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setCpuUsage(0).build())
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(0 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(0))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(1 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(TestPowerProfile.CPU_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(2 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(TestPowerProfile.CPU_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setCpuUsage(TestPowerProfile.CPU_USAGE / 2).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(3 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(TestPowerProfile.CPU_USAGE))
+    )
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(4 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(TestPowerProfile.CPU_USAGE / 2))
+    )
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)
@@ -335,24 +356,30 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(0 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
     )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-        TestPowerProfile.WIFI_ACTIVE
-      ).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(1 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.WIFI_ACTIVE))
     )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-        TestPowerProfile.WIFI_ACTIVE
-      ).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(2 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.WIFI_ACTIVE))
     )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-        TestPowerProfile.WIFI_ACTIVE
-      ).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(3 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.WIFI_ACTIVE))
     )
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(4 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
+    )
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)
@@ -386,24 +413,30 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(0 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
     )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-        TestPowerProfile.RADIO_ACTIVE
-      ).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(1 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.RADIO_ACTIVE))
     )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-        TestPowerProfile.RADIO_ACTIVE
-      ).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(2 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.RADIO_ACTIVE))
     )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setNetworkUsage(
-        TestPowerProfile.RADIO_ACTIVE
-      ).build()
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(3 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(TestPowerProfile.RADIO_ACTIVE))
     )
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setNetworkUsage(0).build())
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(4 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(0))
+    )
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)
@@ -446,32 +479,80 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     val responseBuilder = EnergyProfiler.EnergySamplesResponse.newBuilder()
 
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(0 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(0 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(1 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(1 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(2 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(2 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(3 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(4 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(3 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(5 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(4 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(0))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(6 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(5 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(7 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(6 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(8 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(9 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(7 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(10 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(8 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(11 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(9 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(0))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(12 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(10 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
     responseBuilder.addSamples(
-      EnergyProfiler.EnergySample.newBuilder().setTimestamp(13 * SAMPLE_INTERVAL_NS).setLocationUsage(TestPowerProfile.GPS_USAGE).build())
-    responseBuilder.addSamples(EnergyProfiler.EnergySample.newBuilder().setTimestamp(14 * SAMPLE_INTERVAL_NS).setLocationUsage(0).build())
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(11 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(12 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(13 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(TestPowerProfile.GPS_USAGE))
+    )
+    responseBuilder.addSamples(
+      EnergyProfiler.EnergySample.newBuilder()
+        .setTimestamp(14 * SAMPLE_INTERVAL_NS)
+        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setLocationUsage(0))
+    )
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)
