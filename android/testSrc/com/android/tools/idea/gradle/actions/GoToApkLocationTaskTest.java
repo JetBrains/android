@@ -66,10 +66,10 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     modulesToPaths = new TreeMap<>();
     modulesToPaths.put(getModule().getName(), myApkPath);
     modules.add(getModule());
-    IdeComponents ideComponents = new IdeComponents(myProject);
+    IdeComponents ideComponents = new IdeComponents(getProject());
     BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
-    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(modulesToPaths);
-    myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE, Collections.emptyList()) {
+    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
+    myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
       boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
