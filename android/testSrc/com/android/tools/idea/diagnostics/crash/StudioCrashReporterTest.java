@@ -22,8 +22,11 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
+import com.android.tools.idea.diagnostics.report.AnalyzedHeapReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.diagnostics.report.HeapReportProperties;
+import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpCrashReport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -151,6 +154,29 @@ public class StudioCrashReporterTest {
 
     String request = getSerializedContent(report);
     assertRequestContainsField(request, "kotlinVersion", "1.2.3.4");
+  }
+
+  @Test
+  public void sendHeapReportFieldAsFile() throws IOException {
+    AnalyzedHeapReport analyzedHeapReport =
+      new AnalyzedHeapReport("heap report text",
+                             new HeapReportProperties(MemoryReportReason.UserInvoked, "stats"),
+                             new DiagnosticReportProperties());
+    CrashReport crashReport = analyzedHeapReport.asCrashReport();
+    String request = getSerializedContent(crashReport);
+
+    assertRequestContainsFile(request, "heapReport", "heapReport.txt", "heap report text");
+  }
+
+  private static void assertRequestContainsFile(final String requestBody, final String name, final String filename, final String value) {
+    assertThat(requestBody, new RegexMatcher(
+      "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"; " +
+      "filename=\"" + Pattern.quote(filename) + "\"\r?\n" +
+      "Content-Type: [^\r\n]*?\r?\n" +
+      "Content-Transfer-Encoding: binary\r?\n" +
+      "\r?\n" +
+      Pattern.quote(value) + "\r?\n.*"
+    ));
   }
 
   private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
