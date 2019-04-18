@@ -18,7 +18,6 @@
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</implementation-class>
-      <interface-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</interface-class>
     </component>
   </application-components>
   <actions>

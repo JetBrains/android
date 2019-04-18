@@ -38,7 +38,6 @@
   <application-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
-      <interface-class>org.jetbrains.android.AndroidPlugin</interface-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
@@ -368,8 +367,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApkCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledPatchCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.templates.RepositoryUrlManager"/>
-    <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
-                        serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
+    <applicationService serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
@@ -382,19 +380,16 @@
 
     <applicationConfigurable groupId="tools" id="device.file.explorer"
                              provider="com.android.tools.idea.explorer.options.DeviceFileExplorerConfigurableProvider"/>
-    <applicationService serviceInterface="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"
-                        serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
 
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
     <projectConfigurable instance="com.android.tools.idea.flags.ExperimentalSettingsConfigurable"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
-    <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
-                        serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
     <applicationService serviceImplementation="com.android.tools.idea.fd.InstantRunConfiguration"/>
-    <projectService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
-                    serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
@@ -1015,16 +1010,11 @@
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
-    <projectService serviceInterface="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"
-                    serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
-    <projectService serviceInterface="com.android.tools.idea.logcat.AndroidLogcatPreferences"
-                    serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
-    <projectService serviceInterface="com.android.tools.idea.logcat.PersistentAndroidLogFilters"
-                    serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
-    <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
-                    serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
-    <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
-                    serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
+    <projectService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
+    <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
+    <projectService serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
 
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
@@ -1032,10 +1022,8 @@
       <pattern type="xml">xmlTag()</pattern>
     </psi.referenceProvider>
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
-    <projectService serviceInterface="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"
-                    serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
-    <projectService serviceInterface="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"
-                    serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
+    <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
+    <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
                     serviceImplementation="com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService"
                     overrides="true"/>
