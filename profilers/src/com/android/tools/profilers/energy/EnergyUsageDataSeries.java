@@ -33,7 +33,7 @@ public class EnergyUsageDataSeries implements DataSeries<Long> {
   private final Common.Session mySession;
   @NotNull private final Function<Energy.EnergyUsageData, Integer> myUsageExtractor;
 
-  private static int getTotalUsage(@NotNull Energy.EnergyUsageData usage) {
+  protected static int getTotalUsage(@NotNull Energy.EnergyUsageData usage) {
     return usage.getCpuUsage() + usage.getNetworkUsage() + usage.getLocationUsage();
   }
 

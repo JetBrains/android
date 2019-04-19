@@ -63,11 +63,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -102,6 +104,7 @@ public class TransportServiceProxy extends ServiceProxy
   private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
   private Thread myEventsListenerThread;
   private final Map<CommandType, Function<Command, ExecuteResponse>> myCommandHandlers = new HashMap<>();
+  private final List<TransportEventPreprocessor> myEventPreprocessors = new ArrayList<>();
   @NotNull private final Map<String, ByteString> myProxyBytesCache;
 
   // Cache the latest event timestamp we received from the daemon, which is used for closing all still-opened event groups when
@@ -135,6 +138,13 @@ public class TransportServiceProxy extends ServiceProxy
 
   public void registerCommandHandler(CommandType commandType, Function<Command, ExecuteResponse> handler) {
     myCommandHandlers.put(commandType, handler);
+  }
+
+  /**
+   * Registers an event preprocessor that preprocesses events in {@link #getEvents(GetEventsRequest, StreamObserver)}.
+   */
+  public void registerEventPreprocessor(TransportEventPreprocessor eventPreprocessor) {
+    myEventPreprocessors.add(eventPreprocessor);
   }
 
   /**
@@ -286,6 +296,13 @@ public class TransportServiceProxy extends ServiceProxy
         try {
           Event event = myEventQueue.take();
           myLatestEventTimestampNs = Math.max(myLatestEventTimestampNs, event.getTimestamp());
+
+          // Run registered preprocessors.
+          for (TransportEventPreprocessor preprocessor : myEventPreprocessors) {
+            if (preprocessor.shouldPreprocess(event)) {
+              preprocessor.preprocessEvent(event).forEach(generatedEvent -> responseObserver.onNext(generatedEvent));
+            }
+          }
 
           // Update the event cache: remove an event group if it has ended, otherwise cache the latest opened event for that group.
           if (event.getIsEnded()) {

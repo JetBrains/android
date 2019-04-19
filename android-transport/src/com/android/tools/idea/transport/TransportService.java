@@ -16,6 +16,7 @@
 package com.android.tools.idea.transport;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.LogService;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,15 +50,16 @@ public class TransportService implements Disposable {
   private static final String DATASTORE_NAME = "DataStoreService";
   private static boolean ourServiceInitialized = false;
 
+  @NotNull private final LogService myLogService;
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final DataStoreService myDataStoreService;
   @NotNull private final TransportDeviceManager myDeviceManager;
 
   private TransportService() {
     String datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator;
+    myLogService = new IntellijLogService();
     myDataStoreService =
-      new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
-                           new IntellijLogService());
+      new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread, myLogService);
     myDataStoreService.setNoPiiExceptionHandler((t) -> getLogger().error(new NoPiiException(t)));
 
     myMessageBus = ApplicationManager.getApplication().getMessageBus();
@@ -71,6 +73,11 @@ public class TransportService implements Disposable {
 
   @Override
   public void dispose() {
+  }
+
+  @NotNull
+  public LogService getLogService() {
+    return myLogService;
   }
 
   @NotNull
