@@ -24,6 +24,7 @@ import com.android.tools.idea.lang.databinding.getDataBindingLayoutInfo
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.tools.idea.util.androidFacet
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE
@@ -39,7 +40,10 @@ import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.module.impl.scopes.ModulesScope
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.CommonClassNames
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.util.PsiFormatUtil
@@ -130,6 +134,12 @@ open class DataBindingCompletionContributor : CompletionContributor() {
         .withInsertHandler(onCompletionHandler)
       result.addElement(elementBuilder)
     }
+
+    JavaPsiFacade.getInstance(file.project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
+      .getClasses(ModulesScope.moduleWithLibrariesScope(file.androidFacet!!.module))
+      .forEach {
+        result.addElement(JavaLookupElementBuilder.forClass(it, it.name, true).withInsertHandler(onCompletionHandler))
+      }
   }
 
   private fun autoCompleteUnqualifiedFunctions(result: CompletionResultSet) {
