@@ -17,12 +17,14 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -160,6 +162,12 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     @Override
     public void customizeProxyService(@NotNull TransportProxy proxy) {
       ProfilerServiceProxyManager.registerProxies(proxy);
+
+      // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
+      // to the datastore.
+      if (StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get()) {
+        proxy.registerEventPreprocessor(new EnergyUsagePreprocessor(TransportService.getInstance().getLogService()));
+      }
     }
 
     @Override

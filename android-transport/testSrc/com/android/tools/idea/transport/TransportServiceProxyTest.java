@@ -46,6 +46,7 @@ import io.grpc.internal.ServerImpl;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -222,6 +223,58 @@ public class TransportServiceProxyTest {
     catch (InterruptedException ignored) {
     }
     assertThat(thruService.myLastCommandType).isEqualTo(BEGIN_SESSION);
+  }
+
+  @Test
+  public void testProxyEventPreprocessors() throws Exception {
+    Client client = createMockClient(1, "test", "testClientDescription");
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client});
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    FakeTransportService thruService = new FakeTransportService();
+    ManagedChannel thruChannel = startNamedChannel("testEventPreprocessors", thruService);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new HashMap<>());
+
+    CountDownLatch latch = new CountDownLatch(1);
+    List<Common.Event> receivedEvents = new ArrayList<>();
+    List<Common.Event> preprocessedEvents = new ArrayList<>();
+    Common.Event generatedEvent = Common.Event.getDefaultInstance();
+    proxy.registerEventPreprocessor(new TransportEventPreprocessor() {
+      @Override
+      public boolean shouldPreprocess(Common.Event event) {
+        return event.getKind() == Common.Event.Kind.ECHO;
+      }
+
+      @Override
+      public Iterable<Common.Event> preprocessEvent(Common.Event event) {
+        preprocessedEvents.add(event);
+        latch.countDown();
+        return Collections.singletonList(generatedEvent);
+      }
+    });
+    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(),  new StreamObserver<Common.Event>() {
+      @Override
+      public void onNext(Common.Event event) {
+        receivedEvents.add(event);
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        assert false;
+      }
+
+      @Override
+      public void onCompleted() {}
+    });
+    Common.Event eventToPreprocess = Common.Event.newBuilder().setPid(1).setKind(Common.Event.Kind.ECHO).setIsEnded(true).build();
+    Common.Event eventToIgnore = Common.Event.newBuilder().setPid(1).setIsEnded(true).build();
+    thruService.addEvents(eventToPreprocess, eventToIgnore);
+    thruService.stopEventThread();
+    thruChannel.shutdownNow();
+    proxy.disconnect();
+    latch.await();
+    assertThat(receivedEvents).containsAllOf(eventToPreprocess, eventToIgnore, generatedEvent);
+    assertThat(preprocessedEvents).containsExactly(eventToPreprocess);
   }
 
   /**
