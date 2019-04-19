@@ -27,9 +27,8 @@ public class WindowsCRuntimeChecker {
   static void checkCRT(@NotNull AndroidStudioSystemHealthMonitor systemHealthMonitor) {
     Path dllPath = Paths.get(System.getenv("SystemRoot"), "system32", "ucrtbase.dll");
     if (!dllPath.toFile().exists()) {
-      systemHealthMonitor.showNotification("windows.ucrt.warn.message", PropertiesComponent.getInstance(),
-                                           AndroidStudioSystemHealthMonitor.detailsAction(
-        "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"), true);
+      systemHealthMonitor.showNotification("windows.ucrt.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
+        "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"));
     }
   }
 }
