@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import com.android.tools.idea.diagnostics.error.ErrorReporter;
+import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.ide.SystemHealthMonitor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -25,6 +27,7 @@ import com.intellij.testFramework.PlatformTestCase;
  * Tests for {@link SystemHealthMonitor}.
  */
 public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
+
   public void testGetActionName() {
     // normal class in our packages should yield simple name
     assertEquals("AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(AndroidStudioSystemHealthMonitorTest.class, new Presentation("foo")));
@@ -39,6 +42,13 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
     }.getClass(), new Presentation("foo")));
     // class outside of our packages should yield full class name.
     assertEquals("java.lang.String", AndroidStudioSystemHealthMonitor.getActionName(String.class, new Presentation("Foo")));
+  }
+
+  public void testAndroidErrorReporter() {
+    // Regression test for b/130834409.
+    assertTrue(
+      "Unexpected type returned from IdeErrorsDialog.getAndroidErrorReporter()",
+      IdeErrorsDialog.getAndroidErrorReporter() instanceof ErrorReporter);
   }
 
   /**

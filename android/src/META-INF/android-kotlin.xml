@@ -16,7 +16,6 @@
         <moduleService serviceInterface="org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager"
                        serviceImplementation="org.jetbrains.kotlin.android.synthetic.idea.res.IDEAndroidLayoutXmlFileManager"/>
         <psi.treeChangePreprocessor implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor"/>
-        <errorHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsReportSubmitter"/>
         <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidGotoDeclarationHandler"/>
 
         <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
