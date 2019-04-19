@@ -228,7 +228,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     RenderService renderService = RenderService.getInstance(myModule.getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    RenderLogger.ignoreFidelityWarning("Font$Builder.nAddAxis is not supported.");
     final RenderTask task = renderService.taskBuilder(facet, configuration)
                                    .withLogger(logger)
                                    .withPsiFile(psiFile)
