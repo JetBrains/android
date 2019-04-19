@@ -26,6 +26,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -55,6 +56,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
@@ -123,7 +125,7 @@ public class Scene implements SelectionListener, Disposable {
   List<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
   List<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   Set<SceneComponent> myHoveredComponents = new HashSet<>();
-  private boolean myIsControlDown;
+  private boolean myIsCtrlMetaDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
 
@@ -284,16 +286,18 @@ public class Scene implements SelectionListener, Disposable {
    * @param modifiers
    */
   public void updateModifiers(int modifiers) {
-    myIsControlDown = (((modifiers & InputEvent.CTRL_DOWN_MASK) != 0)
-                       || ((modifiers & InputEvent.CTRL_MASK) != 0));
+    int ctrlMetaDownMask = AdtUiUtils.getActionMask();
+    int ctrlMetaMask = SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
+    myIsCtrlMetaDown = (((modifiers & ctrlMetaDownMask) != 0)
+                        || ((modifiers & ctrlMetaMask) != 0));
     myIsShiftDown = (((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0)
                      || ((modifiers & InputEvent.SHIFT_MASK) != 0));
     myIsAltDown = (((modifiers & InputEvent.ALT_DOWN_MASK) != 0)
                    || ((modifiers & InputEvent.ALT_MASK) != 0));
   }
 
-  public boolean isControlDown() {
-    return myIsControlDown;
+  public boolean isCtrlMetaDown() {
+    return myIsCtrlMetaDown;
   }
 
   public boolean isShiftDown() {
@@ -459,13 +463,13 @@ public class Scene implements SelectionListener, Disposable {
   public void select(List<SceneComponent> components) {
     if (myDesignSurface != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
-      if (myIsShiftDown || myIsControlDown) {
+      if (myIsShiftDown || myIsCtrlMetaDown) {
         List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
       for (SceneComponent sceneComponent : components) {
         NlComponent nlComponent = sceneComponent.getNlComponent();
-        if ((myIsShiftDown || myIsControlDown) && nlComponents.contains(nlComponent)) {
+        if ((myIsShiftDown || myIsCtrlMetaDown) && nlComponents.contains(nlComponent)) {
           // if shift is pressed and the component is already selected, remove it from the selection
           nlComponents.remove(nlComponent);
         }
