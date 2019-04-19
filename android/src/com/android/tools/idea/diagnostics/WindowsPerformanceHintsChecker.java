@@ -18,6 +18,12 @@ package com.android.tools.idea.diagnostics;
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
+import com.android.tools.idea.gradle.project.build.GradleBuildListener;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus;
@@ -27,14 +33,25 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.DateTimeException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,19 +61,61 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class WindowsPerformanceHintsChecker {
   private static final Logger LOG = Logger.getInstance(WindowsPerformanceHintsChecker.class);
 
+  private static final String ANTIVIRUS_NOTIFICATION_LAST_SHOWN_TIME_KEY = "antivirus.scan.notification.last.shown.time";
+  private static final Duration ANTIVIRUS_MIN_INTERVAL_BETWEEN_NOTIFICATIONS = Duration.ofDays(1);
   private static final Pattern WINDOWS_ENV_VAR_PATTERN = Pattern.compile("%([^%]+?)%");
   private static final Pattern WINDOWS_DEFENDER_WILDCARD_PATTERN = Pattern.compile("[?*]");
-  private static final int POWERSHELL_COMMAND_TIMEOUT_MS = 5000;
+  private static final int POWERSHELL_COMMAND_TIMEOUT_MS = 10000;
   private static final int MAX_POWERSHELL_STDERR_LENGTH = 500;
 
+  private AndroidStudioSystemHealthMonitor systemHealthMonitor;
+
+  public WindowsPerformanceHintsChecker() {
+    this.systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance();
+  }
+
+  public void run() {
+    if (SystemInfo.isWindows && (StudioFlags.WINDOWS_DEFENDER_METRICS_ENABLED.get() || StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get())) {
+      Application application = ApplicationManager.getApplication();
+      application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectOpened(@NotNull Project project) {
+          // perform check, but do not show dialog, when project is opened.
+          application.executeOnPooledThread(() -> checkWindowsDefender(project, false));
+
+          // perform check again and possibly show notification after a successful build
+          GradleBuildState.subscribe(project, new GradleBuildListener() {
+            @Override
+            public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) { }
+
+            @Override
+            public void buildStarted(@NotNull BuildContext context) { }
+
+            @Override
+            public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+              BuildMode mode = context != null ? context.getBuildMode() : null;
+              if (status == BuildStatus.SUCCESS) {
+                if (mode == BuildMode.ASSEMBLE || mode == BuildMode.ASSEMBLE_TRANSLATE || mode == BuildMode.REBUILD ||
+                    mode == BuildMode.BUNDLE || mode == BuildMode.APK_FROM_BUNDLE) {
+                  application.executeOnPooledThread(() -> checkWindowsDefender(project, true));
+                }
+              }
+            }
+          });
+        }
+      });
+    }
+  }
+
   @Slow
-  static void checkWindowsDefender(@NotNull AndroidStudioSystemHealthMonitor systemHealthMonitor, @NotNull Project project) {
+  private void checkWindowsDefender(@NotNull Project project, boolean showNotification) {
     switch (getRealtimeScanningEnabled()) {
       case SCANNING_ENABLED:
         List<Pattern> excludedPatterns = getExcludedPatterns();
@@ -67,10 +126,9 @@ public class WindowsPerformanceHintsChecker {
           Map<Path, Boolean> pathStatuses = checkPathsExcluded(getImportantPaths(project), excludedPatterns);
           WindowsDefenderStatus.Status overallStatus;
           if (pathStatuses.containsValue(Boolean.FALSE)) {
-            if (StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get()) {
-              systemHealthMonitor.showNotification("virus.scanning.warn.message", PropertiesComponent.getInstance(project),
-                   AndroidStudioSystemHealthMonitor.detailsAction("https://d.android.com/r/studio-ui/antivirus-check"), false,
-                   getNotificationTextForNonExcludedPaths(pathStatuses));
+            if (showNotification && StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get() && !shownRecently()) {
+              showAntivirusNotification(project, getNotificationTextForNonExcludedPaths(pathStatuses));
+              setLastShownTime();
             }
             if (pathStatuses.containsValue(Boolean.TRUE)) {
               overallStatus = WindowsDefenderStatus.Status.SOME_EXCLUDED;
@@ -95,6 +153,63 @@ public class WindowsPerformanceHintsChecker {
         logWindowsDefenderStatus(WindowsDefenderStatus.Status.UNKNOWN_STATUS, false, project);
         break;
     }
+  }
+
+  private void showAntivirusNotification(@NotNull Project project, @NotNull String pathDetails) {
+    String key = "virus.scanning.warn.message";
+    boolean ignored = false;
+    PropertiesComponent applicationProperties = PropertiesComponent.getInstance();
+    PropertiesComponent projectProperties = PropertiesComponent.getInstance(project);
+    if (applicationProperties != null) {
+      ignored = applicationProperties.isValueSet("ignore." + key);
+    }
+    if (projectProperties != null) {
+      ignored |= projectProperties.isValueSet("ignore." + key);
+    }
+    LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
+    if (ignored) return;
+
+    Notification notification = systemHealthMonitor.new MyNotification(AndroidBundle.message(key, pathDetails));
+    notification.addAction(new NotificationAction(AndroidBundle.message("virus.scanning.dont.show.again")) {
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+        notification.expire();
+        if (applicationProperties != null) {
+          applicationProperties.setValue("ignore." + key, "true");
+        }
+      }
+    });
+    notification.addAction(new NotificationAction(AndroidBundle.message("virus.scanning.dont.show.again.this.project")) {
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+        notification.expire();
+        if (projectProperties != null) {
+          projectProperties.setValue("ignore." + key, "true");
+        }
+      }
+    });
+    notification.addAction(AndroidStudioSystemHealthMonitor.detailsAction("https://d.android.com/r/studio-ui/antivirus-check"));
+    notification.setImportant(true);
+
+    ApplicationManager.getApplication().invokeLater(() -> Notifications.Bus.notify(notification));
+  }
+
+  private static boolean shownRecently() {
+    if ("true".equals(System.getProperty("disable.antivirus.notification.rate.limit"))) return false;
+    String lastShownTime = PropertiesComponent.getInstance().getValue(ANTIVIRUS_NOTIFICATION_LAST_SHOWN_TIME_KEY);
+    if (lastShownTime == null) return false;
+    try {
+      Instant lastShown = Instant.parse(lastShownTime);
+      return lastShown.plus(ANTIVIRUS_MIN_INTERVAL_BETWEEN_NOTIFICATIONS).isAfter(Instant.now());
+    } catch (DateTimeException e) {
+      // corrupted date format. Return false here and overwrite with a good value.
+      setLastShownTime();
+      return false;
+    }
+  }
+
+  private static void setLastShownTime() {
+    PropertiesComponent.getInstance().setValue(ANTIVIRUS_NOTIFICATION_LAST_SHOWN_TIME_KEY, Instant.now().toString());
   }
 
   private static void logWindowsDefenderStatus(WindowsDefenderStatus.Status status, boolean projectDirExcluded, @NotNull Project project) {
