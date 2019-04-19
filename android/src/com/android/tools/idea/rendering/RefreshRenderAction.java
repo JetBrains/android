@@ -66,7 +66,7 @@ public class RefreshRenderAction extends AnAction {
         if (target != null) {
           AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
           if (targetData != null) {
-            targetData.clearAllCaches(module);
+            targetData.clearLayoutBitmapCache(module);
           }
         }
 
