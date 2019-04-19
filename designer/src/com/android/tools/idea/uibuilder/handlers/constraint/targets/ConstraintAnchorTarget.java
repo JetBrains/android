@@ -165,7 +165,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
 
   @Override
   public boolean canDisconnect() {
-    return myComponent.getScene().isControlDown();
+    return myComponent.getScene().isCtrlMetaDown();
   }
 
   @SuppressWarnings("UseJBColor")
@@ -416,7 +416,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     else if (ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute) != null) {
       Scene scene = myComponent.getScene();
       int marginValue = getDistance(attribute, targetComponent, scene);
-      if (!scene.isControlDown()) {
+      if (!scene.isCtrlMetaDown()) {
         if (marginValue < 0) {
           marginValue = 0;
         }
