@@ -938,4 +938,38 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       </layout>
     """.trimIndent())
   }
+
+  @Test
+  fun testDataBindingCompletion_testCompleteJavaLangClasses() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{By<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{Byte}"/>
+      </layout>
+    """.trimIndent())
+  }
 }
