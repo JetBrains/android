@@ -18,12 +18,10 @@ package com.android.tools.idea.naveditor
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -34,7 +32,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import java.io.File
 
-abstract class NavTestCase : AndroidTestCase() {
+abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) : AndroidTestCase() {
   // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
   // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
   protected lateinit var myRootDisposable: Disposable
@@ -46,9 +44,9 @@ abstract class NavTestCase : AndroidTestCase() {
     myRootDisposable = object : Disposable {
       override fun dispose() {}
     }
-    myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/java", "src")
-    myFixture.copyDirectoryToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/res", "res")
-    myFixture.copyFileToProject("$NAVIGATION_EDITOR_BASIC/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
+    myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/java", "src")
+    myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/res", "res")
+    myFixture.copyFileToProject("$projectDirectory/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
 
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
