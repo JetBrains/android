@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomNavigator">\
+        <attr name="myString" format="string" />
+        <attr name="myBoolean" format="boolean" />
+        <attr name="myInteger" format="integer" />
+    </declare-styleable>
+    <declare-styleable name="CustomActivityNavigator">\
+        <attr name="myString2" format="string" />
+        <attr name="myBoolean2" format="boolean" />
+        <attr name="myInteger2" format="integer" />
+    </declare-styleable>
+</resources>

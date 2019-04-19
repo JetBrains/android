@@ -25,45 +25,13 @@ import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.property.isCustomProperty
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_CUSTOM_PROPERTIES
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor
 
-class CustomPropertiesInspectorProviderTest : NavTestCase() {
+class CustomPropertiesInspectorProviderTest : NavTestCase(NAVIGATION_EDITOR_CUSTOM_PROPERTIES) {
   fun testCustomPropertiesInspector() {
-    myFixture.addClass("""
-      import androidx.navigation.*;
-
-      @Navigator.Name("mycustomdestination")
-      public class CustomNavigator extends Navigator<CustomNavigator.Destination> {
-        public static class Destination extends NavDestination {}
-      }
-      """.trimIndent())
-
-    myFixture.addClass("""
-      import androidx.navigation.*;
-
-      @Navigator.Name("mycustomactivity")
-      public class CustomActivityNavigator extends ActivityNavigator {}
-      """.trimIndent())
-
-    val psiFile = myFixture.addFileToProject("res/values/attrs2.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-      <resources>
-          <declare-styleable name="CustomNavigator">\
-              <attr format="string" name="myString"/>
-              <attr format="boolean" name="myBoolean"/>
-              <attr format="integer" name="myInteger"/>
-          </declare-styleable>
-          <declare-styleable name="CustomActivityNavigator">\
-              <attr format="string" name="myString2"/>
-              <attr format="boolean" name="myBoolean2"/>
-              <attr format="integer" name="myInteger2"/>
-          </declare-styleable>
-      </resources>
-      """.trimIndent())
-    assertTrue(psiFile.isValid)
-
     ResourceRepositoryManager.getAppResources(myFacet).sync()
 
     // Temporary logging to help diagnose sporadic test failures
