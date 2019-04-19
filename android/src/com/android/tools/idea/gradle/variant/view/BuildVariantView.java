@@ -559,6 +559,8 @@ public class BuildVariantView {
           }
         }
       });
+
+      setExpandableItemsEnabled(false);
     }
 
     /**
