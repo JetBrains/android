@@ -261,7 +261,7 @@ public final class TransportFileManager {
       String deviceFilePath = DEVICE_DIR + fileName;
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
       myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + DEVICE_DIR, new NullOutputReceiver());
+      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf("/")), new NullOutputReceiver());
       myDevice.pushFile(file.getAbsolutePath(), deviceFilePath);
 
       if (executable) {
@@ -287,8 +287,7 @@ public final class TransportFileManager {
    *
    * @param packageName The package to launch agent with.
    * @param configName  The agent config file name that should be passed along into the agent. This assumes it already existing under
- *                      {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
-   *
+   *                    {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
    * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
    * accessible, empty string otherwise.
    */
