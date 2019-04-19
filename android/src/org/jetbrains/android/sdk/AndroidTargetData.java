@@ -224,19 +224,13 @@ public class AndroidTargetData {
 
   public void clearLayoutBitmapCache(Module module) {
     if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearResourceCaches(module);
+      myLayoutLibrary.clearCaches(module);
     }
   }
 
   public void clearFontCache(String path) {
     if (myLayoutLibrary != null) {
       myLayoutLibrary.clearFontCache(path);
-    }
-  }
-
-  public void clearAllCaches(Module module) {
-    if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearAllCaches(module);
     }
   }
 
