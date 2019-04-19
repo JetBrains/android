@@ -47,7 +47,7 @@ import static com.android.ide.common.rendering.api.Result.Status.ERROR_REFLECTIO
  * <p>
  * Use the layout library with:
  * {@link #init}, {@link #supports(int)}, {@link #createSession(SessionParams)},
- * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
+ * {@link #dispose()}, {@link #clearCaches(Object)}.
  */
 public class LayoutLibrary implements Disposable {
 
@@ -238,11 +238,11 @@ public class LayoutLibrary implements Disposable {
      *
      * @param projectKey the key for the project.
      *
-     * @see Bridge#clearResourceCaches(Object)
+     * @see Bridge#clearCaches(Object)
      */
-    public void clearResourceCaches(Object projectKey) {
+    public void clearCaches(Object projectKey) {
         if (mBridge != null) {
-            mBridge.clearResourceCaches(projectKey);
+            mBridge.clearCaches(projectKey);
         }
     }
 
@@ -254,17 +254,6 @@ public class LayoutLibrary implements Disposable {
     public void clearFontCache(String path) {
         if (mBridge != null) {
             mBridge.clearFontCache(path);
-        }
-    }
-
-    /**
-     * Clears all caches for a specific project.
-     *
-     * @param projectKey the key for the project.
-     */
-    public void clearAllCaches(Object projectKey) {
-        if (mBridge != null) {
-            mBridge.clearAllCaches(projectKey);
         }
     }
 
