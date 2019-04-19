@@ -17,16 +17,16 @@ package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
+import com.android.tools.idea.util.toPathString
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.GeneralSettings
 import com.intellij.ide.impl.ProjectUtil
+import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import javax.swing.Icon
-import com.android.tools.idea.util.toPathString
-import com.android.tools.idea.util.toVirtualFile
-import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
 
 
 /**
@@ -58,7 +58,8 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       }
 
       val gradleImporter = GradleProjectImporter.getInstance()
-      return gradleImporter.importProjectCore(virtualFile)
+      val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
+      return gradleImporter.importProjectCore(projectFolder)
     }
 
     return ProjectUtil.openProject(adjustedOpenTarget.path, projectToClose, forceOpenInNewFrame)
