@@ -57,7 +57,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
@@ -157,12 +157,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     for (NamedModuleTemplate template : templates) {
       moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
-      @Override
-      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
-        setText(template.getName());
-      }
-    });
+    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);

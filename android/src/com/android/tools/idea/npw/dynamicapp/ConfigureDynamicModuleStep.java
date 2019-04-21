@@ -60,7 +60,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ContextHelpLabel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import java.util.Collection;
@@ -243,18 +243,15 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   private void createUIComponents() {
     myBaseApplication = new ComboBox<>(new DefaultComboBoxModel<>());
-    myBaseApplication.setRenderer(new ListCellRendererWrapper<Module>() {
-      @Override
-      public void customize(JList list, Module module, int index, boolean selected, boolean hasFocus) {
-        if (module == null) {
-          setText(message("android.wizard.module.config.new.base.missing"));
-        }
-        else {
-          setIcon(ModuleType.get(module).getIcon());
-          setText(module.getName());
-        }
+    myBaseApplication.setRenderer(SimpleListCellRenderer.create((label, module, index) -> {
+      if (module == null) {
+        label.setText(message("android.wizard.module.config.new.base.missing"));
       }
-    });
+      else {
+        label.setIcon(ModuleType.get(module).getIcon());
+        label.setText(module.getName());
+      }
+    }));
 
     myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
     myFormFactorSdkControls = new FormFactorSdkControls();

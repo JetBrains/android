@@ -56,7 +56,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -227,12 +227,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     for (Shape shape : myShapeNames.keySet()) {
       shapesModel.addElement(shape);
     }
-    myShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
-      @Override
-      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
-        setText(myShapeNames.get(shape));
-      }
-    });
+    myShapeComboBox.setRenderer(SimpleListCellRenderer.create("", myShapeNames::get));
     myShapeComboBox.setModel(shapesModel);
     myShapeComboBox.setSelectedItem(Shape.SQUARE);
 

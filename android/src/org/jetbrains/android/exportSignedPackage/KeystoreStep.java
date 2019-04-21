@@ -29,7 +29,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.SystemProperties;
@@ -91,7 +91,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JButton myLoadKeyStoreButton;
   private JBCheckBox myRememberPasswordCheckBox;
   @VisibleForTesting
-  JComboBox myModuleCombo;
+  JComboBox<AndroidFacet> myModuleCombo;
   private JPanel myGradlePanel;
   private JBLabel myGradleWarning;
   private HyperlinkLabel myCloseAndUpdateLink;
@@ -139,15 +139,12 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       }
     }
 
-    myModuleCombo.setRenderer(new ListCellRendererWrapper<AndroidFacet>() {
-      @Override
-      public void customize(JList list, AndroidFacet value, int index, boolean selected, boolean hasFocus) {
-        if (value == null) return;
-        final Module module = value.getModule();
-        setText(module.getName());
-        setIcon(ModuleType.get(module).getIcon());
-      }
-    });
+    myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value == null) return;
+      Module module = value.getModule();
+      label.setText(module.getName());
+      label.setIcon(ModuleType.get(module).getIcon());
+    }));
     myGradleWarning.setIcon(WARNING_INLINE);
     myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
     myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
