@@ -63,7 +63,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -316,12 +316,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     for (Shape shape : myShapeNames.keySet()) {
       legacyShapesModel.addElement(shape);
     }
-    myLegacyIconShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
-      @Override
-      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
-        setText(myShapeNames.get(shape));
-      }
-    });
+    myLegacyIconShapeComboBox.setRenderer(SimpleListCellRenderer.create("", myShapeNames::get));
     myLegacyIconShapeComboBox.setModel(legacyShapesModel);
     myLegacyIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 

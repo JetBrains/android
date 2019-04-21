@@ -32,7 +32,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.LinkedHashMap;
@@ -128,10 +128,6 @@ abstract class CapturePane extends JPanel {
     myToolbar.setEnabled(false);
   }
 
-  private static Logger getLog() {
-    return Logger.getInstance(CapturePane.class);
-  }
-
   /**
    * The toolbar of {@link CpuCaptureView}, e.g it contains the filter button and clock type combo box.
    */
@@ -147,7 +143,9 @@ abstract class CapturePane extends JPanel {
         new JComboBoxView<>(myClockType, stageView.getStage().getAspect(), CpuProfilerAspect.CLOCK_TYPE,
                             stageView.getStage()::getClockTypes, stageView.getStage()::getClockType, stageView.getStage()::setClockType);
       clockTypes.bind();
-      myClockType.setRenderer(new ClockTypeCellRenderer());
+      myClockType.setRenderer(SimpleListCellRenderer.create("", value ->
+        value == ClockType.GLOBAL ? "Wall Clock Time" :
+        value == ClockType.THREAD ? "Thread Time" : ""));
       CpuCapture capture = stageView.getStage().getCapture();
       myClockType.setEnabled(capture != null && capture.isDualClock());
 
@@ -170,26 +168,6 @@ abstract class CapturePane extends JPanel {
     @NotNull
     CommonToggleButton getFilterButton() {
       return myFilterButton;
-    }
-  }
-
-  private static class ClockTypeCellRenderer extends ListCellRendererWrapper<ClockType> {
-    @Override
-    public void customize(JList list,
-                          ClockType value,
-                          int index,
-                          boolean selected,
-                          boolean hasFocus) {
-      switch (value) {
-        case GLOBAL:
-          setText("Wall Clock Time");
-          break;
-        case THREAD:
-          setText("Thread Time");
-          break;
-        default:
-          getLog().warn("Unexpected clock type received.");
-      }
     }
   }
 }

@@ -9,7 +9,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -55,13 +55,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     myKeyStoreButtonsPanel.setBorder(JBUI.Borders.emptyBottom(5));
     myProGuardPanel.setBorder(JBUI.Borders.emptyTop(10));
 
-    myTypeCombo.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        final AndroidArtifactSigningMode mode = (AndroidArtifactSigningMode)value;
-        setText(getPresentableText(mode));
-      }
-    });
+    myTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidArtifactPropertiesEditor::getPresentableText));
 
     //noinspection unchecked
     myTypeCombo.setModel(new EnumComboBoxModel<AndroidArtifactSigningMode>(AndroidArtifactSigningMode.class));
