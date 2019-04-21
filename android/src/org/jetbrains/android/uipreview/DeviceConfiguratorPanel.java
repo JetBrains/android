@@ -8,6 +8,7 @@ import com.android.tools.idea.rendering.FlagManager;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
@@ -531,7 +532,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U>> extends MyQualifierEditor<T> {
-    private final JComboBox myComboBox = new JComboBox();
+    private final JComboBox<U> myComboBox = new ComboBox<>();
     private final Class<U> myEnumClass;
 
     protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
@@ -547,14 +548,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         }
       });
 
-      myComboBox.setRenderer(new ListCellRendererWrapper() {
-        @Override
-        public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-          if (value instanceof ResourceEnum) {
-            setText(((ResourceEnum)value).getShortDisplayValue());
-          }
+      myComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+        if (value instanceof ResourceEnum) {
+          label.setText(((ResourceEnum)value).getShortDisplayValue());
         }
-      });
+      }));
 
       final JPanel panel = new JPanel(new VerticalFlowLayout());
       final JBLabel label = new JBLabel(getCaption());
@@ -565,8 +563,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       return panel;
     }
 
-    protected ComboBoxModel createModel() {
-      return new EnumComboBoxModel<U>(myEnumClass);
+    protected ComboBoxModel<U> createModel() {
+      return new EnumComboBoxModel<>(myEnumClass);
     }
 
     @NotNull
@@ -696,7 +694,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
    * Specialized combo box model which filters out enum values that are marked as not interesting. This
    * is to discourage app developers from creating specialized resource folders for specific densities.
    */
-  private static class DensityComboBoxModel extends AbstractListModel implements ComboBoxModel {
+  private static class DensityComboBoxModel extends AbstractListModel<Density> implements ComboBoxModel<Density> {
     private final List<Density> myList;
     private Density mySelected = null;
 
@@ -743,7 +741,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
 
     @Override
-    protected ComboBoxModel createModel() {
+    protected ComboBoxModel<Density> createModel() {
       return new DensityComboBoxModel();
     }
 

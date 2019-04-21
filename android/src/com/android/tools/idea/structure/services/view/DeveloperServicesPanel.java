@@ -23,8 +23,8 @@ import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SeparatorComponent;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,20 +44,15 @@ public final class DeveloperServicesPanel extends EditorPanel {
   // Keep a copy of service panel children so we can iterate over them directly
   private final List<DeveloperServicePanel> myPanelsList = Lists.newArrayList();
   private JPanel myRoot;
-  private JComboBox myModuleCombo;
+  private JComboBox<Module> myModuleCombo;
   private JPanel myServicesPanel;
   private JPanel myHeaderPanel;
   private JBScrollPane myScrollPane;
 
-  public DeveloperServicesPanel(@NotNull ComboBoxModel moduleList, @NotNull final ServiceCategory serviceCategory) {
+  public DeveloperServicesPanel(@NotNull ComboBoxModel<Module> moduleList, @NotNull final ServiceCategory serviceCategory) {
     super(new BorderLayout());
 
-    ListCellRendererWrapper<Module> renderer = new ListCellRendererWrapper<Module>() {
-      @Override
-      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getName());
-      }
-    };
+    ListCellRenderer<Module> renderer = SimpleListCellRenderer.create("", Module::getName);
     myModuleCombo.setModel(moduleList);
     myModuleCombo.setRenderer(renderer);
 

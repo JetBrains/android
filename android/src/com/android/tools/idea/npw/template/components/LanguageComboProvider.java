@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,12 +32,7 @@ public final class LanguageComboProvider extends ComponentProvider<JComboBox> {
   @Override
   public JComboBox<Language> createComponent() {
     JComboBox<Language> languageCombo = new ComboBox<>(new DefaultComboBoxModel<>(Language.values()));
-    languageCombo.setRenderer(new ListCellRendererWrapper<Language>() {
-      @Override
-      public void customize(JList list, Language value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getName());
-      }
-    });
+    languageCombo.setRenderer(SimpleListCellRenderer.create("", Language::getName));
     languageCombo.setToolTipText("The programming language used for code generation");
     return languageCombo;
   }

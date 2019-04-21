@@ -28,7 +28,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
@@ -67,12 +67,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     myDataContext = dataContext;
     myValidatorFactory = validatorFactory;
     myResourceTypeComboBox.setModel(new EnumComboBoxModel<>(ResourceFolderType.class));
-    myResourceTypeComboBox.setRenderer(new ListCellRendererWrapper<ResourceFolderType>() {
-      @Override
-      public void customize(@NotNull JList list, @NotNull ResourceFolderType folderType, int index, boolean selected, boolean focused) {
-        setText(folderType.getName());
-      }
-    });
+    myResourceTypeComboBox.setRenderer(SimpleListCellRenderer.create("", ResourceFolderType::getName));
 
     myDeviceConfiguratorPanel = setupDeviceConfigurationPanel(myResourceTypeComboBox, myDirectoryNameTextField, myErrorLabel);
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);

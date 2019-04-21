@@ -3,16 +3,15 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.annotations.VisibleForTesting;
-import com.intellij.credentialStore.CredentialAttributesKt;
-import com.intellij.credentialStore.Credentials;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
+import com.intellij.credentialStore.CredentialAttributesKt;
+import com.intellij.credentialStore.Credentials;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileChooser.actions.GotoDesktopDirAction;
@@ -25,10 +24,11 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -52,11 +52,9 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 
 import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
+import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 
 /**
  * @author Eugene.Kudelevsky
@@ -85,7 +83,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JButton myLoadKeyStoreButton;
   private JBCheckBox myRememberPasswordCheckBox;
   @VisibleForTesting
-  JComboBox myModuleCombo;
+  JComboBox<AndroidFacet> myModuleCombo;
   private JPanel myGradlePanel;
   private HyperlinkLabel myCloseAndUpdateLink;
   private JBLabel myKeyStorePathLabel;
@@ -131,15 +129,12 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       }
     }
 
-    myModuleCombo.setRenderer(new ListCellRendererWrapper<AndroidFacet>() {
-      @Override
-      public void customize(JList list, AndroidFacet value, int index, boolean selected, boolean hasFocus) {
-        if (value == null) return;
-        final Module module = value.getModule();
-        setText(module.getName());
-        setIcon(ModuleType.get(module).getIcon());
-      }
-    });
+    myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value == null) return;
+      Module module = value.getModule();
+      label.setText(module.getName());
+      label.setIcon(ModuleType.get(module).getIcon());
+    }));
     myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
     myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
       @Override
@@ -216,14 +211,14 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         mySelection = facets.get(0);
       }
 
-      myModuleCombo.setModel(new CollectionComboBoxModel(facets, mySelection));
+      myModuleCombo.setModel(new CollectionComboBoxModel<>(facets, mySelection));
       updateSelection(mySelection);
     }
   }
 
   // Instant Apps cannot be built as bundles
-  private List<AndroidFacet> filteredFacets(List<AndroidFacet> facets) {
-    return facets.stream().filter(f -> !InstantApps.isInstantAppApplicationModule(f.getModule())).collect(Collectors.toList());
+  private static List<AndroidFacet> filteredFacets(List<AndroidFacet> facets) {
+    return ContainerUtil.filter(facets, f -> !InstantApps.isInstantAppApplicationModule(f.getModule()));
   }
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {
