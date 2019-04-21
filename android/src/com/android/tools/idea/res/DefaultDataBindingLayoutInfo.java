@@ -83,6 +83,7 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
     }
     this.myNonConfigurationClassName = className;
     this.myPackageName = packageName;
+    updateClassName();
     myLayoutModificationCount = modificationCount;
   }
 
@@ -107,7 +108,11 @@ public class DefaultDataBindingLayoutInfo implements DataBindingLayoutInfo {
     }
     myBindingModificationCount++;
     myMergedInfo = mergedInfo;
-    if (mergedInfo != null) {
+    updateClassName();
+  }
+
+  private void updateClassName() {
+    if (myMergedInfo != null) {
       myClassName = calculateConfigurationName(myConfigurationName, myNonConfigurationClassName);
     } else {
       myClassName = myNonConfigurationClassName;
