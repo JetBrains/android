@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 class AndroidSdkConfigurableForm {
   private JComboBox myInternalJdkComboBox;
   private JPanel myContentPanel;
-  private JComboBox myBuildTargetComboBox;
+  private JComboBox<IAndroidTarget> myBuildTargetComboBox;
 
   private final DefaultComboBoxModel myJdksModel = new DefaultComboBoxModel();
   private final SdkModel mySdkModel;
@@ -59,27 +59,17 @@ class AndroidSdkConfigurableForm {
   public AndroidSdkConfigurableForm(@NotNull SdkModel sdkModel, @NotNull final SdkModificator sdkModificator) {
     mySdkModel = sdkModel;
     myInternalJdkComboBox.setModel(myJdksModel);
-    myInternalJdkComboBox.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof Sdk) {
-          setText(((Sdk)value).getName());
-        }
-      }
-    });
+    myInternalJdkComboBox.setRenderer(SimpleListCellRenderer.create("", Sdk::getName));
     myBuildTargetComboBox.setModel(myBuildTargetsModel);
 
-    myBuildTargetComboBox.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof IAndroidTarget) {
-          setText(AndroidSdkUtils.getTargetPresentableName((IAndroidTarget)value));
-        }
-        else if (value == null) {
-          setText("<html><font color='#" + ColorUtil.toHex(JBColor.RED)+ "'>[none]</font></html>");
-        }
+    myBuildTargetComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value != null) {
+        label.setText(AndroidSdkUtils.getTargetPresentableName(value));
       }
-    });
+      else {
+        label.setText("<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>[none]</font></html>");
+      }
+    }));
 
     myBuildTargetComboBox.addItemListener(e -> {
       if (myFreeze) {

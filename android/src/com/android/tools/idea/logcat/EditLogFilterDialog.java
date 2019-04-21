@@ -36,7 +36,6 @@ import java.awt.event.ActionListener;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -156,14 +155,8 @@ final class EditLogFilterDialog extends DialogWrapper {
     myPackageNameLabel.setLabelFor(myPackageNameField);
 
     myLogLevelCombo.setModel(new EnumComboBoxModel<>(LogLevel.class));
-    myLogLevelCombo.setRenderer(new ListCellRendererWrapper<LogLevel>() {
-      @Override
-      public void customize(JList list, LogLevel value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          setText(StringUtil.capitalize(value.getStringValue().toLowerCase(Locale.ROOT)));
-        }
-      }
-    });
+    myLogLevelCombo.setRenderer(SimpleListCellRenderer.create(
+      "", value -> StringUtil.capitalize(StringUtil.toLowerCase(value.getStringValue()))));
     myLogLevelCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

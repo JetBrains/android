@@ -39,7 +39,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Image;
@@ -91,12 +91,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     for (NamedModuleTemplate template : templates) {
       moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
-      @Override
-      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
-        setText(template.getName());
-      }
-    });
+    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
