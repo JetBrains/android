@@ -129,4 +129,21 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     assertThat(cache.getFieldsByNameIfNotMoreThan("firstValue", projectScope, 0).toList()).isEmpty()
     assertThat(cache.getFieldsByName("firstValue", invalidScope).toList()).isEmpty()
   }
+
+  @Test
+  fun dataClassAttributeAllowsCreationOfCustomBindingClassNames() {
+    fixture.addFileToProject("res/layout/layout_with_custom_binding_name.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data class=".CustomBinding" />
+      </layout>
+    """.trimIndent())
+
+    // This has to be called to explicitly fetch resources as a side-effect, which are used by the
+    // LayoutBindingShortNamesCache class.
+    ResourceRepositoryManager.getInstance(androidFacet).moduleResources
+
+    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by LayoutBindingShortNamesCache
+    assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("CustomBinding"))
+  }
 }
