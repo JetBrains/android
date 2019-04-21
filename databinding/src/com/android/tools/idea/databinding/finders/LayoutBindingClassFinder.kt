@@ -51,6 +51,20 @@ class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProj
     return arrayOf(psiClass)
   }
 
+  override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
+    if (psiPackage.project != scope.project) {
+      return PsiClass.EMPTY_ARRAY
+    }
+
+    return dataBindingComponent.getDataBindingEnabledFacets()
+      .flatMap { facet ->
+        ResourceRepositoryManager.getModuleResources(facet).dataBindingResourceFiles?.values?.asIterable() ?: emptyList()
+      }
+      .filter { info -> psiPackage.qualifiedName == info.packageName }
+      .map { info -> info.psiClass }
+      .toTypedArray()
+  }
+
   override fun findPackage(qualifiedName: String): PsiPackage? {
     // data binding packages are found only if corresponding java packages do not exist. For those, we have DataBindingPackageFinder
     // which has a low priority.
