@@ -54,7 +54,7 @@ import com.android.tools.profilers.event.UserEventTooltipView;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -326,12 +326,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   private JComponent getConfigurationComponent() {
     JComboBox<EnergyEventOrigin> comboBox = new ComboBox<>(new EnumComboBoxModel<>(EnergyEventOrigin.class));
     comboBox.getModel().setSelectedItem(getStage().getEventOrigin());
-    comboBox.setRenderer(new ListCellRendererWrapper<EnergyEventOrigin>() {
-      @Override
-      public void customize(JList list, EnergyEventOrigin value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getLabelString());
-      }
-    });
+    comboBox.setRenderer(SimpleListCellRenderer.create("", EnergyEventOrigin::getLabelString));
     comboBox.addActionListener(e -> {
       Object origin = comboBox.getSelectedItem();
       if (origin instanceof EnergyEventOrigin) {
