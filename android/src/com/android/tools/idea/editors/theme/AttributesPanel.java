@@ -53,7 +53,7 @@ public class AttributesPanel {
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;
   private JBScrollPane myPaletteScrollPane;
-  private JComboBox myModuleCombo;
+  private JComboBox<Module> myModuleCombo;
   private JBLabel myThemeLabel;
   private JBLabel myModuleLabel;
   private HyperlinkLabel myThemeWarning;
@@ -114,12 +114,7 @@ public class AttributesPanel {
     myThemeCombo.setName(THEME_SELECTOR_NAME);
     myModuleCombo.setName(MODULE_SELECTOR_NAME);
 
-    myModuleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
-      @Override
-      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getName());
-      }
-    });
+    myModuleCombo.setRenderer(SimpleListCellRenderer.create("", Module::getName));
 
     myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 

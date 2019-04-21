@@ -15,19 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
-
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
-import com.android.tools.idea.npw.assetstudio.IconCategory;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
@@ -59,39 +51,29 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.AsyncProcessIcon;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 
 /**
  * A panel which presents a UI for selecting some source asset and converting it to a target set of
@@ -187,14 +169,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
-    myPreviewResolutionComboBox.setRenderer(new ListCellRendererWrapper<Density>() {
-      @Override
-      public void customize(JList list, Density value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          setText(value.getResourceValue());
-        }
-      }
-    });
+    myPreviewResolutionComboBox.setRenderer(
+      SimpleListCellRenderer.create("", Density::getResourceValue));
     DefaultComboBoxModel<Density> densitiesModel = new DefaultComboBoxModel<>();
     densitiesModel.addElement(Density.MEDIUM);
     densitiesModel.addElement(Density.HIGH);

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
-
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
@@ -33,26 +31,11 @@ import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.IntProperty;
-import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.observable.core.ObjectValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.OptionalValueProperty;
-import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.ui.ColorProperty;
-import com.android.tools.idea.observable.ui.EnabledProperty;
-import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
-import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
-import com.android.tools.idea.observable.ui.SliderValueProperty;
-import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.observable.ui.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.ImmutableMap;
@@ -62,32 +45,25 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.awt.Color;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSlider;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 
 /**
  * A panel which allows the configuration of an icon, by specifying the source asset used to
@@ -324,12 +300,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     for (Shape shape : myShapeNames.keySet()) {
       legacyShapesModel.addElement(shape);
     }
-    myLegacyIconShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
-      @Override
-      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
-        setText(myShapeNames.get(shape));
-      }
-    });
+    myLegacyIconShapeComboBox.setRenderer(SimpleListCellRenderer.create("", myShapeNames::get));
     myLegacyIconShapeComboBox.setModel(legacyShapesModel);
     myLegacyIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 
@@ -337,12 +308,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     for (Shape shape : myShapeNames.keySet()) {
       webShapesModel.addElement(shape);
     }
-    myWebIconShapeComboBox.setRenderer(new ListCellRendererWrapper<Shape>() {
-      @Override
-      public void customize(JList list, Shape shape, int index, boolean selected, boolean hasFocus) {
-        setText(myShapeNames.get(shape));
-      }
-    });
+    myWebIconShapeComboBox.setRenderer(SimpleListCellRenderer.create("", myShapeNames::get));
     myWebIconShapeComboBox.setModel(webShapesModel);
     myWebIconShapeComboBox.setSelectedItem(Shape.SQUARE);
 

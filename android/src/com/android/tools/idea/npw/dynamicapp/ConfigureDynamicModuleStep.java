@@ -15,16 +15,6 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.tools.adtui.validation.Validator.Result.OK;
-import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
-import static java.lang.String.format;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
-import static org.jetbrains.android.util.AndroidBundle.message;
-
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -39,12 +29,7 @@ import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
@@ -59,24 +44,26 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.Image;
-import java.util.Collection;
-import java.util.Collections;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Collection;
+import java.util.Collections;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
+import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static java.lang.String.format;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
@@ -243,18 +230,15 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   private void createUIComponents() {
     myBaseApplication = new ComboBox<>(new DefaultComboBoxModel<>());
-    myBaseApplication.setRenderer(new ListCellRendererWrapper<Module>() {
-      @Override
-      public void customize(JList list, Module module, int index, boolean selected, boolean hasFocus) {
-        if (module == null) {
-          setText(message("android.wizard.module.config.new.base.missing"));
-        }
-        else {
-          setIcon(ModuleType.get(module).getIcon());
-          setText(module.getName());
-        }
+    myBaseApplication.setRenderer(SimpleListCellRenderer.create((label, module, index) -> {
+      if (module == null) {
+        label.setText(message("android.wizard.module.config.new.base.missing"));
       }
-    });
+      else {
+        label.setIcon(ModuleType.get(module).getIcon());
+        label.setText(module.getName());
+      }
+    }));
 
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControls.showStatsPanel(false);

@@ -68,7 +68,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private JTextField myScreenResolutionHeight;
   private SkinChooser myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
-  private ComboBox myDeviceTypeComboBox;
+  private ComboBox<IdDisplay> myDeviceTypeComboBox;
   private JTextField myDiagonalScreenSize;
   private StorageField myRamField;
   private JComboBox myNavigationControlsCombo;
@@ -97,17 +97,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(AvdWizardUtils.ALL_DEVICE_TAGS));
 
-    myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
-      @Override
-      public void customize(JList list, IdDisplay value, int index, boolean selected, boolean hasFocus) {
-        if (value == null || SystemImage.DEFAULT_TAG.equals(value)) {
-          setText(DEFAULT_DEVICE_TYPE_LABEL);
-        }
-        else {
-          setText(value.getDisplay());
-        }
-      }
-    });
+    myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
+      DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImage.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
 

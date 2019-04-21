@@ -15,22 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
-
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
-import com.android.tools.idea.npw.assetstudio.GraphicGeneratorContext;
-import com.android.tools.idea.npw.assetstudio.IconCategory;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.*;
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
@@ -57,38 +46,30 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SwingConstants;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -155,12 +136,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     for (NamedModuleTemplate template : templates) {
       moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
-      @Override
-      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
-        setText(template.getName());
-      }
-    });
+    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);

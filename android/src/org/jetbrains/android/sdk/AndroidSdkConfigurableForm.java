@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -44,14 +44,14 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
  * @author Eugene.Kudelevsky
  */
 class AndroidSdkConfigurableForm {
-  private JComboBox myInternalJdkComboBox;
+  private JComboBox<Sdk> myInternalJdkComboBox;
   private JPanel myContentPanel;
-  private JComboBox myBuildTargetComboBox;
+  private JComboBox<IAndroidTarget> myBuildTargetComboBox;
 
-  private final DefaultComboBoxModel myJdksModel = new DefaultComboBoxModel();
+  private final DefaultComboBoxModel<Sdk> myJdksModel = new DefaultComboBoxModel<>();
   private final SdkModel mySdkModel;
 
-  private final DefaultComboBoxModel myBuildTargetsModel = new DefaultComboBoxModel();
+  private final DefaultComboBoxModel<IAndroidTarget> myBuildTargetsModel = new DefaultComboBoxModel<>();
   private String mySdkLocation;
 
   private boolean myFreeze = false;
@@ -59,27 +59,17 @@ class AndroidSdkConfigurableForm {
   AndroidSdkConfigurableForm(@NotNull SdkModel sdkModel, @NotNull final SdkModificator sdkModificator) {
     mySdkModel = sdkModel;
     myInternalJdkComboBox.setModel(myJdksModel);
-    myInternalJdkComboBox.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof Sdk) {
-          setText(((Sdk)value).getName());
-        }
-      }
-    });
+    myInternalJdkComboBox.setRenderer(SimpleListCellRenderer.create("", Sdk::getName));
     myBuildTargetComboBox.setModel(myBuildTargetsModel);
 
-    myBuildTargetComboBox.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof IAndroidTarget) {
-          setText(AndroidSdkUtils.getTargetPresentableName((IAndroidTarget)value));
-        }
-        else if (value == null) {
-          setText("<html><font color='#" + ColorUtil.toHex(JBColor.RED)+ "'>[none]</font></html>");
-        }
+    myBuildTargetComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value != null) {
+        label.setText(AndroidSdkUtils.getTargetPresentableName(value));
       }
-    });
+      else {
+        label.setText("<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>[none]</font></html>");
+      }
+    }));
 
     myBuildTargetComboBox.addItemListener(e -> {
       if (myFreeze) {
@@ -141,7 +131,7 @@ class AndroidSdkConfigurableForm {
 
     if (androidSdk != null) {
       for (int i = 0; i < myJdksModel.getSize(); i++) {
-        if (Comparing.strEqual(((Sdk)myJdksModel.getElementAt(i)).getName(), jdkName)) {
+        if (Comparing.strEqual(myJdksModel.getElementAt(i).getName(), jdkName)) {
           myInternalJdkComboBox.setSelectedIndex(i);
           break;
         }
@@ -176,7 +166,7 @@ class AndroidSdkConfigurableForm {
 
     if (buildTarget != null) {
       for (int i = 0; i < myBuildTargetsModel.getSize(); i++) {
-        IAndroidTarget target = (IAndroidTarget)myBuildTargetsModel.getElementAt(i);
+        IAndroidTarget target = myBuildTargetsModel.getElementAt(i);
         if (buildTarget.hashString().equals(target.hashString())) {
           myBuildTargetComboBox.setSelectedIndex(i);
           return;

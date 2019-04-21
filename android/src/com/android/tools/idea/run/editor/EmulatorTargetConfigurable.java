@@ -31,7 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.JBUI;
@@ -76,17 +76,14 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
     myAvdCombo.startUpdatingAvds(ModalityState.current());
 
     JComboBox avdComboBox = myAvdCombo.getComboBox();
-    avdComboBox.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof IdDisplay) {
-          setText(((IdDisplay)value).getDisplay());
-        }
-        else {
-          setText(String.format("<html><font color='red'>Unknown AVD %1$s</font></html>", value == null ? "" : value.toString()));
-        }
+    avdComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value instanceof IdDisplay) {
+        label.setText(((IdDisplay)value).getDisplay());
       }
-    });
+      else {
+        label.setText(String.format("<html><font color='red'>Unknown AVD %1$s</font></html>", value == null ? "" : value.toString()));
+      }
+    }));
 
     avdComboBox.addActionListener(e -> resetAvdCompatibilityWarningLabel());
 

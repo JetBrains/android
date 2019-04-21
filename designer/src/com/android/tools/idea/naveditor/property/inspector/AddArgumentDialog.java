@@ -37,10 +37,10 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.MutableCollectionComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.Functions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,19 +100,14 @@ public class AddArgumentDialog extends DialogWrapper {
     for (Type t : Type.values()) {
       myTypeComboBox.addItem(t);
     }
-    myTypeComboBox.setRenderer(new ListCellRendererWrapper<Type>() {
-      @Override
-      public void customize(JList list, Type value, int index, boolean isSelected, boolean hasFocus) {
-        if (index == -1 && value == Type.CUSTOM) {
-          setText(myCustomType);
-        }
-        else {
-          setText(value.display);
-        }
-        setBackground(UIUtil.getListBackground(isSelected));
-        setForeground(UIUtil.getListForeground(isSelected));
+    myTypeComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (index == -1 && value == Type.CUSTOM) {
+        label.setText(myCustomType);
       }
-    });
+      else {
+        label.setText(value.display);
+      }
+    }));
 
     myTypeComboBox.setEditable(false);
 
@@ -138,12 +133,7 @@ public class AddArgumentDialog extends DialogWrapper {
       }
     });
 
-    myDefaultValueComboBox.setRenderer(new ListCellRendererWrapper<String>() {
-      @Override
-      public void customize(JList list, String value, int index, boolean selected, boolean hasFocus) {
-        setText(value == null ? "No default value" : value);
-      }
-    });
+    myDefaultValueComboBox.setRenderer(SimpleListCellRenderer.create("No default value", Functions.id()));
   }
 
   @VisibleForTesting
