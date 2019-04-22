@@ -84,8 +84,6 @@ PROJECT             : testSyncKotlinProject
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
             JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -1041,10 +1039,6 @@ PROJECT             : testSyncKotlinProject
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/contentLib
-            JavaSource          : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
-            JavaSource (test)   : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
-            JavaSource          : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main
-            JavaSource (test)   : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test
             JavaSource          : file://<PROJECT>/contentLib/src/main/java
             JavaSource          : file://<PROJECT>/contentLib/src/main/kotlin
             JavaResource        : file://<PROJECT>/contentLib/src/main/resources [-]
