@@ -168,13 +168,18 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
 
   /** Select all possible bits in the mask. This may be just 1 flag or may be all non zero value flags */
   fun selectAll() {
-    selectedItems.clear()
-    val flag = flagsProperty.children.firstOrNull { it.maskValue == maskAll }
-    if (flag != null) {
-      selectedItems.add(flag.name)
+    if (filter.isEmpty()) {
+      selectedItems.clear()
+      val flag = flagsProperty.children.firstOrNull { it.maskValue == maskAll }
+      if (flag != null) {
+        selectedItems.add(flag.name)
+      }
+      else {
+        flagsProperty.children.filter { it.maskValue != 0 }.forEach { selectedItems.add(it.name) }
+      }
     }
     else {
-      flagsProperty.children.filter { it.maskValue != 0 }.forEach { selectedItems.add(it.name) }
+      flagsProperty.children.filter { isMatch(it.name) }.forEach { selectedItems.add(it.name) }
     }
     computeDialogState()
   }
@@ -184,10 +189,18 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
    * If a default value is set use the zeroValue. Otherwise just remove all flags.
    */
   fun clearAll() {
-    selectedItems.clear()
-    val zeroValue = zeroValue
-    if (zeroValue != null) {
-      selectedItems.add(zeroValue)
+    if (filter.isEmpty()) {
+      selectedItems.clear()
+    }
+    else {
+      selectedItems.removeIf { isMatch(it) }
+      filter = ""
+    }
+    if (selectedItems.isEmpty()) {
+      val zeroValue = zeroValue
+      if (zeroValue != null) {
+        selectedItems.add(zeroValue)
+      }
     }
     computeDialogState()
   }
