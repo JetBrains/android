@@ -206,4 +206,9 @@ public class JdkSetupStep extends FirstRunWizardStep {
     String jdkLocation = myJdkLocationTextField.getText();
     return toSystemDependentPath(jdkLocation);
   }
+
+  @Override
+  public boolean isStepVisible(){
+    return false;
+  }
 }
