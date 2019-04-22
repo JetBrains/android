@@ -145,7 +145,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
   @Nullable
   @Override
-  public ConfigurationFromContext createConfigurationFromContext(ConfigurationContext context) {
+  public ConfigurationFromContext createConfigurationFromContext(@NotNull ConfigurationContext context) {
     return AndroidUtils.getAndroidModule(context) == null ? null : super.createConfigurationFromContext(context);
   }
 
