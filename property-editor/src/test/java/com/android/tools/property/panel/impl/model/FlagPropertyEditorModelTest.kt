@@ -268,6 +268,40 @@ class FlagPropertyEditorModelTest {
     assertThat(gravity.value).isNull()
   }
 
+  @Test
+  fun testSelectAllWithFilterSet() {
+    val autoLink = createAutoLink("phone|map|perm|all")
+    val model = createModel(autoLink)
+    model.filter = "p"
+    model.clearAll()
+    assertThat(model.isSelected("none")).isFalse()
+    assertThat(model.isSelected("phone")).isTrue()
+    assertThat(model.isEnabled("phone")).isFalse()
+    assertThat(model.isSelected("map")).isTrue()
+    assertThat(model.isSelected("perm")).isTrue()
+    assertThat(model.isEnabled("perm")).isFalse()
+    assertThat(model.isSelected("all")).isTrue()
+
+    model.applyChanges()
+    assertThat(autoLink.value).isEqualTo("map|all")
+  }
+
+  @Test
+  fun testClearAllWithFilterSet() {
+    val autoLink = createAutoLink()
+    val model = createModel(autoLink)
+    model.filter = "p"
+    model.selectAll()
+    assertThat(model.isSelected("none")).isFalse()
+    assertThat(model.isSelected("phone")).isTrue()
+    assertThat(model.isSelected("map")).isFalse()
+    assertThat(model.isSelected("perm")).isTrue()
+    assertThat(model.isSelected("all")).isFalse()
+
+    model.applyChanges()
+    assertThat(autoLink.value).isEqualTo("phone|perm")
+  }
+
   private fun createAutoLink(initialValue: String? = null): FlagsPropertyItem<FlagPropertyItem> {
     return FakeFlagsPropertyItem(
         ANDROID_URI,
