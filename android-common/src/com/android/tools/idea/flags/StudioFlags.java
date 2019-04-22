@@ -450,6 +450,10 @@ public final class StudioFlags {
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
     "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
 
+  public static final Flag<Boolean> APK_DEBUG_RELOAD = Flag.create(
+    NDK, "apkdebugreload", "Enable APK reloading feature",
+    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", false);
+
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
