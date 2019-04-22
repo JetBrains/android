@@ -133,37 +133,6 @@ class LocalApkProjTest {
     val ideFrame = guiTest.importProject(apkProjectToImport)
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120))
 
-    // TODO remove the following hack: b/110174414
-    val androidSdk = IdeSdks.getInstance().androidSdkPath
-    val ninja = File(androidSdk, "cmake/3.10.4819442/bin/ninja")
-
-    val buildGradleFailure = AtomicReference<IOException>()
-    ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(ideFrame.project) {
-        val pbm = ProjectBuildModel.get(ideFrame.project)
-        val buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"))
-        val cmakeModel = buildModel!!
-          .android()
-          .defaultConfig()
-          .externalNativeBuild()
-          .cmake()
-
-        val cmakeArgsModel = cmakeModel.arguments()
-        try {
-          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.canonicalPath)
-          buildModel.applyChanges()
-        }
-        catch (failureToWrite: IOException) {
-          buildGradleFailure.set(failureToWrite)
-        }
-      }
-    }
-    val errorsWhileModifyingBuild = buildGradleFailure.get()
-    if (errorsWhileModifyingBuild != null) {
-      throw IllegalStateException(errorsWhileModifyingBuild)
-    }
-    // TODO end hack for b/110174414
-
     ideFrame.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
     val projectRoot = ideFrame.getProjectPath()
