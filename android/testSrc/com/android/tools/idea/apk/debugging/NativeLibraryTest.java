@@ -53,7 +53,6 @@ public class NativeLibraryTest extends IdeaTestCase {
     List<String> filePaths = getPaths(files);
 
     myLibrary.setSharedObjectFilePaths(filePaths);
-
     assertThat(myLibrary.abis).containsExactly(X86, ARM64_V8A);
     assertEquals(ARM64_V8A, myLibrary.abis.get(0)); // Should be sorted.
     assertThat(myLibrary.getSharedObjectFiles()).containsAllIn(files);
@@ -65,7 +64,32 @@ public class NativeLibraryTest extends IdeaTestCase {
     filePaths.add("abc.so");
 
     myLibrary.setSharedObjectFilePaths(filePaths);
+    assertThat(myLibrary.abis).isEmpty();
+    assertThat(myLibrary.sharedObjectFilesByAbi).isEmpty();
+  }
 
+  public void testSetFilePathsAgain() throws IOException {
+    Collection<VirtualFile> files = doCreateSharedObjectFiles(X86, ARM64_V8A);
+    List<String> filePaths = getPaths(files);
+
+    myLibrary.setSharedObjectFilePaths(filePaths);
+    assertThat(myLibrary.abis).containsExactly(X86, ARM64_V8A);
+    assertEquals(ARM64_V8A, myLibrary.abis.get(0)); // Should be sorted.
+    assertThat(myLibrary.getSharedObjectFiles()).containsAllIn(files);
+    assertThat(myLibrary.getSharedObjectFilePaths()).containsAllIn(filePaths);
+
+
+    // Set it again and verify that nothing is accumulated from previous call.
+    myLibrary.setSharedObjectFilePaths(filePaths);
+    assertThat(myLibrary.abis).containsExactly(X86, ARM64_V8A);
+    assertEquals(ARM64_V8A, myLibrary.abis.get(0)); // Should be sorted.
+    assertThat(myLibrary.getSharedObjectFiles()).containsAllIn(files);
+    assertThat(myLibrary.getSharedObjectFilePaths()).containsAllIn(filePaths);
+
+    // Set it again, this time to non-existing paths to verify nothing is carried over from previous call.
+    filePaths.clear();
+    filePaths.add("abc.so");
+    myLibrary.setSharedObjectFilePaths(filePaths);
     assertThat(myLibrary.abis).isEmpty();
     assertThat(myLibrary.sharedObjectFilesByAbi).isEmpty();
   }
