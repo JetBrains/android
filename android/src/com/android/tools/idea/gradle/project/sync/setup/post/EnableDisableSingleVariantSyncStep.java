@@ -18,15 +18,13 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.BUILDSRC_MODULE;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.ELIGIBLE;
-import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.KOTLIN_MPP;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.KOTLIN;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.OLD_PLUGIN;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.PURE_JAVA;
 import static com.google.common.base.Strings.nullToEmpty;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels;
 import com.intellij.facet.Facet;
@@ -82,13 +80,7 @@ public class EnableDisableSingleVariantSyncStep {
         // kotlin module. Old sync relies on this check.
         // Hard-code kotlin facet name, because kotlin plugin didn't provide access to it, also good to avoid adding extra dependency on kotlin plugin.
         if ("Kotlin".equals(facet.getName())) {
-          if (!hasKotlinPlugin(module)) {
-            return OLD_PLUGIN;
-          }
-          // TODO: Add a MPP test for this once we have a correctly syncing project in test data.
-          else if (hasMPPPlugin(module)) {
-            return KOTLIN_MPP;
-          }
+          return KOTLIN;
         }
       }
     }
@@ -113,27 +105,6 @@ public class EnableDisableSingleVariantSyncStep {
       }
     }
     return projectRoots.stream().anyMatch(path -> SyncProjectModels.hasBuildSrcModule(path));
-  }
-
-  // Returns true if the module has kotlin plugin applied.
-  static boolean hasKotlinPlugin(@NotNull Module module) {
-    return doesModuleContainPlugin(module, "org.jetbrains.kotlin");
-  }
-
-  static boolean hasMPPPlugin(@NotNull Module module) {
-    return doesModuleContainPlugin(module, "org.jetbrains.kotlin.multiplatform");
-  }
-
-  static boolean doesModuleContainPlugin(@NotNull Module module, @NotNull String pluginId) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    if (gradleFacet != null) {
-      GradleModuleModel moduleModel = gradleFacet.getGradleModuleModel();
-      if (moduleModel != null) {
-        List<String> plugins = moduleModel.getGradlePlugins();
-        return plugins.stream().anyMatch(p -> p.startsWith(pluginId));
-      }
-    }
-    return false;
   }
 
   enum EligibilityState {
@@ -162,11 +133,11 @@ public class EnableDisableSingleVariantSyncStep {
       }
     },
     // The project contains a Kotlin MPP modules
-    KOTLIN_MPP {
+    KOTLIN {
       @Override
       @NotNull
       String getReason() {
-        return "uses Kotlin MPP";
+        return "use Kotlin";
       }
     },
     // The project contains buildSrc modules
@@ -174,7 +145,7 @@ public class EnableDisableSingleVariantSyncStep {
       @Override
       @NotNull
       String getReason() {
-        return "contains buildSrc module";
+        return "contain buildSrc module";
       }
     };
 

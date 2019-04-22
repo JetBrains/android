@@ -126,9 +126,9 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     // Request Gradle sync.
     requestSyncAndWait();
 
-    // Verify that project is set as still eligible for single-variant.
-    assertFalse(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertTrue(NewGradleSync.isSingleVariantSync(getProject()));
+    // Verify that project is not eligible for single-variant.
+    assertTrue(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
+    assertFalse(NewGradleSync.isSingleVariantSync(getProject()));
   }
 
   public void testSyncProjectWithBuildSrcModule() throws Exception {
