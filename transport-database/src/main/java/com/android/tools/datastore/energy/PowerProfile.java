@@ -15,16 +15,15 @@
  */
 package com.android.tools.datastore.energy;
 
-import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.Network;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Returns the current used for performing various operations. All methods return values in
@@ -50,7 +49,7 @@ public interface PowerProfile {
     NONE;
 
     @NotNull
-    public static NetworkType from(NetworkProfiler.ConnectivityData.NetworkType protoNetworkType) {
+    public static NetworkType from(Network.NetworkTypeData.NetworkType protoNetworkType) {
       switch (protoNetworkType) {
         case MOBILE:
           return RADIO;
