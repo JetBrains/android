@@ -16,7 +16,6 @@
 package com.android.tools.idea.memorysettings;
 
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
@@ -30,6 +29,7 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -115,6 +115,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     private ComboBox myKotlinDaemonXmxBox;
     private JBLabel myDaemonInfoLabel;
     private HyperlinkLabel myShowDaemonsLabel;
+    private JBLabel myIdeBottomLabel;
+    private JBLabel myIdeInfoLabel;
     private Project myProject;
     private int myCurrentIdeXmx;
     private int myRecommendedIdeXmx;
@@ -139,12 +141,15 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
 
     private void setUI() {
-      if (myRecommendedIdeXmx > 0) {
-        myInfoLabel.setIcon(AllIcons.General.BalloonInformation);
-        myInfoLabel.setText(XmlStringUtil.wrapInHtml(
-          AndroidBundle.message("memory.settings.panel.info", memSizeText(myRecommendedIdeXmx))));
+      myInfoLabel.setText(XmlStringUtil.wrapInHtml("<body>" + AndroidBundle.message("memory.settings.panel.top.message") + "</body>"));
+      myIdeBottomLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.ide.bottom.message")));
+      myIdeBottomLabel.setFontColor(UIUtil.FontColor.BRIGHTER);
 
-        myApplyRecommendationLabel.setHyperlinkText("Use recommended values");
+      if (myRecommendedIdeXmx > 0) {
+        myIdeInfoLabel.setText(XmlStringUtil.wrapInHtml(
+          AndroidBundle.message("memory.settings.panel.ide.info", memSizeText(myRecommendedIdeXmx))));
+
+        myApplyRecommendationLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.use.recommended.values"));
         myApplyRecommendationLabel.addHyperlinkListener(new HyperlinkAdapter() {
            @Override
            protected void hyperlinkActivated(HyperlinkEvent e) {
@@ -157,7 +162,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
            }
          });
        } else {
-         myInfoLabel.setVisible(false);
+         myIdeInfoLabel.setVisible(false);
          myApplyRecommendationLabel.setVisible(false);
        }
 
@@ -331,7 +336,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       if (isIdeXmxModified()) {
         MemorySettingsUtil.saveXmx(mySelectedIdeXmx);
         myCurrentIdeXmx = mySelectedIdeXmx;
-        if (Messages.showOkCancelDialog(AndroidBundle.message("memory.settings.restart.needed"),
+        if (Messages.showOkCancelDialog(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.restart.needed")),
                                         IdeBundle.message("title.restart.needed"),
                                         Messages.getQuestionIcon()) == Messages.OK) {
           ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
