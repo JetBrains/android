@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
+import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.OptionalInt;
@@ -28,8 +30,9 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
   SelectDeploymentTargetsDialogTable(@NotNull SelectDeploymentTargetsDialogTableModel model) {
     super(model);
 
+    getTableHeader().setResizingAllowed(false);
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
-    setTableHeader(null);
+    setRowHeight(JBUI.scale(30));
 
     model.addTableModelListener(this::synchronizeRowSelectionWithSelectedColumn);
     model.addTableModelListener(event -> setSelectedAndIconColumnMaxWidthsToFit());
@@ -61,7 +64,7 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
   }
 
   private void setMaxWidthToFit(int viewColumnIndex) {
-    OptionalInt maxPreferredWidth = IntStream.range(0, getRowCount())
+    OptionalInt maxPreferredWidth = IntStream.range(-1, getRowCount())
       .map(viewRowIndex -> getPreferredWidth(viewRowIndex, viewColumnIndex))
       .max();
 
@@ -69,7 +72,17 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
   }
 
   private int getPreferredWidth(int viewRowIndex, int viewColumnIndex) {
-    return prepareRenderer(getCellRenderer(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex).getPreferredSize().width + 1;
+    Component component;
+
+    if (viewRowIndex == -1) {
+      Object name = getColumnName(viewColumnIndex);
+      component = getTableHeader().getDefaultRenderer().getTableCellRendererComponent(this, name, false, false, -1, viewColumnIndex);
+    }
+    else {
+      component = prepareRenderer(getCellRenderer(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex);
+    }
+
+    return component.getPreferredSize().width + JBUI.scale(8);
   }
 
   private void synchronizeSelectedColumnWithRowSelection() {
