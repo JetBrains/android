@@ -83,7 +83,7 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
   }
 
   @Override
-  public boolean isConfigurationFromContext(AndroidJUnitConfiguration unitConfiguration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull AndroidJUnitConfiguration unitConfiguration, @NotNull ConfigurationContext context) {
     if (JUnitConfiguration.TEST_PATTERN.equals(unitConfiguration.getPersistentData().TEST_OBJECT)) {
       Set<String> patterns = unitConfiguration.getPersistentData().getPatterns();
       if (isConfiguredFromContext(context, patterns)) {
