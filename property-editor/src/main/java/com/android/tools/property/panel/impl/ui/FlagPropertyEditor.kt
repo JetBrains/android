@@ -135,14 +135,17 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
 
   private fun addLinks() {
     val font = UIUtil.getLabelFont()
-    val smallerFont = font.deriveFont(font.size * 0.7f)
+    val smallerFont = font.deriveFont(font.size2D * 0.9f)
     val selectAll = HyperlinkLabel("Select all")
     selectAll.font = smallerFont
     selectAll.addHyperlinkListener { editorModel.selectAll() }
-    val clearAll = HyperlinkLabel("Clear all")
+    val clearAll = HyperlinkLabel("Clear")
     clearAll.font = smallerFont
-    clearAll.addHyperlinkListener { editorModel.clearAll() }
-    val links = AdtSecondaryPanel(BorderLayout())
+    clearAll.addHyperlinkListener {
+      editorModel.clearAll()
+      searchField.text = ""
+    }
+    val links = AdtSecondaryPanel(BorderLayout(JBUI.scale(5), 0))
     links.font = smallerFont
     links.border = JBUI.Borders.empty(5)
     links.add(selectAll, BorderLayout.WEST)
