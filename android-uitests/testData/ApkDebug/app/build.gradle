@@ -15,6 +15,11 @@ android {
         targetSdkVersion 25
         versionCode  1
         versionName  "1.0"
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_MAKE_PROGRAM=${sdkDirectory}/cmake/3.10.4819442/bin/ninja"
+            }
+        }
     }
     buildTypes {
         release {
