@@ -33,6 +33,7 @@ import static com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRespon
 import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import io.grpc.stub.StreamObserver;
@@ -183,7 +184,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   }
 
   @NotNull
-  public static NetworkProfilerData newRadioData(long timestampSec, @NotNull ConnectivityData.NetworkType networkType) {
+  public static NetworkProfilerData newRadioData(long timestampSec, @NotNull Network.NetworkTypeData.NetworkType networkType) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
     builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setConnectivityData(ConnectivityData.newBuilder()

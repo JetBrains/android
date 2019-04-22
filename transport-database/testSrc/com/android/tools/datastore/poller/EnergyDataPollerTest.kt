@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.CpuServiceGrpc
 import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyServiceGrpc
+import com.android.tools.profiler.proto.Network
 import com.android.tools.profiler.proto.NetworkProfiler
 import com.android.tools.profiler.proto.NetworkServiceGrpc
 import com.android.tools.profiler.proto.ProfilerServiceGrpc
@@ -62,11 +63,11 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     private val THREE_FOURTH_SEC_MS = ONE_SEC_MS * 3 / 4
 
     private val NETWORK_WIFI_STATE = NetworkProfiler.ConnectivityData.newBuilder()
-      .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
+      .setNetworkType(Network.NetworkTypeData.NetworkType.WIFI)
       .build()
 
     private val NETWORK_RADIO_STATE = NetworkProfiler.ConnectivityData.newBuilder()
-      .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.MOBILE)
+      .setNetworkType(Network.NetworkTypeData.NetworkType.MOBILE)
       .build()
   }
 
