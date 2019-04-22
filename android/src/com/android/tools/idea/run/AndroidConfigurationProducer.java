@@ -91,7 +91,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   }
 
   @Override
-  public boolean isConfigurationFromContext(AndroidRunConfiguration configuration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull AndroidRunConfiguration configuration, @NotNull ConfigurationContext context) {
     final PsiClass activity = getActivityClass(context);
     if (activity == null) {
       return false;

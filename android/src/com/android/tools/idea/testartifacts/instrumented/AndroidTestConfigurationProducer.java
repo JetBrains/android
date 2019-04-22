@@ -222,7 +222,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   @Override
-  public boolean isConfigurationFromContext(AndroidTestRunConfiguration configuration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull AndroidTestRunConfiguration configuration, @NotNull ConfigurationContext context) {
     Location location = context.getLocation();
     Module contextModule = AndroidUtils.getAndroidModule(context);
 

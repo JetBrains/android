@@ -116,7 +116,7 @@ final class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPro
   }
 
   @Override
-  public boolean isConfigurationFromContext(JUnitConfiguration unitConfiguration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull JUnitConfiguration unitConfiguration, @NotNull ConfigurationContext context) {
     return isFromContext(unitConfiguration, context, getConfigurationFactory());
   }
 }
