@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.BUILDSRC_MODULE;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.ELIGIBLE;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.KOTLIN;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.EligibilityState.PURE_JAVA;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.isEligibleForSingleVariantSync;
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
@@ -45,7 +46,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
 
   public void testIsEligibleWithKotlinModule() throws Exception {
     loadProject(KOTLIN_GRADLE_DSL);
-    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(getProject()));
+    assertEquals(KOTLIN, isEligibleForSingleVariantSync(getProject()));
   }
 
   public void testIsEligibleWithPureJavaProject() throws Exception {
@@ -65,7 +66,7 @@ public class EnableDisableSingleVariantSyncStepTest extends AndroidGradleTestCas
   public void testIsEligibleWithKotlinModuleWithNewSync() throws Exception {
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     loadProject(KOTLIN_GRADLE_DSL);
-    assertEquals(ELIGIBLE, isEligibleForSingleVariantSync(getProject()));
+    assertEquals(KOTLIN, isEligibleForSingleVariantSync(getProject()));
     StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
   }
 
