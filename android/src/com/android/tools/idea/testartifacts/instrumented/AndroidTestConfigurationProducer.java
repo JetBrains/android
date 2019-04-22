@@ -150,9 +150,9 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(AndroidTestRunConfiguration configuration,
-                                                  ConfigurationContext context,
-                                                  Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(@NotNull AndroidTestRunConfiguration configuration,
+                                                  @NotNull ConfigurationContext context,
+                                                  @NotNull Ref<PsiElement> sourceElement) {
     Module module = AndroidUtils.getAndroidModule(context);
     if (module == null) {
       return false;
