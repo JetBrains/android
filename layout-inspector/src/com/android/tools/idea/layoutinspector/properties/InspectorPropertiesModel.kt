@@ -81,7 +81,13 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun handleModelChange(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
-    layoutInspector?.layoutInspectorModel?.selection?.let { provider.requestProperties(it) }
+    val selection = layoutInspector?.layoutInspectorModel?.selection
+    if (selection != null && client?.isConnected == true) {
+      provider.requestProperties(selection)
+    } else {
+      properties = PropertiesTable.emptyTable()
+      firePropertiesGenerated()
+    }
   }
 
   private fun loadProperties(event: LayoutInspectorEvent) {

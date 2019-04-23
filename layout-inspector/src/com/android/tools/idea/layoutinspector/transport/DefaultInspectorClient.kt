@@ -30,6 +30,7 @@ import com.android.tools.profiler.proto.Transport
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.containers.ContainerUtil
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedList
@@ -49,10 +50,15 @@ object DefaultInspectorClient : InspectorClient {
   // TODO: Hook this up based on status of the connection
   private var captureStarted = false
 
+  private val endListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
 
   override var isConnected = false
     private set
+
+  init {
+    registerProcessEnded()
+  }
 
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
@@ -70,6 +76,28 @@ object DefaultInspectorClient : InspectorClient {
           it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
         callback(it.layoutInspectorEvent)
         lastResponseTimePerGroup[it.groupId] = it.timestamp
+      }
+    })
+  }
+
+  override fun registerProcessEnded(callback: () -> Unit) {
+    endListeners.add(callback)
+  }
+
+  private fun registerProcessEnded() {
+    // TODO: unregister listeners
+    transportPoller.registerListener(TransportEventListener(
+      eventKind = Common.Event.Kind.PROCESS,
+      executor = MoreExecutors.directExecutor(),
+      streamId = selectedStream::getStreamId,
+      groupId = { selectedProcess.pid.toLong() },
+      processId = selectedProcess::getPid) {
+      if (selectedStream != Common.Stream.getDefaultInstance() &&
+          selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
+        selectedStream = Common.Stream.getDefaultInstance()
+        selectedProcess = Common.Process.getDefaultInstance()
+        isConnected = false
+        endListeners.forEach { it() }
       }
     })
   }
@@ -176,9 +204,9 @@ object DefaultInspectorClient : InspectorClient {
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
       isConnected = true
-      execute(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START).build())
-      // TODO: verify that capture started successfully
+      execute(LayoutInspectorCommand.Type.START)
 
+      // TODO: verify that capture started successfully
       transportPoller.unregisterListener(listener)
     }
     transportPoller.registerListener(listener)
