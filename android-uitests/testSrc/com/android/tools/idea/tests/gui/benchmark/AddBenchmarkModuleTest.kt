@@ -61,8 +61,8 @@ class AddBenchmarkModuleTest {
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
    * is set to false.
    * 3. Open build.gradle and check that it applies both com.android.library,
-   * androidx.benchmark plugins, and the benchmark library added as a androidTest
-   * dependency.
+   * androidx.benchmark plugins, the test runner, and the benchmark library added
+   * as a androidTest dependency.
    */
   @Test
   @Throws(Exception::class)
@@ -90,7 +90,8 @@ class AddBenchmarkModuleTest {
       .currentFileContents.run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
+      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:'""")
     }
   }
 
