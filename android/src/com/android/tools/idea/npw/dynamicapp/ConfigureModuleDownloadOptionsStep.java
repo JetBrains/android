@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicFeatureModel> {
   private static final String myLinkText = "Learn more";
-  private static final String myLinkUrl = STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/configure";
+  private static final String myLinkUrl = STUDIO_HELP_URL + "r/studio-ui/dynamic-delivery/fusing";
   @NotNull
   private final ValidatorPanel myValidatorPanel;
   @NotNull
@@ -86,7 +86,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
     myHeaderPanel.add(myHeaderInfo);
     SwingHelper.setHtml(myHeaderInfo, "Dynamic feature modules can be delivered on-demand, included at install time," +
                                       " or included conditionally based on device features or user country." +
-                                      " <a href='https://developer.android.com/studio/projects/dynamic-delivery#dynamic_feature_modules'>Learn more</a>",
+                                      " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>",
                         UIUtil.getLabelForeground());
 
     myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallKind.values()));
@@ -126,18 +126,15 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
     if (myFeatureTitleHelp != null) {
       myFeatureTitlePanel.remove(myFeatureTitleHelp);
     }
-    myFeatureTitleHelp = ContextHelpLabel.createWithLink(null,
-                                                         "The platform uses this title to identify the module to users when," +
-                                                         " for example, confirming whether the user wants to download the module.",
-                                                         myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+    myFeatureTitleHelp = ContextHelpLabel.create("The platform uses this title to identify the module to users when," +
+                                                 " for example, confirming whether the user wants to download the module.");
     myFeatureTitlePanel.add(myFeatureTitleHelp);
 
     if (myInstallTimeInclusionHelp != null) {
       myInstallTimeInclusionPanel.remove(myInstallTimeInclusionHelp);
     }
     myInstallTimeInclusionHelp = ContextHelpLabel.
-      createWithLink(null, "Specify whether to include this module at install-time unconditionally, or based on device features.",
-                     myLinkText, () -> BrowserUtil.browse(myLinkUrl));
+      create("Specify whether to include this module at install-time unconditionally, or based on device features.");
     myInstallTimeInclusionPanel.add(myInstallTimeInclusionHelp);
 
     if (myFusingHelp != null) {
