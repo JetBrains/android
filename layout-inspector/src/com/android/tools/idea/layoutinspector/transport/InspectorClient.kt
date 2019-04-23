@@ -73,6 +73,11 @@ interface InspectorClient {
    */
   val isConnected: Boolean
 
+  /**
+   * True, if the current connection is currently receiving live updates.
+   */
+  val isCapturing: Boolean
+
   companion object {
 
     val instance: InspectorClient
