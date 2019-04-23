@@ -129,18 +129,14 @@ class SyncExecutor {
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }
-
-    createGradleProjectSettingsIfNotExist(myProject);
-    // TODO: Handle sync cancellation.
-
-    GradleExecutionSettings executionSettings = findGradleExecutionSettings();
-
-    Function<ProjectConnection, Void> syncFunction = connection -> {
-      syncProject(connection, executionSettings, indicator, callback, options, listener, request, resultHandler, shouldGenerateSources);
-      return null;
-    };
-
     try {
+      createGradleProjectSettingsIfNotExist(myProject);
+      // TODO: Handle sync cancellation.
+      GradleExecutionSettings executionSettings = findGradleExecutionSettings();
+      Function<ProjectConnection, Void> syncFunction = connection -> {
+        syncProject(connection, executionSettings, indicator, callback, options, listener, request, resultHandler, shouldGenerateSources);
+        return null;
+      };
       myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
     }
     catch (Throwable e) {
