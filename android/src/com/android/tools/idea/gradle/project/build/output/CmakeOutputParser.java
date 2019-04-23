@@ -69,19 +69,19 @@ public class CmakeOutputParser implements BuildOutputParser {
         }
       }
 
-      if (matchesErrorFileAndLineNumberError(messages, reader.getBuildId(), messageConsumer) ||
-          matchesFileAndLineNumberError(messages, reader.getBuildId(), messageConsumer)) {
+      if (matchesErrorFileAndLineNumberError(messages, reader.getParentEventId(), messageConsumer) ||
+          matchesFileAndLineNumberError(messages, reader.getParentEventId(), messageConsumer)) {
         return true;
       }
 
       if (messages.get(0).startsWith(CMAKE_ERROR)) {
         messageConsumer.accept(
-          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.ERROR, CMAKE + MESSAGE_GROUP_ERROR_SUFFIX, String.join(" ", messages),
+          new MessageEventImpl(reader.getParentEventId(), MessageEvent.Kind.ERROR, CMAKE + MESSAGE_GROUP_ERROR_SUFFIX, String.join(" ", messages),
                                String.join("\n", messages)));
       }
       else {
         messageConsumer.accept(
-          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.WARNING, CMAKE + MESSAGE_GROUP_WARNING_SUFFIX,
+          new MessageEventImpl(reader.getParentEventId(), MessageEvent.Kind.WARNING, CMAKE + MESSAGE_GROUP_WARNING_SUFFIX,
                                String.join(" ", messages),
                                String.join("\n", messages)));
       }
