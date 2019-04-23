@@ -113,6 +113,6 @@ public final class SelectDeviceAndSnapshotActionTest {
       .build();
 
     // Assert
-    assertEquals("LGE Nexus 5X - 00fff9d2279fa601", action.getTemplatePresentation().getText());
+    assertEquals("LGE Nexus 5X [00fff9d2279fa601]", action.getTemplatePresentation().getText());
   }
 }

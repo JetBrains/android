@@ -25,6 +25,7 @@ final class Devices {
   @NotNull
   static String getName(@NotNull Device device, @NotNull Collection<Device> devices) {
     String name = device.getName();
+    StringBuilder builder = new StringBuilder(name);
 
     boolean match = devices.stream()
       .filter(d -> !d.equals(device))
@@ -32,9 +33,21 @@ final class Devices {
       .anyMatch(name::equals);
 
     if (match) {
-      return name + " - " + device.getKey();
+      builder
+        .append(" [")
+        .append(device.getKey())
+        .append(']');
     }
 
-    return name;
+    String reason = device.getValidityReason();
+
+    if (reason != null) {
+      builder
+        .append(" (")
+        .append(reason)
+        .append(')');
+    }
+
+    return builder.toString();
   }
 }

@@ -58,6 +58,7 @@ final class VirtualDevice extends Device {
     return new Builder()
       .setName(virtualDevice.getName())
       .setValid(connectedDevice.isValid())
+      .setValidityReason(connectedDevice.getValidityReason())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
@@ -85,6 +86,12 @@ final class VirtualDevice extends Device {
     @NotNull
     Builder setValid(boolean valid) {
       myValid = valid;
+      return this;
+    }
+
+    @NotNull
+    Builder setValidityReason(@Nullable String validityReason) {
+      myValidityReason = validityReason;
       return this;
     }
 
@@ -187,6 +194,7 @@ final class VirtualDevice extends Device {
 
     return getName().equals(device.getName()) &&
            isValid() == device.isValid() &&
+           Objects.equals(getValidityReason(), device.getValidityReason()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
@@ -196,6 +204,14 @@ final class VirtualDevice extends Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), isValid(), getKey(), getConnectionTime(), getAndroidDevice(), myConnected, mySnapshots);
+    return Objects.hash(
+      getName(),
+      isValid(),
+      getValidityReason(),
+      getKey(),
+      getConnectionTime(),
+      getAndroidDevice(),
+      myConnected,
+      mySnapshots);
   }
 }
