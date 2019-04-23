@@ -433,7 +433,10 @@ where_clause ::= WHERE expression
 
 from_clause ::= FROM table_or_subquery ( join_operator table_or_subquery join_constraint? )*
 
-result_columns ::= result_column ( ',' result_column )*
+result_columns ::= result_column ( ',' result_column )* {
+  implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
+  methods=[getSqlTable]
+}
 
 select_core_values ::= VALUES '(' expression ( ',' expression )* ')' ( ',' '(' expression ( ',' expression )* ')' )*
 
@@ -458,7 +461,9 @@ table_alias_name ::= name {
 result_column ::=
   '*'
   | selected_table_name '.' '*'
-  | expression ( ( AS )? column_alias_name )?
+  | expression ( ( AS )? column_alias_name )? {
+  methods=[getColumn]
+}
 
 column_alias_name ::= name {
   implements="com.intellij.psi.PsiNamedElement"

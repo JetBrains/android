@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
+import com.android.tools.idea.lang.roomSql.resolution.SqlColumn;
 
 public class RoomResultColumnImpl extends ASTWrapperPsiElement implements RoomResultColumn {
 
@@ -59,6 +60,12 @@ public class RoomResultColumnImpl extends ASTWrapperPsiElement implements RoomRe
   @Nullable
   public RoomSelectedTableName getSelectedTableName() {
     return findChildByClass(RoomSelectedTableName.class);
+  }
+
+  @Override
+  @Nullable
+  public SqlColumn getColumn() {
+    return PsiImplUtil.getColumn(this);
   }
 
 }
