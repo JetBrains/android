@@ -64,6 +64,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     client = layoutInspector?.client
     client?.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
+    client?.registerProcessEnded(::clearComponentTree)
     if (toolContext != null) {
       modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
     }
@@ -72,6 +73,14 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   override fun getComponent() = contentPane
 
   override fun dispose() {
+  }
+
+  private fun clearComponentTree() {
+    val application = ApplicationManager.getApplication()
+    application.invokeLater {
+      val emptyRoot = ViewNode(0, "empty", null, 0, 0, 1, 1, null, "")
+      layoutInspector?.layoutInspectorModel?.update(emptyRoot)
+    }
   }
 
   private fun loadComponentTree(event: LayoutInspectorEvent) {
