@@ -48,32 +48,32 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   @VisibleForTesting static final String END_DETAIL = "* Try:";
 
   @NotNull private ArrayList<String> myBufferedLines = new ArrayList<>();
-  @Nullable private Object myBuildId;
+  @Nullable private Object myParentEventId;
 
   @Override
   public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super BuildEvent> messageConsumer) {
-    // Clear lines if build id changed
-    if (reader.getBuildId() != myBuildId) {
+    // Clear lines if parent event id changed
+    if (reader.getParentEventId() != myParentEventId) {
       myBufferedLines.clear();
-      myBuildId = null;
+      myParentEventId = null;
     }
 
     if (line.startsWith(STDOUT_ERROR_TAG)) {
       // Message started, start storing lines
-      myBuildId = reader.getBuildId();
+      myParentEventId = reader.getParentEventId();
       myBufferedLines.clear();
       myBufferedLines.add(line);
     }
     else if (line.equals(END_DETAIL)) {
       // Message just ended
-      if (myBuildId != null) {
+      if (myParentEventId != null) {
         processMessage(messageConsumer);
       }
-      myBuildId = null;
+      myParentEventId = null;
       myBufferedLines.clear();
       return true;
     }
-    else if (myBuildId != null) {
+    else if (myParentEventId != null) {
       myBufferedLines.add(line);
     }
     return false;
@@ -84,7 +84,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
    * @param messageConsumer
    */
   private void processMessage(@NotNull Consumer<? super MessageEvent> messageConsumer) {
-    assert myBuildId != null;
+    assert myParentEventId != null;
     String line = myBufferedLines.get(0);
     String jsonString = line.substring(STDOUT_ERROR_TAG.length()).trim();
     if (jsonString.isEmpty()) {
@@ -102,15 +102,15 @@ public class GradleBuildOutputParser implements BuildOutputParser {
         if (filePosition != null) {
           validPosition = true;
           messageConsumer.accept(
-            new FileMessageEventImpl(myBuildId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage, filePosition));
+            new FileMessageEventImpl(myParentEventId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage, filePosition));
         }
       }
       if (!validPosition) {
-        messageConsumer.accept(new MessageEventImpl(myBuildId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage));
+        messageConsumer.accept(new MessageEventImpl(myParentEventId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage));
       }
     }
     catch (JsonParseException ignored) {
-      messageConsumer.accept(new MessageEventImpl(myBuildId, MessageEvent.Kind.WARNING, MESSAGES_GROUP, line, detailMessage));
+      messageConsumer.accept(new MessageEventImpl(myParentEventId, MessageEvent.Kind.WARNING, MESSAGES_GROUP, line, detailMessage));
     }
   }
 
@@ -161,6 +161,6 @@ public class GradleBuildOutputParser implements BuildOutputParser {
 
   @VisibleForTesting
   boolean processingMessage() {
-    return myBuildId != null;
+    return myParentEventId != null;
   }
 }

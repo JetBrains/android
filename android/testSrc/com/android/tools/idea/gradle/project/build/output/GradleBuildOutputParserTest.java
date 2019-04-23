@@ -52,7 +52,7 @@ public class GradleBuildOutputParserTest {
   @Test
   public void parseWithError() {
     String line = "AGPBI: {\"kind\":\"error\",\"text\":\"Error message.\",\"sources\":[{\"file\":\"/app/src/main/res/layout/activity_main.xml\",\"position\":{\"startLine\":10,\"startColumn\":31,\"startOffset\":456,\"endColumn\":44,\"endOffset\":469}}],\"original\":\"\",\"tool\":\"AAPT\"}";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
     String detailLine = "This is a detail line";
@@ -75,7 +75,7 @@ public class GradleBuildOutputParserTest {
   @Test
   public void parseWithErrorNoSource() {
     String line = "AGPBI: {\"kind\":\"error\",\"text\":\"Warning message.\",\"sources\":[{}],\"original\":\"\",\"tool\":\"AAPT\"}";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
     String detailLine = "This is a detail line";
@@ -107,15 +107,15 @@ public class GradleBuildOutputParserTest {
     String startline = "AGPBI: {\"kind\":\"error\",\"text\":\"Warning message.\",\"sources\":[{}],\"original\":\"\",\"tool\":\"AAPT\"}";
     String noErrorLine = "This is not an error";
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_1");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_1");
     assertFalse(myParser.parse(startline, myReader, myConsumer));
     assertTrue(myParser.processingMessage());
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_2");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_2");
     assertFalse(myParser.parse(startline, myReader, myConsumer));
     assertTrue(myParser.processingMessage());
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_3");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_3");
     assertFalse(myParser.parse(noErrorLine, myReader, myConsumer));
     assertFalse(myParser.processingMessage());
   }
