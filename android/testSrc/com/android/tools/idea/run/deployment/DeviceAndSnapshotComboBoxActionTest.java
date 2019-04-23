@@ -732,6 +732,31 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void updateSetTextDoesntMangleDeviceName() {
+    // Arrange
+    Device apiQ64Google = new VirtualDevice.Builder()
+      .setName("apiQ_64_Google")
+      .setKey("apiQ_64_Google")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(apiQ64Google));
+
+    AnAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> true,
+      () -> false,
+      project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
+      myClock);
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertEquals("apiQ_64_Google", myPresentation.getText());
+  }
+
+  @Test
   public void updateSelectedSnapshotIsNull() {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
@@ -757,7 +782,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
-    assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
+    assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - default_boot", myPresentation.getText());
   }
 
   @Test
@@ -787,7 +812,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
-    assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
+    assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - default_boot", myPresentation.getText());
   }
 
   @Test
@@ -817,7 +842,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
-    assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - defaultboot", myPresentation.getText());
+    assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - default_boot", myPresentation.getText());
   }
 
   @Test
