@@ -46,5 +46,7 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
     ],
 )
