@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.testartifacts.instrumented.*;

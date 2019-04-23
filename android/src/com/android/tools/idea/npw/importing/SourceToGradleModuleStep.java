@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.npw.AsyncValidator;

@@ -2,7 +2,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;

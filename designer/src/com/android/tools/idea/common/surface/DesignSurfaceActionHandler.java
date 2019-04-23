@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
@@ -112,10 +112,10 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
   }
 
   @Nullable
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public abstract NlComponent getPasteTarget();
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public abstract boolean canHandleChildren(@NotNull NlComponent component,
                                      @NotNull List<NlComponent> pasted);
 

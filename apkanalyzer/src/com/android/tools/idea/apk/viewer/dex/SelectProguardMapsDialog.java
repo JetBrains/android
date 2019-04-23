@@ -16,7 +16,7 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;

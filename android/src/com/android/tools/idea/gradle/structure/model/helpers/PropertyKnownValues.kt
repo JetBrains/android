@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.stdui.StandardDimensions;
 import com.android.tools.idea.common.property.NlProperty;

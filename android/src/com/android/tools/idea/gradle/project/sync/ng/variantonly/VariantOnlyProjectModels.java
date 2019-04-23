@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.variantonly;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.builder.model.level2.GlobalLibraryMap;

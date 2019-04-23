@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
 import com.intellij.openapi.components.ServiceManager;
