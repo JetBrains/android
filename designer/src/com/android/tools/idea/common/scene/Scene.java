@@ -900,7 +900,7 @@ public class Scene implements SelectionListener, Disposable {
         manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {
-        manager.layout(mNeedsLayout == ANIMATED_LAYOUT);
+        manager.requestLayout(mNeedsLayout == ANIMATED_LAYOUT);
       }
     }
   }
