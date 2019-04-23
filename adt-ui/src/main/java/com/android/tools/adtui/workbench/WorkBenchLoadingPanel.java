@@ -35,7 +35,7 @@ public class WorkBenchLoadingPanel extends JPanel {
   private final MyMessagePanel myMessagePanel;
   private boolean myShowingMessagePanel;
 
-  WorkBenchLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent,
+  public WorkBenchLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent,
                         @SuppressWarnings("SameParameterValue") int startDelayMs) {
     super(new BorderLayout());
     myMessagePanel = new MyMessagePanel();
@@ -90,7 +90,7 @@ public class WorkBenchLoadingPanel extends JPanel {
   /**
    * Replaces loading animation with the given message.
    */
-  void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
+  public void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
     myMessagePanel.setText(message);
     myMessagePanel.setIcon(icon);
     if (!myShowingMessagePanel) {

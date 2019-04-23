@@ -24,6 +24,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
+import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
@@ -40,6 +41,8 @@ import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.Sets;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -78,6 +81,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 import org.w3c.dom.*;
 
@@ -126,6 +130,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private final Font myDefaultFont;
   private final Tree myTree;
   private final JEditorPane myDetails;
+  private final WorkBenchLoadingPanel myLoadingPanel;
+  private final JBSplitter mySplitter;
   private JPopupMenu myPopup;
   private JMenuItem myRemoveItem;
 
@@ -136,7 +142,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private VirtualFile myFile;
   private final Color myBackgroundColor;
 
-  public ManifestPanel(final @NotNull AndroidFacet facet) {
+  public ManifestPanel(final @NotNull AndroidFacet facet, final @NotNull Disposable parent) {
     myFacet = facet;
     setLayout(new BorderLayout());
 
@@ -158,11 +164,23 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     createPopupMenu();
     registerGotoAction();
 
-    JBSplitter splitter = new JBSplitter(0.5f);
-    splitter.setFirstComponent(new JBScrollPane(myTree));
-    splitter.setSecondComponent(new JBScrollPane(myDetails));
+    mySplitter = new JBSplitter(0.5f);
+    mySplitter.setFirstComponent(new JBScrollPane(myTree));
+    mySplitter.setSecondComponent(new JBScrollPane(myDetails));
 
-    add(splitter);
+    myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), parent, 0);
+    myLoadingPanel.add(mySplitter);
+    add(myLoadingPanel);
+  }
+
+  @NotNull
+  public JEditorPane getDetailsPane() {
+    return myDetails;
+  }
+
+  @NotNull
+  public Tree getTree() {
+    return myTree;
   }
 
   private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
@@ -274,7 +292,23 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
 
-  public void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
+  public void startLoading() {
+    mySplitter.setVisible(false);
+    myLoadingPanel.setLoadingText("Computing merged manifest...");
+    myLoadingPanel.startLoading();
+  }
+
+  public void showLoadingError() {
+    myLoadingPanel.abortLoading("Unable to compute merged manifest.", AllIcons.General.Warning);
+  }
+
+  public void showManifest(MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
+    setManifestSnapshot(manifest, selectedManifest);
+    myLoadingPanel.stopLoading();
+    mySplitter.setVisible(true);
+  }
+
+  private void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
     myFile = selectedManifest;
     myManifest = manifest;
     Document document = myManifest.getDocument();
@@ -1275,7 +1309,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     @Nullable
     @Override
     public Color getFileColorFor(Object object) {
-      return getNodeColor((Node)object);
+      return object == null? null : getNodeColor((Node)object);
     }
   }
 }
