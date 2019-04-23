@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.DexReferences;
 import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
 import com.android.tools.apk.analyzer.dex.ProguardMappings;

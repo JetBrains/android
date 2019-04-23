@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.components.ProjectComponent;

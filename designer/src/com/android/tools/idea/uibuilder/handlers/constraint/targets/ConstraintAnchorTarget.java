@@ -25,9 +25,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_START;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_BOTTOM;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
 
-
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -46,6 +44,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.PopupMenuListenerAdapter;
@@ -190,7 +189,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     }
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   @Override
   public boolean isEnabled() {
     if (!super.isEnabled()) {

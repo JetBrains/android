@@ -17,7 +17,7 @@ package com.android.tools.idea.refactoring.modularize;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;

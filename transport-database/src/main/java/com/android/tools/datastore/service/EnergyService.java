@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.service;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;

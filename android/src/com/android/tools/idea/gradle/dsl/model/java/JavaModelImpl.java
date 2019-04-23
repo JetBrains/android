@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;

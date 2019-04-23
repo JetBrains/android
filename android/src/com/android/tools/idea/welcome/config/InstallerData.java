@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.config;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep;

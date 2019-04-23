@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.instructions;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;

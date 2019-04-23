@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.lint.checks.GradleDetector;
 import com.google.common.base.Splitter;

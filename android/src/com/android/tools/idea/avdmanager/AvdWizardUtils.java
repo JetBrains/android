@@ -33,7 +33,7 @@ import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;

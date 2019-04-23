@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.DocumentAccessor;
 import com.android.tools.adtui.TextAccessors;
 import com.android.tools.idea.ui.ApiComboBoxItem;
@@ -99,7 +99,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
                                          DocumentListener, ItemListener {
   // State store
   // TODO: Temporary change. Set to private in a followup CL!
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public ScopedStateStore myState;
 
   // Mapping documents to components.

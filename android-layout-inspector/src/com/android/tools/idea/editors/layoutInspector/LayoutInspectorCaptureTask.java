@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.LayoutInspectorBridge;
 import com.android.layoutinspector.LayoutInspectorCaptureOptions;

@@ -2,7 +2,7 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.intellij.credentialStore.CredentialAttributesKt;

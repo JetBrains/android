@@ -18,8 +18,7 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -95,7 +94,7 @@ public class StudioExceptionReport extends BaseStudioReport {
     return exceptionInfo.contains("\tat org.jetbrains.kotlin");
   }
 
-  @VisibleForTesting(visibility = Visibility.PRIVATE)
+  @VisibleForTesting
   @NonNull
   protected String getKotlinPluginVersionDescription() {
     try {

@@ -17,7 +17,7 @@ package com.android.tools.datastore;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.service.CpuService;

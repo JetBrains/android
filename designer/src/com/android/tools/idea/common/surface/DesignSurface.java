@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -788,7 +787,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    * @return      True if the scaling was changed, false if this was a noop.
    */
-  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @VisibleForTesting
   public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
     double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     if (Math.abs(newScale - myScale) < 0.005 / getScreenScalingFactor()) {
@@ -1534,7 +1533,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return doCreateInteractionOnClick(mouseX, mouseY, sceneView);
   }
 
-  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @VisibleForTesting
   @Nullable
   public abstract Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view);
 

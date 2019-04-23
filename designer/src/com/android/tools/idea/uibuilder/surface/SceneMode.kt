@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes
 import com.intellij.execution.Executor
 import com.intellij.execution.junit.JUnitConfiguration

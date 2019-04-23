@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.concurrent.EdtExecutor;

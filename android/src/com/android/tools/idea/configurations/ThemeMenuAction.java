@@ -16,7 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.theme.ResolutionUtils;

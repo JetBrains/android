@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
