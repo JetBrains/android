@@ -35,11 +35,11 @@ public class AndroidGradlePluginWarningParser implements BuildOutputParser {
   private static final String WARNING_PREFIX = "warning:"; // Prefix used by the Android Gradle Plugin when reporting errors.
 
   @Override
-  public boolean parse(String line, BuildOutputInstantReader reader, Consumer<? super BuildEvent> messageConsumer) {
+  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super BuildEvent> messageConsumer) {
     if (WARNING_PREFIX.regionMatches(true, 0, line, 0, WARNING_PREFIX.length())) {
       String message = line.substring(WARNING_PREFIX.length()).trim();
       messageConsumer
-        .accept(new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.WARNING, ANDROID_MESSAGES_GROUP, message, message));
+        .accept(new MessageEventImpl(reader.getParentEventId(), MessageEvent.Kind.WARNING, ANDROID_MESSAGES_GROUP, message, message));
       return true;
     }
     return false;
