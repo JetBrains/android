@@ -86,9 +86,6 @@ public class RenderService implements Disposable {
                                                                               ApplicationManager.getApplication().isUnitTestMode()
                                                                               ? 60
                                                                               : 6));
-  /** Number of ms that we will keep the render thread alive when idle */
-  private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
-
   @VisibleForTesting
   public static long ourRenderThreadTimeoutMs = DEFAULT_RENDER_THREAD_TIMEOUT_MS;
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
@@ -107,12 +104,11 @@ public class RenderService implements Disposable {
   private final Project myProject;
 
   private static void innerInitializeRenderExecutor() {
-    ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
-                             RENDER_THREAD_IDLE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
+    ourRenderingExecutor = new ThreadPoolExecutor(1, 1,
+                             0, TimeUnit.MILLISECONDS,
                              new LinkedBlockingQueue<>(),
                              (Runnable r) -> {
-                               Thread renderingThread =
-                                 new Thread(null, r, "Layoutlib Render Thread");
+                               Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
                                renderingThread.setDaemon(true);
                                ourRenderingThread.set(renderingThread);
 
