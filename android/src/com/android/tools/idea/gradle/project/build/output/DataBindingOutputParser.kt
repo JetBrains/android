@@ -86,7 +86,7 @@ class DataBindingOutputParser : BuildOutputParser {
         val msg = gson.fromJson<EncodedMessage>(output, EncodedMessage::class.java)
         val summary = msg.message.substringBefore('\n')
         if (msg.locations.isEmpty()) {
-          messageConsumer.accept(MessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))
+          messageConsumer.accept(MessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))
         }
         else {
           // Note: msg.filePath is relative, but the build output window can't seem to find the
@@ -95,7 +95,7 @@ class DataBindingOutputParser : BuildOutputParser {
           val location = msg.locations.first()
           val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
           messageConsumer.accept(
-            FileMessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message, filePosition))
+            FileMessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message, filePosition))
         }
         return true
       }
@@ -168,7 +168,7 @@ class DataBindingOutputParser : BuildOutputParser {
 
         val sourceFile = File(file)
         val filePosition = FilePosition(sourceFile, startLine, startCol, endLine, endCol)
-        messageConsumer.accept(FileMessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, msg, null, filePosition))
+        messageConsumer.accept(FileMessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, msg, null, filePosition))
         return true
       }
       catch (ignored: Exception) {
