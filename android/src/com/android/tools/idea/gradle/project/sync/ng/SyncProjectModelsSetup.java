@@ -15,8 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.ng.ModuleNameGenerator.deduplicateModuleNames;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
+import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.NativeVariantAbi;
+import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -24,7 +34,11 @@ import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedModuleModels;
@@ -44,22 +58,15 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.text.StringUtil;
-import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.gradle.tooling.model.GradleProject;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.sync.ng.ModuleNameGenerator.deduplicateModuleNames;
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
-import static com.google.common.base.Strings.nullToEmpty;
 
 class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
   @NotNull private final ModuleFactory myModuleFactory;

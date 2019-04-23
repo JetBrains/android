@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.transport;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.util.function.Supplier;

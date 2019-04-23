@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;

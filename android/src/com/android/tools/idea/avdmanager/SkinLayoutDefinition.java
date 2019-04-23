@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.io.FileOp;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;

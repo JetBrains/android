@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.downloads;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

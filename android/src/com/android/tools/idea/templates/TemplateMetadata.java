@@ -26,7 +26,7 @@ import static com.android.tools.idea.templates.Template.TAG_ICONS;
 import static com.android.tools.idea.templates.Template.TAG_PARAMETER;
 import static com.android.tools.idea.templates.Template.TAG_THUMB;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;

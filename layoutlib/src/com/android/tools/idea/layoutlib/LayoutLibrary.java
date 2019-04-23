@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.layoutlib;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.DrawableParams;
@@ -380,7 +380,7 @@ public class LayoutLibrary implements Disposable {
         return Integer.MIN_VALUE;
     }
 
-    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+    @VisibleForTesting
     protected LayoutLibrary() {
         mBridge = null;
         mClassLoader = null;

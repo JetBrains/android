@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.stdui.menu;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.intellij.ui.PopupMenuListenerAdapter;

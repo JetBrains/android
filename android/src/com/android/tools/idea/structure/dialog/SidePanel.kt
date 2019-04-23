@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.dialog
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.SidePanelSeparator
 import com.intellij.openapi.ui.popup.ListItemDescriptor

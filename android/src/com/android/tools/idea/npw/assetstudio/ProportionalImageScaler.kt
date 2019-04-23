@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Verify.verify
 import com.intellij.util.ui.JBUI
 import java.awt.Image

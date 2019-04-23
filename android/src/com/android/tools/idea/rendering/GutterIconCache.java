@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;

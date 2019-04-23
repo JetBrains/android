@@ -21,7 +21,7 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;

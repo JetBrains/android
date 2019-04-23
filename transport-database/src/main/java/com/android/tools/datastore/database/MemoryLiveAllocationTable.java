@@ -44,7 +44,7 @@ import static com.android.tools.datastore.database.MemoryLiveAllocationTable.Mem
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.UPDATE_JNI_REF;
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.values;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.LogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;

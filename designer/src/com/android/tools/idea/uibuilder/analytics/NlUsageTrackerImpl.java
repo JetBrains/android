@@ -21,7 +21,7 @@ import static com.android.SdkConstants.PROGRESS_BAR;
 import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertTagName;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
