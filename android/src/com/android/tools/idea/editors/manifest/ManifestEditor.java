@@ -16,10 +16,15 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -97,9 +102,26 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   }
 
   private void reload() {
-    if (mySelected) {
-      myManifestPanel.setManifestSnapshot(MergedManifestManager.getSnapshot(myFacet), mySelectedFile);
+    if (!mySelected) {
+      return;
     }
+    ListenableFuture<MergedManifestSnapshot> mergedManifest = MergedManifestManager.getMergedManifest(myFacet.getModule());
+    if (mergedManifest.isDone()) {
+      myManifestPanel.showManifest(Futures.getUnchecked(mergedManifest), mySelectedFile);
+      return;
+    }
+    myManifestPanel.startLoading();
+    Futures.addCallback(mergedManifest, new FutureCallback<MergedManifestSnapshot>() {
+      @Override
+      public void onSuccess(MergedManifestSnapshot result) {
+        myManifestPanel.showManifest(result, mySelectedFile);
+      }
+
+      @Override
+      public void onFailure(@Nullable Throwable t) {
+        myManifestPanel.showLoadingError();
+      }
+    }, EdtExecutor.INSTANCE);
   }
 
   @NotNull
@@ -140,7 +162,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
     final Project project = myFacet.getModule().getProject();
     if (myManifestPanel == null) {
-      myManifestPanel = new ManifestPanel(myFacet);
+      myManifestPanel = new ManifestPanel(myFacet, this);
       myLazyContainer.add(myManifestPanel);
       // Parts of the merged manifest come from the project's build model, so we want to know
       // if that changes so we can get the latest values.
