@@ -44,6 +44,12 @@ class ConnectedDevice extends Device {
     }
 
     @NotNull
+    final Builder setValidityReason(@Nullable String validityReason) {
+      myValidityReason = validityReason;
+      return this;
+    }
+
+    @NotNull
     Builder setKey(@NotNull String key) {
       myKey = key;
       return this;

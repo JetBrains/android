@@ -35,6 +35,9 @@ public abstract class Device {
 
   private final boolean myValid;
 
+  @Nullable
+  private final String myValidityReason;
+
   @NotNull
   private final String myKey;
 
@@ -49,6 +52,9 @@ public abstract class Device {
     String myName;
 
     boolean myValid;
+
+    @Nullable
+    String myValidityReason;
 
     @Nullable
     String myKey;
@@ -72,6 +78,7 @@ public abstract class Device {
     myName = builder.myName;
 
     myValid = builder.myValid;
+    myValidityReason = builder.myValidityReason;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
@@ -94,6 +101,11 @@ public abstract class Device {
 
   final boolean isValid() {
     return myValid;
+  }
+
+  @Nullable
+  final String getValidityReason() {
+    return myValidityReason;
   }
 
   @NotNull

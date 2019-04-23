@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -82,11 +83,20 @@ final class ConnectedDevicesWorkerDelegate extends SwingWorker<Collection<Connec
   private ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice) {
     AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
 
-    return new ConnectedDevice.Builder()
+    ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
       .setName("Connected Device")
-      .setValid(myChecker == null || !myChecker.validate(androidDevice).isCompatible().equals(ThreeState.NO))
       .setKey(ddmlibDevice.getSerialNumber())
-      .setAndroidDevice(androidDevice)
+      .setAndroidDevice(androidDevice);
+
+    if (myChecker == null) {
+      return builder.build();
+    }
+
+    LaunchCompatibility compatibility = myChecker.validate(androidDevice);
+
+    return builder
+      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
+      .setValidityReason(compatibility.getReason())
       .build();
   }
 }
