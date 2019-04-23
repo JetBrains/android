@@ -570,8 +570,9 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
+  @NotNull
   @Override
-  public void layout(boolean animate) {
+  public CompletableFuture<Void> requestLayout(boolean animate) {
     Rectangle bounds = null;
     if (getScene().getRoot() != null) {
       bounds = getScene().getRoot().fillDrawRect(0, null);
@@ -579,6 +580,13 @@ public class NavSceneManager extends SceneManager {
     updateRootBounds(bounds);
     getDesignSurface().updateScrolledAreaSize();
     getScene().needsRebuildList();
+
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public void layout(boolean animate) {
+    requestLayout(animate);
   }
 
   @NotNull
