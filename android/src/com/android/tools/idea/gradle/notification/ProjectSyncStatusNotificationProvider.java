@@ -24,7 +24,6 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.AnyThread;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -41,6 +40,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAware;
@@ -177,7 +177,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                 return null;
               }
             }
-            return new ProjectStructureNotificationPanel(project, this, "Configure project in Project Structure dialog.",
+            return new ProjectStructureNotificationPanel(project, this,
+                                                         "You can use the Project Structure dialog to view and edit your project configuration",
                                                          module);
           }
           return null;
@@ -299,7 +300,12 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text, @NotNull Module module) {
       super(type, text);
 
-      createActionLabel("Open Project Structure", () -> {
+      String shortcutText = KeymapUtil.getFirstKeyboardShortcutText("ShowProjectStructureSettings");
+      String label = "Open";
+      if (shortcutText != "") {
+        label += " (" + shortcutText + ")";
+      }
+      createActionLabel(label, () -> {
         ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(project);
         if (projectSettingsService instanceof AndroidProjectSettingsService) {
           projectSettingsService.openModuleSettings(module);
