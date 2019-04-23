@@ -412,7 +412,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setIcon(device.getIcon());
 
     String name = Devices.getName(device, myDevices);
-    presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot);
+    presentation.setText(mySelectedSnapshot == null ? name : name + " - " + mySelectedSnapshot, false);
 
     updateExecutionTargetManager(project, device);
   }

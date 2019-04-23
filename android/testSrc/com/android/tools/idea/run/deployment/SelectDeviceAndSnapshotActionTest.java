@@ -23,6 +23,7 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -114,5 +115,27 @@ public final class SelectDeviceAndSnapshotActionTest {
 
     // Assert
     assertEquals("LGE Nexus 5X [00fff9d2279fa601]", action.getTemplatePresentation().getText());
+  }
+
+  @Test
+  public void configurePresentationSetTextDoesntMangleDeviceName() {
+    // Arrange
+    Device apiQ64Google = new VirtualDevice.Builder()
+      .setName("apiQ_64_Google")
+      .setKey("apiQ_64_Google")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    DeviceAndSnapshotComboBoxAction comboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+    Mockito.when(comboBoxAction.getDevices()).thenReturn(Collections.singletonList(apiQ64Google));
+
+    // Act
+    AnAction action = new SelectDeviceAndSnapshotAction.Builder()
+      .setComboBoxAction(comboBoxAction)
+      .setDevice(apiQ64Google)
+      .build();
+
+    // Assert
+    assertEquals("apiQ_64_Google", action.getTemplatePresentation().getText());
   }
 }

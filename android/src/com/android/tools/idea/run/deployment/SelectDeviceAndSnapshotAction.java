@@ -81,11 +81,11 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
     Presentation presentation = getTemplatePresentation();
 
     if (builder.mySnapshot != null) {
-      presentation.setText(builder.mySnapshot);
+      presentation.setText(builder.mySnapshot, false);
       return;
     }
 
-    presentation.setText(Devices.getName(builder.myDevice, builder.myComboBoxAction.getDevices()));
+    presentation.setText(Devices.getName(builder.myDevice, builder.myComboBoxAction.getDevices()), false);
     presentation.setIcon(builder.myDevice.getIcon());
   }
 
