@@ -38,12 +38,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.translations.FrozenCol
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
 import com.intellij.notification.Notification;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -53,6 +48,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.swing.JTextField;
@@ -378,17 +374,20 @@ public final class TranslationsEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/124375061
   @Test
   public void invalidDefaultValueXml() throws IOException {
-    myGuiTest.importSimpleApplication();
+    EditorFixture editor = myGuiTest.importSimpleApplication().getEditor();
 
-    CharSequence text =
-      "<resources>\n" +
-      "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n" +
-      "</resources>\n";
+    editor
+      .open(myStringsXmlPath, Tab.EDITOR)
+      .moveBetween("</string>\n", "    <string-array name=\"my_array\">")
+      .enterText(
+        "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n")
+      .awaitNotification("Edit translations for all locales in the translations editor.")
+      .performAction("Open editor");
 
-    ApplicationManager.getApplication().invokeLater(() -> saveDocument(myStringsXmlPath, text));
-    openTranslationsEditor(myStringsXmlPath);
+    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
+    translationsEditor.finishLoading();
 
-    SimpleColoredComponent component = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getCellRenderer(5, DEFAULT_VALUE_COLUMN);
+    SimpleColoredComponent component = translationsEditor.getCellRenderer(5, DEFAULT_VALUE_COLUMN);
     assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
@@ -398,33 +397,24 @@ public final class TranslationsEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/124375061
   @Test
   public void invalidTranslationXml() throws IOException {
-    myGuiTest.importSimpleApplication();
-    Path stringsXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "values-en", "strings.xml");
+    EditorFixture editor = myGuiTest.importSimpleApplication().getEditor();
 
-    CharSequence text =
-      "<resources>\n" +
-      "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n" +
-      "</resources>\n";
+    editor
+      .open(Paths.get("app", "src", "main", "res", "values-en", "strings.xml"), Tab.EDITOR)
+      .moveBetween("</string>\n", "\n")
+      .enterText(
+        "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>")
+      .awaitNotification("Edit translations for all locales in the translations editor.")
+      .performAction("Open editor");
 
-    ApplicationManager.getApplication().invokeLater(() -> saveDocument(stringsXml, text));
-    openTranslationsEditor(stringsXml);
+    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
+    translationsEditor.finishLoading();
 
-    SimpleColoredComponent component = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getCellRenderer(5, ENGLISH_COLUMN);
+    SimpleColoredComponent component = translationsEditor.getCellRenderer(5, ENGLISH_COLUMN);
     assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
     assertEquals("Invalid XML", component.myTooltipText);
-  }
-
-  private void saveDocument(@NotNull Path path, @NotNull CharSequence text) {
-    WriteAction.run(() -> {
-      FileDocumentManager manager = FileDocumentManager.getInstance();
-      File file = myGuiTest.getProjectPath().toPath().resolve(path).toFile();
-      Document document = manager.getDocument(LocalFileSystem.getInstance().findFileByIoFile(file));
-
-      document.setText(text);
-      manager.saveDocument(document);
-    });
   }
 
   @Test
