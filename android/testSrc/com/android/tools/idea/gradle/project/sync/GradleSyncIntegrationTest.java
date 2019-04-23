@@ -40,6 +40,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
@@ -96,9 +97,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.ExternalSystemManager;
+import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClasspathPojo;
+import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -119,6 +125,7 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -126,6 +133,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -158,7 +166,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       Object model;
       if (useNewSyncInfrastructure()) {
         model = new CachedProjectModels.Loader().loadFromDisk(getProject());
-      } else {
+      }
+      else {
         model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
       }
 
@@ -166,7 +175,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
         LeakHunter.checkLeak(model, Proxy.class, o -> Arrays.stream(
           o.getClass().getInterfaces()).anyMatch(clazz -> clazz.getName().contains("gradle.tooling")));
       }
-    } finally {
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -665,6 +675,35 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
           .isEqualTo(BuildEnvironment.getInstance().getGradlePluginVersion());
       }
     }
+  }
+
+  // Verify buildscript classpath has been setup.
+  public void testBuildScriptClasspathSetup() throws Exception {
+    loadSimpleApplication();
+    Project project = getProject();
+    String projectPath = project.getBasePath();
+    assertNotNull(projectPath);
+
+    ExternalSystemManager<?, ?, ?, ?, ?> manager = ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID);
+    assertNotNull(manager);
+    AbstractExternalSystemLocalSettings<?> localSettings = manager.getLocalSettingsProvider().fun(project);
+    ExternalProjectBuildClasspathPojo projectBuildClasspathPojo = localSettings.getProjectBuildClasspath().get(projectPath);
+
+    // Verify that ExternalProjectBuildClasspathPojo is not null.
+    assertNotNull(projectBuildClasspathPojo);
+
+    List<String> projectClasspath = projectBuildClasspathPojo.getProjectBuildClasspath();
+    Map<String, ExternalModuleBuildClasspathPojo> moduleClasspath = projectBuildClasspathPojo.getModulesBuildClasspath();
+
+    // Verify that project classpath is not empty.
+    assertThat(projectClasspath).isNotEmpty();
+
+    // Verify that each sub-module has non-empty classpath entry.
+    String rootModuleDir = toCanonicalPath(projectPath);
+    String appModuleDir = toCanonicalPath(new File(projectPath, "app").getPath());
+    assertThat(moduleClasspath.keySet()).containsExactly(rootModuleDir, appModuleDir);
+    assertThat(moduleClasspath.get(rootModuleDir).getEntries()).isNotEmpty();
+    assertThat(moduleClasspath.get(appModuleDir).getEntries()).isNotEmpty();
   }
 
   // Verify that execute task.

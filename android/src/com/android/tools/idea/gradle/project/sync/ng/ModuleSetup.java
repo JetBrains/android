@@ -84,7 +84,8 @@ public abstract class ModuleSetup<T> {
                                         new ProjectDataNodeSetup(),
                                         new ModuleSetupContext.Factory(),
                                         new ModuleFinder.Factory(),
-                                        new CompositeBuildDataSetup());
+                                        new CompositeBuildDataSetup(),
+                                        new BuildScriptClasspathSetup());
     }
 
     @NotNull

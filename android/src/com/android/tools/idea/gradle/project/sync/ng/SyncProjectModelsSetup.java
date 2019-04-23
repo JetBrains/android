@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
@@ -36,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -79,6 +79,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
   @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
   @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
   @NotNull private final CompositeBuildDataSetup myCompositeBuildDataSetup;
+  @NotNull private final BuildScriptClasspathSetup myBuildScriptClasspathSetup;
 
   @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -101,7 +102,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
                          @NotNull ProjectDataNodeSetup projectDataNodeSetup,
                          @NotNull ModuleSetupContext.Factory moduleSetupFactory,
                          @NotNull ModuleFinder.Factory moduleFinderFactory,
-                         @NotNull CompositeBuildDataSetup compositeBuildDataSetup) {
+                         @NotNull CompositeBuildDataSetup compositeBuildDataSetup,
+                         @NotNull BuildScriptClasspathSetup buildScriptClasspathSetup) {
     super(project, modelsProvider, moduleSetupFactory);
     myModuleFactory = moduleFactory;
     myGradleModuleSetup = gradleModuleSetup;
@@ -120,6 +122,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     myProjectDataNodeSetup = projectDataNodeSetup;
     myModuleFinderFactory = moduleFinderFactory;
     myCompositeBuildDataSetup = compositeBuildDataSetup;
+    myBuildScriptClasspathSetup = buildScriptClasspathSetup;
   }
 
   @Override
@@ -201,6 +204,8 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
     // Then, setup the ModuleModels based on the module types.
     setupModuleModels(setupContextByModuleModel, myGradleModuleSetup, myNdkModuleSetup, myAndroidModuleSetup, myJavaModuleSetup,
                       myExtraModelsManager, false /* not skipped */);
+    // Setup BuildScript classpath.
+    myBuildScriptClasspathSetup.setupBuildScriptClassPath(projectModels, myProject);
   }
 
   // Returns true if the moduleModel is the one represents root project.
