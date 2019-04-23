@@ -23,6 +23,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 /**
@@ -50,7 +51,38 @@ internal class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, te
 
   override fun handleElementRename(newElementName: String): PsiElement? {
     val identifier = element.findElementAt(rangeInElement.startOffset) as LeafPsiElement?
-    identifier?.rawReplaceWithText(newElementName)
+    val stripped = (resolve() as? PsiMethod)?.let { stripPrefixFromMethod(it, newElementName) } ?: newElementName
+    identifier?.rawReplaceWithText(stripped)
     return identifier
+  }
+
+  companion object {
+    /**
+     * Given a method and its new name, return the method name with the prefix stripped,
+     * or {@code null} otherwise.
+     * TODO(131227177): Refactor this logic to a location shared with BrUtil
+     */
+    fun stripPrefixFromMethod(method: PsiMethod, newName: String) = when {
+      isGetter(method, newName) -> newName.substring("get".length).decapitalize()
+      isBooleanGetter(method, newName) -> newName.substring("is".length).decapitalize()
+      else -> null
+    }
+
+    private fun isGetter(psiMethod: PsiMethod, name: String) =
+      matchesMethodPattern(psiMethod, name, "get", 0) { type -> PsiType.VOID != type }
+
+    private fun isBooleanGetter(psiMethod: PsiMethod, name: String) =
+      matchesMethodPattern(psiMethod, name, "is", 0) { type -> PsiType.BOOLEAN == type }
+
+    private fun matchesMethodPattern(psiMethod: PsiMethod,
+                                     name: String,
+                                     prefix: String,
+                                     parameterCount: Int,
+                                     returnTypePredicate: (PsiType) -> Boolean): Boolean {
+      return name.startsWith(prefix) &&
+             Character.isJavaIdentifierStart(name[prefix.length]) &&
+             psiMethod.parameterList.parametersCount == parameterCount &&
+             psiMethod.returnType?.let { returnTypePredicate.invoke(it) } == true
+    }
   }
 }
