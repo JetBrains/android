@@ -101,7 +101,7 @@ public class CommandLineArgs {
     // Sent to plugin starting with Studio 3.0
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED,
                                    NewGradleSync.isLevel4Model() ? MODEL_LEVEL_4_NEW_DEP_MODEL : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
-    if (myIdeInfo.isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio() && !isDevBuild(myApplicationInfo.getStrictVersion())) {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
     }
@@ -125,6 +125,10 @@ public class CommandLineArgs {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
+  }
+
+  private static boolean isDevBuild(String version) {
+    return version.equals("0.0.0.0");  // set in AndroidStudioApplicationInfo.xml
   }
 
   public static boolean isInTestingMode() {
