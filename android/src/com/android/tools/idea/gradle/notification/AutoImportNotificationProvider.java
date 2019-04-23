@@ -71,7 +71,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
 
   private class DisableAutoImportNotificationPanel extends EditorNotificationPanel {
     DisableAutoImportNotificationPanel(@NotNull GradleProjectSettings settings) {
-      setText("Gradle 'auto-import' will considerably slow down the IDE, due to a known bug.");
+      setText("Gradle 'auto-import' will considerably slow down the IDE, due to a known bug");
 
       createActionLabel("Open bug report", () -> browse("https://code.google.com/p/android/issues/detail?id=59965"));
 
