@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.tools.idea.ddms.DeviceContext;

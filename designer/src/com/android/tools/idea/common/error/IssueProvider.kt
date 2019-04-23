@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 
 abstract class IssueProvider {

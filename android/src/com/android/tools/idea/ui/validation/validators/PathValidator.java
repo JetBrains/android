@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.validation.validators;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.adtui.validation.Validator;

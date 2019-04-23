@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.help;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.help.impl.HelpManagerImpl;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;

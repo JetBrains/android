@@ -30,7 +30,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_PROJECT_STATE;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ResourceNamespace;

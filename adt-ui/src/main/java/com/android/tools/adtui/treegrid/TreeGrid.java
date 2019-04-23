@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.treegrid;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -413,7 +413,7 @@ public class TreeGrid<T> extends Box {
     }
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+  @VisibleForTesting
   @NotNull
   public List<JList<T>> getLists() {
     return myLists;

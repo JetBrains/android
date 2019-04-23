@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;

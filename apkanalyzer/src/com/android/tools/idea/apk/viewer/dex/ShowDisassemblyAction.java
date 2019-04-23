@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.DexDisassembler;
 import com.android.tools.apk.analyzer.dex.DexFiles;
 import com.android.tools.apk.analyzer.dex.tree.DexClassNode;

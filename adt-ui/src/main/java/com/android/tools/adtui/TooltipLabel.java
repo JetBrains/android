@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.TreeWalker;
 import com.google.common.base.Strings;
 import com.intellij.ui.components.JBLabel;

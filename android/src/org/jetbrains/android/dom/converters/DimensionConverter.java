@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.ConvertContext;

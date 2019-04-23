@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;

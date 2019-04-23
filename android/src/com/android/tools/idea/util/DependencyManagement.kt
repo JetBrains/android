@@ -18,7 +18,7 @@
 package com.android.tools.idea.util
 
 import com.android.SdkConstants
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.*

@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
@@ -55,8 +55,7 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final ClassDb.ClassEntry myClassEntry;
   @NotNull private final String myMemoizedLabel;
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-  public HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
+  HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
                                 @Nullable InstanceObject classInstanceObject,
                                 @NotNull Instance instance,
                                 @NotNull ClassDb.ClassEntry classEntry,
@@ -309,7 +308,7 @@ class HeapDumpInstanceObject implements InstanceObject {
     return getIsRoot() ? Collections.EMPTY_LIST : extractReferences();
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @VisibleForTesting
   @NotNull
   public List<ReferenceObject> extractReferences() {
     // Sort hard referrers to appear first.

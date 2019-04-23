@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.*;
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
 import com.android.repository.api.RemotePackage;

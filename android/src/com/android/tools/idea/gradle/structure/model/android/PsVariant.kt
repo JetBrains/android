@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.utils.combineAsCamelCase

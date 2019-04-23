@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;

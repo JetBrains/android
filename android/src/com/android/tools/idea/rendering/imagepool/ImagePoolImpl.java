@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.imagepool;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.FinalizablePhantomReference;
 import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.EvictingQueue;

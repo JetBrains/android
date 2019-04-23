@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

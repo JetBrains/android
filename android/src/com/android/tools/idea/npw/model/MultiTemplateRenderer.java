@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.model;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;

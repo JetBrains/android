@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -476,7 +476,7 @@ public abstract class ClassifierSet implements MemoryObject {
   /**
    * The base index for holding child {@link ClassifierSet}s.
    */
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public static abstract class Classifier {
     public static final Classifier IDENTITY_CLASSIFIER = new Classifier() {
       @Override

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;

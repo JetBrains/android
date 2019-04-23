@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.android.annotations.VisibleForTesting
-import com.android.annotations.VisibleForTesting.Visibility
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.RenderService
@@ -39,13 +38,13 @@ import javax.annotation.concurrent.GuardedBy
 
 private val KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
-@VisibleForTesting(visibility = Visibility.PRIVATE)
+@VisibleForTesting
 const val MAX_RENDER_WIDTH = 768
 
-@VisibleForTesting(visibility = Visibility.PRIVATE)
+@VisibleForTesting
 const val MAX_RENDER_HEIGHT = 1024
 
-@VisibleForTesting(visibility = Visibility.PRIVATE)
+@VisibleForTesting
 const val DOWNSCALE_FACTOR = 0.25f
 
 
@@ -69,7 +68,7 @@ private fun createRenderTask(facet: AndroidFacet,
  * @param renderTaskProvider function that return a [RenderTask]
  */
 class LayoutRenderer
-@VisibleForTesting(visibility = Visibility.PRIVATE)
+@VisibleForTesting
 constructor(
   facet: AndroidFacet,
   private val renderTaskProvider: RenderTaskProvider = ::createRenderTask

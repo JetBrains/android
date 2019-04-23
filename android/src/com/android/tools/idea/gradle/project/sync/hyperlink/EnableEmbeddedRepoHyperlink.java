@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;

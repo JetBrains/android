@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;

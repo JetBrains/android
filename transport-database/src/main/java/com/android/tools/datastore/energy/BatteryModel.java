@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.energy;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.datastore.energy.PowerProfile.LocationStats;
 import com.android.tools.datastore.energy.PowerProfile.LocationType;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;

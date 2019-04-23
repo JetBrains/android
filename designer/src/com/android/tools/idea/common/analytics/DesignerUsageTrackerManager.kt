@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.analytics
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.surface.DesignSurface

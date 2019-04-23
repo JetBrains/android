@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
 import com.google.common.collect.Lists;

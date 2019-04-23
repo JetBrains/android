@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.generator
 
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.ide.common.repository.DEFAULT_GMAVEN_URL
 import com.android.ide.common.repository.GMAVEN_BASE_URL
