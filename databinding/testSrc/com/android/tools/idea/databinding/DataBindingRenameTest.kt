@@ -70,6 +70,19 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
                          DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
                          else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
                        })
+
+    // Temporary fix until test model can detect dependencies properly.
+    val assembleDebug = myProjectRule.invokeTasks("assembleDebug")
+    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
+
+    val syncState = GradleSyncState.getInstance(myProjectRule.project)
+    assertFalse(syncState.isSyncNeeded.toBoolean())
+    assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet).dataBindingMode,
+                 dataBindingMode)
+
+    // Make sure that all file system events up to this point have been processed.
+    VirtualFileManager.getInstance().syncRefresh()
+    UIUtil.dispatchAllInvocationEvents()
   }
 
   private fun checkAndRename(newName: String) {
@@ -98,19 +111,6 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
   @Test
   @RunsInEdt
   fun assertRenameFieldDerivedFromResource() {
-    // Temporary fix until test model can detect dependencies properly.
-    val assembleDebug = myProjectRule.invokeTasks("assembleDebug")
-    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
-
-    val syncState = GradleSyncState.getInstance(myProjectRule.project)
-    assertFalse(syncState.isSyncNeeded.toBoolean())
-    assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet).dataBindingMode,
-                 dataBindingMode)
-
-    // Make sure that all file system events up to this point have been processed.
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val file = myProjectRule.project.baseDir
       .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/MainActivity.java")
     myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
@@ -134,19 +134,6 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
   @Test
   @RunsInEdt
   fun assertRenameMethod() {
-    // Temporary fix until test model can detect dependencies properly.
-    val assembleDebug = myProjectRule.invokeTasks("assembleDebug")
-    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
-
-    val syncState = GradleSyncState.getInstance(myProjectRule.project)
-    assertFalse(syncState.isSyncNeeded.toBoolean())
-    assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet).dataBindingMode,
-                 dataBindingMode)
-
-    // Make sure that all file system events up to this point have been processed.
-    VirtualFileManager.getInstance().syncRefresh()
-    UIUtil.dispatchAllInvocationEvents()
-
     val file = myProjectRule.project.baseDir
       .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/DummyVo.java")
     myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
@@ -162,5 +149,51 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check results.
     assertEquals(text.replace("initialString", "renamedString"), VfsUtilCore.loadText(file))
     assertEquals(layoutText.replace("initialString", "renamedString"), VfsUtilCore.loadText(layoutFile))
+  }
+
+  /**
+   * Checks renaming of field referenced from data binding expression.
+   */
+  @Test
+  @RunsInEdt
+  fun assertRenameField() {
+    val file = myProjectRule.project.baseDir
+      .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/DummyVo.java")
+    myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
+    val editor = myProjectRule.fixture.editor
+    val text = editor.document.text
+    val offset = text.indexOf("uniqueName")
+    assertTrue(offset > 0)
+    editor.caretModel.moveToOffset(offset)
+    val layoutFile = myProjectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val layoutText = VfsUtilCore.loadText(layoutFile)
+    // Rename name to newName in DummyVo.java.
+    checkAndRename("newName")
+    // Check results.
+    assertEquals(text.replace("uniqueName", "newName"), VfsUtilCore.loadText(file))
+    assertEquals(layoutText.replace("uniqueName", "newName"), VfsUtilCore.loadText(layoutFile))
+  }
+
+  /**
+   * Checks renaming of field getter referenced from data binding expression.
+   */
+  @Test
+  @RunsInEdt
+  fun assertRenameGetter() {
+    val file = myProjectRule.project.baseDir
+      .findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/DummyVo.java")
+    myProjectRule.fixture.configureFromExistingVirtualFile(file!!)
+    val editor = myProjectRule.fixture.editor
+    val text = editor.document.text
+    val offset = text.indexOf("getUniqueValue")
+    assertTrue(offset > 0)
+    editor.caretModel.moveToOffset(offset)
+    val layoutFile = myProjectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val layoutText = VfsUtilCore.loadText(layoutFile)
+    // Rename name to newName in DummyVo.java.
+    checkAndRename("getNewValue")
+    // Check results.
+    assertEquals(text.replace("getUniqueValue", "getNewValue"), VfsUtilCore.loadText(file))
+    assertEquals(layoutText.replace("uniqueValue", "newValue"), VfsUtilCore.loadText(layoutFile))
   }
 }
