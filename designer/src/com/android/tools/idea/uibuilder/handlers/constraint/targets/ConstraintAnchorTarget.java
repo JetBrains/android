@@ -28,6 +28,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -840,6 +841,19 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     super.mouseCancel();
     DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
     revertToPreviousState();
+  }
+
+  /** Append to the existing tooltip a hint to delete constraints. */
+  @Override
+  public String getToolTipText() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(super.getToolTipText());
+    if (isConnected()) {
+      builder.append(" (")
+        .append(AdtUiUtils.getActionKeyText())
+        .append("+Click)");
+    }
+    return builder.toString();
   }
 
   /**
