@@ -95,6 +95,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -413,7 +414,7 @@ public class LayoutlibSceneManager extends SceneManager {
       NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
       if (false && surface.getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
-        layout(true);
+        requestLayout(true);
       }
       else {
         requestRender(getTriggerFromChangeType(model.getLastChangeType()))
@@ -479,7 +480,7 @@ public class LayoutlibSceneManager extends SceneManager {
         requestLayoutAndRender(animate);
       }
       else {
-        layout(animate);
+        requestLayout(animate);
       }
     }
   }
@@ -553,7 +554,7 @@ public class LayoutlibSceneManager extends SceneManager {
   public void requestLayoutAndRender(boolean animate) {
     // Don't render if we're just showing the blueprint
     if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
-      layout(animate);
+      requestLayout(animate);
       return;
     }
 
@@ -629,6 +630,23 @@ public class LayoutlibSceneManager extends SceneManager {
     return ourRenderViewPort;
   }
 
+  @Override
+  @NotNull
+  public CompletableFuture<Void> requestLayout(boolean animate) {
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return CompletableFuture.completedFuture(null);
+      }
+      return myRenderTask.layout()
+        .thenAccept(result -> {
+          if (result != null) {
+            updateHierarchy(result);
+            notifyListenersModelLayoutComplete(animate);
+          }
+        });
+    }
+  }
+
   /**
    * Request a layout pass
    *
@@ -636,23 +654,10 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @Override
   public void layout(boolean animate) {
-    Future<RenderResult> futureResult;
-    synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        return;
-      }
-      futureResult = myRenderTask.layout();
-    }
-
     try {
-      RenderResult result = futureResult.get();
-
-      if (result != null) {
-        updateHierarchy(result);
-        notifyListenersModelLayoutComplete(animate);
-      }
+      requestLayout(animate).get(2, TimeUnit.SECONDS);
     }
-    catch (InterruptedException | ExecutionException e) {
+    catch (InterruptedException | ExecutionException | TimeoutException e) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
     }
   }
