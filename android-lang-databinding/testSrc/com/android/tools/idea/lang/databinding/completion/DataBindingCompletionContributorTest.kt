@@ -972,4 +972,82 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       </layout>
     """.trimIndent())
   }
+
+  @Test
+  fun testDataBindingCompletion_getterMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public String getValue() {}
+        public String getValue2() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.va<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    assertThat(lookupElementBuilder.lookupString).isEqualTo("value")
+  }
+
+  @Test
+  fun testDataBindingCompletion_booleanGetterMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public boolean isGood() {}
+        public boolean isGood2() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.go<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    assertThat(lookupElementBuilder.lookupString).isEqualTo("good")
+  }
 }
