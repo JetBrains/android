@@ -46,8 +46,10 @@ import com.intellij.psi.CommonClassNames
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiSubstitutor
+import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.util.PsiFormatUtil
 import com.intellij.psi.util.PsiFormatUtilBase
+import com.intellij.util.PlatformIcons
 import com.intellij.util.ProcessingContext
 
 /**
@@ -188,7 +190,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     for (reference in childReferences) {
       if (reference is ModelClassResolvable) {
         val ref = reference as ModelClassResolvable
-        var resolvedType = ref.resolvedType?.unwrapped ?: continue
+        val resolvedType = ref.resolvedType?.unwrapped ?: continue
         for (psiModelMethod in resolvedType.allMethods) {
           val psiMethod = psiModelMethod.psiMethod
           if (psiMethod.isConstructor) {
@@ -201,12 +203,33 @@ open class DataBindingCompletionContributor : CompletionContributor() {
           }
           var name = psiModelMethod.name
           if (completeBrackets) {
-            name += "()"
-            if (BrUtil.isGetter(psiMethod)) {
-              name = psiModelMethod.name.substring(3).decapitalize()
+            val substringIndex = when {
+              BrUtil.isGetter(psiMethod) -> 3
+              BrUtil.isBooleanGetter(psiMethod) -> 2
+              else -> -1
             }
-            else if (BrUtil.isBooleanGetter(psiMethod)) {
-              name = psiModelMethod.name.substring(2).decapitalize()
+
+            if (substringIndex == -1) {
+              name += "()"
+            }
+            else {
+              // If the method is a Getter/BooleanGetter create a custom LookupElement with stripped lookupString.
+              // TODO(131255487): See if there's a way to unify both branches of lookup builder code
+              name = psiModelMethod.name.substring(substringIndex).decapitalize()
+
+              if (psiMethod.returnType != null) {
+                val lightField = LightFieldBuilder(name, psiMethod.returnType!!, psiMethod.navigationElement)
+                lightField.containingClass = psiMethod.containingClass
+                val lookupBuilder = JavaLookupElementBuilder
+                  .forField(lightField, lightField.name,
+                            resolvedType.psiClass)
+                  .withTypeText(
+                    PsiFormatUtil.formatVariable(lightField, PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY))
+                  .withInsertHandler(onCompletionHandler)
+                  .withIcon(PlatformIcons.FIELD_ICON)
+                completionSuggestionsList.add(lookupBuilder)
+                continue
+              }
             }
           }
           // Pass resolvedType.getPsiClass into JavaLookupElementBuilder.forMethod as qualifierClass
