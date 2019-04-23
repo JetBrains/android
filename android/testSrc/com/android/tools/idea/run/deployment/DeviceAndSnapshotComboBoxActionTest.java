@@ -728,7 +728,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     // Assert
-    assertEquals("LGE Nexus 5X - 00fff9d2279fa601", myPresentation.getText());
+    assertEquals("LGE Nexus 5X [00fff9d2279fa601]", myPresentation.getText());
   }
 
   @Test
