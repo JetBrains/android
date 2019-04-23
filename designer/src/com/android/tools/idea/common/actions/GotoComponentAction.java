@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.actions;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -45,11 +46,11 @@ public class GotoComponentAction extends DumbAwareAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     InputEvent inputEvent = e.getInputEvent();
-    boolean isControlMetaDown = SystemInfo.isMac ? inputEvent.isMetaDown() : inputEvent.isControlDown();
-    if (inputEvent instanceof MouseEvent &&
-        mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || isControlMetaDown) {
-      // We don't want to perform navigation while holding some modifiers on mouse event.
-      return;
+    if (inputEvent instanceof MouseEvent) {
+      if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
+        // We don't want to perform navigation while holding some modifiers on mouse event.
+        return;
+      }
     }
     SelectionModel selectionModel = mySurface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
