@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import com.android.SdkConstants;
+import com.android.builder.model.Version;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
@@ -61,10 +61,10 @@ public class AndroidPluginGenerationIdeaTest extends IdeaTestCase {
     assertTrue("Failed to create '" + pluginFolderPath + "'", createDirectory(pluginFolderPath));
   }
 
-  public void testGetLatestKnownVersionWithNoRepos() throws IOException {
+  public void testGetLatestKnownVersionWithNoRepos() {
     when(myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths()).thenReturn(Collections.emptyList());
 
     String version = LatestKnownPluginVersionProvider.INSTANCE.get();
-    assertEquals(SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION, version);
+    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, version);
   }
 }
