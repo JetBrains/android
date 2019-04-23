@@ -27,6 +27,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
@@ -35,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -80,6 +82,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
   }
 
   private val myProcessSelectionAction = SelectProcessAction(client)
+  private val myStopLayoutInspectorAction = PauseLayoutInspectorAction(client)
 
   val contentPanel = DeviceViewContentPanel(layoutInspector, scale, viewMode)
   private val scrollPane = JBScrollPane(contentPanel)
@@ -133,6 +136,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
     leftGroup.add(myProcessSelectionAction)
+    leftGroup.add(myStopLayoutInspectorAction)
     leftGroup.add(showBordersCheckBox)
     leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
                   BorderLayout.CENTER)
@@ -225,6 +229,23 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayou
       deviceNameBuilder.append(model)
 
       return deviceNameBuilder.toString()
+    }
+  }
+
+  private class PauseLayoutInspectorAction(val client: InspectorClient): AnAction() {
+    init {
+      templatePresentation.icon = StudioIcons.Profiler.Toolbar.PAUSE_LIVE
+      templatePresentation.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.PAUSE_LIVE)
+    }
+
+    override fun update(event: AnActionEvent) {
+      event.presentation.isEnabled = client.isConnected
+      event.presentation.icon = if (client.isCapturing) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
+    }
+
+    override fun actionPerformed(event: AnActionEvent) {
+      val command = if (client.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
+      client.execute(command)
     }
   }
 }

@@ -47,13 +47,13 @@ object DefaultInspectorClient : InspectorClient {
   private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
 
-  // TODO: Hook this up based on status of the connection
-  private var captureStarted = false
-
   private val endListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
 
   override var isConnected = false
+    private set
+
+  override var isCapturing = false
     private set
 
   init {
@@ -115,6 +115,12 @@ object DefaultInspectorClient : InspectorClient {
       .setPid(selectedProcess.pid)
       .build()
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
+
+    when (command.type) {
+      LayoutInspectorCommand.Type.STOP -> isCapturing = false
+      LayoutInspectorCommand.Type.START -> isCapturing = true
+      else -> {}
+    }
   }
 
   override fun getPayload(id: Int): ByteArray {
@@ -182,7 +188,7 @@ object DefaultInspectorClient : InspectorClient {
     selectedStream = stream
     selectedProcess = process
     isConnected = false
-    captureStarted = false
+    isCapturing = false
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
