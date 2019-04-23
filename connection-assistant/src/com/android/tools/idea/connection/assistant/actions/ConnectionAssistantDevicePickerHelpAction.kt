@@ -25,7 +25,7 @@ class ConnectionAssistantDevicePickerHelpAction : DevicePickerHelpAction() {
   override fun actionPerformed(e: AnActionEvent) {
     if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
       val action = OpenAssistSidePanelAction()
-      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, e?.project)
+      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, e.project)
     } else {
       super.actionPerformed(e)
     }

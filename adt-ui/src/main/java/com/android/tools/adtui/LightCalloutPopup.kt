@@ -69,7 +69,7 @@ class LightCalloutPopup(
         }
 
         override fun onClosed(event: LightweightWindowEvent) {
-          if (event?.isOk == true) {
+          if (event.isOk) {
             closedCallback?.invoke()
           }
           else {
