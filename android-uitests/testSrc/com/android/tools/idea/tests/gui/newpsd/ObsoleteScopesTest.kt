@@ -103,7 +103,7 @@ class ObsoleteScopesTest {
     warningSuggestions.forEach { suggestion ->
       val expected = expectedMessages.find { it.first == suggestion.plainTextMessage() }
       assertNotNull(expected)
-      suggestion.findButton().requireText(expected!!.second[0])
+      suggestion.findButton().requireText(expected.second[0])
       val options = suggestion.getOptionNames()
       if (options.isEmpty()) {
         assertThat(expected.second.size, equalTo(1))

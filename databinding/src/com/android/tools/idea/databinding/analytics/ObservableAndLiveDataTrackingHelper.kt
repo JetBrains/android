@@ -202,7 +202,7 @@ private fun getObservableClassFullName(facet: AndroidFacet) = "${ModuleDataBindi
 private fun isKtClassSubclassOfObservable(clazz: KtClass): Boolean {
   val facet = clazz.androidFacet ?: return false
   val fqObservableName = getObservableClassFullName(facet)
-  return (clazz.descriptor as ClassDescriptor)?.defaultType?.isSubclassOf(fqObservableName)
+  return (clazz.descriptor as ClassDescriptor).defaultType.isSubclassOf(fqObservableName)
 }
 
 private fun isPsiClassSubclassOfObservable(clazz: PsiClass): Boolean {
