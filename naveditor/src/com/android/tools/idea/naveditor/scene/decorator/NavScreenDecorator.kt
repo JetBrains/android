@@ -88,7 +88,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     }
     val resourceResolver = configuration.resourceResolver
     val resourceValue = ApplicationManager.getApplication().runReadAction<String> {
-      resourceResolver?.resolve(resourceUrl, component.nlComponent.tagDeprecated)?.value
+      resourceResolver.resolve(resourceUrl, component.nlComponent.tagDeprecated)?.value
     } ?: return empty
 
     val file = File(resourceValue)

@@ -67,7 +67,7 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
   fun availableFor(module: Module): Boolean = tags.all { it.availableFor(module) }
 
   fun hasSameContent(content: String?): Boolean {
-    return !content.isNullOrBlank() && content!!.length == myTemplate.length && hash.contentEquals(hash(content))
+    return !content.isNullOrBlank() && content.length == myTemplate.length && hash.contentEquals(hash(content))
   }
 
   fun hasTag(tag : TemplateTag) = tags.contains(tag)
