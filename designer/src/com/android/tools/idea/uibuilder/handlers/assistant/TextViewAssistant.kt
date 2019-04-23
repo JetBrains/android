@@ -130,7 +130,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
 
         val affectedFile: VirtualFile? = myComponent.backend.getAffectedFile()
         if (affectedFile != null) {
-          CommandProcessor.getInstance().addAffectedFiles(project, affectedFile!!)
+          CommandProcessor.getInstance().addAffectedFiles(project, affectedFile)
         }
       }
     }

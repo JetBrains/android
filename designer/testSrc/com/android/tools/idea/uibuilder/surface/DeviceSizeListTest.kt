@@ -61,11 +61,11 @@ class DeviceSizeListTest: AndroidTestBase() {
   private fun verifySnap(list: DeviceSizeList, device: DeviceSizeList.DeviceSize, x: Int, y: Int, snap: Int) {
     val size = list.snapToDevice(x, y, snap)
     assertEquals(device.x, size!!.x)
-    assertEquals(device.y, size!!.y)
+    assertEquals(device.y, size.y)
 
     val reversePoint = list.snapToDevice(y, x, snap)
     assertEquals(device.x, reversePoint!!.y)
-    assertEquals(device.y, reversePoint!!.x)
+    assertEquals(device.y, reversePoint.x)
   }
 
   private fun buildDeviceSize(name: String, x: Int, y: Int): DeviceSizeList.DeviceSize {

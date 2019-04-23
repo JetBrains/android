@@ -38,7 +38,7 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     val guava = libraries
       .filterIsInstance<ExternalLibrary>()
       .first { library -> library.address.startsWith("com.google.guava") }
-    assertThat(guava.classJars.first()!!.fileName).matches("guava-[\\.\\d]+.jar")
+    assertThat(guava.classJars.first().fileName).matches("guava-[\\.\\d]+.jar")
 
     val appcompat = libraries
       .filterIsInstance<com.android.projectmodel.ExternalLibrary>()

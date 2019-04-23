@@ -49,7 +49,7 @@ class TargetAndroidArtifactNode internal constructor(
 
   override fun update(presentation: PresentationData) {
     super.update(presentation)
-    presentation?.presentableText = text
+    presentation.presentableText = text
   }
 
   override fun nameOf(model: PsAndroidArtifact): String = buildString {
