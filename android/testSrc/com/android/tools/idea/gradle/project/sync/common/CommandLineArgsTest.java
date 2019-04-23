@@ -88,6 +88,14 @@ public class CommandLineArgsTest extends IdeaTestCase {
     assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=100");
   }
 
+  public void testGetWithAndroidStudioDevBuild() {
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+    when(myApplicationInfo.getStrictVersion()).thenReturn("0.0.0.0");
+    List<String> args = myArgs.get(getProject());
+    check(args);
+    assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=0.0.0.0");
+  }
+
   public void testGetWithIdeNotAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
     when(myApplicationInfo.getStrictVersion()).thenReturn("100");
