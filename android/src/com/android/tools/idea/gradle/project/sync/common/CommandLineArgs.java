@@ -81,6 +81,7 @@ public class CommandLineArgs {
     if (myIsNewSync) {
       myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
       myInitScripts.addApplyKaptModelBuilderInitScript(args);
+      myInitScripts.addApplyBuildScriptClasspathModelBuilderInitScript(args);
     }
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
