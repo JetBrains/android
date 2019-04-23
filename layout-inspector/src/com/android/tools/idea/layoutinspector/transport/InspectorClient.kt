@@ -32,6 +32,11 @@ interface InspectorClient {
   fun register(groupId: EventGroupIds, callback: (LayoutInspectorEvent) -> Unit)
 
   /**
+   * Register a handler for when the current process ends.
+   */
+  fun registerProcessEnded(callback: () -> Unit)
+
+  /**
    * Find all processes that the inspector can attach to.
    */
   fun loadProcesses(): Map<Common.Stream, List<Common.Process>>
@@ -50,6 +55,13 @@ interface InspectorClient {
    * Send a command to the agent.
    */
   fun execute(command: LayoutInspectorCommand)
+
+  /**
+   * Send simple command to agent without arguments.
+   */
+  fun execute(commandType: LayoutInspectorCommand.Type) {
+    execute(LayoutInspectorCommand.newBuilder().setType(commandType).build())
+  }
 
   /**
    * Fetch the payload from a given payload [id].
