@@ -21,6 +21,13 @@ import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.module.Module
 
+
+fun isDeviceMatch(device: Common.Device, idevice: IDevice): Boolean {
+  return device.manufacturer == TransportServiceProxy.getDeviceManufacturer(idevice) &&
+         device.model == TransportServiceProxy.getDeviceModel(idevice) &&
+         device.serial == idevice.serialNumber
+}
+
 /**
  * Information about an Android process that was recently started from Studio.
  *

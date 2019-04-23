@@ -21,6 +21,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.project.Project
 
 /**
  * Client for communicating with the agent.
@@ -80,11 +81,8 @@ interface InspectorClient {
 
   companion object {
 
-    val instance: InspectorClient
-      get() = currentInstance ?: createDefaultInstance()
-
-    private fun createDefaultInstance(): InspectorClient {
-      val client = DefaultInspectorClient
+    fun createOrGetDefaultInstance(project: Project): InspectorClient {
+      val client = currentInstance ?: DefaultInspectorClient(project)
       currentInstance = client
       return client
     }
