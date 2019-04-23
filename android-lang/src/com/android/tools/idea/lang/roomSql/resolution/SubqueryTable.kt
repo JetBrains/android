@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
-import com.android.tools.idea.lang.roomSql.psi.RoomColumnAliasName
-import com.android.tools.idea.lang.roomSql.psi.RoomColumnRefExpression
 import com.android.tools.idea.lang.roomSql.psi.RoomSelectStatement
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.Processor
@@ -37,22 +35,8 @@ class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
       val resultColumns = selectCore.selectCoreSelect?.resultColumns?.resultColumnList ?: continue
       columns@ for (resultColumn in resultColumns) {
         when {
-          resultColumn.expression is RoomColumnRefExpression -> { // SELECT id FROM ...
-            val columnRefExpr = resultColumn.expression as RoomColumnRefExpression
-            val referencedColumn = columnRefExpr.columnName.reference.resolveColumn()
-            val sqlColumn = when {
-              referencedColumn != null -> referencedColumn
-              resultColumn.columnAliasName != null -> {
-                // We have an invalid reference which is given a name, we can still define a named column so that errors don't propagate.
-                ExprColumn(columnRefExpr.columnName)
-              }
-              else -> continue@columns
-            }
-
-            if (!processor.process(wrapInAlias(sqlColumn, resultColumn.columnAliasName))) return false
-          }
-          resultColumn.expression != null -> { // SELECT id * 2 FROM ...
-            if (!processor.process(wrapInAlias(ExprColumn(resultColumn.expression!!), resultColumn.columnAliasName))) return false
+          resultColumn.expression != null -> { // Try to process by [RoomExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
+            if (!processor.process(resultColumn.column)) return false
           }
           resultColumn.selectedTableName != null -> { // "SELECT user.* FROM ..."
             val sqlTable = resultColumn.selectedTableName?.reference?.resolveSqlTable() ?: continue@columns
@@ -64,12 +48,6 @@ class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
         }
       }
     }
-
     return true
-  }
-
-  private fun wrapInAlias(column: SqlColumn, alias: RoomColumnAliasName?): SqlColumn {
-    if (alias == null) return column
-    return AliasedColumn(column, alias.nameAsString, alias)
   }
 }
