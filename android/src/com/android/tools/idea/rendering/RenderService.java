@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -342,7 +341,6 @@ public class RenderService implements Disposable {
     ourRenderingExecutor.submit(runnable);
   }
 
-
   /**
    * Given a {@link ViewInfo} from a layoutlib rendering, checks that the view info provides
    * valid bounds. This is normally the case. However, there are known scenarios, where
@@ -364,8 +362,8 @@ public class RenderService implements Disposable {
    * @return Normally the {@link ViewInfo} itself, but a dummy 0-bound {@link ViewInfo} if
    * the view bounds are indeed invalid
    */
-  @NonNull
-  public static ViewInfo getSafeBounds(@NonNull ViewInfo view) {
+  @NotNull
+  public static ViewInfo getSafeBounds(@NotNull ViewInfo view) {
     int left = Math.abs(view.getLeft());
     int right = Math.abs(view.getRight());
     int top = Math.abs(view.getTop());
@@ -387,7 +385,7 @@ public class RenderService implements Disposable {
    * @return the corresponding tag, if any
    */
   @Nullable
-  public static XmlTag getXmlTag(@NonNull ViewInfo view) {
+  public static XmlTag getXmlTag(@NotNull ViewInfo view) {
     Object cookie = view.getCookie();
     if (cookie != null) {
       if (cookie instanceof TagSnapshot) {
