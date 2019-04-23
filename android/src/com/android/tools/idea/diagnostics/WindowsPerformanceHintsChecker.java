@@ -292,7 +292,12 @@ public class WindowsPerformanceHintsChecker {
     } else {
       paths.add(Paths.get(homeDir, ".gradle"));
     }
-    paths.add(Paths.get(homeDir, ".android"));
+
+    // Note: Do not include ".android" because
+    // 1) the location cannot be customized by the user and
+    // 2) the location is not write heavy (mostly read operations)
+    //paths.add(Paths.get(homeDir, ".android"));
+
     AndroidSdkData sdkData = AndroidSdkUtils.getProjectSdkData(project);
     if (sdkData == null) {
       sdkData = AndroidSdkUtils.getFirstAndroidModuleSdkData(project);
