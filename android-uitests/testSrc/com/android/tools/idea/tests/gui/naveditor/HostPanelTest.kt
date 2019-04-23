@@ -53,7 +53,9 @@ class HostPanelTest {
       .getLayoutEditor(true)
       .dragComponentToSurface("Containers", "NavHostFragment")
 
-    ChooseResourceDialogFixture.find(guiTest.robot()).clickOK()
+    val dialog = ChooseResourceDialogFixture.find(guiTest.robot())
+    dialog.searchField.enterText("mobile_navigation")
+    dialog.clickOK()
 
     frame
       .editor
