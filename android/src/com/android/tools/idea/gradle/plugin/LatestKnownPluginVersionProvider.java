@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID;
 
+import com.android.builder.model.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -47,9 +47,7 @@ public class LatestKnownPluginVersionProvider {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      // If there is no embedded repo, then use the last known version from SdkConstants
-      // TODO: revisit this when tests are running with the latest (source) build.
-      String version = GRADLE_PLUGIN_RECOMMENDED_VERSION;
+      String version = Version.ANDROID_GRADLE_PLUGIN_VERSION;
       Logger logger = Logger.getInstance(MethodHandles.lookup().lookupClass());
       logger.info("'" + ARTIFACT_ID + "' plugin missing from the offline Maven repo, will use default " + version);
       return version;
