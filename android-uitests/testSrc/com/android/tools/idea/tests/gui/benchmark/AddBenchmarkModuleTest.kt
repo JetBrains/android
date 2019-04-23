@@ -91,7 +91,7 @@ class AddBenchmarkModuleTest {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
       assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
     }
   }
 
