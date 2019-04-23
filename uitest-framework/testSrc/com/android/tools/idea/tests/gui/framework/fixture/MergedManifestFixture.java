@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.utils.SdkUtils;
 import com.google.common.truth.Truth;
@@ -27,10 +28,10 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.tree.TreePath;
@@ -42,18 +43,34 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
 
   private @NotNull JTreeFixture myTree;
   private @NotNull JTextComponentFixture myInfoPane;
+  private @NotNull WorkBenchLoadingPanelFixture myLoadingPanel;
 
   public MergedManifestFixture(@NotNull Robot robot, @NotNull ManifestPanel manifestComponent) {
     super(MergedManifestFixture.class, robot, manifestComponent);
-    myTree = new JTreeFixture(robot(), robot().finder()
-      .findByType(this.target(), Tree.class, true));
-    myInfoPane = new JTextComponentFixture(robot(), robot().finder()
-      .findByType(this.target(), JEditorPane.class, true));
+    myLoadingPanel = new WorkBenchLoadingPanelFixture(robot(), robot().finder()
+      .findByType(target(), WorkBenchLoadingPanel.class, true));
+    myInfoPane = new JTextComponentFixture(robot, manifestComponent.getDetailsPane());
+    myTree = new JTreeFixture(robot, manifestComponent.getTree());
   }
 
   @NotNull
   public JTreeFixture getTree() {
     return myTree;
+  }
+
+  public MergedManifestFixture waitForLoadingToFinish() {
+    return waitForLoadingToFinish(Wait.seconds(5));
+  }
+
+  public MergedManifestFixture waitForLoadingToFinish(@NotNull Wait wait) {
+    wait.expecting("Merged manifest finished loading").until(() -> {
+      if (myLoadingPanel.hasError()) {
+        return true;
+      }
+      return myInfoPane.target().isShowing() && myTree.target().isShowing();
+    });
+    assertFalse(myLoadingPanel.hasError());
+    return this;
   }
 
   public void requireText(@NotNull String expected, boolean wrap) {
