@@ -39,11 +39,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import kotlin.Unit;
 import kotlin.reflect.KType;
+import org.gradle.internal.impldep.com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.gradle.AbstractKotlinGradleModelBuilder;
 import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
+import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl;
 
 public class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
@@ -100,9 +102,8 @@ public class GradleInitScripts {
       addInitScriptCommandLineArg(initScriptFile, allArgs);
     }
     catch (IOException e) {
-      // if the init script cannot be created, sync won't succeed. Unlikely to happen, but better fail now than later.
-      // No need for checked exception. Client code won't be able to recover from this.
-      throw new RuntimeException("Failed to create init script that applies the Java library plugin", e);
+      // Unlikely to happen, create warning message in log files. Let Gradle sync continue without the injected init script.
+      getLogger().warn("Failed to create init script that applies the Java library plugin, Java modules won't be configured properly.", e);
     }
   }
 
@@ -112,9 +113,29 @@ public class GradleInitScripts {
       addInitScriptCommandLineArg(initScriptFile, allArgs);
     }
     catch (IOException e) {
-      // if the init script cannot be created, sync won't succeed. Unlikely to happen, but better fail now than later.
-      // No need for checked exception. Client code won't be able to recover from this.
-      throw new RuntimeException("Failed to create init script that applies the Kapt model builder plugin", e);
+      // Unlikely to happen, create warning message in log files. Let Gradle sync continue without the injected init script.
+      getLogger()
+        .warn("Failed to create init script that applies the Kapt model builder plugin, Kapt modules won't be configured properly.", e);
+    }
+  }
+
+  public void addApplyBuildScriptClasspathModelBuilderInitScript(@NotNull List<String> allArgs) {
+    try {
+      Class buildScriptModelBuilderClass = ModelBuildScriptClasspathBuilderImpl.class;
+      List<String> paths = new ArrayList<>();
+      paths.add(getJarPathForClass(buildScriptModelBuilderClass));
+      paths.add(getJarPathForClass(ModelBuilderService.class));
+      paths.add(getJarPathForClass(Multimap.class));
+      String content = myContentCreator.createInitScriptContent(paths, buildScriptModelBuilderClass.getName(), "BuildScriptClasspath");
+
+      File buildScriptInitScriptFile = createInitScriptFile("sync.ng.build.script.classpath", content);
+      addInitScriptCommandLineArg(buildScriptInitScriptFile, allArgs);
+    }
+    catch (IOException e) {
+      // Unlikely to happen, create warning message in log files. Let Gradle sync continue without the injected init script.
+      getLogger().warn(
+        "Failed to create init script that applies the BuildScriptClasspath model builder plugin, auto completion in build scripts won't work.",
+        e);
     }
   }
 
@@ -126,7 +147,13 @@ public class GradleInitScripts {
 
   @NotNull
   private File createKaptModelBuilderInitScriptFile() throws IOException {
-    String content = myContentCreator.createKaptModelBuilderInitScriptContent();
+    Class kaptModelBuilderClass = KaptModelBuilderService.class;
+    List<String> paths = new ArrayList<>();
+    paths.add(getJarPathForClass(kaptModelBuilderClass));
+    paths.add(getJarPathForClass(Unit.class));
+    paths.add(getJarPathForClass(AbstractKotlinGradleModelBuilder.class));
+    paths.add(getJarPathForClass(ModelBuilderService.class));
+    String content = myContentCreator.createInitScriptContent(paths, kaptModelBuilderClass.getName(), "Kapt");
     return createInitScriptFile("sync.ng.kapt", content);
   }
 
@@ -212,13 +239,7 @@ public class GradleInitScripts {
     }
 
     @NotNull
-    String createKaptModelBuilderInitScriptContent() {
-      Class kaptModelBuilderClass = KaptModelBuilderService.class;
-      List<String> paths =  new ArrayList<>();
-      paths.add(getJarPathForClass(kaptModelBuilderClass));
-      paths.add(getJarPathForClass(Unit.class));
-      paths.add(getJarPathForClass(AbstractKotlinGradleModelBuilder.class));
-      paths.add(getJarPathForClass(ModelBuilderService.class));
+    String createInitScriptContent(@NotNull List<String> paths, @NotNull String modelBuilderClassName, @NotNull String modelName) {
       return "import javax.inject.Inject\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilder\n" +
@@ -230,13 +251,13 @@ public class GradleInitScripts {
              "  }\n" +
              "}\n" +
              "allprojects {\n" +
-             "  apply plugin: KaptModelBuilderPlugin\n" +
+             "  apply plugin: " + modelName + "ModelBuilderPlugin\n" +
              "}\n" +
-             "class KaptModelBuilder implements ToolingModelBuilder {\n" +
-             "  public " + kaptModelBuilderClass.getName() + " builder;" +
+             "class " + modelName + "ModelBuilder implements ToolingModelBuilder {\n" +
+             "  public " + modelBuilderClassName + " builder;" +
              "\n" +
-             "  public KaptModelBuilder() {\n" +
-             "    builder = new " + kaptModelBuilderClass.getName() + "();\n" +
+             "  public " + modelName + "ModelBuilder() {\n" +
+             "    builder = new " + modelBuilderClassName + "();\n" +
              "  }\n" +
              "  public boolean canBuild(String modelName) {\n" +
              "    return builder.canBuild(modelName);\n" +
@@ -245,15 +266,15 @@ public class GradleInitScripts {
              "    return builder.buildAll(modelName, project);\n" +
              "  }\n" +
              "}\n" +
-             "class KaptModelBuilderPlugin implements Plugin<Project>{ \n" +
+             "class " + modelName + "ModelBuilderPlugin implements Plugin<Project>{ \n" +
              "  ToolingModelBuilderRegistry registry\n" +
-             "  @Inject KaptModelBuilderPlugin(ToolingModelBuilderRegistry registry) {\n" +
+             "  @Inject " + modelName + "ModelBuilderPlugin(ToolingModelBuilderRegistry registry) {\n" +
              "    this.registry = registry" +
              "  }\n" +
              "\n" +
              "\n" +
              "  void apply(Project project) {\n" +
-             "    registry.register(new KaptModelBuilder())\n" +
+             "    registry.register(new " + modelName + "ModelBuilder())\n" +
              "  }\n" +
              "}";
     }
