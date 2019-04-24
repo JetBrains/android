@@ -146,4 +146,47 @@ class BuildOutputParsersIntegrationTest: IdeaTestCase() {
                            fileIncluded = true, lineIncluded = true)
     }
   }
+
+  @Test
+  fun testXmlParsingError() {
+    val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
+    val file = tempDir.createTempFile("AndroidManifest.xml")
+    val output = """Executing tasks: [clean, :app:assembleDebug]
+                    > Configure project :app
+                    > Task :clean UP-TO-DATE
+                    > Task :app:clean
+                    > Task :app:preBuild UP-TO-DATE
+                    > Task :app:extractProguardFiles
+                    > Task :app:preDebugBuild
+                    > Task :app:checkDebugManifest
+                    > Task :app:generateDebugBuildConfig FAILED
+
+                    FAILURE: Build failed with an exception.
+
+                    * What went wrong:
+                    Execution failed for task ':app:generateDebugBuildConfig'.
+                    > org.xml.sax.SAXParseException; systemId: file:${file.absolutePath}; lineNumber: 9; columnNumber: 1; Attribute name "sd" associated with an element type "Dsfsd" must be followed by the ' = ' character.
+
+                    * Try:
+                    Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+                    * Get more help at https://help.gradle.org
+
+                    BUILD FAILED in 0s
+                    5 actionable tasks: 4 executed, 1 up-to-date""".trimIndent()
+
+    buildListener.onTaskOutput(myTaskId, output, true)
+    buildListener.onFailure(myTaskId, RuntimeException("test"))
+    buildListener.onEnd(myTaskId)
+
+    assertThat(myTracker.usages).hasSize(1)
+
+    val messages = myTracker.usages.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
+    assertThat(messages).isNotNull()
+    assertThat(messages).hasSize(1)
+
+    checkSentMetricsData(messages.first(), BuildErrorMessage.ErrorType.XML_PARSER, BuildErrorMessage.FileType.PROJECT_FILE,
+                         fileIncluded = true, lineIncluded = true)
+
+  }
 }
