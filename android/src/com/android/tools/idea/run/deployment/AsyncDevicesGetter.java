@@ -19,20 +19,20 @@ import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Streams;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,15 +109,13 @@ class AsyncDevicesGetter {
   @NotNull
   @VisibleForTesting
   List<Device> getImpl(@NotNull Collection<VirtualDevice> virtualDevices, @NotNull Collection<ConnectedDevice> connectedDevices) {
-    List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
+    @SuppressWarnings("UnstableApiUsage")
+    Stream<Device> deviceStream = Streams.concat(
+      connectedVirtualDeviceStream(connectedDevices, virtualDevices),
+      physicalDeviceStream(connectedDevices),
+      disconnectedVirtualDeviceStream(virtualDevices, connectedDevices));
 
-    virtualDevices.stream()
-      .map(device -> newVirtualDeviceIfItsConnected(device, connectedDevices))
-      .forEach(devices::add);
-
-    connectedDevices.stream()
-      .map(device -> PhysicalDevice.newDevice(device, myDevicePropertiesFetcher, myMap))
-      .forEach(devices::add);
+    List<Device> devices = deviceStream.collect(Collectors.toList());
 
     Collection<String> keys = devices.stream()
       .filter(Device::isConnected)
@@ -126,6 +124,33 @@ class AsyncDevicesGetter {
 
     myMap.retainAll(keys);
     return devices;
+  }
+
+  @NotNull
+  private Stream<VirtualDevice> connectedVirtualDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices,
+                                                             @NotNull Collection<VirtualDevice> virtualDevices) {
+    Map<String, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
+
+    return connectedDevices.stream()
+      .filter(device -> keyToVirtualDeviceMap.containsKey(device.getVirtualDeviceKey()))
+      .map(device -> VirtualDevice.newConnectedDevice(keyToVirtualDeviceMap.get(device.getVirtualDeviceKey()), device, myMap));
+  }
+
+  @NotNull
+  private Stream<PhysicalDevice> physicalDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices) {
+    return connectedDevices.stream()
+      .filter(device -> device.getVirtualDeviceKey() == null)
+      .map(device -> PhysicalDevice.newDevice(device, myDevicePropertiesFetcher, myMap));
+  }
+
+  @NotNull
+  private static Stream<VirtualDevice> disconnectedVirtualDeviceStream(@NotNull Collection<VirtualDevice> virtualDevices,
+                                                                       @NotNull Collection<ConnectedDevice> connectedDevices) {
+    Collection<String> connectedVirtualDeviceKeys = connectedDevices.stream()
+      .map(ConnectedDevice::getVirtualDeviceKey)
+      .collect(Collectors.toSet());
+
+    return virtualDevices.stream().filter(device -> !connectedVirtualDeviceKeys.contains(device.getKey()));
   }
 
   @VisibleForTesting
@@ -165,25 +190,6 @@ class AsyncDevicesGetter {
     }
 
     myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
-  }
-
-  // TODO(b/122476635) Simplify this method
-  @NotNull
-  @VisibleForTesting
-  final Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice, @NotNull Iterable<ConnectedDevice> connectedDevices) {
-    Object key = virtualDevice.getKey();
-
-    for (Iterator<ConnectedDevice> i = connectedDevices.iterator(); i.hasNext(); ) {
-      ConnectedDevice connectedDevice = i.next();
-
-      if (Objects.equals(connectedDevice.getVirtualDeviceKey(), key)) {
-        i.remove();
-        return VirtualDevice.newConnectedDevice(virtualDevice, connectedDevice, myMap);
-      }
-    }
-
-    assert !virtualDevice.isConnected();
-    return virtualDevice;
   }
 
   @VisibleForTesting
