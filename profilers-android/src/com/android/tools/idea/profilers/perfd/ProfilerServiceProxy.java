@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -101,8 +102,8 @@ public class ProfilerServiceProxy extends PerfdProxyService
   private static Common.Device profilerDeviceFromIDevice(@NotNull IDevice device, @NotNull Common.Device.Builder builder) {
     long device_id;
     MessageDigest digest = DigestUtil.sha256();
-    digest.update(builder.getBootId().getBytes());
-    digest.update(device.getSerialNumber().getBytes());
+    digest.update(builder.getBootId().getBytes(StandardCharsets.UTF_8));
+    digest.update(device.getSerialNumber().getBytes(StandardCharsets.UTF_8));
     device_id = ByteBuffer.wrap(digest.digest()).getLong();
 
     return builder.setDeviceId(device_id)

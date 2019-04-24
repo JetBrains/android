@@ -15,25 +15,11 @@
  */
 package com.android.tools.profilers.network;
 
-import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
-import static com.google.common.truth.Truth.assertThat;
-
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.LineChartModel;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -42,15 +28,23 @@ import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPOutputStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
+
+import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
+import static com.google.common.truth.Truth.assertThat;
 
 public class NetworkProfilerStageTest {
   private static final float EPSILON = 0.00001f;
@@ -401,7 +395,7 @@ public class NetworkProfilerStageTest {
   private static ByteString gzip(String input) {
     ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
-      compressor.write(input.getBytes());
+      compressor.write(input.getBytes(StandardCharsets.UTF_8));
     }
     catch (IOException ignored) {
     }
