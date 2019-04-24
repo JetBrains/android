@@ -434,6 +434,7 @@ public class GradleBuildInvoker {
     try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
         @NotNull private BuildOutputInstantReaderImpl myReader = buildOutputInstantReader;
+        private boolean myBuildFailed = false;
 
         @Override
         public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
@@ -448,6 +449,7 @@ public class GradleBuildInvoker {
             public void actionPerformed(@NotNull AnActionEvent e) {
               // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
               myReader.close();
+              myBuildFailed = false;
               buildOutputParsersWrappers.forEach(BuildOutputParserWrapper::reset);
               myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
                                                           Collections.unmodifiableList(buildOutputParsersWrappers));
@@ -455,6 +457,7 @@ public class GradleBuildInvoker {
             }
           };
 
+          myBuildFailed = false;
           buildOutputParsersWrappers.forEach(BuildOutputParserWrapper::reset);
 
           Presentation presentation = restartAction.getTemplatePresentation();
@@ -486,6 +489,9 @@ public class GradleBuildInvoker {
         @Override
         public void onEnd(@NotNull ExternalSystemTaskId id) {
           myReader.close();
+          if (myBuildFailed) {
+            BuildOutputParserWrapperKt.sendBuildFailureMetrics(buildOutputParsersWrappers, myProject);
+          }
         }
 
         @Override
@@ -497,9 +503,9 @@ public class GradleBuildInvoker {
 
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
+          myBuildFailed = true;
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
-          BuildOutputParserWrapperKt.sendBuildFailureMetrics(buildOutputParsersWrappers, myProject);
           buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
         }
 
