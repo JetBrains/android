@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -164,10 +165,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
       // Set the appropriate action based on which deployment we're doing.
       if (shouldApplyChanges()) {
-        tasks.add(new ApplyChangesTask(myProject, packages.build()));
+
+        tasks.add(new ApplyChangesTask(myProject, packages.build(),
+                                       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN));
       }
       else if (shouldApplyCodeChanges()) {
-        tasks.add(new ApplyCodeChangesTask(myProject, packages.build()));
+        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(),
+                                           DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN));
       }
       else {
         tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));

@@ -37,12 +37,12 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
 
   /**
    * Creates a task to deploy a list of apks.
-   *
-   * @param project  the project that this task is running within.
+   *  @param project  the project that this task is running within.
    * @param packages a map of application ids to apks representing the packages this task will deploy.
+   * @param fallback
    */
-  public ApplyCodeChangesTask(@NotNull Project project, @NotNull Map<String, List<File>> packages) {
-    super(project, packages);
+  public ApplyCodeChangesTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback) {
+    super(project, packages, fallback);
   }
 
   @NotNull
