@@ -22,7 +22,6 @@ import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -405,8 +404,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  @VisibleForTesting
-  public boolean isScanPending(@NotNull PsiFile psiFile) {
+  boolean isScanPending(@NotNull PsiFile psiFile) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
       for (LocalResourceRepository child : myLocalResources) {
