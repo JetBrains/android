@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.databinding.completion
 
 import com.android.ide.common.resources.DataBindingResourceType
-import com.android.tools.idea.databinding.BrUtil
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
@@ -204,8 +203,8 @@ open class DataBindingCompletionContributor : CompletionContributor() {
           var name = psiModelMethod.name
           if (completeBrackets) {
             val substringIndex = when {
-              BrUtil.isGetter(psiMethod) -> 3
-              BrUtil.isBooleanGetter(psiMethod) -> 2
+              DataBindingUtil.isGetter(psiMethod) -> 3
+              DataBindingUtil.isBooleanGetter(psiMethod) -> 2
               else -> -1
             }
 
