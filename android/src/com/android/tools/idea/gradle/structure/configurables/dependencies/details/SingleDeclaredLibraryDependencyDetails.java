@@ -32,7 +32,6 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   private JXLabel myGroupIdLabel;
   private JXLabel myArtifactNameLabel;
-  private JBLabel myResolvedVersionLabel;
   private JXLabel myScopeLabel;
   private JPanel myRequestedVersion;
 
@@ -58,8 +57,6 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
     myGroupIdLabel.setText(spec.getGroup());
     myArtifactNameLabel.setText(spec.getName());
-    // TODO(b/74430831): Retrieve and display all the resolved versions.
-    myResolvedVersionLabel.setText("");
 
     if (myVersionPropertyEditor != null) {
       if (myEditorComponent != null) {
