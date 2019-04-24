@@ -17,13 +17,12 @@ package com.android.tools.tests;
 
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.sun.jna.Library;
-import com.sun.jna.Native;
+import com.sun.jna.platform.linux.LibC;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -94,16 +93,7 @@ class XvfbServer {
     }
   }
 
-  // Helper JNA class to set an env var.
-  private static class Environment {
-    private interface LibC extends Library {
-      int setenv(String name, String value, int overwrite);
-      int unsetenv(String name);
-    }
-    static LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
-  }
-
   private static void setEnv(String name, String value) {
-    Environment.libc.setenv(name, value, 1);
+    LibC.INSTANCE.setenv(name, value, 1);
   }
 }
