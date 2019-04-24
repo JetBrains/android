@@ -39,6 +39,6 @@ class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor
 }
 
 private const val INSTRUCTIONS =
-    """Assign a scope to the new dependency by selecting the configurations below.<br/><a
+    """Assign your dependency to a configuration by selecting one of the configurations below.<br/><a
       |href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>"""
 

@@ -53,7 +53,7 @@
         <properties>
           <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
-          <text value="Scope:"/>
+          <text value="Configuration:"/>
         </properties>
       </component>
       <component id="434ea" class="org.jdesktop.swingx.JXLabel" binding="myScopeLabel">
