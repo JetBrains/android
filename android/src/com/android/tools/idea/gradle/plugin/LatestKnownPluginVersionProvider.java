@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.plugin;
 
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 
+import com.android.SdkConstants;
 import com.android.builder.model.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOp;
@@ -47,7 +48,9 @@ public class LatestKnownPluginVersionProvider {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      String version = Version.ANDROID_GRADLE_PLUGIN_VERSION;
+      // TODO(qumeric): currently uses hardcoded plugin version in dev build. Make it use latest available.
+      String version =
+        EmbeddedDistributionPaths.isReleaseBuild() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
       Logger logger = Logger.getInstance(MethodHandles.lookup().lookupClass());
       logger.info("'" + ARTIFACT_ID + "' plugin missing from the offline Maven repo, will use default " + version);
       return version;
