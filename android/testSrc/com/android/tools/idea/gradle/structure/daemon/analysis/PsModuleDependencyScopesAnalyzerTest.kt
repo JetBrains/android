@@ -45,7 +45,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues.toList(),
                      "junit:junit:4.12",
-                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -67,7 +67,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "api", "compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -89,7 +89,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues.toList(),
                      "junit:junit:4.12",
-                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -111,15 +111,15 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
       checkIssuesFor(issues,
                      "obsoleteScopesLibrary",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
       checkIssuesFor(issues,
                      "compile/libs",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -142,7 +142,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues.toList(),
                      "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -165,7 +165,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -188,7 +188,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues,
                      "junit:junit:4.12",
-                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -211,7 +211,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "api", "compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -233,7 +233,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues.toList(),
                      "junit:junit:4.12",
-                     setOf("Obsolete scope found: <b>testCompile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
     } finally {
       Disposer.dispose(disposable)
@@ -255,7 +255,7 @@ class PsModuleDependencyScopesAnalyzerTest : DependencyTestCase() {
 
       checkIssuesFor(issues,
                      "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete scope found: <b>compile</b>" to ""),
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "api", "compile" to "implementation"))
     } finally {
       Disposer.dispose(disposable)
