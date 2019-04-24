@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
-import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -237,7 +236,8 @@ public class NewGradleSync implements GradleSync {
       try {
         myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener, taskId);
       }
-      catch (ModelNotFoundInCacheException e) {
+      catch (Throwable e) {
+        mySyncExecutor.generateFailureEvent(taskId);
         Logger.getInstance(NewGradleSync.class).warn("Restoring project state from cache failed. Performing a Gradle Sync.", e);
         return false;
       }
