@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.layoutinspector.model.ViewNode;
-import com.android.layoutinspector.model.ViewProperty;
 import com.android.layoutinspector.parser.ViewNodeParser;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -28,20 +27,18 @@ import com.android.tools.idea.editors.layoutInspector.ptable.LITTableCellEditorP
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class PropertiesTablePanelTest {
   private PropertiesTablePanel myPanel;
@@ -70,7 +67,7 @@ public class PropertiesTablePanelTest {
       "  node2@222 noun:eg=10,alpha beta mID=11,maybe-a-god \n" +
       "    node3@3333 mID=11,another-god cat:foo=19,this is a long text \n" +
       "DONE.\n";
-    return text.getBytes();
+    return text.getBytes(StandardCharsets.UTF_8);
   }
 
   @After

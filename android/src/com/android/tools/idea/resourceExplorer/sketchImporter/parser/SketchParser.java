@@ -16,12 +16,7 @@
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser;
 
 import com.android.tools.idea.resourceExplorer.sketchImporter.converter.models.ResizingConstraint;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.ColorDeserializer;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.ConstraintDeserializer;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.PointDeserializer;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchDocumentDeserializer;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchLayerDeserializer;
-import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.SketchMetaDeserializer;
+import com.android.tools.idea.resourceExplorer.sketchImporter.parser.deserializers.*;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.document.SketchDocument;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.interfaces.SketchLayer;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.meta.SketchMeta;
@@ -31,18 +26,20 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
-import java.awt.Color;
+import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.apache.commons.io.FilenameUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Parses sketch files.
@@ -118,7 +115,7 @@ public class SketchParser {
    */
   @Nullable
   public static <T> T parseJson(@NotNull InputStream in, @NotNull Type typeOfT) {
-    try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
+    try (Reader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
       return gson.fromJson(reader, typeOfT);
     }
     catch (Exception e) {
