@@ -50,16 +50,19 @@ public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomB
     return findChildByType(NAMED_PARAMETER);
   }
 
+  @Override
   @Nullable
   public String getParameterNameAsString() {
     return PsiImplUtil.getParameterNameAsString(this);
   }
 
+  @Override
   @Nullable
   public PsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 
+  @Override
   public boolean isColonNamedParameter() {
     return PsiImplUtil.isColonNamedParameter(this);
   }
