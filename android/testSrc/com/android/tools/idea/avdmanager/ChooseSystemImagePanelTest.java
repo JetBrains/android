@@ -211,7 +211,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
 
     // Get an Automotive device
-    myAutomotiveDevice = devMgr.getDevice("automotive_1024p_landscape", "Generic");
+    myAutomotiveDevice = devMgr.getDevice("automotive_1024p_landscape", "Google");
   }
 
   public void testClassificationFromParts() {
