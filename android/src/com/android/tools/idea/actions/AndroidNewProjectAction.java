@@ -56,16 +56,9 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
       return;
     }
 
-    NewProjectModel projectModel = new NewProjectModel();
     ModelWizard wizard = new ModelWizard.Builder()
-      .addStep(new ChooseAndroidProjectStep(projectModel))
-      .build();;
-    wizard.addResultListener(new ModelWizard.WizardListener() {
-      @Override
-      public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
-        projectModel.onWizardFinished(result);
-      }
-    });
+      .addStep(new ChooseAndroidProjectStep(new NewProjectModel()))
+      .build();
     new StudioWizardDialogBuilder(wizard, actionText("WelcomeScreen.CreateNewProject"))
       .setUxStyle(DYNAMIC_APP).build().show();
   }

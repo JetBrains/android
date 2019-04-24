@@ -316,14 +316,12 @@ public class NewProjectModel extends WizardModel {
     return NELE_USE_ANDROIDX_DEFAULT.get() && isAndroidxAvailable();
   }
 
-  public void onWizardFinished(@NotNull ModelWizard.WizardResult wizardResult) {
-    if (wizardResult == ModelWizard.WizardResult.FINISHED) {
-      // Set the property value
-      PropertiesComponent props = PropertiesComponent.getInstance();
-      props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().getName());
-      props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
-    }
+  private void saveWizardState() {
+    // Set the property value
+    PropertiesComponent props = PropertiesComponent.getInstance();
+    props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().getName());
+    props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
   }
 
   @NotNull
@@ -406,6 +404,8 @@ public class NewProjectModel extends WizardModel {
       catch (IOException e) {
         getLogger().warn("Failed to update Gradle wrapper permissions", e);
       }
+
+      saveWizardState();
 
       // Allow all other Wizard models to run handleFinished() (and the Wizard to close), before starting the (slow) import process.
       ApplicationManager.getApplication().invokeLater(this::performGradleImport);
