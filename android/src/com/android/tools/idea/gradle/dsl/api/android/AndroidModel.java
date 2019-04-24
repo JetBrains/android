@@ -75,6 +75,9 @@ public interface AndroidModel extends GradleDslModel {
   LintOptionsModel lintOptions();
 
   @NotNull
+  ResolvedPropertyModel ndkVersion();
+
+  @NotNull
   PackagingOptionsModel packagingOptions();
 
   @NotNull
