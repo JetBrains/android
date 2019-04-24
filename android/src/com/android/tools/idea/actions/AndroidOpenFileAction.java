@@ -17,14 +17,11 @@ package com.android.tools.idea.actions;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.fileTypes.profiler.AndroidProfilerCaptureFileType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -32,6 +29,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
@@ -164,7 +162,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           int exitCode = confirmOpenNewProject(false);
           if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
             Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
-            if (!closeAndDispose(toClose)) {
+            if (!ProjectManagerEx.getInstanceEx().closeAndDispose(toClose)) {
               return false;
             }
           }
