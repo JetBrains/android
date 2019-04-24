@@ -88,7 +88,11 @@ private fun selectVariantForAppOrLeaf(
   shouldGenerateSources: Boolean
 ): Variant? {
   var variant = selectedVariants.getSelectedVariant(moduleId)
-  val variantNames = androidModule.androidProject.variantNames
+  val variantNames = try {
+    androidModule.androidProject.variantNames
+  } catch (e: UnsupportedMethodException) {
+    null
+  } ?: return null
 
   // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
   if (variant == null || !variantNames.contains(variant)) {
