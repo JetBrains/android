@@ -82,7 +82,7 @@ public class WindowsPerformanceHintsChecker {
   }
 
   public void run() {
-    if (SystemInfo.isWindows && (StudioFlags.WINDOWS_DEFENDER_METRICS_ENABLED.get() || StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get())) {
+    if (SystemInfo.isWindows && (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get() || StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get())) {
       Application application = ApplicationManager.getApplication();
       application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
@@ -126,7 +126,7 @@ public class WindowsPerformanceHintsChecker {
           Map<Path, Boolean> pathStatuses = checkPathsExcluded(getImportantPaths(project), excludedPatterns);
           WindowsDefenderStatus.Status overallStatus;
           if (pathStatuses.containsValue(Boolean.FALSE)) {
-            if (showNotification && StudioFlags.WINDOWS_DEFENDER_NOTIFICATION_ENABLED.get() && !shownRecently()) {
+            if (showNotification && StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get() && !shownRecently()) {
               showAntivirusNotification(project, getNotificationTextForNonExcludedPaths(pathStatuses));
               setLastShownTime();
             }
@@ -214,7 +214,7 @@ public class WindowsPerformanceHintsChecker {
 
   private static void logWindowsDefenderStatus(WindowsDefenderStatus.Status status, boolean projectDirExcluded, @NotNull Project project) {
     LOG.info("Windows Defender status: " + status + "; projectDirExcluded? " + projectDirExcluded);
-    if (StudioFlags.WINDOWS_DEFENDER_METRICS_ENABLED.get()) {
+    if (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get()) {
       if (!ApplicationManager.getApplication().isInternal() && StatisticsUploadAssistant.isSendAllowed()) {
         UsageTracker.log(UsageTrackerUtils.withProjectId(AndroidStudioEvent.newBuilder()
                                                            .setKind(AndroidStudioEvent.EventKind.WINDOWS_DEFENDER_STATUS)
