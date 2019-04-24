@@ -139,7 +139,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
 
     // Simulate loading models from cache fails.
-    Answer getTaskIdAndTrowError = new Answer() {
+    Answer getTaskIdAndThrowError = new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) throws Throwable {
         ExternalSystemTaskId taskId = invocation.getArgument(4);
@@ -147,13 +147,16 @@ public class NewGradleSyncTest extends IdeaTestCase {
         throw new ModelNotFoundInCacheException(GradleModuleModel.class);
       }
     };
-    doAnswer(getTaskIdAndTrowError).when(myResultHandler)
+    doAnswer(getTaskIdAndThrowError).when(myResultHandler)
       .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
 
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
     myGradleSync.sync(request, mySyncListener);
+
+    // Verify that cached sync was completed in build view.
+    verify(mySyncExecutor).generateFailureEvent(any());
 
     // Full sync should have been executed.
     verify(mySyncMessages).removeAllMessages();
