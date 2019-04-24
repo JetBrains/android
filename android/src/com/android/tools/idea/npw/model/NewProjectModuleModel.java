@@ -249,7 +249,7 @@ public final class NewProjectModuleModel extends WizardModel {
     try {
       Collection<Parameter> renderParameters = templateMetadata.getParameters();
       Map<Parameter, Object> parameterValues = ParameterValueResolver.resolve(renderParameters, userValues, additionalValues);
-      parameterValues.forEach(((parameter, value) -> templateValues.put(parameter.id, value)));
+      parameterValues.forEach((parameter, value) -> templateValues.put(parameter.id, value));
     } catch (CircularParameterDependencyException e) {
       getLog().error("Circular dependency between parameters in template %1$s", e, templateMetadata.getTitle());
     }
