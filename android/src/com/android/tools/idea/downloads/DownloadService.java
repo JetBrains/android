@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.downloads;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -30,15 +29,14 @@ import com.intellij.util.concurrency.Semaphore;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.DownloadableFileService;
 import com.intellij.util.download.FileDownloader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Service for downloading data that is infrequently updated.
@@ -80,8 +78,7 @@ public abstract class DownloadService {
          filename);
   }
 
-  @VisibleForTesting
-  public DownloadService(@NotNull FileDownloader downloader,
+  protected DownloadService(@NotNull FileDownloader downloader,
                          @NotNull String serviceName,
                          @NotNull URL fallbackResourceUrl,
                          @NotNull File targetCachePath,

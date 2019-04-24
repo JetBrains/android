@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.stats;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
 import com.android.tools.idea.downloads.DownloadService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,15 +28,14 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ResourceUtil;
 import com.intellij.util.download.FileDownloader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Service for getting information on Android versions, including usage percentages.

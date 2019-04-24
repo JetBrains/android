@@ -30,6 +30,7 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
@@ -146,3 +147,8 @@ fun addBinaryAarDependency(module: Module) {
     "res.apk"
   )
 }
+
+/**
+ * Exposes protected method [LocalResourceRepository.isScanPending] for usage in tests.
+ */
+fun checkIfScanPending(repository: LocalResourceRepository, psiFile: PsiFile) = repository.isScanPending(psiFile)

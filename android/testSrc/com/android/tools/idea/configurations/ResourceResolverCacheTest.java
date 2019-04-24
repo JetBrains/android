@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.tools.idea.res.ResourcesTestsUtil.checkIfScanPending;
+
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.devices.Device;
@@ -84,7 +86,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
       assertEquals("Cancel", value.getTrimmedText());
       value.setText("\"FooBar\"");
     });
-    assertTrue(resources.isScanPending(psiFile3));
+    assertTrue(checkIfScanPending(resources, psiFile3));
     ApplicationManager.getApplication().invokeLater(() -> {
       assertTrue(generation < resources.getModificationCount());
       assertNotSame(resolver1b, configuration1.getResourceResolver());

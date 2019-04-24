@@ -1108,7 +1108,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   @Override
-  public boolean isScanPending(@NotNull PsiFile psiFile) {
+  boolean isScanPending(@NotNull PsiFile psiFile) {
     synchronized (SCAN_LOCK) {
       return myPendingScans != null && myPendingScans.contains(psiFile);
     }
