@@ -45,6 +45,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -286,7 +287,7 @@ public class NavNlEditorTest {
       .assertCanInteractWithSurface();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/123521236
+  @Ignore("b/123521236")
   @Test
   public void testKeyMappings() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
