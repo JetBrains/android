@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.eclipse;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -338,8 +337,7 @@ public class GradleImport {
    * @param file the file to check
    * @return true if it is known to be a source file
    */
-  @VisibleForTesting
-  public static boolean isTextFile(@NonNull File file) {
+  static boolean isTextFile(@NonNull File file) {
     String name = file.getName();
     return name.endsWith(DOT_JAVA) ||
            name.endsWith(DOT_XML) ||
