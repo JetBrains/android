@@ -132,7 +132,7 @@ public class BuildVariantUpdater {
       return false;
     }
 
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
+    NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(moduleToUpdate);
     if (ndkModuleModel == null) {
       // Non-native module. ABI is irrelevant. Proceed with the build variant without ABI.
       return updateSelectedVariant(project, moduleName, selectedBuildVariant);
@@ -165,7 +165,7 @@ public class BuildVariantUpdater {
       return false;
     }
 
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
+    NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(moduleToUpdate);
     if (ndkModuleModel == null) {
       // This is unexpected. If we presented ABI dropdown for this module, then it must have an NDK model.
       logAndShowAbiNameFailure(String.format("Cannot find native module model '%1$s'.", moduleName));
@@ -256,7 +256,7 @@ public class BuildVariantUpdater {
     String variantName = variantToSelect;
     String abiName = null;
     if (ndkFacet != null) {
-      NdkModuleModel ndkModuleModel = getNdkModel(ndkFacet);
+      NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(ndkFacet);
       if (ndkModuleModel != null) {
         String abiBeforeChange = ndkModuleModel.getAbiName(ndkModuleModel.getSelectedVariant().getName());
 
@@ -379,7 +379,7 @@ public class BuildVariantUpdater {
     if (dependencyModel != null) {
       // Update the affected NDK facets, if exists.
       NdkFacet dependencyNdkFacet = NdkFacet.getInstance(dependencyModule);
-      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNdkModel(dependencyNdkFacet);
+      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNdkModelIfNotJustDummy(dependencyNdkFacet);
       if (dependencyNdkModel != null) {
         String projectVariantWithAbi = resolveNewNdkVariant(dependencyNdkModel, projectVariant, abiToSelect);
         if (projectVariantWithAbi != null) {
@@ -469,7 +469,7 @@ public class BuildVariantUpdater {
       return;
     }
     AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(moduleToUpdate);
+    NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(moduleToUpdate);
     GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
     if (androidModel != null && gradleModel != null) {
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
@@ -549,7 +549,7 @@ public class BuildVariantUpdater {
         indicator.setFraction(PROGRESS_SETUP_MODULES_START);
         List<IdeModifiableModelsProvider> modelsProviders = new ArrayList<>();
         for (NdkFacet ndkFacet : affectedNdkFacets) {
-          NdkModuleModel ndkModuleModel = getNdkModel(ndkFacet);
+          NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(ndkFacet);
           if (ndkModuleModel != null) {
             modelsProviders.add(setUpModule(ndkFacet.getModule(), ndkModuleModel));
           }
@@ -674,14 +674,33 @@ public class BuildVariantUpdater {
   }
 
   @Nullable
-  private static NdkModuleModel getNdkModel(@NotNull NdkFacet facet) {
+  private static NdkModuleModel getNdkModelIfNotJustDummy(@NotNull NdkFacet facet) {
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet);
     if (ndkModuleModel == null) {
       logAndShowBuildVariantFailure(
         String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
+      return null;
+    }
+    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+      // Native module that does not have any real ABIs. Proceed with the build variant without ABI.
+      return null;
     }
     return ndkModuleModel;
   }
+
+  @Nullable
+  private static NdkModuleModel getNdkModelIfNotJustDummy(@NotNull Module module) {
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel == null) {
+      return null;
+    }
+    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+      // Native module that does not have any real ABIs. Proceed with the build variant without ABI.
+      return null;
+    }
+    return ndkModuleModel;
+  }
+
 
   private static void logAndShowBuildVariantFailure(@NotNull String reason) {
     String prefix = "Unable to select build variant:\n";
