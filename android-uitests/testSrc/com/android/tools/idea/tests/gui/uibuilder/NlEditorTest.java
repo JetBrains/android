@@ -118,12 +118,15 @@ public class NlEditorTest {
 
     // Test Pan with middle mouse button
     Point oldScrollPosition = nele.getScrollPosition();
-    nele.dragMouseFromCenter(-10, -10, MouseButton.MIDDLE_BUTTON, 0);
+    nele.dragMouseFromCenterWithModifier(-10, -10, MouseButton.MIDDLE_BUTTON, 0);
     Point expectedScrollPosition = new Point(oldScrollPosition);
     expectedScrollPosition.translate(10, 10);
     assertThat(nele.getScrollPosition()).isEqualTo(expectedScrollPosition);
 
-    // TODO(b/127371666): Test Pan with Left mouse button and SPACE
+    // Test Pan with Left mouse button and SPACE
+    nele.dragMouseFromCenterWithKeyCode(-10, -10, MouseButton.LEFT_BUTTON, KeyEvent.VK_SPACE);
+    expectedScrollPosition.translate(10, 10);
+    assertThat(nele.getScrollPosition()).isEqualTo(expectedScrollPosition);
 
     // Test zoom out with mouse wheel
     oldScale = nele.getScale();
