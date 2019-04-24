@@ -141,15 +141,14 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     this(project, DEFAULT_MIGRATION_FACTORY);
   }
 
-  @VisibleForTesting
-  protected MigrateToAppCompatProcessor(@NotNull Project project,
-                                        @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
+  MigrateToAppCompatProcessor(@NotNull Project project,
+                              @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
     this(project, buildMigrationMap(project), appCompatStyleMigrationFactory);
   }
 
   @VisibleForTesting
-  protected MigrateToAppCompatProcessor(@NonNull Project project, @NonNull List<AppCompatMigrationEntry> migrationMap,
-                                        @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
+  MigrateToAppCompatProcessor(@NonNull Project project, @NonNull List<AppCompatMigrationEntry> migrationMap,
+                              @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
     super(project, null);
     myModules = ModuleManager.getInstance(project).getModules();
     myMigrationMap = migrationMap;

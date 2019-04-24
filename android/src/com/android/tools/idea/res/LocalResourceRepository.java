@@ -21,7 +21,6 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.annotations.NonNull;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -249,8 +248,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return null;
   }
 
-  @VisibleForTesting
-  public boolean isScanPending(@NotNull PsiFile psiFile) {
+  boolean isScanPending(@NotNull PsiFile psiFile) {
     return false;
   }
 

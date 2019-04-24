@@ -15,31 +15,50 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
+
 import com.android.tools.adtui.DocumentAccessor;
 import com.android.tools.adtui.TextAccessors;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.TextAccessor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A data binding class that links Swing UI elements to a {@link ScopedStateStore}.
@@ -98,9 +117,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, FocusListener, ChangeListener, ActionListener,
                                          DocumentListener, ItemListener {
   // State store
-  // TODO: Temporary change. Set to private in a followup CL!
-  @VisibleForTesting
-  public ScopedStateStore myState;
+  protected ScopedStateStore myState;
 
   // Mapping documents to components.
   private final Map<Document, JComponent> myDocumentsToComponent = Maps.newIdentityHashMap();
