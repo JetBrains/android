@@ -1050,4 +1050,43 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
     assertThat(lookupElementBuilder.lookupString).isEqualTo("good")
   }
+
+  @Test
+  fun testDataBindingCompletion_overriddenMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        @Override
+        public String toString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.toStr<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    // The completeBasic() should return null as the only item is auto-completed.
+    assertThat(lookupElements).isNull()
+
+    // We should only find one method with name "toString()", toString() declared in [java.lang.Object] should be removed.
+    //assertThat(lookupElements.count { it.lookupString == "toString()" }).isEqualTo(1)
+  }
 }
