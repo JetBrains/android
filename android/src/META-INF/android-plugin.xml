@@ -385,6 +385,9 @@
 
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
+    <applicationConfigurable groupId="build" id="instant.run"
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
     <projectConfigurable instance="com.android.tools.idea.flags.ExperimentalSettingsConfigurable"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
