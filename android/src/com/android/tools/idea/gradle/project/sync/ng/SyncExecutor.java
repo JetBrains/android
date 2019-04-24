@@ -226,7 +226,7 @@ class SyncExecutor {
     }
   }
 
-  private void generateFailureEvent(@NotNull ExternalSystemTaskId id) {
+  void generateFailureEvent(@NotNull ExternalSystemTaskId id) {
     if (isInTestingMode()) {
       finishFailedSync(id, myProject);
     }
