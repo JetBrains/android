@@ -573,14 +573,14 @@ public final class StudioFlags {
     "If enabled, a notification will be shown if the Universal C Runtime in Windows is not installed",
     false);
 
-  public static final Flag<Boolean> WINDOWS_DEFENDER_NOTIFICATION_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "windows.defender.notification.enabled", "Enable Windows Defender system health check",
-    "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
+  public static final Flag<Boolean> ANTIVIRUS_NOTIFICATION_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "antivirus.notification.enabled", "Enable antivirus system health check",
+    "If enabled, a notification will be shown if antivirus realtime scanning is enabled and directories relevant to build performance aren't excluded",
     true);
 
-  public static final Flag<Boolean> WINDOWS_DEFENDER_METRICS_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "windows.defender.metrics.enabled", "Enable Windows Defender metrics collection",
-    "If enabled, metrics about the status of Windows Defender realtime scanning and excluded directories will be collected",
+  public static final Flag<Boolean> ANTIVIRUS_METRICS_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "antivirus.metrics.enabled", "Enable antivirus metrics collection",
+    "If enabled, metrics about the status of antivirus realtime scanning and excluded directories will be collected",
     true);
 
   private StudioFlags() { }
