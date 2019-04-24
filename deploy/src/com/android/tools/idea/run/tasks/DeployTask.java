@@ -42,7 +42,7 @@ public class DeployTask extends AbstractDeployTask {
    * @param packages a map of application ids to apks representing the packages this task will deploy.
    */
   public DeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, String userInstallOptions) {
-    super(project, packages);
+    super(project, packages, false);
     this.userInstallOptions = userInstallOptions;
   }
 
