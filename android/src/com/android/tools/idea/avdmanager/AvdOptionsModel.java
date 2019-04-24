@@ -644,8 +644,10 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY, myInternalStorage.get());
     map.put(AvdWizardUtils.NETWORK_SPEED_KEY, mySelectedNetworkSpeed.get().getAsParameter());
     map.put(AvdWizardUtils.NETWORK_LATENCY_KEY, mySelectedNetworkLatency.get().getAsParameter());
-    map.put(AvdWizardUtils.FRONT_CAMERA_KEY, mySelectedAvdFrontCamera.get().getAsParameter());
-    map.put(AvdWizardUtils.BACK_CAMERA_KEY, mySelectedAvdBackCamera.get().getAsParameter());
+    map.put(AvdWizardUtils.FRONT_CAMERA_KEY, myAvdDeviceData.hasFrontCamera().get() ? mySelectedAvdFrontCamera.get().getAsParameter()
+                                                                                    : AvdCamera.NONE);
+    map.put(AvdWizardUtils.BACK_CAMERA_KEY, myAvdDeviceData.hasBackCamera().get() ? mySelectedAvdBackCamera.get().getAsParameter()
+                                                                                   : AvdCamera.NONE);
 
     if(myAvdDeviceData.customSkinFile().get().isPresent()){
       map.put(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY, myAvdDeviceData.customSkinFile().getValue());
