@@ -44,6 +44,7 @@ public class RoomColumnNameImpl extends AbstractRoomNameElement implements RoomC
     else super.accept(visitor);
   }
 
+  @Override
   @NotNull
   public RoomColumnPsiReference getReference() {
     return PsiImplUtil.getReference(this);
