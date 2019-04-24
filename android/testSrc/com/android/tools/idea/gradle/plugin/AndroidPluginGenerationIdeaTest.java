@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import com.android.SdkConstants;
 import com.android.builder.model.Version;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.IdeComponents;
@@ -65,6 +66,8 @@ public class AndroidPluginGenerationIdeaTest extends IdeaTestCase {
     when(myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths()).thenReturn(Collections.emptyList());
 
     String version = LatestKnownPluginVersionProvider.INSTANCE.get();
-    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, version);
+    assertEquals(
+      EmbeddedDistributionPaths.isReleaseBuild() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION,
+      version);
   }
 }
