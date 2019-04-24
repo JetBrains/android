@@ -313,6 +313,10 @@ filegroup(
         "//tools/base/bazel:remote_windows": [
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
+        "//tools/base/bazel:windows": [
+            "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/proto:deploy_java_proto",
+        ],
         "//conditions:default": [
             "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer:bash_bridge",
