@@ -55,26 +55,4 @@ class BrUtilTest {
 
     assertThat(BrUtil.collectIds(methodsAndFields)).containsExactly("length", "size", "sum", "value", "count", "text", "enabled")
   }
-
-  @Test
-  @RunsInEdt
-  fun methodPatternsMatchExpected() {
-    fixture.copyFileToProject("src/p1/p2/ModelWithGettersSetters.java")
-    val modelClass = fixture.findClass("p1.p2.ModelWithGettersSetters")
-
-    val boolGetters = modelClass.methods.filter { m -> BrUtil.isBooleanGetter(m) }
-    boolGetters.forEach { method -> assertThat(method.parameters.size).isEqualTo(0) }
-    boolGetters.forEach { method -> assertThat(method.returnType).isEqualTo(PsiType.BOOLEAN) }
-    assertThat(boolGetters.map { m -> m.name }).containsExactly("isBoolValue")
-
-    val getters = modelClass.methods.filter { m -> BrUtil.isGetter(m) }
-    getters.forEach { method -> assertThat(method.parameters.size).isEqualTo(0) }
-    getters.forEach { method -> assertThat(method.returnType).isNotEqualTo(PsiType.VOID) }
-    assertThat(getters.map { m -> m.name }).containsExactly("getBoolValue", "getIntValue", "getStringValue")
-
-    val setters = modelClass.methods.filter { m -> BrUtil.isSetter(m) }
-    setters.forEach { method -> assertThat(method.parameters.size).isEqualTo(1) }
-    setters.forEach { method -> assertThat(method.returnType).isEqualTo(PsiType.VOID) }
-    assertThat(setters.map { m -> m.name }).containsExactly("setBoolValue", "setIntValue", "setStringValue")
-  }
 }

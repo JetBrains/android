@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.databinding;
 
+import static com.android.tools.idea.databinding.DataBindingUtil.isBooleanGetter;
+import static com.android.tools.idea.databinding.DataBindingUtil.isGetter;
+import static com.android.tools.idea.databinding.DataBindingUtil.isSetter;
+import static com.android.tools.idea.databinding.DataBindingUtil.stripPrefixFromField;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.PsiType;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,72 +85,5 @@ public final class BrUtil {
     }
     char firstChar = propertyName.charAt(0);
     return String.valueOf(Character.toLowerCase(firstChar)) + propertyName.subSequence(1, propertyName.length());
-  }
-
-  public static boolean isGetter(@NotNull PsiMethod psiMethod) {
-    return matchesMethodPattern(psiMethod, "get", 0, type -> !PsiType.VOID.equals(type));
-  }
-
-  public static boolean isBooleanGetter(@NotNull PsiMethod psiMethod) {
-    return matchesMethodPattern(psiMethod, "is", 0, type -> PsiType.BOOLEAN.equals(type));
-  }
-
-  public static boolean isSetter(@NotNull PsiMethod psiMethod) {
-    return matchesMethodPattern(psiMethod, "set", 1, type -> PsiType.VOID.equals(type));
-  }
-
-  private static boolean matchesMethodPattern(@NotNull PsiMethod psiMethod,
-                                              @NotNull String prefix,
-                                              int parameterCount,
-                                              @NotNull Predicate<PsiType> returnTypePredicate) {
-    String name = psiMethod.getName();
-    return isPrefix(name, prefix) &&
-           Character.isJavaIdentifierStart(name.charAt(prefix.length())) &&
-           psiMethod.getParameterList().getParametersCount() == parameterCount &&
-           returnTypePredicate.test(psiMethod.getReturnType());
-  }
-
-  @NotNull
-  private static String stripPrefixFromField(@NotNull PsiField psiField) {
-    String fieldName = psiField.getName();
-    assert fieldName != null;
-    return stripPrefixFromField(fieldName);
-  }
-
-  private static boolean isPrefix(@NotNull CharSequence sequence, @NotNull String prefix) {
-    boolean prefixes = false;
-    if (sequence.length() > prefix.length()) {
-      int count = prefix.length();
-      prefixes = true;
-      for (int i = 0; i < count; i++) {
-        if (sequence.charAt(i) != prefix.charAt(i)) {
-          prefixes = false;
-          break;
-        }
-      }
-    }
-    return prefixes;
-  }
-
-  /**
-   * Given an Android field of the format "m_field", "m_Field", "mField" or
-   * "_field", return "field". Otherwise, just return the name itself back.
-   */
-  @NotNull
-  private static String stripPrefixFromField(@NotNull String name) {
-    if (name.length() >= 2) {
-      char firstChar = name.charAt(0);
-      char secondChar = name.charAt(1);
-      if (name.length() > 2 && firstChar == 'm' && secondChar == '_') {
-        char thirdChar = name.charAt(2);
-        if (Character.isJavaIdentifierStart(thirdChar)) {
-          return String.valueOf(Character.toLowerCase(thirdChar)) + name.subSequence(3, name.length());
-        }
-      } else if ((firstChar == 'm' && Character.isUpperCase(secondChar)) ||
-                 (firstChar == '_' && Character.isJavaIdentifierStart(secondChar))) {
-        return String.valueOf(Character.toLowerCase(secondChar)) + name.subSequence(2, name.length());
-      }
-    }
-    return name;
   }
 }
