@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.SdkConstants.DOT_GRADLE
-import com.android.SdkConstants.FD_MERGED
-import com.android.SdkConstants.FD_RES
+import com.android.builder.model.AndroidProject.FD_GENERATED
+import com.android.builder.model.AndroidProject.FD_INTERMEDIATES
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser.AAPT_TOOL_NAME
 import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser.CMAKE
 import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser.Companion.XML_PARSING_GROUP
+import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.stats.withProjectId
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -115,8 +115,8 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
    */
   private fun getFileType(file: File): BuildErrorMessage.FileType {
     val filePath = if (file.isAbsolute) file.absolutePath else file.path
-    if (filePath.contains(File.separatorChar + DOT_GRADLE + File.separatorChar) ||
-        filePath.contains(FileUtils.join(FD_RES, FD_MERGED))) {
+    if (filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, FD_GENERATED) + File.separatorChar) ||
+        filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, FD_INTERMEDIATES) + File.separatorChar)) {
       return BuildErrorMessage.FileType.BUILD_GENERATED_FILE
     }
     return BuildErrorMessage.FileType.PROJECT_FILE
