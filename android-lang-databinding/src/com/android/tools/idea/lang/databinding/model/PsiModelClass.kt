@@ -22,7 +22,9 @@ import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.MethodSignatureUtil
 import java.util.ArrayList
+import java.util.Arrays
 
 /**
  * PSI wrapper around class types that additionally expose information particularly useful in data binding expressions.
@@ -90,9 +92,25 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
 
   /**
    * Returns the list of methods in the class and all its superclasses.
+   *
+   * If a method is declared in multiple classes or interfaces, only the latest one are returned.
+   * For example, toString() is declared in [java.lang.Object] and overridden in [java.lang.String],
+   * only the overriding one is returned.
    */
   val allMethods: List<PsiModelMethod>
-    get() = (type as? PsiClassType)?.resolve()?.allMethods?.map { PsiModelMethod(it, mode) } ?: listOf()
+    get() {
+      var psiClass = (type as? PsiClassType)?.resolve()
+      val methods = ArrayList<PsiModelMethod>()
+      while (psiClass != null) {
+        val newMethods = psiClass.methods.filter {
+          // Only keep the methods that do not have equivalents in the result set with same name and signatures.
+          newMethod -> methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
+        }
+        methods.addAll(newMethods.map { PsiModelMethod(it, mode) })
+        psiClass = psiClass.superClass
+      }
+      return methods
+    }
 
   /**
    * Returns true if this is an ObservableField, or any of the primitive versions
