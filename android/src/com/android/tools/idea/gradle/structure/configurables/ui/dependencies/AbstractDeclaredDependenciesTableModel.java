@@ -72,7 +72,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
       }
     };
 
-    ColumnInfo<T, String> scopeColumnInfo = new ColumnInfo<T, String>("Scope") {
+    ColumnInfo<T, String> scopeColumnInfo = new ColumnInfo<T, String>("Configuration") {
       @Override
       @Nullable
       public String valueOf(T dependency) {
