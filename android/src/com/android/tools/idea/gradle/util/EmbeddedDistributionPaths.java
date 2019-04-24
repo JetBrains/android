@@ -42,8 +42,7 @@ public class EmbeddedDistributionPaths {
   @NotNull
   public List<File> findAndroidStudioLocalMavenRepoPaths() {
     File defaultRootDirPath = getDefaultRootDirPath();
-    if (defaultRootDirPath != null) {
-      // Release build
+    if (isReleaseBuild()) {
       File repoPath = new File(defaultRootDirPath, "m2repository");
       return repoPath.isDirectory() ? ImmutableList.of(repoPath) : ImmutableList.of();
     }
@@ -164,6 +163,10 @@ public class EmbeddedDistributionPaths {
     String ideHomePath = getIdeHomePath();
     File rootDirPath = new File(ideHomePath, "gradle");
     return rootDirPath.isDirectory() ? rootDirPath : null;
+  }
+
+  public static boolean isReleaseBuild() {
+    return getDefaultRootDirPath() != null;
   }
 
   @Nullable
