@@ -52,27 +52,30 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   @Override
   public void display(@NotNull PsBaseDependency dependency) {
-    myDependency = (PsDeclaredLibraryDependency)dependency;
-    PsArtifactDependencySpec spec = myDependency.getSpec();
-
-    myGroupIdLabel.setText(spec.getGroup());
-    myArtifactNameLabel.setText(spec.getName());
-
     if (myVersionPropertyEditor != null) {
-      if (myEditorComponent != null) {
-        myRequestedVersion.remove(myEditorComponent);
+      if (dependency == myDependency) {
+        myVersionPropertyEditor.reloadIfNotChanged();
+      } else {
+        if (myEditorComponent != null) {
+          myRequestedVersion.remove(myEditorComponent);
+        }
+        Disposer.dispose(myVersionPropertyEditor);
+        myVersionPropertyEditor = null; // remake the editor below
       }
-      Disposer.dispose(myVersionPropertyEditor);
     }
-    myVersionPropertyEditor =
-      DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
-                                                    .createEditor(myContext,
-                                                                  myDependency.getParent().getParent(),
-                                                                  myDependency.getParent(),
-                                                                  Unit.INSTANCE,
-                                                                  null);
-    myEditorComponent = myVersionPropertyEditor.getComponent();
-    myRequestedVersion.add(myEditorComponent);
+    if (myVersionPropertyEditor == null) {
+      myDependency = (PsDeclaredLibraryDependency) dependency;
+      myVersionPropertyEditor =
+        DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
+          .createEditor(myContext, myDependency.getParent().getParent(), myDependency.getParent(), Unit.INSTANCE, null);
+      myEditorComponent = myVersionPropertyEditor.getComponent();
+      myRequestedVersion.add(myEditorComponent);
+
+      PsArtifactDependencySpec spec = myDependency.getSpec();
+
+      myGroupIdLabel.setText(spec.getGroup());
+      myArtifactNameLabel.setText(spec.getName());
+    }
 
     myScopeLabel.setText(dependency.getJoinedConfigurationNames());
   }
