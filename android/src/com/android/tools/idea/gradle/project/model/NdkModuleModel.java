@@ -105,11 +105,13 @@ public class NdkModuleModel implements ModuleModel {
       // Single-variant sync.
       populateForSingleVariantSync();
     }
+
     if (myVariantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
-      String dummyVariantAbi = "-----";
-      myVariantsByName.put(dummyVariantAbi, new NdkVariant(dummyVariantAbi, myFeatures.isExportedHeadersSupported()));
-      myVariantNamesByVariantAndAbiName.put(dummyVariantAbi, new NdkVariantName("---", "--"));
+      myVariantsByName.put(DummyNdkVariant.variantNameWithAbi,
+                           new NdkVariant(DummyNdkVariant.variantNameWithAbi, myFeatures.isExportedHeadersSupported()));
+      myVariantNamesByVariantAndAbiName
+        .put(DummyNdkVariant.variantNameWithAbi, new NdkVariantName(DummyNdkVariant.variantNameWithoutAbi, DummyNdkVariant.abiName));
     }
   }
 
@@ -382,5 +384,13 @@ public class NdkModuleModel implements ModuleModel {
     }
 
     return true;
+  }
+
+  // If there are no real NDK variants (e.g., there are no artifacts to deduce variants from), a dummy variant will
+  // be created.
+  public static class DummyNdkVariant {
+    private static final String variantNameWithoutAbi = "---";
+    private static final String abiName = "--";
+    public static final String variantNameWithAbi = variantNameWithoutAbi + "-" + abiName;
   }
 }
