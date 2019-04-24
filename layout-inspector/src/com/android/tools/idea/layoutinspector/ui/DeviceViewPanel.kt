@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
@@ -87,6 +88,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   private val scrollPane = JBScrollPane(contentPanel)
 
   init {
+    scrollPane.border = JBUI.Borders.empty()
     client.register(Common.Event.EventGroupIds.SKIA_PICTURE) { handleSkiaPictureEvent(it) }
 
     layoutInspector.modelChangeListeners.add(::modelChanged)

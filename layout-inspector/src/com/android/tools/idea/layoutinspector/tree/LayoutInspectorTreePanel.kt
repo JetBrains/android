@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.JBUI
 import java.util.Enumeration
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
@@ -33,6 +34,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private val contentPane = JBScrollPane(tree)
 
   init {
+    contentPane.border = JBUI.Borders.empty()
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     tree.addTreeSelectionListener { e ->
       (e.newLeadSelectionPath?.lastPathComponent as MyTreeNode?)?.let {
