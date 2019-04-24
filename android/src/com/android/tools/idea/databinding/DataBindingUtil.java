@@ -37,8 +37,10 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiJavaParserFacade;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeVisitor;
@@ -257,6 +259,106 @@ public final class DataBindingUtil {
       }
     }
     return out.toString();
+  }
+
+  public static boolean isGetter(@NotNull PsiMethod psiMethod) {
+    PsiType returnType = psiMethod.getReturnType();
+    if (returnType == null) {
+      return false; // Null return type indicates a constructor
+    }
+    return (!returnType.equals(PsiType.VOID)
+            && psiMethod.getParameterList().getParametersCount() == 0
+            && isPrefixedJavaIdentifier(psiMethod.getName(), "get"));
+  }
+
+  public static boolean isBooleanGetter(@NotNull PsiMethod psiMethod) {
+    PsiType returnType = psiMethod.getReturnType();
+    if (returnType == null) {
+      return false; // Null return type indicates a constructor
+    }
+    return (returnType.equals(PsiType.BOOLEAN)
+            && psiMethod.getParameterList().getParametersCount() == 0
+            && isPrefixedJavaIdentifier(psiMethod.getName(), "is"));
+  }
+
+  public static boolean isSetter(@NotNull PsiMethod psiMethod) {
+    PsiType returnType = psiMethod.getReturnType();
+    if (returnType == null) {
+      return false; // Null return type indicates a constructor
+    }
+    return (returnType.equals(PsiType.VOID)
+            && psiMethod.getParameterList().getParametersCount() == 1
+            && isPrefixedJavaIdentifier(psiMethod.getName(), "set"));
+  }
+
+  private static boolean isPrefixedJavaIdentifier(@NotNull String name, @NotNull String prefix) {
+    return isPrefix(name, prefix) && Character.isJavaIdentifierStart(name.charAt(prefix.length()));
+  }
+
+  /**
+   * Given a getter or setter method, returns its name with the prefix stripped.
+   * Otherwise, just return the original name.
+   */
+  @NotNull
+  public static String stripPrefixFromMethod(@NotNull PsiMethod method) {
+    String methodName = method.getName();
+    if (isGetter(method)) {
+      return StringUtil.decapitalize(methodName.substring("get".length()));
+    }
+
+    if (isBooleanGetter(method)) {
+      return StringUtil.decapitalize(methodName.substring("is".length()));
+    }
+
+    if (isSetter(method)) {
+      return StringUtil.decapitalize(methodName.substring("set".length()));
+    }
+
+    return methodName;
+  }
+
+  @NotNull
+  public static String stripPrefixFromField(@NotNull PsiField psiField) {
+    String fieldName = psiField.getName();
+    assert fieldName != null;
+    return stripPrefixFromField(fieldName);
+  }
+
+  private static boolean isPrefix(@NotNull CharSequence sequence, @NotNull String prefix) {
+    boolean prefixes = false;
+    if (sequence.length() > prefix.length()) {
+      int count = prefix.length();
+      prefixes = true;
+      for (int i = 0; i < count; i++) {
+        if (sequence.charAt(i) != prefix.charAt(i)) {
+          prefixes = false;
+          break;
+        }
+      }
+    }
+    return prefixes;
+  }
+
+  /**
+   * Given an Android field of the format "m_field", "m_Field", "mField" or
+   * "_field", return "field". Otherwise, just return the name itself back.
+   */
+  @NotNull
+  private static String stripPrefixFromField(@NotNull String name) {
+    if (name.length() >= 2) {
+      char firstChar = name.charAt(0);
+      char secondChar = name.charAt(1);
+      if (name.length() > 2 && firstChar == 'm' && secondChar == '_') {
+        char thirdChar = name.charAt(2);
+        if (Character.isJavaIdentifierStart(thirdChar)) {
+          return String.valueOf(Character.toLowerCase(thirdChar)) + name.subSequence(3, name.length());
+        }
+      } else if ((firstChar == 'm' && Character.isUpperCase(secondChar)) ||
+                 (firstChar == '_' && Character.isJavaIdentifierStart(secondChar))) {
+        return String.valueOf(Character.toLowerCase(secondChar)) + name.subSequence(2, name.length());
+      }
+    }
+    return name;
   }
 
   /**
