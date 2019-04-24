@@ -238,7 +238,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
 
       if (modules.isEmpty()) {
-        AnalysisScope narrowed = scope.getNarrowedComplementaryScope(project);
+        AnalysisScope scopeRef = scope; // Need effectively final reference to permit capture by lambda.
+        AnalysisScope narrowed = ReadAction.compute(() -> scopeRef.getNarrowedComplementaryScope(project));
         for (Module module : ModuleManager.getInstance(project).getModules()) {
           if (narrowed.containsModule(module)) {
             modules.add(module);
