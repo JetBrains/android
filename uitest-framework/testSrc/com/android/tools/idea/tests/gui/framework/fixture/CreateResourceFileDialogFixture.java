@@ -69,6 +69,12 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
   }
 
   @NotNull
+  public AddProjectDependencyDialogFixture clickOkAndWaitForDependencyDialog() {
+    clickOk();
+    return AddProjectDependencyDialogFixture.find(myIdeFrameFixture);
+  }
+
+  @NotNull
   public CreateResourceFileDialogFixture setType(@NotNull String type) {
     ApplicationManager.getApplication().invokeAndWait(
       () -> robot().finder()
