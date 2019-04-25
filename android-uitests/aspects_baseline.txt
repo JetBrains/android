@@ -9,14 +9,11 @@ com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.DeviceMenuAction.updateActions
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.DeviceMenuAction.updatePresentation
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.OrientationMenuAction.updateActions
-com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.naveditor.editor.Destination$ScreenShapedDestination$thumbnail$2.invoke
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.res.FloatResources$TypedValue.applyDimension
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.editor.NlPreviewForm.lambda$initNeleModelWhenSmart$8
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.model.NlModelHelperKt.overrideConfigurationDensity
-com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.model.NlModelHelperKt.overrideConfigurationScreenSize
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.model.NlModelHelperKt.updateConfigurationScreenSize
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager.updateTrackingConfiguration
-com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.CanvasResizeInteraction.<init>
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.NlDesignSurface.isResizeAvailable
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.ScreenViewBase.getPreferredSize
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.SimplerCanvasResizeInteraction.<init>
@@ -42,8 +39,7 @@ com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getRuntimeMinSdkVersion
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.MergedManifestManager.getSnapshot
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.npw.template.TemplateValueInjector.setFacet
-com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManagerKt.createResourceResolver
-com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.run.util.LaunchUtils.isWatchFeatureRequired
+com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerKt.createResourceResolver
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getSnapshot
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.common.model.NlModel.getIds
@@ -74,7 +70,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.andr
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.databinding.finders.LayoutBindingClassFinder.findClass
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.editors.theme.ThemeResolver.resolveLocallyDefinedModuleThemes
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ProjectResourceRepository.computeRepositories
-com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.configurations.ConfigurationManager.getLocales
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.fonts.ProjectFonts.getFonts
@@ -82,9 +77,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.and
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.AppResourceRepository.computeLocalRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.uibuilder.surface.CanvasResizeInteraction.<init>
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.uibuilder.surface.SimplerCanvasResizeInteraction.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
-com.android.tools.idea.run.LaunchCompatibilityCheckerImpl.validate|com.android.tools.idea.run.deployment.Device.<init>
 com.android.tools.idea.templates.TemplateManager.getCategoryTable|com.android.tools.idea.templates.TemplateManager.getCategoryTable
