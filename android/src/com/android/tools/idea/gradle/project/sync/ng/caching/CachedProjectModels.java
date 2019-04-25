@@ -28,17 +28,18 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.Future;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getCacheFolderRootPath;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 public class CachedProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   public static class Factory {
     @NotNull
-    public CachedProjectModels createNew() {
-      return new CachedProjectModels();
+    public CachedProjectModels createNew(@NotNull Project project) {
+      return new CachedProjectModels(getBaseDirPath(project).getPath());
     }
   }
 
@@ -49,7 +50,15 @@ public class CachedProjectModels implements Serializable {
       if (cacheFilePath.isFile()) {
         try (FileInputStream fis = new FileInputStream(cacheFilePath)) {
           try (ObjectInputStream ois = new ObjectInputStream(fis)) {
-            return (CachedProjectModels)ois.readObject();
+            CachedProjectModels models = (CachedProjectModels)ois.readObject();
+            String cachedProjectRootDir = models.myProjectRootDir;
+            String projectRootDir = getBaseDirPath(project).getPath();
+            if (!projectRootDir.equals(cachedProjectRootDir)) {
+              getLog().warn(String.format("The project path from Gradle models '%1$s' doesn't match current project location '%2$s'",
+                                          cachedProjectRootDir, projectRootDir));
+              return null;
+            }
+            return models;
           }
           catch (Throwable e) {
             getLog().warn(String.format("Failed to load Gradle models from '%1$s'", cacheFilePath.getPath()), e);
@@ -66,9 +75,11 @@ public class CachedProjectModels implements Serializable {
   // Key: module name.
   @NotNull private final Map<String, CachedModuleModels> myModelsByModuleName = new HashMap<>();
   @NotNull private final List<BuildParticipant> myBuildParticipants = new ArrayList<>();
+  @NotNull private final String myProjectRootDir;
 
   @VisibleForTesting
-  CachedProjectModels() {
+  CachedProjectModels(@NotNull String projectRootDir) {
+    myProjectRootDir = projectRootDir;
   }
 
   @NotNull
@@ -129,6 +140,7 @@ public class CachedProjectModels implements Serializable {
   public static void eraseDiskCache(@NotNull Project project) {
     File cache = getCacheFilePath(project);
     if (cache.exists()) {
+      //noinspection ResultOfMethodCallIgnored
       cache.delete();
     }
   }
@@ -148,12 +160,13 @@ public class CachedProjectModels implements Serializable {
     }
     CachedProjectModels cache = (CachedProjectModels)o;
     return Objects.equals(myModelsByModuleName, cache.myModelsByModuleName)
-           && Objects.equals(myBuildParticipants, cache.myBuildParticipants);
+           && Objects.equals(myBuildParticipants, cache.myBuildParticipants)
+           && Objects.equals(myProjectRootDir, cache.myProjectRootDir);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModelsByModuleName, myBuildParticipants);
+    return Objects.hash(myModelsByModuleName, myBuildParticipants, myProjectRootDir);
   }
 
   @Override
@@ -161,6 +174,7 @@ public class CachedProjectModels implements Serializable {
     return "CachedProjectModels{" +
            "myModelsByModuleName=" + myModelsByModuleName +
            "myBuildParticipants=" + myBuildParticipants +
+           "myProjectRootDir=" + myProjectRootDir +
            '}';
   }
 }

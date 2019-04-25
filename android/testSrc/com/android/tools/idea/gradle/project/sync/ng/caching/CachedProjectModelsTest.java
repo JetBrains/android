@@ -40,7 +40,7 @@ public class CachedProjectModelsTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myCache = new CachedProjectModels();
+    myCache = new CachedProjectModels(getProject().getBasePath());
   }
 
   public void testSaveToDisk() throws Exception {
@@ -70,6 +70,20 @@ public class CachedProjectModelsTest extends IdeaTestCase {
     CachedModuleModels deserializedModule2 = deserialized.findCacheForModule("module2");
     Person deserializedP2 = deserializedModule2.findModel(Person.class);
     assertEquals(p2, deserializedP2);
+  }
+
+  public void testLoadCacheWithDifferentProjectRoot() throws Exception {
+    // Create cached model with fake project path
+    CachedProjectModels cachedModel = new CachedProjectModels("/fake/project/root");
+    cachedModel.addModule(createModule("app"));
+    Future<?> future = cachedModel.saveToDisk(myProject);
+    future.get(10, SECONDS);
+    File cacheFilePath = CachedProjectModels.getCacheFilePath(myProject);
+    // Ensure that cache file is saved to disk.
+    assertAbout(file()).that(cacheFilePath).isFile();
+    CachedProjectModels models = new CachedProjectModels.Loader().loadFromDisk(getProject());
+    // Verify that the cached model is not loaded because the root path doesn't match.
+    assertNull(models);
   }
 
   @NotNull
