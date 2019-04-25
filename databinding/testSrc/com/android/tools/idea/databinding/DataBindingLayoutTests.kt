@@ -19,6 +19,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.testFramework.EdtRule
@@ -128,6 +129,40 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     assertThat(cache.getFieldsByName("firstValue", projectScope).toList().map { it.name }).contains("firstValue")
     assertThat(cache.getFieldsByNameIfNotMoreThan("firstValue", projectScope, 0).toList()).isEmpty()
     assertThat(cache.getFieldsByName("firstValue", invalidScope).toList()).isEmpty()
+  }
+
+  @Test
+  fun layoutClassesCanBeFoundByPackage() {
+    fixture.addFileToProject("res/layout/first_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="firstValue" type="String"/>
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout/second_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="secondValue" type="Int"/>
+        </data>
+      </layout>
+    """.trimIndent())
+
+    // This has to be called to explicitly fetch resources as a side-effect, which are used by the
+    // LayoutBindingShortNamesCache class.
+    ResourceRepositoryManager.getInstance(androidFacet).moduleResources
+
+    val projectScope = projectRule.project.projectScope()
+    val invalidScope = GlobalSearchScope.EMPTY_SCOPE
+
+    val psiPackage = JavaPsiFacade.getInstance(projectRule.project).findPackage("test.db.databinding")!!
+    psiPackage.getClasses(projectScope).let { classes ->
+      assertThat(classes.map { it.name }).containsExactly("FirstLayoutBinding", "SecondLayoutBinding")
+    }
+    psiPackage.getClasses(invalidScope).let { classes -> assertThat(classes).isEmpty() }
   }
 
   @Test
