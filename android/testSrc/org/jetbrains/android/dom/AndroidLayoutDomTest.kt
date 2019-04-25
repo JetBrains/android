@@ -37,6 +37,7 @@ import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.setAndroidxProperties
+import org.junit.Test
 import java.io.IOException
 import java.util.ArrayList
 import java.util.Arrays
@@ -1868,6 +1869,32 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
               app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
       </androidx.coordinatorlayout.widget.CoordinatorLayout>
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+    myFixture.checkHighlighting()
+  }
+
+  /**
+   * Previously, "< ", a tag without a name, would cause the inspection logic to throw an
+   * exception with a message like:
+   *
+   * "Argument rangeInElement (39,40) endOffset must not exceed descriptor text range (39, 40) length (1)."
+   *
+   * This was caused because the inspection code that found XML tags without a name would
+   * incorrectly receive an absolute offset instead of a relative one.
+   *
+   * For more context, see https://youtrack.jetbrains.com/issue/IDEA-205629
+   */
+  @Test
+  fun testNamelessXmlTag_doesntThrowException() {
+    val layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=xml
+      """
+      <!-- Blank line intentionally added, which used to trigger an out of range exception -->
+      <<EOLError descr="Tag name expected"></EOLError>
       """.trimIndent()
     )
 
