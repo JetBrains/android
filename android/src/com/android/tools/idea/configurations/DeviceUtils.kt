@@ -31,6 +31,7 @@ enum class DeviceGroup {
   NEXUS_TABLET,
   WEAR,
   TV,
+  AUTOMOTIVE,
   GENERIC,
   OTHER,
 }
@@ -42,6 +43,7 @@ enum class DeviceGroup {
  * - Other Nexus/Pixel devices: [DeviceGroup.NEXUS_TABLET]
  * - Watch devices: [DeviceGroup.WEAR]
  * - TV devices: : [DeviceGroup.TV]
+ * - Automotive devices: [DeviceGroup.AUTOMOTIVE]
  * - For mobiles devices which are *NOT* nexus devices: [DeviceGroup.GENERIC]
  * - Other devices: [DeviceGroup.OTHER]
  *
@@ -58,6 +60,7 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
     .apply { sortDevicesByScreenSize(this) }
     .groupBy {
       when {
+        isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
         isWear(it) -> DeviceGroup.WEAR
         isTv(it) -> DeviceGroup.TV
         isNexus(it) && it.manufacturer != HardwareConfig.MANUFACTURER_GENERIC -> sizeGroupNexus(it)

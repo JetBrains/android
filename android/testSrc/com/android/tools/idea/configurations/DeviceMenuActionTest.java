@@ -69,6 +69,10 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    1080p, 1920 \u00d7 1080, xhdpi (TV)\n" +
       "    720p, 1280 \u00d7 720, tvdpi (TV)\n" +
       "    ------------------------------------------------------\n" +
+      "    Automotive\n" +
+      "    Automotive (1024p landscape) (1024 \u00d7 768, mdpi)\n" +
+      "    Polestar 2 (1152 \u00d7 1536, mdpi)\n" +
+      "    ------------------------------------------------------\n" +
       "    Custom\n" +
       "    ------------------------------------------------------\n" +
       "    Generic Phones and Tablets\n" +
