@@ -142,8 +142,11 @@ public class DeviceMenuAction extends DropDownAction {
       else if (isTv(device)) {
         return StudioIcons.LayoutEditor.Toolbar.DEVICE_TV;
       }
+      else if (isAutomotive(device)) {
+        return StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE;
+      }
 
-      // Glass, Car not yet in the device list
+      // Glass not yet in the device list
 
       if (DeviceArtPainter.isTablet(device)) {
         return StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET;
@@ -190,6 +193,7 @@ public class DeviceMenuAction extends DropDownAction {
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, current);
     addDeviceSection(groupedDevices, DeviceGroup.WEAR, current);
     addDeviceSection(groupedDevices, DeviceGroup.TV, current);
+    addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, current);
     addCustomDeviceSection(current);
     addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
     addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), current);
@@ -224,6 +228,8 @@ public class DeviceMenuAction extends DropDownAction {
         return "Wear";
       case TV:
         return "TV";
+      case AUTOMOTIVE:
+        return "Automotive";
       case GENERIC:
         return "Generic";
       case OTHER:
