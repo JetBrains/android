@@ -41,6 +41,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -506,11 +507,17 @@ public class IdeSdks {
    * @return true if JAVA_HOME is used as JDK
    */
   public boolean isUsingJavaHomeJdk() {
+    return isUsingJavaHomeJdk(ApplicationManager.getApplication().isUnitTestMode());
+  }
+
+  @VisibleForTesting
+  boolean isUsingJavaHomeJdk(boolean assumeUnitTest) {
     if (!myIdeInfo.isAndroidStudio()) {
       return false;
     }
     String javaHome = getJdkFromJavaHome();
-    File jdkPath = doGetJdkPath(false);
+    // Do not create Jdk in ProjectJDKTable when running from unit tests, to prevent leaking
+    File jdkPath =  assumeUnitTest ? doGetJdkPath(false) : getJdkPath();
     return javaHome != null && filesEqual(jdkPath, toSystemDependentPath(javaHome));
   }
 
