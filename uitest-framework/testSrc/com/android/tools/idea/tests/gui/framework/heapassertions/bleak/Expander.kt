@@ -284,7 +284,7 @@ class ClassLoaderExpander(g: HeapGraph, val bleakHelper: BleakHelper): Expander(
       val cl = n.obj as ClassLoader
       val classesField = ClassLoader::class.java.getDeclaredField("classes")
       classesField.isAccessible = true
-      val classes = classesField.get(cl) as Vector<Class<*>>
+      val classes = (classesField.get(cl) as Vector<Class<*>>).toTypedArray<Class<*>>()
       for (c in classes.filterNot { it.isArray }) {
         val label = ObjectLabel(c)
         val childNode = n.addEdgeTo(c, label)
