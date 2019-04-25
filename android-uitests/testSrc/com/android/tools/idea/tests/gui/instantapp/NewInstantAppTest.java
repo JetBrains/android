@@ -74,12 +74,10 @@ public class NewInstantAppTest {
       .waitForGradleProjectSyncToFinish()
       .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
 
-    if(!StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
-      guiTest.ideFrame()
-        .getProjectView()
-        .selectAndroidPane()
-        .clickPath("feature");
-    }
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()? "app" : "feature");
   }
 
   private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn) {
