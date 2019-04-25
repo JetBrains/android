@@ -19,6 +19,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
 import com.android.tools.idea.diagnostics.report.AnalyzedHeapReport
+import com.android.tools.idea.diagnostics.report.HeapReport
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
@@ -59,6 +60,14 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
 
   companion object {
     private val LOG = Logger.getInstance(AnalysisRunnable::class.java)
+
+    private fun updateNextCheckTimeIfNeeded(report: HeapReport) {
+      // Silence report collection for next 7 days if not invoked by the user
+      if (!report.heapProperties.reason.isUserInvoked()) {
+        val nextCheckMs = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)
+        PropertiesComponent.getInstance().setValue(HeapDumpSnapshotRunnable.NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
+      }
+    }
   }
 
   override fun run() {
@@ -69,6 +78,9 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
 
     override fun onThrowable(error: Throwable) {
       LOG.error(error)
+
+      updateNextCheckTimeIfNeeded(report)
+
       val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(AndroidBundle.message("heap.dump.analysis.exception"),
                                                                                     NotificationType.INFORMATION)
       notification.notify(null)
@@ -132,11 +144,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
         val reportDialog = ShowReportDialog(report)
         val userAgreedToSendReport = reportDialog.showAndGet()
 
-        // Silence report collection for next 7 days if not invoked by the user
-        if (!report.heapProperties.reason.isUserInvoked()) {
-          val nextCheckMs = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)
-          PropertiesComponent.getInstance().setValue(HeapDumpSnapshotRunnable.NEXT_CHECK_TIMESTAMP_KEY, nextCheckMs.toString())
-        }
+        updateNextCheckTimeIfNeeded(report)
 
         if (userAgreedToSendReport) {
           uploadReport()
