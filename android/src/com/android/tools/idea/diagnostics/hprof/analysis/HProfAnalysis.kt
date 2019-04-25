@@ -92,6 +92,14 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       progress.text2 = "Create id mapping file"
       progress.fraction = 0.2
 
+      // Currently, there is a maximum count of supported instances. Produce simplified report
+      // (histogram only), if the count exceeds maximum.
+      if (!isSupported(histogram.instanceCount)) {
+        result.appendln("Histogram. Top 50 by instance count:")
+        result.appendln(histogram.prepareReport("All", 50))
+        return result.toString()
+      }
+
       val idMappingChannel = openTempEmptyFileChannel("id-mapping")
       val remapIDsVisitor = RemapIDsVisitor.createFileBased(
         idMappingChannel,
@@ -155,7 +163,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       }
       result.appendln("Histogram. Top 50 by instance count [All-objects] [Only-strong-ref]:")
       result.append(
-        Histogram.printMergedHistogram(histogram, "All", strongRefHistogram, "Strong-ref", 50))
+        Histogram.prepareMergedHistogramReport(histogram, "All", strongRefHistogram, "Strong-ref", 50))
       result.appendln()
       result.appendln("Nominated classes:")
       nominatedClasses.sortedBy { it.classDefinition.name }.forEach {
@@ -176,6 +184,12 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       closeAndDeleteTemporaryFiles()
     }
     return result.toString()
+  }
+
+  private fun isSupported(instanceCount: Long): Boolean {
+    // Limitation due to FileBackedHashMap in RemapIDsVisitor. Many other components
+    // assume instanceCount <= Int.MAX_VALUE.
+    return RemapIDsVisitor.isSupported(instanceCount) && instanceCount <= Int.MAX_VALUE
   }
 
   private fun closeAndDeleteTemporaryFiles() {
