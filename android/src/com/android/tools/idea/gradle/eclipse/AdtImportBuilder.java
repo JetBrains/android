@@ -94,12 +94,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         }
       }
     }
-    try {
-      importer.importProjects(projects);
-    }
-    catch (IOException ioe) {
-      // pass: the errors are written into the import error list shown in the warnings panel
-    }
+    importer.importProjects(projects);
     return importer;
   }
 
@@ -196,12 +191,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   public void readProjects() {
-    try {
-      myImporter.importProjects(Collections.singletonList(mySelectedProject));
-    }
-    catch (IOException e) {
-      // Ignore I/O warnings; they are also logged to the warnings panel we display
-    }
+    myImporter.importProjects(Collections.singletonList(mySelectedProject));
   }
 
   @SuppressWarnings("ConstantConditions")

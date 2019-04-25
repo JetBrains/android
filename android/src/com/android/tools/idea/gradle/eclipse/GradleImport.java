@@ -33,6 +33,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
 import org.jetbrains.annotations.NotNull;
@@ -149,7 +150,6 @@ public class GradleImport {
   /**
    * Whether we should emit per-module repository definitions
    */
-  @SuppressWarnings("PointlessBooleanExpression")
   private Map<String, File> myPathMap = Maps.newTreeMap();
   /**
    * Map of modules user chose to import with their new names. Can be
@@ -186,18 +186,16 @@ public class GradleImport {
     if (localProperties.exists()) {
       try {
         Properties properties = PropertiesFiles.getProperties(localProperties);
-        if (properties != null) {
-          String sdk = properties.getProperty(property);
-          if (sdk != null) {
-            File dir = new File(sdk);
+        String sdk = properties.getProperty(property);
+        if (sdk != null) {
+          File dir = new File(sdk);
+          if (dir.exists()) {
+            return dir;
+          }
+          else {
+            dir = new File(sdk.replace('/', separatorChar));
             if (dir.exists()) {
               return dir;
-            }
-            else {
-              dir = new File(sdk.replace('/', separatorChar));
-              if (dir.exists()) {
-                return dir;
-              }
             }
           }
         }
@@ -240,7 +238,7 @@ public class GradleImport {
     return sb.toString();
   }
 
-  private static void appendDependencies(@NonNull StringBuilder sb, @NonNull ImportModule module) throws IOException {
+  private static void appendDependencies(@NonNull StringBuilder sb, @NonNull ImportModule module) {
     if (!module.getDirectDependencies().isEmpty() ||
         !module.getDependencies().isEmpty() ||
         !module.getJarDependencies().isEmpty() ||
@@ -320,9 +318,9 @@ public class GradleImport {
    */
   private static void copyTextFileWithEncoding(@NonNull File source, @NonNull File dest, @NonNull Charset sourceEncoding)
     throws IOException {
-    if (!Charsets.UTF_8.equals(sourceEncoding)) {
-      String text = Files.toString(source, sourceEncoding);
-      Files.write(text, dest, Charsets.UTF_8);
+    if (!UTF_8.equals(sourceEncoding)) {
+      String text = Files.asCharSource(source, sourceEncoding).read();
+      Files.asCharSink(dest, UTF_8).write(text);
     }
     else {
       // Already using the right encoding
@@ -340,11 +338,13 @@ public class GradleImport {
   static boolean isTextFile(@NonNull File file) {
     String name = file.getName();
     return name.endsWith(DOT_JAVA) ||
+           name.endsWith(DOT_KT) ||
+           name.endsWith(DOT_KTS) ||
+           name.endsWith(DOT_JSON) ||
            name.endsWith(DOT_XML) ||
            name.endsWith(DOT_AIDL) ||
            name.endsWith(DOT_FS) ||
            name.endsWith(DOT_RS) ||
-           name.endsWith(DOT_RSH) ||
            name.endsWith(DOT_RSH) ||
            name.endsWith(DOT_TXT) ||
            name.endsWith(DOT_GRADLE) ||
@@ -382,12 +382,11 @@ public class GradleImport {
   /**
    * Imports the given projects. Note that this just reads in the project state;
    * it does not actually write out a Gradle project. For that, you should call
-   * {@link #exportProject(java.io.File, boolean)}.
+   * {@link #exportProject(File, boolean)}.
    *
    * @param projectDirs the project directories to import
-   * @throws IOException if something is wrong
    */
-  public void importProjects(@NonNull List<File> projectDirs) throws IOException {
+  public void importProjects(@NonNull List<File> projectDirs) {
     mySummary = new ImportSummary(this);
     myProjectMap.clear();
     myHandledJars.clear();
@@ -604,17 +603,15 @@ public class GradleImport {
       if (settings.exists()) {
         try {
           Properties properties = PropertiesFiles.getProperties(settings);
-          if (properties != null) {
-            String encodingName = properties.getProperty("encoding");
-            if (encodingName != null) {
-              try {
-                myDefaultEncoding = Charset.forName(encodingName);
-              }
-              catch (UnsupportedCharsetException uce) {
-                reportWarning((ImportModule)null, settings, "Unknown charset " + encodingName);
-              }
-
+          String encodingName = properties.getProperty("encoding");
+          if (encodingName != null) {
+            try {
+              myDefaultEncoding = Charset.forName(encodingName);
             }
+            catch (UnsupportedCharsetException uce) {
+              reportWarning((ImportModule)null, settings, "Unknown charset " + encodingName);
+            }
+
           }
         }
         catch (IOException e) {
@@ -633,20 +630,18 @@ public class GradleImport {
       if (settings.exists()) {
         try {
           Properties properties = PropertiesFiles.getProperties(settings);
-          if (properties != null) {
-            String path = properties.getProperty(property);
-            if (path == null) {
-              return null;
-            }
-            File dir = new File(path);
+          String path = properties.getProperty(property);
+          if (path == null) {
+            return null;
+          }
+          File dir = new File(path);
+          if (dir.exists()) {
+            return dir;
+          }
+          else {
+            dir = new File(path.replace('/', separatorChar));
             if (dir.exists()) {
               return dir;
-            }
-            else {
-              dir = new File(path.replace('/', separatorChar));
-              if (dir.exists()) {
-                return dir;
-              }
             }
           }
         }
@@ -707,12 +702,12 @@ public class GradleImport {
       if (myWorkspaceProjects == null) {
         myWorkspaceProjects = Maps.newHashMap();
         File projectDir = new File(myWorkspaceLocation, ".metadata" +
-                                                       separator +
-                                                       ".plugins" +
-                                                       separator +
-                                                       "org.eclipse.core.resources" +
-                                                       separator +
-                                                       ".projects");
+                                                        separator +
+                                                        ".plugins" +
+                                                        separator +
+                                                        "org.eclipse.core.resources" +
+                                                        separator +
+                                                        ".projects");
         File[] projects = projectDir.exists() ? projectDir.listFiles() : null;
         byte[] target = "URI//file:".getBytes(Charsets.US_ASCII);
         if (projects != null) {
@@ -737,7 +732,6 @@ public class GradleImport {
                     if (file.exists()) {
                       String name = project.getName();
                       myWorkspaceProjects.put('/' + name, file);
-                      //noinspection ConstantConditions
                     }
                   }
                   catch (Throwable t) {
@@ -840,12 +834,12 @@ public class GradleImport {
   }
 
   /**
-   * Like {@link #exportProject(java.io.File, boolean)}, but writes into an existing
+   * Like {@link #exportProject(File, boolean)}, but writes into an existing
    * project instead of creating a new one.
    * <p>
    * <b>NOTE</b>: When performing an import into an existing project, note that
    * you should call {@link #setImportIntoExisting(boolean)} before the call to
-   * read in projects ({@link #importProjects(java.util.List)}.
+   * read in projects ({@link #importProjects(List)}.
    * </p>
    *
    * @param projectDir     the root directory containing the project to write into
@@ -946,9 +940,8 @@ public class GradleImport {
     module.copyInto(destDir);
   }
 
-  @SuppressWarnings("MethodMayBeStatic")
   /** Ensure that the given directory exists, and if it can't be created, report an I/O error */
-  public void mkdirs(@NonNull File destDir) throws IOException {
+  public void mkdirs(@NonNull File destDir) {
     if (!destDir.exists()) {
       boolean ok = destDir.mkdirs();
       if (!ok) {
@@ -1093,7 +1086,7 @@ public class GradleImport {
       assert false : module;
     }
 
-    Files.write(sb.toString(), file, UTF_8);
+    Files.asCharSink(file, UTF_8).write(sb.toString());
   }
 
   String getBuildToolsVersion() {
@@ -1102,27 +1095,24 @@ public class GradleImport {
     return getRecommendedBuildToolsRevision(sdkHandler, progress).toString();
   }
 
-  private void createProjectBuildGradle(@NonNull File file) throws IOException {
-    StringBuilder sb = new StringBuilder();
-    sb.append("// Top-level build file where you can add configuration options common to all sub-projects/modules.").append(NL);
-
+  private static void createProjectBuildGradle(@NonNull File file) throws IOException {
     //noinspection SpellCheckingInspection
-    sb.append("buildscript {").append(NL);
-    sb.append("    repositories {").append(NL);
-    sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
-    sb.append("    }").append(NL);
-    sb.append("    dependencies {").append(NL);
-    sb.append("        classpath '" + ANDROID_GRADLE_PLUGIN + "'").append(NL);
-    sb.append("    }").append(NL);
-    sb.append("}").append(NL);
-    sb.append(NL);
-    //noinspection SpellCheckingInspection
-    sb.append("allprojects {").append(NL);
-    sb.append("    repositories {").append(NL);
-    sb.append("        ").append(MAVEN_REPOSITORY).append(NL);
-    sb.append("    }").append(NL);
-    sb.append("}").append(NL);
-    Files.write(sb.toString(), file, UTF_8);
+    String sb = "// Top-level build file where you can add configuration options common to all sub-projects/modules." + NL +
+                "buildscript {" + NL +
+                "    repositories {" + NL +
+                "        " + MAVEN_REPOSITORY + NL +
+                "    }" + NL +
+                "    dependencies {" + NL +
+                "        classpath '" + ANDROID_GRADLE_PLUGIN + "'" + NL +
+                "    }" + NL +
+                "}" + NL +
+                NL +
+                "allprojects {" + NL +
+                "    repositories {" + NL +
+                "        " + MAVEN_REPOSITORY + NL +
+                "    }" + NL +
+                "}" + NL;
+    Files.asCharSink(file, UTF_8).write(sb);
   }
 
   private void exportSettingsGradle(@NonNull File file, boolean append) throws IOException {
@@ -1134,7 +1124,7 @@ public class GradleImport {
       else {
         // Ensure that the new include statements are separate code statements, not
         // for example inserted at the end of a // line comment
-        String existing = Files.toString(file, UTF_8);
+        String existing = Files.asCharSource(file, UTF_8).read();
         if (!existing.endsWith(NL)) {
           sb.append(NL);
         }
@@ -1150,10 +1140,10 @@ public class GradleImport {
 
     String code = sb.toString();
     if (append) {
-      Files.append(code, file, UTF_8);
+      Files.asCharSink(file, UTF_8, FileWriteMode.APPEND).write(code);
     }
     else {
-      Files.write(code, file, UTF_8);
+      Files.asCharSink(file, UTF_8).write(code);
     }
   }
 
@@ -1186,7 +1176,7 @@ public class GradleImport {
    */
   @NonNull
   public Map<String, File> getDetectedModuleLocations() {
-    TreeMap<String, File> modules = new TreeMap<String, File>();
+    TreeMap<String, File> modules = new TreeMap<>();
     for (ImportModule module : myModules) {
       modules.put(module.getModuleName(), module.getCanonicalModuleDir());
     }
@@ -1218,7 +1208,6 @@ public class GradleImport {
     }
   }
 
-  @SuppressWarnings("MethodMayBeStatic")
   public void reportError(@Nullable EclipseProject project, @Nullable File file, @NonNull String message) {
     reportError(project, file, message, true);
   }
@@ -1335,7 +1324,7 @@ public class GradleImport {
 
   @Nullable
   Document getXmlDocument(File file, boolean namespaceAware) throws IOException {
-    String xml = Files.toString(file, UTF_8);
+    String xml = Files.asCharSource(file, UTF_8).read();
     try {
       return XmlUtils.parseDocument(xml, namespaceAware);
     }
@@ -1466,7 +1455,7 @@ public class GradleImport {
         }
       }
 
-      Files.write(xml, dest, Charsets.UTF_8);
+      Files.asCharSink(dest, UTF_8).write(xml);
     }
     else if (encoding != null) {
       copyTextFileWithEncoding(source, dest, encoding);
