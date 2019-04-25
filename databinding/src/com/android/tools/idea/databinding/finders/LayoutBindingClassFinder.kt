@@ -59,9 +59,10 @@ class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProj
     return dataBindingComponent.getDataBindingEnabledFacets()
       .flatMap { facet ->
         ResourceRepositoryManager.getModuleResources(facet).dataBindingResourceFiles?.values?.asIterable() ?: emptyList()
-      }
-      .filter { info -> psiPackage.qualifiedName == info.packageName }
-      .map { info -> info.psiClass }
+      }.filter { info ->
+        info.psiFile != null && scope.accept(info.psiFile.virtualFile)
+        && psiPackage.qualifiedName == info.packageName
+      }.map { info -> DataBindingClassFactory.getOrCreatePsiClass(info) }
       .toTypedArray()
   }
 
