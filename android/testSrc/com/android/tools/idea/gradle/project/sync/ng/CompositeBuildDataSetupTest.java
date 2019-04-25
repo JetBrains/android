@@ -58,7 +58,7 @@ public class CompositeBuildDataSetupTest extends IdeaTestCase {
     GradleSettings.getInstance(myProject).setLinkedProjectsSettings(singletonList(myProjectSettings));
   }
 
-  public void testSetupCompositeBuildDataFromCache() throws Exception {
+  public void testSetupCompositeBuildDataFromCache() {
     BuildParticipant buildParticipant = new BuildParticipant();
     when(myCachedProjectModels.getBuildParticipants()).thenReturn(singletonList(buildParticipant));
 
@@ -68,7 +68,7 @@ public class CompositeBuildDataSetupTest extends IdeaTestCase {
     assertThat(myProjectSettings.getCompositeBuild().getCompositeParticipants()).containsExactly(buildParticipant);
   }
 
-  public void testSetupCompositeBuildDataFromSyncModels() throws Exception {
+  public void testSetupCompositeBuildDataFromSyncModels() {
     // Setup SyncProjectModels in the following structure:
     // RootProject  :app
     // RootProject  :lib
@@ -88,7 +88,7 @@ public class CompositeBuildDataSetupTest extends IdeaTestCase {
     when(mySyncProjectModels.getModuleModels()).thenReturn(moduleModels);
 
     CachedProjectModels.Factory cacheFactory = new CachedProjectModels.Factory();
-    CachedProjectModels cache = cacheFactory.createNew();
+    CachedProjectModels cache = cacheFactory.createNew(myProject);
     // Setup composite build data from SyncProjectModels.
     myCompositeBuildDataSetup.setupCompositeBuildData(mySyncProjectModels, cache, myProject);
 
