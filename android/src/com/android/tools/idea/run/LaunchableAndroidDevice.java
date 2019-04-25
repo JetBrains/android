@@ -33,15 +33,18 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ThreeState;
 import icons.StudioIcons;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-
 public final class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
-      Abi.X86_64, ImmutableList.of(Abi.X86_64, Abi.X86),
-      Abi.ARM64_V8A, ImmutableList.of(Abi.ARM64_V8A, Abi.ARMEABI_V7A, Abi.ARMEABI));
+    Abi.X86_64, ImmutableList.of(Abi.X86_64, Abi.X86),
+    Abi.ARM64_V8A, ImmutableList.of(Abi.ARM64_V8A, Abi.ARMEABI_V7A, Abi.ARMEABI));
   @NotNull private final AvdInfo myAvdInfo;
 
   private final Object myLock = new Object();
@@ -78,7 +81,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
 
     try {
       return Integer.parseInt(s);
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       return -1;
     }
   }
@@ -188,5 +192,10 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   public AvdInfo getAvdInfo() {
     return myAvdInfo;
+  }
+
+  @Override
+  public boolean isDebuggable() {
+    return !myAvdInfo.hasPlayStore();
   }
 }
