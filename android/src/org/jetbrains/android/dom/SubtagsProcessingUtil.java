@@ -15,9 +15,6 @@
  */
 package org.jetbrains.android.dom;
 
-import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP;
-import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP_ANDROIDX;
-
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.project.Project;
@@ -40,9 +37,9 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility functions for enumerating available children tag types in the context of a given XML tag.
@@ -57,26 +54,17 @@ public class SubtagsProcessingUtil {
   /**
    * Checks if the given {@code psiClass} is a preference group and should have subtags in XML.
    *  @param psiClass class to check
-   * @param preferenceClassMap class map obtained from a {@link com.android.tools.idea.psi.TagToClassMapper} used to find PSI classes.
+   * @param baseClass psiClass to check against, from corresponding PreferenceSource.
    */
-  private static boolean isPreferenceGroup(@NotNull PsiClass psiClass, @NotNull Map<String, PsiClass> preferenceClassMap) {
+  private static boolean isPreferenceGroup(@NotNull PsiClass psiClass, @Nullable PsiClass baseClass) {
     Project project = psiClass.getProject();
     PsiManager psiManager = PsiManager.getInstance(project);
 
-    PsiClass frameworkClass = preferenceClassMap.get(CLASS_PREFERENCE_GROUP);
-    if (frameworkClass != null) {
-      if (psiManager.areElementsEquivalent(frameworkClass, psiClass) || psiClass.isInheritor(frameworkClass, true)) {
+    if (baseClass != null) {
+      if (psiManager.areElementsEquivalent(baseClass, psiClass) || psiClass.isInheritor(baseClass, true)) {
         return true;
       }
     }
-
-    PsiClass libClass = preferenceClassMap.get(MigrateToAndroidxUtil.getNameInProject(CLASS_PREFERENCE_GROUP_ANDROIDX, project));
-    if (libClass != null) {
-      if (psiManager.areElementsEquivalent(libClass, psiClass) || psiClass.isInheritor(libClass, true)) {
-        return true;
-      }
-    }
-
     return false;
   }
 
@@ -125,15 +113,12 @@ public class SubtagsProcessingUtil {
     }
 
     // for preferences
-    Map<String, PsiClass> prefClassMap;
-    if (AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)) {
-      prefClassMap = AttributeProcessingUtil.getAndroidXPreferencesClassMap(facet);
-    } else {
-      prefClassMap = AttributeProcessingUtil.getFrameworkPreferencesClassMap(facet);
-    }
+    AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
+    Map<String, PsiClass> prefClassMap = AttributeProcessingUtil.getClassMap(facet, preferenceSource.getQualifiedBaseClass());
+    PsiClass groupClass = prefClassMap.get(preferenceSource.getQualifiedGroupClass());
     PsiClass psiClass = prefClassMap.get(tagName);
 
-    if (psiClass != null && isPreferenceGroup(psiClass, prefClassMap)) {
+    if (psiClass != null && isPreferenceGroup(psiClass, groupClass)) {
       registerClassNameSubtags(tag, prefClassMap, PreferenceElement.class, subtagProcessor);
     }
   }
