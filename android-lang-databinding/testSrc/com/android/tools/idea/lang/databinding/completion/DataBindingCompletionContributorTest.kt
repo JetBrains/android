@@ -74,7 +74,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public void doSomething(View view) {}
       }
     """.trimIndent())
@@ -83,15 +83,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::do<caret>}"/>
+            android:onClick="@{model::do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -102,15 +102,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::doSomething}"/>
+            android:onClick="@{model::doSomething}"/>
       </layout>
     """.trimIndent())
   }
@@ -122,7 +122,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public static void doSomethingStatic(View view) {}
       }
     """.trimIndent())
@@ -131,14 +131,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d<caret>}"/>
+            android:onClick="@{Model::d<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -149,14 +149,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::doSomethingStatic}"/>
+            android:onClick="@{Model::doSomethingStatic}"/>
       </layout>
     """.trimIndent())
   }
@@ -168,7 +168,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         private static void doSomethingStatic(View view) {}
       }
     """.trimIndent())
@@ -177,14 +177,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d<caret>}"/>
+            android:onClick="@{Model::d<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -195,14 +195,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d}"/>
+            android:onClick="@{Model::d}"/>
       </layout>
     """.trimIndent())
   }
@@ -214,21 +214,21 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {}
+      public class Model {}
     """.trimIndent())
 
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::<caret>}"/>
+            android:onClick="@{Model::<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -239,14 +239,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::}"/>
+            android:onClick="@{Model::}"/>
       </layout>
     """.trimIndent())
   }
@@ -257,14 +257,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d<caret>}"/>
+            android:onClick="@{Model::d<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -275,14 +275,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d}"/>
+            android:onClick="@{Model::d}"/>
       </layout>
     """.trimIndent())
   }
@@ -294,7 +294,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public void doSomethingStatic(View view) {}
       }
     """.trimIndent())
@@ -303,14 +303,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d<caret>}"/>
+            android:onClick="@{Model::d<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -321,14 +321,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{ModelWithBindableMethodsJava::d}"/>
+            android:onClick="@{Model::d}"/>
       </layout>
     """.trimIndent())
   }
@@ -340,7 +340,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public static void doSomethingStatic(View view) {}
       }
     """.trimIndent())
@@ -349,15 +349,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::d<caret>}"/>
+            android:onClick="@{model::d<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -368,15 +368,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::d}"/>
+            android:onClick="@{model::d}"/>
       </layout>
     """.trimIndent())
   }
@@ -388,7 +388,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public static void doSomethingStatic(View view) {}
         private static void doPrivateStatic(View view) {}
         private void doPrivate(View view) {}
@@ -399,15 +399,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::d<caret>}"/>
+            android:onClick="@{model::d<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -423,7 +423,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public void doSomething(View view) {}
       }
     """.trimIndent())
@@ -432,15 +432,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.do<caret>}"/>
+            android:onClick="@{() -> model.do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -451,15 +451,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.doSomething()}"/>
+            android:onClick="@{() -> model.doSomething()}"/>
       </layout>
     """.trimIndent())
   }
@@ -471,7 +471,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public static void function_a(View view) {}
         public static void function_b(View view) {}
       }
@@ -481,15 +481,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{() -> member.fu<caret>}"/>
+            android:onClick="@{() -> model.fu<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -505,7 +505,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public void doSomething(View view) {}
         public void doSomething(View view, int a) {}
       }
@@ -515,15 +515,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::do<caret>}"/>
+            android:onClick="@{model::do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -534,15 +534,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::doSomething}"/>
+            android:onClick="@{model::doSomething}"/>
       </layout>
     """.trimIndent())
   }
@@ -573,14 +573,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::m<caret>}"/>
+            android:onClick="@{model::m<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -592,14 +592,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::methodFromBaseClass}"/>
+            android:onClick="@{model::methodFromBaseClass}"/>
       </layout>
     """.trimIndent())
   }
@@ -630,14 +630,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member.fi<caret>}"/>
+            android:onClick="@{model.fi<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -649,14 +649,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member.fieldFromBaseClass}"/>
+            android:onClick="@{model.fieldFromBaseClass}"/>
       </layout>
     """.trimIndent())
   }
@@ -669,7 +669,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public void doSomething(View view) {}
         public void doSomething2(View view) {}
       }
@@ -679,15 +679,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::do<caret>}"/>
+            android:onClick="@{model::do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -728,14 +728,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.ModelWithBindableMethods"/>
-          <variable name="member" type="ModelWithBindableMethods" />
+          <variable name="model" type="ModelWithBindableMethods" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member::do<caret>}"/>
+            android:onClick="@{model::do<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -781,14 +781,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{member.fi<caret>}"/>
+            android:text="@{model.fi<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -819,7 +819,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public int field1;
         public String field2;
       }
@@ -829,15 +829,15 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
-          <variable name="member" type="ModelWithBindableMethodsJava" />
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{member.fi<caret>}"/>
+            android:text="@{model.fi<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -898,7 +898,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
+      public class Model {
         public static String strUpper(View view) {
           return "a";
         }
@@ -909,14 +909,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{ModelWithBindableMethodsJava::st<caret>}"/>
+            android:text="@{Model::st<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -927,14 +927,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="test.langdb.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.Model"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{ModelWithBindableMethodsJava::strUpper}"/>
+            android:text="@{Model::strUpper}"/>
       </layout>
     """.trimIndent())
   }
@@ -991,14 +991,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member.va<caret>}"/>
+            android:onClick="@{model.va<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1030,14 +1030,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member.go<caret>}"/>
+            android:onClick="@{model.go<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1069,14 +1069,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type="test.langdb.Model"/>
-          <variable name="member" type="Model" />
+          <variable name="model" type="Model" />
         </data>
         <TextView
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{member.toStr<caret>}"/>
+            android:onClick="@{model.toStr<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
