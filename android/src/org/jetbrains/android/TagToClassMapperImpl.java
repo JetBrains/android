@@ -66,28 +66,9 @@ class TagToClassMapperImpl implements TagToClassMapper {
     });
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
-   * to {@link PsiModificationTracker#JAVA_STRUCTURE_MODIFICATION_COUNT}.
-   */
   @Override
   @NotNull
-  public Map<String, PsiClass> getFrameworkClassMap(@NotNull String frameworkClass) {
-    Map<String, PsiClass> frameworkClasses = getClassMap(frameworkClass);
-    return Collections.unmodifiableMap(frameworkClasses);
-  }
-
-  @NotNull
-  @Override
-  public Map<String, PsiClass> getAndroidXClassMap(@NotNull AndroidxName androidXClass) {
-    String qualifiedName = MigrateToAndroidxUtil.getNameInProject(androidXClass, myModule.getProject());
-    Map<String, PsiClass> libClasses = getClassMap(qualifiedName);
-    return Collections.unmodifiableMap(libClasses);
-  }
-
-  private Map<String, PsiClass> getClassMap(String className) {
+  public Map<String, PsiClass> getClassMap(String className) {
     CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
@@ -98,7 +79,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       myClassMaps.put(className, value);
     }
 
-    return value.getValue();
+    return Collections.unmodifiableMap(value.getValue());
   }
 
   @NotNull
