@@ -2367,8 +2367,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
-    if (file.isDirectory()) {
-      if (VfsUtilCore.isAncestor(myResourceDir, file, false)) {
+    if (VfsUtilCore.isAncestor(myResourceDir, file, false)) {
+      if (file.isDirectory()) {
         for (Iterator<Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>>> iterator = sources.entrySet().iterator();
              iterator.hasNext(); ) {
           Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>> entry = iterator.next();
@@ -2379,11 +2379,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           }
         }
       }
-    }
-    else {
-      ResourceItemSource<? extends ResourceItem> source = sources.remove(file);
-      if (source != null) {
-        onSourceRemoved(file, source);
+      else {
+        ResourceItemSource<? extends ResourceItem> source = sources.remove(file);
+        if (source != null) {
+          onSourceRemoved(file, source);
+        }
       }
     }
   }
