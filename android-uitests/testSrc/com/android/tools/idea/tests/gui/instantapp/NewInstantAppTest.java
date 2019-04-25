@@ -53,14 +53,9 @@ public class NewInstantAppTest {
   }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
-  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
-                                              @Nullable String activityName, boolean includeUrl) {
+  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String activityName) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
-
-    // No longer possible to customize Instant Apps (eg "feature module name" and "include URL")
-    assert featureModuleName == null;
-    assert !includeUrl;
 
     newProjectWizard
       .getChooseAndroidProjectStep()
@@ -81,21 +76,16 @@ public class NewInstantAppTest {
 
     if(!StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
       guiTest.ideFrame()
-             .getProjectView()
-             .selectAndroidPane()
-             .clickPath(featureModuleName == null ? "feature" : featureModuleName);
+        .getProjectView()
+        .selectAndroidPane()
+        .clickPath("feature");
     }
-  }
-
-  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
-                                              @Nullable String activityName) {
-    createAndOpenDefaultAIAProject(projectName, featureModuleName, activityName, false);
   }
 
   private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
     String projectName = "Warning";
-    createAndOpenDefaultAIAProject(projectName, null, null);
+    createAndOpenDefaultAIAProject(projectName, null);
 
     String inspectionResults = guiTest.ideFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
@@ -157,7 +147,7 @@ public class NewInstantAppTest {
   @Test
   public void testCanBuildDefaultNewInstantAppProjects_NO_UAB() {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
 
     guiTest.ideFrame().getEditor()
       .open("base/build.gradle") // Check "base" dependencies
@@ -179,7 +169,7 @@ public class NewInstantAppTest {
   public void testCanBuildDefaultNewInstantAppProjects_UAB() {
     //TODO: check for dist:module
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(true);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     String manifestContent = guiTest.ideFrame().getEditor()
                                     .open("app/src/main/res/layout/activity_main.xml")
                                     .open("app/src/main/AndroidManifest.xml")
@@ -191,7 +181,7 @@ public class NewInstantAppTest {
 
   private void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls(boolean instantFlagOn, String activityMainXml, String manifestPath) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
-    createAndOpenDefaultAIAProject("BuildApp", null, null, false);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     String manifestContent = guiTest.ideFrame().getEditor()
       .open(activityMainXml)
       .open(manifestPath)
@@ -215,7 +205,7 @@ public class NewInstantAppTest {
   @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity() {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
            .clickFinish();
@@ -235,7 +225,7 @@ public class NewInstantAppTest {
   @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity_UAB() {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(true);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
            .clickFinish();
@@ -254,7 +244,7 @@ public class NewInstantAppTest {
   @Test
   public void newInstantAppProjectWithFullScreenActivity_NO_UAB() {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    createAndOpenDefaultAIAProject("BuildApp", null, "Fullscreen Activity");
+    createAndOpenDefaultAIAProject("BuildApp", "Fullscreen Activity");
     guiTest.ideFrame().getEditor()
       .open("feature/src/main/res/layout/activity_fullscreen.xml")
       .open("base/src/main/res/values/attrs.xml") // Make sure "Full Screen" themes, colors and styles are on the base module
@@ -270,7 +260,7 @@ public class NewInstantAppTest {
   @Test
   public void newInstantAppProjectWithFullScreenActivity_UAB() {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(true);
-    createAndOpenDefaultAIAProject("BuildApp", null, "Fullscreen Activity");
+    createAndOpenDefaultAIAProject("BuildApp", "Fullscreen Activity");
     guiTest.ideFrame().getEditor()
            .open("app/src/main/res/layout/activity_fullscreen.xml")
            .open("app/src/main/res/values/attrs.xml") // Make sure "Full Screen" themes, colors and styles are on the base module
@@ -296,7 +286,7 @@ public class NewInstantAppTest {
   // b/68122671
   private void addMapActivityToExistingIappModule(boolean instantFlagOn, String debugPath, String releasePath) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
            .clickFinish();
@@ -322,7 +312,7 @@ public class NewInstantAppTest {
   // b/68478730
   private void addMasterDetailActivityToExistingIappModule(boolean instantFlagOn, String stringPath) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
            .clickFinish();
@@ -350,7 +340,7 @@ public class NewInstantAppTest {
   // b/68684401
   private void addFullscreenActivityToExistingIappModule(boolean instantFlagOn, String stringXmlPath) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
-    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
            .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
            .clickFinish();
