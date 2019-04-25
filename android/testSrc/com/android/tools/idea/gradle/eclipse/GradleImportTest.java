@@ -43,6 +43,7 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Unit tests for the Gradle importer.
@@ -369,7 +370,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     // Remove <uses-sdk ...>
     File manifestFile = new File(projectDir, FN_ANDROID_MANIFEST_XML);
-    String manifestContents = Files.toString(manifestFile, UTF_8);
+    String manifestContents = Files.asCharSource(manifestFile, UTF_8).read();
     int index = manifestContents.indexOf("<uses-sdk");
     int endIndex = manifestContents.indexOf('>', index);
     assertFalse(index == -1);
@@ -802,7 +803,7 @@ public class GradleImportTest extends AndroidTestCase {
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
                  + "apply plugin: 'java'\n",
-                 Files.toString(new File(imported, "javaLib" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "javaLib" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     // Let's peek at some of the key files to make sure we codegen'ed the right thing
@@ -823,7 +824,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                  + "    }\n"
                  + "}\n",
-                 Files.toString(new File(imported, "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
@@ -853,7 +854,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':lib2')\n"
                  + "    compile project(':javaLib')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -879,14 +880,14 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile project(':lib1')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "lib2" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "lib2" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
     assertEquals(""
                  + "include ':javaLib'\n"
                  + "include ':lib1'\n"
                  + "include ':lib2'\n"
                  + "include ':app'\n",
-                 Files.toString(new File(imported, "settings.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "settings.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -1057,7 +1058,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile 'com.android.support:appcompat-v7:22.+'\n"
                  + "    compile 'com.android.support:gridlayout-v7:22.+'\n"
                  + "}\n",
-                 Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8).replace(NL, "\n"));
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read().replace(NL, "\n"));
 
     deleteDir(projectDir);
     deleteDir(imported);
@@ -1145,7 +1146,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile files('libs/android-support-v7-appcompat.jar')\n"
                  + "    compile files('libs/android-support-v7-gridlayout.jar')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "Test1" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "Test1" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(projectDir);
@@ -1274,7 +1275,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.toString(new File(imported, "testJni" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "testJni" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     assertEquals(sdkLocation.getPath(),
@@ -1470,7 +1471,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    androidTestCompile files('libs/myTestSupportLib.jar')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "Test2" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -1651,7 +1652,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'\n"
                  + "    compile 'com.android.support:support-v4:18.+'\n"
                  + "}\n",
-                 Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -2080,7 +2081,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile 'com.google.guava:guava:13.0.1'\n"
                  + "}\n",
-                 Files.toString(new File(imported, "library1" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "library1" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -2107,7 +2108,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile project(':androidLibrary')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "androidApp" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "androidApp" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
@@ -2135,7 +2136,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':library1')\n"
                  + "    compile project(':library2')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "androidLibrary" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "androidLibrary" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
@@ -2145,7 +2146,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile 'com.google.guava:guava:13.0.1'\n"
                  + "}\n",
-                 Files.toString(new File(imported, "library1" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "library1" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
@@ -2157,7 +2158,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "dependencies {\n"
                  + "    compile project(':library1')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "library2" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "library2" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     // TODO: Should this ONLY include the root module?
@@ -2166,7 +2167,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "include ':library2'\n"
                  + "include ':androidLibrary'\n"
                  + "include ':androidApp'\n",
-                 Files.toString(new File(imported, "settings.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "settings.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     //noinspection ConstantConditions
@@ -2186,7 +2187,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                  + "    }\n"
                  + "}\n" ,
-                 Files.toString(new File(imported, "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -2386,7 +2387,7 @@ public class GradleImportTest extends AndroidTestCase {
     assertEquals(""
                  + "include ':app'\n"
                  + "include ':test2'\n",
-                 Files.toString(new File(imported, "settings.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "settings.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(moduleDir);
@@ -2744,7 +2745,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "app" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(projectDir);
@@ -2815,7 +2816,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.toString(new File(imported, "Test2" + separator + "build.gradle"), UTF_8)
+                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).read()
                    .replace(NL, "\n"));
 
     deleteDir(root);
@@ -2867,7 +2868,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        }\n"
                  + "    }\n"
                  + "}\n",
-                 Files.toString(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).replace(NL, "\n"));
+                 Files.asCharSource(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).read().replace(NL, "\n"));
 
     deleteDir(root);
     deleteDir(imported);
@@ -2986,16 +2987,16 @@ public class GradleImportTest extends AndroidTestCase {
     Files.write(java, lib2File, windows1252);
     Files.write(xml, xmlFile, windows1252);
 
-    assertEquals(java, Files.toString(appFile, iso8859));
-    assertEquals(java, Files.toString(lib1File, macRoman));
-    assertEquals(java, Files.toString(lib2File, windows1252));
-    assertEquals(xml, Files.toString(xmlFile, windows1252));
+    assertEquals(java, Files.asCharSource(appFile, iso8859).read());
+    assertEquals(java, Files.asCharSource(lib1File, macRoman).read());
+    assertEquals(java, Files.asCharSource(lib2File, windows1252).read());
+    assertEquals(xml, Files.asCharSource(xmlFile, windows1252).read());
 
     // Make sure that these contents don't happen to be the same regardless of encoding
-    assertFalse(java.equals(Files.toString(appFile, UTF_8)));
-    assertFalse(java.equals(Files.toString(lib1File, UTF_8)));
-    assertFalse(java.equals(Files.toString(lib2File, UTF_8)));
-    assertFalse(xml.equals(Files.toString(xmlFile, UTF_8)));
+    assertNotEquals(java, Files.asCharSource(appFile, UTF_8).read());
+    assertNotEquals(java, Files.asCharSource(lib1File, UTF_8).read());
+    assertNotEquals(java, Files.asCharSource(lib2File, UTF_8).read());
+    assertNotEquals(xml, Files.asCharSource(xmlFile, UTF_8).read());
 
     // Write App project specific encoding, and file specific encoding
     File file = new File(root, "App" + separator + ".settings" + separator
@@ -3068,11 +3069,11 @@ public class GradleImportTest extends AndroidTestCase {
     assertTrue(newLib2File.exists());
     assertTrue(newXmlFile.exists());
 
-    assertEquals(java, Files.toString(newAppFile, UTF_8));
-    assertEquals(java, Files.toString(newLib1File, UTF_8));
-    assertEquals(java, Files.toString(newLib2File, UTF_8));
-    assertFalse(xml.equals(Files.toString(newXmlFile, UTF_8))); // references old encoding
-    assertEquals(xml.replace(windows1252.name(), "utf-8"), Files.toString(newXmlFile, UTF_8));
+    assertEquals(java, Files.asCharSource(newAppFile, UTF_8).read());
+    assertEquals(java, Files.asCharSource(newLib1File, UTF_8).read());
+    assertEquals(java, Files.asCharSource(newLib2File, UTF_8).read());
+    assertNotEquals(xml, Files.asCharSource(newXmlFile, UTF_8).read()); // references old encoding
+    assertEquals(xml.replace(windows1252.name(), "utf-8"), Files.asCharSource(newXmlFile, UTF_8).read());
 
     deleteDir(root);
     deleteDir(imported);
@@ -3081,6 +3082,9 @@ public class GradleImportTest extends AndroidTestCase {
   public void testIsTextFile() {
     assertTrue(isTextFile(new File("foo.java")));
     assertTrue(isTextFile(new File("foo.xml")));
+    assertTrue(isTextFile(new File("parent" + separator + "foo.kt")));
+    assertTrue(isTextFile(new File("parent" + separator + "foo.kts")));
+    assertTrue(isTextFile(new File("parent" + separator + "foo.json")));
     assertTrue(isTextFile(new File("parent" + separator + "foo.xml")));
     assertTrue(isTextFile(new File("parent" + separator + "foo.h")));
     assertTrue(isTextFile(new File("parent" + separator + "foo.c")));
@@ -3111,7 +3115,7 @@ public class GradleImportTest extends AndroidTestCase {
     File projectDir = createProject("test1", "test.pkg");
 
     createProjectProperties(projectDir, "android-19", null, null, null,
-                            Collections.<File>emptyList());
+                            Collections.emptyList());
 
     File libs = new File(projectDir, "libs");
     libs.mkdirs();
@@ -3143,7 +3147,7 @@ public class GradleImportTest extends AndroidTestCase {
     File projectDir = createProject("test1", "test.pkg");
 
     createProjectProperties(projectDir, "android-L", null, null, null,
-                            Collections.<File>emptyList());
+                            Collections.emptyList());
 
     File libs = new File(projectDir, "libs");
     libs.mkdirs();
@@ -3177,7 +3181,7 @@ public class GradleImportTest extends AndroidTestCase {
     createProjectProperties(projectDir, "android-19", null, null, null,
                             Collections.emptyList());
     // Append unresolved library project references
-    String s = Files.toString(new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8);
+    String s = Files.asCharSource(new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8).read();
     s += "\n";
     s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 1) + "=../appcompat_v7\n";
     s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 2) + "=../support-v4\n";
@@ -3287,7 +3291,7 @@ public class GradleImportTest extends AndroidTestCase {
       importer.exportProject(destDir, false);
       updateGradle(destDir);
     }
-    String summary = Files.toString(new File(gradleProjectDir, IMPORT_SUMMARY_TXT), UTF_8);
+    String summary = Files.asCharSource(new File(gradleProjectDir, IMPORT_SUMMARY_TXT), UTF_8).read();
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
@@ -3338,7 +3342,7 @@ public class GradleImportTest extends AndroidTestCase {
     if (!buildFile.exists()) {
       return;
     }
-    String contentsOrig = Files.toString(buildFile, UTF_8);
+    String contentsOrig = Files.asCharSource(buildFile, UTF_8).read();
     String contents = contentsOrig;
     contents = contents.replaceAll("jcenter\\(\\)", "");
     if (!contents.equals(contentsOrig)) {
@@ -3434,7 +3438,7 @@ public class GradleImportTest extends AndroidTestCase {
     if (isDirectory) {
       File[] children = file.listFiles();
       if (children != null) {
-        Arrays.sort(children, (file1, file2) -> file1.getName().compareTo(file2.getName()));
+        Arrays.sort(children, Comparator.comparing(File::getName));
         for (File child : children) {
           appendFiles(sb, includeDirs, child, depth + 1);
         }
@@ -3579,7 +3583,7 @@ public class GradleImportTest extends AndroidTestCase {
       // Libraries normally start at index 1, but I want to handle cases where they start
       // at 0 too so we have a test parameter for that
       int index = i + (startLibrariesAt1 ? 1 : 0);
-      String escaped = escapeProperty("android.library.reference." + Integer.toString(index),
+      String escaped = escapeProperty("android.library.reference." + index,
                                       path);
       sb.append(escaped).append("\n");
     }
