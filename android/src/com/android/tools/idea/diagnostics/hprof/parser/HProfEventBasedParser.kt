@@ -129,10 +129,8 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     LOG.info("HProfEventBasedParser${if (description != null) " - $description" else ""}: $stopwatch")
   }
 
-  private fun skip(count: Long): Int {
-    val newPosition = buffer.position() + count.toInt()
-    buffer.position(newPosition)
-    return count.toInt()
+  private fun skip(count: Long) {
+    buffer.position(buffer.position() + count)
   }
 
   private fun acceptHeapDumpSegment(visitor: HProfVisitor, length: Long) {
