@@ -253,7 +253,7 @@ public class PostSyncProjectSetup {
       result = new SuccessResultImpl();
     }
     else {
-      result = new FailureResultImpl(failures);
+      result = new FailureResultImpl();
     }
 
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, result);
@@ -264,8 +264,8 @@ public class PostSyncProjectSetup {
     if (taskId != null) {
       String message = "sync failed";
       GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-      List<Failure> failures = messages.showEvents(taskId);
-      FailureResultImpl failureResult = new FailureResultImpl(failures);
+      messages.showEvents(taskId);
+      FailureResultImpl failureResult = new FailureResultImpl();
       FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, failureResult);
       ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
     }
