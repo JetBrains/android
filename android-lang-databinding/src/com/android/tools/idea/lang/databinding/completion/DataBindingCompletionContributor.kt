@@ -43,7 +43,10 @@ import com.intellij.openapi.module.impl.scopes.ModulesScope
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.CommonClassNames
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.util.PsiFormatUtil
@@ -163,15 +166,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
             continue
           }
         }
-        // Pass resolvedType.getPsiClass into JavaLookupElementBuilder.forField as qualifierClass
-        // so that only fields declared in current class are bold.
-        val lookupBuilder = JavaLookupElementBuilder
-          .forField(psiModelField.psiField, psiModelField.psiField.name,
-                    resolvedType.psiClass)
-          .withTypeText(
-            PsiFormatUtil.formatVariable(psiModelField.psiField, PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY))
-          .withInsertHandler(onCompletionHandler)
-        completionSuggestionsList.add(lookupBuilder)
+        completionSuggestionsList.addSuggestion(psiModelField.psiField, resolvedType.psiClass)
       }
     }
     return completionSuggestionsList
@@ -200,45 +195,51 @@ open class DataBindingCompletionContributor : CompletionContributor() {
               continue
             }
           }
-          var name = psiModelMethod.name
+
+          // Getter methods are converted to fields inside data binding expressions; so although
+          // we are fed PsiMethods, we may convert some of them to PsiFields
+          var psiConvertedField: PsiField? = null
+
           if (completeBrackets) {
-            val substringIndex = when {
-              DataBindingUtil.isGetter(psiMethod) -> 3
-              DataBindingUtil.isBooleanGetter(psiMethod) -> 2
-              else -> -1
-            }
-
-            if (substringIndex == -1) {
-              name += "()"
-            }
-            else {
-              // If the method is a Getter/BooleanGetter create a custom LookupElement with stripped lookupString.
-              // TODO(131255487): See if there's a way to unify both branches of lookup builder code
-              name = psiModelMethod.name.substring(substringIndex).decapitalize()
-
-              if (psiMethod.returnType != null) {
-                val lightField = LightFieldBuilder(name, psiMethod.returnType!!, psiMethod.navigationElement)
-                lightField.containingClass = psiMethod.containingClass
-                val lookupBuilder = JavaLookupElementBuilder
-                  .forField(lightField, lightField.name,
-                            resolvedType.psiClass)
-                  .withTypeText(
-                    PsiFormatUtil.formatVariable(lightField, PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY))
-                  .withInsertHandler(onCompletionHandler)
-                  .withIcon(PlatformIcons.FIELD_ICON)
-                completionSuggestionsList.add(lookupBuilder)
-                continue
-              }
+            if (DataBindingUtil.isGetter(psiMethod) || DataBindingUtil.isBooleanGetter(psiMethod)) {
+              val name = DataBindingUtil.stripPrefixFromMethod(psiMethod)
+              psiConvertedField = LightFieldBuilder(name, psiMethod.returnType!!, psiMethod.navigationElement)
+              psiConvertedField.containingClass = psiMethod.containingClass
+              // Set this explicitly or otherwise the icon comes out as "V" for variable
+              psiConvertedField.setBaseIcon(PlatformIcons.FIELD_ICON)
             }
           }
-          // Pass resolvedType.getPsiClass into JavaLookupElementBuilder.forMethod as qualifierClass
-          // so that only methods declared in current class are bold.
-          val lookupBuilder = JavaLookupElementBuilder.forMethod(psiMethod, name, PsiSubstitutor.EMPTY,
-                                                                 resolvedType.psiClass).withInsertHandler(onCompletionHandler)
-          completionSuggestionsList.add(lookupBuilder)
+          if (psiConvertedField == null) {
+            completionSuggestionsList.addSuggestion(psiMethod, completeBrackets, resolvedType.psiClass)
+          }
+          else {
+            completionSuggestionsList.addSuggestion(psiConvertedField, resolvedType.psiClass)
+          }
         }
       }
     }
     return completionSuggestionsList
+  }
+
+  /**
+   * [qualifierClass] is used so indicate which fields should be bolded
+   */
+  private fun MutableList<LookupElement>.addSuggestion(psiField: PsiField, qualifierClass: PsiClass?) {
+    val lookupBuilder = JavaLookupElementBuilder
+      .forField(psiField, psiField.name, qualifierClass)
+      .withTypeText(PsiFormatUtil.formatVariable(psiField, PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY))
+      .withInsertHandler(onCompletionHandler)
+    add(lookupBuilder)
+  }
+
+  /**
+   * [qualifierClass] is used to indicate which methods should be bolded
+   */
+  private fun MutableList<LookupElement>.addSuggestion(psiMethod: PsiMethod, completeBrackets: Boolean, qualifierClass: PsiClass?) {
+    val name = if (completeBrackets) "${psiMethod.name}()" else psiMethod.name
+    val lookupBuilder = JavaLookupElementBuilder
+      .forMethod(psiMethod, name, PsiSubstitutor.EMPTY, qualifierClass)
+      .withInsertHandler(onCompletionHandler)
+    add(lookupBuilder)
   }
 }

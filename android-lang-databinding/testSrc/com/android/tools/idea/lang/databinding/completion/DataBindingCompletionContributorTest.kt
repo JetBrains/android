@@ -974,15 +974,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   }
 
   @Test
-  fun testDataBindingCompletion_getterMethod() {
+  fun testDataBindingCompletion_getterMethodConvertedToField() {
     fixture.addClass("""
       package test.langdb;
 
       import android.view.View;
 
       public class Model {
-        public String getValue() {}
-        public String getValue2() {}
+        public String getValue() { return "dummy"; }
       }
     """.trimIndent())
 
@@ -998,22 +997,20 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.va<caret>}"/>
+            android:onClick="@{model.<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val lookupElements = fixture.completeBasic()
-
-    assertThat(lookupElements.size).isEqualTo(2)
-    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
-
-    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
-    assertThat(lookupElementBuilder.lookupString).isEqualTo("value")
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).apply {
+      contains("value")
+      doesNotContain("getValue()")
+    }
   }
 
   @Test
-  fun testDataBindingCompletion_booleanGetterMethod() {
+  fun testDataBindingCompletion_booleanGetterMethodConvertedToField() {
     fixture.addClass("""
       package test.langdb;
 
@@ -1021,7 +1018,6 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
       public class Model {
         public boolean isGood() {}
-        public boolean isGood2() {}
       }
     """.trimIndent())
 
@@ -1037,22 +1033,56 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.go<caret>}"/>
+            android:onClick="@{model.<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val lookupElements = fixture.completeBasic()
-
-    assertThat(lookupElements.size).isEqualTo(2)
-    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
-
-    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
-    assertThat(lookupElementBuilder.lookupString).isEqualTo("good")
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).apply {
+      contains("good")
+      doesNotContain("isGood()")
+    }
   }
 
   @Test
-  fun testDataBindingCompletion_overriddenMethod() {
+  fun testDataBindingCompletion_setterMethodNotConvertedToField() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public void setName(String name) { }
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).apply {
+      contains("setName()")
+      doesNotContain("name")
+    }
+  }
+
+  @Test
+  fun testDataBindingCompletion_overriddenMethodsAreSuppressed() {
     fixture.addClass("""
       package test.langdb;
 
@@ -1076,17 +1106,13 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{model.toStr<caret>}"/>
+            android:onClick="@{model.<caret>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val lookupElements = fixture.completeBasic()
-
-    // The completeBasic() should return null as the only item is auto-completed.
-    assertThat(lookupElements).isNull()
-
-    // We should only find one method with name "toString()", toString() declared in [java.lang.Object] should be removed.
-    //assertThat(lookupElements.count { it.lookupString == "toString()" }).isEqualTo(1)
+    // We should only find one method with name "toString()", The "toString()" declared in [java.lang.Object] should be removed.
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings!!.filter { it == "toString()" }).hasSize(1)
   }
 }
