@@ -356,6 +356,7 @@ public class StudioIcons {
       public static final Icon DEVICE_SCREEN = load("/studio/icons/layout-editor/toolbar/device-screen.svg"); // 16x16
       public static final Icon DEVICE_TABLET = load("/studio/icons/layout-editor/toolbar/device-tablet.svg"); // 16x16
       public static final Icon DEVICE_TV = load("/studio/icons/layout-editor/toolbar/device-tv.svg"); // 16x16
+      public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/layout-editor/toolbar/device-automotive.svg"); // 16x16
       public static final Icon DEVICE_WEAR = load("/studio/icons/layout-editor/toolbar/device-wear.svg"); // 16x16
       public static final Icon DISTRIBUTE_HORIZONTAL_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/distribute-horizontal-constraint.svg"); // 16x16
       public static final Icon DISTRIBUTE_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/distribute-horizontal.svg"); // 16x16
