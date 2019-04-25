@@ -521,9 +521,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       AnchorTarget anchorTarget = AnchorTarget.findAnchorTarget(child, AnchorTarget.Type.BASELINE);
       boolean onDelete = anchorTarget != null && anchorTarget.canDisconnect() && anchorTarget.isMouseHovered();
       int previousMode = connectStatus.getPreviousMode(4);
-      boolean secondary = selectedDirection == SecondarySelector.Constraint.BASELINE.ordinal();
+      boolean selectedConnection = selectedDirection == SecondarySelector.Constraint.BASELINE.ordinal() && viewSelected;
       boolean hoverConnection = hover == SecondarySelector.Constraint.BASELINE.ordinal();
-      int currentMode = connectStatus.getCurrentMode(4, secondary, fade, constraintSelected, anyViewSelected, hoverConnection, onDelete);
+      int currentMode =
+        connectStatus.getCurrentMode(4, selectedConnection, fade, constraintSelected, anyViewSelected, hoverConnection, onDelete);
 
       DrawConnection
         .buildDisplayList(list,
