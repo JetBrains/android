@@ -43,7 +43,6 @@ public class AspectsAgentLogger extends TestWatcher {
       String logPath = Paths.get(GuiTests.getGuiTestRootDirPath().getAbsolutePath(), "system", "log", "aspects_agent_log.txt").toString();
       ourAspectsAgentLog = new File(logPath);
       if (ourAspectsAgentLog.getParentFile().exists()) {
-        ourAspectsAgentLog.delete(); // delete file in case it already exists
         boolean created = ourAspectsAgentLog.createNewFile();
         if (!created) {
           LOGGER.warn("Could not create the aspects agent log.");
