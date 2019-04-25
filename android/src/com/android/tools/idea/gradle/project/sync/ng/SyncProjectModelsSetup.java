@@ -135,7 +135,7 @@ class SyncProjectModelsSetup extends ModuleSetup<SyncProjectModels> {
   @Override
   public void setUpModules(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator) {
     notifyModuleConfigurationStarted(indicator);
-    CachedProjectModels cache = myCachedProjectModelsFactory.createNew();
+    CachedProjectModels cache = myCachedProjectModelsFactory.createNew(myProject);
     myCompositeBuildDataSetup.setupCompositeBuildData(projectModels, cache, myProject);
     myDependenciesFactory.setUpGlobalLibraryMap(projectModels.getGlobalLibraryMap());
 
