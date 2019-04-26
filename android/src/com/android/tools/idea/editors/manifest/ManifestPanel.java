@@ -81,7 +81,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 import org.w3c.dom.*;
 
@@ -136,6 +135,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JMenuItem myRemoveItem;
 
   private MergedManifestSnapshot myManifest;
+  private boolean myManifestEditable;
   private final List<File> myFiles = new ArrayList<>();
   private final List<File> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
@@ -302,7 +302,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     myLoadingPanel.abortLoading("Unable to compute merged manifest.", AllIcons.General.Warning);
   }
 
-  public void showManifest(MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
+  public void showManifest(MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest, boolean isEditable) {
+    this.myManifestEditable = isEditable;
     setManifestSnapshot(manifest, selectedManifest);
     myLoadingPanel.stopLoading();
     mySplitter.setVisible(true);
@@ -513,7 +514,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         sb.add(" ");
         try {
           sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
-                                  LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0))));
+                                  LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0)), myManifestEditable));
         }
         catch (Exception ex) {
           Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
@@ -562,6 +563,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private boolean canRemove(@NotNull Node node) {
+    if (!myManifestEditable) {
+      return false;
+    }
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
     if (records.isEmpty()) {
       // if we don't know where we are coming from, we are prob displaying the main manifest with a merge error.
@@ -608,10 +612,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                              @NotNull String message,
                              @NotNull final SourceFilePosition position,
                              @NotNull HtmlLinkManager htmlLinkManager,
-                             final @Nullable VirtualFile currentlyOpenFile) {
+                             final @Nullable VirtualFile currentlyOpenFile,
+                             final boolean manifestEditable) {
     HtmlBuilder sb = new HtmlBuilder();
     int index = message.indexOf(SUGGESTION_MARKER);
-    if (index >= 0) {
+    if (manifestEditable && index >= 0) {
       index += SUGGESTION_MARKER.length();
       String action = message.substring(index, message.indexOf(' ', index));
       sb.add(message.substring(0, index));
