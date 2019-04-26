@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static org.junit.Assert.fail;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -26,9 +33,9 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
 import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.util.AndroidBundle;
@@ -36,9 +43,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
-
-@RunIn(TestGroup.UNRELIABLE)  // b/129956954
 @RunWith(GuiTestRemoteRunner.class)
 public class RenameTest {
 
@@ -48,25 +52,34 @@ public class RenameTest {
   public void sourceRoot() throws Exception {
     guiTest.importSimpleApplication();
     final Project project = guiTest.ideFrame().getProject();
-    Module[] modules = ModuleManager.getInstance(project).getModules();
-    for (Module module : modules) {
-      final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
-      for (final VirtualFile sourceRoot : sourceRoots) {
-        PsiDirectory directory = GuiQuery.getNonNull(() -> PsiManager.getInstance(project).findDirectory(sourceRoot));
-        for (final RenameHandler handler : RenameHandler.EP_NAME.getExtensionList()) {
-          if (handler instanceof DirectoryAsPackageRenameHandler) {
-            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, guiTest.robot());
-            assertFalse(renameDialog.warningExists(null));
-            renameDialog.setNewName(renameDialog.getNewName() + 1);
-            // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
-            // warning to appear
-            Wait.seconds(1).expecting("error text to appear")
-              .until(() -> renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
-            renameDialog.clickCancel();
-            return;
-          }
-        }
+    Module appModule = ModuleManager.getInstance(project).findModuleByName("app");
+
+    VirtualFile mainJavaRoot = ContainerUtil.find(ModuleRootManager.getInstance(appModule).getSourceRoots(),
+                                                  vf -> vf.getPath().endsWith("src/main/java"));
+    assertWithMessage("Failed to find the main java source root.").that(mainJavaRoot).isNotNull();
+
+    PsiDirectory directory = GuiQuery.getNonNull(() -> PsiManager.getInstance(project).findDirectory(mainJavaRoot));
+    DataContext dataContext = SimpleDataContext.getSimpleContext(
+      ImmutableMap.of(CommonDataKeys.PSI_ELEMENT.getName(), directory,
+                      CommonDataKeys.PROJECT.getName(), project,
+                      LangDataKeys.MODULE.getName(), appModule),
+      null
+    );
+
+    for (final RenameHandler handler : RenameHandler.EP_NAME.getExtensionList()) {
+      if (handler.isAvailableOnDataContext(dataContext)) {
+        final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, guiTest.robot());
+        assertThat(renameDialog.warningExists(null)).isFalse();
+        renameDialog.setNewName(renameDialog.getNewName() + 1);
+        // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
+        // warning to appear
+        Wait.seconds(1).expecting("error text to appear")
+          .until(() -> renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
+        renameDialog.clickCancel();
+        return;
       }
     }
+
+    fail("Did not find a RenameHandler for the main java source root directory.");
   }
 }
