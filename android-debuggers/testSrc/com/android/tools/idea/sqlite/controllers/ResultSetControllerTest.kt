@@ -62,7 +62,7 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUp() {
     // Prepare
-    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
+    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
     resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
@@ -75,12 +75,12 @@ class ResultSetControllerTest : UsefulTestCase() {
     orderVerifier.verify(resultSetView).stopTableLoading()
 
     verify(sqliteResultSet).rowBatchSize = anyInt()
-    verify(sqliteResultSet).columns()
+    verify(sqliteResultSet).columns
   }
 
   fun testSetUpTableNameIsNull() {
     // Prepare
-    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
+    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
     resultSetController = ResultSetController(testRootDisposable, resultSetView, null, sqliteResultSet, edtExecutor)
 
     // Act
@@ -93,7 +93,7 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun testSetUpError() {
     // Prepare
     val throwable = Throwable()
-    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
     resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
@@ -109,7 +109,7 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpIsDisposed() {
     // Prepare
-    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
+    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
     resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act
@@ -124,7 +124,7 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpErrorIsDisposed() {
     // Prepare
-    `when`(sqliteResultSet.columns()).thenReturn(Futures.immediateFailedFuture(Throwable()))
+    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
     resultSetController = ResultSetController(testRootDisposable, resultSetView, "tableName", sqliteResultSet, edtExecutor)
 
     // Act

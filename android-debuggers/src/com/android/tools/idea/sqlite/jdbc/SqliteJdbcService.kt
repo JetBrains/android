@@ -68,37 +68,36 @@ class SqliteJdbcService(
       logger.info("Successfully closed database: ${sqliteFile.path}")
   }
 
-  override fun openDatabase(): ListenableFuture<Unit> {
-    return sequentialTaskExecutor.executeAsync {
-      try {
-        check(connection == null) { "Database is already open" }
+  override fun openDatabase(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
+    try {
+      check(connection == null) { "Database is already open" }
 
-        // db parameters
-        val url = "jdbc:sqlite:" + sqliteFile.path
+      // db parameters
+      val url = "jdbc:sqlite:" + sqliteFile.path
 
-        // create a connection to the database
-        connection = DriverManager.getConnection(url)
-        logger.info("Successfully opened database: ${sqliteFile.path}")
-      } catch (e: Exception) {
-        throw Exception("Error opening Sqlite database file \"$sqliteFile\"", e)
-      }
+      // create a connection to the database
+      connection = DriverManager.getConnection(url)
+      logger.info("Successfully opened database: ${sqliteFile.path}")
+    } catch (e: Exception) {
+      throw Exception("Error opening Sqlite database file \"$sqliteFile\"", e)
     }
   }
 
-  override fun readSchema(): ListenableFuture<SqliteSchema> {
-    return sequentialTaskExecutor.executeAsync {
-      checkNotNull(connection) { "Database is not open" }
+  override fun readSchema(): ListenableFuture<SqliteSchema> = sequentialTaskExecutor.executeAsync {
+    checkNotNull(connection) { "Database is not open" }
 
-      connection!!.let { connection ->
-        val tables = connection.metaData.getTables(null, null, null, null)
-        val schema = SqliteJdbcSchema()
+    connection!!.let { connection ->
+      val tables = connection.metaData.getTables(null, null, null, null)
+      SqliteJdbcSchema().apply {
         while (tables.next()) {
-          val tableName = tables.getString("TABLE_NAME")
-          val columns = readColumnDefinitions(connection, tableName)
-          schema.addTable(SqliteTable(tableName, columns))
+          addTable(
+            SqliteTable(
+              tables.getString("TABLE_NAME"),
+              readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
+            )
+          )
         }
         logger.info("Successfully read database schema: ${sqliteFile.path}")
-        schema
       }
     }
   }
@@ -113,9 +112,12 @@ class SqliteJdbcService(
           logger.debug("  Column \"${columnsSet.metaData.getColumnName(i)}\" = ${columnsSet.getString(i)}")
         }
       }
-      val column = SqliteColumn(columnsSet.getString("COLUMN_NAME"),
-              JDBCType.valueOf(columnsSet.getInt("DATA_TYPE")))
-      columns.add(column)
+      columns.add(
+        SqliteColumn(
+          columnsSet.getString("COLUMN_NAME"),
+          JDBCType.valueOf(columnsSet.getInt("DATA_TYPE"))
+        )
+      )
     }
     return columns
   }
@@ -135,15 +137,12 @@ class SqliteJdbcService(
     return execute(query) { preparedStatement -> preparedStatement.executeUpdate() }
   }
 
-  private fun <T> execute(query: String, connectionMethod: (PreparedStatement) -> T): ListenableFuture<T> {
-    return sequentialTaskExecutor.executeAsync {
-      checkNotNull(connection) { "Database is not open" }
+  private fun <T> execute(query: String, connectionMethod: (PreparedStatement) -> T) = sequentialTaskExecutor.executeAsync {
+    checkNotNull(connection) { "Database is not open" }
 
-      connection!!.let { connection ->
-        val statement = connection.prepareStatement(query)
-        val res = connectionMethod(statement)
+    connection!!.let { connection ->
+      connectionMethod(connection.prepareStatement(query)).also {
         logger.info("SQL statement \"$query\" executed with success.")
-        return@executeAsync res
       }
     }
   }
