@@ -268,7 +268,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
   }
 
   private fun SqliteResultSet.hasColumn(name: String, type: JDBCType) : Boolean {
-    return pumpEventsAndWaitForFuture(this.columns()).find { it.name == name }?.type?.equals(type) ?: false
+    return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.type?.equals(type) ?: false
   }
 
   private fun SqliteTable.hasColumn(name: String, type: JDBCType) : Boolean {

@@ -54,7 +54,7 @@ class ResultSetController(
   fun setUp() {
     view.startTableLoading(tableName)
 
-    val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns()) { columns ->
+    val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns) { columns ->
       guardDisposed {
         view.showTableColumns(columns!!)
 
