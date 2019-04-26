@@ -49,6 +49,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.impl.light.LightFieldBuilder
+import com.intellij.psi.impl.light.LightModifierList
 import com.intellij.psi.util.PsiFormatUtil
 import com.intellij.psi.util.PsiFormatUtilBase
 import com.intellij.util.PlatformIcons
@@ -207,6 +208,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
               psiConvertedField.containingClass = psiMethod.containingClass
               // Set this explicitly or otherwise the icon comes out as "V" for variable
               psiConvertedField.setBaseIcon(PlatformIcons.FIELD_ICON)
+              psiConvertedField.setModifierList(LightModifierList(psiMethod))
             }
           }
           if (psiConvertedField == null) {
