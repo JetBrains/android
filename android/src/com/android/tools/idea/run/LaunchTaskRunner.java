@@ -21,11 +21,10 @@ import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
@@ -53,6 +52,7 @@ import java.util.concurrent.TimeoutException;
 
 public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final String myConfigName;
+  @NotNull private final String myApplicationId;
   @Nullable private final String myExecutionTargetName; // Change to NotNull once everything is moved over to DeviceAndSnapshot
   @NotNull private final LaunchInfo myLaunchInfo;
   @NotNull private final ProcessHandler myProcessHandler;
@@ -66,6 +66,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   public LaunchTaskRunner(@NotNull Project project,
                           @NotNull String configName,
+                          @NotNull String applicationId,
                           @Nullable String executionTargetName,
                           @NotNull LaunchInfo launchInfo,
                           @NotNull ProcessHandler processHandler,
@@ -76,6 +77,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     super(project, "Launching " + configName);
 
     myConfigName = configName;
+    myApplicationId = applicationId;
     myExecutionTargetName = executionTargetName;
     myLaunchInfo = launchInfo;
     myProcessHandler = processHandler;
@@ -263,20 +265,20 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   }
 
   private boolean isSwap() {
-    return Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY)) ||
-           Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY));
+    return myLaunchInfo.env.getUserData(SwapInfo.SWAP_INFO_KEY) != null;
   }
 
   @NotNull
   private String getLaunchVerb() {
-    if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY))) {
-      return "Applying changes to";
+    SwapInfo swapInfo = myLaunchInfo.env.getUserData(SwapInfo.SWAP_INFO_KEY);
+    if (swapInfo != null) {
+      if (swapInfo.getType() == SwapInfo.SwapType.APPLY_CHANGES) {
+        return "Applying changes to";
+      }
+      else if (swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES) {
+        return "Applying code changes to";
+      }
     }
-    else if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY))) {
-      return "Applying code changes to";
-    }
-    else {
-      return "Launching";
-    }
+    return "Launching";
   }
 }

@@ -32,6 +32,7 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RemoteConnection;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.process.ProcessAdapter;
@@ -150,12 +151,11 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     }
 
     RunProfile runProfile = currentLaunchInfo.env.getRunProfile();
-    int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
-    AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
-                                                      currentLaunchInfo.executor.getActionName(),
-                                                      currentLaunchInfo.env.getExecutionTarget()
+    RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration)runProfile : null;
+    AndroidSessionInfo.create(debugProcessHandler, debugDescriptor, runConfiguration, currentLaunchInfo.executor.getId(),
+                              currentLaunchInfo.executor.getActionName(),
+                              currentLaunchInfo.env.getExecutionTarget()
     );
-    debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT, client);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
 
