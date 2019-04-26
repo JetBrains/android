@@ -11,22 +11,24 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
-import org.jetbrains.android.compiler.artifact.ChooseKeyDialog;
-import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.util.containers.ContainerUtil;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
-
-import static com.intellij.util.ui.UIUtil.getLabelFont;
+import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
+import org.jetbrains.android.compiler.artifact.ChooseKeyDialog;
+import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -46,7 +48,7 @@ public class AndroidUiUtil {
       is = new FileInputStream(new File(form.getKeyStorePathField().getText().trim()));
       final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       keyStore.load(is, form.getKeyStorePasswordField().getPassword());
-      return AndroidUtils.toList(keyStore.aliases());
+      return ContainerUtil.toList(keyStore.aliases());
     }
     catch (KeyStoreException e) {
       Messages.showErrorDialog(form.getPanel(), errorPrefix + e.getMessage(), CommonBundle.getErrorTitle());
