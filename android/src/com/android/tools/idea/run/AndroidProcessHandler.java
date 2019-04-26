@@ -266,6 +266,10 @@ public class AndroidProcessHandler extends ProcessHandler
     LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
   }
 
+  public boolean isAssociated(@NotNull IDevice device) {
+    return myDeviceProcessMap.containsKey(device);
+  }
+
   @Override
   public boolean detachIsDefault() {
     return false;
@@ -410,7 +414,7 @@ public class AndroidProcessHandler extends ProcessHandler
     }
 
     IDevice targetIDevice = ((AndroidExecutionTarget)activeTarget).getIDevice();
-    return targetIDevice != null && myDeviceProcessMap.containsKey(targetIDevice);
+    return targetIDevice != null && isAssociated(targetIDevice);
   }
 
   @Override
@@ -435,14 +439,22 @@ public class AndroidProcessHandler extends ProcessHandler
   }
 
   @Override
-  public boolean isExecutedWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
+  public boolean isRunningWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
     AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
     if (sessionInfo == null) {
       return false;
     }
 
-    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId()) &&
-           sessionInfo.getRunConfigurationId() == runConfiguration.getUniqueID();
+    if (sessionInfo.getRunConfiguration() != runConfiguration) {
+      return false;
+    }
+
+    if (executionTarget instanceof AndroidExecutionTarget) {
+      IDevice device = ((AndroidExecutionTarget)executionTarget).getIDevice();
+      return device != null && isAssociated(device);
+    }
+
+    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId());
   }
 
   @Override
@@ -451,7 +463,7 @@ public class AndroidProcessHandler extends ProcessHandler
 
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
-    if (myDeviceProcessMap.containsKey(device)) {
+    if (isAssociated(device)) {
       print("Device %s disconnected, monitoring stopped.\n", device.getName());
       disassociate(device);
 
