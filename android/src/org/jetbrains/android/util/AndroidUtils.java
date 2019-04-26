@@ -51,7 +51,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -89,20 +89,16 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.graph.Graph;
 import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import java.awt.BorderLayout;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -112,7 +108,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
-import org.gradle.internal.impldep.com.esotericsoftware.minlog.Log;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -177,18 +172,14 @@ public class AndroidUtils {
   public static <T extends DomElement> T loadDomElement(@NotNull final Project project,
                                                         @NotNull final VirtualFile file,
                                                         @NotNull final Class<T> aClass) {
-    return getApplication().runReadAction(new Computable<T>() {
-      @Override
-      @Nullable
-      public T compute() {
-        if (project.isDisposed()) return null;
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        if (psiFile instanceof XmlFile) {
-          return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
-        }
-        else {
-          return null;
-        }
+    return getApplication().runReadAction((Computable<T>)() -> {
+      if (project.isDisposed()) return null;
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      if (psiFile instanceof XmlFile) {
+        return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
+      }
+      else {
+        return null;
       }
     });
   }
@@ -375,12 +366,7 @@ public class AndroidUtils {
   public static AndroidFacet addAndroidFacetInWriteAction(@NotNull final Module module,
                                                           @NotNull final VirtualFile contentRoot,
                                                           final boolean library) {
-    return getApplication().runWriteAction(new Computable<AndroidFacet>() {
-      @Override
-      public AndroidFacet compute() {
-        return addAndroidFacet(module, contentRoot, library);
-      }
-    });
+    return WriteAction.compute(() -> addAndroidFacet(module, contentRoot, library));
   }
 
   @NotNull
@@ -430,8 +416,6 @@ public class AndroidUtils {
         if (configuration instanceof AndroidRunConfigurationBase) {
           final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
           final TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
-
-          //noinspection IfStatementWithIdenticalBranches - branches are only identical for final iteration of outer loop
           if (runConfig.getConfigurationModule() == module) {
             return targetMode;
           }
@@ -529,7 +513,7 @@ public class AndroidUtils {
       .map(AndroidFacet::getInstance)
       .peek(facet -> {
         if (facet == null) {
-          Log.error("Null in result of getResourceModuleDependencies, module system: " + ProjectSystemUtil.getModuleSystem(module));
+          LOG.error("Null in result of getResourceModuleDependencies, module system: " + ProjectSystemUtil.getModuleSystem(module));
         }
       })
       .filter(Objects::nonNull)
@@ -591,11 +575,6 @@ public class AndroidUtils {
     if (password.length == 0) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.password.error"));
     }
-  }
-
-  @NotNull
-  public static <T> List<T> toList(@NotNull Enumeration<T> enumeration) {
-    return ContainerUtil.toList(enumeration);
   }
 
   public static void reportError(@NotNull Project project, @NotNull String message) {
@@ -688,7 +667,7 @@ public class AndroidUtils {
       return "Package name is missing";
     }
 
-    String packageManagerCheck = validateName(name, true);
+    String packageManagerCheck = validateName(name);
     if (packageManagerCheck != null) {
       return packageManagerCheck;
     }
@@ -734,7 +713,7 @@ public class AndroidUtils {
   // This method is a copy of android.content.pm.PackageParser#validateName with the
   // error messages tweaked
   @Nullable
-  private static String validateName(String name, boolean requiresSeparator) {
+  private static String validateName(String name) {
     final int N = name.length();
     boolean hasSep = false;
     boolean front = true;
@@ -762,7 +741,7 @@ public class AndroidUtils {
       }
       return "The character '" + c + "' is not allowed in Android application package names";
     }
-    return hasSep || !requiresSeparator ? null : "The package must have at least one '.' separator";
+    return hasSep ? null : "The package must have at least one '.' separator";
   }
 
   public static boolean isIdentifier(@NotNull String candidate) {
@@ -806,11 +785,6 @@ public class AndroidUtils {
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
-  }
-
-  @NotNull
-  public static String getAndroidSystemDirectoryOsPath() {
-    return PathManager.getSystemPath() + File.separator + "android";
   }
 
   public static boolean isAndroidComponent(@NotNull PsiClass c) {
