@@ -28,7 +28,7 @@
 
       ![food]
 
-   - In the section "icon_category_entertainment"
+   - In the section "icon_category_entertainment" 
       + One of the item should be named icon_categoy_entertainement.xml (XML is
         the important part)
 
@@ -47,27 +47,58 @@
 [entertainment]: res/resources-manager/screenshots/category_entertainment.png
 [checkimport]: res/resources-manager/screenshots/check_result_dnd_import.png
 [import_hierachy]: res/resources-manager/screenshots/import_hierarchy.png
-
+n
 ## Use resources
+
+### Open a drawable
+   
+   1. Reuse the project from the step above with the imported images.
+       - (If the step above failed, just ensure that you have 2 png files
+        named icon_category_entertainment.png), with one in the 
+        res/drawable directory and the other in res/drawable-xhdpi)
+   
+   2. Open the "Resource Manager" tool window.
+   3. Click on the "Drawable" tab.
+       - A drawable named icon_category_entertainment should be showing like in
+   
+       ![checkimport]
+   
+   4. Double click on it.
+      -  This following view should appear:
+   
+       ![drawable_tab_l2]
+   
+   5. Double click on "default".
+      - A new editor with the image "icon_category_entertainment.xml" should open.
+   6. Click the left arrow  "<--".
+      - The view from step 3 should appear.
 
 ### Open a layout
 
 1. Create a new project wih an empty activity OR reuse the one created above.
-2. Open the "Resources" tool window.
+2. Open the "Resource Manager" tool window.
 3. Click on the "Layout" tab.
     - A layout named activity_main should be showing
 
     ![layout_tab]
 
 4. Double click on it.
-   -  This following view should appear:
-
-    ![layout_tab_l2]
-
-5. Double click on "default".
    - A new editor with the file "activity_main.xml" should open.
-6. Click the left arrow  "<--".
+
+5. Click the left arrow  "<--".
    - The view from step 3 should appear.
+   
+   
+### Open in Resource Manager
+
+  1. From the project tree, right click on the activity_main.xml file
+  2. Check that "Show In Resource Manager" option appears and click 
+  on it
+   ![open_in]
+
+  3. The resource manager should open with the activity_main file selected
+(The layout tab might not show as selected but this is a known issue)
+   ![layout_tab]
 
 ### Create an Image View
 
@@ -85,4 +116,5 @@
   - the _src_ (or _scrCompat_) attribute should have been changed to  _"@drawable/ic_launcher_foreground"_
 
 [layout_tab]: res/resources-manager/screenshots/layout_tab.png
-[layout_tab_l2]: res/resources-manager/screenshots/layout_tab_l2.png
+[drawable_tab_l2]: res/resources-manager/screenshots/drawable_tab_l2.png
+[open_in]: res/resources-manager/screenshots/open_in_res_manag.png
