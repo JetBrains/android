@@ -246,12 +246,22 @@ class SyncExecutor {
                                           @NotNull GradleExecutionSettings executionSettings,
                                           @NotNull ProgressIndicator indicator,
                                           @NotNull ExternalSystemTaskId id,
-                                          @NotNull BuildEventDispatcher buildEventDispatcher,
+                                          @Nullable BuildEventDispatcher buildEventDispatcher,
                                           boolean forceFullVariantsSync) {
     boolean isSingleVariantSync = !forceFullVariantsSync && isSingleVariantSync(myProject);
     SyncAction syncAction = createSyncAction(false, isSingleVariantSync);
     BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
 
+    if(buildEventDispatcher == null) {
+      SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      buildEventDispatcher = new BuildEventDispatcher() {
+        @Override
+        public void onEvent(@NotNull BuildEvent event) {
+          syncViewManager.onEvent(event);
+        }
+      };
+    }
     prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildEventDispatcher), connection);
     return executor.run();
   }
