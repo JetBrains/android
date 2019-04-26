@@ -26,14 +26,13 @@ import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProj
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncAction;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.build.BuildEventDispatcher;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
-import com.intellij.build.events.impl.OutputBuildEventImpl;
 import com.intellij.build.events.impl.SkippedResultImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +42,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemEventDispatcher;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
@@ -168,58 +168,56 @@ class SyncExecutor {
     ExternalSystemTaskId id = createId(myProject);
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
     // Attach output
-    //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    BuildOutputInstantReaderImpl buildOutputReader = new BuildOutputInstantReaderImpl(id, syncViewManager, emptyList());
-    // Add a StartEvent to the build tool window
-    String projectPath = getBaseDirPath(myProject).getPath();
-    DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myProject.getName(), projectPath, currentTimeMillis());
-    StartBuildEventImpl startEvent = new StartBuildEventImpl(buildDescriptor, "syncing...").withContentDescriptorSupplier(
-      () -> {
-        AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(myProject);
-        return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
-      });
-    syncViewManager.onEvent(startEvent);
-    try {
-      boolean forceFullVariantsSync = request != null && request.forceFullVariantsSync;
-      if (isInTestingMode()) {
-        simulateRegisteredSyncError();
-      }
-      if (shouldGenerateSources) {
-        if (options != null) {
-          executeVariantOnlySyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
+    try (BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(id, syncViewManager)) {
+      // Add a StartEvent to the build tool window
+      String projectPath = getBaseDirPath(myProject).getPath();
+      DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myProject.getName(), projectPath, currentTimeMillis());
+      StartBuildEventImpl startEvent = new StartBuildEventImpl(buildDescriptor, "syncing...").withContentDescriptorSupplier(
+        () -> {
+          AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(myProject);
+          return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
+        });
+      eventDispatcher.onEvent(startEvent);
+      try {
+        boolean forceFullVariantsSync = request != null && request.forceFullVariantsSync;
+        if (isInTestingMode()) {
+          simulateRegisteredSyncError();
+        }
+        if (shouldGenerateSources) {
+          if (options != null) {
+            executeVariantOnlySyncAndGenerateSources(connection, executionSettings, indicator, id, eventDispatcher, callback, options);
+          }
+          else {
+            executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, eventDispatcher, callback,
+                                              forceFullVariantsSync);
+          }
+        }
+        else if (options != null) {
+          executeVariantOnlySync(connection, executionSettings, indicator, id, eventDispatcher, callback, options);
         }
         else {
-          executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback,
-                                            forceFullVariantsSync);
+          executeFullSync(connection, executionSettings, indicator, id, eventDispatcher, callback, forceFullVariantsSync);
         }
       }
-      else if (options != null) {
-        executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
-      }
-      else {
-        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback, forceFullVariantsSync);
-      }
-    }
-    catch (RuntimeException e) {
-      // If new sync is not supported, set project property and start another sync.
-      if (e.getCause() instanceof NewGradleSyncNotSupportedException) {
-        PropertiesComponent.getInstance(myProject).setValue(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC, true);
-        StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
-        StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
-        GradleSyncState.getInstance(myProject).syncEnded();
-        generateFailureEvent(id);
-        GradleSyncInvoker.getInstance()
-          .requestProjectSync(myProject, request != null ? request : GradleSyncInvoker.Request.projectModified(), listener);
-      }
-      else {
-        myErrorHandlerManager.handleError(e);
-        callback.setRejected(e);
-        // Generate a failure result event, but make sure that it is generated after the errors generated by myErrorHandlerManager
-        generateFailureEvent(id);
+      catch (RuntimeException e) {
+        // If new sync is not supported, set project property and start another sync.
+        if (e.getCause() instanceof NewGradleSyncNotSupportedException) {
+          PropertiesComponent.getInstance(myProject).setValue(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC, true);
+          StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(false);
+          StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
+          GradleSyncState.getInstance(myProject).syncEnded();
+          generateFailureEvent(id);
+          GradleSyncInvoker.getInstance()
+            .requestProjectSync(myProject, request != null ? request : GradleSyncInvoker.Request.projectModified(), listener);
+        }
+        else {
+          myErrorHandlerManager.handleError(e);
+          callback.setRejected(e);
+          // Generate a failure result event, but make sure that it is generated after the errors generated by myErrorHandlerManager
+          generateFailureEvent(id);
+        }
       }
     }
-    // Close the reader in case no end or cancelled events were created.
-    buildOutputReader.close();
   }
 
   private void generateFailureEvent(@NotNull ExternalSystemTaskId id) {
@@ -235,11 +233,11 @@ class SyncExecutor {
                                @NotNull GradleExecutionSettings executionSettings,
                                @NotNull ProgressIndicator indicator,
                                @NotNull ExternalSystemTaskId id,
-                               @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                               @NotNull BuildEventDispatcher buildEventDispatcher,
                                @NotNull SyncExecutionCallback callback,
                                boolean forceFullVariantsSync) {
     SyncProjectModels projectModels =
-      doFetchModels(connection, executionSettings, indicator, id, buildOutputReader, forceFullVariantsSync);
+      doFetchModels(connection, executionSettings, indicator, id, buildEventDispatcher, forceFullVariantsSync);
     callback.setDone(projectModels, id);
   }
 
@@ -248,13 +246,13 @@ class SyncExecutor {
                                           @NotNull GradleExecutionSettings executionSettings,
                                           @NotNull ProgressIndicator indicator,
                                           @NotNull ExternalSystemTaskId id,
-                                          @Nullable BuildOutputInstantReaderImpl buildOutputReader,
+                                          @NotNull BuildEventDispatcher buildEventDispatcher,
                                           boolean forceFullVariantsSync) {
     boolean isSingleVariantSync = !forceFullVariantsSync && isSingleVariantSync(myProject);
     SyncAction syncAction = createSyncAction(false, isSingleVariantSync);
     BuildActionExecuter<SyncProjectModels> executor = connection.action(syncAction);
 
-    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildEventDispatcher), connection);
     return executor.run();
   }
 
@@ -262,7 +260,7 @@ class SyncExecutor {
                                                  @NotNull GradleExecutionSettings executionSettings,
                                                  @NotNull ProgressIndicator indicator,
                                                  @NotNull ExternalSystemTaskId id,
-                                                 @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                                                 @NotNull BuildEventDispatcher buildEventDispatcher,
                                                  @NotNull SyncExecutionCallback callback,
                                                  boolean forceFullVariantsSync) {
     SyncAction syncAction = createSyncAction(true, isSingleVariantSync(myProject));
@@ -270,7 +268,7 @@ class SyncExecutor {
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
       .build().forTasks(emptyList());
 
-    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildEventDispatcher), connection);
 
     // If new API is not available (Gradle 4.7-), fall back to non compound sync.
     try {
@@ -278,7 +276,7 @@ class SyncExecutor {
     }
     catch (UnsupportedVersionException e) {
       if (e.getMessage().contains("PhasedBuildActionExecuter API")) {
-        executeFullSync(connection, executionSettings, indicator, id, buildOutputReader, callback, forceFullVariantsSync);
+        executeFullSync(connection, executionSettings, indicator, id, buildEventDispatcher, callback, forceFullVariantsSync);
       }
       else {
         throw e;
@@ -290,12 +288,12 @@ class SyncExecutor {
                                              @NotNull GradleExecutionSettings executionSettings,
                                              @NotNull ProgressIndicator indicator,
                                              @NotNull ExternalSystemTaskId id,
-                                             @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                                             @NotNull BuildEventDispatcher buildEventDispatcher,
                                              @NotNull SyncExecutionCallback callback,
                                              @NotNull VariantOnlySyncOptions options) {
     VariantOnlySyncAction syncAction = new VariantOnlySyncAction(options);
     BuildActionExecuter<VariantOnlyProjectModels> executor = connection.action(syncAction);
-    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildEventDispatcher), connection);
     callback.setDone(executor.run(), id);
   }
 
@@ -303,14 +301,14 @@ class SyncExecutor {
                                                                @NotNull GradleExecutionSettings executionSettings,
                                                                @NotNull ProgressIndicator indicator,
                                                                @NotNull ExternalSystemTaskId id,
-                                                               @NotNull BuildOutputInstantReaderImpl buildOutputReader,
+                                                               @NotNull BuildEventDispatcher buildEventDispatcher,
                                                                @NotNull SyncExecutionCallback callback,
                                                                @NotNull VariantOnlySyncOptions options) {
     VariantOnlySyncAction syncAction = new VariantOnlySyncAction(options);
     // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
       .build().forTasks(emptyList());
-    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildOutputReader), connection);
+    prepare(executor, id, executionSettings, new GradleSyncNotificationListener(id, indicator, buildEventDispatcher), connection);
 
     // If new API is not available (Gradle 4.7-), fall back to non compound sync.
     try {
@@ -318,7 +316,7 @@ class SyncExecutor {
     }
     catch (UnsupportedVersionException e) {
       if (e.getMessage().contains("PhasedBuildActionExecuter API")) {
-        executeVariantOnlySync(connection, executionSettings, indicator, id, buildOutputReader, callback, options);
+        executeVariantOnlySync(connection, executionSettings, indicator, id, buildEventDispatcher, callback, options);
       }
       else {
         throw e;
@@ -348,14 +346,14 @@ class SyncExecutor {
   static class GradleSyncNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
     @NotNull private final ProgressIndicator myIndicator;
     @NotNull private final ExternalSystemTaskId myTaskId;
-    @Nullable private final BuildOutputInstantReaderImpl myOutputReader;
+    @NotNull private final BuildEventDispatcher myBuildEventDispatcher;
 
     GradleSyncNotificationListener(@NotNull ExternalSystemTaskId taskId,
                                    @NotNull ProgressIndicator indicator,
-                                   @Nullable BuildOutputInstantReaderImpl outputReader) {
+                                   @NotNull BuildEventDispatcher eventDispatcher) {
       myIndicator = indicator;
       myTaskId = taskId;
-      myOutputReader = outputReader;
+      myBuildEventDispatcher = eventDispatcher;
     }
 
     @Override
@@ -364,10 +362,8 @@ class SyncExecutor {
       if (project == null) {
         return;
       }
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(new OutputBuildEventImpl(id, text, stdOut));
-      if (myOutputReader != null) {
-        myOutputReader.append(text);
-      }
+      myBuildEventDispatcher.setStdOut(stdOut);
+      myBuildEventDispatcher.append(text);
     }
 
     @Override
@@ -388,7 +384,7 @@ class SyncExecutor {
       if (project == null) {
         return;
       }
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(buildEvent);
+      myBuildEventDispatcher.onEvent(buildEvent);
     }
 
     @Override
@@ -403,15 +399,13 @@ class SyncExecutor {
       if (project != null) {
         // Cause build view to show as skipped all pending tasks (b/73397414)
         FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, currentTimeMillis(), "cancelled", new SkippedResultImpl());
-        ServiceManager.getService(project, SyncViewManager.class).onEvent(event);
+        myBuildEventDispatcher.onEvent(event);
       }
       closeOutputReader();
     }
 
     private void closeOutputReader() {
-      if (myOutputReader != null) {
-        myOutputReader.close();
-      }
+      myBuildEventDispatcher.close();
     }
   }
 }
