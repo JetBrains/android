@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.concurrent;
 
-import com.google.common.util.concurrent.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link Executor} implementation that registers {@link ListenableFuture} callbacks
@@ -51,6 +55,13 @@ public class FutureCallbackExecutor implements Executor {
   @Override
   public void execute(@NotNull Runnable command) {
     myExecutor.execute(command);
+  }
+
+  /**
+   * Submits a {@link Callable} for execution and blocks the current thread waiting for result.
+   */
+  public <V> V executeAndAwait(@NotNull Callable<V> function) throws ExecutionException, InterruptedException {
+    return executeAsync(function).get();
   }
 
   /**

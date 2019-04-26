@@ -30,6 +30,6 @@ import com.intellij.openapi.Disposable
  */
 interface SqliteResultSet : Disposable {
   var rowBatchSize: Int
-  fun columns() : ListenableFuture<List<SqliteColumn>>
+  val columns: ListenableFuture<List<SqliteColumn>>
   fun nextRowBatch(): ListenableFuture<List<SqliteRow>>
 }

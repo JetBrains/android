@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.sqlite
 
 import com.android.tools.idea.device.fs.DeviceFileId
-import com.google.common.base.Objects
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import org.jdom.Element
@@ -24,45 +23,31 @@ import org.jdom.Element
 /**
  * Persistent [state][FileEditorState] associated with a file opened with a [SqliteEditor].
  */
-class SqliteEditorState(val deviceFileId: DeviceFileId) : FileEditorState {
+data class SqliteEditorState(val deviceFileId: DeviceFileId) : FileEditorState {
 
   fun writeState(targetElement: Element) {
     targetElement.setAttribute(DEVICE_ID_ATTR_NAME, deviceFileId.deviceId)
     targetElement.setAttribute(DEVICE_PATH_ATTR_NAME, deviceFileId.devicePath)
   }
 
-  override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean {
-    return otherState is SqliteEditorState
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (other == null || javaClass != other.javaClass) return false
-    val that = other as SqliteEditorState?
-    return Objects.equal(deviceFileId, that!!.deviceFileId)
-  }
-
-  override fun hashCode(): Int {
-    return Objects.hashCode(deviceFileId)
-  }
-
-  override fun toString(): String {
-    return String.format("SqliteEditorState{myDeviceFileId=%s}", deviceFileId)
-  }
+  override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel) = otherState is SqliteEditorState
 
   companion object {
     private const val DEVICE_ID_ATTR_NAME = "device-id"
     private const val DEVICE_PATH_ATTR_NAME = "device-path"
 
     fun readState(sourceElement: Element?): SqliteEditorState {
-      val entryInfo = if (sourceElement == null) {
-        DeviceFileId.UNKNOWN
-      } else {
-        DeviceFileId(
-          sourceElement.getAttributeValue(DEVICE_ID_ATTR_NAME, ""),
-          sourceElement.getAttributeValue(DEVICE_PATH_ATTR_NAME, ""))
-      }
-      return SqliteEditorState(entryInfo)
+      return SqliteEditorState(
+        if (sourceElement == null) {
+          DeviceFileId.UNKNOWN
+        }
+        else {
+          DeviceFileId(
+            sourceElement.getAttributeValue(DEVICE_ID_ATTR_NAME, ""),
+            sourceElement.getAttributeValue(DEVICE_PATH_ATTR_NAME, "")
+          )
+        }
+      )
     }
   }
 }
