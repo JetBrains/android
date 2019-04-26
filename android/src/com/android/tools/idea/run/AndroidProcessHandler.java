@@ -355,7 +355,10 @@ public class AndroidProcessHandler extends ProcessHandler
    */
   private void disassociate(@NotNull IDevice device) {
     myAndroidLogcatOutputCapture.stopCapture(device);
-    Disposer.dispose(myDeviceProcessMap.get(device));
+    ProcessInfo info = myDeviceProcessMap.get(device);
+    if (info != null) {
+      Disposer.dispose(info);
+    }
     myDeviceProcessMap.remove(device);
   }
 
@@ -374,7 +377,11 @@ public class AndroidProcessHandler extends ProcessHandler
   @Nullable
   public Client getClient(@NotNull IDevice device) {
     // TODO: should we be able to pick the Client to debug?
-    return myDeviceProcessMap.get(device).myPidClientMap.values().stream().findAny().orElse(null);
+    ProcessInfo info = myDeviceProcessMap.get(device);
+    if (info == null) {
+      return null;
+    }
+    return info.myPidClientMap.values().stream().findAny().orElse(null);
   }
 
   private void print(@NotNull String format, @NotNull Object... args) {
