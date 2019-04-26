@@ -31,25 +31,23 @@ import javax.swing.tree.TreeCellRenderer
 class SchemaTreeCellRenderer : TreeCellRenderer {
   private val component = SimpleColoredComponent()
 
-  override fun getTreeCellRendererComponent(tree: JTree?,
-                                            value: Any?,
-                                            selected: Boolean,
-                                            expanded: Boolean,
-                                            leaf: Boolean,
-                                            row: Int,
-                                            hasFocus: Boolean): Component {
+  override fun getTreeCellRendererComponent(
+    tree: JTree?,
+    value: Any?,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean
+  ): Component {
     component.clear()
     if (value is DefaultMutableTreeNode) {
-      val userObject = value.userObject
-
-      when (userObject) {
-      // Table
+      when (val userObject = value.userObject) {
         is SqliteTable -> {
           component.icon = AllIcons.Nodes.DataTables
           component.append(userObject.name)
         }
 
-      // Column
         is SqliteColumn -> {
           component.icon = AllIcons.Nodes.DataColumn
           component.append(userObject.name)
@@ -57,7 +55,7 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
           component.append(userObject.type.name.toLowerCase(Locale.US))
         }
 
-      // String (e.g. "Tables" node)
+        // String (e.g. "Tables" node)
         is String -> {
           component.append(userObject)
         }

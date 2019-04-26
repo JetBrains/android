@@ -32,15 +32,21 @@ class ResultSetTreeHeaderRenderer(private val tableCellRenderer: TableCellRender
   private val TEXT_RENDERER_HORIZ_PADDING = 6
   private val TEXT_RENDERER_VERT_PADDING = 4
 
-  override fun getTableCellRendererComponent(table: JTable?, value: Any,
-                                             isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
-    val component = tableCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
-    if (component is JLabel) {
-      component.horizontalAlignment = SwingConstants.LEADING
+  override fun getTableCellRendererComponent(
+    table: JTable?,
+    value: Any,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int
+  ): Component {
+    return tableCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column).also { component ->
+      if (component is JLabel) {
+        component.horizontalAlignment = SwingConstants.LEADING
+      }
+      if (component is JComponent) {
+        component.border = JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING)
+      }
     }
-    if (component is JComponent) {
-      component.border = JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING)
-    }
-    return component
   }
 }

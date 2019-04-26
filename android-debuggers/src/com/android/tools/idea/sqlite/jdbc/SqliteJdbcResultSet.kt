@@ -25,6 +25,7 @@ import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.JDBCType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import kotlin.properties.Delegates.vetoable
 
 /**
  * Implementation of [SqliteResultSet] for a local Sqlite file using the JDBC driver.
@@ -39,53 +40,36 @@ class SqliteJdbcResultSet(
    * It is safe to use [LazyThreadSafetyMode.NONE] because
    * the property is accessed from a [SequentialTaskExecutor] with a single thread.
    */
-  private val columns: ArrayList<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
-    val newColumns = ArrayList<SqliteColumn>()
+  private val _columns: List<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
     val metaData = resultSet.metaData
-
-    for (i in 1..metaData.columnCount) {
-      val column = SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)))
-      newColumns.add(column)
-    }
-
-    newColumns
+    (1..metaData.columnCount).map { i -> SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)))  }
   }
 
-  override var rowBatchSize: Int = 10
-    set(value) {
-      if (value <= 0) {
-        throw IllegalArgumentException("Row batch size must be >= 1")
-      }
-      field = value
-    }
+  override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
 
-  override fun columns(): ListenableFuture<List<SqliteColumn>> = service.sequentialTaskExecutor.executeAsync {
-    columns
+  override var rowBatchSize: Int by vetoable(10) { _, _, newValue ->
+    require(newValue > 0) { "Row batch size must be > 0." }
+    true
   }
 
-  override fun nextRowBatch(): ListenableFuture<List<SqliteRow>> {
-    return service.sequentialTaskExecutor.executeAsync {
-      if (Disposer.isDisposed(this)) {
-        throw IllegalStateException("ResultSet has been closed")
-      }
-      val rows = ArrayList<SqliteRow>()
-      repeat(rowBatchSize) {
-        if (!resultSet.next())
-          return@repeat
-        rows.add(currentRow())
-      }
-      rows
+  override fun nextRowBatch(): ListenableFuture<List<SqliteRow>> = service.sequentialTaskExecutor.executeAsync {
+    check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+
+    val rows = ArrayList<SqliteRow>()
+    repeat(rowBatchSize) {
+      if (!resultSet.next())
+        return@repeat
+      rows.add(currentRow())
     }
+    rows
   }
 
-  private fun currentRow(): SqliteRow = SqliteRow(columns.mapIndexed { i, column ->
-    SqliteColumnValue(column, resultSet.getObject(i+1))
-  })
+  private fun currentRow() = SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column, resultSet.getObject(i+1)) })
 
   override fun dispose() {
-    service.sequentialTaskExecutor.executeAsync {
+    service.sequentialTaskExecutor.executeAndAwait {
       resultSet.close()
       statement.close()
-    }.get()
+    }
   }
 }
