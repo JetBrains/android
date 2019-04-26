@@ -124,7 +124,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @Override
   public void attachToClient(@NotNull Project project, @NotNull Client client) {
     String debugPort = getClientDebugPort(client);
-    String runConfigName = String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
+    String runConfigName = getRunConfigurationName(debugPort);
 
     // Try to find existing debug session
     Ref<Boolean> existingSession = new Ref<>();
@@ -153,13 +153,18 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       if (debuggerSession != null) {
         return debuggerSession;
       }
-  }
+    }
     return null;
   }
 
-  private static boolean hasExistingDebugSession(@NotNull Project project,
-                                                 @NotNull final String debugPort,
-                                                 @NotNull final String runConfigName) {
+  @NotNull
+  public static String getRunConfigurationName(@NotNull String debugPort) {
+    return String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
+  }
+
+  public static boolean hasExistingDebugSession(@NotNull Project project,
+                                                @NotNull final String debugPort,
+                                                @NotNull final String runConfigName) {
     Collection<RunContentDescriptor> descriptors = null;
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     Project targetProject;
