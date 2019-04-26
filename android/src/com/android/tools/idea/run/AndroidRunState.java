@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
-import com.google.common.base.MoreObjects;
+import com.intellij.debugger.DebuggerManagerEx;
+import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -35,7 +37,12 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +54,6 @@ public class AndroidRunState implements RunProfileState {
   @NotNull private final ConsoleProvider myConsoleProvider;
   @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
-  @Nullable private final ProcessHandler myPreviousSessionProcessHandler;
 
   public AndroidRunState(@NotNull ExecutionEnvironment env,
                          @NotNull String launchConfigName,
@@ -63,20 +69,11 @@ public class AndroidRunState implements RunProfileState {
     myConsoleProvider = consoleProvider;
     myDeviceFutures = deviceFutures;
     myLaunchTasksProvider = launchTasksProvider;
-
-    AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(
-      env.getProject(), null, ((AndroidRunConfigurationBase)env.getRunProfile()).getUniqueID(), env.getExecutionTarget());
-    myPreviousSessionProcessHandler =
-      (existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(env.getExecutor().getId()))
-      ? existingSessionInfo.getProcessHandler()
-      : null;
   }
 
   @Nullable
   @Override
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    ProcessHandler processHandler;
-    ExecutionConsole console;
     RunStats stats = RunStats.from(myEnv);
 
     String applicationId;
@@ -89,19 +86,69 @@ public class AndroidRunState implements RunProfileState {
 
     stats.setPackage(applicationId);
 
-    boolean isSwap = MoreObjects.firstNonNull(myEnv.getCopyableUserData(CodeSwapAction.KEY), Boolean.FALSE) ||
-                     MoreObjects.firstNonNull(myEnv.getCopyableUserData(ApplyChangesAction.KEY), Boolean.FALSE);
+    AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(
+      myEnv.getProject(), null, (AndroidRunConfigurationBase)myEnv.getRunProfile(), myEnv.getExecutionTarget());
+    ProcessHandler previousSessionProcessHandler;
+    SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
+    if (existingSessionInfo == null) { // We might have a RemoteDebugProcess.
+      // The following cases are possible:
+      // 1) We're swapping to an existing regular Android Run/Debug tab, then use what was provided.
+      if (swapInfo != null) {
+        previousSessionProcessHandler = swapInfo.getHandler();
+      }
+      // 2) We can't find an existing session and we're not swapping, then look for an existing remote debugger (or null if not present).
+      else {
+        Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(myEnv.getProject()).getSessions();
+        List<IDevice> liveDevices = myDeviceFutures.getIfReady();
+        if (!debuggerSessions.isEmpty() && liveDevices != null) {
+          // Create a map of debugger ports to their corresponding Clients.
+          Map<String, Client> portClientMap = liveDevices.stream()
+            .flatMap(device -> Arrays.stream(device.getClients()))
+            .collect(Collectors.toMap(client -> Integer.toString(client.getDebuggerListenPort()), client -> client));
+
+          // Find a Client that uses the same port as the debugging session.
+          previousSessionProcessHandler = debuggerSessions.stream()
+            .filter(session -> portClientMap.containsKey(session.getProcess().getConnection().getAddress().trim()))
+            .map(session -> session.getProcess().getProcessHandler())
+            .findAny()
+            .orElse(null);
+        }
+        else {
+          // 3) We're swapping directly to a ddmlib-only-aware process; just set previousSessionProcessHandler to null, creating a new tab.
+          previousSessionProcessHandler = null;
+        }
+      }
+    }
+    else {
+      previousSessionProcessHandler = existingSessionInfo.getProcessHandler();
+    }
+
     RunContentManager manager = RunContentManager.getInstance(myEnv.getProject());
-    RunContentDescriptor previousDescriptor = manager.findContentDescriptor(executor, myPreviousSessionProcessHandler);
-    if (!isSwap) {
-      if (myPreviousSessionProcessHandler != null) {
+    RunContentDescriptor previousDescriptor = manager.getAllDescriptors().stream()
+      .filter(descriptor -> descriptor.getProcessHandler() == previousSessionProcessHandler)
+      .findFirst()
+      .orElse(null);
+
+    ProcessHandler processHandler;
+    ExecutionConsole console;
+    if (swapInfo != null && previousSessionProcessHandler != null && previousDescriptor != null) {
+      // When we're swapping into a connected process, use the existing descriptor/ProcessHandler instead of creating a new one.
+      processHandler = previousSessionProcessHandler;
+      // Try to find the old console from the previous process handler, since we're swapping into that same tool window tab.
+      console = previousDescriptor.getExecutionConsole();
+      if (console == null) {
+        console = attachConsole(processHandler, executor);
+      }
+    }
+    else {
+      if (previousSessionProcessHandler != null) {
         // In the case of cold swap, there is an existing process that is connected, but we are going to launch a new one.
         // Destroy the previous content and detach the previous process handler so that we don't end up with 2 run tabs
         // for the same launch (the existing one and the new one).
         if (previousDescriptor != null) {
           manager.removeRunContent(executor, previousDescriptor);
         }
-        myPreviousSessionProcessHandler.detachProcess();
+        previousSessionProcessHandler.detachProcess();
       }
 
       processHandler = new AndroidProcessHandler.Builder(myEnv.getProject())
@@ -109,15 +156,6 @@ public class AndroidRunState implements RunProfileState {
         .monitorRemoteProcesses(myLaunchTasksProvider.monitorRemoteProcess())
         .build();
       console = attachConsole(processHandler, executor);
-      // Stash the console. When we swap, we need the console, as that has the method to print a hyperlink.
-      // (If we only need normal text output, we can call ProcessHandler#notifyTextAvailable instead.)
-    }
-    else {
-      assert myPreviousSessionProcessHandler != null : "No process handler from previous session, yet current tasks don't create one";
-      processHandler = myPreviousSessionProcessHandler;
-      // Try to find the old console from the previous process handler, since we're swapping into that same tool window tab.
-      console = previousDescriptor == null ? null : previousDescriptor.getExecutionConsole();
-      console = console == null ? attachConsole(processHandler, executor) : console;
     }
 
     BiConsumer<String, HyperlinkInfo> hyperlinkConsumer =
@@ -126,6 +164,7 @@ public class AndroidRunState implements RunProfileState {
     LaunchInfo launchInfo = new LaunchInfo(executor, runner, myEnv, myConsoleProvider);
     LaunchTaskRunner task = new LaunchTaskRunner(myModule.getProject(),
                                                  myLaunchConfigName,
+                                                 applicationId,
                                                  myEnv.getExecutionTarget().getDisplayName(),
                                                  launchInfo,
                                                  processHandler,

@@ -16,13 +16,19 @@
 package com.android.tools.idea.run.ui;
 
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
+import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
+import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
+import com.android.tools.idea.run.util.SwapInfo;
+import com.android.tools.idea.run.util.SwapInfo.SwapType;
+import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
+import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
@@ -66,17 +72,17 @@ public abstract class BaseAction extends AnAction {
   protected final Icon myIcon;
 
   @NotNull
-  private final Key<Boolean> myKey;
+  private final SwapType mySwapType;
 
   public BaseAction(@NotNull String id,
                     @NotNull String name,
-                    @NotNull Key<Boolean> key,
+                    @NotNull SwapType swapType,
                     @NotNull Icon icon,
                     @NotNull Shortcut shortcut,
                     @NotNull String description) {
     super(name, description, icon);
     myName = name;
-    myKey = key;
+    mySwapType = swapType;
     myIcon = icon;
 
     KeymapManager manager = KeymapManager.getInstance();
@@ -130,7 +136,7 @@ public abstract class BaseAction extends AnAction {
     presentation.setVisible(isRelevant);
 
     if (isRelevant) {
-      presentation.setEnabled(isApplyChangesApplicable(project, selectedRunConfig) && checkCompatibility(project));
+      presentation.setEnabled(!isExecutorStarting(project, selectedRunConfig) && checkCompatibility(project));
     }
   }
 
@@ -145,7 +151,10 @@ public abstract class BaseAction extends AnAction {
     return false;
   }
 
-  private static boolean isApplyChangesApplicable(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+  /**
+   * Check if there are any executors of the current {@link RunConfiguration} that is starting up. We should not swap when this is true.
+   */
+  private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
     for (Executor executor : executors) {
@@ -154,17 +163,10 @@ public abstract class BaseAction extends AnAction {
         continue;
       }
       if (ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId())) {
-        return false;
+        return true;
       }
     }
-
-    // Check if we have a running ProcessHandler/Executor corresponding to the current ExecutionTarget/RunConfiguration.
-    ProcessHandler processHandler = findRunningProcessHandler(project, runConfiguration);
-    if (processHandler == null || getExecutor(processHandler, null) == null) {
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   @Override
@@ -182,7 +184,10 @@ public abstract class BaseAction extends AnAction {
     }
 
     ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration());
-    Executor executor = handler == null ? null : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
+    Executor executor = handler == null
+                        // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
+                        ? DefaultRunExecutor.getRunExecutorInstance()
+                        : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
     if (executor == null) {
       LOG.warn(myName + " action could not identify executor of existing running application");
       return;
@@ -191,7 +196,7 @@ public abstract class BaseAction extends AnAction {
     ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.create(executor, settings.getConfiguration());
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
-    env.putCopyableUserData(myKey, true);
+    env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType, handler));
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 
@@ -216,7 +221,7 @@ public abstract class BaseAction extends AnAction {
         // Don't stall the EDT - if the Future isn't ready, just return false.
         return false;
       }
-      return versionFuture.get().getApiLevel() >= MIN_API_VERSION && deployable.isApplicationRunningOnDeployable();
+      return versionFuture.get().getApiLevel() >= MIN_API_VERSION && !deployable.searchClientsForPackage().isEmpty();
     }
     catch (Exception e) {
       return false;
@@ -231,13 +236,44 @@ public abstract class BaseAction extends AnAction {
         continue; // We may have a non-swappable process running.
       }
 
-      if (extension.isExecutedWith(runConfiguration, ExecutionTargetManager.getActiveTarget(project)) &&
+      if (extension.isRunningWith(runConfiguration, ExecutionTargetManager.getActiveTarget(project)) &&
           handler.isStartNotified() &&
           !handler.isProcessTerminating() &&
           !handler.isProcessTerminated()) {
         return handler;
       }
     }
+
+    // We may have a remote debugging session, check those as well.
+    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
+    if (deployableProvider == null || deployableProvider.isDependentOnUserInput()) {
+      return null;
+    }
+
+    Deployable deployable;
+    try {
+      deployable = deployableProvider.getDeployable();
+      if (deployable == null) {
+        return null;
+      }
+    }
+    catch (Exception e) {
+      return null;
+    }
+
+    for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(project).getSessions()) {
+      String debuggerPort = session.getProcess().getConnection().getAddress().trim();
+      Client remoteDebuggedClient = deployable
+        .searchClientsForPackage()
+        .stream()
+        .filter(client -> Integer.toString(client.getDebuggerListenPort()).equals(debuggerPort))
+        .findAny()
+        .orElse(null);
+      if (remoteDebuggedClient != null && session.getXDebugSession() != null) {
+        return session.getXDebugSession().getRunContentDescriptor().getProcessHandler();
+      }
+    }
+
     return null;
   }
 

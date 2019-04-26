@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.ui;
 
+import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -22,7 +23,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import javax.swing.KeyStroke;
@@ -34,8 +34,6 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final Key<Boolean> KEY = Key.create(ID);
-
   public static final String NAME = "Apply Changes and Restart Activity";
 
   private static final Shortcut SHORTCUT =
@@ -44,7 +42,7 @@ public class ApplyChangesAction extends BaseAction {
   private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
 
   public ApplyChangesAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, SHORTCUT, DESC);
+    super(ID, NAME, SwapInfo.SwapType.APPLY_CHANGES, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, SHORTCUT, DESC);
   }
 
   @Override
@@ -63,10 +61,8 @@ public class ApplyChangesAction extends BaseAction {
       String id = type.getId();
       if (AndroidCommonUtils.isTestConfiguration(id) || AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
         e.getPresentation().setEnabled(false);
-        return;
       }
     }
   }
-
 }
 
