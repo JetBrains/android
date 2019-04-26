@@ -25,6 +25,7 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.facet.FacetManager
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -1043,6 +1044,8 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       contains("good")
       doesNotContain("isGood()")
     }
+    val psiField = (fixture.lookupElements!!.first { it.lookupString == "good" }.psiElement) as PsiField
+    assertThat(psiField.modifierList!!.hasModifierProperty("public")).isTrue()
   }
 
   @Test
