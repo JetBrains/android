@@ -18,9 +18,9 @@ package com.android.tools.datastore.energy;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.energy.PowerProfile.CpuCoreUsage;
 import com.android.tools.datastore.poller.EnergyDataPoller;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuCoreUsageData;
 import com.android.tools.profiler.proto.Cpu.CpuUsageData;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.common.primitives.Doubles;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -32,21 +32,22 @@ public class CpuConfig {
   private final int myBigCoreMaxFrequency;
   private final boolean myIsMinMaxCoreFreqValid;
 
-  public CpuConfig(@NotNull CpuProfiler.CpuCoreConfigResponse message, @NotNull LogService logService) {
-    myCpuCoreMinFreqInKhz = new int[message.getConfigsCount()];
-    myCpuCoreMaxFreqInKhz = new int[message.getConfigsCount()];
+  public CpuConfig(Cpu.CpuCoreConfigData cpuCoreConfigData, @NotNull LogService logService) {
+    int coreConfigCount = cpuCoreConfigData.getCoreConfigsCount();
+    myCpuCoreMinFreqInKhz = new int[coreConfigCount];
+    myCpuCoreMaxFreqInKhz = new int[coreConfigCount];
     myLogService = logService;
 
     // Core ID should always be in the range of [0..num_cores-1] and unique.
-    boolean[] myIsCpuCorePopulated = new boolean[message.getConfigsCount()];
-    boolean isValidCpuCoreConfig = message.getConfigsCount() > 0;
+    boolean[] myIsCpuCorePopulated = new boolean[coreConfigCount];
+    boolean isValidCpuCoreConfig = coreConfigCount > 0;
 
     if (isValidCpuCoreConfig) {
-      for (CpuProfiler.CpuCoreConfigResponse.CpuCoreConfigData config : message.getConfigsList()) {
+      for (Cpu.CpuCoreConfig config : cpuCoreConfigData.getCoreConfigsList()) {
         int core = config.getCore();
-        if (core >= message.getConfigsCount() || myIsCpuCorePopulated[core]) {
-          getLogger().debug(core > message.getConfigsCount() ?
-                            String.format("Core index %d is >= the number of configs (%d) reported.", core, message.getConfigsCount()) :
+        if (core >= coreConfigCount || myIsCpuCorePopulated[core]) {
+          getLogger().debug(core > coreConfigCount ?
+                            String.format("Core index %d is >= the number of configs (%d) reported.", core, coreConfigCount) :
                             "Core index already populated.");
           isValidCpuCoreConfig = false;
           break;
