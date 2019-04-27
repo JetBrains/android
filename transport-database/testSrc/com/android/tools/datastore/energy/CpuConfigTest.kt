@@ -16,6 +16,7 @@
 package com.android.tools.datastore.energy
 
 import com.android.tools.datastore.FakeLogService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuCoreUsageData
 import com.android.tools.profiler.proto.Cpu.CpuUsageData
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse
@@ -26,17 +27,13 @@ class CpuConfigTest {
   @Test
   fun invalidConfigWorks() {
     val message = CpuCoreConfigResponse.newBuilder()
-      .addConfigs(
-        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-          .setCore(0).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(100).build()
-      )
-      .addConfigs(
-        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-          .setCore(1).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(200).build()
-      )
+      .setCpuCoreConfig(
+        Cpu.CpuCoreConfigData.newBuilder()
+          .addCoreConfigs(Cpu.CpuCoreConfig.newBuilder().setCore(0).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(100).build())
+          .addCoreConfigs(Cpu.CpuCoreConfig.newBuilder().setCore(1).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(200).build()))
       .build()
 
-    val config = CpuConfig(message, FakeLogService())
+    val config = CpuConfig(message.cpuCoreConfig, FakeLogService())
     assertThat(config.isMinMaxCoreFreqValid).isFalse()
 
     val usages = config.getCpuCoreUsages(
@@ -60,24 +57,20 @@ class CpuConfigTest {
   @Test
   fun emptyCoreConfigWorks() {
     val message = CpuCoreConfigResponse.newBuilder().build()
-    val config = CpuConfig(message, FakeLogService())
+    val config = CpuConfig(message.cpuCoreConfig, FakeLogService())
     assertThat(config.isMinMaxCoreFreqValid).isFalse()
   }
 
   @Test
   fun validConfigWorks() {
     val message = CpuCoreConfigResponse.newBuilder()
-      .addConfigs(
-        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-          .setCore(0).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(400).build()
-      )
-      .addConfigs(
-        CpuCoreConfigResponse.CpuCoreConfigData.newBuilder()
-          .setCore(1).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(200).build()
-      )
+      .setCpuCoreConfig(
+        Cpu.CpuCoreConfigData.newBuilder()
+          .addCoreConfigs(Cpu.CpuCoreConfig.newBuilder().setCore(0).setMinFrequencyInKhz(200).setMaxFrequencyInKhz(400).build())
+          .addCoreConfigs(Cpu.CpuCoreConfig.newBuilder().setCore(1).setMinFrequencyInKhz(100).setMaxFrequencyInKhz(200).build()))
       .build()
 
-    val config1 = CpuConfig(message, FakeLogService())
+    val config1 = CpuConfig(message.cpuCoreConfig, FakeLogService())
     assertThat(config1.isMinMaxCoreFreqValid).isTrue()
     val usages1 = config1.getCpuCoreUsages(
       CpuUsageData.newBuilder()

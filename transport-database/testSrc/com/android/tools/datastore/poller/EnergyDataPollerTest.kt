@@ -135,14 +135,11 @@ class EnergyDataPollerTest : DataStorePollerTest() {
       responseObserver: StreamObserver<CpuProfiler.CpuCoreConfigResponse>
     ) {
       responseObserver.onNext(
-        CpuProfiler.CpuCoreConfigResponse.newBuilder().addConfigs(
-          CpuProfiler.CpuCoreConfigResponse.CpuCoreConfigData
-            .newBuilder()
-            .setCore(0)
-            .setMinFrequencyInKhz(300000)
-            .setMaxFrequencyInKhz(2457600)
-            .build()
-        ).build()
+        CpuProfiler.CpuCoreConfigResponse.newBuilder()
+          .setCpuCoreConfig(
+            Cpu.CpuCoreConfigData.newBuilder()
+              .addCoreConfigs(Cpu.CpuCoreConfig.newBuilder().setCore(0).setMinFrequencyInKhz(300000).setMaxFrequencyInKhz(2457600)))
+          .build()
       )
       responseObserver.onCompleted()
 
