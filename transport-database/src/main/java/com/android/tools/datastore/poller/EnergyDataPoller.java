@@ -92,7 +92,7 @@ public final class EnergyDataPoller extends PollRunner {
       getLog().debug("Unable to parse CPU frequency files.", e);
     }
 
-    myCpuConfig = new CpuConfig(response, myLogService);
+    myCpuConfig = new CpuConfig(response.getCpuCoreConfig(), myLogService);
   }
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
@@ -184,7 +184,8 @@ public final class EnergyDataPoller extends PollRunner {
         try {
           // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
           myCpuConfig = new CpuConfig(
-            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getStreamId()).build()),
+            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getStreamId()).build())
+              .getCpuCoreConfig(),
             myLogService);
         }
         catch (StatusRuntimeException e) {
