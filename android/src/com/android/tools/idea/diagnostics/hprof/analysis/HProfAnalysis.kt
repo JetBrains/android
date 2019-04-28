@@ -112,30 +112,33 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
         histogram.instanceCount
       )
 
-      result.appendln("Histogram. Top 50 by instance count (Note: counts/bytes include soft-ref objects):")
-      result.append(histogram.print(50))
-      result.appendln()
-      result.appendln("Nominated classes:")
-      nominatedClasses.sortedBy { it.classDefinition.name }.forEach {
-        result.appendln(" --> ${it.totalInstances} ${it.classDefinition.prettyName} (${it.totalBytes / 1_000_000}MB)")
-      }
-      result.appendln()
       if (includeMetaInfo) {
         result.appendln("Prepare files duration: $stopwatch")
       }
       stopwatch.reset().start()
 
       val parentList = FileBackedIntList.createEmpty(openTempEmptyFileChannel("parents"), navigator.instanceCount + 1)
+      val sizesList = FileBackedIntList.createEmpty(openTempEmptyFileChannel("sizes"), navigator.instanceCount + 1)
+      val visitedList = FileBackedIntList.createEmpty(openTempEmptyFileChannel("visited"), navigator.instanceCount + 1)
 
-      val graphReport = AnalyzeGraph(navigator,
-                                     parentList,
-                                     nominatedClasses.map { it.classDefinition.name }.toSet(),
-                                     includeMetaInfo
-      ).prepareReport(PartialProgressIndicator(progress, 0.4, 0.6))
-
+      val nominatedClassNames = nominatedClasses.map { it.classDefinition.name }.toSet()
+      val analyzeGraph = AnalyzeGraph(navigator,
+                                      parentList,
+                                      sizesList,
+                                      visitedList,
+                                      nominatedClassNames,
+                                      includeMetaInfo
+      )
+      val analyzeReport = analyzeGraph.analyze(PartialProgressIndicator(progress, 0.4, 0.4))
       val analyzeDisposer = AnalyzeDisposer(navigator)
+      val disposedObjectsIDsSet = analyzeDisposer.computeDisposedObjectsIDsSet(parentList)
+
+      val graphReport = analyzeGraph.prepareReport(PartialProgressIndicator(progress, 0.8, 0.2),
+                                                   disposedObjectsIDsSet)
+      val strongRefHistogram = analyzeGraph.getStrongRefHistogram()
+
       val disposerTreeReport = analyzeDisposer.createDisposerTreeReport()
-      val disposerDisposedObjectsReport = analyzeDisposer.analyzeDisposedObjects(parentList)
+      val disposerDisposedObjectsReport = analyzeDisposer.analyzeDisposedObjects(disposedObjectsIDsSet, parentList, sizesList)
 
       if (includeMetaInfo) {
         result.appendln("Analysis duration: $stopwatch")
@@ -150,8 +153,18 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
           }
         }
       }
+      result.appendln("Histogram. Top 50 by instance count [All-objects] [Only-strong-ref]:")
+      result.append(
+        Histogram.printMergedHistogram(histogram, "All", strongRefHistogram, "Strong-ref", 50))
+      result.appendln()
+      result.appendln("Nominated classes:")
+      nominatedClasses.sortedBy { it.classDefinition.name }.forEach {
+        result.appendln(" --> ${it.totalInstances} ${it.classDefinition.prettyName} (${it.totalBytes / 1_000_000}MB)")
+      }
+      result.appendln()
 
       result.appendln("=============== OBJECT GRAPH ===============")
+      result.append(analyzeReport)
       result.append(graphReport)
       result.appendln("============== DISPOSER TREE ===============")
       result.append(disposerTreeReport)

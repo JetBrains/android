@@ -249,10 +249,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           gradleBuildInvoker.add(new GoToBundleLocationTask(myProject,
                                                             modules,
                                                             "Generate Signed Bundle",
-                                                            myBuildVariants, exportedKeyFile));
+                                                            myBuildVariants, exportedKeyFile, myApkPath));
         }
         else {
-          gradleBuildInvoker.add(new GoToApkLocationTask(modules, "Generate Signed APK", myBuildVariants));
+          gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
         }
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties,
                                         new OutputBuildAction(getModuleGradlePaths(myFacet.getModule())));

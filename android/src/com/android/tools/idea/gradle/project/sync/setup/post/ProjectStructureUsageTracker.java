@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
@@ -34,7 +33,6 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -167,12 +165,7 @@ public class ProjectStructureUsageTracker {
         else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
           shouldReportNative = true;
 
-          if (AndroidPluginGeneration.find(module) == COMPONENT) {
-            buildSystemType = GRADLE_EXPERIMENTAL;
-          }
-          else {
-            buildSystemType = NDK_COMPILE;
-          }
+          buildSystemType = NDK_COMPILE;
         }
         if (shouldReportNative) {
           GradleNativeAndroidModule.Builder nativeModule = GradleNativeAndroidModule.newBuilder();

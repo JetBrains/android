@@ -336,7 +336,11 @@ public class PostSyncProjectSetup {
     }
 
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, result);
-    ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (!myProject.isDisposed()) {
+        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+      }
+    });
   }
 
   public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {

@@ -32,6 +32,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
+import org.hamcrest.CoreMatchers.sameInstance
 import org.junit.Assert.assertThat
 
 class DependencyManagementTest : DependencyTestCase() {
@@ -568,17 +569,18 @@ class DependencyManagementTest : DependencyTestCase() {
 
   fun testChangeLibraryDependencyScope() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
-    val libraryDependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation")
+    val libraryDependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation")!!.first()
     assertThat(libraryDependency, notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), nullValue())
 
-    module.modifyDependencyConfiguration(libraryDependency!!.first(), newConfigurationName = "compile")
+    module.modifyDependencyConfiguration(libraryDependency, newConfigurationName = "compile")
 
     assertThat(module.isModified, equalTo(true))
     assertThat(project.isModified, equalTo(true))
 
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
-    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "compile")?.firstOrNull(),
+               sameInstance(libraryDependency))
 
     project.applyChanges()
     requestSyncAndWait()

@@ -71,6 +71,10 @@ class AsyncDevicesGetter {
     myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), project);
   }
 
+  /**
+   * @return a list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and the
+   * connected physical devices
+   */
   @NotNull
   List<Device> get() {
     if (Disposer.isDisposed(myDevicePropertiesFetcher)) {
@@ -79,14 +83,32 @@ class AsyncDevicesGetter {
 
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
 
-    Collection<VirtualDevice> virtualDevices = myVirtualDevicesWorker.get(
-      () -> new VirtualDevicesWorkerDelegate(myChecker),
-      Collections.emptyList());
+    return getImpl(getVirtualDevices(), getConnectedDevices());
+  }
 
-    Collection<ConnectedDevice> connectedDevices = myConnectedDevicesWorker.get(
-      () -> new ConnectedDevicesWorkerDelegate(myProject, myChecker),
-      Collections.emptyList());
+  @NotNull
+  private Collection<VirtualDevice> getVirtualDevices() {
+    return myVirtualDevicesWorker.get(() -> new VirtualDevicesWorkerDelegate(myChecker), Collections.emptyList());
+  }
 
+  @NotNull
+  private Collection<ConnectedDevice> getConnectedDevices() {
+    return myConnectedDevicesWorker.get(() -> new ConnectedDevicesWorkerDelegate(myProject, myChecker), Collections.emptyList());
+  }
+
+  /**
+   * The meat of {@link #get()} separated out with injected device collections for testing
+   *
+   * <p>Virtual devices that have not been launched will have a single entry in virtualDevices. Virtual devices that have been launched will
+   * have an entry in each list; this method will combine them into a single device and return it. Connected physical devices will have a
+   * single entry in connectedDevices.
+   *
+   * @param virtualDevices   the virtual devices that have and have not been launched
+   * @param connectedDevices the virtual devices that have been launched and the connected physical devices
+   */
+  @NotNull
+  @VisibleForTesting
+  List<Device> getImpl(@NotNull Collection<VirtualDevice> virtualDevices, @NotNull Collection<ConnectedDevice> connectedDevices) {
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
 
     virtualDevices.stream()

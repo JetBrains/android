@@ -178,7 +178,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
   fun testObjectConstructor() {
     writeToBuildFile("")
     val buildModel = gradleBuildModel
-    val defaultConfigBlock = (buildModel.android()!!.defaultConfig() as ProductFlavorModelImpl).dslElement()
+    val defaultConfigBlock = (buildModel.android().defaultConfig() as ProductFlavorModelImpl).dslElement()
     val transform = SingleArgumentMethodTransform(methodName, defaultConfigBlock)
     val inputElement = createMethodCall(methodName, "statement")
     defaultConfigBlock.setNewElement(inputElement)

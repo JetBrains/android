@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
@@ -107,7 +108,7 @@ public class PluginVersionUpgrade {
 
   private static void log(@NotNull AndroidPluginInfo pluginInfo) {
     GradleVersion current = pluginInfo.getPluginVersion();
-    String recommended = pluginInfo.getPluginGeneration().getLatestKnownVersion();
+    String recommended = LatestKnownPluginVersionProvider.INSTANCE.get();
     String message = String.format("Gradle model version: %1$s, recommended version for IDE: %2$s", current, recommended);
     getLog().info(message);
   }

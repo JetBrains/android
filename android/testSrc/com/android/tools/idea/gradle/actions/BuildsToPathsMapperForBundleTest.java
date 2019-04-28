@@ -57,7 +57,8 @@ public class BuildsToPathsMapperForBundleTest extends AndroidGradleTestCase {
     Map<String, File> myBuildsAndBundlePaths = myTask.getBuildsToPaths(createPostBuildModel(Collections.singleton(output), myBuildVariant),
                                                                        myBuildVariants,
                                                                        Collections.singleton(myModule),
-                                                                       true);
+                                                                       true,
+                                                                       null);
     assertSameElements(myBuildsAndBundlePaths.keySet(), myModule.getName());
     assertEquals(output, myBuildsAndBundlePaths.get(myModule.getName()));
   }
@@ -76,7 +77,8 @@ public class BuildsToPathsMapperForBundleTest extends AndroidGradleTestCase {
       myTask.getBuildsToPaths(createPostBuildModel(Collections.singleton(output), myBuildVariants.get(0)),
                               myBuildVariants,
                               Collections.singleton(myModule),
-                              true);
+                              true,
+                              "");
     assertSameElements(myBuildsAndBundlePaths.keySet(), myBuildVariants.get(0));
     assertEquals(output, myBuildsAndBundlePaths.get(myBuildVariants.get(0)));
   }

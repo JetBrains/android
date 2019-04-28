@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -69,7 +68,7 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
     simulateAndroidModule(module, GENERATION_ORIGINAL);
 
 
-    AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, ORIGINAL, null, null);
+    AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
     Project project = getProject();
     when(myUpgradeStep1.checkUpgradable(project, pluginInfo)).thenReturn(false);
     when(myUpgradeStep1.performUpgradeAndSync(project, pluginInfo)).thenReturn(false);
@@ -91,7 +90,7 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
     Module module = getModule();
     simulateAndroidModule(module, GENERATION_ORIGINAL);
 
-    AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, ORIGINAL, null, null);
+    AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
     Project project = getProject();
     when(myUpgradeStep1.checkUpgradable(project, pluginInfo)).thenReturn(false);
     when(myUpgradeStep1.performUpgradeAndSync(project, pluginInfo)).thenReturn(false);

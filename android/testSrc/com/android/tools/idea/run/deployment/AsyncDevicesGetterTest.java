@@ -30,6 +30,7 @@ import com.intellij.openapi.module.Module;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -59,6 +60,74 @@ public final class AsyncDevicesGetterTest {
       .setKey("Pixel_2_XL_API_27")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
+  }
+
+  @Test
+  public void get() {
+    // Arrange
+    AndroidDevice pixel2ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    VirtualDevice pixel2ApiQVirtualDevice = new VirtualDevice.Builder()
+      .setName("Pixel 2 API Q")
+      .setKey("Pixel_2_API_Q")
+      .setAndroidDevice(pixel2ApiQAndroidDevice)
+      .build();
+
+    VirtualDevice pixel3ApiQVirtualDevice = new VirtualDevice.Builder()
+      .setName("Pixel 3 API Q")
+      .setKey("Pixel_3_API_Q")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    ConnectedDevice googlePixel3ConnectedDevice = new TestConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setKey("86UX00F4R")
+      .setAndroidDevice(googlePixel3AndroidDevice)
+      .setPhysicalDeviceName("Google Pixel 3")
+      .build();
+
+    AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    ConnectedDevice pixel3ApiQConnectedDevice = new TestConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setKey("emulator-5554")
+      .setAndroidDevice(pixel3ApiQAndroidDevice)
+      .setVirtualDeviceKey("Pixel_3_API_Q")
+      .build();
+
+    Collection<ConnectedDevice> connectedDevices = new ArrayList<>(2);
+
+    connectedDevices.add(googlePixel3ConnectedDevice);
+    connectedDevices.add(pixel3ApiQConnectedDevice);
+
+    // Act
+    Object actualDevices = myGetter.getImpl(Arrays.asList(pixel2ApiQVirtualDevice, pixel3ApiQVirtualDevice), connectedDevices);
+
+    // Assert
+    Object expectedPixel2ApiQDevice = new VirtualDevice.Builder()
+      .setName("Pixel 2 API Q")
+      .setKey("Pixel_2_API_Q")
+      .setAndroidDevice(pixel2ApiQAndroidDevice)
+      .build();
+
+    Object expectedPixel3ApiQDevice = new VirtualDevice.Builder()
+      .setName("Pixel 3 API Q")
+      .setKey("Pixel_3_API_Q")
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
+      .setAndroidDevice(pixel3ApiQAndroidDevice)
+      .setConnected(true)
+      .build();
+
+    Object expectedGooglePixel3Device = new PhysicalDevice.Builder()
+      .setName("Google Pixel 3")
+      .setKey("86UX00F4R")
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
+      .setAndroidDevice(googlePixel3AndroidDevice)
+      .build();
+
+    assertEquals(Arrays.asList(expectedPixel2ApiQDevice, expectedPixel3ApiQDevice, expectedGooglePixel3Device), actualDevices);
   }
 
   @Test

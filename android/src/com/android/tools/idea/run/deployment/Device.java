@@ -35,6 +35,9 @@ public abstract class Device {
 
   private final boolean myValid;
 
+  @Nullable
+  private final String myValidityReason;
+
   @NotNull
   private final String myKey;
 
@@ -44,57 +47,27 @@ public abstract class Device {
   @NotNull
   private final AndroidDevice myAndroidDevice;
 
-  static abstract class Builder<T extends Builder<T>> {
+  static abstract class Builder {
     @Nullable
-    private String myName;
+    String myName;
 
-    private boolean myValid;
-
-    @Nullable
-    private String myKey;
+    boolean myValid;
 
     @Nullable
-    private Instant myConnectionTime;
+    String myValidityReason;
 
     @Nullable
-    private AndroidDevice myAndroidDevice;
+    String myKey;
+
+    @Nullable
+    Instant myConnectionTime;
+
+    @Nullable
+    AndroidDevice myAndroidDevice;
 
     Builder() {
       myValid = true;
     }
-
-    @NotNull
-    final T setName(@NotNull String name) {
-      myName = name;
-      return self();
-    }
-
-    @NotNull
-    final T setValid(boolean valid) {
-      myValid = valid;
-      return self();
-    }
-
-    @NotNull
-    final T setKey(@NotNull String key) {
-      myKey = key;
-      return self();
-    }
-
-    @NotNull
-    final T setConnectionTime(@Nullable Instant connectionTime) {
-      myConnectionTime = connectionTime;
-      return self();
-    }
-
-    @NotNull
-    final T setAndroidDevice(@NotNull AndroidDevice androidDevice) {
-      myAndroidDevice = androidDevice;
-      return self();
-    }
-
-    @NotNull
-    abstract T self();
 
     @NotNull
     abstract Device build();
@@ -105,6 +78,7 @@ public abstract class Device {
     myName = builder.myName;
 
     myValid = builder.myValid;
+    myValidityReason = builder.myValidityReason;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
@@ -127,6 +101,11 @@ public abstract class Device {
 
   final boolean isValid() {
     return myValid;
+  }
+
+  @Nullable
+  final String getValidityReason() {
+    return myValidityReason;
   }
 
   @NotNull

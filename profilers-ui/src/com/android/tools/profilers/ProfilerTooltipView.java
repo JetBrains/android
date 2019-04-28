@@ -18,11 +18,14 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -93,7 +96,8 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     tooltipPanel.add(createTooltip(), new TabularLayout.Constraint(2, 0));
     tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    tooltipPanel.setBorder(new JBEmptyBorder(10, 10, 10, 10));
+    Border visibleBorder = JBUI.Borders.customLine(StudioColorsKt.getBorderLight());
+    tooltipPanel.setBorder(JBUI.Borders.merge(new JBEmptyBorder(9, 9, 9, 9), visibleBorder, true));
     updateHeader();
 
     // Loop all the child components and set the background color so each tooltip doesn't need to do this individually.

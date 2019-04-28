@@ -14,7 +14,6 @@ public final class TestProjectPaths {
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
   public static final String DYNAMIC_APP = "projects/dynamicApp";
-  public static final String EXPERIMENTAL_PLUGIN = "projects/experimentalPlugin";
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String IMPORTING = "projects/importing";
   public static final String INSTANT_APP = "projects/instantApp";
@@ -45,6 +44,7 @@ public final class TestProjectPaths {
   public static final String NAMESPACES = "projects/namespaces";
   public static final String NAMESPACES_WITH_APPCOMPAT = "projects/namespaces_with_appcompat";
   public static final String NAVIGATION_EDITOR_BASIC = "projects/navigationEditor/basic";
+  public static final String NAVIGATION_EDITOR_CUSTOM_PROPERTIES = "projects/navigationEditor/customproperties";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
   public static final String NESTED_MODULE = "projects/nestedModule";

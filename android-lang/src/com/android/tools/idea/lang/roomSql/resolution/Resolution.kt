@@ -141,12 +141,20 @@ private fun pushNextElements(
     // Check if something should be pushed on top of the parent, based on the current node.
     when (element) {
       is RoomSelectCoreSelect -> {
-        if (previous != element.fromClause) pushIfNotNull(element.fromClause)
+        // If we came from 'FROM_CLAUSE' we don't want to resolve any columns by using 'FROM_CLAUSE' or 'RESULT_COLUMNS'.
+        if (previous != element.fromClause) {
+          // Prevent infinite loop.
+          if (previous != element.resultColumns) pushIfNotNull(element.resultColumns)
+
+          pushIfNotNull(element.fromClause)
+        }
       }
       is RoomSelectStatement -> {
         if (previous == element.orderClause) {
-          // Start walking down the from clause of the first (mose likely only) "core" select statement.
-          element.selectCoreList.firstOrNull()?.selectCoreSelect?.fromClause?.let { stack.push(nextStep(it, it.context)) }
+          for (selectCore in element.selectCoreList) {
+            pushIfNotNull(selectCore?.selectCoreSelect?.resultColumns)
+            pushIfNotNull(selectCore?.selectCoreSelect?.fromClause)
+          }
         }
       }
       is RoomDeleteStatement -> {

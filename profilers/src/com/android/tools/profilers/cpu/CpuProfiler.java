@@ -163,7 +163,7 @@ public class CpuProfiler extends StudioProfiler {
    */
   static void saveCaptureToFile(@NotNull CpuTraceInfo info, @NotNull OutputStream outputStream) {
     // Copy temp trace file to the output stream.
-    try (FileInputStream input = new FileInputStream(info.getTraceFilePath())) {
+    try {
       // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
       // Systrace Expected format = [HEADER|ZlipData]
       // As such exporting the file raw Systrace will only read the first header/data chunk.
@@ -172,10 +172,10 @@ public class CpuProfiler extends StudioProfiler {
       // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
       if (info.getTraceType() == CpuTraceType.ATRACE) {
-        AtraceExporter.export(input, outputStream);
+        AtraceExporter.export(new File(info.getTraceFilePath()), outputStream);
       }
       else {
-        FileUtil.copy(input, outputStream);
+        FileUtil.copy(new FileInputStream(info.getTraceFilePath()), outputStream);
       }
     }
     catch (IOException exception) {

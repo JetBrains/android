@@ -32,8 +32,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
   private static final String ID = "APPLY_CHANGES";
 
   public ApplyChangesTask(@NotNull Project project,
-                          @NotNull Map<String, List<File>> packages) {
-    super(project, packages);
+                          @NotNull Map<String, List<File>> packages,
+                          boolean fallback) {
+    super(project, packages, fallback);
   }
 
   @NotNull

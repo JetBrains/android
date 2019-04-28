@@ -42,7 +42,7 @@ public class DeployTask extends AbstractDeployTask {
    * @param packages a map of application ids to apks representing the packages this task will deploy.
    */
   public DeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, String userInstallOptions) {
-    super(project, packages);
+    super(project, packages, false);
     this.userInstallOptions = userInstallOptions;
   }
 
@@ -78,9 +78,9 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     LOG.info("Installing application: " + applicationId);
-    Deployer.InstallMode installMode = Deployer.InstallMode.FULL;
-    if (StudioFlags.DELTA_INSTALL.get()) {
-        installMode = Deployer.InstallMode.DELTA;
+    Deployer.InstallMode installMode = Deployer.InstallMode.DELTA;
+    if (!StudioFlags.DELTA_INSTALL.get()) {
+        installMode = Deployer.InstallMode.FULL;
     }
 
     return deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);

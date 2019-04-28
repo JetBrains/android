@@ -29,6 +29,7 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.base.Stopwatch;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -41,10 +42,12 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.util.ArrayList;
@@ -65,13 +68,15 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
+  private final boolean myFallback;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
   public AbstractDeployTask(
-    @NotNull Project project, @NotNull Map<String, List<File>> packages) {
+    @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback) {
     myProject = project;
     myPackages = packages;
+    myFallback = fallback;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -87,6 +92,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   @Override
   public LaunchResult run(@NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    Stopwatch stopwatch = Stopwatch.createStarted();
     LogWrapper logger = new LogWrapper(LOG);
 
     // Collection that will accumulate metrics for the deployment.
@@ -119,12 +125,14 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
     }
 
+    stopwatch.stop();
+    long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
     if (idsSkippedInstall.isEmpty()) {
-      String content = getDescription() + " successful";
+      String content = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
       NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).setImportant(false).notify(myProject);
       logger.info("%s", content);
     } else {
-      String title = getDescription() + " successful";
+      String title = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
       NOTIFICATION_GROUP.createNotification(title, content, NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
       logger.info("%s. %s", title, content);
@@ -194,16 +202,25 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
     DeployerException.Error error = e.getError();
     if (error.getResolution() != DeployerException.ResolutionAction.NONE) {
-      bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
+      if (!myFallback) {
+        bubbleError.append(String.format("\n<a href='%s'>%s</a>", error.getResolution(), error.getCallToAction()));
+      } else {
+        bubbleError.append(String.format("\n%s will be done automatically</a>", error.getCallToAction()));
+      }
     }
 
-    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, error.getResolution());
+
     result.setError(bubbleError.toString());
     result.setConsoleError(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
+    result.setErrorId(e.getId());
+
+    DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, error.getResolution());
     result.setConsoleHyperlink(error.getCallToAction(), hyperlinkInfo);
     result.setNotificationListener(new DeploymentErrorNotificationListener(error.getResolution(),
                                                                            hyperlinkInfo));
-    result.setErrorId(e.getId());
+    if (myFallback) {
+      ApplicationManager.getApplication().invokeLater(() -> hyperlinkInfo.navigate(myProject));
+    }
     return result;
   }
 

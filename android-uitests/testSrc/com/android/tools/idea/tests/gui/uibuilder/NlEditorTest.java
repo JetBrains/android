@@ -36,7 +36,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import org.fest.swing.core.MouseButton;
@@ -119,13 +118,13 @@ public class NlEditorTest {
 
     // Test Pan with middle mouse button
     Point oldScrollPosition = nele.getScrollPosition();
-    nele.dragMouseFromCenter(-10, -10, MouseButton.MIDDLE_BUTTON, 0);
+    nele.dragMouseFromCenterWithModifier(-10, -10, MouseButton.MIDDLE_BUTTON, 0);
     Point expectedScrollPosition = new Point(oldScrollPosition);
     expectedScrollPosition.translate(10, 10);
     assertThat(nele.getScrollPosition()).isEqualTo(expectedScrollPosition);
 
-    // Test Pan with Left mouse button and CTRL
-    nele.dragMouseFromCenter(-10, -10, MouseButton.LEFT_BUTTON, InputEvent.CTRL_MASK);
+    // Test Pan with Left mouse button and SPACE
+    nele.dragMouseFromCenterWithKeyCode(-10, -10, MouseButton.LEFT_BUTTON, KeyEvent.VK_SPACE);
     expectedScrollPosition.translate(10, 10);
     assertThat(nele.getScrollPosition()).isEqualTo(expectedScrollPosition);
 

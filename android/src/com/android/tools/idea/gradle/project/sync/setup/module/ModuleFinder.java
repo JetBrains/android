@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.builder.model.level2.Library;
-import com.android.tools.idea.gradle.project.sync.Modules;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.sync.Modules;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class ModuleFinder {
   @NotNull public static final ModuleFinder EMPTY = new ModuleFinder();
@@ -155,6 +155,25 @@ public class ModuleFinder {
       return myIncludedProjectFolderByModuleFolder.containsKey(toCanonicalPath(moduleFolder.getPath()));
     }
     return false;
+  }
+
+  /**
+   * This method finds the path of root project for a given module. For modules from composite build, this returns the path to the root of
+   * included build.
+   *
+   * @param module the module to get root project for.
+   * @return the Path of root project for the given module.
+   */
+  @NotNull
+  public Path getRootProjectPath(@NotNull Module module) {
+    File moduleFolder = findModuleRootFolderPath(module);
+    if (moduleFolder != null) {
+      String canonicalPath = toCanonicalPath(moduleFolder.getPath());
+      if (myIncludedProjectFolderByModuleFolder.containsKey(canonicalPath)) {
+        return myIncludedProjectFolderByModuleFolder.get(canonicalPath).toPath();
+      }
+    }
+    return getBaseDirPath(module.getProject()).toPath();
   }
 
   @Override

@@ -77,6 +77,8 @@ public class NativeLibrary {
   public void setSharedObjectFilePaths(@NotNull List<String> sharedObjectFilePaths) {
     mySharedObjectFilePaths = sharedObjectFilePaths;
 
+    abis.clear();
+    this.sharedObjectFilesByAbi.clear();
     List<String> nonExistingPaths = new ArrayList<>();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     for (String path : sharedObjectFilePaths) {

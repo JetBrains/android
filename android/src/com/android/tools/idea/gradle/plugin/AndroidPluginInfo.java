@@ -35,13 +35,16 @@ import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class AndroidPluginInfo {
+  public static final String APPLICATION_PLUGIN_ID = "com.android.application";
+  public static final String DESCRIPTION = "Android Gradle plugin";
+  public static final String ARTIFACT_ID = "gradle";
+  public static final String GROUP_ID = "com.android.tools.build";
+
   @NotNull private final Module myModule;
-  @NotNull private final AndroidPluginGeneration myPluginGeneration;
   @Nullable private final GradleVersion myPluginVersion; // May not be present if plugin dependency can not be located
   @Nullable private final VirtualFile myPluginBuildFile; // May not be present if plugin dependency can not be located
 
@@ -91,14 +94,6 @@ public class AndroidPluginInfo {
     }
 
     GradleVersion pluginVersion = appGradleModel != null ? appGradleModel.getModelVersion() : null;
-    AndroidPluginGeneration pluginGeneration = null;
-    if (appModule != null) {
-      pluginGeneration = AndroidPluginGeneration.find(appModule);
-      if (pluginGeneration == COMPONENT) {
-        // "Experimental" plugin does not retrieve correct version yet.
-        pluginVersion = null;
-      }
-    }
 
     boolean appModuleFound = appModule != null;
     boolean pluginVersionFound = pluginVersion != null;
@@ -112,14 +107,11 @@ public class AndroidPluginInfo {
       if (isNotEmpty(result.pluginVersion)) {
         pluginVersion = GradleVersion.tryParse(result.pluginVersion);
       }
-      if (pluginGeneration == null) {
-        pluginGeneration = result.pluginGeneration;
-      }
       pluginBuildFile = result.pluginVirtualFile;
     }
 
-    if (appModule != null && pluginGeneration != null) {
-      return new AndroidPluginInfo(appModule, pluginGeneration, pluginVersion, pluginBuildFile);
+    if (appModule != null) {
+      return new AndroidPluginInfo(appModule, pluginVersion, pluginBuildFile);
     }
 
     return null;
@@ -135,13 +127,9 @@ public class AndroidPluginInfo {
       boolean keepSearchingForAppModule = searchForAppModule && result.appVirtualFile == null;
       if (keepSearchingForAppModule) {
         List<String> pluginIds = PluginModel.extractNames(buildModel.plugins());
-        for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
-          if (generation.isApplicationPluginIdIn(pluginIds)) {
-            result.appVirtualFile = buildModel.getVirtualFile();
-            result.pluginGeneration = generation;
-            keepSearchingForAppModule = false;
-            break;
-          }
+        if (pluginIds.contains(APPLICATION_PLUGIN_ID)) {
+          result.appVirtualFile = buildModel.getVirtualFile();
+          keepSearchingForAppModule = false;
         }
       }
 
@@ -149,18 +137,13 @@ public class AndroidPluginInfo {
       if (keepSearchingForPluginVersion) {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
-            if (generation.isAndroidPlugin(dependency.name().forceString(), dependency.group().toString())) {
-              String version = dependency.version().toString();
-              if (isNotEmpty(version)) {
-                result.pluginVirtualFile = buildModel.getVirtualFile();
-                result.pluginVersion = version;
-              }
-              keepSearchingForPluginVersion = false;
-              break;
+          if (isAndroidPlugin(dependency.name().forceString(), dependency.group().toString())) {
+            String version = dependency.version().toString();
+            if (isNotEmpty(version)) {
+              result.pluginVirtualFile = buildModel.getVirtualFile();
+              result.pluginVersion = version;
             }
-          }
-          if (!keepSearchingForPluginVersion) {
+            keepSearchingForPluginVersion = false;
             break;
           }
         }
@@ -173,11 +156,9 @@ public class AndroidPluginInfo {
 
   @VisibleForTesting
   public AndroidPluginInfo(@NotNull Module module,
-                           @NotNull AndroidPluginGeneration pluginGeneration,
                            @Nullable GradleVersion pluginVersion,
                            @Nullable VirtualFile pluginBuildFile) {
     myModule = module;
-    myPluginGeneration = pluginGeneration;
     myPluginVersion = pluginVersion;
     myPluginBuildFile = pluginBuildFile;
   }
@@ -187,9 +168,10 @@ public class AndroidPluginInfo {
     return myModule;
   }
 
+  // Provides singleton mock support in tests
   @NotNull
-  public AndroidPluginGeneration getPluginGeneration() {
-    return myPluginGeneration;
+  public LatestKnownPluginVersionProvider getLatestKnownPluginVersionProvider() {
+    return LatestKnownPluginVersionProvider.INSTANCE;
   }
 
   @Nullable
@@ -203,7 +185,7 @@ public class AndroidPluginInfo {
   }
 
   public boolean isExperimental() {
-    return getPluginGeneration() == COMPONENT;
+    return false;
   }
 
   @Override
@@ -216,20 +198,22 @@ public class AndroidPluginInfo {
     }
     AndroidPluginInfo that = (AndroidPluginInfo)o;
     return Objects.equals(myModule, that.myModule) &&
-           Objects.equals(myPluginGeneration, that.myPluginGeneration) &&
            Objects.equals(myPluginVersion, that.myPluginVersion) &&
            Objects.equals(myPluginBuildFile, that.myPluginBuildFile);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModule, myPluginGeneration, myPluginVersion, myPluginBuildFile);
+    return Objects.hash(myModule, myPluginVersion, myPluginBuildFile);
+  }
+
+  public static boolean isAndroidPlugin(@NotNull String artifactId, @com.android.annotations.Nullable String groupId) {
+    return ARTIFACT_ID.equals(artifactId) && GROUP_ID.equals(groupId);
   }
 
   private static class BuildFileSearchResult {
     @Nullable VirtualFile appVirtualFile;
     @Nullable VirtualFile pluginVirtualFile;
-    @Nullable AndroidPluginGeneration pluginGeneration;
     @Nullable String pluginVersion;
   }
 }

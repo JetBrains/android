@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -178,7 +178,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   @Override
   public void hyperlinkUpdate(HyperlinkEvent e) {
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+    GradleVersion pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
 
     // Don't bother sync'ing if latest is less than our minimum requirement.
     if (MINIMUM_GRADLE_PLUGIN_VERSION.compareIgnoringQualifiers(pluginVersion) > 0) {

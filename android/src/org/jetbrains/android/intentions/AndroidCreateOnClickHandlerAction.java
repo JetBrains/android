@@ -15,17 +15,31 @@
  */
 package org.jetbrains.android.intentions;
 
+import static org.jetbrains.kotlin.idea.core.GenerateUtilKt.insertMember;
+import static org.jetbrains.kotlin.psi.KtPsiFactoryKt.KtPsiFactory;
+
+import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
+import com.intellij.lang.Language;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -39,14 +53,19 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.List;
+import java.util.Locale;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Locale;
+import org.jetbrains.kotlin.asJava.classes.KtLightClass;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
+import org.jetbrains.kotlin.psi.KtClassOrObject;
+import org.jetbrains.kotlin.psi.KtDeclaration;
+import org.jetbrains.kotlin.psi.KtNamedFunction;
 
 /**
  * @author Eugene.Kudelevsky
@@ -162,14 +181,31 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
     if (file == null) {
       return null;
     }
-    final PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
     final String varName = suggestVarName(methodParamType);
-    PsiMethod method = (PsiMethod)psiClass.add(factory.createMethodFromText(
-      "public void " + methodName + "(" + methodParamType + " " + varName + ") {}", psiClass));
+    Language language = psiClass.getLanguage();
+    if (language.is(JavaLanguage.INSTANCE)) {
+      final PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+      PsiMethod method = (PsiMethod)psiClass.add(factory.createMethodFromText(
+        "public void " + methodName + "(" + methodParamType + " " + varName + ") {}", psiClass));
 
-    PsiMethod method1 = (PsiMethod)CodeStyleManager.getInstance(project).reformat(method);
-    method1 = (PsiMethod)JavaCodeStyleManager.getInstance(project).shortenClassReferences(method1);
-    return (PsiMethod)method.replace(method1);
+      PsiMethod method1 = (PsiMethod)CodeStyleManager.getInstance(project).reformat(method);
+      method1 = (PsiMethod)JavaCodeStyleManager.getInstance(project).shortenClassReferences(method1);
+      return (PsiMethod)method.replace(method1);
+    }
+    else if (language.is(KotlinLanguage.INSTANCE)) {
+      if (!(psiClass instanceof KtLightClass)) {
+        return null;
+      }
+      KtClassOrObject origin = ((KtLightClass)psiClass).getKotlinOrigin();
+      if (origin == null) {
+        return null;
+      }
+      KtNamedFunction namedFunction = KtPsiFactory(origin)
+        .createFunction("fun " + methodName + "(" + varName + ": " + methodParamType + ") {}");
+      KtDeclaration anchor = Iterables.getLast(origin.getDeclarations(), null);
+      insertMember(null, origin, namedFunction, anchor);
+    }
+    return null;
   }
 
   public static void addHandlerMethodAndNavigate(@NotNull final Project project,

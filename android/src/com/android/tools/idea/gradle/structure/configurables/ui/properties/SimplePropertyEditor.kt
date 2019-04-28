@@ -127,7 +127,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
       knownValuesFuture =
         propertyContext.getKnownValues().continueOnEdt { knownValues ->
-          val possibleValues = buildKnownValueRenderers(knownValues!!, formatter, property.defaultValueGetter?.invoke())
+          val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
           knownValueRenderers = possibleValues
           knownValues to possibleValues
         }.invokeLater { (knownValues, possibleValues) ->

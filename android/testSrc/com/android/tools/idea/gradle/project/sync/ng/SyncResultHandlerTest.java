@@ -116,7 +116,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(projectSetup).setUpProject(same(models), any());
     verify(projectSetup).commit();
 
-    verify(mySyncListener, never()).setupStarted(project);
+    verify(mySyncListener).setupStarted(project);
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 

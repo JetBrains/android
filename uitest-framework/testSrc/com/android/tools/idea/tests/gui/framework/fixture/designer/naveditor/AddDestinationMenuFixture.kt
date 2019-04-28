@@ -68,4 +68,6 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
 
     return ConfigureTemplateParametersWizardFixture(robot, dialog.target() as JDialog)
   }
+
+  fun isBalloonVisible() = menu.isBalloonVisible()
 }

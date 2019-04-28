@@ -103,7 +103,8 @@ class FileBackedHashMap(
       if (inspectedKey == key || inspectedKey == 0L) {
         if (keySize == 4) {
           buffer.putInt(buffer.position() - keySize, key.toInt())
-        } else {
+        }
+        else {
           buffer.putLong(buffer.position() - keySize, key)
         }
         if (inspectedKey == 0L) {

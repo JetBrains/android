@@ -21,6 +21,6 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintPrivateApiInspection extends AndroidLintInspectionBase {
   public AndroidLintPrivateApiInspection() {
-    super(AndroidBundle.message("android.lint.inspections.private.api"), PrivateApiDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.private.api"), PrivateApiDetector.PRIVATE_API);
   }
 }

@@ -41,7 +41,7 @@ class PsDeclaredJarJavaDependency private constructor(
     is FileTreeDependencyModel -> PsJarDependency.Kind.FILE_TREE
     else -> error("Unsupported dependency model: ${parsedModel.javaClass.name}")
   }
-  override val filePath: String =
+  override val filePath: String get() =
     (parsedModel as? FileDependencyModel)?.file()?.asString()
     ?: (parsedModel as? FileTreeDependencyModel)?.dir()?.asString()
     ?: ""
@@ -49,12 +49,12 @@ class PsDeclaredJarJavaDependency private constructor(
   private inline fun getFileTreeStringListProperty(propertyGetter: FileTreeDependencyModel.() -> ResolvedPropertyModel?) =
     (parsedModel as? FileTreeDependencyModel)?.propertyGetter()?.toList()?.map { it.resolve().asString().orEmpty() }.orEmpty()
 
-  override val includes: List<String> = getFileTreeStringListProperty { includes() }
-  override val excludes: List<String> = getFileTreeStringListProperty { excludes() }
+  override val includes: List<String> get() = getFileTreeStringListProperty { includes() }
+  override val excludes: List<String> get() = getFileTreeStringListProperty { excludes() }
 
   override val isDeclared: Boolean = true
-  override val configurationName: String = parsedModel.configurationName()
-  override val joinedConfigurationNames: String = configurationName
+  override val configurationName: String get() = parsedModel.configurationName()
+  override val joinedConfigurationNames: String get() = configurationName
 
   object Descriptor : ModelDescriptor<PsDeclaredJarJavaDependency, Nothing, DependencyModel> {
     override fun getResolved(model: PsDeclaredJarJavaDependency): Nothing? = null

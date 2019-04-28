@@ -18,14 +18,17 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -45,16 +48,52 @@ final class PhysicalDevice extends Device {
     return new Builder()
       .setName(device.getPhysicalDeviceName(fetcher))
       .setValid(device.isValid())
+      .setValidityReason(device.getValidityReason())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(device.getAndroidDevice())
       .build();
   }
 
-  static final class Builder extends Device.Builder<Builder> {
+  @VisibleForTesting
+  static final class Builder extends Device.Builder {
     @NotNull
-    @Override
-    Builder self() {
+    @VisibleForTesting
+    Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    @NotNull
+    private Builder setValid(boolean valid) {
+      myValid = valid;
+      return this;
+    }
+
+    @NotNull
+    private Builder setValidityReason(@Nullable String validityReason) {
+      myValidityReason = validityReason;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setKey(@NotNull String key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setConnectionTime(@NotNull Instant connectionTime) {
+      myConnectionTime = connectionTime;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setAndroidDevice(@NotNull AndroidDevice androidDevice) {
+      myAndroidDevice = androidDevice;
       return this;
     }
 
@@ -114,6 +153,7 @@ final class PhysicalDevice extends Device {
 
     return getName().equals(device.getName()) &&
            isValid() == device.isValid() &&
+           Objects.equals(getValidityReason(), device.getValidityReason()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice());
@@ -121,6 +161,6 @@ final class PhysicalDevice extends Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), isValid(), getKey(), getConnectionTime(), getAndroidDevice());
+    return Objects.hash(getName(), isValid(), getValidityReason(), getKey(), getConnectionTime(), getAndroidDevice());
   }
 }

@@ -89,6 +89,7 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
       return
     }
     var testIsRunning = true
+    var hasRequestedNonResumeRestart = false
     while(testIsRunning) {
       val message = try {
         server.receive()
@@ -113,6 +114,15 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
             else -> throw UnsupportedOperationException("Bad message type from client: $message.content.type")
           }
         is RestartIdeMessage -> {
+          if (!message.resumeTest) {
+            if (hasRequestedNonResumeRestart) {
+              // fail now to avoid infinite restart loops
+              eachNotifier.addFailure(Exception("Already restarted once due to the welcome frame not showing or modal dialogs left open - not doing it again to prevent infinite looping"))
+              eachNotifier.fireTestFinished()
+              return
+            }
+            hasRequestedNonResumeRestart = true
+          }
           val ex = restartIdeAndServer(server, method, message.resumeTest)
           if (ex != null) {
             eachNotifier.addFailure(ex)

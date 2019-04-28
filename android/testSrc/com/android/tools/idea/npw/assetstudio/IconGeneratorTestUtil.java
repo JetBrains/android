@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,7 +64,7 @@ public final class IconGeneratorTestUtil {
                            @NotNull String baseName,
                            int paddingPercent,
                            @NotNull List<String> expectedFolders,
-                           @NotNull String golderFileFolderName) throws IOException {
+                           @NotNull String goldenFileFolderName) throws IOException {
     ImageAsset imageAsset = new ImageAsset();
     if (sourceType == SourceType.CLIPART) {
       imageAsset.setClipart(true);
@@ -74,7 +75,7 @@ public final class IconGeneratorTestUtil {
     imageAsset.paddingPercent().set(paddingPercent);
 
     try {
-      checkGraphic(generator, imageAsset, baseName, expectedFolders, golderFileFolderName);
+      checkGraphic(generator, imageAsset, baseName, expectedFolders, goldenFileFolderName);
     } finally {
       if (sourceType != SourceType.SVG) {
         // Delete the temporary PNG file created by the test.
@@ -88,7 +89,7 @@ public final class IconGeneratorTestUtil {
                                    @NotNull ImageAsset imageAsset,
                                    @NotNull String baseName,
                                    @NotNull List<String> expectedFolders,
-                                   @NotNull String golderFileFolderName) throws IOException {
+                                   @NotNull String goldenFileFolderName) throws IOException {
     generator.sourceAsset().setValue(imageAsset);
     generator.outputName().set(baseName);
     IconGenerator.Options options = generator.createOptions(false);
@@ -96,13 +97,15 @@ public final class IconGeneratorTestUtil {
 
     List<String> errors = new ArrayList<>();
     List<String> actualFolders = new ArrayList<>(icons.size());
+    String testDataDir = getTestDataPath();
+    Path goldenRoot = Paths.get(testDataDir, "images", goldenFileFolderName);
     for (GeneratedIcon generatedIcon : icons) {
       PathString relativePath = generatedIcon.getOutputPath();
       PathString folder = relativePath.getParent();
       actualFolders.add(folder == null ? "" : folder.getFileName());
 
-      String testDataDir = getTestDataPath();
-      File goldenFile = Paths.get(testDataDir,"images", golderFileFolderName, relativePath.getNativePath()).toFile();
+      Path goldenBase = generatedIcon.getCategory() == IconCategory.WEB ? goldenRoot : goldenRoot.resolve("res");
+      File goldenFile = goldenBase.resolve(relativePath.getNativePath()).toFile();
       try (InputStream is = new BufferedInputStream(new FileInputStream(goldenFile))) {
         if (generatedIcon instanceof GeneratedImageIcon) {
           BufferedImage image = ((GeneratedImageIcon)generatedIcon).getImage();

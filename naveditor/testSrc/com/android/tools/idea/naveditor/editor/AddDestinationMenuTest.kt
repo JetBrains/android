@@ -393,6 +393,9 @@ class AddDestinationMenuTest : NavTestCase() {
     }
   }
 
+  // Disabling test for now due to sporadic failures
+  // b/130692291
+  /*
   fun testDumbMode() {
     DumbServiceImpl.getInstance(project).isDumb = true
     try {
@@ -402,7 +405,8 @@ class AddDestinationMenuTest : NavTestCase() {
       DumbServiceImpl.getInstance(project).isDumb = false
     }
   }
-
+  */
+  
   private fun addFragment(name: String) {
     addDestination(name, "android.support.v4.app.Fragment")
   }

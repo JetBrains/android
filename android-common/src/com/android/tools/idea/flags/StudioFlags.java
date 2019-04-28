@@ -450,6 +450,10 @@ public final class StudioFlags {
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
     "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
 
+  public static final Flag<Boolean> APK_DEBUG_RELOAD = Flag.create(
+    NDK, "apkdebugreload", "Enable APK reloading feature",
+    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", false);
+
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
   public static final Flag<Boolean> COLLAPSE_ANDROID_NAMESPACE = Flag.create(
@@ -556,7 +560,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RECOMMENDATION_ENABLED = Flag.create(
     MEMORY_SETTINGS, "recommendation.enabled", "Enable memory recommendation",
     "If enabled, users could get memory settings recommendation",
-    false);
+    true);
 
   public static final Flag<Boolean> LOW_IDE_XMX_CAP = Flag.create(
     MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
@@ -564,14 +568,19 @@ public final class StudioFlags {
     true);
 
   private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
-  public static final Flag<Boolean> WINDOWS_DEFENDER_NOTIFICATION_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "windows.defender.notification.enabled", "Enable Windows Defender system health check",
-    "If enabled, a notification will be shown if Windows Defender realtime scanning is enabled and directories relevant to build performance aren't excluded",
+  public static final Flag<Boolean> WINDOWS_UCRT_CHECK_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "windows.ucrt.check.enabled", "Enable Universal C Runtime system health check",
+    "If enabled, a notification will be shown if the Universal C Runtime in Windows is not installed",
     false);
 
-  public static final Flag<Boolean> WINDOWS_DEFENDER_METRICS_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "windows.defender.metrics.enabled", "Enable Windows Defender metrics collection",
-    "If enabled, metrics about the status of Windows Defender realtime scanning and excluded directories will be collected",
+  public static final Flag<Boolean> ANTIVIRUS_NOTIFICATION_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "antivirus.notification.enabled", "Enable antivirus system health check",
+    "If enabled, a notification will be shown if antivirus realtime scanning is enabled and directories relevant to build performance aren't excluded",
+    true);
+
+  public static final Flag<Boolean> ANTIVIRUS_METRICS_ENABLED = Flag.create(
+    SYSTEM_HEALTH, "antivirus.metrics.enabled", "Enable antivirus metrics collection",
+    "If enabled, metrics about the status of antivirus realtime scanning and excluded directories will be collected",
     true);
 
   private StudioFlags() { }

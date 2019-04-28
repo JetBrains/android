@@ -26,6 +26,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -176,5 +178,61 @@ class TransportFileManagerTest {
 
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}simpleperf_${it.cpuArch}" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
+  }
+
+  @Test
+  fun testCopyExecutableAbiDependentFileInFolderToDevice() {
+    temporaryFolder.apply {
+      newFolder("dev")
+
+      listOf(Abi.X86, Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
+        newFolder("dev", it.toString())
+      }
+      listOf(Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
+        newFile("dev/${it}/perfetto")
+      }
+    }
+
+    val hostFile = DeployableFile.Builder("perfetto")
+      .setReleaseDir("release")
+      .setDevDir("dev")
+      .setExecutable(true)
+      .setOnDeviceAbiFileNameFormat("%s/perfetto")
+      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .build()
+
+    `when`(mockDevice.abis).thenReturn(listOf(
+      // it will be ignored, because there is no simpleperf under it.
+      Abi.X86,
+      // it will be used.
+      Abi.ARMEABI,
+      // it will be ignored, because we only need one ABI per CPU arch.
+      // It should choose |Abi.ARMEABI| instead, because it is more preferred and has the same CPU arch.
+      Abi.ARMEABI_V7A,
+      // it will be used.
+      Abi.X86_64
+    ).map { it.toString() })
+
+    val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+    val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+
+    val fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(Disposable {}))
+    fileManager.copyHostFileToDevice(hostFile)
+    verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
+    val expectedAbis = listOf(
+      Abi.ARMEABI,
+      Abi.X86_64
+    )
+
+    val expectedHostPaths = expectedAbis.map {
+      temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "perfetto"
+    }
+    assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
+
+    val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }
+    assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
+    expectedAbis.map {
+      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
+    }
   }
 }

@@ -56,6 +56,7 @@ public class RoomSelectSubqueryImpl extends ASTWrapperPsiElement implements Room
     return findChildByClass(RoomWithClauseSelectStatement.class);
   }
 
+  @Override
   @Nullable
   public SqlTable getSqlTable() {
     return PsiImplUtil.getSqlTable(this);

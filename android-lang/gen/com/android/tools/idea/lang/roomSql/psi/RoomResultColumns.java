@@ -21,10 +21,14 @@ package com.android.tools.idea.lang.roomSql.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 
-public interface RoomResultColumns extends PsiElement {
+public interface RoomResultColumns extends SqlTableElement {
 
   @NotNull
   List<RoomResultColumn> getResultColumnList();
+
+  @Nullable
+  SqlTable getSqlTable();
 
 }

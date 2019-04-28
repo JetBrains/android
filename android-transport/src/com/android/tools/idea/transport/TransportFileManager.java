@@ -107,6 +107,7 @@ public final class TransportFileManager {
   }
 
   static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+  private static final String CODE_CACHE_DIR = "code_cache";
   private static final String DAEMON_CONFIG_FILE = "daemon.config";
   private static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
@@ -261,7 +262,7 @@ public final class TransportFileManager {
       String deviceFilePath = DEVICE_DIR + fileName;
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
       myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + DEVICE_DIR, new NullOutputReceiver());
+      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf("/")), new NullOutputReceiver());
       myDevice.pushFile(file.getAbsolutePath(), deviceFilePath);
 
       if (executable) {
@@ -287,8 +288,7 @@ public final class TransportFileManager {
    *
    * @param packageName The package to launch agent with.
    * @param configName  The agent config file name that should be passed along into the agent. This assumes it already existing under
- *                      {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
-   *
+   *                    {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
    * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
    * accessible, empty string otherwise.
    */
@@ -309,17 +309,18 @@ public final class TransportFileManager {
       for (String agentFile : requiredAgentFiles) {
         // First remove the file if it already exists in the package folder.
         // If old file exists and this fails to copy the new one, the app would attach using the old files and some weird bugs may occur.
-        myDevice.executeShellCommand(buildRunAsCommand(packageName, String.format("rm -rf %s", agentFile)), new NullOutputReceiver());
-        myDevice
-          .executeShellCommand(buildRunAsCommand(packageName, String.format("cp %s .", DEVICE_DIR + agentFile)), new NullOutputReceiver());
+        myDevice.executeShellCommand(buildRunAsCommand(packageName, String.format("rm -rf ./%s/%s", CODE_CACHE_DIR, agentFile)),
+                                     new NullOutputReceiver());
+        myDevice.executeShellCommand(buildRunAsCommand(packageName, String.format("cp %s ./%s/", DEVICE_DIR + agentFile, CODE_CACHE_DIR)),
+                                     new NullOutputReceiver());
       }
     }
     catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException ignored) {
       return "";
     }
 
-    // Example: --attach-agent /data/data/package_name/libjvmtiagent_x86.so=/data/local/tmp/perfd/startupagent.config
-    return String.format("--attach-agent %s/%s=%s", packageDataPath, agentName, DEVICE_DIR + configName);
+    // Example: --attach-agent /data/data/package_name/code_cache/libjvmtiagent_x86.so=/data/local/tmp/perfd/startupagent.config
+    return String.format("--attach-agent %s/%s/%s=%s", packageDataPath, CODE_CACHE_DIR, agentName, DEVICE_DIR + configName);
   }
 
   /**
