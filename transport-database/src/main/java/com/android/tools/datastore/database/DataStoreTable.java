@@ -172,6 +172,9 @@ public abstract class DataStoreTable<T extends Enum> {
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
       stmt.execute();
+      // Clear parameters on exit so cached statements don't keep potentially large objects in memory.
+      // Example: Inserting a payload into the database.
+      stmt.clearParameters();
     }
     catch (SQLException ex) {
       onError(ex);

@@ -418,12 +418,12 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
         side = "Baseline";
         break;
       default:
-        return isConnected() && canDisconnect() ? "Delete Constraint" : "Create Constraint";
+        return isConnected() ? "Delete Constraint" : "Create Constraint";
     }
 
     StringBuilder builder = new StringBuilder();
     builder
-      .append(isConnected() && canDisconnect() ? "Delete " : "Create ")
+      .append(isConnected() ? "Delete " : "Create ")
       .append(side)
       .append(" Constraint");
 

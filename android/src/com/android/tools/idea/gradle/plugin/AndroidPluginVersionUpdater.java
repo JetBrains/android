@@ -178,7 +178,7 @@ public class AndroidPluginVersionUpdater {
   private static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
     String artifactId = model.name().forceString();
     String groupId = model.group().toString();
-    if  (AndroidPluginGeneration.find(artifactId, groupId) == null) {
+    if  (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
       return UNSURE;
     }
 
@@ -335,7 +335,7 @@ public class AndroidPluginVersionUpdater {
                    "Please click 'OK' to perform a textual search and then update the build files manually.";
       ApplicationManager.getApplication().invokeLater(() -> {
         Messages.showErrorDialog(myProject, msg, "Unexpected Error");
-        String textToFind = AndroidPluginGeneration.getGroupId() + ":" + AndroidPluginGeneration.ORIGINAL.getArtifactId();
+        String textToFind = AndroidPluginInfo.GROUP_ID + ":" + AndroidPluginInfo.ARTIFACT_ID;
         searchInBuildFiles(textToFind, myProject);
       });
     }

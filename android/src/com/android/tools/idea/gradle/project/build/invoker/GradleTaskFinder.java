@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
@@ -22,7 +31,6 @@ import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -37,22 +45,16 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
-import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
-import static com.android.tools.idea.gradle.util.GradleBuilds.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleTaskFinder {
   private final GradleRootPathFinder myRootPathFinder;
@@ -73,13 +75,12 @@ public class GradleTaskFinder {
   }
 
   @NotNull
-  public ListMultimap<Path, String> findTasksToExecuteForTest(@NotNull File projectPath,
-                                                              @NotNull Module[] modules,
+  public ListMultimap<Path, String> findTasksToExecuteForTest(@NotNull Module[] modules,
                                                               @NotNull Module[] testModules,
                                                               @NotNull BuildMode buildMode,
                                                               @NotNull TestCompileType testCompileType) {
-    ListMultimap<Path, String> allTasks = findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
-    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(projectPath, testModules, buildMode, testCompileType);
+    ListMultimap<Path, String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(testModules, buildMode, testCompileType);
 
     // Add testedModulesTasks to allTasks without duplicate
     for (Map.Entry<Path, String> task : testedModulesTasks.entries()) {
@@ -91,15 +92,17 @@ public class GradleTaskFinder {
   }
 
   @NotNull
-  public ListMultimap<Path, String> findTasksToExecute(@NotNull File projectPath,
-                                                       @NotNull Module[] modules,
+  public ListMultimap<Path, String> findTasksToExecute(@NotNull Module[] modules,
                                                        @NotNull BuildMode buildMode,
                                                        @NotNull TestCompileType testCompileType) {
     LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
     if (ASSEMBLE == buildMode) {
       if (!canAssembleModules(modules)) {
         // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
-        tasks.put(projectPath.toPath(), DEFAULT_ASSEMBLE_TASK_NAME);
+        for (Module module : modules) {
+          Path projectRootPath = myRootPathFinder.getProjectRootPath(module);
+          tasks.put(projectRootPath, DEFAULT_ASSEMBLE_TASK_NAME);
+        }
         return ArrayListMultimap.create(tasks);
       }
     }
@@ -115,16 +118,11 @@ public class GradleTaskFinder {
         continue;
       }
 
-      String rootProjectPath = myRootPathFinder.getProjectRootPath(module);
-      if (isEmpty(rootProjectPath)) {
-        continue;
-      }
-
       Set<String> moduleTasks = new LinkedHashSet<>();
       findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
 
+      Path keyPath = myRootPathFinder.getProjectRootPath(module);
       // Remove duplicates.
-      Path keyPath = Paths.get(rootProjectPath);
       moduleTasks.addAll(tasks.get(keyPath));
 
       tasks.removeAll(keyPath);
@@ -167,13 +165,6 @@ public class GradleTaskFinder {
       // build the module.
       String msg = String.format("Module '%1$s' does not have a Gradle path. It is likely that this module was manually added by the user.",
                                  module.getName());
-      getLogger().info(msg);
-      return;
-    }
-
-    if (ProjectStructure.getInstance(module.getProject()).getModuleFinder().isCompositeBuild(module)) {
-      // Skip gradle tasks for composite build.
-      String msg = String.format("Module '%1$s' comes from composite build, skip gradle tasks.", module.getName());
       getLogger().info(msg);
       return;
     }
@@ -325,7 +316,7 @@ public class GradleTaskFinder {
 
   @NotNull
   public String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
-    if (gradleProjectPath.equals(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+    if (gradleProjectPath.endsWith(SdkConstants.GRADLE_PATH_SEPARATOR)) {
       // Prevent double colon when dealing with root module (e.g. "::assemble");
       return gradleProjectPath + taskName;
     }

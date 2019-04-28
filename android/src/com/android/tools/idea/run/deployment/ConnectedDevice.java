@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
@@ -28,11 +29,35 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevice extends Device {
-  static final class Builder extends Device.Builder<Builder> {
+class ConnectedDevice extends Device {
+  static class Builder extends Device.Builder {
     @NotNull
-    @Override
-    Builder self() {
+    Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    @NotNull
+    final Builder setValid(boolean valid) {
+      myValid = valid;
+      return this;
+    }
+
+    @NotNull
+    final Builder setValidityReason(@Nullable String validityReason) {
+      myValidityReason = validityReason;
+      return this;
+    }
+
+    @NotNull
+    Builder setKey(@NotNull String key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    Builder setAndroidDevice(@NotNull AndroidDevice androidDevice) {
+      myAndroidDevice = androidDevice;
       return this;
     }
 
@@ -43,7 +68,8 @@ final class ConnectedDevice extends Device {
     }
   }
 
-  private ConnectedDevice(@NotNull Builder builder) {
+  @VisibleForTesting
+  ConnectedDevice(@NotNull Builder builder) {
     super(builder);
   }
 
@@ -80,29 +106,29 @@ final class ConnectedDevice extends Device {
 
   @NotNull
   @Override
-  Icon getIcon() {
+  final Icon getIcon() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  boolean isConnected() {
-    throw new UnsupportedOperationException();
-  }
-
-  @NotNull
-  @Override
-  Collection<String> getSnapshots() {
+  final boolean isConnected() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  Future<AndroidVersion> getAndroidVersion() {
+  final Collection<String> getSnapshots() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
+  final Future<AndroidVersion> getAndroidVersion() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
     throw new UnsupportedOperationException();
   }
 }

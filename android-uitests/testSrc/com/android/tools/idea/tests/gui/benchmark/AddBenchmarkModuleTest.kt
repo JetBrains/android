@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -54,22 +53,31 @@ class AddBenchmarkModuleTest {
    * Test steps:
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
-   * 3. Follow through the wizard to add a new Benchmark Module, accepting defaults.
-   * 4. Complete the wizard and wait for the build to complete.
+   * 3. Choose Benchmark Module and click next.
+   * 4. Select Java as the source lanaguage.
+   * 5. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
    * is set to false.
    * 3. Open build.gradle and check that it applies both com.android.library,
-   * androidx.benchmark plugins, and the benchmark library added as a androidTest
-   * dependency.
+   * androidx.benchmark plugins, the test runner, and the benchmark library added
+   * as a androidTest dependency.
    */
   @Test
   @Throws(Exception::class)
-  fun addDefaultBenchmarkModule() {
+  fun addJavaBenchmarkModule() {
     val ideFrame = guiTest.importSimpleApplication()
-
-    createDefaultBenchmarkModule(ideFrame)
+    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    NewModuleWizardFixture.find(ideFrame)
+      .chooseModuleType("Benchmark Module")
+      .clickNext()
+      .setSourceLanguage("Java")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .projectView
+      .selectAndroidPane()
+      .clickPath("benchmark")
 
     ideFrame.editor
       .open("benchmark/src/androidTest/AndroidManifest.xml")
@@ -82,21 +90,57 @@ class AddBenchmarkModuleTest {
       .currentFileContents.run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:'""")
+      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
     }
   }
 
-  private fun createDefaultBenchmarkModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
+  /**
+   * Verifies that user is able to add a Benchmark Module through the
+   * new module wizard.
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Go to File -> New module to open the new module dialog wizard.
+   * 3. Choose Benchmark Module and click next.
+   * 4. Select Kotlin as the source lanaguage.
+   * 5. Complete the wizard and wait for the build to complete.
+   * Verify:
+   * 1. The new Benchmark Module is shown in the project explorer pane.
+   * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
+   * is set to false.
+   * 3. Open build.gradle and check that it applies both com.android.library,
+   * androidx.benchmark plugins, and the benchmark library added as a androidTest
+   * dependency.
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addKotlinBenchmarkModule() {
+    val ideFrame = guiTest.importSimpleApplication()
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .chooseModuleType("Benchmark Module")
       .clickNext()
+      .setSourceLanguage("Kotlin")
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
 
-    return ideFrame
+    ideFrame.editor
+      .open("benchmark/src/androidTest/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""android:debuggable="false"""")
+    }
+
+    ideFrame.editor
+      .open("benchmark/build.gradle")
+      .currentFileContents.run {
+      assertThat(this).contains("""apply plugin: 'com.android.library'""")
+      assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
+    }
   }
 }

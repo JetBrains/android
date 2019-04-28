@@ -114,6 +114,23 @@ public class NewModuleTest {
   }
 
   @Test
+  public void createNewAndroidLibraryWithDefaults() throws Exception {
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
+      .setModuleName("somelibrary")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("somelibrary/build.gradle")
+      .getCurrentFileContents();
+
+    assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
+    assertThat(gradleFileContents).contains("consumerProguardFiles");
+  }
+
+  @Test
   public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")

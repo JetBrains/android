@@ -86,6 +86,8 @@ public class MemorySettingsPostSyncChecker {
     int recommended,
     TimeBasedMemorySettingsCheckerReminder reminder) {
     log(EventKind.SHOW_RECOMMENDATION, currentXmx, recommended);
+    reminder.storeLastCheckTimestamp();
+
     Notification notification = new MemorySettingsNotification(
       AndroidBundle.message("memory.settings.postsync.message",
                             String.valueOf(currentXmx),
@@ -106,21 +108,14 @@ public class MemorySettingsPostSyncChecker {
         log(EventKind.CONFIGURE, currentXmx, recommended);
         ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
         notification.expire();
+        // Do not show the notification again for the project
+        reminder.setDoNotAsk(project);
       });
 
     notification.addAction(saveRestartAction);
     notification.addAction(configAction);
     notification.addAction(
-      new NotificationAction(AndroidBundle.message("memory.settings.postsync.later")) {
-        @Override
-        public void actionPerformed(AnActionEvent e, Notification n) {
-          log(EventKind.REMIND_ME_LATER, currentXmx, recommended);
-          n.expire();
-          reminder.storeLastCheckTimestamp(project);
-        }
-      });
-    notification.addAction(
-      new NotificationAction(AndroidBundle.message("memory.settings.do.not.ask")) {
+      new NotificationAction(AndroidBundle.message("memory.settings.do.not.ask.for.project")) {
         @Override
         public void actionPerformed(AnActionEvent e, Notification n) {
           log(EventKind.DO_NOT_ASK, currentXmx, recommended);
@@ -128,6 +123,16 @@ public class MemorySettingsPostSyncChecker {
           reminder.setDoNotAsk(project);
         }
       });
+    notification.addAction(
+      new NotificationAction(AndroidBundle.message("memory.settings.do.not.ask.ever")) {
+        @Override
+        public void actionPerformed(AnActionEvent e, Notification n) {
+          log(EventKind.DO_NOT_ASK, currentXmx, recommended);
+          n.expire();
+          reminder.setDoNotAskForApplication();
+        }
+      });
+
     notification.notify(project);
   }
 

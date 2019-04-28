@@ -209,7 +209,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
         .addHeading("Found ${usbDevices.size} USB device(s) not recognized as Android devices:", "black")
       // Instead of displaying multiple devices of the same name, merge them into one and display the count
       usbDevices.groupBy { usbDevice -> usbDevice }.forEach { _, deviceList ->
-        val device = deviceList.first()!!
+        val device = deviceList.first()
         val name = device.label
 
         bodyHtmlBuilder

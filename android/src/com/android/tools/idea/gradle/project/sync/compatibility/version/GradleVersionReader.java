@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
@@ -62,7 +63,7 @@ class GradleVersionReader implements ComponentVersionReader {
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
     if (pluginInfo != null) {
-      GradleVersion pluginVersion = GradleVersion.parse(pluginInfo.getPluginGeneration().getLatestKnownVersion());
+      GradleVersion pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
       GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
       String text = "Fix Gradle version (as part of the update, the Android plugin will be updated to version " + pluginVersion + ")";
       quickFixes.add(new FixAndroidGradlePluginVersionHyperlink(text, pluginVersion, gradleVersion));

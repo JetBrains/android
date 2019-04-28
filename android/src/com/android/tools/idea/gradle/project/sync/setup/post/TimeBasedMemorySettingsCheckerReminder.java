@@ -24,8 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TimeBasedMemorySettingsCheckerReminder {
-  private static final String MEMORY_SETTINGS_SHOW_DO_NOT_ASK_PROPERTY =
-    "memory.settings.do.not.ask";
+  private static final String MEMORY_SETTINGS_DO_NOT_ASK_FOR_ALL_PROPERTY =
+    "memory.settings.do.not.ask.ever";
+  private static final String MEMORY_SETTINGS_DO_NOT_ASK_FOR_PROJECT_PROPERTY =
+    "memory.settings.do.not.ask.for.project";
   private static final String MEMORY_SETTINGS_POST_SYNC_CHECK_TIMESTAMP_PROPERTY =
     "memory.settings.last.check.timestamp";
 
@@ -38,7 +40,7 @@ public class TimeBasedMemorySettingsCheckerReminder {
     if (shouldNotAsk(project)) {
       return false;
     }
-    String lastTimestampValue = getStoredTimestamp(project);
+    String lastTimestampValue = getStoredTimestamp();
     if (isNotEmpty(lastTimestampValue)) {
       try {
         long lastTimestamp = Long.parseLong(lastTimestampValue);
@@ -53,27 +55,34 @@ public class TimeBasedMemorySettingsCheckerReminder {
   }
 
   @Nullable
-  String getStoredTimestamp(@NotNull Project project) {
-    return PropertiesComponent.getInstance(project).getValue(
+  String getStoredTimestamp() {
+    return PropertiesComponent.getInstance().getValue(
       MEMORY_SETTINGS_POST_SYNC_CHECK_TIMESTAMP_PROPERTY);
   }
 
-  void storeLastCheckTimestamp(@NotNull Project project) {
-    storeLastCheckTimestamp(project, System.currentTimeMillis());
+  void storeLastCheckTimestamp() {
+    storeLastCheckTimestamp(System.currentTimeMillis());
   }
 
-  void storeLastCheckTimestamp(@NotNull Project project, long currentTimeInMs) {
-    PropertiesComponent.getInstance(project).setValue(
+  void storeLastCheckTimestamp(long currentTimeInMs) {
+    PropertiesComponent.getInstance().setValue(
       MEMORY_SETTINGS_POST_SYNC_CHECK_TIMESTAMP_PROPERTY, String.valueOf(currentTimeInMs));
   }
 
   void setDoNotAsk(@NotNull Project project) {
     PropertiesComponent.getInstance(project).setValue(
-      MEMORY_SETTINGS_SHOW_DO_NOT_ASK_PROPERTY, "true");
+      MEMORY_SETTINGS_DO_NOT_ASK_FOR_PROJECT_PROPERTY, "true");
+  }
+
+  void setDoNotAskForApplication() {
+    PropertiesComponent.getInstance().setValue(
+      MEMORY_SETTINGS_DO_NOT_ASK_FOR_ALL_PROPERTY, "true");
   }
 
   private boolean shouldNotAsk(@NotNull Project project) {
-    return PropertiesComponent.getInstance(project).getValue(
-      MEMORY_SETTINGS_SHOW_DO_NOT_ASK_PROPERTY, "false").equals("true");
+    return PropertiesComponent.getInstance().getValue(
+      MEMORY_SETTINGS_DO_NOT_ASK_FOR_ALL_PROPERTY, "false").equals("true") ||
+      PropertiesComponent.getInstance(project).getValue(
+        MEMORY_SETTINGS_DO_NOT_ASK_FOR_PROJECT_PROPERTY, "false").equals("true");
   }
 }

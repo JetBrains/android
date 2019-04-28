@@ -326,12 +326,14 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
       (category, images) ->
         images.forEach(
           (path, image) -> {
+            IconCategory iconCategory = IconCategory.REGULAR;
             Density density = pathToDensity(path);
             // Could be a "Web" image
             if (density == null) {
               density = Density.NODPI;
+              iconCategory = IconCategory.WEB;
             }
-            GeneratedImageIcon icon = new GeneratedImageIcon(path, new PathString(path), IconCategory.REGULAR, density, image);
+            GeneratedImageIcon icon = new GeneratedImageIcon(path, new PathString(path), iconCategory, density, image);
             icons.add(icon);
           }));
     return icons;
@@ -341,7 +343,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   @NotNull
   protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
     if (((LauncherLegacyOptions)options).generateWebIcon) {
-      return iconName + "-web.png"; // Store at the root of the project
+      return iconName + "-web.png"; // Store at the root of the project.
     }
 
     return super.getIconPath(options, iconName);

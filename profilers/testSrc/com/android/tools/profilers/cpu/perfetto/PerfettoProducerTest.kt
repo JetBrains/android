@@ -24,7 +24,8 @@ class PerfettoProducerTest {
 
   @Test
   fun validateDataSliceIsSystraceFormat() {
-    val parser = PerfettoProducer(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    val parser = PerfettoProducer()
+    assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()
 
     // First line should be a comment line.
     var slice = parser.next()
@@ -39,7 +40,8 @@ class PerfettoProducerTest {
 
   @Test
   fun validateParsedTraceMarkerEvents() {
-    val parser = PerfettoProducer(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    val parser = PerfettoProducer()
+    assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()
     var slice = parser.next()
     while (!slice.toString().contains("tracing_mark_write: B")) {
       slice = parser.next()
@@ -49,7 +51,8 @@ class PerfettoProducerTest {
 
   @Test
   fun validateParsedSchedSwitchEvents() {
-    val parser = PerfettoProducer(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    val parser = PerfettoProducer()
+    assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()
     var slice = parser.next()
     while (!slice.toString().contains("sched_switch: ")) {
       slice = parser.next()
@@ -59,8 +62,8 @@ class PerfettoProducerTest {
 
   @Test
   fun validateClockSyncMarkers() {
-    val parser = PerfettoProducer(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
-
+    val parser = PerfettoProducer()
+    assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()
     // Find first non comment line.
     var slice = parser.next();
     while (slice.toString().startsWith('#')) {

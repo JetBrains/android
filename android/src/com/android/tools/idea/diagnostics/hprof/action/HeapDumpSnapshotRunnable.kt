@@ -160,7 +160,7 @@ class HeapDumpSnapshotRunnable(
   }
 
   private fun estimateRequiredFreeSpaceInMB(): Long {
-    return Math.max(100, (usedMemory(false) * 1.5).toLong() / 1_000_000)
+    return Math.max(100, (usedMemory(false) * 2.0).toLong() / 1_000_000)
   }
 
   class CaptureHeapDumpTask(private val hprofPath: Path,

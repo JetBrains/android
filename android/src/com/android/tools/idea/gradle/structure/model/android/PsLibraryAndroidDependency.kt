@@ -54,8 +54,8 @@ open class PsDeclaredLibraryAndroidDependency(
       versionResolvedProperty.toString()
     )
   override val isDeclared: Boolean = true
-  final override val configurationName: String = parsedModel.configurationName()
-  override val joinedConfigurationNames: String = configurationName
+  final override val configurationName: String get() = parsedModel.configurationName()
+  override val joinedConfigurationNames: String get() = configurationName
 
   override var version by Descriptor.version
   override val versionProperty: ModelSimpleProperty<Unit, String>

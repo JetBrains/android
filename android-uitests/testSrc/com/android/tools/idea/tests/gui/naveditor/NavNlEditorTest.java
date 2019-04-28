@@ -45,6 +45,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,7 +98,7 @@ public class NavNlEditorTest {
       .openAddDestinationMenu()
       .waitForContents();
 
-    assertEquals(2, menuFixture.visibleItemCount());
+    assertEquals(3, menuFixture.visibleItemCount());
     guiTest.robot().enterText("fragment_my");
     assertEquals(1, menuFixture.visibleItemCount());
 
@@ -286,7 +287,7 @@ public class NavNlEditorTest {
       .assertCanInteractWithSurface();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/123521236
+  @Ignore("b/123521236")
   @Test
   public void testKeyMappings() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
@@ -318,5 +319,26 @@ public class NavNlEditorTest {
     double fitScale = fixture.getScale();
 
     assertTrue(Math.abs(fitScale - scale) < 0.001);
+  }
+
+  @Test
+  public void testEmptyDesigner() throws Exception {
+    NlEditorFixture layout = guiTest
+      .importProject("Navigation")
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/navigation/empty_navigation.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true);
+
+    NavDesignSurfaceFixture fixture = layout
+      .waitForRenderToFinish()
+      .getNavSurface();
+
+    fixture.clickOnEmptyDesignerTarget();
+
+    AddDestinationMenuFixture menuFixture = fixture
+      .getAddDestinationMenu()
+      .waitForContents();
+    assertTrue(menuFixture.isBalloonVisible());
   }
 }

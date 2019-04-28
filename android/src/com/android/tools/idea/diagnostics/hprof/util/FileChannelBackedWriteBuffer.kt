@@ -29,16 +29,17 @@ class FileChannelBackedWriteBuffer(
   private var closed = false
 
   override fun close() {
-      if (!closed) {
-        closed = true
-        try {
-          flushBuffer()
-        } finally {
-          if (closeOutput) {
-            channel.close()
-          }
+    if (!closed) {
+      closed = true
+      try {
+        flushBuffer()
+      }
+      finally {
+        if (closeOutput) {
+          channel.close()
         }
       }
+    }
   }
 
   private fun flushBuffer() {

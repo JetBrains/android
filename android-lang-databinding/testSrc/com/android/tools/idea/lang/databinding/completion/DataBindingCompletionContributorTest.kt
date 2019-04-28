@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor.attachTracker
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -54,7 +53,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(EdtRule())
+  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private val fixture: JavaCodeInsightTestFixture by lazy {
     projectRule.fixture as JavaCodeInsightTestFixture
@@ -414,7 +413,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.complete(CompletionType.BASIC, 2)
-    fixture.assertPreferredCompletionItems(0, "doPrivate",  "doPrivateStatic", "doSomethingStatic")
+    fixture.assertPreferredCompletionItems(0, "doPrivate", "doPrivateStatic", "doSomethingStatic")
   }
 
   @Test
@@ -704,7 +703,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val expectedLookupElement = JavaLookupElementBuilder.forMethod(
       psiMethod, "doSomething", PsiSubstitutor.EMPTY, psiClass)
 
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
   }
 
   @Test
@@ -750,14 +749,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val psiMethod = psiClass.findMethodsByName("doSomething", false)[0]
     val expectedLookupElement = JavaLookupElementBuilder.forMethod(
       psiMethod, "doSomething", PsiSubstitutor.EMPTY, psiClass)
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
 
     assertThat(lookupElements[1]).isInstanceOf(LookupElementBuilder::class.java)
     val baseLookupElementBuilder = lookupElements[1] as LookupElementBuilder
     val basePsiMethod = psiClass.findMethodsByName("doSomethingBase", true)[0]
     val baseExpectedLookupElement = JavaLookupElementBuilder.forMethod(
       basePsiMethod, "doSomethingBase", PsiSubstitutor.EMPTY, null)
-    assertThat(baseLookupElementBuilder).isEqualTo(attachTracker(baseExpectedLookupElement))
+    assertThat(baseLookupElementBuilder).isEqualTo(baseExpectedLookupElement)
   }
 
   @Test
@@ -802,14 +801,14 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
     val psiField = psiClass.findFieldByName("field", false)!!
     val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
 
     assertThat(lookupElements[1]).isInstanceOf(LookupElementBuilder::class.java)
     val baseLookupElementBuilder = lookupElements[1] as LookupElementBuilder
     val basePsiField = psiClass.findFieldByName("fieldBase", true)!!
     val baseExpectedLookupElement =
       JavaLookupElementBuilder.forField(basePsiField, "fieldBase", null).withTypeText("Int")
-    assertThat(baseLookupElementBuilder).isEqualTo(attachTracker(baseExpectedLookupElement))
+    assertThat(baseLookupElementBuilder).isEqualTo(baseExpectedLookupElement)
   }
 
   @Test
@@ -853,7 +852,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
     val psiField = psiClass.findFieldByName("field1", false)!!
     val expectedLookupElement = JavaLookupElementBuilder.forField(psiField).withTypeText("Int")
 
-    assertThat(lookupElementBuilder).isEqualTo(attachTracker(expectedLookupElement))
+    assertThat(lookupElementBuilder).isEqualTo(expectedLookupElement)
   }
 
   @Test
@@ -938,5 +937,156 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:text="@{ModelWithBindableMethodsJava::strUpper}"/>
       </layout>
     """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_testCompleteJavaLangClasses() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{By<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{Byte}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_getterMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public String getValue() {}
+        public String getValue2() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.va<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    assertThat(lookupElementBuilder.lookupString).isEqualTo("value")
+  }
+
+  @Test
+  fun testDataBindingCompletion_booleanGetterMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public boolean isGood() {}
+        public boolean isGood2() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.go<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    assertThat(lookupElements.size).isEqualTo(2)
+    assertThat(lookupElements[0]).isInstanceOf(LookupElementBuilder::class.java)
+
+    val lookupElementBuilder = lookupElements[0] as LookupElementBuilder
+    assertThat(lookupElementBuilder.lookupString).isEqualTo("good")
+  }
+
+  @Test
+  fun testDataBindingCompletion_overriddenMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        @Override
+        public String toString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="member" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member.toStr<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupElements = fixture.completeBasic()
+
+    // The completeBasic() should return null as the only item is auto-completed.
+    assertThat(lookupElements).isNull()
+
+    // We should only find one method with name "toString()", toString() declared in [java.lang.Object] should be removed.
+    //assertThat(lookupElements.count { it.lookupString == "toString()" }).isEqualTo(1)
   }
 }

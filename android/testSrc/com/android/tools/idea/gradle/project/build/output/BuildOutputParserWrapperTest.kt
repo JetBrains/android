@@ -101,12 +101,12 @@ class BuildOutputParserWrapperTest {
     myParserWrapper.parse(null, null) {}
 
     messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "D8 errors", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, ".gradle", "res", "tmp"), -1, -1))
+                                        FilePosition(FileUtils.join(folder, "build", "intermediates", "res", "tmp"), -1, -1))
     myParserWrapper.parse(null, null) {}
 
 
     messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "AAPT errors", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "merged", "res", "merged.xml"), -1, -1))
+                                        FilePosition(FileUtils.join(folder, "build", "generated", "merged", "res", "merged.xml"), -1, -1))
     myParserWrapper.parse(null, null) {}
 
 

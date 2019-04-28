@@ -95,6 +95,21 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel i
 
   @NotNull
   @Override
+  public String getColumnName(int modelColumnIndex) {
+    switch (modelColumnIndex) {
+      case SELECTED_MODEL_COLUMN_INDEX:
+        return "";
+      case ICON_MODEL_COLUMN_INDEX:
+        return "Type";
+      case NAME_MODEL_COLUMN_INDEX:
+        return "Device name";
+      default:
+        throw new AssertionError(modelColumnIndex);
+    }
+  }
+
+  @NotNull
+  @Override
   public Class<?> getColumnClass(int modelColumnIndex) {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
@@ -130,7 +145,7 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel i
       case ICON_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getIcon();
       case NAME_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getName();
+        return Devices.getName(myDevices.get(modelRowIndex), myDevices);
       default:
         throw new AssertionError(modelColumnIndex);
     }

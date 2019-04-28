@@ -129,13 +129,15 @@ public class AtraceParser implements TraceParser {
    * Parses the input file and caches off the model to prevent parsing multiple times.
    */
   private void parseModelIfNeeded(@NotNull File file) throws IOException {
-    assert AtraceProducer.verifyFileHasAtraceHeader(file) || PerfettoProducer.verifyFileHasPerfettoTraceHeader(file);
     if (myModel == null) {
-      BufferProducer producer;
+      TrebuchetBufferProducer producer;
       if (AtraceProducer.verifyFileHasAtraceHeader(file)) {
-        producer = new AtraceProducer(file);
+        producer = new AtraceProducer();
       } else {
-        producer = new PerfettoProducer(file);
+        producer = new PerfettoProducer();
+      }
+      if (!producer.parseFile(file)) {
+        throw new IOException("Failed to parse file: " + file.getAbsolutePath());
       }
 
       ImportTask task = new ImportTask(new PrintlnImportFeedback());

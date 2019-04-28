@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -158,8 +158,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     if (androidPluginInfo != null) {
       GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
       if (pluginVersion != null) {
-        AndroidPluginGeneration pluginGeneration = androidPluginInfo.getPluginGeneration();
-        return pluginVersion.compareTo(pluginGeneration.getLatestKnownVersion()) > 0;
+        return pluginVersion.compareTo(LatestKnownPluginVersionProvider.INSTANCE.get()) > 0;
       }
     }
     return false;

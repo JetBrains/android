@@ -203,7 +203,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       boolean isRunBuildAction = buildAction != null;
 
       List<String> gradleTasks = myRequest.getGradleTasks();
-      String executingTasksText = "Executing tasks: " + gradleTasks;
+      String executingTasksText = "Executing tasks: " + gradleTasks + " in project " + myRequest.getBuildFilePath().getPath();
       addToEventLog(executingTasksText, INFO);
 
       StringBuilder output = new StringBuilder();

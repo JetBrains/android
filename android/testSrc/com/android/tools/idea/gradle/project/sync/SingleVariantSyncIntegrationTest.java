@@ -98,8 +98,7 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     // Verify Ndk model only contains one dummy variant.
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(getModule("app"));
     assertThat(ndkModuleModel.getVariants()).hasSize(1);
-    assertThat(ndkModuleModel.getNdkVariantNames()).contains("-----");
-    assertThat(ndkModuleModel.getVariantName("-----")).isEqualTo("---");
+    assertThat(ndkModuleModel.getNdkVariantNames()).contains(NdkModuleModel.DummyNdkVariant.variantNameWithAbi);
 
     // Switch to single-variant sync, and verify sync is succeeded.
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
@@ -108,7 +107,7 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     ndkModuleModel = NdkModuleModel.get(getModule("app"));
     // Verify Single-variant sync is able to retrieve variant names with empty CMakeList.
     assertThat(ndkModuleModel.getNdkVariantNames().size()).isGreaterThan(1);
-    assertThat(ndkModuleModel.getNdkVariantNames()).doesNotContain("-----");
+    assertThat(ndkModuleModel.getNdkVariantNames()).doesNotContain(NdkModuleModel.DummyNdkVariant.variantNameWithAbi);
   }
 
   public void testAddKotlinPluginToNonKotlinProject() throws Exception {
@@ -127,9 +126,9 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     // Request Gradle sync.
     requestSyncAndWait();
 
-    // Verify that project is set as still eligible for single-variant.
-    assertFalse(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertTrue(NewGradleSync.isSingleVariantSync(getProject()));
+    // Verify that project is not eligible for single-variant.
+    assertTrue(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
+    assertFalse(NewGradleSync.isSingleVariantSync(getProject()));
   }
 
   public void testSyncProjectWithBuildSrcModule() throws Exception {

@@ -189,13 +189,13 @@ public class BuildVariantView {
       String variantNameWithoutAbi;
       String abiName;
 
-      if (ndkFacet != null) {
-        NdkModuleModel ndkModel = NdkModuleModel.get(module);
-        assert ndkModel != null;  // getGradleModules() returns only relevant modules.
+      NdkModuleModel ndkModel = ndkFacet == null ? null : getNdkModuleModelIfNotJustDummy(ndkFacet);
+      if (ndkModel != null) {
         String variantNameWithAbi = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
         variantNameWithoutAbi = ndkModel.getVariantName(variantNameWithAbi);
         abiName = ndkModel.getAbiName(variantNameWithAbi);
       } else {
+        assert androidFacet != null;  // getGradleModules() returns only relevant modules.
         variantNameWithoutAbi = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
         abiName = "";
       }
@@ -243,7 +243,7 @@ public class BuildVariantView {
         continue;
       }
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
-      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
+      if (ndkFacet != null && getNdkModuleModelIfNotJustDummy(ndkFacet) != null) {
         gradleModules.add(module);
       }
     }
@@ -289,7 +289,7 @@ public class BuildVariantView {
       buildVariantNames.addAll(androidModel.getVariantNames());
     }
 
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    NdkModuleModel ndkModuleModel = getNdkModuleModelIfNotJustDummy(module);
     if (ndkModuleModel != null) {
       buildVariantNames.addAll(
         ndkModuleModel.getNdkVariantNames()
@@ -325,7 +325,7 @@ public class BuildVariantView {
    */
   @NotNull
   private static Collection<String> getAbiNames(@NotNull Module module, @NotNull String variantNameWithoutAbi) {
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    NdkModuleModel ndkModuleModel = getNdkModuleModelIfNotJustDummy(module);
     if (ndkModuleModel == null) {
       return Collections.emptyList();
     }
@@ -559,6 +559,8 @@ public class BuildVariantView {
           }
         }
       });
+
+      setExpandableItemsEnabled(false);
     }
 
     /**
@@ -954,5 +956,25 @@ public class BuildVariantView {
     public Object getCellEditorValue() {
       return myValue;
     }
+  }
+
+  @Nullable
+  private static NdkModuleModel getNdkModuleModelIfNotJustDummy(@NotNull NdkFacet ndkFacet) {
+    NdkModuleModel ndkModel = NdkModuleModel.get(ndkFacet);
+    String variantNameWithAbi = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+    if (variantNameWithAbi.equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+      // There are no valid NDK variants. Treat as if NdkModuleModel does not exist.
+      return null;
+    }
+    return ndkModel;
+  }
+
+  @Nullable
+  private static NdkModuleModel getNdkModuleModelIfNotJustDummy(@NotNull Module module) {
+    NdkFacet ndkFacet = NdkFacet.getInstance(module);
+    if (ndkFacet == null) {
+      return null;
+    }
+    return getNdkModuleModelIfNotJustDummy(ndkFacet);
   }
 }

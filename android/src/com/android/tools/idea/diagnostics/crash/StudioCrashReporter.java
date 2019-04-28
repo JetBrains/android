@@ -39,7 +39,7 @@ public class StudioCrashReporter extends GoogleCrashReporter {
   public static final String PRODUCT_ANDROID_STUDIO = "AndroidStudio"; // must stay in sync with backend registration
 
   private static final boolean UNIT_TEST_MODE = ApplicationManager.getApplication() == null;
-  private static final boolean DEBUG_BUILD = !UNIT_TEST_MODE && ApplicationManager.getApplication().isInternal();
+  private static final boolean DEBUG_BUILD = getApplicationInfo() == null || getApplicationInfo().getStrictVersion().equals("0.0.0.0");
 
   @Nullable
   private static final String ANONYMIZED_UID = getAnonymizedUid();

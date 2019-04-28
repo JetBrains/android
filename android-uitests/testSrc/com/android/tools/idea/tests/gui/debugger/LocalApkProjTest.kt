@@ -26,10 +26,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import com.intellij.util.ui.AsyncProcessIcon
+import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
 import org.junit.After
@@ -133,37 +136,6 @@ class LocalApkProjTest {
     val ideFrame = guiTest.importProject(apkProjectToImport)
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120))
 
-    // TODO remove the following hack: b/110174414
-    val androidSdk = IdeSdks.getInstance().androidSdkPath
-    val ninja = File(androidSdk, "cmake/3.10.4819442/bin/ninja")
-
-    val buildGradleFailure = AtomicReference<IOException>()
-    ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(ideFrame.project) {
-        val pbm = ProjectBuildModel.get(ideFrame.project)
-        val buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"))
-        val cmakeModel = buildModel!!
-          .android()
-          .defaultConfig()
-          .externalNativeBuild()
-          .cmake()
-
-        val cmakeArgsModel = cmakeModel.arguments()
-        try {
-          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.canonicalPath)
-          buildModel.applyChanges()
-        }
-        catch (failureToWrite: IOException) {
-          buildGradleFailure.set(failureToWrite)
-        }
-      }
-    }
-    val errorsWhileModifyingBuild = buildGradleFailure.get()
-    if (errorsWhileModifyingBuild != null) {
-      throw IllegalStateException(errorsWhileModifyingBuild)
-    }
-    // TODO end hack for b/110174414
-
     ideFrame.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
     val projectRoot = ideFrame.getProjectPath()
@@ -182,10 +154,34 @@ class LocalApkProjTest {
     // VirtualFile before we open the dialog:
     val apkFile = VfsUtil.findFileByIoFile(apk, true) ?: throw IllegalStateException("${apk.absolutePath} does not exist")
 
-    // This step generates the ~/ApkProjects/app-x86-debug directory. This
-    // directory will be removed as a part of our tests' cleanup methods.
-    welcomeFrame.profileOrDebugApk()
-      .select(apkFile)
+    val chooseApkFile = try {
+      welcomeFrame.profileOrDebugApk()
+    } catch(timeout: WaitTimedOutError) {
+      // TODO: http://b/130681637
+      // Likely took too long for the spinner icon to go away. This is a non-critical bug that
+      // should not fail a critical user journey test, so we ignore the error and continue
+      // waiting.
+      val robot = welcomeFrame.robot()
+      val fileDialog = FileChooserDialogFixture.findDialog(robot, "Select APK File");
+
+      // If the progress icon is missing, then we should expect that the file dialog is now
+      // ready!
+      val progressIcons = robot.finder().findAll(fileDialog.target(), Matchers.byType(AsyncProcessIcon::class.java))
+      if (progressIcons.isNotEmpty()) {
+        Wait.seconds(300)
+          .expecting("spinner icon to go away")
+          .until {
+            GuiQuery.getNonNull {
+              !progressIcons.first().isRunning
+            }
+          }
+        // progress icon went away! We are ready to proceed!
+      }
+      fileDialog
+    }
+
+    // NOTE: This step generates the ~/ApkProjects/app-x86-debug directory.
+    chooseApkFile.select(apkFile)
       .clickOk()
 
     guiTest.waitForBackgroundTasks();

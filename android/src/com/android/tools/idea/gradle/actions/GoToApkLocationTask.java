@@ -41,8 +41,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -59,36 +59,31 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   @NotNull private final Collection<Module> myModules;
   @NotNull private final String myNotificationTitle;
   @NotNull private final List<String> myBuildVariants;
+  @Nullable private final String mySignedApkPath;
 
-  public GoToApkLocationTask(@NotNull Collection<Module> modules, @NotNull String notificationTitle, @NotNull List<String> buildVariants) {
-    this(modules.iterator().next().getProject(), modules, notificationTitle, buildVariants);
+  public GoToApkLocationTask(@NotNull Project project, @NotNull Collection<Module> modules, @NotNull String notificationTitle) {
+    this(project, modules, notificationTitle, Collections.emptyList(), null);
   }
 
-  @VisibleForTesting
-  GoToApkLocationTask(@NotNull Project project,
+  public GoToApkLocationTask(@NotNull Project project,
                       @NotNull Collection<Module> modules,
                       @NotNull String notificationTitle,
-                      @NotNull List<String> buildVariants) {
+                      @NotNull List<String> buildVariants,
+                      @Nullable String signedApkPath) {
     myProject = project;
     myModules = modules;
     myNotificationTitle = notificationTitle;
     myBuildVariants = buildVariants;
+    mySignedApkPath = signedApkPath;
   }
 
   @Override
   public void execute(@NotNull GradleInvocationResult result) {
-    boolean isSigned = !myBuildVariants.isEmpty();
     try {
       BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
       Map<String, File> apkBuildsToPaths =
-        buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, false);
-      if (isSigned) {
-        String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
-        showNotification(result, moduleName, apkBuildsToPaths);
-      }
-      else {
-        showNotification(result, null, apkBuildsToPaths);
-      }
+        buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, false, mySignedApkPath);
+      showNotification(result, apkBuildsToPaths);
     }
     finally {
       // See https://code.google.com/p/android/issues/detail?id=195369
@@ -97,16 +92,16 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   }
 
   private void showNotification(@NotNull GradleInvocationResult result,
-                                @Nullable String moduleName,
                                 @NotNull Map<String, File> apkBuildsToPaths) {
     AndroidNotification notification = AndroidNotification.getInstance(myProject);
-    boolean isSigned = moduleName != null;
+    boolean isSigned = !myBuildVariants.isEmpty();
 
     if (result.isBuildSuccessful()) {
       StringBuilder builder = new StringBuilder();
       int count = apkBuildsToPaths.size();
       builder.append("APK(s) generated successfully for ");
       if (isSigned) {
+        String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
         builder.append("module '").append(moduleName).append("' with ").append(count)
           .append(count == 1 ? " build variant" : " build variants");
       }
@@ -145,6 +140,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
         StringBuilder balloonBuilder = new StringBuilder();
         balloonBuilder.append("APK(s) generated successfully for ");
         if (isSigned) {
+          String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
           balloonBuilder.append("module '").append(moduleName).append("' with ").append(count)
             .append(count == 1 ? " build variant" : " build variants");
         }

@@ -69,7 +69,7 @@ class SuggestionsViewTest {
     val informationGroup = suggestionsConfigurable.findGroup("Information")
     var message = informationGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Gradle promoted library version from 26.0.0 to")
     assertNotNull(message)
-    message?.requireActionUnavailable()
+    message.requireActionUnavailable()
 
     var updatesGroup = suggestionsConfigurable.findGroup("Updates")
 
@@ -80,7 +80,7 @@ class SuggestionsViewTest {
 
     message = updatesGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Newer version available:")
     assertNotNull(message)
-    assertTrue (message!!.isActionActionAvailable())
+    assertTrue (message.isActionActionAvailable())
     message.clickAction()
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(30))
 
@@ -94,7 +94,7 @@ class SuggestionsViewTest {
 
     message = updatesGroup.findMessageMatching("appcompat-v7:26.0.1 \\(app\\) : Newer version available:")
     assertNotNull(message)
-    assertTrue (message!!.isActionActionAvailable())
+    assertTrue (message.isActionActionAvailable())
     message.clickAction()
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(30))
 

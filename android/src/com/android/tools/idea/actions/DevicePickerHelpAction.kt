@@ -28,7 +28,7 @@ fun getAction(): AnAction? {
 
 open class DevicePickerHelpAction : DumbAwareAction("Help") {
   override fun actionPerformed(e: AnActionEvent) {
-    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", e?.project)
+    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", e.project)
   }
 
   open fun closeDialog() = false

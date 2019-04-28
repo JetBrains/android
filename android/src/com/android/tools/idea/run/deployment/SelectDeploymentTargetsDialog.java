@@ -28,25 +28,31 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class SelectDeploymentTargetsDialog extends DialogWrapper {
-  @NotNull
-  private final SelectDeploymentTargetsDialogTable myTable;
+  @Nullable
+  private SelectDeploymentTargetsDialogTable myTable;
 
   SelectDeploymentTargetsDialog(@NotNull Project project) {
     super(project);
 
-    SelectDeploymentTargetsDialogTableModel model = new SelectDeploymentTargetsDialogTableModel(project);
-    Disposer.register(getDisposable(), model);
-
-    myTable = new SelectDeploymentTargetsDialogTable(model);
-
+    initTable(project);
     init();
     setTitle("Select Deployment Targets");
   }
 
+  private void initTable(@NotNull Project project) {
+    SelectDeploymentTargetsDialogTableModel model = new SelectDeploymentTargetsDialogTableModel(project);
+    Disposer.register(getDisposable(), model);
+
+    myTable = new SelectDeploymentTargetsDialogTable(model);
+    myTable.getSelectionModel().addListSelectionListener(event -> getOKAction().setEnabled(myTable.getSelectedRowCount() != 0));
+  }
+
   @NotNull
   Collection<Device> getSelectedDevices() {
+    assert myTable != null;
     return myTable.getSelectedDevices();
   }
 
@@ -74,9 +80,11 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
     return panel;
   }
 
-  @NotNull
   @Override
-  protected Action[] createActions() {
-    return new Action[]{getOKAction()};
+  protected void createDefaultActions() {
+    super.createDefaultActions();
+
+    myOKAction.setEnabled(false);
+    myOKAction.putValue(Action.NAME, "Run");
   }
 }

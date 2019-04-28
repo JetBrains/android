@@ -61,16 +61,16 @@ class PsSigningConfig(
 
   fun ensureDeclared() {
     if (parsedModel == null) {
-      parsedModel = parent.parsedModel!!.android()!!.addSigningConfig(name)
+      parsedModel = parent.parsedModel!!.android().addSigningConfig(name)
       parent.isModified = true
     }
   }
 
   fun rename(newName: String) {
     ensureDeclared()
-    val oldname = name
+    val oldName = name
     parsedModel!!.rename(newName)
-    renamed(oldname, newName)
+    renamed(oldName, newName)
   }
 
   object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {

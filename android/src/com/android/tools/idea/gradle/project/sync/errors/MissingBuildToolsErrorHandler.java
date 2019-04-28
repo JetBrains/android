@@ -22,8 +22,8 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -65,7 +65,7 @@ public class MissingBuildToolsErrorHandler extends BaseSyncErrorHandler {
       if (result != null) {
         currentAGPVersion = result.getPluginVersion();
       }
-      GradleVersion recommendedAGPVersion = tryParseAndroidGradlePluginVersion(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+      GradleVersion recommendedAGPVersion = tryParseAndroidGradlePluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get());
       return getQuickFixHyperlinks(version, currentAGPVersion, recommendedAGPVersion);
     }
     return Collections.emptyList();

@@ -119,8 +119,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
   }
 
   class ReviewReportAction(private val report: AnalyzedHeapReport) :
-    NotificationAction(AndroidBundle.message("heap.dump.analysis.notification.action.title"))
-  {
+    NotificationAction(AndroidBundle.message("heap.dump.analysis.notification.action.title")) {
     private var reportShown = false
 
     override fun actionPerformed(e: AnActionEvent, notification: Notification) {
@@ -189,14 +188,14 @@ class ShowReportDialog(report: AnalyzedHeapReport) : DialogWrapper(false) {
   }
 
   override fun createCenterPanel(): JComponent? {
-    val pane = JPanel(BorderLayout(0,5))
+    val pane = JPanel(BorderLayout(0, 5))
     val productName = ApplicationNamesInfo.getInstance().fullProductName
 
     val header = JLabel(AndroidBundle.message("heap.dump.analysis.report.dialog.header", productName))
 
     pane.add(header, BorderLayout.PAGE_START)
     pane.add(JBScrollPane(textArea), BorderLayout.CENTER)
-    with (SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK)) {
+    with(SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK)) {
       isOpaque = false
       isFocusable = false
       addHyperlinkListener {

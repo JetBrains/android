@@ -19,6 +19,7 @@ import com.android.emulator.SnapshotOuterClass.Snapshot;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
@@ -60,12 +61,21 @@ final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<VirtualD
   private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avdInfo) {
     AndroidDevice device = new LaunchableAndroidDevice(avdInfo);
 
-    return new VirtualDevice.Builder()
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setName(AvdManagerConnection.getAvdDisplayName(avdInfo))
-      .setValid(myChecker == null || !myChecker.validate(device).isCompatible().equals(ThreeState.NO))
       .setKey(avdInfo.getName())
       .setAndroidDevice(device)
-      .setSnapshots(getSnapshots(avdInfo))
+      .setSnapshots(getSnapshots(avdInfo));
+
+    if (myChecker == null) {
+      return builder.build();
+    }
+
+    LaunchCompatibility compatibility = myChecker.validate(device);
+
+    return builder
+      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
+      .setValidityReason(compatibility.getReason())
       .build();
   }
 

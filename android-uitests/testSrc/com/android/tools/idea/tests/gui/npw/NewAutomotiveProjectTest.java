@@ -21,8 +21,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -35,7 +33,6 @@ import org.junit.runner.RunWith;
  * Test that newly created Automotive projects do not have errors in them
  */
 @RunWith(GuiTestRemoteRunner.class)
-@RunIn(TestGroup.UNRELIABLE) // TODO: Remove from unreliable when stable
 public class NewAutomotiveProjectTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

@@ -363,6 +363,22 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     assertNotNull(DecoratorUtilities.getTryingToConnectState(myScene.getSceneComponent("button1").getNlComponent()));
   }
 
+  public void testTooltipWithDeleteHint() {
+    SceneComponent component = myScene.getSceneComponent("button3");
+    component.getTargets().stream().filter(e -> e instanceof AnchorTarget).forEach(target -> {
+      assertInstanceOf(target, ConstraintAnchorTarget.class);
+
+      ConstraintAnchorTarget constraintTarget = (ConstraintAnchorTarget) target;
+      if (constraintTarget.isConnected()) {
+        String toolTip = constraintTarget.getToolTipText();
+
+        // Should match 'Delete ....(ctrl+Click)' or 'Delete ...(unicodeChar+Click)'
+        assertTrue(toolTip.matches("Delete.+[(](\\w+|.)[+]Click[)]"));
+      }
+    });
+
+  }
+
   @Override
   public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())

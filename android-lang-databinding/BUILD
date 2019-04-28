@@ -41,9 +41,10 @@ iml_module(
     name = "intellij.android.lang-databinding.tests",
     iml_files = ["intellij.android.lang-databinding.tests.iml"],
     tags = [
-        "no_test_mac_psq",
+        "no_test_mac",  # b/113099009
+        "no_test_mac_psq",  # b/113099009
         "no_test_windows",
-    ],  # b/113099009
+    ],
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
     test_coverage = True,
     test_data = [
@@ -63,6 +64,7 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "moderate",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
