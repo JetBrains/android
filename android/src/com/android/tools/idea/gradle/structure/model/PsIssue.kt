@@ -22,9 +22,9 @@ import com.intellij.icons.AllIcons.General.BalloonError
 import com.intellij.icons.AllIcons.General.BalloonInformation
 import com.intellij.icons.AllIcons.General.BalloonWarning
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor
 import com.intellij.ui.JBColor.GRAY
 import com.intellij.ui.JBColor.RED
-import com.intellij.ui.JBColor.YELLOW
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.awt.Color
 import java.io.ByteArrayInputStream
@@ -45,7 +45,7 @@ interface PsIssue {
 
   enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
-    WARNING("Warning", "Warnings", BalloonWarning, YELLOW, 1),
+    WARNING("Warning", "Warnings", BalloonWarning, warningColor, 1),
     INFO("Information", "Information", BalloonInformation, GRAY, 3),
     UPDATE("Update", "Updates", Download, GRAY, 2)
   }
@@ -84,3 +84,6 @@ data class PsGeneralIssue(
 
   override fun toString(): String = "${severity.name}: $text"
 }
+
+@Suppress("UnregisteredNamedColor")
+private val warningColor = JBColor.namedColor("NewPSD.warning", JBColor(0xF49810, 0xF49810))
