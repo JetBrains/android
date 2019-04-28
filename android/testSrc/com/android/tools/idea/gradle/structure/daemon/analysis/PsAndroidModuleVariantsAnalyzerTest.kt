@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefa
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.android.moduleWithSyncedModel
 import com.android.tools.idea.gradle.structure.model.android.moduleWithoutSyncedModel
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.structure.model.parents
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
 
@@ -78,6 +80,56 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
       "ERROR: No build type in module '<mainModule> [./Build Variants/Build Types]' " +
       "matches build type '<app/Build Variants/Build Types/newBuildType> [.]'."
     )))
+  }
+
+  fun testReleaseAndDebugBuildTypeMatchesUndeclaredBeforeModelsAreFetched() {
+    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject) // Do NOT resolve models.
+
+    val appModule = moduleWithSyncedModel(project, "app")
+    assumeThat(appModule, notNullValue())
+    assumeThat(appModule.findBuildType("debug"), nullValue())
+    assumeThat(appModule.findBuildType("release"), nullValue())
+
+    val mainModule = moduleWithSyncedModel(project, "mainModule")
+    assumeThat(mainModule, notNullValue())
+    assumeThat(mainModule.findBuildType("debug"), nullValue())
+    assumeThat(mainModule.findBuildType("release"), nullValue())
+
+    val releaseBuildType = appModule.addNewBuildType("release")
+    releaseBuildType.debuggable = false.asParsed()  // Ensure declared.
+    val debugBuildType = appModule.addNewBuildType("debug")
+    debugBuildType.debuggable = true.asParsed()  // Ensure declared.
+
+    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+    assertThat(result, equalTo(listOf()))
+  }
+
+  fun testReleaseAndDebugBuildTypeMatchesUndeclaredAfterModelsAreFetched() {
+    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() } // DO fetch models.
+
+    val appModule = moduleWithSyncedModel(project, "app")
+    assumeThat(appModule, notNullValue())
+    assumeThat(appModule.findBuildType("debug")?.isDeclared, equalTo(false))
+    assumeThat(appModule.findBuildType("release")?.isDeclared, equalTo(false))
+
+    val mainModule = moduleWithSyncedModel(project, "mainModule")
+    assumeThat(mainModule, notNullValue())
+    assumeThat(mainModule.findBuildType("debug")?.isDeclared, equalTo(false))
+    assumeThat(mainModule.findBuildType("release")?.isDeclared, equalTo(false))
+
+    val releaseBuildType = appModule.findBuildType("release")!!
+    releaseBuildType.debuggable = false.asParsed()  // Declare in config.
+    val debugBuildType = appModule.findBuildType("debug")!!
+    debugBuildType.debuggable = true.asParsed()  // Declare in config.
+
+    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+    assertThat(result, equalTo(listOf()))
   }
 
   fun testNoMatchingBuildTypeInTargetButFallback() {
