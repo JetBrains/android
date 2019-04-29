@@ -243,7 +243,6 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    String message = "synced successfully";
     // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
     EventResult result;
     GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
@@ -256,17 +255,16 @@ public class PostSyncProjectSetup {
       result = new FailureResultImpl();
     }
 
-    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, result);
+    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "successful", result);
     ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
   }
 
   public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {
     if (taskId != null) {
-      String message = "sync failed";
       GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
       messages.showEvents(taskId);
       FailureResultImpl failureResult = new FailureResultImpl();
-      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, failureResult);
+      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "failed", failureResult);
       ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
     }
   }
