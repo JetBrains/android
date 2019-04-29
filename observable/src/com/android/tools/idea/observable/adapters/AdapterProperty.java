@@ -16,7 +16,6 @@
 package com.android.tools.idea.observable.adapters;
 
 import com.android.tools.idea.observable.AbstractProperty;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.InvalidationListener;
@@ -40,9 +39,8 @@ import org.jetbrains.annotations.Nullable;
  * @param <D> The destination type we're converting to
  */
 public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implements InvalidationListener {
-
   @NotNull private final AbstractProperty<S> myWrappedProperty;
-  private final BoolProperty myInSync = new BoolValueProperty();
+  @NotNull private final BoolProperty myInSync = new BoolValueProperty();
   @NotNull private D myLastValue;
 
   /**
@@ -63,8 +61,8 @@ public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implemen
     myWrappedProperty.set(convertFromDestType(value));
   }
 
-  @NotNull
   @Override
+  @NotNull
   public final D get() {
     doInitialSync();
     return myLastValue;
