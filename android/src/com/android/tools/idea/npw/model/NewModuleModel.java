@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.model;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -233,6 +234,7 @@ public final class NewModuleModel extends WizardModel {
   private class ModuleTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
     Map<String, Object> myTemplateValues;
 
+    @WorkerThread
     @Override
     public boolean doDryRun() {
       if (myTemplateFile.getValueOrNull() == null) {
@@ -277,6 +279,7 @@ public final class NewModuleModel extends WizardModel {
       return renderModule(true, myTemplateValues, project, myModuleName.get());
     }
 
+    @WorkerThread
     @Override
     public void render() {
       Project project = myProject.getValue();
