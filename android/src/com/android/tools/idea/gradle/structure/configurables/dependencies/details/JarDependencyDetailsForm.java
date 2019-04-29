@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBLabel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import org.jdesktop.swingx.JXLabel;
 
-public class JarDependencyDetailsForm {
+public abstract class JarDependencyDetailsForm {
   protected JPanel myMainPanel;
   protected JXLabel myNameText;
   protected JXLabel myIncludesText;
@@ -29,5 +32,21 @@ public class JarDependencyDetailsForm {
   protected JBLabel myNameLabel;
   protected JBLabel myIncludesLabel;
   protected JBLabel myScopeLabel;
-  protected JTextField myScope;
+  protected JComboBox myScope;
+
+  protected boolean comboMaintenance = false;
+
+  private void createUIComponents() {
+    myScope = new ComboBox<String>();
+    myScope.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!comboMaintenance) {
+          modifyConfiguration();
+        }
+      }
+    });
+  }
+
+  public abstract void modifyConfiguration();
 }

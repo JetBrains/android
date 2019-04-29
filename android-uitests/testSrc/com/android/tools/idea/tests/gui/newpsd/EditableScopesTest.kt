@@ -60,23 +60,59 @@ class EditableScopesTest {
         findModuleSelector().selectModule("mylibrary")
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "compile"))
+
           findDependenciesTable().cell("libs").click()
-          findScopeEditor().run {
-            assertThat(text()).isEqualTo("compile")
-            selectAll()
-            enterText("implementation")
+
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("compile")
+            replaceText("implementation")
             pressAndReleaseKeys(VK_TAB)
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
 
           findDependenciesTable().cell("libs").click()
-          findScopeEditor().run {
-            assertThat(text()).isEqualTo("implementation")
-            selectAll()
-            enterText("api")
-            pressAndReleaseKeys(VK_ENTER)
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("implementation")
+            replaceText("api")
+            pressAndReleaseKeys(VK_ENTER) // activates the dialog
           }
+        }
+      }
+    }
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("mylibrary")
+        findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "api"))
+          findDependenciesTable().cell("libs").click()
+          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("api") }
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun testEditableJarDependencyScopeDropdown() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("mylibrary")
+        findDependenciesPanel().run {
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "compile"))
+          findDependenciesTable().cell("libs").click()
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("compile")
+            selectItem("implementation")
+          }
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
+
+          findDependenciesTable().cell("libs").click()
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("implementation")
+            selectItem("releaseImplementation")
+          }
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "releaseImplementation"))
         }
       }
       clickOk()
@@ -85,9 +121,9 @@ class EditableScopesTest {
       selectDependenciesConfigurable().run {
         findModuleSelector().selectModule("mylibrary")
         findDependenciesPanel().run {
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "api"))
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "releaseImplementation"))
           findDependenciesTable().cell("libs").click()
-          findScopeEditor().run { assertThat(text()).isEqualTo("api") }
+          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("releaseImplementation") }
         }
       }
       clickCancel()
@@ -103,20 +139,54 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
           findDependenciesTable().cell("mylibrary").click()
-          findScopeEditor().run {
-            assertThat(text()).isEqualTo("compile")
-            deleteText()
-            enterText("implementation")
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("compile")
+            replaceText("implementation")
             pressAndReleaseKeys(VK_TAB)
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
 
           findDependenciesTable().cell("mylibrary").click()
-          findScopeEditor().run {
-            assertThat(text()).isEqualTo("implementation")
-            deleteText()
-            enterText("testImplementation")
-            pressAndReleaseKeys(VK_ENTER)
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("implementation")
+            replaceText("testImplementation")
+            pressAndReleaseKeys(VK_ENTER) // activates dialog
+          }
+        }
+      }
+    }
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("app")
+        findDependenciesPanel().run {
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "testImplementation"))
+          findDependenciesTable().cell("mylibrary").click()
+          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("testImplementation") }
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun testEditableModuleDependencyScopeDropdown() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("app")
+        findDependenciesPanel().run {
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
+          findDependenciesTable().cell("mylibrary").click()
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("compile")
+            selectItem("implementation")
+          }
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
+
+          findDependenciesTable().cell("mylibrary").click()
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("implementation")
+            selectItem("testImplementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "testImplementation"))
         }
@@ -129,7 +199,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "testImplementation"))
           findDependenciesTable().cell("mylibrary").click()
-          findScopeEditor().run { assertThat(text()).isEqualTo("testImplementation") }
+          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("testImplementation") }
         }
       }
       clickCancel()
@@ -147,22 +217,57 @@ class EditableScopesTest {
 
           findDependenciesTable().cell("junit:junit:4.11").click()
 
-          findScopeEditor(). run {
-            assertThat(text()).isEqualTo("testCompile")
-            deleteText()
-            enterText("testImplementation")
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("testCompile")
+            replaceText("testImplementation")
             pressAndReleaseKeys(VK_TAB)
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
 
           findDependenciesTable().cell("junit:junit:4.11").click()
-          findScopeEditor().run {
-            assertThat(text()).isEqualTo("testImplementation")
-            deleteText()
-            enterText("implementation")
-            pressAndReleaseKeys(VK_ENTER)
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("testImplementation")
+            replaceText("implementation")
+            pressAndReleaseKeys(VK_ENTER) // activates the dialog
           }
+        }
+      }
+    }
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("mylibrary")
+        findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "implementation"))
+          findDependenciesTable().cell("junit:junit:4.11").click()
+          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun testEditableLibraryDependencyScopeDropdown() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("mylibrary")
+        findDependenciesPanel().run {
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testCompile"))
+
+          findDependenciesTable().cell("junit:junit:4.11").click()
+
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("testCompile")
+            selectItem("testImplementation")
+          }
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
+
+          findDependenciesTable().cell("junit:junit:4.11").click()
+          findScopeCombo().run {
+            assertThat(selectedItem()).isEqualTo("testImplementation")
+            selectItem("implementation")
+          }
         }
       }
       clickOk()
@@ -173,7 +278,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "implementation"))
           findDependenciesTable().cell("junit:junit:4.11").click()
-          findScopeEditor().run { assertThat(text()).isEqualTo("implementation") }
+          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
         }
       }
       clickCancel()

@@ -19,10 +19,12 @@ import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.table.TableView
+import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import java.awt.Container
+import javax.swing.JComboBox
 import javax.swing.JTextField
 
 class DependenciesFixture(
@@ -56,6 +58,25 @@ class DependenciesFixture(
         return this
       }
   }
+
+  fun findScopeCombo(): JComboBoxFixture =
+    object : JComboBoxFixture(robot(), robot().finder().findByName("scope", JComboBox::class.java, true)) {
+      override fun selectAllText(): JComboBoxFixture {
+        super.selectAllText()
+        waitForIdle()
+        return this
+      }
+      override fun replaceText(text: String): JComboBoxFixture {
+        super.replaceText(text)
+        waitForIdle()
+        return this
+      }
+      override fun pressAndReleaseKeys(vararg keyCodes: Int): JComboBoxFixture {
+        super.pressAndReleaseKeys(*keyCodes)
+        waitForIdle()
+        return this
+      }
+    }
 
   fun clickAddLibraryDependency(): AddLibraryDependencyDialogFixture {
     clickToolButton("Add Dependency")
