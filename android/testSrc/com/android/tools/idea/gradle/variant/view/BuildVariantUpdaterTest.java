@@ -144,7 +144,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   // Initial variant/ABI selection:
@@ -193,7 +193,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
 
@@ -243,7 +243,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   public void testUpdateSelectedVariantWithUnchangedVariantName() {
@@ -263,7 +263,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   public void testUpdateSelectedVariantWithChangedBuildFiles() {
@@ -299,7 +299,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   public void testCompoundSyncEnabled() {
@@ -444,7 +444,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   // app module depends on library module.
@@ -538,7 +538,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   // app module depends on library module.
@@ -643,7 +643,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   // app module depends on library module.
@@ -764,7 +764,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   // app module depends on library module.
@@ -888,6 +888,6 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 }

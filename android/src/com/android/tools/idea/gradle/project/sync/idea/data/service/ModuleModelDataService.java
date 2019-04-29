@@ -57,7 +57,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
     catch (Throwable e) {
       getLog().info(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
       String msg = e.getMessage();
-      GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName());
+      GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName(), null);
     }
   }
 

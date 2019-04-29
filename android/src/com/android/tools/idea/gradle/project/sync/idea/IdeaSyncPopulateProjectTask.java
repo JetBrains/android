@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
@@ -66,25 +68,25 @@ public class IdeaSyncPopulateProjectTask {
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
-                              @Nullable Runnable syncFinishedCallback) {
-    doPopulateProject(projectInfo, taskId, setupRequest, syncFinishedCallback);
+                              @Nullable GradleSyncListener syncListener) {
+    doPopulateProject(projectInfo, taskId, setupRequest, syncListener);
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
                                  @NotNull ExternalSystemTaskId taskId,
                                  @Nullable PostSyncProjectSetup.Request setupRequest,
-                                 @Nullable Runnable syncFinishedCallback) {
+                                 @Nullable GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(projectInfo, taskId, new EmptyProgressIndicator(), setupRequest, syncFinishedCallback);
+      populate(projectInfo, taskId, new EmptyProgressIndicator(), setupRequest, syncListener);
       return;
     }
 
     Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        populate(projectInfo, taskId, indicator, setupRequest, syncFinishedCallback);
+        populate(projectInfo, taskId, indicator, setupRequest, syncListener);
       }
     };
     task.queue();
@@ -94,18 +96,18 @@ public class IdeaSyncPopulateProjectTask {
                         @NotNull ExternalSystemTaskId taskId,
                         @NotNull ProgressIndicator indicator,
                         @Nullable PostSyncProjectSetup.Request setupRequest,
-                        @Nullable Runnable syncFinishedCallback) {
-    doPopulateProject(projectInfo, myProject, setupRequest);
-    if (syncFinishedCallback != null) {
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        syncFinishedCallback.run();
+                        @Nullable GradleSyncListener gradleSyncListener) {
+    doPopulateProject(projectInfo, myProject, setupRequest, gradleSyncListener);
+    if (gradleSyncListener != null) {
+      if (setupRequest != null && setupRequest.usingCachedGradleModels) {
+        gradleSyncListener.syncSkipped(myProject);
       }
       else {
-        TransactionGuard.getInstance().submitTransactionLater(myProject, syncFinishedCallback);
+        gradleSyncListener.syncSucceeded(myProject);
       }
     }
     if (setupRequest != null) {
-      PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator, taskId);
+      PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator, taskId, gradleSyncListener);
     }
   }
 
@@ -116,7 +118,8 @@ public class IdeaSyncPopulateProjectTask {
   @VisibleForTesting
   void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
                          @NotNull Project project,
-                         @Nullable PostSyncProjectSetup.Request setupRequest) {
+                         @Nullable PostSyncProjectSetup.Request setupRequest,
+                         @Nullable GradleSyncListener listener) {
     try {
       myDataManager.importData(projectInfo, project, true /* synchronous */);
     }
@@ -134,7 +137,7 @@ public class IdeaSyncPopulateProjectTask {
       }
 
       // Notify sync failed, so the "Sync" action is enabled again.
-      mySyncState.syncFailed(message);
+      mySyncState.syncFailed(message, listener);
     }
   }
 }
