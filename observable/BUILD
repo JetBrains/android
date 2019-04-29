@@ -30,5 +30,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
     ],
 )
