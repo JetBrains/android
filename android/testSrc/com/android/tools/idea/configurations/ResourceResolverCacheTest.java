@@ -17,13 +17,11 @@ package com.android.tools.idea.configurations;
 
 import static com.android.tools.idea.res.ResourcesTestsUtil.checkIfScanPending;
 
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.resources.aar.FrameworkResourceRepository;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -95,10 +93,6 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
 
     ResourceResolverCache cache = configuration1.getConfigurationManager().getResolverCache();
     assertSame(cache, configuration2.getConfigurationManager().getResolverCache());
-
-    ResourceRepository frameworkResources =
-        cache.getFrameworkResources(configuration1.getFullConfig(), configuration1.getTarget());
-    assertFalse(((FrameworkResourceRepository)frameworkResources).isWithLocaleResources());
   }
 
   public void testCustomConfiguration() {
