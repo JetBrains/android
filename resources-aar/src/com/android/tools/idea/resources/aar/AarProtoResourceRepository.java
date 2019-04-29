@@ -16,6 +16,7 @@
 package com.android.tools.idea.resources.aar;
 
 import static com.android.SdkConstants.DOT_XML;
+import static com.android.utils.DecimalUtils.trimInsignificantZeros;
 
 import com.android.aapt.ConfigurationOuterClass.Configuration;
 import com.android.aapt.Resources;
@@ -36,7 +37,6 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.SdkUtils;
-import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
@@ -648,7 +648,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
           return "";
 
         case FLOAT_VALUE:
-          return XmlUtils.trimInsignificantZeros(Float.toString(primitiveMsg.getFloatValue()));
+          return trimInsignificantZeros(Float.toString(primitiveMsg.getFloatValue()));
 
         case DIMENSION_VALUE:
           return decodeComplexDimensionValue(primitiveMsg.getDimensionValue(), 1., DIMEN_SUFFIXES);
@@ -703,7 +703,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       int radix = (bits >> COMPLEX_RADIX_SHIFT) & COMPLEX_RADIX_MASK;
       int mantissa = bits >> COMPLEX_MANTISSA_SHIFT;
       double value = mantissa * RADIX_FACTORS[radix] * scaleFactor;
-      return XmlUtils.trimInsignificantZeros(String.format(Locale.US, "%.5g", value)) + unit;
+      return trimInsignificantZeros(String.format(Locale.US, "%.5g", value)) + unit;
     }
 
     @NotNull

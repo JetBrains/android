@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resources.aar;
 
+import static com.android.utils.DecimalUtils.trimInsignificantZeros;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
@@ -39,7 +40,6 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.testutils.TestUtils;
-import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
 import java.net.URI;
 import java.nio.file.Files;
@@ -175,13 +175,17 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         if (actualItem != null && actualItem.getType() == ResourceType.ID &&
             ITEM_COMPARATOR.compare(actualItem, expectedItem) < 0) {
           // AarSourceResourceRepository does not create ID resources for enum and flag values of attr resources but AAPT2 does.
+          //noinspection AssignmentToForLoopParameter
           i--; // Skip the ID resource.
         } else if (actualItem != null && actualItem.getName().startsWith("$")) {
+          //noinspection AssignmentToForLoopParameter
           i--; // Ignore the resource corresponding to the extracted aapt tag.
         } else if (expectedItem != null && isEmptyAttr(expectedItem)) {
+          //noinspection AssignmentToForLoopParameter
           j--; // Ignore empty attr definitions since they are not produced by AAPT2.
         } else if (expectedItem != null &&
                    findEquivalentResourceInMatchingConfiguration(expectedItem, actualItems, j - 1, enumMap) != null) {
+          //noinspection AssignmentToForLoopParameter
           j--;  // AAPT2 may eliminate redundant resource definitions for matching configurations.
         } else {
           if (expectedItem == null) {
@@ -199,6 +203,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
           FolderConfiguration config = FolderConfiguration.copyOf(previousConfiguration);
           config.setScreenSizeQualifier(expectedQualifier);
           TestCase.assertEquals("Different FolderConfiguration at position " + i, expectedConfiguration, config);
+          //noinspection AssignmentToForLoopParameter
           j--;
         }
       } else {
@@ -561,7 +566,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (!matcher.matches()) {
       return value;
     }
-    String number = XmlUtils.trimInsignificantZeros(matcher.group("number"));
+    String number = trimInsignificantZeros(matcher.group("number"));
     String suffix = matcher.group("suffix");
     if (suffix.equals("dip")) {
       suffix = "dp";
@@ -575,7 +580,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (!matcher.matches()) {
       return value;
     }
-    return XmlUtils.trimInsignificantZeros(value);
+    return trimInsignificantZeros(value);
   }
 
   private static boolean areEquivalentValues(@NotNull String v1, @NotNull String v2) {
