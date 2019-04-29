@@ -189,25 +189,15 @@ public class GradleSyncState {
   }
 
   /**
-   * Notification that a sync has started. It is considered "skipped" because, instead of obtaining the project models from Gradle, "sync"
-   * uses the models cached in disk.
-   *
-   * @param notifyUser indicates whether the user should be notified.
-   * @param request    the request which initiated the sync.
-   * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
-   * current request cannot continue because there is already one in progress.
-   */
-  public boolean skippedSyncStarted(boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
-    return syncStarted(true, notifyUser, request);
-  }
-
-  /**
    * Notification that a sync has been requested.
    *
    * @param request Sync request
    * @return None
    */
-  public void syncTaskCreated(@NotNull GradleSyncInvoker.Request request) {
+  public void syncTaskCreated(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener syncListener) {
+    if (syncListener != null) {
+      syncListener.syncTaskCreated(myProject, request);
+    }
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncTaskCreated(myProject, request));
   }
 
@@ -216,20 +206,17 @@ public class GradleSyncState {
    *
    * @param notifyUser indicates whether the user should be notified.
    * @param request    the request which initiated the sync.
+   * @param syncListener the listener for this particular sync that should be notified.
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean syncStarted(boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
-    return syncStarted(false, notifyUser, request);
-  }
-
-  private boolean syncStarted(boolean syncSkipped, boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
+  public boolean syncStarted(boolean notifyUser, @NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener syncListener) {
     synchronized (myLock) {
       if (mySyncInProgress) {
         LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
         return false;
       }
-      mySyncSkipped = syncSkipped;
+      mySyncSkipped = request.useCachedGradleModels;
       mySyncInProgress = true;
     }
 
@@ -250,8 +237,15 @@ public class GradleSyncState {
     }
 
     mySummary.reset();
+
+    // Ensure that we don't notify the listeners until all the housekeeping has been performed in case they need to read
+    // state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
+    // listeners.
+    if (syncListener != null) {
+      syncListener.syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess);
+    }
     syncPublisher(
-      () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
+      () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess));
 
     logSyncEvent(GRADLE_SYNC_STARTED);
     return true;
@@ -292,7 +286,7 @@ public class GradleSyncState {
     mySyncFailedTimeStamp = timeStampMs;
   }
 
-  public void syncSkipped(long lastSyncTimestamp) {
+  public void syncSkipped(long lastSyncTimestamp, @Nullable GradleSyncListener syncListener) {
     long syncEndTimestamp = System.currentTimeMillis();
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s (from cached state)", getFormattedSyncDuration(syncEndTimestamp));
@@ -301,6 +295,13 @@ public class GradleSyncState {
 
     stopSyncInProgress();
     mySummary.setSyncTimestamp(lastSyncTimestamp);
+
+    // Ensure that we don't notify the listeners until all the housekeeping has been performed in case they need to read
+    // state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
+    // listeners.
+    if (syncListener != null) {
+      syncListener.syncSkipped(myProject);
+    }
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
     enableNotifications();
@@ -309,7 +310,7 @@ public class GradleSyncState {
   }
 
   public void invalidateLastSync(@NotNull String error) {
-    syncFailed(error);
+    syncFailed(error, null);
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -318,7 +319,13 @@ public class GradleSyncState {
     }
   }
 
-  public void syncFailed(@NotNull String message) {
+  /**
+   * Notification that a sync has started.
+   *
+   * @param message the failure message for this sync.
+   * @param syncListener the listener for this particular sync that should be notified.
+   */
+  public void syncFailed(@NotNull String message, @Nullable GradleSyncListener syncListener) {
     myProjectStructure.clearData();
     long syncEndTimestamp = System.currentTimeMillis();
     // If mySyncStartedTimestamp is -1, that means sync has not started or syncFailed has been called for this invocation.
@@ -339,6 +346,13 @@ public class GradleSyncState {
     logSyncEvent(GRADLE_SYNC_FAILURE);
 
     syncFinished(syncEndTimestamp);
+
+    // Ensure that we don't notify the listeners until all the housekeeping has been performed in case they need to read
+    // state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
+    // listeners.
+    if (syncListener != null) {
+      syncListener.syncFailed(myProject, message);
+    }
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
     mySummary.setSyncErrorsFound(true);

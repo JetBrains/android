@@ -103,16 +103,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
     IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-    task.populateProject(projectInfo, taskId, mySetupRequest, () -> {
-      if (mySyncListener != null) {
-        if (mySyncSkipped) {
-          mySyncListener.syncSkipped(myProject);
-        }
-        else {
-          mySyncListener.syncSucceeded(myProject);
-        }
-      }
-    });
+    task.populateProject(projectInfo, taskId, mySetupRequest, mySyncListener);
   }
 
   @Override
@@ -148,11 +139,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
     // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
     ProjectBuildFileChecksums.removeFrom(myProject);
-    GradleSyncState.getInstance(myProject).syncFailed(newMessage);
-
-    if (mySyncListener != null) {
-      mySyncListener.syncFailed(myProject, newMessage);
-    }
+    GradleSyncState.getInstance(myProject).syncFailed(newMessage, mySyncListener);
   }
 
   @NotNull

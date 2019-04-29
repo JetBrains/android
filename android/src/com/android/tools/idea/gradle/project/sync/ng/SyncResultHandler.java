@@ -160,7 +160,8 @@ class SyncResultHandler {
           syncListener.syncSucceeded(myProject);
         }
 
-        runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+        runWhenProjectInitializedOnPooledThreadIfNotUnderTest(
+          () -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId, syncListener));
       }
       catch (Throwable e) {
         notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -190,7 +191,8 @@ class SyncResultHandler {
       syncListener.syncSkipped(myProject);
     }
 
-    runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+    runWhenProjectInitializedOnPooledThreadIfNotUnderTest(
+      () -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId, syncListener));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -211,10 +213,7 @@ class SyncResultHandler {
       System.out.println("***** sync error: " + error.getMessage());
     }
 
-    if (syncListener != null) {
-      syncListener.syncFailed(myProject, errorMessage);
-    }
-    mySyncState.syncFailed(errorMessage);
+    mySyncState.syncFailed(errorMessage, syncListener);
     if (error != null) {
       getLog().warn("Gradle sync failed", error);
     }

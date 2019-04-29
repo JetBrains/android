@@ -70,7 +70,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     myResultHandler.onSyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
 
     verify(mySyncState).setupStarted();
-    verify(mySyncState, never()).syncFailed(any());
+    verify(mySyncState, never()).syncFailed(any(), eq(mySyncListener));
 
     verify(projectSetup).setUpProject(same(models), any());
     verify(projectSetup).commit();
@@ -79,23 +79,18 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   public void testOnSyncFailed() {
-    Project project = getProject();
-
     Throwable error = new Throwable("Test error");
     when(mySyncCallback.getSyncError()).thenReturn(error);
 
     myResultHandler.onSyncFailed(mySyncCallback, mySyncListener);
 
-    verify(mySyncState).syncFailed("Test error");
+    verify(mySyncState).syncFailed("Test error", mySyncListener);
     verify(mySyncState, never()).setupStarted();
-
-    verify(mySyncListener, never()).setupStarted(project);
-    verify(mySyncListener, never()).syncSucceeded(project);
-    verify(mySyncListener).syncFailed(project, "Test error");
+    verify(mySyncState, never()).syncEnded();
   }
 
   public void testOnVariantOnlySyncFinished() {
@@ -111,7 +106,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     myResultHandler.onVariantOnlySyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
 
     verify(mySyncState).setupStarted();
-    verify(mySyncState, never()).syncFailed(any());
+    verify(mySyncState, never()).syncFailed(any(), eq(mySyncListener));
 
     verify(projectSetup).setUpProject(same(models), any());
     verify(projectSetup).commit();
@@ -120,7 +115,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any(), any());
   }
 
   public void testOnCompoundSyncModelsForOldPlugin() {
