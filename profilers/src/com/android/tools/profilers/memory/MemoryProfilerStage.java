@@ -166,7 +166,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
-
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
     mySelection = new MemoryProfilerSelection(this);
