@@ -70,7 +70,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
-            line="213"/>
+            line="214"/>
     </issue>
 
     <issue
@@ -306,11 +306,139 @@
     </issue>
 
     <issue
-        id="CommonForkJoinPool"
-        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
+        id="ImplicitExecutor"
+        message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
+            line="93"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/actions/AndroidInferNullityAnnotationAction.java"
+            line="245"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/lint/AndroidLintExifInterfaceInspection.java"
+            line="127"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ddms/actions/CachedFeatures.java"
+            line="68"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/run/editor/DeployTargetPickerDialog.java"
+            line="210"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `call` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ddms/DeviceNamePropertiesFetcher.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `thenApplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/DrawableIconProvider.kt"
+            line="161"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `catching` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/configurables/ui/FutureUtils.kt"
+            line="40"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ddms/actions/GetAdbAction.java"
+            line="56"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/actions/annotations/InferSupportAnnotationsAction.java"
+            line="337"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/actions/license/LicenseTextCollector.java"
+            line="39"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ProjectResourcesBrowserViewModel.kt"
+            line="157"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"
+            line="128"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"
+            line="137"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/plugin/RasterAssetRenderer.kt"
+            line="33"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="667"/>
+            line="666"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/plugin/SVGAssetRenderer.kt"
+            line="43"/>
     </issue>
 
     <issue
@@ -326,7 +454,7 @@
         message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/run/deployment/ConnectedDevicesWorkerDelegate.java"
-            line="39"/>
+            line="40"/>
     </issue>
 
     <issue
@@ -334,7 +462,7 @@
         message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/run/deployment/VirtualDevicesWorkerDelegate.java"
-            line="43"/>
+            line="44"/>
     </issue>
 
     <issue
