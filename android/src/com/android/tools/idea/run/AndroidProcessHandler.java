@@ -410,7 +410,7 @@ public class AndroidProcessHandler extends ProcessHandler
     }
 
     IDevice targetIDevice = ((AndroidExecutionTarget)activeTarget).getIDevice();
-    return myDeviceProcessMap.containsKey(targetIDevice);
+    return targetIDevice != null && myDeviceProcessMap.containsKey(targetIDevice);
   }
 
   @Override
