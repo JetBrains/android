@@ -19,22 +19,21 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.Headers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(JUnit4.class)
 public class StudioDownloaderTest {
@@ -75,7 +74,7 @@ public class StudioDownloaderTest {
         response.append("\n");
       }
       ex.sendResponseHeaders(200, 0);
-      ex.getResponseBody().write(response.toString().getBytes(StandardCharsets.UTF_8));
+      ex.getResponseBody().write(response.toString().getBytes());
       ex.close();
     });
   }

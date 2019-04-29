@@ -40,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -187,8 +186,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
       }
 
       try {
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(source.getText().getBytes(Charsets.UTF_8)),
-                                                        StandardCharsets.UTF_8);
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(source.getText().getBytes(Charsets.UTF_8)));
         SampleDataJsonParser parser = SampleDataJsonParser.parse(input);
         if (parser != null) {
           output.write(parser.getContentFromPath(contentPath));

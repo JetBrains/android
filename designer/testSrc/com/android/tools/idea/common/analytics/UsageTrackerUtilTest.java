@@ -40,16 +40,15 @@ package com.android.tools.idea.common.analytics;
  import org.jetbrains.android.dom.attrs.AttributeDefinition;
  import org.jetbrains.android.dom.attrs.AttributeDefinitions;
  import org.jetbrains.android.dom.attrs.StyleableDefinition;
- import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+ import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  import org.picocontainer.MutablePicoContainer;
 
  import java.io.InputStreamReader;
  import java.io.Reader;
- import java.nio.charset.StandardCharsets;
  import java.util.Collections;
  import java.util.HashMap;
  import java.util.Map;
@@ -61,6 +60,9 @@ package com.android.tools.idea.common.analytics;
  import static com.google.common.truth.Truth.assertThat;
  import static com.google.wireless.android.sdk.stats.AndroidAttribute.AttributeNamespace.*;
  import static com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewOption.*;
+ import static org.mockito.ArgumentMatchers.any;
+ import static org.mockito.ArgumentMatchers.isNotNull;
+ import static org.mockito.ArgumentMatchers.notNull;
  import static org.mockito.Mockito.mock;
  import static org.mockito.Mockito.when;
 
@@ -314,8 +316,7 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
 
   private static Palette getPalette() throws Exception {
     Project project = mock(Project.class);
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()),
-                                               StandardCharsets.UTF_8)) {
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }
   }

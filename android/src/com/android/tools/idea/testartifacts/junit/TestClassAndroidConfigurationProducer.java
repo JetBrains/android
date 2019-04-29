@@ -48,7 +48,7 @@ final class TestClassAndroidConfigurationProducer extends AbstractInClassConfigu
   }
 
   @Override
-  public boolean isConfigurationFromContext(@NotNull JUnitConfiguration unitConfiguration, @NotNull ConfigurationContext context) {
+  public boolean isConfigurationFromContext(JUnitConfiguration unitConfiguration, ConfigurationContext context) {
     return isFromContext(unitConfiguration, context, getConfigurationFactory());
   }
 }

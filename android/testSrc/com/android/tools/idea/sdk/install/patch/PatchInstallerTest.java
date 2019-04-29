@@ -29,7 +29,6 @@ import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Tests for {@link PatchInstallerFactory}.
@@ -110,7 +109,7 @@ public class PatchInstallerTest extends TestCase {
 
   private static RemotePackage getRemotePackage(@NotNull RepoManager repoManager, @NotNull ProgressIndicator progress)
     throws JAXBException {
-    InputStream remoteInput = new ByteArrayInputStream(REMOTE.getBytes(StandardCharsets.UTF_8));
+    InputStream remoteInput = new ByteArrayInputStream(REMOTE.getBytes());
     ImmutableList<SchemaModule<?>> modules = ImmutableList.of(RepoManager.getGenericModule());
     Repository r = (Repository)SchemaModuleUtil
       .unmarshal(remoteInput, modules, repoManager.getResourceResolver(progress), true, progress);

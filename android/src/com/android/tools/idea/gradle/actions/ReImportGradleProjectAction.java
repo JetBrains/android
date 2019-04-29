@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
+
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
@@ -22,15 +25,11 @@ import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.PathUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
+import org.jetbrains.annotations.NotNull;
 
 public class ReImportGradleProjectAction extends AndroidStudioGradleAction {
   private static final String DEFAULT_TITLE = "Re-Import Gradle Project";
@@ -79,7 +78,7 @@ public class ReImportGradleProjectAction extends AndroidStudioGradleAction {
   private static File close(@NotNull Project project) {
     String projectName = project.getName();
     File projectDirPath = getBaseDirPath(project);
-    ProjectManagerEx.getInstanceEx().closeAndDispose(project);
+    closeAndDispose(project);
     RecentProjectsManager.getInstance().removePath(PathUtil.toSystemIndependentName(projectDirPath.getPath()));
     WelcomeFrame.showIfNoProjectOpened();
     LOG.info(String.format("Closed project '%1$s'.", projectName));

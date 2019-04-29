@@ -63,9 +63,9 @@ final class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPro
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(@NotNull JUnitConfiguration configuration,
-                                                  @NotNull ConfigurationContext context,
-                                                  @NotNull Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(JUnitConfiguration configuration,
+                                                  ConfigurationContext context,
+                                                  Ref<PsiElement> sourceElement) {
     if (RunConfigurationProducer.getInstance(PatternConfigurationProducer.class).isMultipleElementsSelected(context)) {
       return false;
     }
@@ -116,7 +116,7 @@ final class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPro
   }
 
   @Override
-  public boolean isConfigurationFromContext(@NotNull JUnitConfiguration unitConfiguration, @NotNull ConfigurationContext context) {
+  public boolean isConfigurationFromContext(JUnitConfiguration unitConfiguration, ConfigurationContext context) {
     return isFromContext(unitConfiguration, context, getConfigurationFactory());
   }
 }
