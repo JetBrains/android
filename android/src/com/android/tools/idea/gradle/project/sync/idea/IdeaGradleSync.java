@@ -144,10 +144,7 @@ public class IdeaGradleSync implements GradleSync {
     }
 
     if (androidProjectCandidatesPaths.isEmpty()) {
-      if (listener != null) {
-        listener.syncSkipped(myProject);
-      }
-      GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis());
+      GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);
       return;
     }
 

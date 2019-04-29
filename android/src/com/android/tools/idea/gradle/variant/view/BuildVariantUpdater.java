@@ -560,7 +560,7 @@ public class BuildVariantUpdater {
         PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
         setupRequest.generateSourcesAfterSync = false;
         setupRequest.cleanProjectAfterSync = false;
-        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, indicator, null);
+        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, indicator, null, null);
       }
 
       private void commitChanges(@NotNull Project project,
