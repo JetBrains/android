@@ -28,7 +28,7 @@ public interface RoomInsertStatement extends PsiElement {
   RoomInsertColumns getInsertColumns();
 
   @Nullable
-  RoomSelectCoreValues getSelectCoreValues();
+  RoomSelectStatement getSelectStatement();
 
   @NotNull
   RoomSingleTableStatementTable getSingleTableStatementTable();

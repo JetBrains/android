@@ -27,7 +27,7 @@ public interface RoomWithClauseSelectStatement extends HasWithClause {
   @NotNull
   RoomSelectStatement getSelectStatement();
 
-  @Nullable
+  @NotNull
   RoomWithClause getWithClause();
 
 }
