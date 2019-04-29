@@ -72,8 +72,8 @@ public class ActivityComponent extends AnimatedComponent {
   }
 
   private void renderActivity() {
-    double min = myActivityModel.getRangedSeries().getXRange().getMin();
-    double max = myActivityModel.getRangedSeries().getXRange().getMax();
+    double viewMin = myActivityModel.getRangedSeries().getXRange().getMin();
+    double viewMax = myActivityModel.getRangedSeries().getXRange().getMax();
 
     // A map of EventAction started events to their start time, so we can correlate these to
     // EventAction competed events with the EventAction start events. This is done this way as
@@ -88,11 +88,16 @@ public class ActivityComponent extends AnimatedComponent {
     // cache off a path to draw.
     for (SeriesData<EventAction<LifecycleEvent>> seriesData : myActivityModel.getRangedSeries().getSeries()) {
       LifecycleAction data = (LifecycleAction)seriesData.value;
+
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
       // width of our chart.
-      double endTime = data.getEndUs() == 0 ? max : data.getEndUs();
-      double normalizedEndPosition = ((endTime - min) / (max - min));
-      double normalizedStartPosition = ((data.getStartUs() - min) / (max - min));
+      double endTime = data.getEndUs() == 0 ? viewMax : data.getEndUs();
+      double normalizedEndPosition = ((endTime - viewMin) / (viewMax - viewMin));
+
+      // We want to start drawing from the beginning of the event or the beginning of a new data stream
+      // TODO(b/122964201) Modify the data provider to provide the correct range instead of clamping
+      double dataClampedStartUs = Math.max(data.getStartUs(), myActivityModel.getRangedSeries().getIntersection().getMin());
+      double normalizedStartPosition = ((dataClampedStartUs - viewMin) / (viewMax - viewMin));
       if (normalizedStartPosition < 0) {
         normalizedStartPosition = 0;
       }
@@ -118,11 +123,14 @@ public class ActivityComponent extends AnimatedComponent {
     myFragmentPositions.clear();
     for (SeriesData<EventAction<LifecycleEvent>> seriesData : myFragmentModel.getRangedSeries().getSeries()) {
       LifecycleAction data = (LifecycleAction)seriesData.value;
-      if (data.getEndUs() >= min && data.getEndUs() < max) {
-        myFragmentPositions.add((data.getEndUs() - min) / (max - min));
+      if (data.getEndUs() >= viewMin && data.getEndUs() < viewMax) {
+        // TODO(b/122964201) Modify the data provider to provide the correct range instead of clamping
+        double dataClampedEndUs = Math.max(data.getEndUs(), viewMin);
+        myFragmentPositions.add((dataClampedEndUs - viewMin) / (viewMax - viewMin));
       }
-      if (data.getStartUs() >= min && data.getStartUs() < max) {
-        myFragmentPositions.add((data.getStartUs() - min) / (max - min));
+      if (data.getStartUs() >= viewMin && data.getStartUs() < viewMax) {
+        double dataClampedStartUs = Math.max(data.getStartUs(), viewMin);
+        myFragmentPositions.add((dataClampedStartUs - viewMin) / (viewMax - viewMin));
       }
     }
   }
@@ -141,8 +149,8 @@ public class ActivityComponent extends AnimatedComponent {
   private void drawActivity(Graphics2D g2d, Dimension dim) {
     int scaleFactor = dim.width;
     AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
-    double min = myActivityModel.getRangedSeries().getXRange().getMin();
-    double max = myActivityModel.getRangedSeries().getXRange().getMax();
+    double viewMin = myActivityModel.getRangedSeries().getXRange().getMin();
+    double viewMax = myActivityModel.getRangedSeries().getXRange().getMax();
     FontMetrics metrics = g2d.getFontMetrics();
     Object previousHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -159,13 +167,16 @@ public class ActivityComponent extends AnimatedComponent {
       if (event.getType() != LifecycleEvent.NONE) {
         text = ((LifecycleAction)event).getName();
       }
-      double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
+
+      // We want to start drawing from the beginning of the event or the beginning of a new data stream
+      double dataClampedStartUs = Math.max(event.getStartUs(), myActivityModel.getRangedSeries().getIntersection().getMin());
+      double normalizedStartPosition = (dataClampedStartUs - viewMin) / (viewMax - viewMin);
       double lifetime = event.getEndUs();
       if (event.getEndUs() == 0) {
-        lifetime = max;
+        lifetime = viewMax;
       }
-      double normalizedEndPosition = (lifetime - min)
-                                     / (max - min);
+      double normalizedEndPosition = (lifetime - viewMin)
+                                     / (viewMax - viewMin);
       float startPosition = (float)normalizedStartPosition * scaleFactor;
       float endPosition = (float)normalizedEndPosition * scaleFactor;
 

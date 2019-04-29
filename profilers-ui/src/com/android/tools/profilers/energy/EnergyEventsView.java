@@ -356,6 +356,7 @@ public final class EnergyEventsView {
           event = nextEvent;
         }
 
+        // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
         EventModel<Common.Event> eventModel = new EventModel<>(new RangedSeries<>(getTimeline().getSelectionRange(), series));
         Color highlightColor = EnergyEventStateChart.DURATION_STATE_ENUM_COLORS.getColor(duration.getKind());
         EnergyEventComponent component = new EnergyEventComponent(eventModel, highlightColor);

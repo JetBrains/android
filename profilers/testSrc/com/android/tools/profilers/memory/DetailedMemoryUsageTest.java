@@ -69,6 +69,7 @@ public class DetailedMemoryUsageTest {
                                          .setStackMem(i * 10 + 5)
                                          .setOthersMem(i * 10 + 6).build()).build());
     }
+    myProfilers.getTimeline().getDataRange().set(0, TimeUnit.SECONDS.toMicros(100));
   }
 
   @Test
