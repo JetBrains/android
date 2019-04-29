@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -175,7 +176,10 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   @Slow
-  public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator, @Nullable ExternalSystemTaskId taskId) {
+  public void setUpProject(@NotNull Request request,
+                           @NotNull ProgressIndicator progressIndicator,
+                           @Nullable ExternalSystemTaskId taskId,
+                           @Nullable GradleSyncListener syncListener) {
     try {
       if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
         removeSyncContextDataFrom(myProject);
@@ -208,7 +212,7 @@ public class PostSyncProjectSetup {
         myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
         // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
         // previous sync, and not the one from the sync that just ended.
-        mySyncState.syncFailed("");
+        mySyncState.syncFailed("", syncListener);
         finishFailedSync(taskId, myProject);
         return;
       }
@@ -271,7 +275,7 @@ public class PostSyncProjectSetup {
       setSingleVariantSyncState(myProject);
     }
     catch (Throwable t) {
-      mySyncState.syncFailed("setup project failed: " + t.getMessage());
+      mySyncState.syncFailed("setup project failed: " + t.getMessage(), syncListener);
       finishFailedSync(taskId, myProject);
       getLog().error(t);
     }
@@ -283,7 +287,6 @@ public class PostSyncProjectSetup {
       @Override
       public void execute() {
         if (myProject.isOpen()) {
-          //noinspection TestOnlyProblems
           LanguageLevel langLevel = getMaxJavaLanguageLevel(myProject);
           if (langLevel != null) {
             LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(myProject);
@@ -361,7 +364,7 @@ public class PostSyncProjectSetup {
     if (syncTimestamp < 0) {
       syncTimestamp = currentTimeMillis();
     }
-    mySyncState.syncSkipped(syncTimestamp);
+    mySyncState.syncSkipped(syncTimestamp, null);
     // TODO add a new trigger for this?
     mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
@@ -391,12 +394,12 @@ public class PostSyncProjectSetup {
     // previous sync, and not the one from the sync that just ended.
     if (request.usingCachedGradleModels) {
       long timestamp = currentTimeMillis();
-      mySyncState.syncSkipped(timestamp);
+      mySyncState.syncSkipped(timestamp, null);
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {
       if (mySyncState.lastSyncFailedOrHasIssues()) {
-        mySyncState.syncFailed("");
+        mySyncState.syncFailed("", null);
       }
       else {
         mySyncState.syncEnded();
@@ -452,7 +455,7 @@ public class PostSyncProjectSetup {
       // Fix existing JUnit Configurations.
       for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
         // Keep the previous configurations in existing run configurations
-        runManager.setBeforeRunTasks(runConfiguration, currentTasks.get(runConfiguration), false);
+        runManager.setBeforeRunTasks(runConfiguration, currentTasks.get(runConfiguration));
       }
     }
   }
