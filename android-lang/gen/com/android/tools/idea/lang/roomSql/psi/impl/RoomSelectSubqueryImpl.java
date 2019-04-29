@@ -46,6 +46,12 @@ public class RoomSelectSubqueryImpl extends ASTWrapperPsiElement implements Room
 
   @Override
   @Nullable
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
+  }
+
+  @Override
+  @Nullable
   public RoomTableAliasName getTableAliasName() {
     return findChildByClass(RoomTableAliasName.class);
   }

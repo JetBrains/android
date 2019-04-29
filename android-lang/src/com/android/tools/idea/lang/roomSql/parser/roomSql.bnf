@@ -139,12 +139,12 @@ with_clause_statement ::= with_clause (delete_statement | insert_statement | upd
   implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
 }
 
-with_clause_select_statement ::= with_clause? select_statement {
+with_clause_select_statement ::= with_clause select_statement {
   implements="com.android.tools.idea.lang.roomSql.psi.HasWithClause"
 }
 
 // Variant of with_clause_select_statement that is inside parens and consumes all input until the matching paren.
-private subquery_greedy ::= with_clause_select_statement {
+private subquery_greedy ::= select_statement | with_clause_select_statement {
   recoverWhile=subquery_recover
 }
 
@@ -211,7 +211,7 @@ collation_name ::= name
 create_table_statement ::=
   CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
   ( database_name '.' )? table_definition_name
-  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement )
+  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS (select_statement | with_clause_select_statement) )
 
 column_definition ::= column_definition_name ( type_name )? ( column_constraint )*
 
@@ -254,7 +254,7 @@ trigger_name ::= name
 
 create_view_statement ::=
   CREATE ( TEMP | TEMPORARY )? VIEW ( IF NOT EXISTS )?
-  ( database_name '.' )? view_name AS with_clause_select_statement
+  ( database_name '.' )? view_name AS (select_statement | with_clause_select_statement)
 
 view_name ::= name
 
@@ -403,7 +403,7 @@ private literal_value ::=
 insert_statement ::=
   ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
   single_table_statement_table insert_columns?
-  ( select_core_values | with_clause_select_statement | DEFAULT VALUES )
+  ( select_statement | with_clause_select_statement | DEFAULT VALUES )
 
 insert_columns ::= '(' column_name ( ',' column_name )* ')'
 

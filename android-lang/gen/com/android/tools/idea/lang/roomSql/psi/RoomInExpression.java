@@ -34,6 +34,9 @@ public interface RoomInExpression extends RoomExpression {
   List<RoomExpression> getExpressionList();
 
   @Nullable
+  RoomSelectStatement getSelectStatement();
+
+  @Nullable
   RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
 }

@@ -62,6 +62,12 @@ public class RoomInExpressionImpl extends RoomExpressionImpl implements RoomInEx
 
   @Override
   @Nullable
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
+  }
+
+  @Override
+  @Nullable
   public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
     return findChildByClass(RoomWithClauseSelectStatement.class);
   }

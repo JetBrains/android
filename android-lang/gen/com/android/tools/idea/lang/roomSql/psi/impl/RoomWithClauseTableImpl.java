@@ -46,6 +46,12 @@ public class RoomWithClauseTableImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
+  }
+
+  @Override
+  @Nullable
   public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
     return findChildByClass(RoomWithClauseSelectStatement.class);
   }
