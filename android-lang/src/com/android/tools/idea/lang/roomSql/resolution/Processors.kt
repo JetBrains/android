@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.roomSql.resolution
 
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
@@ -43,12 +44,23 @@ class CollectUniqueNamesProcessor<T : SqlDefinition> : Processor<T> {
 
 /**
  * Runs a [delegate] [Processor] on every [SqlColumn] of every processed [SqlTable].
+ *
+ *  @see RoomColumnPsiReference for [sqlTablesInProcess] explanation
  */
-class AllColumnsProcessor(private val delegate: Processor<SqlColumn>) : Processor<SqlTable> {
+class AllColumnsProcessor(
+  private val delegate: Processor<SqlColumn>,
+  private val sqlTablesInProcess: MutableSet<PsiElement>
+) : Processor<SqlTable> {
   var tablesProcessed = 0
 
   override fun process(t: SqlTable): Boolean {
-    t.processColumns(delegate)
+    if (sqlTablesInProcess.contains(t.definingElement)) {
+      // We don't want to continue process if we found recursion.
+      return false;
+    }
+    sqlTablesInProcess.add(t.definingElement)
+    t.processColumns(delegate, sqlTablesInProcess)
+    sqlTablesInProcess.remove(t.definingElement)
     tablesProcessed++
     return true
   }
