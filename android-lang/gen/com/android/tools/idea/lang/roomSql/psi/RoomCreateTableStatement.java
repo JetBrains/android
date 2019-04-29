@@ -30,6 +30,9 @@ public interface RoomCreateTableStatement extends PsiElement {
   @Nullable
   RoomDatabaseName getDatabaseName();
 
+  @Nullable
+  RoomSelectStatement getSelectStatement();
+
   @NotNull
   List<RoomTableConstraint> getTableConstraintList();
 

@@ -67,7 +67,7 @@ fun getSqlTable(fromTable: RoomFromTable): SqlTable? {
 }
 
 fun getSqlTable(subquery: RoomSelectSubquery): SqlTable? {
-  val subqueryTable = SubqueryTable(subquery.withClauseSelectStatement?.selectStatement ?: return null)
+  val subqueryTable = SubqueryTable(subquery.selectStatement ?: return null)
   val alias = subquery.tableAliasName
   return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
 }
@@ -82,7 +82,7 @@ fun getTableDefinition(withClauseTable: RoomWithClauseTable): SqlTable? {
     AliasedTable(
       name = tableName.nameAsString,
       resolveTo = tableName,
-      delegate = SubqueryTable(withClauseTable.withClauseSelectStatement?.selectStatement ?: return null)
+      delegate = SubqueryTable(withClauseTable.selectStatement ?: return null)
     )
   }
 }

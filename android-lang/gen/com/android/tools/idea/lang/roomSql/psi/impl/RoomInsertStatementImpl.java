@@ -51,8 +51,8 @@ public class RoomInsertStatementImpl extends ASTWrapperPsiElement implements Roo
 
   @Override
   @Nullable
-  public RoomSelectCoreValues getSelectCoreValues() {
-    return findChildByClass(RoomSelectCoreValues.class);
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
   }
 
   @Override

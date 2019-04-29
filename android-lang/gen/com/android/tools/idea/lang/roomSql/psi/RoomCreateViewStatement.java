@@ -27,10 +27,13 @@ public interface RoomCreateViewStatement extends PsiElement {
   @Nullable
   RoomDatabaseName getDatabaseName();
 
+  @Nullable
+  RoomSelectStatement getSelectStatement();
+
   @NotNull
   RoomViewName getViewName();
 
-  @NotNull
+  @Nullable
   RoomWithClauseSelectStatement getWithClauseSelectStatement();
 
 }

@@ -50,9 +50,9 @@ public class RoomWithClauseSelectStatementImpl extends ASTWrapperPsiElement impl
   }
 
   @Override
-  @Nullable
+  @NotNull
   public RoomWithClause getWithClause() {
-    return findChildByClass(RoomWithClause.class);
+    return findNotNullChildByClass(RoomWithClause.class);
   }
 
 }
