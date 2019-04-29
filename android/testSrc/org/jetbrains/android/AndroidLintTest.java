@@ -20,6 +20,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.AnalyticsSettingsData;
@@ -115,6 +116,9 @@ import com.android.tools.idea.lint.AndroidLintWrongCaseInspection;
 import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.Sdks;
@@ -141,6 +145,7 @@ import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -149,6 +154,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -583,7 +589,10 @@ public class AndroidLintTest extends AndroidTestCase {
         deleteManifest(module);
       }
     }
-    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "additionalModules/appcompat/AndroidManifest.xml");
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
+    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
+    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       testProjectSystem, getTestRootDisposable());
     myFixture.copyFileToProject(getGlobalTestDir() + "/ActionBarActivity.java.txt", "src/android/support/v7/app/ActionBarActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java");
     doTestWithFix(new AndroidLintAppCompatMethodInspection(),
@@ -1254,7 +1263,11 @@ public class AndroidLintTest extends AndroidTestCase {
         deleteManifest(module);
       }
     }
-    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "appCompatMethod/AndroidManifest.xml", "additionalModules/appcompat/AndroidManifest.xml");
+
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
+    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
+    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       testProjectSystem, getTestRootDisposable());
 
     doTestWithFix(new AndroidLintAppCompatCustomViewInspection(),
                   "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java");
