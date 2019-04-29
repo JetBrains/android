@@ -85,7 +85,6 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 
@@ -786,7 +785,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      */
     private void readEmulatorSnapshotSelection(@NotNull File fileToRead) {
       try (final FileInputStream inputStream = new FileInputStream(fileToRead);
-           final InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+           final InputStreamReader streamReader = new InputStreamReader(inputStream);
            final BufferedReader reader = new BufferedReader(streamReader)
       ) {
         final String keyString = "selectedSnapshotFile=";

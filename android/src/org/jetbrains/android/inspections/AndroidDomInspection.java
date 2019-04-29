@@ -18,7 +18,6 @@ package org.jetbrains.android.inspections;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlElement;
@@ -26,7 +25,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Consumer;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.highlighting.BasicDomElementsInspection;
-import com.intellij.util.xml.highlighting.DomElementAnnotationHolder;
 import com.intellij.util.xml.reflect.AbstractDomChildrenDescription;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.AndroidXmlExtension;
@@ -68,13 +66,6 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
   @NotNull
   public String getShortName() {
     return "AndroidDomInspection";
-  }
-
-  @Override
-  public void checkFileElement(DomFileElement<AndroidDomElement> domFileElement, DomElementAnnotationHolder holder) {
-    XmlTag rootTag = domFileElement.getRootTag();
-    if (rootTag == null || StringUtil.isEmpty(rootTag.getName())) return;
-    super.checkFileElement(domFileElement, holder);
   }
 
   @Override

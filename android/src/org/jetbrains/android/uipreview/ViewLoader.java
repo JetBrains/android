@@ -15,6 +15,16 @@
  */
 package org.jetbrains.android.uipreview;
 
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.R_CLASS;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
@@ -32,7 +42,6 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
@@ -42,20 +51,16 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.HashSet;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -67,6 +72,8 @@ public class ViewLoader {
   private static final Logger LOG = Logger.getInstance(ViewLoader.class);
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
+
+  private static final ViewLoaderExtension[] EMPTY_EXTENSION_LIST = new ViewLoaderExtension[0];
 
   @NotNull private final Module myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
@@ -147,13 +154,14 @@ public class ViewLoader {
       }
       return createMockView(className, constructorSignature, constructorArgs);
     }
-    catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchMethodException e) {
+    catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchFieldException | NoSuchMethodException e) {
       throw new ClassNotFoundException(className, e);
     }
   }
 
   @Nullable
   private Object loadClass(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs, boolean isView) {
+    assert myLogger != null;
     Class<?> aClass = myLoadedClasses.get(className);
 
     if (LOG.isDebugEnabled()) {
@@ -216,10 +224,12 @@ public class ViewLoader {
   }
 
   @NotNull
-  private List<ViewLoaderExtension> getExtensions() {
+  private ViewLoaderExtension[] getExtensions() {
     ExtensionsArea area = Extensions.getArea(myModule.getProject());
-    ExtensionPoint<ViewLoaderExtension> point = area.getExtensionPointIfRegistered(ViewLoaderExtension.EP_NAME.getName());
-    return point == null ? Collections.emptyList() : point.getExtensionList();
+    if (!area.hasExtensionPoint(ViewLoaderExtension.EP_NAME.getName())) {
+      return EMPTY_EXTENSION_LIST;
+    }
+    return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
   }
 
   @NotNull
@@ -263,7 +273,8 @@ public class ViewLoader {
           InvocationTargetException,
           NoSuchMethodException,
           InstantiationException,
-          IllegalAccessException {
+          IllegalAccessException,
+          NoSuchFieldException {
     MockView mockView = (MockView)createNewInstance(MockView.class, constructorSignature, constructorArgs, true);
     String label = getShortClassName(className);
     switch (label) {
@@ -534,7 +545,7 @@ public class ViewLoader {
       final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
       aClass = moduleClassLoader.loadClass(className);
 
-      if (!isClassLoaded) {
+      if (!isClassLoaded && aClass != null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
         }
@@ -549,20 +560,26 @@ public class ViewLoader {
       }
       else {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          if (isClassLoaded) {
+            LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          }
         }
       }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("  Class loaded");
-      }
+      if (aClass != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("  Class loaded");
+        }
 
-      myLoadedClasses.put(className, aClass);
-      myLogger.setHasLoadedClasses();
+        myLoadedClasses.put(className, aClass);
+        myLogger.setHasLoadedClasses();
+      }
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet != null) {
-      idManager.loadCompiledIds(aClass);
+    if (aClass != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        idManager.loadCompiledIds(aClass);
+      }
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));

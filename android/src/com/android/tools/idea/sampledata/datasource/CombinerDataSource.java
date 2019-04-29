@@ -20,7 +20,6 @@ import com.google.common.io.CharStreams;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -34,8 +33,8 @@ public class CombinerDataSource implements Function<OutputStream, Exception> {
   public CombinerDataSource(@NotNull InputStream inputA, @NotNull InputStream inputB) {
     ImmutableList<String> combined;
     try {
-      List<String> linesA = CharStreams.readLines(new InputStreamReader(inputA, StandardCharsets.UTF_8));
-      List<String> linesB = CharStreams.readLines(new InputStreamReader(inputB, StandardCharsets.UTF_8));
+      List<String> linesA = CharStreams.readLines(new InputStreamReader(inputA));
+      List<String> linesB = CharStreams.readLines(new InputStreamReader(inputB));
 
       Collections.shuffle(linesA);
       Collections.shuffle(linesB);

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import static com.android.SdkConstants.TAG_DEEP_LINK;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
@@ -24,6 +26,7 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -32,18 +35,14 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
+import java.io.File;
+import java.util.Arrays;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 /**
  * Tests for {@link NavigationSchema}.
@@ -184,7 +183,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> {
         try {
-          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes(StandardCharsets.UTF_8));
+          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes());
         }
         catch (Exception e) {
           fail(e.getMessage());

@@ -70,7 +70,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -852,7 +851,7 @@ public class AndroidLintTest extends AndroidTestCase {
     moduleDir.refresh(false, true);
     lintXml = moduleDir.findChild("lint.xml");
     assertThat(lintXml).isNotNull();
-    assertThat(new String(lintXml.contentsToByteArray(), StandardCharsets.UTF_8)).isEqualTo(
+    assertThat(new String(lintXml.contentsToByteArray())).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
       "<lint>\n" +
       "    <issue id=\"IconDuplicates\">\n" +

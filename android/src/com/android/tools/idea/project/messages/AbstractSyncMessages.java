@@ -18,6 +18,7 @@ package com.android.tools.idea.project.messages;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueOutputEvent;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
@@ -214,6 +215,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
     syncViewManager.onEvent(issueEvent);
+    syncViewManager.onEvent(new AndroidSyncIssueOutputEvent(taskId, notification));
     myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>()).addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
   }
 

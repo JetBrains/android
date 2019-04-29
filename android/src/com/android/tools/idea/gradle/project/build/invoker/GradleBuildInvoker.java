@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginWarningParser;
+import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -25,15 +27,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.build.BuildEventDispatcher;
 import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
-import com.intellij.build.events.impl.FinishBuildEventImpl;
-import com.intellij.build.events.impl.SkippedResultImpl;
-import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.build.events.impl.SuccessResultImpl;
+import com.intellij.build.events.impl.*;
+import com.intellij.build.output.BuildOutputInstantReaderImpl;
+import com.intellij.build.output.BuildOutputParser;
+import com.intellij.build.output.JavacOutputParser;
+import com.intellij.build.output.KotlincOutputParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -51,7 +53,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemEventDispatcher;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -378,13 +379,17 @@ public class GradleBuildInvoker {
   @NotNull
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
+    List<BuildOutputParser> buildOutputParsers =
+      Arrays.asList(new AndroidGradlePluginWarningParser(), new JavacOutputParser(), new KotlincOutputParser(), new GradleBuildOutputParser());
+
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
+    BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
+                                                                                             buildOutputParsers);
     try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
-        @NotNull private BuildEventDispatcher myBuildEventDispatcher = eventDispatcher;
+        @NotNull private BuildOutputInstantReaderImpl myReader = buildOutputInstantReader;
 
         @Override
         public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
@@ -397,9 +402,9 @@ public class GradleBuildInvoker {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
               // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
-              myBuildEventDispatcher.close();
+              myReader.close();
               // noinspection resource, IOResourceOpenedButNotSafelyClosed
-              myBuildEventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
+              myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
               executeTasks(request);
             }
           };
@@ -413,44 +418,44 @@ public class GradleBuildInvoker {
           StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
                                                               "running...");
           event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
-          myBuildEventDispatcher.onEvent(event);
+          buildViewManager.onEvent(event);
         }
 
         @Override
         public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
           if (event instanceof ExternalSystemBuildEvent) {
             BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
-            myBuildEventDispatcher.onEvent(buildEvent);
+            buildViewManager.onEvent(buildEvent);
           }
           else if (event instanceof ExternalSystemTaskExecutionEvent) {
             BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
-            myBuildEventDispatcher.onEvent(buildEvent);
+            buildViewManager.onEvent(buildEvent);
           }
         }
 
         @Override
         public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
-          myBuildEventDispatcher.setStdOut(stdOut);
-          myBuildEventDispatcher.append(text);
+          buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
+          myReader.append(text);
         }
 
         @Override
         public void onEnd(@NotNull ExternalSystemTaskId id) {
-          myBuildEventDispatcher.close();
+          myReader.close();
         }
 
         @Override
         public void onSuccess(@NotNull ExternalSystemTaskId id) {
-          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "successful",
+          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "completed successfully",
                                                                 new SuccessResultImpl());
-          myBuildEventDispatcher.onEvent(event);
+          buildViewManager.onEvent(event);
         }
 
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
-          myBuildEventDispatcher.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
+          buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
         }
 
         @Override
@@ -458,13 +463,13 @@ public class GradleBuildInvoker {
           super.onCancel(id);
           // Cause build view to show as skipped all pending tasks (b/73397414)
           FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
-          myBuildEventDispatcher.onEvent(event);
-          myBuildEventDispatcher.close();
+          buildViewManager.onEvent(event);
+          myReader.close();
         }
       };
     }
     catch (Exception ignored) {
-      eventDispatcher.close();
+      buildOutputInstantReader.close();
       throw ignored;
     }
   }

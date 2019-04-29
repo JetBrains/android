@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.DataFormatException;
 import java.util.zip.DeflaterOutputStream;
 
@@ -44,7 +43,7 @@ public final class AtraceExporter {
       String line = data.getNextLine();
       output.write(AtraceDecompressor.HEADER.toByteArray());
       while (!StringUtil.isEmpty(line = data.getNextLine())) {
-        deflaterOutputStream.write(String.format("%s\n", line).getBytes(StandardCharsets.UTF_8));
+        deflaterOutputStream.write(String.format("%s\n", line).getBytes());
       }
       deflaterOutputStream.flush();
       deflaterOutputStream.close();

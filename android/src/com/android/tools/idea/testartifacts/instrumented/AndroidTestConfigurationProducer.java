@@ -145,14 +145,14 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
   @Nullable
   @Override
-  public ConfigurationFromContext createConfigurationFromContext(@NotNull ConfigurationContext context) {
+  public ConfigurationFromContext createConfigurationFromContext(ConfigurationContext context) {
     return AndroidUtils.getAndroidModule(context) == null ? null : super.createConfigurationFromContext(context);
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(@NotNull AndroidTestRunConfiguration configuration,
-                                                  @NotNull ConfigurationContext context,
-                                                  @NotNull Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(AndroidTestRunConfiguration configuration,
+                                                  ConfigurationContext context,
+                                                  Ref<PsiElement> sourceElement) {
     Module module = AndroidUtils.getAndroidModule(context);
     if (module == null) {
       return false;
@@ -222,7 +222,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   @Override
-  public boolean isConfigurationFromContext(@NotNull AndroidTestRunConfiguration configuration, @NotNull ConfigurationContext context) {
+  public boolean isConfigurationFromContext(AndroidTestRunConfiguration configuration, ConfigurationContext context) {
     Location location = context.getLocation();
     Module contextModule = AndroidUtils.getAndroidModule(context);
 

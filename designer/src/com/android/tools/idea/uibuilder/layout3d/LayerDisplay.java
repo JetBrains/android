@@ -1,17 +1,25 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.uibuilder.layout3d;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.android.ddmlib.*;
+import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.Layer;
+import com.android.tools.pixelprobe.PixelProbe;
+import com.android.tools.pixelprobe.decoder.Decoder;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.io.IOException;
+import java.io.File;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.tools.pixelprobe.decoder.Decoder.Options.LAYER_METADATA_ONLY;
 
 
 public class LayerDisplay {
@@ -105,8 +113,8 @@ public class LayerDisplay {
           socket = new Socket();
           socket.connect(new InetSocketAddress("127.0.0.1",
                                                DeviceBridge.getDeviceLocalPort(device)));
-          out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
-          in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+          out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+          in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
           out.write(command);
           out.newLine();
           out.flush();

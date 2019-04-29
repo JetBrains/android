@@ -30,7 +30,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.PathUtil;
@@ -42,6 +41,7 @@ import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 
 /**
@@ -108,7 +108,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
 
   private static void close(@NotNull Project project) {
     String projectName = project.getName();
-    ProjectManagerEx.getInstanceEx().closeAndDispose(project);
+    closeAndDispose(project);
     RecentProjectsManager.getInstance().updateLastProjectPath();
     WelcomeFrame.showIfNoProjectOpened();
     LOG.info(String.format("Closed project '%1$s'.", projectName));

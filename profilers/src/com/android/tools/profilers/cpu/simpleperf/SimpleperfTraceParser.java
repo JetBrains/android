@@ -37,7 +37,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -280,7 +279,7 @@ public class SimpleperfTraceParser implements TraceParser {
   private static void verifyMagicNumber(ByteBuffer buffer) {
     byte[] magic = new byte[MAGIC.length()];
     buffer.get(magic);
-    if (!(new String(magic, StandardCharsets.UTF_8)).equals(MAGIC)) {
+    if (!(new String(magic)).equals(MAGIC)) {
       throw new IllegalStateException("Simpleperf trace could not be parsed due to magic number mismatch.");
     }
   }

@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.nio.charset.StandardCharsets;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
   public void testFlagIcons() throws Exception {
@@ -47,7 +46,7 @@ public class AndroidIconProviderTest extends AndroidTestCase {
   private void checkIcon(@NotNull String path, @Nullable String region) throws Exception {
     AndroidIconProvider provider = new AndroidIconProvider();
     VirtualFile file = myFixture.getTempDirFixture().createFile(path);
-    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes(StandardCharsets.UTF_8)));
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     int flags = 0;
