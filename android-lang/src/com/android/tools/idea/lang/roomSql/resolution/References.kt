@@ -39,7 +39,19 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getParentOfType
 
 interface RoomColumnPsiReference : PsiReference {
-  fun resolveColumn(): SqlColumn?
+  /**
+   * Returns [SqlColumn] for the underlying (referencing) element of the reference.
+   *
+   * We find [SqlColumn] by traversing tables. Sometimes one table is defined through another and so on and it leads to invocation [resolveColumn]
+   * within another [resolveColumn] process.
+   * We want to avoid an infinite [resolveColumn] process (e.g. invalid recursive definitions cause it). In order to do it we maintain [sqlTablesInProcess].
+   * [sqlTablesInProcess] contains tables for which we are currently trying to resolve columns.
+   *
+   * Example: Table A contains all columns of table B and table B contains all column of table C. When we try to resolve column belongs to A
+   * eventually we can invoke [resolveColumn] for column belongs to C; at that moment [sqlTablesInProcess] contains [PsiElement]s
+   * that define table A and table B.
+   */
+  fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn?
   override fun getElement(): RoomNameElement
 }
 
@@ -49,17 +61,17 @@ interface RoomColumnPsiReference : PsiReference {
  * @see RoomFieldColumn.nameElement
  */
 class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
-  override fun resolve(): PsiElement? = resolveColumn()?.resolveTo
+  override fun resolve(): PsiElement? = resolveColumn(HashSet())?.resolveTo
 
-  override fun resolveColumn(): SqlColumn? {
+  override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn? {
     val processor = FindByNameProcessor<SqlColumn>(element.nameAsString)
-    processSelectedSqlTables(element, AllColumnsProcessor(processor))
+    processSelectedSqlTables(element, AllColumnsProcessor(processor, sqlTablesInProcess))
     return processor.foundValue
   }
 
   override fun getVariants(): Array<Any> {
     val columnsProcessor = CollectUniqueNamesProcessor<SqlColumn>()
-    val tablesProcessor = AllColumnsProcessor(columnsProcessor)
+    val tablesProcessor = AllColumnsProcessor(columnsProcessor, HashSet())
     processSelectedSqlTables(element, tablesProcessor)
 
     if (tablesProcessor.tablesProcessed == 0) {
@@ -82,19 +94,19 @@ class QualifiedColumnPsiReference(
 ) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
   private fun resolveTable() = RoomSelectedTablePsiReference(tableName).resolveSqlTable()
 
-  override fun resolveColumn(): SqlColumn? {
+  override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): SqlColumn? {
     val table = resolveTable() ?: return null
     val processor = FindByNameProcessor<SqlColumn>(element.nameAsString)
-    table.processColumns(processor)
+    table.processColumns(processor, sqlTablesInProcess)
     return processor.foundValue
   }
 
-  override fun resolve(): PsiElement? = resolveColumn()?.resolveTo
+  override fun resolve(): PsiElement? = resolveColumn(HashSet())?.resolveTo
 
   override fun getVariants(): Array<Any> {
     val table = resolveTable() ?: return emptyArray()
     val processor = CollectUniqueNamesProcessor<SqlColumn>()
-    table.processColumns(processor)
+    table.processColumns(processor, HashSet())
     return buildVariants(processor.result)
   }
 }

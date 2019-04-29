@@ -54,7 +54,7 @@ data class RoomTable(
   /** Columns present in the table representing this entity. */
   val columns: Set<SqlColumn> = emptySet()
 ) : SqlTable {
-  override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
+  override fun processColumns(processor: Processor<SqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>) = ContainerUtil.process(columns, processor)
   override val definingElement: PsiElement get() = psiClass.element!!
   override val resolveTo: PsiElement get() = nameElement.element!!
   override val isView = type == Type.VIEW

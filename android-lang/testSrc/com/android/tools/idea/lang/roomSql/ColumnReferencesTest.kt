@@ -1317,6 +1317,86 @@ class ColumnReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.referenceAtCaret.resolve()).isNull()
   }
 
+  fun testRecursiveWithClause() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH recTable AS (SELECT 1 AS level UNION ALL SELECT level + 1 FROM recTable WHERE level < 10) SELECT level FROM recTable")
+           List<String> getNames();
+        }
+    """.trimIndent())
+
+
+    myFixture.moveCaret("SELECT |level + 1")
+    val element = myFixture.elementAtCaret
+    myFixture.moveCaret("SELECT 1 AS |level")
+    assertThat(myFixture.elementAtCaret).isEqualTo(element)
+  }
+
+  fun testRecursiveWithClauseNoInfiniteLoop() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH recTable AS (SELECT * FROM recTable WHERE <caret>) SELECT * FROM recTable")
+           List<String> getNames();
+        }
+    """.trimIndent())
+
+    // test will finish with StackOverFlow if there is infinite loop
+    myFixture.completeBasic();
+  }
+
+  fun testRecursiveWithClauseNoInfiniteLoopMutual() {
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH t1 AS (SELECT * FROM t2), t2 AS (select * from t1 WHERE <caret>) SELECT * FROM t1")
+           List<String> getColumns();
+        }
+    """.trimIndent())
+
+    // test will finish with StackOverFlow if there is infinite loop
+    myFixture.completeBasic();
+  }
+
+  fun testRecursiveWithClauseNoInfiniteLoopMutual2() {
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("WITH t1 AS (SELECT * FROM t2), t2 AS (select x from t1 WHERE <caret>) SELECT * FROM t1")
+           List<String> getColumns();
+        }
+    """.trimIndent())
+
+    // test will finish with StackOverFlow if there is infinite loop
+    myFixture.completeBasic();
+  }
 
   fun testColumnAlias() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
