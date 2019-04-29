@@ -168,7 +168,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     // Use an array making this object mutable by the lambda.
     final Throwable[] expectedException = new Throwable[1];
-    dataStoreService.setNoPiiExceptionHanlder((t) -> expectedException[0] = t);
+    dataStoreService.setNoPiiExceptionHandler((t) -> expectedException[0] = t);
     TransportServiceGrpc.TransportServiceBlockingStub stub = TransportServiceGrpc
       .newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext(true).build());
 
