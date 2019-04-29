@@ -52,7 +52,8 @@ public class CpuUsage extends LineChartModel {
       series =
         new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, false));
     }
-    myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), profilers.getTimeline().getViewRange(), myCpuRange, series);
+    myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), profilers.getTimeline().getViewRange(), myCpuRange, series,
+                                             profilers.getTimeline().getDataRange());
     add(myCpuSeries);
   }
 
