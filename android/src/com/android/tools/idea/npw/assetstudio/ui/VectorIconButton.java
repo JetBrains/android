@@ -21,12 +21,11 @@ import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.BindingsManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -38,6 +37,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Button that allows user to select an icon from a list of icons each associated with a XML file
@@ -74,6 +77,14 @@ public final class VectorIconButton extends JButton
   }
 
   private void updateIcon(@Nullable VdIcon selectedIcon) {
+    int h = getHeight() - getInsets().top - getInsets().bottom;
+    if (h < 0 && selectedIcon != null) {
+      // The button size hasn't settled yet, try later.
+      ApplicationManager.getApplication().invokeLater(
+          () -> updateIcon(selectedIcon), ModalityState.any(), o -> Disposer.isDisposed(this));
+      return;
+    }
+
     myIcon = null;
     setIcon(null);
     if (selectedIcon != null) {
@@ -86,8 +97,7 @@ public final class VectorIconButton extends JButton
         FileUtil.copy(iconStream, outputStream);
         myXmlAsset.path().set(iconFile);
         // Our icons are always square, so although parse() expects width, we can pass in height.
-        int h = getHeight() - getInsets().top - getInsets().bottom;
-        VectorAsset.ParseResult result = myXmlAsset.parse(h, false);
+        VectorAsset.Preview result = myXmlAsset.generatePreview(h);
 
         BufferedImage image = result.getImage();
         if (image != null) {
