@@ -56,7 +56,7 @@ public class JavaToKotlinHandler {
                                        @NotNull List<File> files,
                                        @NotNull final Runnable postProcessFunction) {
     if (!hasJavaFiles(files)) {
-      DumbService.getInstance(project).smartInvokeLater(postProcessFunction);
+      postProcessFunction.run();
       return;
     }
 
