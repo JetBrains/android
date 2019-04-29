@@ -26,6 +26,9 @@ import com.android.tools.idea.lang.roomSql.resolution.SqlTable;
 public interface RoomSelectSubquery extends SqlTableElement {
 
   @Nullable
+  RoomSelectStatement getSelectStatement();
+
+  @Nullable
   RoomTableAliasName getTableAliasName();
 
   @Nullable

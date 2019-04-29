@@ -50,15 +50,21 @@ public class RoomCreateViewStatementImpl extends ASTWrapperPsiElement implements
   }
 
   @Override
+  @Nullable
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
+  }
+
+  @Override
   @NotNull
   public RoomViewName getViewName() {
     return findNotNullChildByClass(RoomViewName.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public RoomWithClauseSelectStatement getWithClauseSelectStatement() {
-    return findNotNullChildByClass(RoomWithClauseSelectStatement.class);
+    return findChildByClass(RoomWithClauseSelectStatement.class);
   }
 
 }

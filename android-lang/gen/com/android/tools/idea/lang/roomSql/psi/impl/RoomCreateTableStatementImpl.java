@@ -56,6 +56,12 @@ public class RoomCreateTableStatementImpl extends ASTWrapperPsiElement implement
   }
 
   @Override
+  @Nullable
+  public RoomSelectStatement getSelectStatement() {
+    return findChildByClass(RoomSelectStatement.class);
+  }
+
+  @Override
   @NotNull
   public List<RoomTableConstraint> getTableConstraintList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomTableConstraint.class);

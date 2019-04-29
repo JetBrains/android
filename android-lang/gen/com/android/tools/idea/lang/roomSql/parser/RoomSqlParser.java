@@ -716,7 +716,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
   //   ( database_name '.' )? table_definition_name
-  //   ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement )
+  //   ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS (select_statement | with_clause_select_statement) )
   public static boolean create_table_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement")) return false;
     if (!nextTokenIs(builder, CREATE)) return false;
@@ -784,7 +784,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement
+  // '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS (select_statement | with_clause_select_statement)
   private static boolean create_table_statement_6(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement_6")) return false;
     boolean result;
@@ -872,14 +872,23 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // AS with_clause_select_statement
+  // AS (select_statement | with_clause_select_statement)
   private static boolean create_table_statement_6_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_table_statement_6_1")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeToken(builder, AS);
-    result = result && with_clause_select_statement(builder, level + 1);
+    result = result && create_table_statement_6_1_1(builder, level + 1);
     exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // select_statement | with_clause_select_statement
+  private static boolean create_table_statement_6_1_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "create_table_statement_6_1_1")) return false;
+    boolean result;
+    result = select_statement(builder, level + 1);
+    if (!result) result = with_clause_select_statement(builder, level + 1);
     return result;
   }
 
@@ -1103,7 +1112,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // CREATE ( TEMP | TEMPORARY )? VIEW ( IF NOT EXISTS )?
-  //   ( database_name '.' )? view_name AS with_clause_select_statement
+  //   ( database_name '.' )? view_name AS (select_statement | with_clause_select_statement)
   public static boolean create_view_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "create_view_statement")) return false;
     if (!nextTokenIs(builder, CREATE)) return false;
@@ -1116,7 +1125,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     result = result && create_view_statement_4(builder, level + 1);
     result = result && view_name(builder, level + 1);
     result = result && consumeToken(builder, AS);
-    result = result && with_clause_select_statement(builder, level + 1);
+    result = result && create_view_statement_7(builder, level + 1);
     exit_section_(builder, marker, CREATE_VIEW_STATEMENT, result);
     return result;
   }
@@ -1169,6 +1178,15 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     result = database_name(builder, level + 1);
     result = result && consumeToken(builder, DOT);
     exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // select_statement | with_clause_select_statement
+  private static boolean create_view_statement_7(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "create_view_statement_7")) return false;
+    boolean result;
+    result = select_statement(builder, level + 1);
+    if (!result) result = with_clause_select_statement(builder, level + 1);
     return result;
   }
 
@@ -2147,7 +2165,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // ( INSERT ( OR ( REPLACE |  ROLLBACK |  ABORT |  FAIL |  IGNORE ))? | REPLACE ) INTO
   //   single_table_statement_table insert_columns?
-  //   ( select_core_values | with_clause_select_statement | DEFAULT VALUES )
+  //   ( select_statement | with_clause_select_statement | DEFAULT VALUES )
   public static boolean insert_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "insert_statement")) return false;
     if (!nextTokenIs(builder, "<insert statement>", INSERT, REPLACE)) return false;
@@ -2221,12 +2239,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // select_core_values | with_clause_select_statement | DEFAULT VALUES
+  // select_statement | with_clause_select_statement | DEFAULT VALUES
   private static boolean insert_statement_4(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "insert_statement_4")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = select_core_values(builder, level + 1);
+    result = select_statement(builder, level + 1);
     if (!result) result = with_clause_select_statement(builder, level + 1);
     if (!result) result = parseTokens(builder, 0, DEFAULT, VALUES);
     exit_section_(builder, marker, null, result);
@@ -3399,12 +3417,13 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // with_clause_select_statement
+  // select_statement | with_clause_select_statement
   static boolean subquery_greedy(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "subquery_greedy")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_);
-    result = with_clause_select_statement(builder, level + 1);
+    result = select_statement(builder, level + 1);
+    if (!result) result = with_clause_select_statement(builder, level + 1);
     exit_section_(builder, level, marker, result, false, RoomSqlParser::subquery_recover);
     return result;
   }
@@ -3924,22 +3943,16 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // with_clause? select_statement
+  // with_clause select_statement
   public static boolean with_clause_select_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "with_clause_select_statement")) return false;
+    if (!nextTokenIs(builder, WITH)) return false;
     boolean result;
-    Marker marker = enter_section_(builder, level, _NONE_, WITH_CLAUSE_SELECT_STATEMENT, "<with clause select statement>");
-    result = with_clause_select_statement_0(builder, level + 1);
+    Marker marker = enter_section_(builder);
+    result = with_clause(builder, level + 1);
     result = result && select_statement(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, null);
+    exit_section_(builder, marker, WITH_CLAUSE_SELECT_STATEMENT, result);
     return result;
-  }
-
-  // with_clause?
-  private static boolean with_clause_select_statement_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "with_clause_select_statement_0")) return false;
-    with_clause(builder, level + 1);
-    return true;
   }
 
   /* ********************************************************** */
