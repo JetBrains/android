@@ -64,6 +64,7 @@ public class DetailedEnergyEventsCount {
         profilers.getSession().getPid(),
         kindFilter);
     }
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     return new LegacyEnergyEventsCountDataSeries(
       new RangedSeries<>(profilers.getTimeline().getDataRange(),
                          new LegacyEnergyEventsDataSeries(profilers.getClient(), profilers.getSession())),

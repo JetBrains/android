@@ -307,6 +307,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         // For non-imported traces, the main thread ID is equal to the process ID of the current session
         myIsMainThread = myThreadId == mySession.getPid();
       }
+      // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 

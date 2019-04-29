@@ -58,6 +58,7 @@ public class MemoryUsageTest {
                                        TimeUnit.SECONDS.toMicros(i * 10),
                                        Memory.MemoryUsageData.newBuilder().setTotalMem(i * 10).build()).build());
     }
+    myProfilers.getTimeline().getDataRange().set(0, TimeUnit.SECONDS.toMicros(100));
   }
 
   @Test

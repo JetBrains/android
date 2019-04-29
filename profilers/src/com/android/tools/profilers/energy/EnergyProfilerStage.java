@@ -321,6 +321,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     int pid = profilers.getSession().getPid();
 
     // StateChart renders series in reverse order
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       stateChartModel.addSeries(
         new RangedSeries<>(range, new MergedEnergyEventsDataSeries(transportClient, streamId, pid,

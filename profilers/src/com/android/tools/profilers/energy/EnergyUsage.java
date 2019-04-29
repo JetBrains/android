@@ -43,7 +43,8 @@ public class EnergyUsage extends LineChartModel {
     else {
       dataSeries = new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession());
     }
-    myUsageSeries = new RangedContinuousSeries(getSeriesLabel(), profilers.getTimeline().getViewRange(), myUsageRange, dataSeries);
+    myUsageSeries = new RangedContinuousSeries(getSeriesLabel(), profilers.getTimeline().getViewRange(), myUsageRange, dataSeries,
+                                               profilers.getTimeline().getDataRange());
     add(myUsageSeries);
   }
 

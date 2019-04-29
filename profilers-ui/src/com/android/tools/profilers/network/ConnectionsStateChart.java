@@ -92,6 +92,7 @@ public final class ConnectionsStateChart {
         return myColors.getColor(value);
       }
     });
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     stateModel.addSeries(new RangedSeries<>(range, series));
     return chart;
   }
