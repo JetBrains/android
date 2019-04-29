@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.DOT_XML;
-
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderResources;
@@ -33,21 +31,22 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import static com.android.SdkConstants.DOT_XML;
 
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
@@ -89,7 +88,7 @@ public class GutterIconFactory {
       FileDocumentManager.getInstance().getCachedDocument(file);
 
     if  (document == null) {
-      return new String(file.contentsToByteArray());
+      return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
     }
 
     return document.getText();

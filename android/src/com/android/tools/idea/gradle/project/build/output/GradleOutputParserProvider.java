@@ -18,8 +18,9 @@ package com.android.tools.idea.gradle.project.build.output;
 import com.google.common.collect.ImmutableList;
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class GradleOutputParserProvider implements ExternalSystemOutputParserPro
   }
 
   @Override
-  public List<BuildOutputParser> getBuildOutputParsers(ExternalSystemTask task) {
+  public List<BuildOutputParser> getBuildOutputParsers(@NotNull ExternalSystemTaskId taskId) {
     return ImmutableList.of(new AndroidGradlePluginWarningParser(), new GradleBuildOutputParser());
   }
 }

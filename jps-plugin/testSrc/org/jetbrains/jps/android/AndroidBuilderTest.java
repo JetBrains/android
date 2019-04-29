@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -44,6 +45,7 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -1479,7 +1481,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
             final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputPath)));
 
             try {
-              appendEntry(zos, "res_apk_entry", "res_apk_entry_content".getBytes());
+              appendEntry(zos, "res_apk_entry", "res_apk_entry_content".getBytes(StandardCharsets.UTF_8));
             }
             finally {
               zos.close();

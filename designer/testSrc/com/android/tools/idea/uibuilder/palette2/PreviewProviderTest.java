@@ -20,7 +20,8 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
@@ -37,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,7 +115,8 @@ public class PreviewProviderTest extends LayoutTestCase {
   private Palette loadPalette() throws Exception {
     NlPaletteModel model = NlPaletteModel.get(myFacet);
 
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()),
+                                               StandardCharsets.UTF_8)) {
       model.loadPalette(reader, NlLayoutType.LAYOUT);
     }
 
