@@ -50,10 +50,10 @@ class JarDependencyDetails(
 
   override fun display(dependency: PsBaseDependency) {
     myDependency = dependency as PsJarDependency
-    myNameText.text = myDependency!!.name
-    myIncludesText.text = myDependency!!.includes.toString()
-    myExcludesText.text = myDependency!!.excludes.toString()
-    myScope.text = myDependency!!.joinedConfigurationNames
+    myNameText.text = dependency.name
+    myIncludesText.text = dependency.includes.toString()
+    myExcludesText.text = dependency.excludes.toString()
+    myScope.text = dependency.joinedConfigurationNames
   }
 
   override fun getSupportedModelType(): Class<PsJarDependency> {
