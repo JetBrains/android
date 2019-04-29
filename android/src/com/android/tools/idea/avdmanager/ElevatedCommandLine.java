@@ -18,22 +18,15 @@ package com.android.tools.idea.avdmanager;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.sun.jna.Native;
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.Shell32;
 import com.sun.jna.platform.win32.ShellAPI;
-import com.sun.jna.platform.win32.WinDef.*;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
-import com.sun.jna.platform.win32.WinReg.HKEY;
+import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.win32.StdCallLibrary;
-import com.sun.jna.win32.W32APIOptions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,6 +36,7 @@ import java.util.List;
  * on Windows version 7 and above.
  */
 public class ElevatedCommandLine extends GeneralCommandLine {
+  private static final int SEE_MASK_NO_CLOSE_PROCESS = 0x00000040;
   private static final int INFINITE = -1;
   private String myTempFilePrefix;
 
@@ -92,9 +86,16 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     File errFile = FileUtil.createTempFile(myTempFilePrefix + "_err", ".txt", true);
     addParameters(">", outFile.getPath(), "2>", errFile.getPath());
 
-    ShellExecuteInfo info = new ShellExecuteInfo(this);
-    BOOL returnValue = Shell32Ex.INSTANCE.ShellExecuteEx(info);
-    int errorCode = returnValue.booleanValue() ? 0 : Kernel32.INSTANCE.GetLastError();
+    ShellAPI.SHELLEXECUTEINFO info = new ShellAPI.SHELLEXECUTEINFO();
+    info.cbSize = info.size();
+    info.lpFile = getExePath();
+    info.lpVerb = "runas";
+    info.lpParameters = getParametersList().getParametersString();
+    info.lpDirectory = getWorkDirectory().getPath();
+    info.nShow = WinUser.SW_HIDE;
+    info.fMask = SEE_MASK_NO_CLOSE_PROCESS;
+    boolean returnValue = Shell32.INSTANCE.ShellExecuteEx(info);
+    int errorCode = returnValue ? 0 : Kernel32.INSTANCE.GetLastError();
 
     // Return a fake Process which will wait for the created process to finish
     // and wrap stdout and stderr into their respective {@link InputStream}.
@@ -163,51 +164,5 @@ public class ElevatedCommandLine extends GeneralCommandLine {
         throw new RuntimeException(e);
       }
     }
-  }
-
-  // Gory details of the structure passed to ShellExecuteEx.
-  // Note: we cannot use ShellExecute since it does not give access to the process handle.
-  @SuppressWarnings("unused")
-  public static class ShellExecuteInfo extends Structure {
-    public DWORD     cbSize;
-    public ULONG     fMask;
-    public HWND      hwnd;
-    public WString   lpVerb;
-    public WString   lpFile;
-    public WString   lpParameters;
-    public WString   lpDirectory;
-    public int       nShow;
-    public HINSTANCE hInstApp;
-    public Pointer   lpIDList;
-    public WString   lpClass;
-    public HKEY      hKeyClass;
-    public DWORD     dwHotKey;
-    public HANDLE    hMonitor;
-    public HANDLE    hProcess;
-
-    private static final int SW_HIDE = 0;
-    private static final int SEE_MASK_NO_CLOSE_PROCESS = 0x00000040;
-
-    public ShellExecuteInfo(@NotNull GeneralCommandLine commandLine) {
-      cbSize = new DWORD(size());
-      lpFile = new WString(commandLine.getExePath());
-      lpVerb = new WString("runas");
-      lpParameters = new WString(commandLine.getParametersList().getParametersString());
-      lpDirectory = new WString(commandLine.getWorkDirectory().getPath());
-      nShow = SW_HIDE;
-      fMask = new ULONG(SEE_MASK_NO_CLOSE_PROCESS);
-    }
-
-    @Override
-    protected List getFieldOrder() {
-      return Arrays.asList("cbSize", "fMask", "hwnd", "lpVerb", "lpFile", "lpParameters", "lpDirectory", "nShow", "hInstApp", "lpIDList",
-                           "lpClass", "hKeyClass", "dwHotKey", "hMonitor", "hProcess");
-    }
-  }
-
-  private interface Shell32Ex extends ShellAPI, StdCallLibrary {
-    Shell32Ex INSTANCE = (Shell32Ex) Native.loadLibrary("shell32", Shell32Ex.class, W32APIOptions.UNICODE_OPTIONS);
-
-    BOOL ShellExecuteEx(ShellExecuteInfo info);
   }
 }

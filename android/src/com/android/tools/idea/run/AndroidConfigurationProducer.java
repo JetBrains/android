@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.AndroidPsiUtils;
@@ -57,14 +57,14 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
 
   @Nullable
   @Override
-  public ConfigurationFromContext createConfigurationFromContext(ConfigurationContext context) {
+  public ConfigurationFromContext createConfigurationFromContext(@NotNull ConfigurationContext context) {
     return getActivityClass(context) == null ? null : super.createConfigurationFromContext(context);
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(AndroidRunConfiguration configuration,
-                                                  ConfigurationContext context,
-                                                  Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(@NotNull AndroidRunConfiguration configuration,
+                                                  @NotNull ConfigurationContext context,
+                                                  @NotNull Ref<PsiElement> sourceElement) {
     final PsiClass activity = getActivityClass(context);
 
     if (activity == null) {
@@ -91,7 +91,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   }
 
   @Override
-  public boolean isConfigurationFromContext(AndroidRunConfiguration configuration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull AndroidRunConfiguration configuration, @NotNull ConfigurationContext context) {
     final PsiClass activity = getActivityClass(context);
     if (activity == null) {
       return false;

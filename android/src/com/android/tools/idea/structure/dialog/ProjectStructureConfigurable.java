@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent;
 import com.android.tools.idea.stats.UsageTrackerUtils;
-import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -571,7 +570,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
       IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(myProject);
       if (ideFrame != null) {
         StatusBarEx statusBar = (StatusBarEx)ideFrame.getStatusBar();
-        statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.", null, null);
+        statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.");
       }
       return;
     }
