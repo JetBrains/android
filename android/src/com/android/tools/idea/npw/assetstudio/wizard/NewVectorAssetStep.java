@@ -16,11 +16,14 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
+import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.validation.validators.PositiveIntegerValidator;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
@@ -29,21 +32,21 @@ import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
+import com.android.tools.idea.observable.Receiver;
+import com.android.tools.idea.observable.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.DoubleProperty;
+import com.android.tools.idea.observable.core.DoubleValueProperty;
 import com.android.tools.idea.observable.core.IntProperty;
-import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.ui.ColorProperty;
-import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.HasFocusProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
@@ -51,12 +54,10 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
@@ -65,10 +66,11 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.concurrency.SwingWorker;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -88,9 +90,7 @@ import org.jetbrains.annotations.SystemIndependent;
 /**
  * A wizard step for generating Android vector drawable icons.
  */
-@SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI.
 public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> implements PersistentStateComponent<PersistentState> {
-  private static final int DEFAULT_MATERIAL_ICON_SIZE = 24;
   private static final String ICON_PREFIX = "ic_";
   private static final String DEFAULT_OUTPUT_NAME = "ic_vector_name";
   // Start with the Clip Art radio button selected, because the clip art icons are easy to browse
@@ -104,20 +104,17 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private static final String ASSET_SOURCE_TYPE_PROPERTY = "assetSourceType";
   private static final String CLIPART_ASSET_PROPERTY = "clipartAsset";
   private static final String SOURCE_FILE_PROPERTY = "sourceFile";
-  private static final String OVERRIDE_SIZE_PROPERTY = "overrideSize";
-  private static final String WIDTH_PROPERTY = "width";
-  private static final String HEIGHT_PROPERTY = "height";
   private static final String COLOR_PROPERTY = "color";
   private static final String OPACITY_PERCENT_PROPERTY = "opacityPercent";
   private static final String AUTO_MIRRORED_PROPERTY = "autoMirrored";
 
   private final ObjectProperty<AssetSourceType> myAssetSourceType;
   private final ObjectProperty<VectorAsset> myActiveAsset;
-  private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<>();
   private final StringProperty myOutputName;
-  private final BoolProperty myOverrideSize;
-  private final IntProperty myWidth = new IntValueProperty();
-  private final IntProperty myHeight = new IntValueProperty();
+  private final ObservableBool myWidthHasFocus;
+  private final ObservableBool myHeightHasFocus;
+  private final DoubleProperty myWidth = new DoubleValueProperty();
+  private final DoubleProperty myHeight = new DoubleValueProperty();
   private final ObjectProperty<Color> myColor;
   private final IntProperty myOpacityPercent;
   private final BoolProperty myAutoMirrored;
@@ -133,6 +130,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @NotNull private final AndroidFacet myFacet;
 
   private final ValidatorPanel myValidatorPanel;
+
+  private double myAspectRatio;
+  @Nullable StringToDoubleAdapterProperty myWidthAdapter;
+  @Nullable StringToDoubleAdapterProperty myHeightAdapter;
 
   private JPanel myPanel;
   private JPanel myImagePreviewPanel;
@@ -155,7 +156,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JPanel myResizePanel;
   private JTextField myWidthTextField;
   private JTextField myHeightTextField;
-  private JCheckBox myOverrideSizeCheckBox;
   private JPanel myColorRowPanel;
   private ColorPanel myColorPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
@@ -184,7 +184,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                                                           myClipartRadioButton, myLocalFileRadioButton);
     myActiveAsset = new ObjectValueProperty<>(myClipartAssetButton.getAsset());
     myOutputName = new TextProperty(myOutputNameTextField);
-    myOverrideSize = new SelectedProperty(myOverrideSizeCheckBox);
+    myWidthHasFocus = new HasFocusProperty(myWidthTextField);
+    myHeightHasFocus = new HasFocusProperty(myHeightTextField);
     myColor = ObjectProperty.wrap(new ColorProperty(myColorPanel));
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
@@ -202,59 +203,95 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myActiveAsset.set(sourceType == AssetSourceType.CLIP_ART ? myClipartAssetButton.getAsset() : myFileBrowser.getAsset());
     });
 
-    myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myWidthTextField)), myWidth);
-    myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myHeightTextField)), myHeight);
-    myGeneralBindings.bind(new EnabledProperty(myWidthTextField), myOverrideSize);
-    myGeneralBindings.bind(new EnabledProperty(myHeightTextField), myOverrideSize);
-    myListeners.listenAll(myOverrideSize, myOriginalSize).withAndFire(() -> {
-      if (!myOverrideSize.get() || !myOriginalSize.get().isPresent()) {
-        myWidth.set(DEFAULT_MATERIAL_ICON_SIZE);
-        myHeight.set(DEFAULT_MATERIAL_ICON_SIZE);
-      }
-      else {
-        myWidth.set(myOriginalSize.getValue().width);
-        myHeight.set(myOriginalSize.getValue().height);
-      }
+    myListeners.listenAll(myWidthHasFocus, myHeightHasFocus).with(() -> {
+      myGeneralBindings.release(myWidth);
+      myGeneralBindings.release(myHeight);
+      bindWidthAndHeight();
     });
 
     myGeneralBindings.bind(new TextProperty(myOpacityValueLabel), new FormatExpression("%d %%", myOpacityPercent));
 
-    myListeners.listenAll(myActiveAsset, myOverrideSize, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
-        .with(this::renderPreviews);
+    TextProperty widthText = new TextProperty(myWidthTextField);
+    TextProperty heightText = new TextProperty(myHeightTextField);
+
+    Receiver<VectorAsset.VectorDrawableInfo> drawableListener = drawableInfo -> {
+      myAssetValidityState.set(drawableInfo.getValidityState());
+
+      myGeneralBindings.release(myWidth);
+      myGeneralBindings.release(myHeight);
+      if (myWidthAdapter != null) {
+        myGeneralBindings.release(myWidthAdapter);
+        myWidthAdapter = null;
+      }
+      if (myHeightAdapter != null) {
+        myGeneralBindings.release(myHeightAdapter);
+        myHeightAdapter = null;
+      }
+
+      double width = drawableInfo.getOriginalWidth();
+      double height = drawableInfo.getOriginalHeight();
+
+      if (width > 0 && height > 0) {
+        myWidth.set(width);
+        myHeight.set(height);
+        myAspectRatio = width / height;
+        // Use fractional dimensions for drawables smaller than 100dp.
+        int numDecimals = Math.max(roundToInt(Math.ceil(2 - Math.log10(Math.min(width, height)))), 0);
+        myWidthAdapter = new StringToDoubleAdapterProperty(widthText, numDecimals);
+        myHeightAdapter = new StringToDoubleAdapterProperty(heightText, numDecimals);
+        bindWidthAndHeight();
+        myWidthTextField.setEnabled(true);
+        myHeightTextField.setEnabled(true);
+      }
+      else {
+        myWidth.set(1.); // Set to a valid value.
+        myHeight.set(1.);
+        myWidthTextField.setText("");
+        myHeightTextField.setText("");
+        myWidthTextField.setEnabled(false);
+        myHeightTextField.setEnabled(false);
+      }
+
+      renderPreviews();
+    };
 
     myListeners.listenAndFire(myActiveAsset, () -> {
       myActiveAssetBindings.releaseAll();
 
-      myActiveAssetBindings.bind(myOutputName, new Expression<String>(myActiveAsset.get().path()) {
-        @Override
-        @NotNull
-        public String get() {
-          File file = myActiveAsset.get().path().get();
-          if (!file.exists() || file.isDirectory()) {
-            return DEFAULT_OUTPUT_NAME;
-          }
-
-          String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
-          if (!name.startsWith(ICON_PREFIX)) {
-            name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
-          }
-          return AndroidResourceUtil.getValidResourceFileName(name);
+      ObjectProperty<File> fileProperty = myActiveAsset.get().path();
+      myActiveAssetBindings.bind(myOutputName, Expression.create(() -> {
+        File file = fileProperty.get();
+        if (!file.exists() || file.isDirectory()) {
+          return DEFAULT_OUTPUT_NAME;
         }
-      });
+
+        String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
+        if (!name.startsWith(ICON_PREFIX)) {
+          name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
+        }
+        return AndroidResourceUtil.getValidResourceFileName(name);
+      }, fileProperty));
+
+      myListeners.release(drawableListener);
+      ObjectProperty<VectorAsset.VectorDrawableInfo> vectorDrawableInfo = myActiveAsset.get().getVectorDrawableInfo();
+      myListeners.listenAndFire(vectorDrawableInfo, drawableListener);
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
-      myValidatorPanel.registerValidator(myWidth, new PositiveIntegerValidator("Width should be a positive value"));
-      myValidatorPanel.registerValidator(myHeight, new PositiveIntegerValidator("Height should be a positive value"));
       myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity, 3));
+      myValidatorPanel.registerValidator(widthText, new SizeValidator("Width has to be a positive number"));
+      myValidatorPanel.registerValidator(heightText, new SizeValidator("Height has be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
         myActiveAssetBindings.bind(ObjectProperty.wrap(myActiveAsset.get().color()), myColor);
       }
       myActiveAssetBindings.bind(myActiveAsset.get().opacityPercent(), myOpacityPercent);
       myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), myAutoMirrored);
-      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), myWidth);
-      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), myHeight);
+      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), Expression.create(() -> myWidth.get(), myWidth));
+      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), Expression.create(() -> myHeight.get(), myHeight));
     });
+
+    myListeners.listenAll(myActiveAsset, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
+        .with(this::renderPreviews);
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
     myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
@@ -263,6 +300,22 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     // Refresh the asset preview.
     renderPreviews();
+  }
+
+  private void bindWidthAndHeight() {
+    if (myWidthAdapter != null && myHeightAdapter != null) {
+      myGeneralBindings.bind(myWidthAdapter, myWidth);
+      myGeneralBindings.bind(myHeightAdapter, myHeight);
+
+      if (myWidthHasFocus.get()) {
+        myGeneralBindings.bind(myWidth, myWidthAdapter);
+        myGeneralBindings.bind(myHeight, Expression.create(() -> myWidth.get() / myAspectRatio, myWidth));
+      }
+      else if (myHeightHasFocus.get()) {
+        myGeneralBindings.bind(myHeight, myHeightAdapter);
+        myGeneralBindings.bind(myWidth, Expression.create(() -> myHeight.get() * myAspectRatio, myHeight));
+      }
+    }
   }
 
   @Override
@@ -309,9 +362,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
     File file = myFileBrowser.getAsset().path().get();
     state.set(SOURCE_FILE_PROPERTY, file.getPath(), getProjectPath());
-    state.set(OVERRIDE_SIZE_PROPERTY, myOverrideSize.get(), false);
-    state.set(WIDTH_PROPERTY, myWidth.get(), DEFAULT_MATERIAL_ICON_SIZE);
-    state.set(HEIGHT_PROPERTY, myHeight.get(), DEFAULT_MATERIAL_ICON_SIZE);
     state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
     state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
@@ -328,9 +378,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
         myFileBrowser.getAsset().path().set(new File(path));
-        myOverrideSize.set(state.get(OVERRIDE_SIZE_PROPERTY, false));
-        myWidth.set(state.get(WIDTH_PROPERTY, DEFAULT_MATERIAL_ICON_SIZE));
-        myHeight.set(state.get(HEIGHT_PROPERTY, DEFAULT_MATERIAL_ICON_SIZE));
         myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
         myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
@@ -352,15 +399,14 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     // is necessary to use two invokeLater calls to make sure that everything settles before
     // icons generation is attempted.
     VectorPreviewUpdater previewUpdater = new VectorPreviewUpdater();
-    invokeVeryLate(previewUpdater::enqueueUpdate, ModalityState.any(), o -> Disposer.isDisposed(this));
+    invokeLater(() -> invokeLater(previewUpdater::enqueueUpdate));
   }
 
   /**
-   * Executes the given runnable after a double 'invokeLater' delay.
+   * Executes the given runnable asynchronously on the AWT event dispatching thread.
    */
-  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition expired) {
-    Application application = ApplicationManager.getApplication();
-    application.invokeLater(() -> application.invokeLater(runnable, state, expired), state, expired);
+  private void invokeLater(@NotNull Runnable runnable) {
+    ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any(), o -> Disposer.isDisposed(this));
   }
 
   /**
@@ -377,65 +423,89 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     @Nullable private SwingWorker myEnqueuedWorker;
 
     /**
-     * Starts parsing the current file in {@link #myActiveAsset} and, if it's valid, updates the UI
-     * (particularly, the image preview and errors area). If an update is already in process, then
-     * this will enqueue another request to run as soon as the current one is over.
-     * <p>
-     * The width of {@link #myImagePreview} is used when calculating a preview image, so be sure
-     * the layout manager has finished laying out your UI before calling this method.
-     * <p>
-     * This method must be called on the dispatch thread.
+     * Updates the image preview asynchronously. If an update is already in process, then a new update
+     * scheduled to run after completion of the current one.
      */
+    @UiThread
     public void enqueueUpdate() {
       ApplicationManager.getApplication().assertIsDispatchThread();
 
+      int previewWidth = myImagePreview.getWidth();
+      if (previewWidth <= 0) {
+        // Delay preview update until its desired size is known.
+        invokeLater(this::enqueueUpdate);
+        return;
+      }
+
       if (myCurrentWorker == null) {
-        myCurrentWorker = createWorker();
+        myCurrentWorker = createWorker(previewWidth);
         myCurrentWorker.start();
       }
       else if (myEnqueuedWorker == null) {
-        myEnqueuedWorker = createWorker();
+        myEnqueuedWorker = createWorker(previewWidth);
       }
     }
 
-    private SwingWorker createWorker() {
+    private SwingWorker createWorker(int previewWidth) {
       return new SwingWorker() {
-        VectorAsset.ParseResult myParseResult;
+        VectorAsset.Preview myPreview;
+        VectorAsset myAsset = myActiveAsset.get();
+        File myAssetFile = myAsset.path().get();
+        VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
+        VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
 
+        @WorkerThread
         @Override
+        @Nullable
         public Object construct() {
           try {
-            myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+            myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, previewWidth, myOverrideInfo);
           } catch (Throwable t) {
             Logger.getInstance(getClass()).error(t);
-            myParseResult = new VectorAsset.ParseResult("Internal error parsing " + myActiveAsset.get().path().get().getName());
+            myPreview = new VectorAsset.Preview("Internal error generating preview for " + myAssetFile.getName());
           }
           return null;
         }
 
+        @UiThread
         @Override
         public void finished() {
-          assert myParseResult != null;
-          myAssetValidityState.set(myParseResult.getValidityState());
-          if (myParseResult.isValid()) {
-            BufferedImage image = myParseResult.getImage();
+          assert myPreview != null;
+          // Update the preview image if it corresponds to the current state.
+          if (myAsset.equals(myActiveAsset.get()) &&
+              myAsset.isCurrentFile(myAssetFile) &&
+              myVectorDrawableInfo.equals(myAsset.getVectorDrawableInfo().get()) &&
+              myOverrideInfo.equals(myAsset.createOverrideInfo())) {
+            myAssetValidityState.set(myPreview.getValidityState());
+            BufferedImage image = myPreview.getImage();
             myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
-            myOriginalSize.setValue(
-                new Dimension(Math.round(myParseResult.getOriginalWidth()), Math.round(myParseResult.getOriginalHeight())));
-          }
-          else {
-            myImagePreview.setIcon(null);
-            myOriginalSize.clear();
           }
 
           myCurrentWorker = null;
           if (myEnqueuedWorker != null) {
             myCurrentWorker = myEnqueuedWorker;
             myEnqueuedWorker = null;
-            ApplicationManager.getApplication().invokeLater(() -> myCurrentWorker.start(), ModalityState.any());
+            myCurrentWorker.start();
           }
         }
       };
+    }
+  }
+
+  private static class SizeValidator implements Validator<String> {
+    private static final NumberFormat myFormat = NumberFormat.getNumberInstance();
+    private final Result myInvalidResult;
+
+    SizeValidator(@NotNull String message) {
+      myInvalidResult = new Result(Severity.ERROR, message);
+    }
+
+    @Override
+    @NotNull
+    public Result validate(@NotNull String value) {
+      ParsePosition pos = new ParsePosition(0);
+      Number number = myFormat.parse(value, pos);
+      return number != null && pos.getIndex() == value.length() && number.doubleValue() > 0 ? Result.OK : myInvalidResult;
     }
   }
 
