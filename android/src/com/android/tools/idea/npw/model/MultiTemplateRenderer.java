@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.npw.model;
 
-import com.google.common.annotations.VisibleForTesting;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.project.IndexingSuspender;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Sometimes, there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
@@ -51,18 +57,29 @@ public final class MultiTemplateRenderer {
     /**
      * Runs any needed Model pre-initialisation, for example, setting Template default values.
      */
+    @WorkerThread
     default void init() {}
 
     /**
      * Run validation, but don't write any file
      * @return true if the validation succeeded. Returning false will stop any call to {@link #render()}
      */
+    @WorkerThread
+    @Slow
     boolean doDryRun();
 
     /**
      * Do the actual work of writing the files.
      */
+    @WorkerThread
+    @Slow
     void render();
+
+    /**
+     * Runs any needed Model finalization, for example, after generating a project, import it or open generated files on the editor.
+     */
+    @UiThread
+    default void finish() {}
   }
 
   @Nullable private Project myProject;
@@ -142,34 +159,43 @@ public final class MultiTemplateRenderer {
 
     if (myRequestCount == 0 && !myTemplateRenderers.isEmpty()) {
       assert myProject != null : "Project instance is always expected to be not null at this point.";
-      IndexingSuspender.ensureInitialised(myProject);
-      multiRenderingStarted(myProject);
 
-      try {
-        // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first, we make sure
-        // they are properly initialized when doDryRun/render is called bellow.
-        for (TemplateRenderer renderer : myTemplateRenderers) {
-          renderer.init();
-        }
+      new Task.Modal(myProject, message("android.compile.messages.generating.r.java.content.name"), false) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          IndexingSuspender.ensureInitialised(myProject);
+          multiRenderingStarted(myProject);
 
-        for (TemplateRenderer renderer : myTemplateRenderers) {
-          if (!renderer.doDryRun()) {
-            return;
+          // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
+          // we make sure they are properly initialized when doDryRun/render is called bellow.
+          for (TemplateRenderer renderer : myTemplateRenderers) {
+            renderer.init();
+          }
+
+          for (TemplateRenderer renderer : myTemplateRenderers) {
+            if (!renderer.doDryRun()) {
+              return;
+            }
+          }
+
+          for (TemplateRenderer renderer : myTemplateRenderers) {
+            renderer.render();
+          }
+
+          if (myProject.isInitialized()) {
+            myProjectSyncInvoker.syncProject(myProject);
           }
         }
 
-        for (TemplateRenderer renderer : myTemplateRenderers) {
-          renderer.render();
-        }
+        @Override
+        public void onFinished() {
+          multiRenderingFinished(myProject);
 
-        if (myProject.isInitialized()) {
-          myProjectSyncInvoker.syncProject(myProject);
+          for (TemplateRenderer renderer : myTemplateRenderers) {
+            renderer.finish();
+          }
         }
-
-      }
-      finally {
-        multiRenderingFinished(myProject);
-      }
+      }.queue();
     }
   }
 }
