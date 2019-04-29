@@ -29,25 +29,26 @@ class SubqueryTable(private val selectStmt: RoomSelectStatement) : SqlTable {
   override val isView: Boolean get() = true
 
   override fun processColumns(processor: Processor<SqlColumn>): Boolean {
-    for (selectCore in selectStmt.selectCoreList) {
-      ProgressManager.checkCanceled()
+    // We need to process only first selectCore because the column names of the first query determine the column names of the combined result set.
+    val selectCore = selectStmt.selectCoreList.firstOrNull()
+    ProgressManager.checkCanceled()
 
-      val resultColumns = selectCore.selectCoreSelect?.resultColumns?.resultColumnList ?: continue
-      columns@ for (resultColumn in resultColumns) {
-        when {
-          resultColumn.expression != null -> { // Try to process by [RoomExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
-            if (!processor.process(resultColumn.column)) return false
-          }
-          resultColumn.selectedTableName != null -> { // "SELECT user.* FROM ..."
-            val sqlTable = resultColumn.selectedTableName?.reference?.resolveSqlTable() ?: continue@columns
-            if (!sqlTable.processColumns(processor)) return false
-          }
-          else -> { // "SELECT * FROM ..."
-            if (!processSelectedSqlTables(resultColumn, AllColumnsProcessor(processor))) return false
-          }
+    val resultColumns = selectCore?.selectCoreSelect?.resultColumns?.resultColumnList ?: return true
+    columns@ for (resultColumn in resultColumns) {
+      when {
+        resultColumn.expression != null -> { // Try to process by [RoomExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
+          if (!processor.process(resultColumn.column)) return false
+        }
+        resultColumn.selectedTableName != null -> { // "SELECT user.* FROM ..."
+          val sqlTable = resultColumn.selectedTableName?.reference?.resolveSqlTable() ?: continue@columns
+          if (!sqlTable.processColumns(processor)) return false
+        }
+        else -> { // "SELECT * FROM ..."
+          if (!processSelectedSqlTables(resultColumn, AllColumnsProcessor(processor))) return false
         }
       }
     }
+
     return true
   }
 }
