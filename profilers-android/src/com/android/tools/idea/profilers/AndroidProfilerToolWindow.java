@@ -283,7 +283,7 @@ public class AndroidProfilerToolWindow implements Disposable {
       myProject = project;
       myWindow = window;
 
-      service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
+      service.getDataStoreService().setNoPiiExceptionHandler(ideProfilerServices::reportNoPiiException);
       ProfilerClient client = new ProfilerClient(service.getChannelName());
       myProfilers = new StudioProfilers(client, ideProfilerServices);
       IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
@@ -322,6 +322,11 @@ public class AndroidProfilerToolWindow implements Disposable {
 
     @Override
     public void dispose() {
+      // Because the transport service, is an application service that holds a reference to the DataStoreService, we need to reset the pii
+      // exception handler on the DataStoreServe to free the reference to the IntellijProfilerService callback added in the constructor.
+      // The IntellijProfilerServices hold a reference to the intellij project which can be bad if the user closes the project and starts a
+      // new one after profiling.
+      TransportService.getInstance().getDataStoreService().setNoPiiExceptionHandler(null);
       myProfilers.stop();
     }
 
