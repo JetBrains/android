@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredJarDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.JPanel
@@ -31,15 +32,6 @@ class JarDependencyDetails(
   init {
     myScopeLabel.isVisible = showScope
     myScope.isVisible = showScope
-    myScope.addFocusListener(object: FocusAdapter() {
-      override fun focusLost(e: FocusEvent?) {
-        super.focusLost(e)
-        modifyConfiguration()
-      }
-    })
-    myScope.addActionListener {
-      modifyConfiguration()
-    }
   }
 
   private var myDependency: PsJarDependency? = null
@@ -49,11 +41,30 @@ class JarDependencyDetails(
   }
 
   override fun display(dependency: PsBaseDependency) {
-    myDependency = dependency as PsJarDependency
-    myNameText.text = dependency.name
-    myIncludesText.text = dependency.includes.toString()
-    myExcludesText.text = dependency.excludes.toString()
-    myScope.text = dependency.joinedConfigurationNames
+    val d = dependency as PsJarDependency
+    displayConfiguration(d)
+    if (d != myDependency) {
+      myNameText.text = dependency.name
+      myIncludesText.text = dependency.includes.toString()
+      myExcludesText.text = dependency.excludes.toString()
+    }
+    myDependency = d
+  }
+
+  private fun displayConfiguration(dependency: PsJarDependency) {
+    if (dependency != myDependency) {
+      try {
+        comboMaintenance = true
+        myScope.removeAllItems()
+        val configuration = dependency.joinedConfigurationNames
+        myScope.addItem(configuration)
+        dependency.parent.getConfigurations(PsModule.ImportantFor.LIBRARY)
+          .filter { it != configuration }
+          .forEach { myScope.addItem(it) }
+      } finally {
+        comboMaintenance = false
+      }
+    }
   }
 
   override fun getSupportedModelType(): Class<PsJarDependency> {
@@ -65,8 +76,13 @@ class JarDependencyDetails(
   }
 
   // TODO(xof): duplicate code with {Module,SingleLibrary}DependencyDetails
-  fun modifyConfiguration() {
-    val module = myDependency!!.parent
-    module.modifyDependencyConfiguration(myDependency as PsDeclaredJarDependency, myScope.text)
+  override fun modifyConfiguration() {
+    if (myDependency != null && myScope.selectedItem != null) {
+      val selectedConfiguration = myScope.selectedItem as? String
+      if (selectedConfiguration != null) {
+        val module = myDependency!!.parent
+        module.modifyDependencyConfiguration(myDependency as PsDeclaredJarDependency, selectedConfiguration)
+      }
+    }
   }
 }
