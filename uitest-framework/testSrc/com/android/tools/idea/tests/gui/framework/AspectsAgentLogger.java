@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.testutils.TestUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.RestartUtilsKt;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,23 +39,19 @@ public class AspectsAgentLogger extends TestWatcher {
   private static File ourAspectsAgentLog;
 
   static {
-    try {
-      String logPath = Paths.get(GuiTests.getGuiTestRootDirPath().getAbsolutePath(), "system", "log", "aspects_agent_log.txt").toString();
-      ourAspectsAgentLog = new File(logPath);
-      if (ourAspectsAgentLog.getParentFile().exists()) {
+    if (!TestUtils.runningFromBazel()) { // When running from bazel, we don't generate the aspects agent log.
+      try {
+        String logPath = Paths.get(GuiTests.getGuiTestRootDirPath().getAbsolutePath(), "system", "log", "aspects_agent_log.txt").toString();
+        ourAspectsAgentLog = new File(logPath);
+        FileUtil.ensureExists(ourAspectsAgentLog.getParentFile());
         boolean created = ourAspectsAgentLog.createNewFile();
         if (!created) {
           LOGGER.warn("Could not create the aspects agent log.");
         }
       }
-      else {
-        // GuiTests.getGuiTestRootDirPath()/system/log does not exist, therefore nor does the log.
-        LOGGER.info("Aspects agent log directory does not exist, so the log file was not created.");
-        ourAspectsAgentLog = null;
+      catch (IOException e) {
+        LOGGER.warn("Error while creating the aspects agent output log", e);
       }
-    }
-    catch (IOException e) {
-      LOGGER.warn("Error while creating the aspects agent output log", e);
     }
   }
 
