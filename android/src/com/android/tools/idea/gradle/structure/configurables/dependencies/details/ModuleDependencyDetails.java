@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredModuleDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
@@ -27,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.HyperlinkEvent;
@@ -43,9 +45,11 @@ public class ModuleDependencyDetails implements DependencyDetails {
   private JXLabel myGradlePathLabel;
   private JBLabel myScopePromptLabel;
   private HyperlinkLabel myGoToLabel;
-  private JTextField myScope;
+  private JComboBox<String> myScope;
 
   private PsModuleDependency myDependency;
+
+  private boolean comboMaintenance = false;
 
   public ModuleDependencyDetails(@NotNull PsContext context, boolean showScope) {
     myContext = context;
@@ -68,19 +72,6 @@ public class ModuleDependencyDetails implements DependencyDetails {
           true);
       }
     });
-    myScope.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        super.focusLost(e);
-        modifyConfiguration();
-      }
-    });
-    myScope.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        modifyConfiguration();
-      }
-    });
   }
 
   @Override
@@ -91,11 +82,29 @@ public class ModuleDependencyDetails implements DependencyDetails {
 
   @Override
   public void display(@NotNull PsBaseDependency dependency) {
-    myDependency = (PsModuleDependency)dependency;
-    myNameLabel.setText(myDependency.getName());
-    myGradlePathLabel.setText(myDependency.getGradlePath());
+    PsModuleDependency d = (PsModuleDependency) dependency;
+    myNameLabel.setText(d.getName());
+    myGradlePathLabel.setText(d.getGradlePath());
     if (myShowScope) {
-      myScope.setText(myDependency.getJoinedConfigurationNames());
+      displayConfiguration(d);
+    }
+    myDependency = d;
+  }
+
+  public void displayConfiguration(@NotNull PsModuleDependency dependency) {
+    if (dependency != myDependency) {
+      try {
+        comboMaintenance = true;
+        myScope.removeAllItems();
+        String configuration = dependency.getJoinedConfigurationNames();
+        myScope.addItem(configuration);
+        for (String c : dependency.getParent().getConfigurations(PsModule.ImportantFor.MODULE)) {
+          if (c != configuration) myScope.addItem(c);
+        }
+        myScope.setSelectedItem(configuration);
+      } finally {
+        comboMaintenance = false;
+      }
     }
   }
 
@@ -112,7 +121,24 @@ public class ModuleDependencyDetails implements DependencyDetails {
   }
 
   private void modifyConfiguration() {
-    PsModule module = myDependency.getParent();
-    module.modifyDependencyConfiguration((PsDeclaredModuleDependency) myDependency, myScope.getText());
+    if (myDependency != null && myScope.getSelectedItem() != null) {
+      String selectedConfiguration = (String) myScope.getSelectedItem();
+      if (selectedConfiguration != null) {
+        PsModule module = myDependency.getParent();
+        module.modifyDependencyConfiguration((PsDeclaredModuleDependency) myDependency, selectedConfiguration);
+      }
+    }
+  }
+
+  private void createUIComponents() {
+    myScope = new ComboBox<String>();
+    myScope.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!comboMaintenance) {
+          modifyConfiguration();
+        }
+      }
+    });
   }
 }

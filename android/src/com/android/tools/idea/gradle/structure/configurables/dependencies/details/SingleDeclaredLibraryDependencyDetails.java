@@ -18,12 +18,10 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
 import com.android.tools.idea.gradle.structure.model.*;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBLabel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -37,29 +35,18 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
   private JXLabel myGroupIdLabel;
   private JXLabel myArtifactNameLabel;
   private JPanel myRequestedVersion;
-  private JTextField myScope;
+  private JComboBox<String> myScope;
 
   @NotNull private final PsContext myContext;
   @Nullable private PsDeclaredLibraryDependency myDependency;
   @Nullable private ModelPropertyEditor<?> myVersionPropertyEditor;
   @Nullable private JComponent myEditorComponent;
 
+  private boolean comboMaintenance;
+
   public SingleDeclaredLibraryDependencyDetails(@NotNull PsContext context) {
     myContext = context;
-    // TODO(xof): common code with ModuleDependencyDetails.java
-    myScope.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        super.focusLost(e);
-        modifyConfiguration();
-      }
-    });
-    myScope.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        modifyConfiguration();
-      }
-    });
+    comboMaintenance = true;
   }
 
   @Override
@@ -73,12 +60,12 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
     PsDeclaredLibraryDependency d = (PsDeclaredLibraryDependency) dependency;
 
     displayVersion(d);
+    displayConfiguration(d);
     if (myDependency != dependency) {
       PsArtifactDependencySpec spec = d.getSpec();
       myGroupIdLabel.setText(spec.getGroup());
       myArtifactNameLabel.setText(spec.getName());
     }
-    myScope.setText(dependency.getJoinedConfigurationNames());
 
     myDependency = d;
   }
@@ -104,6 +91,23 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
     }
   }
 
+  private void displayConfiguration(@NotNull PsDeclaredLibraryDependency dependency) {
+    if (dependency != myDependency) {
+      try {
+        comboMaintenance = true;
+        myScope.removeAllItems();
+        String configuration = dependency.getJoinedConfigurationNames();
+        myScope.addItem(configuration);
+        for (String c : dependency.getParent().getConfigurations(PsModule.ImportantFor.LIBRARY)) {
+          if (c != configuration) myScope.addItem(c);
+        }
+        myScope.setSelectedItem(configuration);
+      } finally {
+        comboMaintenance = false;
+      }
+    }
+  }
+
   @Override
   @NotNull
   public Class<PsDeclaredLibraryDependency> getSupportedModelType() {
@@ -118,7 +122,24 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   // TODO(xof): common code with ModuleDependencyDetails
   private void modifyConfiguration() {
-    PsModule module = myDependency.getParent();
-    module.modifyDependencyConfiguration(myDependency, myScope.getText());
+    if (myDependency != null && myScope.getSelectedItem() != null) {
+      String selectedConfiguration = (String) myScope.getSelectedItem();
+      if (selectedConfiguration != null) {
+        PsModule module = myDependency.getParent();
+        module.modifyDependencyConfiguration(myDependency, selectedConfiguration);
+      }
+    }
+  }
+
+  private void createUIComponents() {
+    myScope = new ComboBox<String>();
+    myScope.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (!comboMaintenance) {
+          modifyConfiguration();
+        }
+      }
+    });
   }
 }
