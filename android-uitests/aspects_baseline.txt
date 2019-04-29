@@ -30,6 +30,7 @@ com.android.tools.idea.gradle.plugin.AndroidPluginInfo.find|com.android.tools.id
 com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFiles|com.android.tools.idea.gradle.plugin.AndroidPluginInfo.find
 com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly|com.android.tools.idea.npw.template.TemplateValueInjector.determineGradlePluginVersion
 com.android.tools.idea.model.MergedManifestInfo.create|com.android.tools.idea.model.MergedManifestManager.lambda$readSnapshotFromDisk$0
+com.android.tools.idea.model.MergedManifestInfo.create|com.android.tools.idea.model.MergedManifestSupplier$getOrCreateSnapshot$$inlined$runReadAction$1.compute
 com.android.tools.idea.model.MergedManifestInfo.getMergedManifest|com.android.tools.idea.model.MergedManifestInfo.mergeManifests
 com.android.tools.idea.model.MergedManifestInfo.mergeManifests|com.android.tools.idea.model.MergedManifestInfo.create
 com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot|com.android.tools.idea.model.MergedManifestManager.getSnapshot
@@ -42,6 +43,7 @@ com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerKt.createResourceResolver
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getSnapshot
+com.android.tools.idea.model.MergedManifestSupplier.getOrCreateSnapshot|com.android.tools.idea.model.MergedManifestSupplier.getOrCreateSnapshotInCallingThread
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.common.model.NlModel.getIds
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.configurations.Configuration.computeBestDevice
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.configurations.ConfigurationMatcher.getBetterMatch
