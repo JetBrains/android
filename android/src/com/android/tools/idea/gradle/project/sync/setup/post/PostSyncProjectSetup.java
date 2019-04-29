@@ -78,7 +78,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -212,7 +211,7 @@ public class PostSyncProjectSetup {
         myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
         // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
         // previous sync, and not the one from the sync that just ended.
-        mySyncState.syncFailed("", syncListener);
+        mySyncState.syncFailed("", null, syncListener);
         finishFailedSync(taskId, myProject);
         return;
       }
@@ -275,9 +274,8 @@ public class PostSyncProjectSetup {
       setSingleVariantSyncState(myProject);
     }
     catch (Throwable t) {
-      mySyncState.syncFailed("setup project failed: " + t.getMessage(), syncListener);
+      mySyncState.syncFailed("setup project failed: " + t.getMessage(), t, syncListener);
       finishFailedSync(taskId, myProject);
-      getLog().error(t);
     }
   }
 
@@ -399,7 +397,7 @@ public class PostSyncProjectSetup {
     }
     else {
       if (mySyncState.lastSyncFailedOrHasIssues()) {
-        mySyncState.syncFailed("", null);
+        mySyncState.syncFailed("", null, null);
       }
       else {
         mySyncState.syncEnded();
@@ -490,11 +488,6 @@ public class PostSyncProjectSetup {
       return;
     }
     myProjectBuilder.generateSources();
-  }
-
-  @NotNull
-  private Logger getLog() {
-    return Logger.getInstance(getClass());
   }
 
   /**
