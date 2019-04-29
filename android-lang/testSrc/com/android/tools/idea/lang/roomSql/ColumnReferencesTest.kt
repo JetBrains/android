@@ -1277,6 +1277,47 @@ class ColumnReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(aliasDefinition)
   }
 
+  fun testResolveOnlyFirstSourceColumnsInOrderClause() {
+    myFixture.addRoomEntity("com.example.TableOne", "shouldResolve" ofType "String")
+    myFixture.addRoomEntity("com.example.TableTwo", "shouldNotResolve" ofType "String")
+
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM TableOne UNION ALL SELECT * FROM TableTwo ORDER BY s<caret>houldNotResolve") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
+  }
+
+  fun testResolveOnlyFirstSourceColumnsInSubquery() {
+    myFixture.addRoomEntity("com.example.TableOne", "shouldResolve" ofType "String")
+    myFixture.addRoomEntity("com.example.TableTwo", "shouldNotResolve" ofType "String")
+
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT s<caret>houldNotResolve FROM (SELECT * FROM TableOne UNION ALL SELECT * FROM TableTwo") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
+  }
+
+
   fun testColumnAlias() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
     //language=JAVA
