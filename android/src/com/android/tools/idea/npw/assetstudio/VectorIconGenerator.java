@@ -97,7 +97,7 @@ public class VectorIconGenerator extends IconGenerator {
   @NotNull
   public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     VectorAsset vectorAsset = (VectorAsset)sourceAsset().getValue();
-    VectorAsset.ParseResult result = vectorAsset.parse();
+    VectorAsset.Preview result = vectorAsset.generatePreview();
     if (!result.isValid()) {
       return Collections.emptySet();
     }
