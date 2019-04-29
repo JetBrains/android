@@ -111,7 +111,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
   public void testSyncFailed() {
     String msg = "Something went wrong";
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed(msg, null);
+    mySyncState.syncFailed(msg, null, null);
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
@@ -123,7 +123,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
   public void testSyncFailedWithoutSyncStarted() {
     String msg = "Something went wrong";
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed(msg, null);
+    mySyncState.syncFailed(msg, null, null);
     verify(mySummary, never()).setSyncErrorsFound(true);
     verify(myGradleSyncListener, never()).syncFailed(myProject, msg);
   }

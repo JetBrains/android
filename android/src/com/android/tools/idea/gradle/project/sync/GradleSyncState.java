@@ -204,8 +204,8 @@ public class GradleSyncState {
   /**
    * Notification that a sync has started.
    *
-   * @param notifyUser indicates whether the user should be notified.
-   * @param request    the request which initiated the sync.
+   * @param notifyUser   indicates whether the user should be notified.
+   * @param request      the request which initiated the sync.
    * @param syncListener the listener for this particular sync that should be notified.
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
@@ -245,7 +245,8 @@ public class GradleSyncState {
       syncListener.syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess);
     }
     syncPublisher(
-      () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess));
+      () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC)
+        .syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess));
 
     logSyncEvent(GRADLE_SYNC_STARTED);
     return true;
@@ -310,7 +311,7 @@ public class GradleSyncState {
   }
 
   public void invalidateLastSync(@NotNull String error) {
-    syncFailed(error, null);
+    syncFailed(error, null, null);
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -322,10 +323,11 @@ public class GradleSyncState {
   /**
    * Notification that a sync has started.
    *
-   * @param message the failure message for this sync.
+   * @param message      the failure message for this sync.
+   * @param error        the throwable that caused sync to fail, null if none exist. This information is only used to log the exception.
    * @param syncListener the listener for this particular sync that should be notified.
    */
-  public void syncFailed(@NotNull String message, @Nullable GradleSyncListener syncListener) {
+  public void syncFailed(@NotNull String message, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
     myProjectStructure.clearData();
     long syncEndTimestamp = System.currentTimeMillis();
     // If mySyncStartedTimestamp is -1, that means sync has not started or syncFailed has been called for this invocation.
@@ -341,7 +343,21 @@ public class GradleSyncState {
     }
     msg += String.format(" (%1$s)", getFormattedSyncDuration(syncEndTimestamp));
     addToSyncEventLog(msg, ERROR);
-    LOG.info(msg);
+    LOG.warn(msg);
+
+    // Log the error to ideas log
+    // Note: we log this as well as message above so the stack trace is present in the logs.
+    if (error != null) {
+      LOG.warn(error);
+    }
+
+    // If we are in use tests also log to stdout to help debugging.
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      String toLog = (error == null) ? message : error.getMessage();
+      //noinspection UseOfSystemOutOrSystemErr
+      System.out.println("***** sync error: " + toLog);
+    }
+
 
     logSyncEvent(GRADLE_SYNC_FAILURE);
 
@@ -405,7 +421,10 @@ public class GradleSyncState {
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, WARNING, quickFixes);
   }
 
-  private void addToEventLog(@NotNull NotificationGroup notificationGroup, @NotNull String message, @NotNull MessageType type, @Nullable List<NotificationHyperlink> quickFixes) {
+  private void addToEventLog(@NotNull NotificationGroup notificationGroup,
+                             @NotNull String message,
+                             @NotNull MessageType type,
+                             @Nullable List<NotificationHyperlink> quickFixes) {
     StringBuilder msg = new StringBuilder(message);
     NotificationListener listener = null;
     if (quickFixes != null) {
@@ -578,7 +597,7 @@ public class GradleSyncState {
     long sourceGenerationEndedTimestamp = System.currentTimeMillis();
     setSourceGenerationEndedTimeStamp(sourceGenerationEndedTimestamp);
     addInfoToSyncEventLog(String.format("Source generation ended in %1$s",
-                                    formatDuration(mySourceGenerationEndedTimeStamp - mySyncSetupStartedTimeStamp)));
+                                        formatDuration(mySourceGenerationEndedTimeStamp - mySyncSetupStartedTimeStamp)));
     LOG.info(String.format("Finished source generation of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).sourceGenerationFinished(myProject));
     // TODO: add metric to UsageTracker
@@ -629,7 +648,7 @@ public class GradleSyncState {
       GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
       String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
       eventBuilder.setGradleVersion(gradleVersionString)
-                  .setKotlinSupport(generateKotlinSupportProto());
+        .setKotlinSupport(generateKotlinSupportProto());
     }
     UsageTracker.log(eventBuilder);
   }

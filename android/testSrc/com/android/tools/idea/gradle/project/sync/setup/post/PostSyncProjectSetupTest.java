@@ -177,7 +177,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
-    verify(mySyncState, times(1)).syncFailed(any(), any());
+    verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncEnded();
   }
 
@@ -197,7 +197,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
       // Exception is expected
     }
 
-    verify(mySyncState, times(1)).syncFailed(any(), any());
+    verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncEnded();
   }
 
@@ -221,7 +221,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
     verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
-    verify(mySyncState, times(1)).syncFailed(any(), any());
+    verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncEnded();
 
     // Source generation should not be invoked if sync failed.
