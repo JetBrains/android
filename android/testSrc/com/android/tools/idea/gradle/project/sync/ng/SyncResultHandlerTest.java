@@ -70,7 +70,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     myResultHandler.onSyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
 
     verify(mySyncState).setupStarted();
-    verify(mySyncState, never()).syncFailed(any(), eq(mySyncListener));
+    verify(mySyncState, never()).syncFailed(any(), any(), eq(mySyncListener));
 
     verify(projectSetup).setUpProject(same(models), any());
     verify(projectSetup).commit();
@@ -88,7 +88,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
 
     myResultHandler.onSyncFailed(mySyncCallback, mySyncListener);
 
-    verify(mySyncState).syncFailed("Test error", mySyncListener);
+    verify(mySyncState).syncFailed("Test error", error, mySyncListener);
     verify(mySyncState, never()).setupStarted();
     verify(mySyncState, never()).syncEnded();
   }
@@ -106,7 +106,7 @@ public class SyncResultHandlerTest extends IdeaTestCase {
     myResultHandler.onVariantOnlySyncFinished(mySyncCallback, setupRequest, myIndicator, mySyncListener);
 
     verify(mySyncState).setupStarted();
-    verify(mySyncState, never()).syncFailed(any(), eq(mySyncListener));
+    verify(mySyncState, never()).syncFailed(any(), any(), eq(mySyncListener));
 
     verify(projectSetup).setUpProject(same(models), any());
     verify(projectSetup).commit();

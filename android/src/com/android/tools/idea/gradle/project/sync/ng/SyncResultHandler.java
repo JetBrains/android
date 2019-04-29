@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -164,12 +163,12 @@ class SyncResultHandler {
           () -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId, syncListener));
       }
       catch (Throwable e) {
-        notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
+        mySyncState.syncFailed(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
       }
     }
     else {
       // SyncAction.ProjectModels should not be null. Something went wrong.
-      notifyAndLogSyncError("Gradle did not return any project models", null /* no exception */, syncListener);
+      mySyncState.syncFailed("Gradle did not return any project models", null /* no exception */, syncListener);
     }
   }
 
@@ -199,26 +198,10 @@ class SyncResultHandler {
     Throwable error = callback.getSyncError();
     String errorMessage = error != null ? getRootCauseMessage(error) : callback.getError();
     errorMessage = nullToUnknownErrorCause(errorMessage);
-    notifyAndLogSyncError(errorMessage, error, syncListener);
+    mySyncState.syncFailed(errorMessage, error, syncListener);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       // Fails to obtain a model from Gradle, signal myLatch so onCompoundSyncFinished can be unblocked.
       myCompoundSyncTestManager.myLatch.countDown();
-    }
-  }
-
-  private void notifyAndLogSyncError(@NotNull String errorMessage, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
-    if (ApplicationManager.getApplication().isUnitTestMode() && error != null) {
-      // This is extremely handy when debugging sync errors in tests. Do not remove.
-      //noinspection UseOfSystemOutOrSystemErr
-      System.out.println("***** sync error: " + error.getMessage());
-    }
-
-    mySyncState.syncFailed(errorMessage, syncListener);
-    if (error != null) {
-      getLog().warn("Gradle sync failed", error);
-    }
-    else {
-      logSyncFailure(errorMessage);
     }
   }
 
@@ -234,21 +217,13 @@ class SyncResultHandler {
     return isEmpty(errorMessage) ? "<Unknown cause>" : errorMessage;
   }
 
-  private static void logSyncFailure(@NotNull String errorMessage) {
-    getLog().warn("Gradle sync failed: " + errorMessage);
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(SyncResultHandler.class);
-  }
-
   void onVariantOnlySyncFinished(@NotNull SyncExecutionCallback callback,
                                  @NotNull PostSyncProjectSetup.Request setupRequest,
                                  @NotNull ProgressIndicator indicator,
                                  @Nullable GradleSyncListener syncListener) {
     VariantOnlyProjectModels models = callback.getVariantOnlyModels();
     ExternalSystemTaskId taskId = callback.getTaskId();
+    // Errors are logged inside setUpProject.
     setUpProject(setupRequest, indicator, ProjectSetup::setUpProject, models, syncListener, taskId);
   }
 

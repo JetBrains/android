@@ -342,7 +342,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
 
-    syncState.syncFailed("Test!", null)
+    syncState.syncFailed("Test!", null, null)
     assertEquals(0, currentBatchUpdateLevel)
     assertEquals(0, currentBatchFileUpdateLevel)
   }
@@ -358,7 +358,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, actualBatchFileUpdateCount)
 
     if (failed) {
-      syncState.syncFailed("Test", null)
+      syncState.syncFailed("Test", null, null)
     }
     else {
       syncState.syncEnded()
