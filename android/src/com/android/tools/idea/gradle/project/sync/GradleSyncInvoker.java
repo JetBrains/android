@@ -263,7 +263,7 @@ public class GradleSyncInvoker {
     ExternalSystemTaskId taskId = createFailedPreCheckSyncTaskWithStartMessage(project);
     syncState.setExternalSystemTaskId(taskId);
     if (syncState.syncStarted(true, request, syncListener)) {
-      syncState.syncFailed(failureCause, syncListener);
+      syncState.syncFailed(failureCause, null, syncListener);
     }
 
     // Let build view know there were issues
