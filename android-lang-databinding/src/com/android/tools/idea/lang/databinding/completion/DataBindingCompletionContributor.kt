@@ -152,13 +152,13 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     autoCompleteUnqualifiedFunctions(result)
 
     val dataBindingLayoutInfo = getDataBindingLayoutInfo(file) ?: return
-    for ((name, _, xmlTag) in dataBindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values) {
-      val elementBuilder = LookupElementBuilder.create(xmlTag,
-                                                       DataBindingUtil.convertToJavaFieldName(name))
-        .withInsertHandler(onCompletionHandler)
-      result.addElement(elementBuilder)
-    }
-
+    result.addAllElements(
+      (dataBindingLayoutInfo.getItems(DataBindingResourceType.VARIABLE).values
+       + dataBindingLayoutInfo.getItems(DataBindingResourceType.IMPORT).values)
+        .map { (name, _, xmlTag) ->
+          LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
+        }
+    )
     JavaPsiFacade.getInstance(file.project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
       .getClasses(ModulesScope.moduleWithLibrariesScope(file.androidFacet!!.module))
       .forEach {
