@@ -376,7 +376,7 @@ public class GradleFiles {
     }
     if (psiFile.getFileType().getName().equals("Kotlin")) {
       VirtualFile file = psiFile.getVirtualFile();
-      if (file != null && FN_BUILD_GRADLE_KTS.equals(file.getName()) || FN_SETTINGS_GRADLE_KTS.equals(file.getName())) {
+      if (file != null && (FN_BUILD_GRADLE_KTS.equals(file.getName()) || FN_SETTINGS_GRADLE_KTS.equals(file.getName()))) {
         return true;
       }
     }
