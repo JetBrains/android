@@ -16,10 +16,12 @@
 package com.android.tools.idea.transport;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBus;
 import java.io.File;
@@ -34,6 +36,10 @@ import org.jetbrains.annotations.NotNull;
 public class TransportService implements Disposable {
   public static TransportService getInstance() {
     return ServiceManager.getService(TransportService.class);
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(TransportService.class);
   }
 
   public static boolean isServiceInitialized() {
@@ -52,6 +58,7 @@ public class TransportService implements Disposable {
     myDataStoreService =
       new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
                            new IntellijLogService());
+    myDataStoreService.setNoPiiExceptionHandler((t) -> getLogger().error(new NoPiiException(t)));
 
     myMessageBus = ApplicationManager.getApplication().getMessageBus();
     myDeviceManager = new TransportDeviceManager(myDataStoreService, myMessageBus);
@@ -69,11 +76,6 @@ public class TransportService implements Disposable {
   @NotNull
   public MessageBus getMessageBus() {
     return myMessageBus;
-  }
-
-  @NotNull
-  public DataStoreService getDataStoreService() {
-    return myDataStoreService;
   }
 
   @NotNull
