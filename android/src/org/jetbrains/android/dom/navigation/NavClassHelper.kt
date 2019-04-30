@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.model
+package org.jetbrains.android.dom.navigation
 
 import com.android.SdkConstants
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
@@ -40,3 +41,5 @@ fun isNavHostFragment(className: String, module: Module): Boolean {
 
   return extendsNavHostFragment(psiClass)
 }
+
+fun PsiClass.isInProject() = ModuleUtilCore.findModuleForPsiElement(this) != null

@@ -20,7 +20,6 @@ import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.schema
@@ -40,7 +39,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -50,8 +48,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -68,6 +64,7 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import java.awt.BorderLayout
 import java.awt.event.HierarchyEvent
@@ -115,22 +112,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val existingClasses = parent.children.mapNotNull { it.className }
 
       for (tag in schema.allTags) {
-        for (psiClass in schema.getDestinationClassesForTag(tag)) {
-          if (ModuleUtilCore.findModuleForPsiElement(psiClass) != null) {
-            val destination = Destination.RegularDestination(parent, tag, null, psiClass)
-            classToDestination[psiClass] = destination
-          }
-
-          val query = ClassInheritorsSearch.search(psiClass, GlobalSearchScope.moduleWithDependenciesScope(module), true, true, false)
-          for (child in query) {
-            if (extendsNavHostFragment(child) || classToDestination.containsKey(child) || existingClasses.contains(child.qualifiedName)) {
-              continue
-            }
-
-            val inProject = ModuleUtilCore.findModuleForPsiElement(child) != null
-            val destination = Destination.RegularDestination(parent, tag, null, child, inProject = inProject)
-            classToDestination[child] = destination
-          }
+        for (psiClass in schema.getProjectClassesForTag(tag)
+          .filter { !classToDestination.containsKey(it) && !existingClasses.contains(it.qualifiedName) }) {
+          val inProject = psiClass.isInProject()
+          val destination = Destination.RegularDestination(parent, tag, null, psiClass, inProject = inProject)
+          classToDestination[psiClass] = destination
         }
       }
 
