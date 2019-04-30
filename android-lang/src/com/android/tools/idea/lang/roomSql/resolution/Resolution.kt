@@ -112,10 +112,7 @@ private fun pushNextElements(
   walkingDown: Boolean
 ) {
   fun nextStep(next: PsiElement, newPrevious: PsiElement? = element) = NextStep(next, previous = newPrevious)
-
-  fun pushIfNotNull(next: PsiElement?) {
-    if (next != null) stack.push(nextStep(next))
-  }
+  fun PsiElement.pushOnStack() = stack.push(nextStep(this))
 
   if (walkingDown) {
     when (element) {
@@ -136,7 +133,7 @@ private fun pushNextElements(
     if (element is RoomSqlFile) return
 
     // Push the parent on the stack, we may be in a nested subexpression so need to find all selected tables.
-    pushIfNotNull(element.parent)
+    element.parent?.pushOnStack()
 
     // Check if something should be pushed on top of the parent, based on the current node.
     when (element) {
@@ -144,28 +141,30 @@ private fun pushNextElements(
         // If we came from 'FROM_CLAUSE' we don't want to resolve any columns by using 'FROM_CLAUSE' or 'RESULT_COLUMNS'.
         if (previous != element.fromClause) {
           // Prevent infinite loop.
-          if (previous != element.resultColumns) pushIfNotNull(element.resultColumns)
+          if (previous != element.resultColumns) {
+            element.resultColumns.pushOnStack()
+          }
 
-          pushIfNotNull(element.fromClause)
+          element.fromClause?.pushOnStack()
         }
       }
       is RoomSelectStatement -> {
         if (previous == element.orderClause) {
           for (selectCore in element.selectCoreList) {
-            pushIfNotNull(selectCore?.selectCoreSelect?.resultColumns)
-            pushIfNotNull(selectCore?.selectCoreSelect?.fromClause)
+            selectCore?.selectCoreSelect?.resultColumns?.pushOnStack()
+            selectCore?.selectCoreSelect?.fromClause?.pushOnStack()
           }
         }
       }
       is RoomDeleteStatement -> {
-        pushIfNotNull(element.singleTableStatementTable)
+        element.singleTableStatementTable.pushOnStack()
       }
       is RoomUpdateStatement -> {
-        pushIfNotNull(element.singleTableStatementTable)
+        element.singleTableStatementTable?.pushOnStack()
       }
       is RoomInsertStatement -> {
         if (previous == element.insertColumns) {
-          pushIfNotNull(element.singleTableStatementTable)
+          element.singleTableStatementTable.pushOnStack()
         }
       }
       is RoomFromClause -> {
