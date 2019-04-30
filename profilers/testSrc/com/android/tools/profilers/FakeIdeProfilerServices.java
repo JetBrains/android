@@ -417,11 +417,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myNotification = notification;
   }
 
-  @Override
-  public void reportNoPiiException(@NotNull Throwable t) {
-    t.printStackTrace();
-  }
-
   @Nullable
   public Notification getNotification() {
     return myNotification;

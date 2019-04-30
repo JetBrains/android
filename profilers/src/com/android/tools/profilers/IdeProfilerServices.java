@@ -162,14 +162,4 @@ public interface IdeProfilerServices {
    * which should particularly draw attention to warning and error messages.
    */
   void showNotification(@NotNull Notification notification);
-
-  /**
-   * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
-   * This function should only be called when we are sure there is no PII within the exception message.
-   * The NoPiiException uploads the full exception message to the crash report site. This can then be
-   * to diagnose and root cause issues.
-   *
-   * @param t throwable to be wrapped. The exception should not contain PII within the message.
-   */
-  void reportNoPiiException(@NotNull Throwable t);
 }
