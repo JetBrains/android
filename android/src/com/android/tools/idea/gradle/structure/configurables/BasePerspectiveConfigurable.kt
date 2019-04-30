@@ -93,7 +93,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
     @Suppress("LeakingThis")
     context.add(object : GradleSyncListener {
-      override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) {
+      override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) {
         loadingPanel?.startLoading()
       }
 
