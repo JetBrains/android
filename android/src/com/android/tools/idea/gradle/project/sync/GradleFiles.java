@@ -363,20 +363,17 @@ public class GradleFiles {
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
     if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
-      VirtualFile file = psiFile.getVirtualFile();
-      if (file != null && EXT_GRADLE.equals(file.getExtension())) {
+      if (psiFile.getName().endsWith(EXT_GRADLE)) {
         return true;
       }
     }
     if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
-      VirtualFile file = psiFile.getVirtualFile();
-      if (file != null && (FN_GRADLE_PROPERTIES.equals(file.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(file.getName()))) {
+      if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
         return true;
       }
     }
     if (psiFile.getFileType().getName().equals("Kotlin")) {
-      VirtualFile file = psiFile.getVirtualFile();
-      if (file != null && (FN_BUILD_GRADLE_KTS.equals(file.getName()) || FN_SETTINGS_GRADLE_KTS.equals(file.getName()))) {
+      if (FN_BUILD_GRADLE_KTS.equals(psiFile.getName()) || FN_SETTINGS_GRADLE_KTS.equals(psiFile.getName())) {
         return true;
       }
     }
