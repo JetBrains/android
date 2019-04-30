@@ -66,8 +66,6 @@ public class AndroidPluginGenerationIdeaTest extends IdeaTestCase {
     when(myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths()).thenReturn(Collections.emptyList());
 
     String version = LatestKnownPluginVersionProvider.INSTANCE.get();
-    assertEquals(
-      EmbeddedDistributionPaths.isReleaseBuild() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION,
-      version);
+    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, version);
   }
 }
