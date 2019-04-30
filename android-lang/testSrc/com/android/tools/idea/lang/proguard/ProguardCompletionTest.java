@@ -72,6 +72,14 @@ public class ProguardCompletionTest extends LightCodeInsightFixtureTestCase {
     assertEquals("Expected a highlight of type ERROR", HighlightInfoType.ERROR, expectedError.type);
   }
 
+  public void testCommercialAtIncludeSynonym() throws Throwable {
+    // commercialat.pro is syntactically correct but semantically dubious (it includes itself).  If proguard
+    // support extends to detecting mistakes like that, think harder about this test.
+    copyFileToProject("commercialat.pro");
+    List<HighlightInfo> highlights = myFixture.doHighlighting();
+    assertTrue("Expected no highlights", highlights.isEmpty());
+  }
+
   /**
    * Tests basic completion on the input file {@code fileBefore} at caret position, comparing it
    * against the contents of the file {@code fileAfter}.
