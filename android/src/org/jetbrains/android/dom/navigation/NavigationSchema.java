@@ -58,10 +58,12 @@ import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.Query;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -954,9 +956,37 @@ public class NavigationSchema implements Disposable {
   @NotNull
   public Collection<PsiClass> getDestinationClassesForTag(@NotNull String tagName) {
     return myTagToDestinationClass.get(tagName).stream()
-                                  .map(TypeRef::dereference)
-                                  .filter(c -> c != null)
-                                  .collect(Collectors.toSet());
+                                               .map(TypeRef::dereference)
+                                               .filter(c -> c != null)
+                                               .collect(Collectors.toSet());
+  }
+
+  /**
+   * Gets the set of classes from this project that can be used as destinations for the given tag
+   * This includes destinations for the given tag that are defined in this project, and subclasses
+   * of those destinations found in this project and its dependencies.
+   * Classes derived from NavHostFragment will not be included.
+   */
+  @NotNull
+  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName) {
+    Collection<PsiClass> destinationClasses = getDestinationClassesForTag(tagName);
+    SearchScope scope = GlobalSearchScope.moduleWithDependenciesScope(myModule);
+    List<PsiClass> projectClasses = new ArrayList<>();
+
+    for (PsiClass destinationClass : destinationClasses) {
+      if (NavClassHelperKt.isInProject(destinationClass)) {
+        projectClasses.add(destinationClass);
+      }
+
+      Query<PsiClass> query = ClassInheritorsSearch.search(destinationClass, scope, true, true, false);
+      for (PsiClass inherited : query) {
+        if (!NavClassHelperKt.extendsNavHostFragment(inherited)) {
+          projectClasses.add(inherited);
+        }
+      }
+    }
+
+    return projectClasses;
   }
 
   /**
