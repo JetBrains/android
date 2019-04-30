@@ -379,6 +379,10 @@ public final class StudioFlags {
     GRADLE_IDE, "shipped.sync", "Enable \"Shipped Sync\"",
     "Use shipped Gradle Sync when possible e.g. in freshly created projects. Allows to avoid running an actual Gradle Sync.",
     false);
+  public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
+    GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
+    "Makes Gradle use development offline repositories such as /out/repo",
+    false);
 
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
