@@ -20,11 +20,6 @@ import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpda
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.BuildContext;
-import com.android.tools.idea.gradle.project.build.BuildStatus;
-import com.android.tools.idea.gradle.project.build.GradleBuildListener;
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -181,7 +176,7 @@ public class IndexingSuspender {
       }
 
       @Override
-      public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
+      public void syncStarted(@NotNull Project project, boolean sourceGenerationRequested) {
         consumeActivationEvent(ActivationEvent.SYNC_STARTED);
       }
 
