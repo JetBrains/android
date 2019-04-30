@@ -37,6 +37,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -44,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiManagerEx;
 import java.io.File;
 import java.io.IOException;
@@ -252,6 +254,14 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
     VirtualFile propertiesFile = wrapper.getPropertiesFile();
     PsiFile psiFile = findPsiFile(propertiesFile);
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  public void testIsGradleFileWithKotlinSettings() {
+    // We need to create a file with EventSystemEnabled == false to get the PsiFile to return a null virtual file.
+    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+      .createFileFromText(FN_SETTINGS_GRADLE_KTS, FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
+    // This should
     assertTrue(myGradleFiles.isGradleFile(psiFile));
   }
 
