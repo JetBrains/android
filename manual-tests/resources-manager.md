@@ -89,7 +89,7 @@ n
    - The view from step 3 should appear.
    
    
-### Open in Resource Manager
+### Open in Resource Manager (from 3.5)
 
   1. From the project tree, right click on the activity_main.xml file
   2. Check that "Show In Resource Manager" option appears and click 
