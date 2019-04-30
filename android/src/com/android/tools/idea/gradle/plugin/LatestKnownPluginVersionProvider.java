@@ -48,9 +48,7 @@ public class LatestKnownPluginVersionProvider {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      // TODO(qumeric): currently uses hardcoded plugin version in dev build. Make it use latest available.
-      String version =
-        EmbeddedDistributionPaths.isReleaseBuild() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+      String version = Version.ANDROID_GRADLE_PLUGIN_VERSION;
       Logger logger = Logger.getInstance(MethodHandles.lookup().lookupClass());
       logger.info("'" + ARTIFACT_ID + "' plugin missing from the offline Maven repo, will use default " + version);
       return version;
