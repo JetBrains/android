@@ -33,7 +33,7 @@ import com.intellij.psi.TokenType;
 CRLF = [ ]*[\n\r]+   // Newlines
 WS = [ \t\f]+        // Whitespace
 
-FLAG_NAME = -[a-zA-Z0-9_]+  // Flag name that includes the leading "-"
+FLAG_NAME = (@|-[a-zA-Z0-9_]+)  // Flag name that includes the leading "-", or "@" (short for "-include")
 FLAG_ARG = [^ \n\r{#]+      // A single flag argument.
 LINE_CMT = #[^\n\r]*        // A end of line comment, anything that starts with "#"
 JAVA_DECL = [^\n\r}#]+;     // A single line of Java declaration in Java specification blocks.
