@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
@@ -450,10 +449,5 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       AndroidNotification.getInstance(myProject)
         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
     }
-  }
-
-  @Override
-  public void reportNoPiiException(@NotNull Throwable ex) {
-    getLogger().error(new NoPiiException(ex));
   }
 }
