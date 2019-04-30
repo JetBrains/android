@@ -1,3 +1,4 @@
+<<<<<<< HEAD   (ebd91c Remove module android.kotlin.extensions.jps)
 /*
  * Copyright (C) 2018 The Android Open Source Project
  *
@@ -96,3 +97,5 @@ public class EnableEmbeddedRepoHyperlink extends NotificationHyperlink {
     return path.toString();
   }
 }
+=======
+>>>>>>> CHANGE (ace736 Remove enable embedded repo hyperlink)
