@@ -122,7 +122,7 @@ class PsContextImpl constructor(
   private fun requestGradleModels() {
     if (disableResolveModels) return
     val project = this.project.ideProject
-    gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
+    gradleSyncEventDispatcher.multicaster.syncStarted(project, false)
     gradleSync
       .requestProjectResolved(project, this)
       .handleFailureOnEdt {

@@ -74,7 +74,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true);
   }
 
   public void testSyncStartedWithUserNotification() {
@@ -87,7 +87,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true);
   }
 
   public void testSyncSkipped() {
