@@ -15,6 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
+import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
+import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
+import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
+import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -23,17 +39,9 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link CommandLineArgs}.
@@ -64,7 +72,6 @@ public class CommandLineArgsTest extends IdeaTestCase {
 
   public void testGetWhenIncludingLocalMavenRepo() {
     when(myGradleProjectInfo.isNewProject()).thenReturn(true);
-    when(myIdeSettings.isEmbeddedMavenRepoEnabled()).thenReturn(true);
 
     Project project = getProject();
     List<String> args = myArgs.get(project);
