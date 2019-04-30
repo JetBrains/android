@@ -23,32 +23,28 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.common.property.editors.NlComponentEditor
-import com.android.tools.idea.naveditor.model.extendsNavHostFragment
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.ClassUtil
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.annotations.TestOnly
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
 class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: CustomComboBox = CustomComboBox(),
-                             @TestOnly private val inProject: (PsiClass) -> Boolean
-                             = { psiClass -> ModuleUtilCore.findModuleForPsiElement(psiClass) != null })
+                             @TestOnly private val inProject: (PsiClass) -> Boolean = { it.isInProject() })
   : EnumEditor(listener, comboBox, null, true, true) {
 
   @VisibleForTesting
-  object Listener: NlEditingListener {
+  object Listener : NlEditingListener {
     override fun stopEditing(editor: NlComponentEditor, value: Any?) {
       NlWriteCommandActionUtil.run(editor.property.components[0], "Set Class Name") layout@{
         DEFAULT_LISTENER.stopEditing(editor, value)
@@ -65,7 +61,7 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
     val resourceManager = LocalResourceManager.getInstance(property.model.module) ?: return null
 
     for (resourceFile in
-        resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
+    resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
       // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
       val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, property.model.facet)
       for (item in itemComputable?.compute() ?: continue) {
@@ -83,35 +79,19 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
   private class SubclassEnumSupport(property: NlProperty, private val inProject: (PsiClass) -> Boolean) : EnumSupport(property) {
     override fun getAllValues(): List<ValueWithDisplayString> {
       val component = myProperty.components[0]
-      val module = component.model.module
-      val schema = NavigationSchema.get(module)
+      val schema = NavigationSchema.get(component.model.module)
 
-      val classNames = mutableSetOf<String>()
-      val projectClasses = mutableListOf<ValueWithDisplayString>()
-      val nonProjectClasses = mutableListOf<ValueWithDisplayString>()
+      val classes = schema.getProjectClassesForTag(component.tagName)
+        .filter { it.qualifiedName != null }
+        .distinctBy { it.qualifiedName }
 
-      val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
-      for (inheritor in schema.getDestinationClassesForTag(component.tagName)) {
-        for (child in ClassInheritorsSearch.search(inheritor, scope, true).plus(inheritor)) {
-          if (extendsNavHostFragment(child)) {
-            continue
-          }
+      val displayItems = classes
+        .map { ValueWithDisplayString(displayString(it.qualifiedName!!), it.qualifiedName) to inProject(it) }
+        .sortedWith(compareBy({ !it.second }, { it.first.displayString }))
 
-          val qName = child.qualifiedName
-          if (qName == null || classNames.contains(qName)) {
-            continue
-          }
-          classNames.add(qName)
-
-          val list = if (inProject(child)) projectClasses else nonProjectClasses
-          list.add(ValueWithDisplayString(displayString(qName), qName))
-        }
-      }
-
-      projectClasses.sortBy { it.displayString }
-      nonProjectClasses.sortBy { it.displayString }
-
-      return projectClasses.plus(nonProjectClasses)
+      return displayItems
+        .map { it.first }
+        .toList()
     }
 
     override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString {
