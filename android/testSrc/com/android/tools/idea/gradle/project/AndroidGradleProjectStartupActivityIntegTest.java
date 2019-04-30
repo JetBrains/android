@@ -41,7 +41,7 @@ public class AndroidGradleProjectStartupActivityIntegTest extends AndroidGradleT
 
     importProject(project.getName(), getBaseDirPath(project));
 
-    verify(listener, times(1)).syncStarted(any(), anyBoolean(), anyBoolean());
+    verify(listener, times(1)).syncStarted(any(), anyBoolean());
     verify(listener, times(1)).setupStarted(any());
   }
 }

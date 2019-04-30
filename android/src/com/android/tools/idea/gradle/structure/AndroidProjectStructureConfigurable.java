@@ -511,7 +511,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
   }
 
   @Override
-  public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
+  public void syncStarted(@NotNull Project project, boolean sourceGenerationRequested) {
     if (myUiInitialized) {
       myNotificationPanel.removeAll();
       EditorNotificationPanel notification = new EditorNotificationPanel();

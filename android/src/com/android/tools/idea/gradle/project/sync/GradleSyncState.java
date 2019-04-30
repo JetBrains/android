@@ -242,11 +242,11 @@ public class GradleSyncState {
     // state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
     // listeners.
     if (syncListener != null) {
-      syncListener.syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess);
+      syncListener.syncStarted(myProject, request.generateSourcesOnSuccess);
     }
     syncPublisher(
       () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC)
-        .syncStarted(myProject, request.useCachedGradleModels, request.generateSourcesOnSuccess));
+        .syncStarted(myProject, request.generateSourcesOnSuccess));
 
     logSyncEvent(GRADLE_SYNC_STARTED);
     return true;
