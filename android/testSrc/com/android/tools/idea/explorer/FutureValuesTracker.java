@@ -19,9 +19,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,28 +32,19 @@ import java.util.Queue;
  * when an element is added to the queue.
  */
 public class FutureValuesTracker<V> {
-  @NotNull
   private final Object LOCK = new Object();
-
-  @GuardedBy("LOCK")
-  @NotNull
   private final Queue<Entry> myValues = new LinkedList<>();
-
-  @GuardedBy("LOCK")
-  @NotNull
   private final Queue<SettableFuture<V>> myWaitingFutures = new LinkedList<>();
 
   private class Entry {
-    @Nullable
     public V value;
-    @Nullable
     public Throwable error;
 
-    public Entry(@Nullable V value) {
+    public Entry(V value) {
       this.value = value;
     }
 
-    public Entry(@NotNull Throwable t) {
+    public Entry(Throwable t) {
       this.error = t;
     }
   }
@@ -63,7 +52,7 @@ public class FutureValuesTracker<V> {
   /**
    * Makes a new value available
    */
-  public void produce(@Nullable V value) {
+  public void produce(V value) {
     synchronized (LOCK) {
       // Look for a non-cancelled future
       while (myWaitingFutures.size() >= 1) {
@@ -109,7 +98,6 @@ public class FutureValuesTracker<V> {
    * Returns a {@link ListenableFuture} that completes when the next value
    * is made available.
    */
-  @NotNull
   public ListenableFuture<V> consume() {
     synchronized (LOCK) {
       // Look for available value
@@ -129,7 +117,6 @@ public class FutureValuesTracker<V> {
     }
   }
 
-  @NotNull
   public List<ListenableFuture<V>> consumeMany(@SuppressWarnings("SameParameterValue") int count) {
     List<ListenableFuture<V>> result = new ArrayList<>();
     for (int i = 0; i < count; i++) {
