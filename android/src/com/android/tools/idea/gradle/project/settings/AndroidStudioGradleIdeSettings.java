@@ -33,9 +33,6 @@ import org.jetbrains.annotations.NotNull;
   storages = @Storage(file = "android.gradle.studio.xml")
 )
 public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<AndroidStudioGradleIdeSettings> {
-  public boolean ENABLE_EMBEDDED_MAVEN_REPO;
-  public long EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS = -1;
-
   @NotNull private final CurrentTimeProvider myCurrentTimeProvider;
 
   @SuppressWarnings("unused")
@@ -62,23 +59,6 @@ public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<
   @Override
   public void loadState(@NotNull AndroidStudioGradleIdeSettings state) {
     copyBean(state, this);
-  }
-
-  public boolean isEmbeddedMavenRepoEnabled() {
-    if (ENABLE_EMBEDDED_MAVEN_REPO) {
-      if (EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS == -1) {
-        EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS = myCurrentTimeProvider.getCurrentTimeMillis();
-      }
-      long timePassedMillis = myCurrentTimeProvider.getCurrentTimeMillis() - EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS;
-      long daysPassed = MILLISECONDS.toDays(timePassedMillis);
-      ENABLE_EMBEDDED_MAVEN_REPO = daysPassed <= 14; // Disable offline repo after 2 weeks
-    }
-    return ENABLE_EMBEDDED_MAVEN_REPO;
-  }
-
-  public void setEmbeddedMavenRepoEnabled(boolean value) {
-    ENABLE_EMBEDDED_MAVEN_REPO = value;
-    EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS = value ? myCurrentTimeProvider.getCurrentTimeMillis() : -1;
   }
 
   static class CurrentTimeProvider {
