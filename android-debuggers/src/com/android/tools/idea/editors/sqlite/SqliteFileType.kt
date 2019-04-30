@@ -18,11 +18,9 @@ package com.android.tools.idea.editors.sqlite
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFile
-import javax.swing.Icon
 
-/**
- * The [FileType] used to identify Sqlite files.
- */
+import javax.swing.*
+
 object SqliteFileType : FileType {
 
   override fun getName(): String = "SQLite"

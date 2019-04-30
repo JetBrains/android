@@ -24,7 +24,6 @@ import com.intellij.testFramework.fixtures.TempDirTestFixture
 import java.io.IOException
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.PreparedStatement
 import java.sql.SQLException
 
 class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
@@ -54,21 +53,6 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
       // Note: We need to close the connection so the database file handle is released by the
       // Sqlite engine.
       openSqliteDatabase(file).use { connection -> fillDatabase(connection) }
-
-      // File as changed on disk, refresh virtual file cached data
-      file.refresh(false, false)
-      file
-    })
-  }
-
-  @Throws(SQLException::class)
-  fun createTestSqliteDatabase(): VirtualFile {
-    return ApplicationManager.getApplication().runWriteAction(ThrowableComputable<VirtualFile, SQLException> {
-      val file = createEmptyTempSqliteDatabase()
-
-      // Note: We need to close the connection so the database file handle is released by the
-      // Sqlite engine.
-      openSqliteDatabase(file).use { connection -> fillTestDatabase(connection) }
 
       // File as changed on disk, refresh virtual file cached data
       file.refresh(false, false)
@@ -148,67 +132,6 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
       connection.commit()
       connection.autoCommit = true
     }
-  }
-
-  @Throws(SQLException::class)
-  private fun fillTestDatabase(connection: Connection) {
-    ApplicationManager.getApplication().runWriteAction {
-      connection.createStatement().use { stmt ->
-        val sql = "CREATE TABLE Author (\n" +
-            " author_id integer PRIMARY KEY,\n" +
-            " first_name text NOT NULL,\n" +
-            " last_name text NOT NULL\n" +
-            ");"
-        stmt.executeUpdate(sql)
-      }
-
-      connection.createStatement().use { stmt ->
-        val sql = "CREATE TABLE Book (\n" +
-            " book_id integer PRIMARY KEY,\n" +
-            " title text NOT NULL,\n" +
-            " isbn text NOT NULL,\n" +
-            " author_id integer NOT NULL,\n" +
-            " FOREIGN KEY (author_id) REFERENCES Author (author_id) \n" +
-            ");"
-        stmt.executeUpdate(sql)
-      }
-
-      // Batch insert a bunch of rows
-      connection.autoCommit = false
-      val authorSql = "INSERT INTO author(first_name, last_name) VALUES(?, ?)"
-      connection.prepareStatement(authorSql).use { pstmt ->
-        addAuthor(pstmt, "Joe1", "LastName1")
-        addAuthor(pstmt, "Joe2", "LastName2")
-        addAuthor(pstmt, "Joe3", "LastName3")
-        addAuthor(pstmt, "Joe4", "LastName4")
-        addAuthor(pstmt, "Joe5", "LastName5")
-        pstmt.executeBatch()
-      }
-      val sql = "INSERT INTO Book(book_id, title, isbn, author_id) VALUES(?, ?, ?, ?)"
-      connection.prepareStatement(sql).use { pstmt ->
-        addBook(pstmt, 1, "MyTitle1", "12345-1", 1)
-        addBook(pstmt, 2, "MyTitle2", "12345-2", 2)
-        addBook(pstmt, 3, "MyTitle3", "12345-3", 2)
-        addBook(pstmt, 4, "MyTitle4", "12345-4", 3)
-        pstmt.executeBatch()
-      }
-      connection.commit()
-      connection.autoCommit = true
-    }
-  }
-
-  private fun addBook(stmt: PreparedStatement, id: Int, title: String, isbn: String, authorId: Int) {
-    stmt.setInt(1, id)
-    stmt.setString(2, title)
-    stmt.setString(3, isbn)
-    stmt.setInt(4, authorId)
-    stmt.addBatch()
-  }
-
-  private fun addAuthor(stmt: PreparedStatement, firstName: String, lastName: String) {
-    stmt.setString(1, firstName)
-    stmt.setString(2, lastName)
-    stmt.addBatch()
   }
 
   @Throws(SQLException::class)
