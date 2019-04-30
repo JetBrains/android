@@ -44,7 +44,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
@@ -663,7 +662,6 @@ public class GradleSyncState {
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
              .setTrigger(myTrigger)
-             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled())
              .setSyncType(getSyncType())
              .setUsesBuildGradle(buildFilesTypes.contains(DOT_GRADLE))
              .setUsesBuildGradleKts(buildFilesTypes.contains(DOT_KTS));
