@@ -77,7 +77,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     }
   }
 
-  public void testCheckAndPerformUpgradeWhenUpgradeNotNeeded() {
+  public void testPerformUpgradeWhenUpgradeNotNeeded() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
@@ -87,11 +87,11 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncEnded();
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), true);
+    verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
-  public void testCheckAndPerformUpgradeWhenUserAcceptsUpgrade() {
+  public void testPerformUpgradeWhenUserAcceptsUpgrade() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
@@ -104,12 +104,12 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     assertTrue(upgraded);
 
     verify(mySyncState).syncEnded();
-    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), true);
+    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927
-  public void testCheckAndPerformUpgradeWhenUserDeclinesUpgrade() {
+  public void testPerformUpgradeWhenUserDeclinesUpgrade() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
@@ -127,6 +127,6 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     assertThat(message).contains("Please update your project to use version 2.0.0.");
 
     verify(mySyncState).syncEnded();
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), true);
+    verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
   }
 }
