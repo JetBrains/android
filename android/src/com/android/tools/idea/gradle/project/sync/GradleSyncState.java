@@ -309,16 +309,6 @@ public class GradleSyncState {
     logSyncEvent(GRADLE_SYNC_SKIPPED);
   }
 
-  public void invalidateLastSync(@NotNull String error) {
-    syncFailed(error, null, null);
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        facet.getConfiguration().setModel(null);
-      }
-    }
-  }
-
   /**
    * Notification that a sync has started.
    *

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -30,10 +29,8 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 /**
@@ -55,29 +52,6 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
 
     mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
                                       GradleFiles.getInstance(project), messageBus, ProjectStructure.getInstance(project));
-  }
-
-  public void testInvalidateLastSync() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
-
-    Module appModule = myModules.getAppModule();
-    AndroidFacet appAndroidFacet = AndroidFacet.getInstance(appModule);
-    assertNotNull(appAndroidFacet);
-    assertNotNull(appAndroidFacet.getConfiguration().getModel());
-
-    Module libModule = myModules.getModule("lib");
-    AndroidFacet libAndroidFacet = AndroidFacet.getInstance(libModule);
-    assertNotNull(libAndroidFacet);
-    assertNotNull(libAndroidFacet.getConfiguration().getModel());
-
-    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
-    mySyncState.invalidateLastSync("Error");
-    assertTrue(mySyncState.lastSyncFailed());
-
-    assertNull(appAndroidFacet.getConfiguration().getModel());
-    assertNull(libAndroidFacet.getConfiguration().getModel());
-
-    verify(myGradleSyncListener).syncFailed(getProject(), "Error");
   }
 
   public void testSyncErrorsFailSync() throws Exception {
