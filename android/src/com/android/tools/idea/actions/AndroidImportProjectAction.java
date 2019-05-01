@@ -15,14 +15,23 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
+import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
+import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
+import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
+import static com.intellij.openapi.roots.ui.configuration.ModulesProvider.EMPTY_MODULES_PROVIDER;
+import static com.intellij.openapi.util.io.FileUtil.ensureExists;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+
 import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
@@ -45,25 +54,13 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
-import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
-import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
-import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
-import static com.intellij.openapi.roots.ui.configuration.ModulesProvider.EMPTY_MODULES_PROVIDER;
-import static com.intellij.openapi.util.io.FileUtil.ensureExists;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
-import static java.util.Collections.emptyList;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Imports a new project into Android Studio.
@@ -199,8 +196,7 @@ public class AndroidImportProjectAction extends AnAction {
       Messages.showErrorDialog(message, "Import Project");
     }
     else if (canImportAsGradleProject(target)) {
-      GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-      gradleImporter.importProject(file);
+      ProjectUtil.openOrImport(target.getPath(), null, true);
     }
     else {
       return importWithExtensions(file);
