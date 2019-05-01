@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class SyncIssueCleanupTask extends AndroidStudioCleanUpTask {
   @Override
   void doCleanUp(@NotNull Project project) {
-    SyncIssueRegister.getInstance(project).unsealAndClear();
+    SyncIssues.clearSyncIssues(project);
   }
 }

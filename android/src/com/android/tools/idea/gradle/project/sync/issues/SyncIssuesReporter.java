@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
@@ -64,8 +65,8 @@ public class SyncIssuesReporter {
   }
 
   public void report(@NotNull Project project) {
-    SyncIssueRegister.getInstance(project).seal();
-    report(SyncIssueRegister.getInstance(project).get());
+    SyncIssues.seal(project);
+    report(SyncIssues.byModule(project));
   }
 
   /**
