@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.assetstudio.assets;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
@@ -133,7 +132,6 @@ public final class VectorAsset extends BaseAsset {
     return myVectorDrawableInfo;
   }
 
-  @Slow
   @NotNull
   private static VectorDrawableInfo convertToVectorDrawable(@NotNull File file) {
     if (!file.exists()) {
@@ -172,6 +170,7 @@ public final class VectorAsset extends BaseAsset {
     double originalWidth = 0;
     double originalHeight = 0;
     if (!Strings.isNullOrEmpty(xmlFileContent)) {
+      // TODO: Use XML pull parser to make parsing faster.
       Document document = parseXml(xmlFileContent, errors.length() == 0 ? errors : null);
       if (document == null) {
         xmlFileContent = null; // XML content is invalid, discard it.
