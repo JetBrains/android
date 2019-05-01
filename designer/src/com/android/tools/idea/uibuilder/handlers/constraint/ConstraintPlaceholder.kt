@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget
 import java.awt.Point
@@ -32,7 +33,7 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   override val region = delegator.region
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point) = delegator.snap(left, top, right, bottom, retPoint)
+  override fun snap(info: SnappingInfo, retPoint: Point) = delegator.snap(info, retPoint)
 
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
     updateLiveAttribute(sceneComponent, attributes, sceneComponent.drawX, sceneComponent.drawY)

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
@@ -54,7 +55,7 @@ class ConstraintPlaceholderTest : SceneTest() {
     val top = constraint.drawY - 30
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, left + 10, top + 10, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10), p)
     assertFalse(snappedResult)
     assertEquals(-1, p.x)
     assertEquals(-1, p.y)
@@ -69,7 +70,7 @@ class ConstraintPlaceholderTest : SceneTest() {
     val top = constraint.drawY + 10
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, left + 10, top + 10, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10), p)
     assertTrue(snappedResult)
     assertEquals(left, p.x)
     assertEquals(top, p.y)
