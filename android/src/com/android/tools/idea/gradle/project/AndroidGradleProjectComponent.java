@@ -29,6 +29,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.SaveAndSyncHandler;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -48,6 +50,8 @@ import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigu
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
 public class AndroidGradleProjectComponent implements ProjectComponent {
+  // Copy of a private constant in GradleNotification.java.
+  private static final String GRADLE_NOTIFICATION_GROUP_NAME = "Gradle Notification Group";
   @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
@@ -86,6 +90,14 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     myAndroidProjectInfo = androidProjectInfo;
     myIdeInfo = ideInfo;
     myLegacyAndroidProjects = legacyAndroidProjects;
+
+    // Disable Gradle plugin notifications in Android Studio.
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      NotificationsConfiguration
+        .getNotificationsConfiguration()
+        .changeSettings(GRADLE_NOTIFICATION_GROUP_NAME, NotificationDisplayType.NONE, false, false);
+    }
+
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
     compilerManager.addAfterTask(context -> {
