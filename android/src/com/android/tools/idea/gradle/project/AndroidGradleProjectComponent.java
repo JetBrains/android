@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 import com.android.tools.idea.IdeInfo;
@@ -26,12 +23,9 @@ import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.SaveAndSyncHandler;
@@ -57,8 +51,6 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
-  @NotNull private final SupportedModuleChecker mySupportedModuleChecker;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
@@ -75,30 +67,23 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   public AndroidGradleProjectComponent(@NotNull Project project,
                                        @NotNull GradleProjectInfo gradleProjectInfo,
                                        @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleSyncInvoker gradleSyncInvoker,
                                        @NotNull GradleBuildInvoker gradleBuildInvoker,
                                        @NotNull CompilerManager compilerManager,
-                                       @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, gradleSyncInvoker, gradleBuildInvoker, compilerManager,
-         supportedModuleChecker, ideInfo, new LegacyAndroidProjects(project));
+    this(project, gradleProjectInfo, androidProjectInfo, gradleBuildInvoker, compilerManager, ideInfo, new LegacyAndroidProjects(project));
   }
 
   @VisibleForTesting
   public AndroidGradleProjectComponent(@NotNull Project project,
                                        @NotNull GradleProjectInfo gradleProjectInfo,
                                        @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleSyncInvoker gradleSyncInvoker,
                                        @NotNull GradleBuildInvoker gradleBuildInvoker,
                                        @NotNull CompilerManager compilerManager,
-                                       @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo,
                                        @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     myAndroidProjectInfo = androidProjectInfo;
-    myGradleSyncInvoker = gradleSyncInvoker;
-    mySupportedModuleChecker = supportedModuleChecker;
     myIdeInfo = ideInfo;
     myLegacyAndroidProjects = legacyAndroidProjects;
 
@@ -150,43 +135,12 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    boolean checkSupported = true;
-    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-    if (syncState.isSyncInProgress()) {
-      // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
-      // button and editor notifications.
-      syncState.notifyStateChanged();
-    }
-
     if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
       myLegacyAndroidProjects.trackProject();
       if (!myGradleProjectInfo.isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
-        return;
       }
-    }
-
-    GradleSyncStats.Trigger trigger = myGradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
-    if (myGradleProjectInfo.isBuildWithGradle()) {
-      configureGradleProject();
-      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() || !myGradleProjectInfo.hasGradleFacets()) {
-        // Request sync since it was not done when importing
-        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
-        // If sync is requested at this stage there is no need to request it one more time later.
-        myGradleProjectInfo.setSkipStartupActivity(true);
-        checkSupported = false;
-      }
-    }
-    else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
-      // If sync is requested at this stage there is no need to request it one more time later.
-      myGradleProjectInfo.setSkipStartupActivity(true);
-      checkSupported = false;
-    }
-    // Do not check for supported modules if sync was requested, this will be done once sync is successful
-    if (checkSupported) {
-      mySupportedModuleChecker.checkForSupportedModules(myProject);
     }
   }
 
