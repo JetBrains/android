@@ -62,7 +62,7 @@ enum class NelePropertyType {
       COLOR -> EnumSet.of(ResourceType.COLOR)
       COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
       DIMENSION -> EnumSet.of(ResourceType.DIMEN)
-      DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE)
+      DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
       FLAGS -> EnumSet.of(ResourceType.STRING)
       FLOAT -> EnumSet.of(ResourceType.DIMEN)
       FONT -> EnumSet.of(ResourceType.FONT)
