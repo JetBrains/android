@@ -95,7 +95,7 @@ public class MemorySettingsPostSyncChecker {
     notification.setTitle(AndroidBundle.message("memory.settings.postsync.title"));
 
     NotificationAction saveRestartAction =
-      NotificationAction.createSimple("Save and restart", () -> {
+      NotificationAction.createSimple(AndroidBundle.message("memory.settings.postsync.save"), () -> {
         log(EventKind.SAVE_AND_RESTART, currentXmx, recommended);
         MemorySettingsUtil.saveXmx(recommended);
         Application app = ApplicationManager.getApplication();
@@ -104,7 +104,7 @@ public class MemorySettingsPostSyncChecker {
         }
       });
     NotificationAction configAction =
-      NotificationAction.createSimple("Configure", () -> {
+      NotificationAction.createSimple(AndroidBundle.message("memory.settings.postsync.configure"), () -> {
         log(EventKind.CONFIGURE, currentXmx, recommended);
         ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
         notification.expire();
@@ -115,7 +115,7 @@ public class MemorySettingsPostSyncChecker {
     notification.addAction(saveRestartAction);
     notification.addAction(configAction);
     notification.addAction(
-      new NotificationAction(AndroidBundle.message("memory.settings.do.not.ask.for.project")) {
+      new NotificationAction(AndroidBundle.message("memory.settings.postsync.do.not.ask.for.project")) {
         @Override
         public void actionPerformed(AnActionEvent e, Notification n) {
           log(EventKind.DO_NOT_ASK, currentXmx, recommended);
@@ -124,7 +124,7 @@ public class MemorySettingsPostSyncChecker {
         }
       });
     notification.addAction(
-      new NotificationAction(AndroidBundle.message("memory.settings.do.not.ask.ever")) {
+      new NotificationAction(AndroidBundle.message("memory.settings.postsync.do.not.show.again")) {
         @Override
         public void actionPerformed(AnActionEvent e, Notification n) {
           log(EventKind.DO_NOT_ASK, currentXmx, recommended);
