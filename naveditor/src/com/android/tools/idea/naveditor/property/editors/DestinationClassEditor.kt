@@ -19,6 +19,7 @@ import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
@@ -32,7 +33,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.util.ClassUtil
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
@@ -58,19 +58,17 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
 
   // TODO: support multiple layouts per class
   private fun findLayoutForClass(className: String): String? {
-    val resourceManager = LocalResourceManager.getInstance(property.model.module) ?: return null
+    val module = property.model.module
+    val resourceManager = LocalResourceManager.getInstance(module) ?: return null
 
-    for (resourceFile in
-    resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
-      // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
-      val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, property.model.facet)
-      for (item in itemComputable?.compute() ?: continue) {
-        val element = item.element as? PsiClass ?: continue
-        if (element.qualifiedName == className) {
-          return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)
-        }
+    for (resourceFile in resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+      .filterIsInstance<XmlFile>()) {
+      val contextClass = AndroidPsiUtils.getContextClass(module, resourceFile) ?: continue
+      if (contextClass.qualifiedName == className) {
+        return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)
       }
     }
+
     return null
   }
 
