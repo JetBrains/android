@@ -31,7 +31,7 @@ class FileBackedIntList(private val buffer: ByteBuffer) : IntList {
   }
 
   companion object {
-    fun createEmpty(channel: FileChannel, size: Long): IntList {
+    fun createEmpty(channel: FileChannel, size: Int): IntList {
       FileBackedHashMap.createEmptyFile(channel, size * 4)
       return FileBackedIntList(channel.map(FileChannel.MapMode.READ_WRITE, 0, channel.size()))
     }

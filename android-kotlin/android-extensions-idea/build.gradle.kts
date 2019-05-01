@@ -37,6 +37,7 @@ dependencies {
     testCompile(intellijDep()) { includeJars("extensions") }
 
     testRuntime(project(":idea:idea-jvm"))
+    testRuntime(project(":plugins:android-extensions-jps"))
     testRuntime(project(":sam-with-receiver-ide-plugin"))
     testRuntime(project(":noarg-ide-plugin"))
     testRuntime(project(":allopen-ide-plugin"))

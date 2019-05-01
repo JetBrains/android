@@ -52,15 +52,18 @@ class KotlinAndroidViewConstructorFix(element: KtSuperTypeEntry) : KotlinQuickFi
 
         val factory = KtPsiFactory(element)
 
-        val newPrimaryConstructor = factory.createPrimaryConstructor(
-            """(
-            context: android.content.Context, attrs: android.util.AttributeSet? = null, defStyleAttr: Int = 0
-            )""".trimIndent()
-        )
+        val newPrimaryConstructor = factory.createDeclarationByPattern<KtClass>(
+                "class A constructor(\n $0, $1, $2\n)",
+                factory.createParameter("context: android.content.Context"),
+                factory.createParameter("attrs: android.util.AttributeSet? = null"),
+                factory.createParameter("defStyleAttr: Int = 0")
+        ).primaryConstructor ?: return
 
         val primaryConstructor = ktClass.createPrimaryConstructorIfAbsent().replaced(newPrimaryConstructor)
         primaryConstructor.valueParameterList?.let { ShortenReferences.DEFAULT.process(it) }
-        primaryConstructor.addAnnotation(fqNameAnnotation)
+
+        primaryConstructor.addAnnotation(fqNameAnnotation, whiteSpaceText = " ")
+        primaryConstructor.addAfter(factory.createWhiteSpace(" "), primaryConstructor.modifierList)
 
         element.replace(factory.createSuperTypeCallEntry(element.text + "(context, attrs, defStyleAttr)"))
     }
@@ -70,7 +73,7 @@ class KotlinAndroidViewConstructorFix(element: KtSuperTypeEntry) : KotlinQuickFi
         private val fqNameAnnotation = FqName("kotlin.jvm.JvmOverloads")
 
         private val requiredConstructorParameterTypes =
-            listOf("android.content.Context", "android.util.AttributeSet", "kotlin.Int")
+                listOf("android.content.Context", "android.util.AttributeSet", "kotlin.Int")
 
         override fun createAction(diagnostic: Diagnostic): IntentionAction? {
             val superTypeEntry = SUPERTYPE_NOT_INITIALIZED.cast(diagnostic).psiElement
@@ -96,7 +99,7 @@ class KotlinAndroidViewConstructorFix(element: KtSuperTypeEntry) : KotlinQuickFi
         private fun KotlinType.constructorParameters(): List<List<String?>>? {
             val classDescriptor = constructor.declarationDescriptor as? ClassDescriptor ?: return null
             return classDescriptor.constructors.map {
-                it.valueParameters.map { parameter -> parameter.type.getFqNameAsString() }
+                it.valueParameters.map { it.type.getFqNameAsString() }
             }
         }
     }

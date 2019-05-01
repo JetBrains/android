@@ -24,7 +24,7 @@ import com.android.tools.idea.diagnostics.hprof.visitors.CreateAuxiliaryFilesVis
 import gnu.trove.TLongArrayList
 import java.nio.channels.FileChannel
 
-abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Long) {
+abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Int) {
 
   enum class ReferenceResolution {
     ALL_REFERENCES,
@@ -76,7 +76,7 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
                                auxOffsetsChannel: FileChannel,
                                auxChannel: FileChannel,
                                classStore: ClassStore,
-                               instanceCount: Long): ObjectNavigator {
+                               instanceCount: Int): ObjectNavigator {
       val collectRootReasonsVisitor = CollectRootReasonsVisitor()
       val createAuxiliaryFilesVisitor = CreateAuxiliaryFilesVisitor(auxOffsetsChannel, auxChannel, classStore, parser)
 

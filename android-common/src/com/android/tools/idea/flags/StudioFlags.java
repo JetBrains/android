@@ -86,7 +86,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_TEMPLATES_AUTOMOTIVE = Flag.create(
     NPW, "templates.automotive", "Include 'Automotive' templates in wizards",
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_BENCHMARK_TEMPLATE_MODULE = Flag.create(
     NPW, "benchmark.template.module", "Enable benchmark module template",
@@ -378,10 +378,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> SHIPPED_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "shipped.sync", "Enable \"Shipped Sync\"",
     "Use shipped Gradle Sync when possible e.g. in freshly created projects. Allows to avoid running an actual Gradle Sync.",
-    false);
-  public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
-    GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
-    "Makes Gradle use development offline repositories such as /out/repo",
     false);
 
   // REMOVE or change default to true after http://b/80245603 is fixed.

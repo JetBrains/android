@@ -103,7 +103,6 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   private static class MyComponent {
     private static final int MIN_IDE_XMX = 1024;
-    private static final int DEFAULT_IDE_XMX = 1280;
     private static final int SIZE_INCREMENT = 1024;
     private static final float MAX_PERCENT_OF_AVAILABLE_RAM = 0.33f;
 
@@ -169,7 +168,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
       int machineMem =  MemorySettingsUtil.getMachineMem();
       int maxXmx = getMaxXmx(machineMem);
-      setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, DEFAULT_IDE_XMX, maxXmx, SIZE_INCREMENT,
+      setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, -1, maxXmx, SIZE_INCREMENT,
                 new ItemListener() {
                   @Override
                   public void itemStateChanged(ItemEvent event) {

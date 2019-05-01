@@ -18,7 +18,6 @@ package com.android.tools.idea.memorysettings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import java.util.Locale;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +34,7 @@ public class MemorySettingsRecommendation {
     int basedOnMachine = getRecommendedBasedOnMachine();
     int basedOnProject = getRecommendedBasedOnModuleCount(project);
     int recommended = Math.min(basedOnMachine, basedOnProject);
-    if (basedOnMachine >= 2048 && recommended < 2048 && !SystemInfo.isWindows) {
+    if (basedOnMachine >= 2048 && recommended < 2048) {
       // For machines with at least 8GB RAM, recommend at least 2GB
       recommended = 2048;
     }
@@ -46,11 +45,10 @@ public class MemorySettingsRecommendation {
 
   private static int getRecommendedBasedOnMachine() {
     int machineMemInGB = MemorySettingsUtil.getMachineMem() >> 10;
-    boolean isWindows = SystemInfo.isWindows;
     if (machineMemInGB < 8) {
-      return isWindows? 1280 : 1536;
+      return 1536;
     } else if (machineMemInGB < 12) {
-      return isWindows? 1536 : 2048;
+      return 2048;
     } else if (machineMemInGB < 16) {
       return 3072;
     } else {

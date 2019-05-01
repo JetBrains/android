@@ -82,10 +82,10 @@ abstract class RemapIDsVisitor : HProfVisitor() {
       }
     }
 
-    fun createFileBased(channel: FileChannel, maxInstanceCount: Long): RemapIDsVisitor {
+    fun createFileBased(channel: FileChannel, maxInstanceCount: Int): RemapIDsVisitor {
       val remapIDsMap = FileBackedHashMap.createEmpty(
         channel,
-        maxInstanceCount, KEY_SIZE, VALUE_SIZE)
+        maxInstanceCount, 8, 4)
       return object : RemapIDsVisitor() {
         override fun addMapping(oldId: Long, newId: Int) {
           remapIDsMap.put(oldId).putInt(newId)
@@ -98,12 +98,5 @@ abstract class RemapIDsVisitor : HProfVisitor() {
         }
       }
     }
-
-    fun isSupported(instanceCount: Long): Boolean {
-      return FileBackedHashMap.isSupported(instanceCount, KEY_SIZE, VALUE_SIZE)
-    }
-
-    private const val KEY_SIZE = 8
-    private const val VALUE_SIZE = 4
   }
 }

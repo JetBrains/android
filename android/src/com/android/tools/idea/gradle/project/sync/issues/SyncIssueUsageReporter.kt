@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyp
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink
@@ -119,6 +120,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is DisableOfflineModeHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DISABLE_OFFLINE_MODE_HYPERLINK
       is DownloadAndroidStudioHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_ANDROID_STUDIO_HYPERLINK
       is DownloadJdk8Hyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_JDK8_HYPERLINK
+      is EnableEmbeddedRepoHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_EMBEDDED_REPO_HYPERLINK
       is FileBugHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FILE_BUG_HYPERLINK
       is FixAndroidGradlePluginVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK
       is FixBuildToolsVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_BUILD_TOOLS_VERSION_HYPERLINK
