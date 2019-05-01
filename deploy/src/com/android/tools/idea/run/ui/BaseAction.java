@@ -216,9 +216,7 @@ public abstract class BaseAction extends AnAction {
   private static boolean isApplyChangesRelevant(@NotNull RunConfiguration runConfiguration) {
     if (runConfiguration instanceof RunConfigurationBase) {
       RunConfigurationBase configBase = (RunConfigurationBase) runConfiguration;
-      configBase.putUserDataIfAbsent(SHOW_APPLY_CHANGES_UI, false); // This is needed to prevent a NPE if the boolean isn't set.
-      //noinspection ConstantConditions
-      return configBase.getUserData(SHOW_APPLY_CHANGES_UI);
+      return configBase.putUserDataIfAbsent(SHOW_APPLY_CHANGES_UI, false); // This is needed to prevent a NPE if the boolean isn't set.
     }
 
     return false;
