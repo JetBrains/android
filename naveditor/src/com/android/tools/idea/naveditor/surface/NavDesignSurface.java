@@ -26,6 +26,10 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_XML_TAB;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -420,6 +424,19 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   protected void layoutContent() {
     requestRender();
+  }
+
+  @Override
+  @NotNull
+  public ItemTransferable getSelectionAsTransferable() {
+    NlModel model = getModel();
+
+    ImmutableList<DnDTransferComponent> components =
+      getSelectionModel().getSelection().stream()
+        .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), 0, 0))
+        .collect(
+          ImmutableCollectors.toImmutableList());
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
   @NotNull
