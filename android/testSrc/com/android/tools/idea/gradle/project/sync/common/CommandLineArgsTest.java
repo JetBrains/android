@@ -34,7 +34,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
@@ -50,7 +49,6 @@ public class CommandLineArgsTest extends IdeaTestCase {
   @Mock private ApplicationInfo myApplicationInfo;
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;
-  @Mock private AndroidStudioGradleIdeSettings myIdeSettings;
   @Mock private GradleProjectInfo myGradleProjectInfo;
 
   private CommandLineArgs myArgs;
@@ -61,7 +59,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
     initMocks(this);
     new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, myIdeSettings, false /* do not apply Java library plugin */);
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false /* do not apply Java library plugin */);
   }
 
   public void testGetWithDefaultOptions() {
@@ -81,7 +79,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   }
 
   public void testGetWhenApplyingJavaPlugin() {
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, myIdeSettings, true /* apply Java library plugin */);
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, true /* apply Java library plugin */);
     List<String> args = myArgs.get(getProject());
     check(args);
     verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
