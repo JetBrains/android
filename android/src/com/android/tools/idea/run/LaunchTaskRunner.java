@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.NonNull;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
@@ -38,6 +41,9 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -199,10 +205,24 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         debugSessionTask
           .perform(myLaunchInfo, device, (ProcessHandlerLaunchStatus)launchStatus, (ProcessHandlerConsolePrinter)consolePrinter);
       }
-      else { // we only need to inform the process handler if certain scenarios
+      else { // we only need to inform the process handler in certain scenarios
         if (myProcessHandler instanceof AndroidProcessHandler) { // we aren't debugging (in which case its a DebugProcessHandler)
-          AndroidProcessHandler procHandler = (AndroidProcessHandler) myProcessHandler;
-          procHandler.addTargetDevice(device);
+          boolean deviceStillAlive = true;
+          if (!isSwap()) {
+            DeviceTerminationListener listener = new DeviceTerminationListener(device, myApplicationId);
+            try {
+              // ensure all Clients are killed prior to handing off to the AndroidProcessHandler
+              listener.await(1, TimeUnit.SECONDS);
+            }
+            catch (InterruptedException ignored) {
+            }
+            deviceStillAlive = listener.getIsDeviceAlive();
+          }
+
+          if (deviceStillAlive) {
+            AndroidProcessHandler procHandler = (AndroidProcessHandler)myProcessHandler;
+            procHandler.addTargetDevice(device);
+          }
         }
       }
     }
@@ -280,5 +300,60 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
     }
     return "Launching";
+  }
+
+  private static class DeviceTerminationListener implements AndroidDebugBridge.IDeviceChangeListener {
+    @NotNull private final IDevice myIDevice;
+    @NotNull private final List<Client> myClientsToWaitFor;
+    @NotNull private final CountDownLatch myProcessKilledLatch = new CountDownLatch(1);
+    private volatile boolean myIsDeviceAlive = true;
+
+    private DeviceTerminationListener(@NotNull IDevice iDevice, @NotNull String applicationId) {
+      myIDevice = iDevice;
+      myClientsToWaitFor = Collections.synchronizedList(DeploymentApplicationService.getInstance().findClient(myIDevice, applicationId));
+      if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
+        myProcessKilledLatch.countDown();
+      }
+      else {
+        AndroidDebugBridge.addDeviceChangeListener(this);
+        checkDone();
+      }
+    }
+
+    public void await(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
+      myProcessKilledLatch.await(timeout, unit);
+    }
+
+    public boolean getIsDeviceAlive() {
+      return myIsDeviceAlive;
+    }
+
+    @Override
+    public void deviceConnected(@NonNull IDevice device) {}
+
+    @Override
+    public void deviceDisconnected(@NonNull IDevice device) {
+      myIsDeviceAlive = false;
+      myProcessKilledLatch.countDown();
+      AndroidDebugBridge.removeDeviceChangeListener(this);
+    }
+
+    @Override
+    public void deviceChanged(@NonNull IDevice changedDevice, int changeMask) {
+      if (changedDevice != myIDevice || (changeMask & IDevice.CHANGE_CLIENT_LIST) == 0) {
+        checkDone();
+        return;
+      }
+
+      myClientsToWaitFor.retainAll(Arrays.asList(changedDevice.getClients()));
+      checkDone();
+    }
+
+    private void checkDone() {
+      if (myClientsToWaitFor.isEmpty()) {
+        myProcessKilledLatch.countDown();
+        AndroidDebugBridge.removeDeviceChangeListener(this);
+      }
+    }
   }
 }
