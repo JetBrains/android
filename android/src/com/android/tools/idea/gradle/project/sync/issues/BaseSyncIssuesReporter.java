@@ -18,14 +18,10 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.android.tools.idea.project.messages.MessageType.findFromSyncIssue;
-import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
@@ -52,8 +48,8 @@ abstract class BaseSyncIssuesReporter {
 
   /**
    * Reports a single sync issue from a given module with an optional build file. In most cases use of this method should be avoided
-   * in favor of {@link #reportAll(List, Map, Map)} which gives more context for reporters to provide enhanced features (e.g deduplication
-   * of notifications across modules).
+   * in favor of {@link #reportAll(List, Map, Map, SyncIssueUsageReporter)} which gives more context for reporters to provide enhanced
+   * features (e.g deduplication of notifications across modules).
    */
   abstract void report(@NotNull SyncIssue syncIssue,
                        @NotNull Module module,
@@ -80,18 +76,5 @@ abstract class BaseSyncIssuesReporter {
   @NotNull
   static MessageType getMessageType(@NotNull SyncIssue syncIssue) {
     return syncIssue.getSeverity() == SEVERITY_ERROR ? ERROR : WARNING;
-  }
-
-  @NotNull
-  static SyncMessage generateSyncMessage(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    SyncMessage message;
-    if (buildFile != null) {
-      PositionInFile position = new PositionInFile(buildFile);
-      message = new SyncMessage(module.getProject(), DEFAULT_GROUP, findFromSyncIssue(syncIssue), position, syncIssue.getMessage());
-    }
-    else {
-      message = new SyncMessage(DEFAULT_GROUP, findFromSyncIssue(syncIssue), syncIssue.getMessage());
-    }
-    return message;
   }
 }

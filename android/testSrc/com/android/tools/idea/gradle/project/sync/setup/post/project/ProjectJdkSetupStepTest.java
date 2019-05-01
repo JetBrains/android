@@ -35,6 +35,7 @@ import org.mockito.Mock;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -112,8 +113,6 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
                                                                .hasType(ERROR)
                                                                .hasGroup(DEFAULT_GROUP);
     // @formatter:on
-
-    assertTrue(GradleSyncState.getInstance(project).getSummary().hasSyncErrors());
   }
 
   public void testDoSetUpProjectWithIdea() {

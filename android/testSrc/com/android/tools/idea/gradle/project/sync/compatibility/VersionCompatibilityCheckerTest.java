@@ -53,7 +53,7 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
 
   public void testCheckAndReportComponentIncompatibilities() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     GradleWrapper gradleWrapper = GradleWrapper.find(getProject());
     assertNotNull(gradleWrapper);

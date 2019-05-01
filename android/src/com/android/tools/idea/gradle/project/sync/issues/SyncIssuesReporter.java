@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -27,7 +25,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -85,7 +82,6 @@ public class SyncIssuesReporter {
     Map<Module, VirtualFile> buildFileMap = new LinkedHashMap<>();
 
     Project project = null;
-    boolean[] hasSyncErrors = new boolean[1];
     // Go through all the issue, grouping them by their type. In doing so we also populate
     // the module and buildFile maps which will be used by each reporter.
     for (Module module : issuesByModules.keySet()) {
@@ -96,9 +92,6 @@ public class SyncIssuesReporter {
         if (issue != null) {
           syncIssues.computeIfAbsent(issue.getType(), (type) -> new ArrayList<>()).add(issue);
           moduleMap.put(issue, module);
-          if (issue.getSeverity() == SEVERITY_ERROR) {
-            hasSyncErrors[0] = true;
-          }
         }
       });
     }
@@ -115,10 +108,6 @@ public class SyncIssuesReporter {
         strategy = myDefaultMessageFactory;
       }
       strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
-    }
-
-    if (hasSyncErrors[0]) {
-      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
 

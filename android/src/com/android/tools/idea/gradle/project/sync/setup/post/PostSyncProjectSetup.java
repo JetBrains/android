@@ -186,7 +186,7 @@ public class PostSyncProjectSetup {
 
       myGradleProjectInfo.setNewProject(false);
       myGradleProjectInfo.setImportedProject(false);
-      boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
+      boolean syncFailed = mySyncState.lastSyncFailed();
 
       if (syncFailed && request.usingCachedGradleModels) {
         onCachedModelsSetupFailure(request);
@@ -205,7 +205,7 @@ public class PostSyncProjectSetup {
       });
       moduleValidator.fixAndReportFoundIssues();
 
-      if (syncFailed) {
+      if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();
 
         myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
@@ -368,7 +368,7 @@ public class PostSyncProjectSetup {
   }
 
   private void failTestsIfSyncIssuesPresent() {
-    if (ApplicationManager.getApplication().isUnitTestMode() && mySyncState.getSummary().hasSyncErrors()) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && GradleSyncMessages.getInstance(myProject).getErrorCount() > 0) {
       StringBuilder buffer = new StringBuilder();
       buffer.append("Sync issues found!").append('\n');
       myGradleProjectInfo.forEachAndroidModule(facet -> {
@@ -396,7 +396,7 @@ public class PostSyncProjectSetup {
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {
-      if (mySyncState.lastSyncFailedOrHasIssues()) {
+      if (mySyncState.lastSyncFailed()) {
         mySyncState.syncFailed("", null, null);
       }
       else {

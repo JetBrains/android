@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
@@ -29,17 +37,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-
 import java.io.File;
 import java.io.IOException;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Tests for {@link GradleProjectInfo}.
@@ -155,12 +155,9 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   }
 
   private void registerLastSyncTimestamp(long timestamp) {
-    GradleSyncSummary summary = mock(GradleSyncSummary.class);
-    when(summary.getSyncTimestamp()).thenReturn(timestamp);
-
     GradleSyncState syncState = mock(GradleSyncState.class);
     new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
-    when(syncState.getSummary()).thenReturn(summary);
+    when(syncState.getLastSyncFinishedTimeStamp()).thenReturn(timestamp);
   }
 
   public void testInvokesIndexHonoringExclusion() throws IOException {

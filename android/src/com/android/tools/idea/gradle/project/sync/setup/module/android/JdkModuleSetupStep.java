@@ -100,7 +100,6 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
         }
 
         GradleSyncMessages.getInstance(project).report(msg);
-        GradleSyncState.getInstance(project).getSummary().setWrongJdkFound(true);
       }
     }
   }

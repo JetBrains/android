@@ -210,7 +210,7 @@ public class GradleSyncInvoker {
       clearStoredGradleJvmArgs(project);
     }
 
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeProjectMessages());
+    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
     // Do not sync Sdk/Jdk when running from tests, these will be set up by the test infra.
     if (!request.skipPreSyncChecks) {
       PreSyncCheckResult checkResult = runPreSyncChecks(project);

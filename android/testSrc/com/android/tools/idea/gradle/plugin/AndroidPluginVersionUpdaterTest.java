@@ -58,7 +58,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
 
   public void testHandleUpdateResultWithPreviousSyncFailed() {
     // http://b/38487637
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
     myVersionUpdater.handleUpdateResult(result);

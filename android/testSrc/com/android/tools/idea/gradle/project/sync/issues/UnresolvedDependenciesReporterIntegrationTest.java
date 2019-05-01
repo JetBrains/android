@@ -89,7 +89,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithRegularJavaLibrary() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
@@ -126,7 +126,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -157,7 +157,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithAppCompat() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -200,7 +200,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithAppCompatAndGoogle() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
     // Add Google repository
@@ -248,7 +248,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
    */
   public void testReportNotInitialized() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
     Module spyAppModule = spy(appModule);
@@ -295,7 +295,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithPlayServices() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -335,7 +335,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testDeduplicateAcrossModules() throws Exception {
     loadProject(DEPENDENT_MODULES);
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
     Module libModule = myModules.getModule("lib");
