@@ -102,8 +102,6 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
       Project project = getProject();
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, ERROR, msg.toString());
       GradleSyncMessages.getInstance(project).report(message);
-
-      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
 

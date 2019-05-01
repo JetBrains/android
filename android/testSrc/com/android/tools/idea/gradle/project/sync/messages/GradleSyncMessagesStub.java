@@ -102,7 +102,8 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
     return myNotificationUpdate;
   }
 
-  public void clearReportedMessages() {
+  @Override
+  public void removeAllMessages() {
     myMessages.clear();
   }
 

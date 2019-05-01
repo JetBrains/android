@@ -44,9 +44,4 @@ public class GradleSyncMessages extends AbstractSyncMessages {
   protected ProjectSystemId getProjectSystemId() {
     return GRADLE_SYSTEM_ID;
   }
-
-  public void removeProjectMessages() {
-    removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES, VARIANT_SELECTION_CONFLICTS, GENERATED_SOURCES,
-                   VERSION_COMPATIBILITY_ISSUE_GROUP, SyncMessage.DEFAULT_GROUP);
-  }
 }
