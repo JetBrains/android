@@ -310,6 +310,9 @@
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner" id="android"
                        order="first, before gradle"/>
+    <!-- AndroidPositionManager overrides and actually replaces PositionManagerImpl,
+    so we need to set order to prevent overriding other position managers as well -->
+    <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory" order="first"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
