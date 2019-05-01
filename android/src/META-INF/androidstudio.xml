@@ -24,6 +24,13 @@
     <component>
       <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>
     </component>
+    <!-- Unregister DefaultJdkConfigurator b/112481251 -->
+    <component>
+      <interface-class>com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator</interface-class>
+      <option name="overrides" value="true"/>
+      <headless-implementation-class/>
+      <implementation-class/>
+    </component>
   </application-components>
 
   <extensions defaultExtensionNs="com.intellij">
