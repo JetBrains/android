@@ -21,6 +21,7 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.MethodSignatureUtil
 import java.util.ArrayList
@@ -111,6 +112,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       }
       return methods
     }
+
+  /**
+   * Returns the PsiSubstitutor which can be used to resolve generic types.
+   */
+  val substitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
 
   /**
    * Returns true if this is an ObservableField, or any of the primitive versions

@@ -83,7 +83,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   }
 
   private fun moveCaretInsideMethodParenthesis(lookupElement: LookupElement,
-                                          context: InsertionContext) {
+                                               context: InsertionContext) {
     val psiMethod = lookupElement.psiElement as? PsiMethod
     if (psiMethod != null
         && context.file.findElementAt(context.startOffset)?.let { getDataBindingExpressionFromPosition(it) } is PsiDbRefExpr) {
@@ -186,7 +186,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
             continue
           }
         }
-        completionSuggestionsList.addSuggestion(psiModelField.psiField, resolvedType.psiClass)
+        completionSuggestionsList.addSuggestion(psiModelField.psiField, resolvedType.psiClass, resolvedType.substitutor)
       }
     }
     return completionSuggestionsList
@@ -228,10 +228,10 @@ open class DataBindingCompletionContributor : CompletionContributor() {
             psiConvertedField.setModifierList(LightModifierList(psiMethod))
           }
           if (psiConvertedField == null) {
-            completionSuggestionsList.addSuggestion(psiMethod, resolvedType.psiClass)
+            completionSuggestionsList.addSuggestion(psiMethod, resolvedType.psiClass, resolvedType.substitutor)
           }
           else {
-            completionSuggestionsList.addSuggestion(psiConvertedField, resolvedType.psiClass)
+            completionSuggestionsList.addSuggestion(psiConvertedField, resolvedType.psiClass, resolvedType.substitutor)
           }
         }
       }
@@ -242,10 +242,10 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   /**
    * [qualifierClass] is used so indicate which fields should be bolded
    */
-  private fun MutableList<LookupElement>.addSuggestion(psiField: PsiField, qualifierClass: PsiClass?) {
+  private fun MutableList<LookupElement>.addSuggestion(psiField: PsiField, qualifierClass: PsiClass?, substitutor: PsiSubstitutor) {
     val lookupBuilder = JavaLookupElementBuilder
       .forField(psiField, psiField.name, qualifierClass)
-      .withTypeText(PsiFormatUtil.formatVariable(psiField, PsiFormatUtilBase.SHOW_TYPE, PsiSubstitutor.EMPTY))
+      .withTypeText(PsiFormatUtil.formatVariable(psiField, PsiFormatUtilBase.SHOW_TYPE, substitutor))
       .withInsertHandler(onCompletionHandler)
     add(lookupBuilder)
   }
@@ -253,9 +253,9 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   /**
    * [qualifierClass] is used to indicate which methods should be bolded
    */
-  private fun MutableList<LookupElement>.addSuggestion(psiMethod: PsiMethod, qualifierClass: PsiClass?) {
+  private fun MutableList<LookupElement>.addSuggestion(psiMethod: PsiMethod, qualifierClass: PsiClass?, substitutor: PsiSubstitutor) {
     val lookupBuilder = JavaLookupElementBuilder
-      .forMethod(psiMethod, psiMethod.name, PsiSubstitutor.EMPTY, qualifierClass)
+      .forMethod(psiMethod, psiMethod.name, substitutor, qualifierClass)
       .withInsertHandler(onCompletionHandler)
     add(lookupBuilder)
   }
