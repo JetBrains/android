@@ -17,10 +17,12 @@ package com.android.tools.idea.tests.gui.welcome;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,6 +32,9 @@ import org.junit.runner.RunWith;
  */
 @RunWith(GuiTestRemoteRunner.class)
 public class DefaultJdkConfiguratorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void defaultJdkConfiguratorNotCalled() {
     assertThat(ApplicationManager.getApplication().getComponent(DefaultJdkConfigurator.class)).isNull();
