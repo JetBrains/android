@@ -22,32 +22,29 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
 
-class SyncIssueRegisterTest : IdeaTestCase() {
-  private var register : SyncIssueRegister? = null
-
+class SyncIssueRegistryTest : IdeaTestCase() {
   @Before
   override fun setUp() {
     super.setUp()
-    register = SyncIssueRegister(project)
   }
 
   @Test
   fun testRegisterSyncIssues() {
     val syncIssue = mock(SyncIssue::class.java)
-    register!!.register(myModule, listOf(syncIssue))
-    register!!.seal()
-    val result = register!!.get()
-    assertThat(result.entries).hasSize(1)
-    assertThat(result[myModule]).containsExactly(syncIssue)
+    myModule.registerSyncIssues(listOf(syncIssue))
+    myProject.sealSyncIssues()
+    val result = myModule.syncIssues()
+    assertThat(result).hasSize(1)
+    assertThat(result).containsExactly(syncIssue)
   }
 
   @Test
   fun testClear() {
     val syncIssue = mock(SyncIssue::class.java)
-    register!!.register(myModule, listOf(syncIssue))
+    myModule.registerSyncIssues(listOf(syncIssue))
 
-    register!!.unsealAndClear()
-    register!!.seal()
-    assertThat(register!!.get()).isEmpty()
+    myProject.clearSyncIssues()
+    myProject.sealSyncIssues()
+    assertThat(myModule.syncIssues()).isEmpty()
   }
 }

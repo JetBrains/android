@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidModuleSetup}.
@@ -72,9 +75,8 @@ public class AndroidModuleSetupTest extends IdeaTestCase {
     when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
     myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
-    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    register.seal();
-    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    SyncIssues.seal(myProject);
+    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }
 
   public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
@@ -82,8 +84,7 @@ public class AndroidModuleSetupTest extends IdeaTestCase {
     when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
     myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
-    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    register.seal();
-    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    SyncIssues.seal(myProject);
+    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }
 }
