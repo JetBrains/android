@@ -76,21 +76,11 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   }
 
   @NotNull
-  public AssetStudioWizardFixture enableOverrideDefaultSize() {
-    String title = "Override";
-    JCheckBox box = GuiTests.waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, title));
-    robot().click(box);
-    Wait.seconds(1).expecting("button " + title + " to be enabled").until(() -> box.isEnabled());
-    return this;
-  }
-
-  @NotNull
-  public AssetStudioWizardFixture setSize(int width, int height) {
+  public AssetStudioWizardFixture setWidth(int width) {
     Collection<JFormattedTextField> all =
       robot().finder().findAll(target(), Matchers.byType(JFormattedTextField.class).andIsShowing().andIsEnabled());
     assertThat(all).hasSize(2);
     new JTextComponentFixture(robot(), Iterables.get(all, 0)).setText(Integer.toString(width));
-    new JTextComponentFixture(robot(), Iterables.get(all, 1)).setText(Integer.toString(height));
     return this;
   }
 
