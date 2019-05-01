@@ -709,7 +709,7 @@ public class LauncherIconGenerator extends IconGenerator {
   }
 
   /**
-   * For performance reason, we use a lower qualitty (but faster) image scaling algorithm when
+   * For performance reason, we use a lower quality (but faster) image scaling algorithm when
    * generating preview images.
    */
   @NotNull
