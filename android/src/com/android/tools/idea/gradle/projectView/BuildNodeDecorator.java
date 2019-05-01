@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
@@ -82,7 +82,7 @@ public class BuildNodeDecorator implements ProjectViewNodeDecorator {
       return;
     }
 
-    AndroidProject androidProject = GradleUtil.getAndroidProject(module);
+    IdeAndroidProject androidProject = GradleUtil.getAndroidProject(module);
     if (androidProject == null) {
       return;
     }

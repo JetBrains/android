@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
@@ -79,7 +79,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
       moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
     }
 
-    AndroidProject androidProject = androidModel.getAndroidProject();
+    IdeAndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
     Sdk sdk = myAndroidSdks.findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
@@ -139,7 +139,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Nullable
-  private Sdk findMatchingSdkForAddon(@NotNull AndroidProject androidProject) {
+  private Sdk findMatchingSdkForAddon(@NotNull IdeAndroidProject androidProject) {
     Collection<String> bootClasspath = androidProject.getBootClasspath();
     if (bootClasspath.size() > 1) {
       File androidJarPath = findAndroidJarFilePath(bootClasspath);

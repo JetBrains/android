@@ -20,6 +20,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
@@ -103,7 +104,7 @@ public class DynamicAppUtils {
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
   @NotNull
-  public static List<Module> getDependentFeatureModules(@NotNull Project project, @NotNull AndroidProject androidProject) {
+  public static List<Module> getDependentFeatureModules(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
     Map<String, Module> featureMap = getDynamicFeaturesMap(project);
     return androidProject.getDynamicFeatures().stream()
       .map(featurePath -> featureMap.get(featurePath))
@@ -314,7 +315,7 @@ public class DynamicAppUtils {
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module and are instant app compatible.
    */
   @NotNull
-  public static List<Module> getDependentInstantFeatureModules(@NotNull Project project, @NotNull AndroidProject androidProject) {
+  public static List<Module> getDependentInstantFeatureModules(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
     Map<String, Module> featureMap = getDynamicFeaturesMap(project);
     return androidProject.getDynamicFeatures().stream()
                          .map(featurePath -> featureMap.get(featurePath))

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class GeneratedSourceFoldersTest {
-  @Mock private AndroidProject myAndroidProject;
+  @Mock private IdeAndroidProject myAndroidProject;
   private GeneratedSourceFolders myGeneratedSourceFolders;
 
   @Before

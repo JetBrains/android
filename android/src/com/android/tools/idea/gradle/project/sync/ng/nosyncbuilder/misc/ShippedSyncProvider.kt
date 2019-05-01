@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.level2.GlobalLibraryMap
+import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.ng.SyncModuleModels
 import com.android.tools.idea.gradle.project.sync.ng.SyncProjectModels
@@ -71,7 +72,7 @@ class ShippedSyncProvider(
       addModel(GradleProject::class.java, gradleProject)
 
       if (cacheDir.resolve(ANDROID_PROJECT_CACHE_PATH).exists()) {
-        addModel(AndroidProject::class.java, loader.loadAndroidProject(DEBUG_VARIANT_NAME)) // TODO(qumeric): which variant?
+        addModel(IdeAndroidProject::class.java, loader.loadAndroidProject(DEBUG_VARIANT_NAME)) // TODO(qumeric): which variant?
       }
     }
 
