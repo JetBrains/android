@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawCenterX
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawCenterY
 import com.android.tools.idea.uibuilder.model.ensureLiveId
@@ -57,13 +58,10 @@ class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComp
    */
   override val region = Region(left, top, right, bottom, anchor.depth + 1)
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
-    val centerX = (left + right) / 2
-    val centerY = (top + bottom) / 2
-
-    if (centerX in region.left..region.right && centerY in region.top..region.bottom) {
-      retPoint.x = (region.left + region.right) / 2 - (right - left) / 2
-      retPoint.y = (region.top + region.bottom) / 2 - (bottom - top) / 2
+  override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
+    if (region.contains(info.centerX, info.centerY)) {
+      retPoint.x = (region.left + region.right) / 2 - (info.right - info.left) / 2
+      retPoint.y = (region.top + region.bottom) / 2 - (info.bottom - info.top) / 2
       return true
     }
     return false

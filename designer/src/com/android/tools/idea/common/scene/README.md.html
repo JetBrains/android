@@ -80,7 +80,7 @@ If the dragged widget has to be inserted to specific position in Xml tree, retur
 By default the component would keep the same position as before, or append to the end of file if it is a new Widget in such View Group.
 For example, LinearPlaceholder overrides this value since Linear Layout needs to change the order of its Widgets.
 
-`fun snap(left: Int, top: Int, right: Int, bottom: Int): Boolean`
+`fun snap(info: SnappingInfo, retPoint: Point): Boolean`
 -----
 The arguments describe the expected area of dragged widget. `snap` function checks if the dragged widget should effect to this `Placeholder`
 
