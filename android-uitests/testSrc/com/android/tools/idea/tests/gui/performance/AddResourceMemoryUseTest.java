@@ -51,9 +51,8 @@ public class AddResourceMemoryUseTest {
         .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
         .setFilename("menu_g")
         .setType("menu")
-        .clickOk();
-
-      ideFrameFixture.getProjectView()
+        .clickOk()
+        .getProjectView()
         .selectAndroidPane()
         .deletePath("app","res","menu", "menu_g.xml");
     });
@@ -70,9 +69,8 @@ public class AddResourceMemoryUseTest {
         .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
         .setFilename("layout_g")
         .setType("layout")
-        .clickOk();
-
-      ideFrameFixture.getProjectView()
+        .clickOk()
+        .getProjectView()
         .selectAndroidPane()
         .deletePath("app","res","layout", "layout_g.xml");
     });

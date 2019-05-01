@@ -232,7 +232,7 @@ public class NavNlEditorTest {
     IdeFrameFixture frame = guiTest.importSimpleApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.invokeMenuPath("File", "New", "Android Resource File");
-    CreateResourceFileDialogFixture.find(guiTest.robot())
+    CreateResourceFileDialogFixture.find(frame)
                                    .setFilename("nav")
                                    .setType("navigation")
                                    .clickOk();
@@ -260,7 +260,7 @@ public class NavNlEditorTest {
     IdeFrameFixture frame = guiTest.importSimpleApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.invokeMenuPath("File", "New", "Android Resource File");
-    CreateResourceFileDialogFixture.find(guiTest.robot())
+    CreateResourceFileDialogFixture.find(frame)
                                    .setFilename("nav")
                                    .setType("navigation")
                                    .clickOk();
