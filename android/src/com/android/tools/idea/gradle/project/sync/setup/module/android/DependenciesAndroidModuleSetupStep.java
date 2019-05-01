@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -180,7 +179,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                                                   @NotNull IdeModifiableModelsProvider modelsProvider,
                                                   @NotNull AndroidModuleModel androidModuleModel) {
     ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
-    AndroidProject androidProject = androidModuleModel.getAndroidProject();
+    IdeAndroidProject androidProject = androidModuleModel.getAndroidProject();
     Sdk sdk = moduleModel.getSdk();
     assert sdk != null; // If we got here, SDK will *NOT* be null.
 
