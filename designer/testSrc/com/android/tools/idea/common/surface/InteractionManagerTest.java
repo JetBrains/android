@@ -57,7 +57,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
