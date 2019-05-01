@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ArrayUtil.toStringArray;
+
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -25,27 +32,21 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ArrayUtil.toStringArray;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
  */
 public class DependencySetupIssues {
-  @NotNull private final GradleSyncState mySyncState;
   @NotNull private final GradleSyncMessages mySyncMessages;
 
   @NotNull private final Map<String, MissingModule> myMissingModules = new ConcurrentHashMap<>();
@@ -59,8 +60,7 @@ public class DependencySetupIssues {
     return ServiceManager.getService(project, DependencySetupIssues.class);
   }
 
-  public DependencySetupIssues(@NotNull Project project, @NotNull GradleSyncState syncState, @NotNull GradleSyncMessages syncMessages) {
-    mySyncState = syncState;
+  public DependencySetupIssues(@NotNull GradleSyncMessages syncMessages) {
     mySyncMessages = syncMessages;
   }
 
@@ -184,9 +184,6 @@ public class DependencySetupIssues {
     Map<String, MissingModule> mapping = isNotEmpty(backupLibraryName) ? myMissingModulesWithBackupLibraries : myMissingModules;
     MissingModule missingModule = mapping.computeIfAbsent(dependencyName, name -> new MissingModule(name, backupLibraryName));
     missingModule.addDependent(dependentName);
-    if (missingModule.isError()) {
-      registerSyncError();
-    }
   }
 
   /**
@@ -196,11 +193,6 @@ public class DependencySetupIssues {
    */
   public void addMissingBinaryPath(@NotNull String dependentName) {
     myDependentsOnLibrariesWithoutBinaryPath.add(dependentName);
-    registerSyncError();
-  }
-
-  private void registerSyncError() {
-    mySyncState.getSummary().setSyncErrorsFound(true);
   }
 
   public void addInvalidModuleDependency(@NotNull Module dependency,

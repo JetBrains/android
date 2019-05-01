@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -104,9 +105,11 @@ public class GradleSyncState {
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
-  @NotNull private final GradleSyncSummary mySummary;
   @NotNull private final GradleFiles myGradleFiles;
   @NotNull private final ProjectStructure myProjectStructure;
+
+  // TODO: Look at removing this, this information should belong to the Gradle Facet
+  @Nullable private GradleVersion myLastSyncedGradleVersion;
 
   @NotNull private final Object myLock = new Object();
 
@@ -125,6 +128,10 @@ public class GradleSyncState {
   private long mySyncEndedTimeStamp = -1L;
   private long mySourceGenerationEndedTimeStamp = -1L;
   private long mySyncFailedTimeStamp = -1L;
+
+  // TODO: merge mySyncEndedTimeStamp and mySyncFailedTimeStamp into this.
+  private long myLastSyncFinishedTimeStamp = -1L;
+
   private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
   private boolean myShouldRemoveModelsOnFailure = false;
 
@@ -156,8 +163,7 @@ public class GradleSyncState {
                          @NotNull GradleFiles gradleFiles,
                          @NotNull MessageBus messageBus,
                          @NotNull ProjectStructure projectStructure) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
-         new GradleSyncSummary(project));
+    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project));
   }
 
   @VisibleForTesting
@@ -167,14 +173,12 @@ public class GradleSyncState {
                   @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull ProjectStructure projectStructure,
-                  @NotNull StateChangeNotification changeNotification,
-                  @NotNull GradleSyncSummary summary) {
+                  @NotNull StateChangeNotification changeNotification) {
     myProject = project;
     myAndroidProjectInfo = androidProjectInfo;
     myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
-    mySummary = summary;
     myGradleFiles = gradleFiles;
     myProjectStructure = projectStructure;
 
@@ -231,13 +235,11 @@ public class GradleSyncState {
       notifyStateChanged();
     }
 
-    if (mySummary.getSyncTimestamp() < 0) {
+    if (myLastSyncFinishedTimeStamp < 0) {
       // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
       // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
       GradleSyncResultPublisher.getInstance(myProject);
     }
-
-    mySummary.reset();
 
     // Ensure that we don't notify the listeners until all the housekeeping has been performed in case they need to read
     // state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
@@ -296,7 +298,7 @@ public class GradleSyncState {
     LOG.info(msg);
 
     stopSyncInProgress();
-    mySummary.setSyncTimestamp(lastSyncTimestamp);
+    myLastSyncFinishedTimeStamp = lastSyncTimestamp;
 
     // Ensure that we don't notify the listeners until all the housekeeping has been performed in case they need to read
     // state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
@@ -363,13 +365,11 @@ public class GradleSyncState {
       syncListener.syncFailed(myProject, message);
     }
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
-
-    mySummary.setSyncErrorsFound(true);
   }
 
   public void syncEnded() {
     // syncFailed should be called if there're any sync issues.
-    assert !lastSyncFailedOrHasIssues();
+    assert !lastSyncFailed();
     long syncEndTimestamp = System.currentTimeMillis();
     // If mySyncStartedTimestamp is -1, that means sync has not started or syncEnded has been called for this invocation.
     // Reset sync state and don't log the events or notify listener again.
@@ -439,7 +439,7 @@ public class GradleSyncState {
   private void syncFinished(long timestamp) {
     stopSyncInProgress();
     mySyncStartedTimestamp = -1L;
-    mySummary.setSyncTimestamp(timestamp);
+    myLastSyncFinishedTimeStamp = timestamp;
     enableNotifications();
     notifyStateChanged();
     ApplicationManager.getApplication().invokeAndWait(() -> warnIfNotJdkHome());
@@ -496,19 +496,8 @@ public class GradleSyncState {
     myChangeNotification.notifyStateChanged();
   }
 
-  public boolean lastSyncFailedOrHasIssues() {
-    // This will be true if sync failed because of an exception thrown by Gradle. GradleSyncState will know that sync stopped.
-    boolean lastSyncFailed = lastSyncFailed();
-
-    // This will be true if sync was successful but there were sync issues found (e.g. unresolved dependencies.)
-    // GradleSyncState still thinks that sync is still being executed.
-    boolean hasSyncErrors = mySummary.hasSyncErrors();
-
-    return lastSyncFailed || hasSyncErrors;
-  }
-
   /**
-   * Indicates whether the last Gradle sync failed. This method returns {@code false} if there is a sync task is currently running.
+   * Indicates whether the last started Gradle sync has failed or will fail.
    * <p>
    * Possible failure causes:
    * <ul>
@@ -519,13 +508,11 @@ public class GradleSyncState {
    * </ul>
    * </p>
    *
-   * @return {@code true} if the last Gradle sync failed; {@code false} if the last sync was successful or if there is a sync task
-   * currently running.
+   * @return {@code true} if the last Gradle sync failed; {@code false} if the last sync was successful
    */
   public boolean lastSyncFailed() {
-    return !isSyncInProgress() &&
-           myGradleProjectInfo.isBuildWithGradle() &&
-           (myAndroidProjectInfo.requiredAndroidModelMissing() || mySummary.hasSyncErrors());
+    return myGradleProjectInfo.isBuildWithGradle() &&
+           (myAndroidProjectInfo.requiredAndroidModelMissing() || GradleSyncMessages.getInstance(myProject).getErrorCount() > 0);
   }
 
   public boolean isSyncInProgress() {
@@ -559,9 +546,15 @@ public class GradleSyncState {
     return mySyncEndedTimeStamp;
   }
 
-  @NotNull
-  public GradleSyncSummary getSummary() {
-    return mySummary;
+  public long getLastSyncFinishedTimeStamp() { return myLastSyncFinishedTimeStamp; }
+
+  @Nullable
+  public GradleVersion getLastSyncedGradleVersion() {
+    return myLastSyncedGradleVersion;
+  }
+
+  public void setLastSyncedGradleVersion(@NotNull GradleVersion version) {
+    myLastSyncedGradleVersion = version;
   }
 
   public void setupStarted() {

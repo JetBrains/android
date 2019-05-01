@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.mockito.Mock;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link JdkModuleSetupStep}.
@@ -66,13 +66,10 @@ public class JdkModuleSetupStepTest extends AndroidGradleTestCase {
 
     SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNotNull(message);
+    assertThat(message.getType()).isEqualTo(MessageType.ERROR);
 
     String[] text = message.getText();
     assertThat(text).isNotEmpty();
-
     assertThat(text[0]).matches("compileSdkVersion (.*) requires compiling with JDK 7 or newer.");
-
-    GradleSyncSummary summary = GradleSyncState.getInstance(getProject()).getSummary();
-    assertTrue(summary.hasSyncErrors());
   }
 }

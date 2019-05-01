@@ -126,7 +126,7 @@ public class GradleProjectInfo {
       }
       // See https://code.google.com/p/android/issues/detail?id=203384
       // This could be a project without modules. Check that at least it synced with Gradle.
-      if (GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L) {
+      if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
         return true;
       }
       return hasTopLevelGradleBuildFile();

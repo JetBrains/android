@@ -138,7 +138,7 @@ public class AndroidPluginVersionUpdater {
     }
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
-      if (!mySyncState.lastSyncFailedOrHasIssues()) {
+      if (!mySyncState.lastSyncFailed()) {
         mySyncState.syncEnded();
       }
 

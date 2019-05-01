@@ -56,7 +56,7 @@ public class GradleVersions {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (syncState.isSyncNeeded() != ThreeState.YES) {
       // If Sync is needed we cannot rely on the Gradle version returned by the last sync. It may be stale.
-      GradleVersion gradleVersion = syncState.getSummary().getGradleVersion();
+      GradleVersion gradleVersion = syncState.getLastSyncedGradleVersion();
       if (gradleVersion != null) {
         // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
         // settings.

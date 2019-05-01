@@ -186,7 +186,7 @@ public class ProjectBuildFileChecksums implements Serializable {
     }
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    buildFileChecksums.myLastGradleSyncTimestamp = syncState.getSummary().getSyncTimestamp();
+    buildFileChecksums.myLastGradleSyncTimestamp = syncState.getLastSyncFinishedTimeStamp();
     return buildFileChecksums;
   }
 
