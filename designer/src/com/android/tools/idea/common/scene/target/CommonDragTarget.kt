@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.draw.ColorSet
@@ -281,7 +282,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           continue
         }
 
-        if (ph.snap(left, top, right, bottom, retPoint)) {
+        if (ph.snap(SnappingInfo(left, top, right, bottom), retPoint)) {
           val distance = retPoint.distance(xDouble, yDouble)
           if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
             targetPlaceholder = ph
