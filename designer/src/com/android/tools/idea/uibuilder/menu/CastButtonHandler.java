@@ -18,7 +18,11 @@ package com.android.tools.idea.uibuilder.menu;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,5 +53,10 @@ public final class CastButtonHandler extends MenuHandler {
   @Override
   public Icon getIcon(@NotNull NlComponent component) {
     return StudioIcons.LayoutEditor.Menu.CAST;
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new ItemPlaceholder(component));
   }
 }
