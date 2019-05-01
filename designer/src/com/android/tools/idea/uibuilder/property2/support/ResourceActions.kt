@@ -72,7 +72,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
 
   override fun actionPerformed(event: AnActionEvent) {
     val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
-    val newValue = selectFromResourceDialog(property)
+    val newValue = property.delegate?.let { selectFromResourceDialog(it) }
     if (newValue != null) {
       property.value = newValue
     }
