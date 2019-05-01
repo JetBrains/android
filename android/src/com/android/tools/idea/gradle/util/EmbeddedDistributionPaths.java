@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
 
@@ -41,15 +42,11 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public List<File> findAndroidStudioLocalMavenRepoPaths() {
-    File defaultRootDirPath = getDefaultRootDirPath();
-    if (defaultRootDirPath != null) {
-      // Release build
-      File repoPath = new File(defaultRootDirPath, "m2repository");
-      return repoPath.isDirectory() ? ImmutableList.of(repoPath) : ImmutableList.of();
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+      return ImmutableList.of();
     }
-    // Development build
-    List<File> repoPaths = new ArrayList<>();
 
+    List<File> repoPaths = new ArrayList<>();
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
@@ -86,7 +83,7 @@ public class EmbeddedDistributionPaths {
       }
     }
 
-    return repoPaths;
+    return ImmutableList.copyOf(repoPaths);
   }
 
   @NotNull
