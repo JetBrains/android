@@ -47,7 +47,7 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
     mySyncMessages.report(new SyncMessage("Version Compatibility Issues", MessageType.ERROR, "Message for test VCI"));
 
     assertFalse(mySyncMessages.isEmpty());
-    mySyncMessages.removeProjectMessages();
+    mySyncMessages.removeAllMessages();
     assertTrue(mySyncMessages.isEmpty());
   }
 }

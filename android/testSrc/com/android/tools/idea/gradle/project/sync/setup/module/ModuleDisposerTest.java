@@ -121,7 +121,7 @@ public class ModuleDisposerTest extends IdeaTestCase {
   }
 
   private void simulateSyncSuccessful() {
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
   }
 
   public void testDisposeModulesWithAndroidStudioAndFailedSync() {
@@ -147,6 +147,6 @@ public class ModuleDisposerTest extends IdeaTestCase {
   }
 
   private void simulateFailedSync() {
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
   }
 }

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+import static com.intellij.openapi.application.TransactionGuard.submitTransaction;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -32,11 +36,6 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
-import static com.intellij.openapi.application.TransactionGuard.submitTransaction;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 public class ProjectJdkSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
@@ -59,7 +58,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
     LanguageLevel javaLangVersion = JDK_1_8;
     Sdk projectJdk = ProjectRootManager.getInstance(project).getProjectSdk();
-    Sdk ideJdk = projectJdk;
+    Sdk ideJdk;
 
     Application application = ApplicationManager.getApplication();
     boolean androidStudio = myIdeInfo.isAndroidStudio();
@@ -78,14 +77,12 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
       message.add(myJdks.getWrongJdkQuickFixes(project));
 
       GradleSyncMessages.getInstance(project).report(message);
-      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
       return;
     }
 
     String homePath = ideJdk.getHomePath();
     if (homePath != null) {
-      Sdk jdk = ideJdk;
-      Runnable task = () -> application.runWriteAction(() -> myJdks.setJdk(project, jdk));
+      Runnable task = () -> application.runWriteAction(() -> myJdks.setJdk(project, ideJdk));
       submitTransaction(project, task);
     }
   }
