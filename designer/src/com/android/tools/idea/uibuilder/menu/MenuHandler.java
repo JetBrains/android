@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.target.CommonDragTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.intellij.openapi.util.Computable;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearPlaceholderFactory;
+import com.google.common.collect.ImmutableList;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +70,70 @@ public class MenuHandler extends ViewGroupHandler {
         newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
         return true;
     });
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return ImmutableList.of(new CommonDragTarget(sceneComponent));
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
+    if (component.getParent() == null && !component.getChildren().isEmpty()) {
+      // The non-empty root <menu> tag has same behaviour as vertical LinearLayout.
+      List<SceneComponent> nonActionItems = getNonActionItems(component);
+
+      int bottomOfChildren = component.getDrawY();
+      int left = component.getDrawX();
+      int right = component.getDrawX() + component.getDrawWidth();
+      for (SceneComponent item : nonActionItems) {
+        builder.add(LinearPlaceholderFactory.createVerticalPlaceholder(component, item, item.getDrawY(), left, right));
+        bottomOfChildren = Math.max(bottomOfChildren, item.getDrawY() + item.getDrawHeight());
+      }
+      builder.add(LinearPlaceholderFactory.createVerticalPlaceholder(component, null, bottomOfChildren, left, right));
+    }
+    // Add the Placeholder for root <menu>
+    return builder.add(new MenuPlaceholder(component)).build();
+  }
+
+  /**
+   * All items which have app:showAsAction="always" are displayed in Actionbar.<br>
+   * For items which have app:showAsAction="ifRoom", there are only 2 slots for them.<br>
+   * <br>
+   * According the above rule, the filter logic is:
+   * (1) Filter all item which have app:showAsAction="always"
+   * (2) If there are less than 2 items are filtered, filter the first or first two items which have app:showAsAction="ifRoom".
+   * (3) Return all remaining items.
+   */
+  private static List<SceneComponent> getNonActionItems(@NotNull SceneComponent menu) {
+    List<SceneComponent> children = menu.getChildren();
+    // Ignore TemporarySceneComponent, which happens when dragging from Palette.
+    children = children.stream().filter(it -> !(it instanceof TemporarySceneComponent)).collect(Collectors.toList());
+    List<SceneComponent> childrenWithoutActions = children.stream()
+      .filter(it -> {
+        String v = it.getAuthoritativeNlComponent().getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_SHOW_AS_ACTION);
+        return !SdkConstants.VALUE_ALWAYS.equals(v);
+      }).collect(Collectors.toList());
+
+    int currentActionNumber = children.size() - childrenWithoutActions.size();
+
+    while (currentActionNumber < 2) {
+      Optional<SceneComponent> roomAction = childrenWithoutActions.stream().filter(it -> {
+        String v = it.getAuthoritativeNlComponent().getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_SHOW_AS_ACTION);
+        return SdkConstants.VALUE_IF_ROOM.equals(v);
+      }).findFirst();
+
+      if (roomAction.isPresent()) {
+        childrenWithoutActions.remove(roomAction.get());
+        currentActionNumber++;
+      }
+      else {
+        break;
+      }
+    }
+    return childrenWithoutActions;
   }
 
   @Override

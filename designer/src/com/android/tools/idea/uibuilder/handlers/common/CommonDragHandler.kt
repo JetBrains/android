@@ -31,8 +31,6 @@ import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.TabLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceScreenHandler
-import com.android.tools.idea.uibuilder.menu.ItemHandler
-import com.android.tools.idea.uibuilder.menu.MenuHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 
@@ -120,16 +118,14 @@ internal class CommonDragHandler(editor: ViewEditor,
      * The classes of [ViewGroupHandler] which don't support [CommonDragHandler] yet.
      * TODO: makes [CommonDragHandler] can be used in all [ViewGroupHandler].
      */
-    private val HANDLER_CLASSES_NOT_SUPPORT= listOf(
+    private val HANDLER_CLASSES_NOT_SUPPORTED = listOf(
       DelegatingViewGroupHandler::class,
-      ItemHandler::class,
-      MenuHandler::class,
       PreferenceCategoryHandler::class,
       PreferenceScreenHandler::class,
       TabLayoutHandler::class
     )
 
     @JvmStatic
-    fun isSupportCommonDragHandler(handler: ViewGroupHandler) = handler::class !in HANDLER_CLASSES_NOT_SUPPORT
+    fun isSupportCommonDragHandler(handler: ViewGroupHandler) = handler::class !in HANDLER_CLASSES_NOT_SUPPORTED
   }
 }
