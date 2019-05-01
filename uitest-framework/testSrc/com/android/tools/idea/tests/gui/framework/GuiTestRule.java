@@ -70,6 +70,8 @@ import java.util.concurrent.TimeUnit;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.io.Files.asCharSource;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static org.fest.reflect.core.Reflection.*;
@@ -435,6 +437,11 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public File getProjectPath(@NotNull String child) {
     return new File(ideFrame().getProjectPath(), child);
+  }
+
+  @NotNull
+  public String getProjectFileText(@NotNull String fileRelPath) throws IOException {
+    return asCharSource(getProjectPath(fileRelPath), UTF_8).read();
   }
 
   @NotNull

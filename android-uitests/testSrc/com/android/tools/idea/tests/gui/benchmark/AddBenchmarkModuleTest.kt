@@ -79,15 +79,11 @@ class AddBenchmarkModuleTest {
       .selectAndroidPane()
       .clickPath("benchmark")
 
-    ideFrame.editor
-      .open("benchmark/src/androidTest/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
       assertThat(this).contains("""android:debuggable="false"""")
     }
 
-    ideFrame.editor
-      .open("benchmark/build.gradle")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
       assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'""")
@@ -129,15 +125,11 @@ class AddBenchmarkModuleTest {
       .selectAndroidPane()
       .clickPath("benchmark")
 
-    ideFrame.editor
-      .open("benchmark/src/androidTest/AndroidManifest.xml")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
       assertThat(this).contains("""android:debuggable="false"""")
     }
 
-    ideFrame.editor
-      .open("benchmark/build.gradle")
-      .currentFileContents.run {
+    guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
       assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
