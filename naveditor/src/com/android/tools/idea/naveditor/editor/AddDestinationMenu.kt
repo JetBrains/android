@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.editor
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
@@ -62,7 +63,6 @@ import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
@@ -104,45 +104,27 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   val destinations: List<Destination>
     get() {
       val model = surface.model!!
-      val classToDestination = LinkedHashMap<PsiClass, Destination>()
       val module = model.module
-      val schema = model.schema
-      val parent = surface.currentNavigation
-
-      val existingClasses = parent.children.mapNotNull { it.className }
-
-      for (tag in schema.allTags) {
-        for (psiClass in schema.getProjectClassesForTag(tag)
-          .filter { !classToDestination.containsKey(it) && !existingClasses.contains(it.qualifiedName) }) {
-          val inProject = psiClass.isInProject()
-          val destination = Destination.RegularDestination(parent, tag, null, psiClass, inProject = inProject)
-          classToDestination[psiClass] = destination
-        }
-      }
-
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
-      val hosts = findReferences(model.file, module).map { it.containingFile }
-      for (resourceFile in
-          resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
-        // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
-        val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
-        for (item in itemComputable?.compute() ?: continue) {
-          val element = item.element as? PsiClass ?: continue
-          if (existingClasses.contains(element.qualifiedName)) {
-            continue
-          }
+      val layoutFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+        .filterIsInstance<XmlFile>()
+        .associateBy { AndroidPsiUtils.getContextClass(module, it) }
 
-          val tags = schema.getTagsForDestinationClass(element) ?: continue
-          if (tags.size == 1) {
-            if (resourceFile in hosts) {
-              // This will remove the class entry that was added earlier
-              classToDestination.remove(element)
-            }
-            else {
-              val destination = Destination.RegularDestination(parent, tags.first(), null, element, layoutFile = resourceFile)
-              classToDestination[element] = destination
-            }
+      val classToDestination = mutableMapOf<PsiClass, Destination>()
+      val schema = model.schema
+      val parent = surface.currentNavigation
+      val existingClasses = parent.children.mapNotNull { it.className }.toSortedSet()
+      val hosts = findReferences(model.file, module).map { it.containingFile }
+
+      for (tag in schema.allTags) {
+        for (psiClass in schema.getProjectClassesForTag(tag).filter { !existingClasses.contains(it.qualifiedName) }) {
+          val layoutFile = layoutFiles[psiClass]
+          if (layoutFile !in hosts) {
+            val inProject = psiClass.isInProject()
+            val destination = Destination.RegularDestination(
+              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile)
+            classToDestination[psiClass] = destination
           }
         }
       }
