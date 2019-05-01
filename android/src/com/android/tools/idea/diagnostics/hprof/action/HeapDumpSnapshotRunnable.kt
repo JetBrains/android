@@ -28,11 +28,9 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.MemoryDumpHelper
 import com.intellij.util.io.exists
@@ -175,7 +173,7 @@ class HeapDumpSnapshotRunnable(
 
     override fun onSuccess() {
       if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START && restart) {
-        ApplicationManager.getApplication().invokeLater(this::confirmRestart, ModalityState.NON_MODAL)
+        ApplicationManager.getApplication().invokeLater(ApplicationManager.getApplication()::restart, ModalityState.NON_MODAL)
       }
     }
 
@@ -184,21 +182,6 @@ class HeapDumpSnapshotRunnable(
       val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
         AndroidBundle.message("heap.dump.snapshot.exception"), NotificationType.ERROR)
       notification.notify(null)
-    }
-
-    private fun confirmRestart() {
-      val title = AndroidBundle.message("heap.dump.snapshot.restart.dialog.title")
-      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message")
-      val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
-      val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
-      val result = MessageDialogBuilder.yesNo(title, message)
-        .yesText(yesString)
-        .noText(noString)
-        .show()
-      if (result == Messages.YES) {
-        val application = ApplicationManager.getApplication() as ApplicationEx
-        application.restart(true)
-      }
     }
 
     override fun run(indicator: ProgressIndicator) {

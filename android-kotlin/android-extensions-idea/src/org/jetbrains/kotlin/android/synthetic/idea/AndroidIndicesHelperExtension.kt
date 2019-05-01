@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.android.synthetic.idea
 
 import org.jetbrains.kotlin.android.synthetic.AndroidConst
+import org.jetbrains.kotlin.android.synthetic.descriptors.AndroidSyntheticPackageFragmentDescriptor
 import org.jetbrains.kotlin.android.synthetic.descriptors.PredefinedPackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
 class AndroidIndicesHelperExtension : KotlinIndicesHelperExtension {
+
     override fun appendExtensionCallables(
             consumer: MutableList<in CallableDescriptor>,
             moduleDescriptor: ModuleDescriptor,
@@ -48,9 +50,9 @@ class AndroidIndicesHelperExtension : KotlinIndicesHelperExtension {
             }
 
             handleScope(packageFragment.getMemberScope())
-            for (fragment in packageFragment.lazySubpackages) {
-                if (fragment.isDeprecated) continue
-                handleScope(fragment.descriptor().getMemberScope())
+            for (fragment in packageFragment.subpackages) {
+                if (fragment is AndroidSyntheticPackageFragmentDescriptor && fragment.packageData.isDeprecated) continue
+                handleScope(fragment.getMemberScope())
             }
         }
     }

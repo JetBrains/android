@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
@@ -147,6 +149,11 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         if (coordinate != null) {
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }
+      }
+
+      // Offer to turn on embedded offline repo if the missing dependency can be found there.
+      if (shouldEnableEmbeddedRepo(dependency)) {
+        quickFixes.add(new EnableEmbeddedRepoHyperlink());
       }
 
       return quickFixes;

@@ -131,7 +131,6 @@ class PsContextImpl constructor(
       .continueOnEdt {
         this.project.refreshFrom(it)
         gradleSyncEventDispatcher.multicaster.syncSucceeded(project)
-        this.project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
       }
   }
 

@@ -1030,10 +1030,6 @@ public final class GradleUtil {
     return result;
   }
 
-  public static boolean hasKtsBuildFiles(@NotNull Project project) {
-    return projectBuildFilesTypes(project).contains(DOT_KTS);
-  }
-
   private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
     if (buildFile != null) {
       String buildFileExtension = buildFile.getExtension();

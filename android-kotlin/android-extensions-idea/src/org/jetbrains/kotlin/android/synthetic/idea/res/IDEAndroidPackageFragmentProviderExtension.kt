@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.android.synthetic.idea.res
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ClearableLazyValue
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsEnabled
@@ -48,9 +47,5 @@ class IDEAndroidPackageFragmentProviderExtension(val project: Project) : Android
     private fun isLegacyIdeaAndroidModule(module: Module): Boolean {
         val infoProvider = AndroidModuleInfoProvider.getInstance(module) ?: return false
         return infoProvider.isAndroidModule() && !infoProvider.isGradleModule()
-    }
-
-    override fun <T> createLazyValue(value: () -> T): () -> T {
-        return { ClearableLazyValue.create<T> { value() }.value }
     }
 }

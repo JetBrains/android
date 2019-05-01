@@ -28,7 +28,7 @@ class ObjectNavigatorOnAuxFiles(
   private val auxOffsets: ByteBuffer,
   private val aux: ByteBuffer,
   classStore: ClassStore,
-  instanceCount: Long
+  instanceCount: Int
 ) : ObjectNavigator(classStore, instanceCount) {
 
   override fun getClass() = currentClass!!
