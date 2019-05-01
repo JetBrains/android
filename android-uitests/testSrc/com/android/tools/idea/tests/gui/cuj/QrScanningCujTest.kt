@@ -118,8 +118,7 @@ class QrScanningCujTest {
         openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
           .useLocalFile(GuiTests.getTestDataDir()!!.toString() + "/VotingApp/ic_qr_code.svg")
           .setName("ic_qr_code")
-          .enableOverrideDefaultSize()
-          .setSize(100, 100)
+          .setWidth(100)
           .clickNext()
           .clickFinish()
       }
