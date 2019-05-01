@@ -34,12 +34,8 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
-import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.property.panel.api.ActionIconButton
-import com.android.tools.property.panel.api.HelpSupport
-import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -53,6 +49,9 @@ import com.android.tools.idea.uibuilder.property2.support.HelpActions
 import com.android.tools.idea.uibuilder.property2.support.IdEnumSupport
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
+import com.android.tools.property.panel.api.ActionIconButton
+import com.android.tools.property.panel.api.HelpSupport
+import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
@@ -141,6 +140,9 @@ open class NelePropertyItem(
 
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
+
+  open val delegate: NelePropertyItem?
+    get() = this
 
   // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
   // We need to find the prefix even when namespacing is turned off.
