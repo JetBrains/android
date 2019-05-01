@@ -22,6 +22,10 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOV
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -439,6 +443,20 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     revalidate();
     repaint();
+  }
+
+  @Override
+  @NotNull
+  public ItemTransferable getSelectionAsTransferable() {
+    NlModel model = getModel();
+
+    ImmutableList<DnDTransferComponent> components =
+      getSelectionModel().getSelection().stream()
+        .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(),
+                                                   NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)))
+        .collect(
+          ImmutableCollectors.toImmutableList());
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
   @Override
