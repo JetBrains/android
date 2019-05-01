@@ -38,6 +38,7 @@ public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<
 
   @NotNull private final CurrentTimeProvider myCurrentTimeProvider;
 
+  @SuppressWarnings("unused")
   public AndroidStudioGradleIdeSettings() {
     this(new CurrentTimeProvider());
   }

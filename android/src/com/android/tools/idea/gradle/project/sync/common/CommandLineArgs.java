@@ -133,6 +133,7 @@ public class CommandLineArgs {
   }
 
   public static boolean isInTestingMode() {
-    return GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+    GuiTestingService guiTestingService = GuiTestingService.getInstance();
+    return (guiTestingService != null && guiTestingService.isGuiTestingMode()) || ApplicationManager.getApplication().isUnitTestMode();
   }
 }
