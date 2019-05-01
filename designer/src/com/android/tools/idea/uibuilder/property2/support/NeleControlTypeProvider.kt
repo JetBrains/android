@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
+import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
-import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
-import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
 
 /**
  * [ControlType] provider of a value editor for a [NelePropertyItem].
@@ -29,7 +28,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 open class NeleControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : ControlTypeProvider<NelePropertyItem> {
 
   override fun invoke(actual: NelePropertyItem): ControlType {
-    val property = (actual as? NeleNewPropertyItem)?.delegate ?: actual
+    val property = actual.delegate ?: actual
     return when {
       property is NeleFlagsPropertyItem ->
         ControlType.FLAG_EDITOR
