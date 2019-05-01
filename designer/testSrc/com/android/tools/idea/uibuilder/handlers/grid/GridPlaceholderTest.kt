@@ -72,24 +72,24 @@ class GridPlaceholderTest : SceneTest() {
     val p = Point(-1, -1)
 
     // inside
-    assertTrue(placeholder.snap(SnappingInfo(60, 60, 80, 80), p))
+    assertTrue(placeholder.snap(SnappingInfo(60, 60, 80, 80, SdkConstants.VIEW_TAG), p))
     // outside
-    assertFalse(placeholder.snap(SnappingInfo(30, 30, 40, 40), p))
+    assertFalse(placeholder.snap(SnappingInfo(30, 30, 40, 40, SdkConstants.VIEW_TAG), p))
 
     // partially outside but center is in the region
-    assertTrue(placeholder.snap(SnappingInfo(45, 45, 65, 65), p))
-    assertTrue(placeholder.snap(SnappingInfo(85, 85, 105, 105), p))
+    assertTrue(placeholder.snap(SnappingInfo(45, 45, 65, 65, SdkConstants.VIEW_TAG), p))
+    assertTrue(placeholder.snap(SnappingInfo(85, 85, 105, 105, SdkConstants.VIEW_TAG), p))
 
     // x inside but y outside
-    assertFalse(placeholder.snap(SnappingInfo(70, 30, 80, 40), p))
+    assertFalse(placeholder.snap(SnappingInfo(70, 30, 80, 40, SdkConstants.VIEW_TAG), p))
     // x outside but y inside
-    assertFalse(placeholder.snap(SnappingInfo(30, 70, 40, 80), p))
+    assertFalse(placeholder.snap(SnappingInfo(30, 70, 40, 80, SdkConstants.VIEW_TAG), p))
 
     // bigger than placeholder but center is in the region
-    assertTrue(placeholder.snap(SnappingInfo(30, 30, 130, 130), p))
+    assertTrue(placeholder.snap(SnappingInfo(30, 30, 130, 130, SdkConstants.VIEW_TAG), p))
 
     // bigger than placeholder but center is not in the region
-    assertFalse(placeholder.snap(SnappingInfo(30, 30, 200, 200), p))
+    assertFalse(placeholder.snap(SnappingInfo(30, 30, 200, 200, SdkConstants.VIEW_TAG), p))
   }
 
   fun testApply() {

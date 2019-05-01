@@ -199,6 +199,17 @@ public class ComponentDescriptor {
     Rectangle bounds = getBounds();
     for (ComponentDescriptor child : children) {
       if (!child.myTagName.equalsIgnoreCase("tag")) {
+        Rectangle childBounds = child.getBounds();
+        boolean parentContainChild = true;
+        if (childBounds.width == 0 && childBounds.height == 0) {
+          if (childBounds.x < bounds.x || childBounds.x > bounds.x + bounds.width ||
+              childBounds.y < bounds.y || childBounds.y > bounds.y + bounds.height) {
+            parentContainChild = false;
+          }
+        }
+        else {
+          parentContainChild = bounds.contains(childBounds);
+        }
         assertTrue("Expected parent layout with bounds " +
                    bounds +
                    " to fully contain child bounds " +
@@ -206,7 +217,7 @@ public class ComponentDescriptor {
                    " where parent=" +
                    this +
                    " and child=" +
-                   child, bounds.contains(child.getBounds()));
+                   child, parentContainChild);
       }
     }
 

@@ -100,11 +100,13 @@ data class Region(@AndroidDpCoordinate val left: Int,
 
 /**
  * Class for providing information from snapping [SceneComponent].
+ * [tag] is the Xml Tag of snapped component.
  */
 class SnappingInfo(@AndroidDpCoordinate val left: Int,
                    @AndroidDpCoordinate val top: Int,
                    @AndroidDpCoordinate val right: Int,
-                   @AndroidDpCoordinate val bottom: Int) {
+                   @AndroidDpCoordinate val bottom: Int,
+                   val tag: String) {
   /**
    * Helper function for getting centerX
    */
