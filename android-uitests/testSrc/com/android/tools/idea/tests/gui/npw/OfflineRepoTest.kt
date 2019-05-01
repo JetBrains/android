@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.npw
 
 import com.android.tools.idea.flags.StudioFlags.NPW_OFFLINE_REPO_CHECKBOX
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.google.common.base.Charsets.UTF_8
-import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -47,7 +45,7 @@ class OfflineRepoTest {
   fun testOfflineRepoEnabled() {
     newProject(true)
 
-    val buildGradleText = Files.asCharSource(guiTest.getProjectPath("build.gradle"), UTF_8).read()
+    val buildGradleText = guiTest.getProjectFileText("build.gradle")
     assertThat(buildGradleText).contains("Properties properties = new Properties()")
     assertThat(buildGradleText).contains("""properties.getProperty("offline.repo").split(",").each { repo ->""")
   }
@@ -57,7 +55,7 @@ class OfflineRepoTest {
   fun testOfflineRepoDisabled() {
     newProject(false)
 
-    val buildGradleText = Files.asCharSource(guiTest.getProjectPath("build.gradle"), UTF_8).read()
+    val buildGradleText = guiTest.getProjectFileText("build.gradle")
     assertThat(buildGradleText).doesNotContain("Properties properties = new Properties()")
     assertThat(buildGradleText).doesNotContain("""properties.getProperty("offline.repo").split(",").each { repo ->""")
   }
