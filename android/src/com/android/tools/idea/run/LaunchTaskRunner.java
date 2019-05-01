@@ -99,8 +99,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     indicator.setIndeterminate(false);
     myStats.beginLaunchTasks();
 
-    LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
-    ConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
+    ProcessHandlerLaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
+    ProcessHandlerConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
     List<ListenableFuture<IDevice>> listenableDeviceFutures = myDeviceFutures.get();
     AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
                                     ? myDeviceFutures.getDevices().get(0).getVersion()
@@ -202,8 +202,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
 
       if (debugSessionTask != null) {
-        debugSessionTask
-          .perform(myLaunchInfo, device, (ProcessHandlerLaunchStatus)launchStatus, (ProcessHandlerConsolePrinter)consolePrinter);
+        debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
       }
       else { // we only need to inform the process handler in certain scenarios
         if (myProcessHandler instanceof AndroidProcessHandler) { // we aren't debugging (in which case its a DebugProcessHandler)
