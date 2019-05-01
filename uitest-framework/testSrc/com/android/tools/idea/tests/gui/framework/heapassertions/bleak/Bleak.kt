@@ -49,6 +49,7 @@ private fun Signature.isWhitelisted(): Boolean =
   anyTypeContains("org.fest.swing") ||
   entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields" ||
   entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
+  entry(-4) == "java.io.DeleteOnExitHook#files" ||
 
   // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
   entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
