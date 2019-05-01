@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.IdeInfo;
@@ -79,7 +79,7 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
 
   @VisibleForTesting
   void setUpInAndroidStudio(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    AndroidProject androidProject = androidModel.getAndroidProject();
+    IdeAndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
 
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);

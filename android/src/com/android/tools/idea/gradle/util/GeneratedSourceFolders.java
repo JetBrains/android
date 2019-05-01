@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -24,7 +24,7 @@ import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 public class GeneratedSourceFolders {
-  public boolean isFolderGeneratedInCorrectLocation(@NotNull File folderPath, @NotNull AndroidProject androidProject) {
+  public boolean isFolderGeneratedInCorrectLocation(@NotNull File folderPath, @NotNull IdeAndroidProject androidProject) {
     File generatedFolderPath = new File(androidProject.getBuildFolder(), FD_GENERATED);
     return isAncestor(generatedFolderPath, folderPath, false);
   }

@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
@@ -191,7 +195,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
   }
 
   @NotNull
-  private AndroidProject getAndroidProject() {
+  private IdeAndroidProject getAndroidProject() {
     return myAndroidModel.getAndroidProject();
   }
 }

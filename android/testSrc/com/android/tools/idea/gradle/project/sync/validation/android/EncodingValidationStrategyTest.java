@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
@@ -56,7 +58,8 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
 
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
-    when(androidModel.getAndroidProject()).thenReturn(androidProject);
+    when(androidModel.getAndroidProject())
+      .thenAnswer(invocation -> new IdeAndroidProjectImpl(androidProject, new IdeDependenciesFactory(), null));
 
     myStrategy.validate(mock(Module.class), androidModel);
 

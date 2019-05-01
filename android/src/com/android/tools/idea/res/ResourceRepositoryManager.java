@@ -18,9 +18,9 @@ package com.android.tools.idea.res;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
@@ -652,7 +652,7 @@ public final class ResourceRepositoryManager implements Disposable {
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
+        IdeAndroidProject androidProject = androidModel.getAndroidProject();
         Variant variant = androidModel.getSelectedVariant();
         return provider.get(androidProject, variant);
       }
