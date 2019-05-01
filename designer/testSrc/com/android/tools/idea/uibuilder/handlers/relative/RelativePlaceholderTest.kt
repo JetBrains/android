@@ -44,7 +44,7 @@ class RelativePlaceholderTest : SceneTest() {
     val top = relativeLayout.drawY + relativeLayout.drawHeight / 2
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10, SdkConstants.VIEW_TAG), p)
     assertTrue(snappedResult)
     assertEquals(left, p.x)
     assertEquals(top, p.y)
@@ -59,7 +59,7 @@ class RelativePlaceholderTest : SceneTest() {
     val top = relativeLayout.drawY - 20
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10, SdkConstants.VIEW_TAG), p)
     assertFalse(snappedResult)
     assertEquals(-1, p.x)
     assertEquals(-1, p.y)

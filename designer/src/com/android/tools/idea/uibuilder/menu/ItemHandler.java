@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -65,5 +67,10 @@ public final class ItemHandler extends MenuHandler {
       ATTR_VISIBLE,
       ATTR_ENABLED,
       ATTR_CHECKABLE);
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new ItemPlaceholder(component));
   }
 }

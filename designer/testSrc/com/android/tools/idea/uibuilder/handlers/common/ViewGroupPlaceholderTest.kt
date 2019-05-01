@@ -48,7 +48,7 @@ class ViewGroupPlaceholderTest : SceneTest() {
     val bottom = top + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), p)
 
     assertTrue(snappedResult)
     assertEquals(left, p.x)
@@ -67,7 +67,7 @@ class ViewGroupPlaceholderTest : SceneTest() {
     val bottom = top + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom, SdkConstants.VIEW_TAG), p)
 
     assertFalse(snappedResult)
     assertEquals(-1, p.x)
