@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.CheckAndroidModuleWithoutVariantsStep;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,11 +39,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link JavaModuleSetup}.
@@ -122,9 +125,8 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
     myModuleSetup.setUpModule(myContext, myJavaModel, false /* sync not skipped */);
-    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    register.seal();
-    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    SyncIssues.seal(myProject);
+    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }
 
   public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
@@ -132,8 +134,7 @@ public class JavaModuleSetupTest extends IdeaTestCase {
     when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
     myModuleSetup.setUpModule(myContext, myJavaModel, true /* sync skipped */);
-    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    register.seal();
-    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    SyncIssues.seal(myProject);
+    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }
 }

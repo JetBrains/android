@@ -29,8 +29,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -110,7 +109,7 @@ public abstract class GradleSyncTestCase extends GradleSyncIntegrationTestCase {
     String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
     assertThat(failure).contains("Sync issues found!");
 
-    Collection<SyncIssue> syncIssues = SyncIssueRegister.getInstance(getProject()).get().get(getModule("app"));
+    Collection<SyncIssue> syncIssues = SyncIssues.forModule(getModule("app"));
     assertThat(syncIssues).hasSize(2);
     SyncIssue syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);

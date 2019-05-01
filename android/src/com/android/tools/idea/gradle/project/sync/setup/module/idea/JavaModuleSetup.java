@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,8 +39,7 @@ public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleMo
   @Override
   protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable JavaModuleModel model, boolean syncSkipped) {
     if (model != null) {
-      SyncIssueRegister syncIssueRegister = SyncIssueRegister.getInstance(context.getModule().getProject());
-      syncIssueRegister.register(context.getModule(), model.getSyncIssues());
+      SyncIssues.registerSyncIssues(context.getModule(), model.getSyncIssues());
     }
   }
 }

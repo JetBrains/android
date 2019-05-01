@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.*;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.google.common.annotations.VisibleForTesting;
@@ -40,8 +40,7 @@ public class AndroidModuleSetup extends BaseSetup<AndroidModuleSetupStep, Androi
   protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel model, boolean syncSkipped) {
     // Before we run any of the setup code, register the modules sync issues so they can be reported.
     if (model != null) {
-      SyncIssueRegister syncIssueRegister = SyncIssueRegister.getInstance(context.getModule().getProject());
-      syncIssueRegister.register(context.getModule(), model.getAndroidProject().getSyncIssues());
+      SyncIssues.registerSyncIssues(context.getModule(), model.getAndroidProject().getSyncIssues());
     }
   }
 
