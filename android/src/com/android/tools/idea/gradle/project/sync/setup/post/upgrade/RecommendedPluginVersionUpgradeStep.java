@@ -104,8 +104,7 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
 
       if (userAcceptsUpgrade) {
         GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-        UpdateResult result = updater.updatePluginVersionAndSync(recommended, latestGradleVersion,
-                                                                 false /* do not invalidate last sync if update fails */);
+        UpdateResult result = updater.updatePluginVersionAndSync(recommended, latestGradleVersion);
         if (result.versionUpdateSuccess()) {
           // plugin version updated and a project sync was requested. No need to continue.
           return true;

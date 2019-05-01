@@ -67,7 +67,7 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
   @Override
   public void execute(@NotNull Project project) {
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-    updater.updatePluginVersionAndSync(myPluginVersion, myGradleVersion, false);
+    updater.updatePluginVersionAndSync(myPluginVersion, myGradleVersion);
   }
 
   @VisibleForTesting

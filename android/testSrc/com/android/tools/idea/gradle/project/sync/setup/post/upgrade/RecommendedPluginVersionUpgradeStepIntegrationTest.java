@@ -28,7 +28,6 @@ import org.mockito.Mock;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -85,7 +84,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     verifyPluginVersionWasNotUpdated();
   }
 
-  public void testCheckAndPerformUpgradeWhenCurrentVersionIsGreaterRecommended() {
+  public void testPerformUpgradeWhenCurrentVersionIsGreaterRecommended() {
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
@@ -99,7 +98,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     verifyPluginVersionWasNotUpdated();
   }
 
-  public void testCheckAndPerformUpgradeWhenCurrentVersionIsPreviewAndRecommendedIsSnapshot() {
+  public void testPerformUpgradeWhenCurrentIsPreviewRecommendedIsSnapshot() {
     simulateUpgradeReminderIsDue();
 
     // Current version is a preview
@@ -120,7 +119,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     verify(myUpgradeDialog, never()).showAndGet();
   }
 
-  public void testCheckAndPerformUpgradeWhenUserDeclinesUpgrade() {
+  public void testPerformUpgradeWhenUserDeclinesUpgrade() {
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
@@ -137,7 +136,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
   }
 
   private void verifyPluginVersionWasNotUpdated() {
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(any(), any(), anyBoolean());
+    verify(myVersionUpdater, never()).updatePluginVersionAndSync(any(), any());
   }
 
   public void testCheckAndPerformUpgradeWhenVersionUpdateFails() {
@@ -198,6 +197,6 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     UpdateResult result = mock(UpdateResult.class);
     when(result.versionUpdateSuccess()).thenReturn(success);
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), anyBoolean());
+    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion));
   }
 }
