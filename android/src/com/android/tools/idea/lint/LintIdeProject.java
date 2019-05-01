@@ -16,7 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.JavaLibrary;
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -759,7 +763,7 @@ public class LintIdeProject extends Project {
     @Override
     protected boolean includeTests() {
       if (isGradleProject()) {
-        AndroidProject model = getGradleProjectModel();
+        IdeAndroidProject model = getGradleProjectModel();
         if (model != null) {
           GradleVersion version = getGradleModelVersion();
           if (version != null && version.isAtLeast(2, 4, 0, "alpha", 4, true)) {
@@ -997,7 +1001,7 @@ public class LintIdeProject extends Project {
 
     @Nullable
     @Override
-    public AndroidProject getGradleProjectModel() {
+    public IdeAndroidProject getGradleProjectModel() {
       // TODO: b/22928250
       AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel != null) {
@@ -1233,7 +1237,7 @@ public class LintIdeProject extends Project {
 
     @Nullable
     @Override
-    public AndroidProject getGradleProjectModel() {
+    public IdeAndroidProject getGradleProjectModel() {
       return null;
     }
 
