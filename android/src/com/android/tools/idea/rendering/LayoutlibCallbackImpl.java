@@ -43,6 +43,7 @@ import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCL
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
@@ -90,7 +91,6 @@ import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -299,7 +299,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   @Override
   @Nullable
-  @SuppressWarnings("unchecked")
   public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws ClassNotFoundException {
     myUsed = true;
@@ -327,14 +326,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @return The package namespace of the project or null in case of error.
    */
-  @NotNull
   @Override
+  @NotNull
   public String getNamespace() {
     return myNamespace;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public ResourceReference resolveResourceId(int id) {
     return myIdManager.findById(id);
   }
@@ -586,7 +585,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       String layoutName = Lint.getLayoutName(file);
       layoutToFile.put(layoutName, file);
       try {
-        String xml = Files.toString(file, Charsets.UTF_8);
+        String xml = Files.toString(file, UTF_8);
         Document document = XmlUtils.parseDocumentSilently(xml, true);
         if (document != null) {
           NodeList includeNodeList = document.getElementsByTagName(VIEW_INCLUDE);
@@ -784,8 +783,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return false;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public AdapterBinding getAdapterBinding(final ResourceReference adapterView, final Object adapterCookie, final Object viewObject) {
     // Look for user-recorded preference for layout to be used for previews
     if (adapterCookie instanceof TagSnapshot) {
@@ -939,6 +938,21 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return myNamespacing == AaptOptions.Namespacing.REQUIRED;
   }
 
+  @Override
+  public void error(@NotNull String message, @NotNull String... details) {
+    LOG.error(message, details);
+  }
+
+  @Override
+  public void error(@NotNull String message, @Nullable Throwable t) {
+    LOG.error(message, t);
+  }
+
+  @Override
+  public void error(@NotNull Throwable t) {
+    LOG.error(t);
+  }
+
   private static class NamedXmlParser extends KXmlParser {
     @Nullable
     private final String myName;
@@ -948,7 +962,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
      */
     private boolean hasToolsNamespace;
 
-    public NamedXmlParser(@Nullable String name) {
+    NamedXmlParser(@Nullable String name) {
       myName = name;
       try {
         setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
@@ -1000,7 +1014,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
      */
     private boolean hasToolsNamespace;
 
-    public NamedProtoXmlParser(@Nullable String name) {
+    NamedProtoXmlParser(@Nullable String name) {
       myName = name;
       try {
         setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
