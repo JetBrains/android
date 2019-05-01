@@ -18,6 +18,8 @@ package com.android.tools.idea.common.surface
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.model.DnDTransferItem
+import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
@@ -29,10 +31,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
-import java.awt.Graphics2D
 import java.awt.Rectangle
-import java.awt.Shape
-import java.awt.image.BufferedImage
 import java.util.function.Consumer
 import javax.swing.JComponent
 
@@ -106,6 +105,9 @@ class DesignSurfaceTest : LayoutTestCase() {
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable) : DesignSurface(project, SelectionModel(), disposible) {
+  override fun getSelectionAsTransferable(): ItemTransferable {
+    return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
+  }
 
   private var factor: Float = 1f
 
