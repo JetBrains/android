@@ -15,33 +15,97 @@
  */
 package com.android.tools.idea.startup
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.AppPropertiesComponentImpl
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.lang.xml.XMLLanguage
+import com.intellij.psi.codeStyle.CodeStyleScheme
 import com.intellij.psi.codeStyle.CodeStyleSchemes
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.psi.codeStyle.CodeStyleSettings
+import com.intellij.psi.codeStyle.arrangement.ArrangementSettings
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mockito
 
 private const val DEFAULT_RIGHT_MARGIN = 100
 private const val CUSTOM_RIGHT_MARGIN = 90
 
-class AndroidCodeStyleSettingsTest : AndroidTestCase() {
-  fun testInitializeDefaults() {
-    val propertiesComponent = PropertiesComponent.getInstance()
-    val schemes = CodeStyleSchemes.getInstance()
-    val defaultScheme = schemes.defaultScheme
+@RunWith(JUnit4::class)
+class AndroidCodeStyleSettingsTest {
+  @Rule
+  @JvmField
+  val myRule = AndroidProjectRule.inMemory()
+
+  private lateinit var mySchemes: CodeStyleSchemes
+  private lateinit var myScheme: CodeStyleScheme
+  private lateinit var myProperties: PropertiesComponent
+
+  @Before
+  fun mockSchemes() {
+    mySchemes = Mockito.mock(CodeStyleSchemes::class.java)
+  }
+
+  @Before
+  fun mockScheme() {
+    myScheme = Mockito.mock(CodeStyleScheme::class.java)
+    Mockito.`when`(myScheme.codeStyleSettings).thenReturn(CodeStyleSettings())
+  }
+
+  @Before
+  fun initProperties() {
+    myProperties = AppPropertiesComponentImpl()
+  }
+
+  @Test
+  fun initializeDefaults() {
+    Mockito.`when`(mySchemes.defaultScheme).thenReturn(myScheme)
+
+    val defaultScheme = mySchemes.defaultScheme
     val defaultSettings = defaultScheme.codeStyleSettings
 
-    propertiesComponent.setValue(AndroidCodeStyleSettings.CONFIG_V1, false)
-    AndroidCodeStyleSettings.initializeDefaults(propertiesComponent)
+    myProperties.setValue(AndroidCodeStyleSettings.CONFIG_V1, false)
+    AndroidCodeStyleSettings.initializeDefaults(mySchemes, myProperties)
     assertThat(defaultSettings.defaultRightMargin).isEqualTo(DEFAULT_RIGHT_MARGIN)
 
     defaultSettings.defaultRightMargin = CUSTOM_RIGHT_MARGIN
     assertThat(defaultSettings.defaultRightMargin).isEqualTo(CUSTOM_RIGHT_MARGIN)
 
-    AndroidCodeStyleSettings.initializeDefaults(propertiesComponent)
+    AndroidCodeStyleSettings.initializeDefaults(mySchemes, myProperties)
     assertThat(defaultScheme.codeStyleSettings.defaultRightMargin).isEqualTo(CUSTOM_RIGHT_MARGIN)
 
-    propertiesComponent.setValue(AndroidCodeStyleSettings.CONFIG_V1, false)
-    AndroidCodeStyleSettings.initializeDefaults(propertiesComponent)
+    myProperties.setValue(AndroidCodeStyleSettings.CONFIG_V1, false)
+    AndroidCodeStyleSettings.initializeDefaults(mySchemes, myProperties)
     assertThat(defaultSettings.defaultRightMargin).isEqualTo(DEFAULT_RIGHT_MARGIN)
   }
+
+  @Test
+  fun setArrangementSettingsToVersion3() {
+    // Arrange
+    Mockito.`when`(mySchemes.currentScheme).thenReturn(myScheme)
+
+    // Act
+    AndroidCodeStyleSettings.setArrangementSettingsToVersion3(mySchemes, myProperties)
+
+    // Assert
+    val settings = getArrangementSettings(mySchemes)
+    assertThat(settings).isEqualTo(AndroidXmlPredefinedCodeStyle.createVersion3Settings())
+
+    // Act
+    // An arbitrary change to the arrangement settings
+    settings?.sections?.removeAt(6)
+
+    AndroidCodeStyleSettings.setArrangementSettingsToVersion3(mySchemes, myProperties)
+
+    // Assert
+    assertThat(getArrangementSettings(mySchemes)).isEqualTo(settings)
+  }
+}
+
+private fun getArrangementSettings(schemes: CodeStyleSchemes): ArrangementSettings? {
+  return schemes.currentScheme.codeStyleSettings.getCommonSettings(XMLLanguage.INSTANCE).arrangementSettings
 }
