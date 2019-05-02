@@ -23,6 +23,7 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.proguard.psi.ProguardTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -40,23 +41,11 @@ public class ProguardParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, null);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == COMMENT) {
-      r = comment(b, 0);
-    }
-    else if (t == FLAG) {
-      r = flag(b, 0);
-    }
-    else if (t == JAVA_SECTION) {
-      r = javaSection(b, 0);
-    }
-    else if (t == MULTI_LINE_FLAG) {
-      r = multiLineFlag(b, 0);
-    }
-    else if (t == SINGLE_LINE_FLAG) {
-      r = singleLineFlag(b, 0);
+    if (t instanceof IFileElementType) {
+      r = parse_root_(t, b, 0);
     }
     else {
-      r = parse_root_(t, b, 0);
+      r = false;
     }
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
@@ -78,24 +67,25 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // multiLineFlag | singleLineFlag comment?
-  public static boolean flag(PsiBuilder b, int l) {
+  // multiLineFlag | includeFlag comment? | singleLineFlag comment?
+  static boolean flag(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "flag")) return false;
-    if (!nextTokenIs(b, FLAG_NAME)) return false;
+    if (!nextTokenIs(b, "", FLAG_NAME, INCLUDE_FLAG_NAME)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = multiLineFlag(b, l + 1);
     if (!r) r = flag_1(b, l + 1);
-    exit_section_(b, m, FLAG, r);
+    if (!r) r = flag_2(b, l + 1);
+    exit_section_(b, m, null, r);
     return r;
   }
 
-  // singleLineFlag comment?
+  // includeFlag comment?
   private static boolean flag_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "flag_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = singleLineFlag(b, l + 1);
+    r = includeFlag(b, l + 1);
     r = r && flag_1_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -106,6 +96,36 @@ public class ProguardParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "flag_1_1")) return false;
     comment(b, l + 1);
     return true;
+  }
+
+  // singleLineFlag comment?
+  private static boolean flag_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "flag_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = singleLineFlag(b, l + 1);
+    r = r && flag_2_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // comment?
+  private static boolean flag_2_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "flag_2_1")) return false;
+    comment(b, l + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // INCLUDE_FLAG_NAME INCLUDE_FLAG_ARG
+  public static boolean includeFlag(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "includeFlag")) return false;
+    if (!nextTokenIs(b, INCLUDE_FLAG_NAME)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, INCLUDE_FLAG_NAME, INCLUDE_FLAG_ARG);
+    exit_section_(b, m, INCLUDE_FLAG, r);
+    return r;
   }
 
   /* ********************************************************** */
