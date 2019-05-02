@@ -63,7 +63,6 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.pom.Navigatable
-import com.intellij.util.PsiNavigateUtil
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -405,12 +404,6 @@ fun NlComponent.createChild(tagName: String,
   val tag = backend.tag ?: return null
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
   return model.createComponent(surface, childTag, this, before, insertType)
-}
-
-fun NlComponent.navigateTo(): Boolean {
-  val element = backend.tag ?: return false
-  PsiNavigateUtil.navigate(element)
-  return true
 }
 
 /**
