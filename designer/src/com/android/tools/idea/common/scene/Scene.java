@@ -53,6 +53,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -91,6 +92,9 @@ public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
   private static final int DRAG_THRESHOLD = JBUI.scale(10);
+  private static final String PREFERENCE_KEY_PREFIX = "ScenePreference";
+  private static final String SHOW_TOOLTIP_KEY = PREFERENCE_KEY_PREFIX + "ShowToolTip";
+  private static Boolean SHOW_TOOLTIP_VALUE = null;
 
   private final DesignSurface myDesignSurface;
   private final SceneManager mySceneManager;
@@ -164,6 +168,21 @@ public class Scene implements SelectionListener, Disposable {
     myIsLiveRenderingEnabled = renderSettings.getUseLiveRendering();
 
     Disposer.register(sceneManager, this);
+  }
+
+  public static void setTooltipVisibility(boolean visible) {
+    SHOW_TOOLTIP_VALUE = visible;
+    PropertiesComponent.getInstance().setValue(SHOW_TOOLTIP_KEY, visible);
+  }
+
+  public static boolean getTooltipVisibility() {
+    if (SHOW_TOOLTIP_VALUE != null) {
+      return SHOW_TOOLTIP_VALUE;
+    }
+
+    // Here we assume that setValue is controlled by this class only.
+    SHOW_TOOLTIP_VALUE = PropertiesComponent.getInstance().getBoolean(SHOW_TOOLTIP_KEY, false);
+    return SHOW_TOOLTIP_VALUE;
   }
 
   @Override
@@ -568,7 +587,10 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
 
-    transform.setToolTip(tooltip);
+    if (getTooltipVisibility()) {
+      transform.setToolTip(tooltip);
+    }
+
     setCursor(transform, x, y);
   }
 
