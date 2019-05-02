@@ -1187,37 +1187,6 @@ class NavSceneTest : NavTestCase() {
     )
   }
 
-  fun testTooltips() {
-    val model = model("nav.xml") {
-      navigation {
-        action("global", destination = "fragment1")
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-          action("self", destination = "fragment1")
-          action("exit", destination = "foo")
-        }
-        fragment("fragment2")
-      }
-    }
-
-    val surface = model.surface
-    val scene = surface.scene!!
-    moveComponentTo(scene.getSceneComponent("fragment1")!!, 100, 20)
-    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
-    scene.layout(0, SceneContext.get())
-
-    val context = spy(SceneContext.get(model.surface.currentSceneView))
-
-    scene.mouseHover(context, 360, 148)
-    verify(context).setToolTip("a1")
-    scene.mouseHover(context, 282, 282)
-    verify(context).setToolTip("self")
-    scene.mouseHover(context, 83, 148)
-    verify(context).setToolTip("global")
-    scene.mouseHover(context, 261, 125)
-    verify(context).setToolTip("exit")
-  }
-
   /**
    * Reposition a component. If we just set the position directly children't aren't updated.
    */
