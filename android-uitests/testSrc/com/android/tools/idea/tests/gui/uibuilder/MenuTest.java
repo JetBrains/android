@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JListFixture;
@@ -34,7 +33,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.awt.*;
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,7 +61,6 @@ public final class MenuTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  private Path myMenuMainXmlAbsolutePath;
   private Path myIcSearchBlack24dpXmlAbsolutePath;
 
   private EditorFixture myEditor;
@@ -73,18 +70,16 @@ public final class MenuTest {
     WizardUtils.createNewProject(myGuiTest, "Basic Activity");
 
     Path path = myGuiTest.getProjectPath().toPath();
-    myMenuMainXmlAbsolutePath = path.resolve(MENU_MAIN_XML_RELATIVE_PATH);
     myIcSearchBlack24dpXmlAbsolutePath = path.resolve(IC_SEARCH_BLACK_24DP_XML_RELATIVE_PATH);
 
     myEditor = myGuiTest.ideFrame().getEditor();
   }
 
   @Test
-  public void dragCastButtonIntoActionBar() throws IOException {
-    GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
-
+  public void dragCastButtonIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
-      .getLayoutEditor(false)
+      .replaceText(MENU_MAIN_XML_CONTENTS)
+      .getLayoutEditor(true)
       .waitForRenderToFinish()
       .findView("item", 0);
     dragAndDrop("Cast Button", settingsItem.getLeftCenterPoint());
@@ -141,11 +136,10 @@ public final class MenuTest {
   }
 
   @Test
-  public void dragSearchItemIntoActionBar() throws IOException {
-    GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
-
+  public void dragSearchItemIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
-      .getLayoutEditor(false)
+      .replaceText(MENU_MAIN_XML_CONTENTS)
+      .getLayoutEditor(true)
       .waitForRenderToFinish()
       .findView("item", 0);
     dragAndDrop("Search Item", settingsItem.getLeftCenterPoint());
