@@ -83,6 +83,8 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = ConstraintItemRenderer()
 
+    warningPanel.border = JBUI.Borders.empty(0, 4)
+
     list.addListSelectionListener(object: ListSelectionListener {
       override fun valueChanged(e: ListSelectionEvent) {
         val index = list.selectedIndex
@@ -168,12 +170,12 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
   override fun getPreferredSize(): Dimension {
     val titleSize = sectionTitle.preferredSize
     if (!expanded) {
-      return JBDimension(PREFERRED_WIDTH, titleSize.height)
+      return Dimension(titleSize)
     }
     else {
-      val listHeight = list.preferredSize.height
-      val warningTextHeight = warningPanel.preferredSize.height
-      return JBDimension(PREFERRED_WIDTH, titleSize.height + listHeight + warningTextHeight)
+      val listSize = list.preferredSize
+      val warningSize = warningPanel.preferredSize
+      return Dimension(maxOf(titleSize.width, listSize.width, warningSize.width), titleSize.height + listSize.height + warningSize.height)
     }
   }
 
@@ -327,18 +329,21 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
       horizontalWarning.text = "Not Horizontally Constrained"
       horizontalWarning.border = JBUI.Borders.empty(2)
       horizontalWarning.foreground = ERROR_TEXT_COLOR
+      horizontalWarning.preferredSize = JBDimension(PREFERRED_WIDTH, COMPONENT_HEIGHT)
       horizontalWarning.addMouseListener(mouseListener)
 
       verticalWarning.icon = StudioIcons.Common.ERROR_INLINE
       verticalWarning.text = "Not Vertically Constrained"
       verticalWarning.border = JBUI.Borders.empty(2)
       verticalWarning.foreground = ERROR_TEXT_COLOR
+      verticalWarning.preferredSize = JBDimension(PREFERRED_WIDTH, COMPONENT_HEIGHT)
       verticalWarning.addMouseListener(mouseListener)
 
       overConstrainedWarning.icon = StudioIcons.Common.ERROR_INLINE
       overConstrainedWarning.text = "Over Constrained"
       overConstrainedWarning.border = JBUI.Borders.empty(2)
       overConstrainedWarning.foreground = ERROR_TEXT_COLOR
+      overConstrainedWarning.preferredSize = JBDimension(PREFERRED_WIDTH, COMPONENT_HEIGHT)
       overConstrainedWarning.addMouseListener(mouseListener)
 
       add(horizontalWarning, BorderLayout.NORTH)
@@ -355,11 +360,17 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
     }
 
     override fun getPreferredSize(): Dimension {
-      val horizontal = if (horizontalWarning.isVisible) horizontalWarning.preferredSize.height else 0
-      val vertical = if (verticalWarning.isVisible) verticalWarning.preferredSize.height else 0
-      val over = if (overConstrainedWarning.isVisible) overConstrainedWarning.preferredSize.height else 0
-
-      return JBDimension(PREFERRED_WIDTH, horizontal + vertical + over)
+      var itemCount = 0
+      if (horizontalWarning.isVisible) {
+        itemCount++
+      }
+      if (verticalWarning.isVisible) {
+        itemCount++
+      }
+      if (overConstrainedWarning.isVisible) {
+        itemCount++
+      }
+      return JBDimension(PREFERRED_WIDTH, itemCount * COMPONENT_HEIGHT)
     }
   }
 }
