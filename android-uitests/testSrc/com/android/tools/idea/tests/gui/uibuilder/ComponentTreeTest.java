@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -47,21 +46,19 @@ public final class ComponentTreeTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   @Test
-  public void testDropThatOpensDialog() throws IOException {
+  public void testDropThatOpensDialog() {
     WizardUtils.createNewProject(myGuiTest);
     Path activityMainXmlRelativePath = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
-    GuiTestFileUtils.writeAndReloadDocument(
-      myGuiTest.getProjectPath().toPath().resolve(activityMainXmlRelativePath),
-
-      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    android:layout_width=\"match_parent\"\n" +
-      "    android:layout_height=\"match_parent\">\n" +
-      "\n" +
-      "</android.support.constraint.ConstraintLayout>\n");
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    editor.open(activityMainXmlRelativePath);
+    EditorFixture editor = myGuiTest.ideFrame().getEditor()
+      .open(activityMainXmlRelativePath)
+      .replaceText(
+        "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    android:layout_width=\"match_parent\"\n" +
+        "    android:layout_height=\"match_parent\">\n" +
+        "\n" +
+        "</android.support.constraint.ConstraintLayout>\n")
+      .selectEditorTab(Tab.DESIGN);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
