@@ -37,6 +37,7 @@ class _ProguardLexer implements FlexLexer {
   public static final int YYINITIAL = 0;
   public static final int STATE_JAVA_SECTION = 2;
   public static final int STATE_FLAG_ARG = 4;
+  public static final int STATE_INCLUDE_FLAG_ARG = 6;
 
   /**
    * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l
@@ -45,7 +46,7 @@ class _ProguardLexer implements FlexLexer {
    * l is of the form l = 2*k, k a non negative integer
    */
   private static final int ZZ_LEXSTATE[] = { 
-     0,  0,  1,  1,  2, 2
+     0,  0,  1,  1,  2,  2,  3, 3
   };
 
   /** 
@@ -67,8 +68,9 @@ class _ProguardLexer implements FlexLexer {
 
   /* The ZZ_CMAP_A table has 256 entries */
   static final char ZZ_CMAP_A[] = zzUnpackCMap(
-    "\11\0\1\3\1\2\1\0\1\3\1\2\22\0\1\1\2\0\1\10\11\0\1\5\2\0\12\6\1\0\1\12\4\0"+
-    "\1\4\32\6\4\0\1\6\1\0\32\6\1\7\1\0\1\11\202\0");
+    "\11\0\1\3\1\2\1\0\1\3\1\2\22\0\1\1\1\0\1\16\1\22\3\0\1\17\2\15\3\0\1\5\2\0"+
+    "\12\20\1\0\1\24\4\0\1\4\32\20\1\15\1\0\1\15\1\0\1\20\1\0\2\20\1\10\1\13\1"+
+    "\14\3\20\1\6\2\20\1\11\1\20\1\7\6\20\1\12\5\20\1\21\1\0\1\23\202\0");
 
   /** 
    * Translates DFA states to action switch labels.
@@ -76,12 +78,13 @@ class _ProguardLexer implements FlexLexer {
   private static final int [] ZZ_ACTION = zzUnpackAction();
 
   private static final String ZZ_ACTION_PACKED_0 =
-    "\3\0\1\1\1\2\1\3\1\2\1\4\1\1\1\5"+
+    "\4\0\1\1\1\2\1\3\1\2\1\4\1\1\1\5"+
     "\1\1\2\2\1\6\1\7\1\2\1\10\1\7\1\11"+
-    "\1\4\1\0\1\12";
+    "\2\12\2\1\2\13\1\0\1\14\2\0\1\13\1\12"+
+    "\4\13\1\4";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[22];
+    int [] result = new int[37];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -106,12 +109,14 @@ class _ProguardLexer implements FlexLexer {
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
   private static final String ZZ_ROWMAP_PACKED_0 =
-    "\0\0\0\13\0\26\0\41\0\54\0\67\0\102\0\41"+
-    "\0\115\0\130\0\143\0\156\0\171\0\41\0\204\0\217"+
-    "\0\232\0\245\0\41\0\115\0\143\0\143";
+    "\0\0\0\25\0\52\0\77\0\124\0\151\0\176\0\223"+
+    "\0\124\0\250\0\275\0\322\0\347\0\374\0\124\0\u0111"+
+    "\0\u0126\0\u013b\0\u0150\0\124\0\u0165\0\u017a\0\u018f\0\u01a4"+
+    "\0\u01b9\0\u01ce\0\322\0\322\0\u01e3\0\u01f8\0\u020d\0\124"+
+    "\0\u0222\0\u0237\0\u024c\0\u0261\0\u01ce";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[22];
+    int [] result = new int[37];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -134,19 +139,31 @@ class _ProguardLexer implements FlexLexer {
   private static final int [] ZZ_TRANS = zzUnpackTrans();
 
   private static final String ZZ_TRANS_PACKED_0 =
-    "\1\4\1\5\1\6\1\7\1\10\1\11\2\4\1\12"+
-    "\2\4\1\13\1\14\1\6\1\15\4\13\1\12\1\16"+
-    "\1\13\1\17\1\20\1\21\1\22\3\17\1\23\1\12"+
-    "\2\17\14\0\1\5\1\6\1\7\11\0\1\6\11\0"+
-    "\1\7\1\0\1\7\15\0\1\24\4\0\2\12\1\0"+
-    "\10\12\2\25\1\0\5\25\2\0\1\26\1\25\1\14"+
-    "\1\6\1\15\4\25\2\0\1\26\1\25\1\15\1\0"+
-    "\1\15\4\25\2\0\1\26\1\17\2\0\4\17\2\0"+
-    "\2\17\1\0\1\20\1\21\1\7\11\0\1\21\10\0"+
-    "\1\17\1\7\1\0\1\22\3\17\2\0\2\17";
+    "\1\5\1\6\1\7\1\10\1\11\1\12\14\5\1\13"+
+    "\2\5\1\14\1\15\1\7\1\16\16\14\1\13\1\17"+
+    "\1\14\1\20\1\21\1\22\1\23\15\20\1\24\1\13"+
+    "\2\20\1\25\1\21\1\22\1\26\11\25\1\5\1\27"+
+    "\1\30\1\25\1\5\1\13\1\5\1\25\26\0\1\6"+
+    "\1\7\1\10\23\0\1\7\23\0\1\10\1\0\1\10"+
+    "\27\0\1\31\6\32\3\0\1\32\4\0\2\13\1\0"+
+    "\22\13\2\33\1\0\17\33\2\0\1\34\1\33\1\15"+
+    "\1\7\1\16\16\33\2\0\1\34\1\33\1\16\1\0"+
+    "\1\16\16\33\2\0\1\34\1\20\2\0\16\20\2\0"+
+    "\2\20\1\0\1\21\1\22\1\10\23\0\1\22\22\0"+
+    "\1\20\1\10\1\0\1\23\15\20\2\0\2\20\1\25"+
+    "\2\0\12\25\3\0\1\25\3\0\2\25\1\10\1\0"+
+    "\1\26\11\25\3\0\1\25\3\0\1\25\2\35\1\0"+
+    "\13\35\1\0\6\35\2\36\1\0\14\36\1\0\5\36"+
+    "\6\0\1\32\1\37\5\32\3\0\1\32\12\0\7\32"+
+    "\3\0\1\32\4\0\2\35\1\0\13\35\1\40\6\35"+
+    "\2\36\1\0\14\36\1\40\5\36\6\0\2\32\1\41"+
+    "\4\32\3\0\1\32\12\0\3\32\1\42\3\32\3\0"+
+    "\1\32\12\0\4\32\1\43\2\32\3\0\1\32\12\0"+
+    "\5\32\1\44\1\32\3\0\1\32\12\0\6\32\1\45"+
+    "\3\0\1\32\4\0";
 
   private static int [] zzUnpackTrans() {
-    int [] result = new int[176];
+    int [] result = new int[630];
     int offset = 0;
     offset = zzUnpackTrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -184,11 +201,11 @@ class _ProguardLexer implements FlexLexer {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\3\0\1\11\3\1\1\11\5\1\1\11\4\1\1\11"+
-    "\1\1\1\0\1\1";
+    "\4\0\1\11\3\1\1\11\5\1\1\11\4\1\1\11"+
+    "\6\1\1\0\1\1\2\0\1\1\1\11\5\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[22];
+    int [] result = new int[37];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -492,52 +509,62 @@ class _ProguardLexer implements FlexLexer {
             { return TokenType.BAD_CHARACTER;
             } 
             // fall through
-          case 11: break;
+          case 13: break;
           case 2: 
             { return TokenType.WHITE_SPACE;
             } 
             // fall through
-          case 12: break;
+          case 14: break;
           case 3: 
             { return ProguardTypes.CRLF;
             } 
             // fall through
-          case 13: break;
+          case 15: break;
           case 4: 
-            { yybegin(STATE_FLAG_ARG); return ProguardTypes.FLAG_NAME;
+            { yybegin(STATE_INCLUDE_FLAG_ARG); return ProguardTypes.INCLUDE_FLAG_NAME;
             } 
             // fall through
-          case 14: break;
+          case 16: break;
           case 5: 
             { return ProguardTypes.LINE_CMT;
             } 
             // fall through
-          case 15: break;
+          case 17: break;
           case 6: 
             { yybegin(YYINITIAL); return ProguardTypes.CLOSE_BRACE;
             } 
             // fall through
-          case 16: break;
+          case 18: break;
           case 7: 
             { return ProguardTypes.FLAG_ARG;
             } 
             // fall through
-          case 17: break;
+          case 19: break;
           case 8: 
             { yybegin(YYINITIAL); return ProguardTypes.CRLF;
             } 
             // fall through
-          case 18: break;
+          case 20: break;
           case 9: 
             { yybegin(STATE_JAVA_SECTION); return ProguardTypes.OPEN_BRACE;
             } 
             // fall through
-          case 19: break;
+          case 21: break;
           case 10: 
+            { return ProguardTypes.INCLUDE_FLAG_ARG;
+            } 
+            // fall through
+          case 22: break;
+          case 11: 
+            { yybegin(STATE_FLAG_ARG); return ProguardTypes.FLAG_NAME;
+            } 
+            // fall through
+          case 23: break;
+          case 12: 
             { return ProguardTypes.JAVA_DECL;
             } 
             // fall through
-          case 20: break;
+          case 24: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }
