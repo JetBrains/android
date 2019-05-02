@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
 
@@ -92,14 +91,8 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Nullable
-  @Override
-  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    ViewGroup viewGroup = getViewGroupFromComponent(component);
-    if (viewGroup == null) {
-      return null;
-    }
-
-    int maxScrollableHeight = getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
+  public static ScrollHandler createScrollHandler(@NotNull ViewGroup viewGroup) {
+    int maxScrollableHeight = ScrollViewScrollHandler.getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll
@@ -107,6 +100,16 @@ public class ScrollViewHandler extends ViewGroupHandler {
     }
 
     return null;
+  }
+
+  @Nullable
+  @Override
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    ViewGroup viewGroup = getViewGroupFromComponent(component);
+    if (viewGroup == null) {
+      return null;
+    }
+    return createScrollHandler(viewGroup);
   }
 
   /**
@@ -121,30 +124,6 @@ public class ScrollViewHandler extends ViewGroupHandler {
       return (ViewGroup)viewObject;
     }
     return null;
-  }
-
-  /**
-   * Returns the maximum distance that the passed view group could scroll
-   *
-   * @param measureGroup    {@link Function} used to measure the passed viewGroup (for example {@link ViewGroup#getHeight()})
-   * @param measureChildren {@link Function} used to measure the children of the viewGroup (for example {@link View#getMeasuredHeight()})
-   */
-  static int getMaxScrollable(@NotNull ViewGroup viewGroup,
-                              @NotNull Function<ViewGroup, Integer> measureGroup,
-                              @NotNull Function<View, Integer> measureChildren) {
-    int maxScrollable = 0;
-    for (int i = 0; i < viewGroup.getChildCount(); i++) {
-      maxScrollable += measureChildren.apply(viewGroup.getChildAt(i));
-    }
-
-    // Subtract the viewport height from the scrollable size
-    maxScrollable -= measureGroup.apply(viewGroup);
-
-    if (maxScrollable < 0) {
-      maxScrollable = 0;
-    }
-
-    return maxScrollable;
   }
 
   @Override
