@@ -110,11 +110,16 @@ public class MarginPopup extends JPanel {
       if (myListener != null) {
         myListener.actionPerformed(e);
       }
-      if (myPopup != null) {
-        myPopup.cancel();
-      }
+      cancel();
     }
   };
+
+  public void cancel() {
+    if (myPopup != null) {
+      myPopup.cancel();
+    }
+    myPopup = null;
+  }
 
   public void updateText() {
     myTextField.setText(String.valueOf(myValue.getValue()));
@@ -224,6 +229,7 @@ public class MarginPopup extends JPanel {
       JButton b = new JButton("" + myDefaultValues[i]);
       b.setMargin(margin);
       b.addActionListener(myDefaultListener);
+      b.setBackground(JBColor.background());
       gc.gridx = i;
       gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
       gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
@@ -234,6 +240,7 @@ public class MarginPopup extends JPanel {
     for (int i = 0; i < myHistoryButtons.length; i++) {
       myHistoryButtons[i] = new JButton("XXX");
       myHistoryButtons[i].setMargin(margin);
+      myHistoryButtons[i].setBackground(JBColor.background());
       if (myHistoryValues[i] > 0) {
         myHistoryButtons[i].setText(Integer.toString(myHistoryValues[i]));
       }
