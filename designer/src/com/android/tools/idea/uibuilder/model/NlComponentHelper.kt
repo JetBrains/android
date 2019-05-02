@@ -413,10 +413,6 @@ fun NlComponent.navigateTo(): Boolean {
   return true
 }
 
-fun NlComponent.clearAttributes() {
-  viewGroupHandler?.clearAttributes(this)
-}
-
 /**
  * Temporary API to help remoe XmlTag dependencies. One navigate functionality to support both needs later.
  * Warp to the text editor and show the corresponding XML for the clicked widget.
