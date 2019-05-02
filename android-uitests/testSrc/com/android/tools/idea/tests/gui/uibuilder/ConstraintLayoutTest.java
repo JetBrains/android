@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -130,7 +129,7 @@ public class ConstraintLayoutTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor.waitForRenderToFinish();
     layoutEditor.findView("TextView", 0).click();
@@ -165,7 +164,7 @@ public class ConstraintLayoutTest {
   }
 
   @Test
-  public void cleanUpAttributes() throws IOException {
+  public void cleanUpAttributes() {
     WizardUtils.createNewProject(guiTest);
 
     @Language("XML")
@@ -185,12 +184,11 @@ public class ConstraintLayoutTest {
                       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                       "</androidx.constraintlayout.widget.ConstraintLayout>";
 
-    GuiTestFileUtils.writeAndReloadDocument(guiTest.getProjectPath().toPath().resolve(ACTIVITY_MAIN_XML_RELATIVE_PATH), contents);
+    EditorFixture editor = guiTest.ideFrame().getEditor()
+      .open(ACTIVITY_MAIN_XML_RELATIVE_PATH)
+      .replaceText(contents);
 
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
-
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     layoutEditor.waitForRenderToFinish();
     layoutEditor.showOnlyDesignView();
     layoutEditor.findView("TextView", 0).click();
