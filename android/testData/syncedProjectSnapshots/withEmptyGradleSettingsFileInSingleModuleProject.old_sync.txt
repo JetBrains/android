@@ -37,8 +37,8 @@ PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<PROJECT>
-            JavaSource          : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]

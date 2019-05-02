@@ -37,8 +37,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/compileBasicBarDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
@@ -460,8 +460,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :nested2:trans:deep2
         CONENT_ENTRY        : file://<PROJECT>/nested2/trans/deep2
-            JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -556,8 +556,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :dyn_feature
         CONENT_ENTRY        : file://<PROJECT>/dyn_feature
-            JavaSource          : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -671,8 +671,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :lib
         CONENT_ENTRY        : file://<PROJECT>/lib
-            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1010,8 +1010,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :nested1
         CONENT_ENTRY        : file://<PROJECT>/nested1
-            JavaSource          : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1106,8 +1106,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :nested1:deep
         CONENT_ENTRY        : file://<PROJECT>/nested1/deep
-            JavaSource          : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1202,8 +1202,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :nested2
         CONENT_ENTRY        : file://<PROJECT>/nested2
-            JavaSource          : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/compileBasicDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/compileBasicDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
@@ -1340,8 +1340,8 @@ PROJECT             : testPsdSample
             TypeId              : android-gradle
             GradlePath          : :nested2:deep
         CONENT_ENTRY        : file://<PROJECT>/nested2/deep
-            JavaSource          : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
