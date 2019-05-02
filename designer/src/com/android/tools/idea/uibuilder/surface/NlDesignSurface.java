@@ -471,6 +471,34 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return myScreenY;
   }
 
+  @Override
+  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (isPreviewSurface()) {
+      onClickPreview(x, y, false);
+    }
+  }
+
+  @Override
+  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (isPreviewSurface()) {
+      onClickPreview(x, y, true);
+    }
+    else {
+      super.onDoubleClick(x, y);
+    }
+  }
+
+  private void onClickPreview(int x, int y, boolean needsFocusEditor) {
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView == null) {
+      return;
+    }
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
+    if (component != null) {
+      NlComponentHelperKt.tryNavigateTo(component, needsFocusEditor);
+    }
+  }
+
   public boolean isStackVertically() {
     return myStackVertically;
   }
