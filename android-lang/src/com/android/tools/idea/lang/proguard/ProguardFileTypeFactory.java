@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.proguard;
 
 import com.android.SdkConstants;
-import com.intellij.openapi.fileTypes.FileNameMatcherEx;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import com.intellij.openapi.util.text.StringUtil;
@@ -28,7 +28,7 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
     consumer.consume(ProguardFileType.INSTANCE, new ProguardNameMatcher());
   }
 
-  private static class ProguardNameMatcher extends FileNameMatcherEx {
+  private static class ProguardNameMatcher implements FileNameMatcher {
     @Override
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
       return StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
