@@ -54,9 +54,9 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_CONSTRAINTS;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_HORIZ_CHAIN;
+import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
-import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -120,6 +120,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -138,10 +140,12 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -1242,6 +1246,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private String myPreviousDisplay;
     private Icon myMarginIcon;
     @Nullable private NlComponent myComponent;
+    @Nullable private ActionButton myActionButton;
 
     public MarginSelector() {
       super(null, "Default Margins"); // tooltip
@@ -1299,10 +1304,65 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
         .setRequestFocus(true)
+        .setCancelOnMouseOutCallback((event) -> !withinComponent(event))
+        .setCancelOnClickOutside(true)
+        .setCancelOnOtherWindowOpen(true)
+        .setCancelCallback(() -> { myMarginPopup.cancel(); return Boolean.TRUE; })
         .createPopup();
       myMarginPopup.setPopup(popup);
-      Disposer.register(popup, () -> myMarginPopup.setPopup(null));
+      Disposer.register(popup, this::popupClosed);
       popup.show(relativePoint);
+    }
+
+    private void popupClosed() {
+      myMarginPopup.setPopup(null);
+      myActionButton = null;
+    }
+
+    // Bugs: b/131775093 & b/123071296
+    // This popup must be closed when the mouse is moved outside the area of the popup itself
+    // and the ActionButton used to open the popup.
+    // If a second popup is opened while this popup is visible we risk the appearance of ghost
+    // popups on the screen.
+    public boolean withinComponent(@NotNull MouseEvent event) {
+      if (!myMarginPopup.isShowing()) {
+        return false;
+      }
+
+      // First check if the mouse is hovering over the popup itself:
+      Point eventLocation = event.getLocationOnScreen();
+      Rectangle popupScreenBounds = new Rectangle(myMarginPopup.getLocationOnScreen(), myMarginPopup.getSize());
+      if (popupScreenBounds.contains(eventLocation)) {
+        return true;
+      }
+
+      // Next check if the mouse is hovering over the action button for this MarginSelector.
+      // Hack: We don't have the ActionButton passed to this layer. Current workaround is to:
+      // Find the ActionButton from the MouseEvent in case the mouse event came from there.
+      if (myActionButton == null) {
+        myActionButton = checkIfMouseEventCameFromOurActionButton(event.getSource());
+        if (myActionButton == null) {
+          return false;
+        }
+      }
+
+      // Extend the height of the button to the bottom on the popup in case there is a gap
+      // between the button and the popup. Note that the popup could be above the button
+      // if the toolbar is at the bottom of the screen.
+      Rectangle buttonScreenBounds = new Rectangle(myActionButton.getLocationOnScreen(), myActionButton.getSize());
+      int extendedHeight = popupScreenBounds.y + popupScreenBounds.height - buttonScreenBounds.y;
+      buttonScreenBounds.height = Math.max(buttonScreenBounds.height, extendedHeight);
+      return buttonScreenBounds.contains(eventLocation);
+    }
+
+    @Nullable
+    private ActionButton checkIfMouseEventCameFromOurActionButton(@Nullable Object source) {
+      if (!(source instanceof ActionButton)) {
+        return null;
+      }
+      ActionButton button = (ActionButton)source;
+      Presentation presentation = button.getAction().getTemplatePresentation();
+      return getLabel().equals(presentation.getText()) && Objects.equals(getIcon(), presentation.getIcon()) ? button : null;
     }
 
     @Override
