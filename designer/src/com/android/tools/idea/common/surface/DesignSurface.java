@@ -480,6 +480,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myGlassPane;
   }
 
+  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {}
+
+  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView == null) {
+      return;
+    }
+
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
+    if (component != null) {
+      // Notify that the user is interested in a component.
+      // A properties manager may move the focus to the most important attribute of the component.
+      // Such as the text attribute of a TextView
+      notifyComponentActivate(component, Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y));
+    }
+  }
+
   private Timer myRepaintTimer = new Timer(15, (actionEvent) -> { repaint(); });
 
   /**

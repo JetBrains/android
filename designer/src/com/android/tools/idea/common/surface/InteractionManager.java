@@ -19,6 +19,7 @@ import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
 import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -41,7 +42,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -175,8 +175,7 @@ public class InteractionManager {
   private boolean myIsInteractionCanceled;
 
   /**
-   * Constructs a new {@link InteractionManager} for the given
-   * {@link NlDesignSurface}.
+   * Constructs a new {@link InteractionManager} for the given {@link DesignSurface}.
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
@@ -203,7 +202,7 @@ public class InteractionManager {
   /**
    * Returns the canvas associated with this {@linkplain InteractionManager}.
    *
-   * @return The {@link NlDesignSurface} associated with this {@linkplain InteractionManager}.
+   * @return The {@link DesignSurface} associated with this {@linkplain InteractionManager}.
    * Never null.
    */
   @NotNull
@@ -366,34 +365,13 @@ public class InteractionManager {
 
       NlComponent component = getComponentAt(x, y);
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        if (component != null) {
-          // TODO: find a way to move layout-specific logic elsewhere.
-          if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-            NlComponentHelperKt.tryNavigateTo(component, true);
-          }
-          else {
-            SceneView view = mySurface.getSceneView(x, y);
-
-            if (view == null) {
-              return;
-            }
-
-            // Notify that the user is interested in a component.
-            // A properties manager may move the focus to the most important attribute of the component.
-            // Such as the text attribute of a TextView
-            mySurface.notifyComponentActivate(component, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
-          }
-        }
+        mySurface.onDoubleClick(x, y);
         return;
       }
 
-      boolean isControlMetaDown = SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
       // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
-      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !isControlMetaDown) {
-        // TODO: find a way to move layout-specific logic elsewhere.
-        if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-          NlComponentHelperKt.tryNavigateTo(component, false);
-        }
+      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !AdtUiUtils.isActionKeyDown(event)) {
+        mySurface.onSingleClick(x, y);
       }
 
       if (event.isPopupTrigger()) {
