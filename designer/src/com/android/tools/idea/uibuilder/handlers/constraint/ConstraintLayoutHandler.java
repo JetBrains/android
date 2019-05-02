@@ -158,7 +158,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
+import javax.swing.LookAndFeel;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -1213,6 +1215,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
 
       private void setMargin(@Nullable String resName, int value) {
+        myMarginPopup = createIfNeeded();
         myMarginPopup.getMargin().setValue(value, resName);
         myMarginPopup.updateText();
         updateIcon();
@@ -1242,7 +1245,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       return toReturn;
     }
 
-    MarginPopup myMarginPopup = new MarginPopup(myResourcePickerIconClickListener);
+    private MarginPopup myMarginPopup;
+    private LookAndFeel myLookAndFeel;
     private String myPreviousDisplay;
     private Icon myMarginIcon;
     @Nullable private NlComponent myComponent;
@@ -1250,14 +1254,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     public MarginSelector() {
       super(null, "Default Margins"); // tooltip
-      myMarginPopup.setActionListener((e) -> setMargin());
-    }
-
-    public void setMargin() {
-      Scout.setMargin(myMarginPopup.getMargin().getValue());
     }
 
     private void updateIcon() {
+      myMarginPopup = createIfNeeded();
       String previousDisplay = myMarginPopup.getMargin().getDisplayValue();
       if (!previousDisplay.equals(myPreviousDisplay)) {
         myPreviousDisplay = previousDisplay;
@@ -1299,6 +1299,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       myComponent = component;
+      myMarginPopup = createIfNeeded();
       DesignSurface surface = editor.getScene().getDesignSurface();
       NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
@@ -1314,8 +1315,29 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       popup.show(relativePoint);
     }
 
+    // Bug: b/131855036
+    // The MarginPopup component was created under a certain LookAndFeel.
+    // If the LookAndFeel has changed we will have to recreate the UI since the update logic in LafManager is complicated.
+    @NotNull
+    private MarginPopup createIfNeeded() {
+      if (myMarginPopup != null && UIManager.getLookAndFeel() == myLookAndFeel) {
+        return myMarginPopup;
+      }
+      if (myMarginPopup != null) {
+        myMarginPopup.removeResourcePickerActionListener(myResourcePickerIconClickListener);
+        myMarginPopup.setActionListener(null);
+      }
+      myMarginPopup = new MarginPopup();
+      myLookAndFeel = UIManager.getLookAndFeel();
+      myMarginPopup.setActionListener((e) -> Scout.setMargin(myMarginPopup.getMargin().getValue()));
+      myMarginPopup.addResourcePickerActionListener(myResourcePickerIconClickListener);
+      return myMarginPopup;
+    }
+
     private void popupClosed() {
-      myMarginPopup.setPopup(null);
+      if (myMarginPopup != null) {
+        myMarginPopup.setPopup(null);
+      }
       myActionButton = null;
     }
 
@@ -1325,7 +1347,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     // If a second popup is opened while this popup is visible we risk the appearance of ghost
     // popups on the screen.
     public boolean withinComponent(@NotNull MouseEvent event) {
-      if (!myMarginPopup.isShowing()) {
+      if (myMarginPopup == null || !myMarginPopup.isShowing()) {
         return false;
       }
 

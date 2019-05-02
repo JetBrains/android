@@ -28,8 +28,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -142,7 +140,7 @@ public class MarginPopup extends JPanel {
     }
   };
 
-  public void setActionListener(ActionListener actionListener) {
+  public void setActionListener(@Nullable ActionListener actionListener) {
     myListener = actionListener;
   }
 
@@ -170,7 +168,7 @@ public class MarginPopup extends JPanel {
     }
   }
 
-  public MarginPopup(final ActionListener resourcePickerActionListener) {
+  public MarginPopup() {
     super(new GridBagLayout());
     setBackground(JBColor.background());
 
@@ -178,6 +176,7 @@ public class MarginPopup extends JPanel {
     myDefaultMargin.setEditable(false);
     myDefaultMargin.setFocusable(false);
     myDefaultMargin.setBorder(BorderFactory.createEmptyBorder());
+    myDefaultMargin.setBackground(JBColor.background());
 
     gc.gridx = 0;
     gc.gridy = 0;
@@ -256,7 +255,6 @@ public class MarginPopup extends JPanel {
     }
     myResourcePickerButton.setMargin(margin);
     myResourcePickerButton.setText("@ ...");
-    myResourcePickerButton.addActionListener(resourcePickerActionListener);
     gc.gridx = 3;
     gc.insets.left = JBUI.scale(0);
     gc.insets.right = JBUI.scale(5);
@@ -278,8 +276,16 @@ public class MarginPopup extends JPanel {
     return myTextField;
   }
 
-  private void updateFontsForPresentationMode(Component component) {
+  private static void updateFontsForPresentationMode(Component component) {
     Font font = component.getFont();
-    component.setFont(font.deriveFont((float) JBUI.scaleFontSize(DEFAULT_FONT_SIZE)));
+    component.setFont(font.deriveFont((float)JBUI.scaleFontSize(DEFAULT_FONT_SIZE)));
+  }
+
+  public void addResourcePickerActionListener(@NotNull ActionListener listener) {
+    myResourcePickerButton.addActionListener(listener);
+  }
+
+  public void removeResourcePickerActionListener(@NotNull ActionListener listener) {
+    myResourcePickerButton.removeActionListener(listener);
   }
 }
