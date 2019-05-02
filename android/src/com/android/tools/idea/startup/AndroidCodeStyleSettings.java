@@ -16,13 +16,16 @@
 
 package com.android.tools.idea.startup;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.JavaCodeStyleSettings;
 import com.intellij.psi.codeStyle.PackageEntry;
 import com.intellij.psi.codeStyle.PackageEntryTable;
+import com.intellij.psi.codeStyle.arrangement.ArrangementSettings;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.annotations.NonNls;
@@ -31,12 +34,22 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidCodeStyleSettings {
   @NonNls public static final String CONFIG_V1 = "AndroidCodeStyleSettings.V1";
 
+  @NotNull
+  private static final String ARRANGEMENT_SETTINGS_SET_TO_VERSION_3 = "AndroidCodeStyleSettings.ArrangementSettingsSetToVersion3";
+
   private AndroidCodeStyleSettings() {}
 
-  public static void initializeDefaults(@NotNull PropertiesComponent propertiesComponent) {
+  static void initialize(@NotNull PropertiesComponent component) {
+    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
+
+    initializeDefaults(schemes, component);
+    setArrangementSettingsToVersion3(schemes, component);
+  }
+
+  @VisibleForTesting
+  static void initializeDefaults(@NotNull CodeStyleSchemes schemes, @NotNull PropertiesComponent propertiesComponent) {
     if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
       propertiesComponent.setValue(CONFIG_V1, "true");
-      CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
       CodeStyleScheme scheme = schemes.getDefaultScheme();
 
       if (scheme != null) {
@@ -45,6 +58,7 @@ public class AndroidCodeStyleSettings {
     }
   }
 
+  @VisibleForTesting
   public static void modify(CodeStyleSettings settings) {
     // Use Android XML formatter by default
     AndroidXmlCodeStyleSettings.getInstance(settings).USE_CUSTOM_SETTINGS = true;
@@ -108,5 +122,17 @@ public class AndroidCodeStyleSettings {
     table.addEntry(PackageEntry.BLANK_LINE_ENTRY);
 
     return table;
+  }
+
+  @VisibleForTesting
+  static void setArrangementSettingsToVersion3(@NotNull CodeStyleSchemes schemes, @NotNull PropertiesComponent properties) {
+    if (properties.getBoolean(ARRANGEMENT_SETTINGS_SET_TO_VERSION_3)) {
+      return;
+    }
+
+    ArrangementSettings settings = AndroidXmlPredefinedCodeStyle.createVersion3Settings();
+    schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).setArrangementSettings(settings);
+
+    properties.setValue(ARRANGEMENT_SETTINGS_SET_TO_VERSION_3, true);
   }
 }
