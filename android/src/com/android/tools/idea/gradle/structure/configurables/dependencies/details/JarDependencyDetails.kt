@@ -30,8 +30,8 @@ class JarDependencyDetails(
 ) : JarDependencyDetailsForm() {
 
   init {
-    myScopeLabel.isVisible = showScope
-    myScope.isVisible = showScope
+    myConfigurationLabel.isVisible = showScope
+    myConfiguration.isVisible = showScope
   }
 
   private var myDependency: PsJarDependency? = null
@@ -42,7 +42,7 @@ class JarDependencyDetails(
 
   override fun display(dependency: PsBaseDependency) {
     val d = dependency as PsJarDependency
-    if (myScope.isVisible) {
+    if (myConfiguration.isVisible) {
       displayConfiguration(d as PsDeclaredJarDependency, PsModule.ImportantFor.LIBRARY)
     }
     if (d != myDependency) {

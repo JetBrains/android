@@ -63,7 +63,7 @@ class EditableScopesTest {
 
           findDependenciesTable().cell("libs").click()
 
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             replaceText("implementation")
             pressAndReleaseKeys(VK_TAB)
@@ -71,7 +71,7 @@ class EditableScopesTest {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
 
           findDependenciesTable().cell("libs").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
             replaceText("api")
             pressAndReleaseKeys(VK_ENTER) // activates the dialog
@@ -85,7 +85,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "api"))
           findDependenciesTable().cell("libs").click()
-          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("api") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("api") }
         }
       }
       clickCancel()
@@ -101,14 +101,14 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "compile"))
           findDependenciesTable().cell("libs").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             selectItem("implementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
 
           findDependenciesTable().cell("libs").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
             selectItem("releaseImplementation")
           }
@@ -123,7 +123,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "releaseImplementation"))
           findDependenciesTable().cell("libs").click()
-          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("releaseImplementation") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("releaseImplementation") }
         }
       }
       clickCancel()
@@ -139,7 +139,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
           findDependenciesTable().cell("mylibrary").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             replaceText("implementation")
             pressAndReleaseKeys(VK_TAB)
@@ -147,7 +147,7 @@ class EditableScopesTest {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
 
           findDependenciesTable().cell("mylibrary").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
             replaceText("testImplementation")
             pressAndReleaseKeys(VK_ENTER) // activates dialog
@@ -161,7 +161,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "testImplementation"))
           findDependenciesTable().cell("mylibrary").click()
-          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("testImplementation") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("testImplementation") }
         }
       }
       clickCancel()
@@ -177,14 +177,14 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
           findDependenciesTable().cell("mylibrary").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("compile")
             selectItem("implementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
 
           findDependenciesTable().cell("mylibrary").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("implementation")
             selectItem("testImplementation")
           }
@@ -199,7 +199,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "testImplementation"))
           findDependenciesTable().cell("mylibrary").click()
-          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("testImplementation") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("testImplementation") }
         }
       }
       clickCancel()
@@ -217,7 +217,7 @@ class EditableScopesTest {
 
           findDependenciesTable().cell("junit:junit:4.11").click()
 
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testCompile")
             replaceText("testImplementation")
             pressAndReleaseKeys(VK_TAB)
@@ -225,7 +225,7 @@ class EditableScopesTest {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
 
           findDependenciesTable().cell("junit:junit:4.11").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testImplementation")
             replaceText("implementation")
             pressAndReleaseKeys(VK_ENTER) // activates the dialog
@@ -239,7 +239,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "implementation"))
           findDependenciesTable().cell("junit:junit:4.11").click()
-          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
         }
       }
       clickCancel()
@@ -257,14 +257,14 @@ class EditableScopesTest {
 
           findDependenciesTable().cell("junit:junit:4.11").click()
 
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testCompile")
             selectItem("testImplementation")
           }
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
 
           findDependenciesTable().cell("junit:junit:4.11").click()
-          findScopeCombo().run {
+          findConfigurationCombo().run {
             assertThat(selectedItem()).isEqualTo("testImplementation")
             selectItem("implementation")
           }
@@ -278,7 +278,7 @@ class EditableScopesTest {
         findDependenciesPanel().run {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "implementation"))
           findDependenciesTable().cell("junit:junit:4.11").click()
-          findScopeCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
+          findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
         }
       }
       clickCancel()
