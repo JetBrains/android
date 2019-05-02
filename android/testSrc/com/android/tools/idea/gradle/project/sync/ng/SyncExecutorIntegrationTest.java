@@ -260,7 +260,8 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
     assertThat(variants.stream().map(Variant::getName).collect(toList())).containsExactlyElementsIn(requestedVariants);
   }
 
-  public void testSingleVariantSyncWithOldGradleVersion() throws Throwable {
+  // Disabled while fixing b/131791484
+  public void /*test*/SingleVariantSyncWithOldGradleVersion() throws Throwable {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
 
     // Use plugin 1.5.0 and Gradle 2.4.0
