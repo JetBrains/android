@@ -27,7 +27,6 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,24 +43,20 @@ public final class LinearLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  private Path myProjectPath;
-  private Path myNewStylePath;
   private Path myMainStylePath;
-  private Path myLayoutPath;
+  private Path myNewStylePath;
+  private Path myNewLayoutPath;
 
   @Before
   public void setUp() throws IOException {
     myGuiTest.importSimpleApplication();
-    myProjectPath = myGuiTest.getProjectPath().toPath();
-
     FileSystem fileSystem = FileSystems.getDefault();
 
     myNewStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "linear_layout.xml");
-    myLayoutPath = fileSystem.getPath("app", "src", "main", "res", "layout", "linear_layout.xml");
+    myNewLayoutPath = fileSystem.getPath("app", "src", "main", "res", "layout", "linear_layout.xml");
     myMainStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "styles.xml");
   }
 
-  @Ignore("b/127956498")
   @Test
   public void resolveAttributeInStyle() throws IOException {
     // @formatter:off
@@ -78,10 +73,10 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myNewStylePath), xml);
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
-
-    myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
+    myGuiTest.ideFrame().getEditor()
+      .newFile(myNewStylePath, xml)
+      .newFile(myNewLayoutPath, buildLayout("@style/linear_layout"))
+      .selectEditorTab(EditorFixture.Tab.DESIGN);
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
   }
 
@@ -97,17 +92,16 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myNewStylePath), xml);
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
-
-    myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
+    myGuiTest.ideFrame().getEditor()
+      .newFile(myNewStylePath, xml)
+      .newFile(myNewLayoutPath, buildLayout("@style/linear_layout"))
+      .selectEditorTab(EditorFixture.Tab.DESIGN);
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
-  @Ignore("b/127956498")
   @Test
   public void resolveAttributeStyleReference() throws IOException {
     // @formatter:off
@@ -130,17 +124,17 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myNewStylePath), xml);
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), buildLayout("?linear_layout_style"));
-
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.newFile(myNewStylePath, xml);
+    editor.newFile(myNewLayoutPath,  buildLayout("?linear_layout_style"));
+
     editor.open(myMainStylePath);
     editor.moveBetween("AppTheme", "");
     editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
     editor.pasteText("<item name=\"linear_layout_style\">@style/vertical_linear_layout</item>");
 
-    editor.open(myLayoutPath.toString());
+    editor.open(myNewLayoutPath.toString());
     Wait.seconds(10)
       .expecting("Component tree pane to update")
       .until(() -> getComponentTree().valueAt(0).equals("LinearLayout (vertical)"));
@@ -182,8 +176,9 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), layout);
-    NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString()).getLayoutEditor(true);
+    NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor()
+      .newFile(myNewLayoutPath, layout)
+      .getLayoutEditor(true);
     layoutEditor.getAllComponents().get(0).click(); // Make sure the Linear layout has focus
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
     layoutEditor.getComponentToolbar().getButtonByIcon(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT).click();
