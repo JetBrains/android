@@ -27,7 +27,7 @@ public class MemorySettingsRecommendation {
 
   // Returns a new Xmx if a recommendation exists, or -1 otherwise.
   public static int getRecommended(@Nullable Project project, int currentXmx) {
-    if (project == null) {
+    if (project == null || currentXmx < 0) {
       return -1;
     }
 
