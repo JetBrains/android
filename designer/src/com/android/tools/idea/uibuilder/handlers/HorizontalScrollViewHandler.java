@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +58,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
       return null;
     }
 
-    int maxScrollableWidth = getMaxScrollable(viewGroup, ViewGroup::getWidth, View::getMeasuredWidth);
+    int maxScrollableWidth = ScrollViewScrollHandler.getMaxScrollable(viewGroup, ViewGroup::getWidth, View::getMeasuredWidth);
 
     if (maxScrollableWidth > 0) {
       // There is something to scroll
