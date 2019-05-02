@@ -34,10 +34,13 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -103,6 +106,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
       sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
+      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(() -> getKotlinPluginDetails())));
       if (project != null) {
         sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
         sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
@@ -142,6 +146,15 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       return gradleVersion.toString();
     }
     return "(gradle version information not found)";
+  }
+
+  private static String getKotlinPluginDetails() {
+    PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
+    IdeaPluginDescriptor kotlinPlugin = PluginManager.getPlugin(kotlinPluginId);
+    if (kotlinPlugin != null) {
+      return kotlinPlugin.getVersion();
+    }
+    return "(kotlin plugin not found)";
   }
 
   private static String getNdkDetails(@Nullable Project project,
