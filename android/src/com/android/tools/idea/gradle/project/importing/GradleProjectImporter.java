@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
@@ -42,6 +43,7 @@ import com.intellij.util.containers.ContainerUtilRt;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -51,6 +53,8 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
 public class GradleProjectImporter {
+  // A copy of a private constant from GradleJvmStartupActivity.
+  @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
   @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
   @NotNull private final NewProjectSetup myNewProjectSetup;
@@ -189,6 +193,7 @@ public class GradleProjectImporter {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(newProject);
     projectInfo.setNewProject(request.isNewProject);
     projectInfo.setImportedProject(true);
+    silenceUnlinkedGradleProjectNotificationIfNecessary(newProject);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
 
@@ -196,6 +201,13 @@ public class GradleProjectImporter {
       newProject.save();
     }
     return newProject;
+  }
+
+  private void silenceUnlinkedGradleProjectNotificationIfNecessary(Project newProject) {
+    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+    if (gradleSettings.getLinkedProjectsSettings().isEmpty()) {
+      PropertiesComponent.getInstance(newProject).setValue(SHOW_UNLINKED_GRADLE_POPUP, false, true);
+    }
   }
 
   public static class Request {
