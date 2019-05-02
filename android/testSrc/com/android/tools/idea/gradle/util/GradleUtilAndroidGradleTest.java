@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,6 +33,16 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
   public void testGetGradleBuildFileFromProjectModule() throws Exception {
     loadSimpleApplication();
     verifyBuildFile(myModules.getModule(getProject().getName()), "build.gradle");
+  }
+
+  public void testHasKtsBuildFilesKtsBasedProject() throws Exception {
+    loadProject(KOTLIN_GRADLE_DSL);
+    assertTrue(GradleUtil.hasKtsBuildFiles(getProject()));
+  }
+
+  public void testHasKtsBuildFilesGroovyBasedProject() throws Exception {
+    loadSimpleApplication();
+    assertFalse(GradleUtil.hasKtsBuildFiles(getProject()));
   }
 
   private void verifyBuildFile(@NotNull Module module, @NotNull String... expectedPath) {
