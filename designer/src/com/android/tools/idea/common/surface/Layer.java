@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.intellij.openapi.Disposable;
 
@@ -26,7 +24,7 @@ import java.awt.*;
 
 /**
  * A layer can be thought of as a very lightweight {@link JComponent} that is stacked
- * on top of a {@link NlDesignSurface}. The critical difference between using a {@linkplain Layer}
+ * on top of a {@link DesignSurface}. The critical difference between using a {@linkplain Layer}
  * and a nested {@link JComponent} is that the layer does not have its own coordinate system
  * and crucially, its own clipping shape.
  */
@@ -82,12 +80,6 @@ public abstract class Layer implements Disposable {
    */
   public void setHidden(boolean hidden) {
     myHidden = hidden;
-  }
-
-  /** Returns a tooltip from this layer if one is appropriate at the given co-ordinates. */
-  @Nullable
-  public String getTooltip(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return null;
   }
 
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
