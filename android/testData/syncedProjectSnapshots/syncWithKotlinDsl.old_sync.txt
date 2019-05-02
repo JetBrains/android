@@ -59,8 +59,8 @@ PROJECT             : testSyncWithKotlinDsl
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -459,8 +459,8 @@ PROJECT             : testSyncWithKotlinDsl
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/lib
-            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
