@@ -884,6 +884,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
                 if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                  barrier = child;
                   break;
                 }
               }
@@ -945,6 +946,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
                 if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
+                  barrier = child;
                   break;
                 }
               }
