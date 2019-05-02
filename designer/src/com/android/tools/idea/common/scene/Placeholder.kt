@@ -33,6 +33,14 @@ abstract class Placeholder(val host: SceneComponent) {
   open val associatedComponent: SceneComponent = host
 
   /**
+   * Return true if this Placeholder updates the attribute when dragging component in same parent.
+   * The updated attributes are pending in [com.android.tools.idea.common.model.AttributesTransaction] which is committed after mouse
+   * released.
+   * @see updateLiveAttribute
+   */
+  open val isLiveUpdatable = false
+
+  /**
    * Only dominate [Placeholder] would be rendered. Also, dominate [Placeholder]s has higher priority than recessive ones. Which means
    * all dominated [Placeholder]s will be snapped first. If it is impossible to snap to a dominating [Placeholder], then recessive
    * [Placeholder]s would be tried.<br>
@@ -73,6 +81,14 @@ abstract class Placeholder(val host: SceneComponent) {
                 retPoint: Point)
     : Boolean = false
 
+  /**
+   * Function to update attribute when mouse is dragging.
+   */
+  open fun updateLiveAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder, x: Int, y: Int) = Unit
+
+  /**
+   * Function to update attribute when mouse is released.
+   */
   abstract fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder)
 }
 
