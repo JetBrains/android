@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
 import com.android.tools.idea.gradle.structure.model.*;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails {
+public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDependencyDetails {
   private JPanel myMainPanel;
 
   private JXLabel myGroupIdLabel;
@@ -42,11 +39,8 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
   @Nullable private ModelPropertyEditor<?> myVersionPropertyEditor;
   @Nullable private JComponent myEditorComponent;
 
-  private boolean comboMaintenance;
-
   public SingleDeclaredLibraryDependencyDetails(@NotNull PsContext context) {
     myContext = context;
-    comboMaintenance = true;
   }
 
   @Override
@@ -60,7 +54,7 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
     PsDeclaredLibraryDependency d = (PsDeclaredLibraryDependency) dependency;
 
     displayVersion(d);
-    displayConfiguration(d);
+    displayConfiguration(d, PsModule.ImportantFor.LIBRARY);
     if (myDependency != dependency) {
       PsArtifactDependencySpec spec = d.getSpec();
       myGroupIdLabel.setText(spec.getGroup());
@@ -91,23 +85,6 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
     }
   }
 
-  private void displayConfiguration(@NotNull PsDeclaredLibraryDependency dependency) {
-    if (dependency != myDependency) {
-      try {
-        comboMaintenance = true;
-        myScope.removeAllItems();
-        String configuration = dependency.getJoinedConfigurationNames();
-        myScope.addItem(configuration);
-        for (String c : dependency.getParent().getConfigurations(PsModule.ImportantFor.LIBRARY)) {
-          if (c != configuration) myScope.addItem(c);
-        }
-        myScope.setSelectedItem(configuration);
-      } finally {
-        comboMaintenance = false;
-      }
-    }
-  }
-
   @Override
   @NotNull
   public Class<PsDeclaredLibraryDependency> getSupportedModelType() {
@@ -116,30 +93,16 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
 
   @Override
   @Nullable
-  public PsLibraryDependency getModel() {
+  public PsDeclaredLibraryDependency getModel() {
     return myDependency;
   }
 
-  // TODO(xof): common code with ModuleDependencyDetails
-  private void modifyConfiguration() {
-    if (myDependency != null && myScope.getSelectedItem() != null) {
-      String selectedConfiguration = (String) myScope.getSelectedItem();
-      if (selectedConfiguration != null) {
-        PsModule module = myDependency.getParent();
-        module.modifyDependencyConfiguration(myDependency, selectedConfiguration);
-      }
-    }
+  @Override
+  public JComboBox<String> getConfigurationUI() {
+    return myScope;
   }
 
   private void createUIComponents() {
-    myScope = new ComboBox<String>();
-    myScope.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (!comboMaintenance) {
-          modifyConfiguration();
-        }
-      }
-    });
+    myScope = createConfigurationUI();
   }
 }
