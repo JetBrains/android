@@ -21,10 +21,15 @@ import com.android.tools.idea.project.AndroidKtsSupportNotification;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleKtsBuildFilesWarningStep extends ProjectSetupStep {
+
+  @NotNull
+  public static final Key<Boolean> HAS_KTS_BUILD_FILES = new Key<>("gradle.has.kts.files");
+
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
     doSetUpProject(project, GradleUtil.hasKtsBuildFiles(project));
@@ -32,6 +37,7 @@ public class GradleKtsBuildFilesWarningStep extends ProjectSetupStep {
 
   @VisibleForTesting
   void doSetUpProject(@NotNull Project project, boolean hasKts) {
+    project.putUserData(HAS_KTS_BUILD_FILES, hasKts);
     if (hasKts) {
       AndroidKtsSupportNotification.getInstance(project).showWarningIfNotShown();
     }
