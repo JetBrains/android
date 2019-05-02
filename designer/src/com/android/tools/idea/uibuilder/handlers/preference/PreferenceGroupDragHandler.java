@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.FQCN_LIST_VIEW;
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
 
 abstract class PreferenceGroupDragHandler extends DragHandler {
@@ -59,10 +60,13 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   }
 
   private void initDividerHeight() {
-    ViewInfo view = ViewInfoUtils.findListView(editor.getRootViews());
-    assert view != null;
-
-    myDividerHeight = editor.pxToDp(((ListView)view.getViewObject()).getDividerHeight());
+    ViewInfo listView = ViewInfoUtils.findViewWithName(editor.getRootViews(), FQCN_LIST_VIEW);
+    // If the preferences group is using a ListView, find the divider height to account for it when
+    // calculating the preferences sizes.
+    // If there is no ListView, we are probably simply using a ScrollView.
+    myDividerHeight = listView != null ?
+                      editor.pxToDp(((ListView)listView.getViewObject()).getDividerHeight()) :
+                      0;
   }
 
   @NotNull
