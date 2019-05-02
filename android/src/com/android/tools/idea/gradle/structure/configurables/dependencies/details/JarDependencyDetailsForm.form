@@ -65,7 +65,7 @@
           <font swing-font="Tree.font"/>
         </properties>
       </component>
-      <component id="3282c" class="com.intellij.ui.components.JBLabel" binding="myScopeLabel">
+      <component id="3282c" class="com.intellij.ui.components.JBLabel" binding="myConfigurationLabel">
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -75,7 +75,7 @@
           <text value="Configuration:"/>
         </properties>
       </component>
-      <component id="398f2" class="javax.swing.JComboBox" binding="myScope" custom-create="true">
+      <component id="398f2" class="javax.swing.JComboBox" binding="myConfiguration" custom-create="true">
         <constraints>
           <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
@@ -83,7 +83,7 @@
         </constraints>
         <properties>
           <editable value="true"/>
-          <name value="scope"/>
+          <name value="configuration"/>
         </properties>
       </component>
     </children>

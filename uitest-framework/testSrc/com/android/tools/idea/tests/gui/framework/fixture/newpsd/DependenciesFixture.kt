@@ -59,8 +59,8 @@ class DependenciesFixture(
       }
   }
 
-  fun findScopeCombo(): JComboBoxFixture =
-    object : JComboBoxFixture(robot(), robot().finder().findByName("scope", JComboBox::class.java, true)) {
+  fun findConfigurationCombo(): JComboBoxFixture =
+    object : JComboBoxFixture(robot(), robot().finder().findByName("configuration", JComboBox::class.java, true)) {
       override fun selectAllText(): JComboBoxFixture {
         super.selectAllText()
         waitForIdle()
