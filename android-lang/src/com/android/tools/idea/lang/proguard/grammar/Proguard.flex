@@ -33,7 +33,9 @@ import com.intellij.psi.TokenType;
 CRLF = [ ]*[\n\r]+   // Newlines
 WS = [ \t\f]+        // Whitespace
 
-FLAG_NAME = (@|-[a-zA-Z0-9_]+)  // Flag name that includes the leading "-", or "@" (short for "-include")
+INCLUDE_FLAG_NAME = (@|-include) // specific flags for -include
+INCLUDE_FLAG_ARG = ([^ (){}\[\]\"\'\n\r#]+|\"[^\"\n\r]+\"|\'[^\n\r\']+\')
+FLAG_NAME = (-[a-zA-Z0-9_]+)  // Flag name that includes the leading "-"
 FLAG_ARG = [^ \n\r{#]+      // A single flag argument.
 LINE_CMT = #[^\n\r]*        // A end of line comment, anything that starts with "#"
 JAVA_DECL = [^\n\r}#]+;     // A single line of Java declaration in Java specification blocks.
@@ -46,12 +48,15 @@ CLOSE_BRACE = "}"
 %state STATE_JAVA_SECTION
 // Parses flag arguments.
 %state STATE_FLAG_ARG
-
+// Parses include flag arguments
+%state STATE_INCLUDE_FLAG_ARG
 %%
 
 <YYINITIAL> {
     // Line comments.
     {LINE_CMT}       { return ProguardTypes.LINE_CMT; }
+
+    {INCLUDE_FLAG_NAME} { yybegin(STATE_INCLUDE_FLAG_ARG); return ProguardTypes.INCLUDE_FLAG_NAME; }
 
     // After a flag name is encountered, switch to the flag args state.
     {FLAG_NAME}      { yybegin(STATE_FLAG_ARG); return ProguardTypes.FLAG_NAME; }
@@ -74,6 +79,13 @@ CLOSE_BRACE = "}"
     // Whitespace and newlines.
     {WS}             { return TokenType.WHITE_SPACE; }
     {CRLF}           { yybegin(YYINITIAL); return ProguardTypes.CRLF; }
+}
+
+<STATE_INCLUDE_FLAG_ARG> {
+    {INCLUDE_FLAG_ARG} { return ProguardTypes.INCLUDE_FLAG_ARG; }
+    {LINE_CMT} { return ProguardTypes.LINE_CMT; }
+    {WS} { return TokenType.WHITE_SPACE; }
+    {CRLF} { yybegin(YYINITIAL); return ProguardTypes.CRLF; }
 }
 
 <STATE_JAVA_SECTION> {
