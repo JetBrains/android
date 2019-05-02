@@ -30,13 +30,12 @@ final class ViewInfoUtils {
   }
 
   @Nullable
-  static ViewInfo findListView(@NotNull Collection<ViewInfo> rootViews) {
-    Optional<ViewInfo> listView = rootViews.stream()
-      .map(rootView -> findViewWithName(rootView, FQCN_LIST_VIEW))
+  static ViewInfo findViewWithName(@NotNull Collection<ViewInfo> rootViews, @NotNull String name) {
+    return rootViews.stream()
+      .map(rootView -> findViewWithName(rootView, name))
       .filter(Objects::nonNull)
-      .findFirst();
-
-    return listView.orElse(null);
+      .findFirst()
+      .orElse(null);
   }
 
   @Nullable
