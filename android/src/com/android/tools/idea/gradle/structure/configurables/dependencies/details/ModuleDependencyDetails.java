@@ -20,23 +20,17 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredModuleDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.event.HyperlinkEvent;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleDependencyDetails implements DependencyDetails {
+public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
   @NotNull private final PsContext myContext;
   private final boolean myShowScope;
 
@@ -48,8 +42,6 @@ public class ModuleDependencyDetails implements DependencyDetails {
   private JComboBox<String> myScope;
 
   private PsModuleDependency myDependency;
-
-  private boolean comboMaintenance = false;
 
   public ModuleDependencyDetails(@NotNull PsContext context, boolean showScope) {
     myContext = context;
@@ -86,26 +78,9 @@ public class ModuleDependencyDetails implements DependencyDetails {
     myNameLabel.setText(d.getName());
     myGradlePathLabel.setText(d.getGradlePath());
     if (myShowScope) {
-      displayConfiguration(d);
+      displayConfiguration((PsDeclaredModuleDependency) d, PsModule.ImportantFor.MODULE);
     }
     myDependency = d;
-  }
-
-  public void displayConfiguration(@NotNull PsModuleDependency dependency) {
-    if (dependency != myDependency) {
-      try {
-        comboMaintenance = true;
-        myScope.removeAllItems();
-        String configuration = dependency.getJoinedConfigurationNames();
-        myScope.addItem(configuration);
-        for (String c : dependency.getParent().getConfigurations(PsModule.ImportantFor.MODULE)) {
-          if (c != configuration) myScope.addItem(c);
-        }
-        myScope.setSelectedItem(configuration);
-      } finally {
-        comboMaintenance = false;
-      }
-    }
   }
 
   @Override
@@ -120,25 +95,12 @@ public class ModuleDependencyDetails implements DependencyDetails {
     return myDependency;
   }
 
-  private void modifyConfiguration() {
-    if (myDependency != null && myScope.getSelectedItem() != null) {
-      String selectedConfiguration = (String) myScope.getSelectedItem();
-      if (selectedConfiguration != null) {
-        PsModule module = myDependency.getParent();
-        module.modifyDependencyConfiguration((PsDeclaredModuleDependency) myDependency, selectedConfiguration);
-      }
-    }
+  @Override
+  public JComboBox<String> getConfigurationUI() {
+    return myScope;
   }
 
   private void createUIComponents() {
-    myScope = new ComboBox<String>();
-    myScope.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (!comboMaintenance) {
-          modifyConfiguration();
-        }
-      }
-    });
+    myScope = createConfigurationUI();
   }
 }
