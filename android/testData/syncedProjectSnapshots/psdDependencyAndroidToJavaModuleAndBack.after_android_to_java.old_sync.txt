@@ -37,8 +37,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebug/compileFreeDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebugAndroidTest/compileFreeDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
@@ -645,8 +645,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId              : android-gradle
             GradlePath          : :mainModule
         CONENT_ENTRY        : file://<PROJECT>/mainModule
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebug/compileFreeDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebugAndroidTest/compileFreeDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebug/out [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
@@ -1056,8 +1056,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId              : android-gradle
             GradlePath          : :moduleA
         CONENT_ENTRY        : file://<PROJECT>/moduleA
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1409,8 +1409,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId              : android-gradle
             GradlePath          : :moduleB
         CONENT_ENTRY        : file://<PROJECT>/moduleB
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1793,8 +1793,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId              : android-gradle
             GradlePath          : :modulePlus
         CONENT_ENTRY        : file://<PROJECT>/modulePlus
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debug/out [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugUnitTest/out [-]
