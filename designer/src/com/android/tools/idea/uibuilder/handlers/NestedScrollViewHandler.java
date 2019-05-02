@@ -78,7 +78,7 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
       }
     }
 
-    int maxScrollableHeight = ScrollViewHandler.getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
+    int maxScrollableHeight = ScrollViewScrollHandler.getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll

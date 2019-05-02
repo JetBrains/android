@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import static com.android.SdkConstants.FQCN_LIST_VIEW;
+
 import android.widget.ListView;
+import android.widget.ScrollView;
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,12 +49,16 @@ public final class PreferenceScreenHandler extends ViewGroupHandler {
       return null;
     }
 
-    ViewInfo listView = ViewInfoUtils.findListView(editor.getRootViews());
-
-    if (listView == null) {
-      return null;
+    ViewInfo listView = ViewInfoUtils.findViewWithName(editor.getRootViews(), FQCN_LIST_VIEW);
+    if (listView != null) {
+      return new ListViewScrollHandler((ListView)listView.getViewObject());
     }
 
-    return new ListViewScrollHandler((ListView)listView.getViewObject());
+    ViewInfo scrollView = ViewInfoUtils.findViewWithName(editor.getRootViews(), SdkConstants.FQCN_SCROLL_VIEW);
+    if (scrollView != null) {
+      return ScrollViewHandler.createScrollHandler((ScrollView)scrollView.getViewObject());
+    }
+
+    return null;
   }
 }
