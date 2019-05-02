@@ -142,7 +142,9 @@ public final class TestArtifactSearchScopes {
       roots = new HashSet<>();
 
       if (artifactName.equals(ARTIFACT_ANDROID_TEST) && androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_TEST) {
-        // Special case where android tests correspond actually to the _main_ artifact
+        // Special case where android tests correspond actually to the _main_ artifact (i.e. com.android.test plugin).
+        // There is only instrumentation test artifacts in this project type so the whole directory is in testing scope.
+        roots.add(androidModel.getRootDirPath());
         for (SourceProvider sourceProvider : androidModel.getActiveSourceProviders()) {
           roots.addAll(getAllSourceFolders(sourceProvider));
         }
