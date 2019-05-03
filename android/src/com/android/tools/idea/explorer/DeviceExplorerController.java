@@ -44,7 +44,6 @@ import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -825,7 +824,7 @@ public class DeviceExplorerController {
 
       fileEntries.sort(Comparator.comparing(DeviceFileEntry::getFullPath));
 
-      List<String> problems = ContainerUtil.newLinkedList();
+      List<String> problems = new LinkedList<>();
       for (DeviceFileEntry fileEntry : fileEntries) {
         ListenableFuture<Void> futureDelete = fileEntry.delete();
         try {
