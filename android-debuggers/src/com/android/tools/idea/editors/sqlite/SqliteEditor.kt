@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.sqlite
 
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.sqlite.SqliteController
+import com.android.tools.idea.sqlite.controllers.SqliteController
 import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
 import com.android.tools.idea.sqlite.model.SqliteModel
-import com.android.tools.idea.sqlite.ui.SqliteViewImpl
+import com.android.tools.idea.sqlite.ui.mainView.SqliteViewImpl
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
@@ -40,18 +40,23 @@ import javax.swing.JComponent
  */
 class SqliteEditor(private val project: Project, private val sqliteFile: VirtualFile) : UserDataHolderBase(), FileEditor {
   private val model: SqliteModel = SqliteModel(sqliteFile)
-  private val view: SqliteViewImpl = SqliteViewImpl(project, model, this)
+  private val sqliteView: SqliteViewImpl = SqliteViewImpl(
+    project, model, this)
   private val controller: SqliteController
 
   init {
     val service = SqliteJdbcService(sqliteFile, this, PooledThreadExecutor.INSTANCE)
-    controller = SqliteController(this, model, view, service, EdtExecutor.INSTANCE, PooledThreadExecutor.INSTANCE)
-    controller.start()
+    controller = SqliteController(
+      this, model,
+      sqliteView, service,
+      EdtExecutor.INSTANCE, PooledThreadExecutor.INSTANCE
+    )
+    controller.setUp()
   }
 
   override fun dispose() {}
 
-  override fun getComponent(): JComponent = view.component
+  override fun getComponent(): JComponent = sqliteView.component
 
   override fun getPreferredFocusedComponent(): JComponent? = null
 
