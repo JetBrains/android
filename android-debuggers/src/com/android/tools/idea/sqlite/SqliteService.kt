@@ -34,8 +34,23 @@ interface SqliteService : Disposable {
   fun openDatabase(): ListenableFuture<Unit>
   fun closeDatabase(): ListenableFuture<Unit>
   fun readSchema(): ListenableFuture<SqliteSchema>
-  fun readTable(tableName: String): ListenableFuture<SqliteResultSet>
-  fun readTable(table: SqliteTable): ListenableFuture<SqliteResultSet> {
-    return readTable(table.name)
-  }
+
+  /**
+   * @see SqliteService.readTable
+   */
+  fun readTable(table: SqliteTable): ListenableFuture<SqliteResultSet>
+
+  /**
+   * Executes a query on the database.
+   *
+   * @see java.sql.PreparedStatement.executeQuery
+   */
+  fun executeQuery(query: String): ListenableFuture<SqliteResultSet>
+
+  /**
+   * Executes an update on the database.
+   *
+   * @see java.sql.PreparedStatement.executeUpdate
+   */
+  fun executeUpdate(query: String): ListenableFuture<Int>
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite
+package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.SqliteView
+import com.android.tools.idea.sqlite.ui.ResultSetView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -32,30 +30,29 @@ import com.intellij.openapi.util.Disposer
  *
  * The ownership of the [SqliteResultSet] is transferred to the [ResultSetController],
  * i.e. it is closed when [dispose] is called.
+ *
+ * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases the [tableName] will be null.
  */
-
 @UiThread
 class ResultSetController(
-  sqliteController: SqliteController,
-  private val view: SqliteView,
-  private val table: SqliteTable,
+  parentDisposable: Disposable,
+  private val view: ResultSetView,
+  private val tableName: String?,
   private val resultSet: SqliteResultSet,
-  executor: EdtExecutor
+  private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
-  private val edtExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(executor)
-
   /** The number of rows to retrieve per service invocation (to prevent too many round trip per row) */
   private val rowBatchSize = 50     //TODO(b/131589065)
   /** The maximum number of rows to retrieve (to prevent unbounded memory/cpu usage) */
   private val maxRowCount = 1_000   //TODO(b/131589065)
 
   init {
-    Disposer.register(sqliteController, this)
+    Disposer.register(parentDisposable, this)
     Disposer.register(this, resultSet)
   }
 
-  fun start() {
-    view.startTableLoading(table)
+  fun setUp() {
+    view.startTableLoading(tableName)
 
     val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns()) { columns ->
       guardDisposed {
@@ -68,7 +65,7 @@ class ResultSetController(
 
     val futureCatching = edtExecutor.catching(futureDisplayRows, Throwable::class.java) { error ->
       guardDisposed {
-        view.reportErrorRelatedToTable(table, "Error retrieving contents of table", error)
+        view.reportErrorRelatedToTable(tableName, "Error retrieving contents of tableName", error)
       }
     }
 

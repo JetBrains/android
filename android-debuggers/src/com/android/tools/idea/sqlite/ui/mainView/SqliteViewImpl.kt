@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui
+package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
@@ -28,18 +28,17 @@ import com.android.tools.idea.sqlite.model.SqliteModel
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.ResultSetView
+import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
+import com.android.tools.idea.sqlite.ui.reportError
+import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
+import com.android.tools.idea.sqlite.ui.setupResultSetTable
 import com.intellij.icons.AllIcons
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.table.JBTable
 import com.intellij.ui.treeStructure.Tree
-import com.intellij.util.ui.JBUI
 import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -47,9 +46,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.ArrayList
 import java.util.Vector
-import java.util.concurrent.CancellationException
 import javax.swing.JComponent
-import javax.swing.JTable
 import javax.swing.table.DefaultTableModel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -73,6 +70,8 @@ class SqliteViewImpl(
     }
   }
 
+  override val tableView = TableViewResultSetImpl()
+
   init {
     workBench = WorkBench(project, "Sqlite", fileEditor)
     Disposer.register(fileEditor, workBench)
@@ -89,30 +88,40 @@ class SqliteViewImpl(
     listeners.remove(listener)
   }
 
-  override fun setup() {}
+  override fun setUp() { }
 
   override fun startLoading(text: String) {
     workBench.setLoadingText(text)
   }
 
   override fun stopLoading() {
-    val newPanel = SqliteEditorPanel()
-    newPanel.deviceIdText.text = model.sqliteFileId.deviceId
-    newPanel.devicePathText.text = model.sqliteFileId.devicePath
+    val panel = SqliteEditorPanel()
+    this.panel = panel
 
-    // Setup status text with link to Schema tool window
-    newPanel.resultSetTable.emptyText.clear()
-    newPanel.resultSetTable.emptyText.appendText("Double click on a table in the ")
-    newPanel.resultSetTable.emptyText.appendText("Schema", SimpleTextAttributes.LINK_ATTRIBUTES) {
-      this.activateSchemaToolWindow()
-    }
-    newPanel.resultSetTable.emptyText.appendText(" ToolWindow")
+    panel.deviceIdText.text = model.sqliteFileId.deviceId
+    panel.devicePathText.text = model.sqliteFileId.devicePath
+
+    resetView()
 
     val definitions = ArrayList<ToolWindowDefinition<SqliteViewContext>>()
     definitions.add(SchemaPanelToolContent.getDefinition())
-    workBench.init(newPanel.mainPanel, viewContext, definitions)
+    workBench.init(panel.mainPanel, viewContext, definitions)
 
-    this.panel = newPanel
+    panel.openSqlEvalDialog.addActionListener { listeners.forEach{ it.openSqliteEvaluatorActionInvoked() } }
+  }
+
+  override fun resetView() {
+    tableModel.dataVector.clear()
+    tableModel.rowCount = 0
+    tableModel.columnCount = 0
+
+    panel?.resultSetTable?.emptyText?.clear()
+    panel?.resultSetTitleLabel?.text = ""
+    panel?.resultSetTable?.emptyText?.appendText("Double click on a table in the ")
+    panel?.resultSetTable?.emptyText?.appendText("Schema", SimpleTextAttributes.LINK_ATTRIBUTES) {
+      activateSchemaToolWindow()
+    }
+    panel?.resultSetTable?.emptyText?.appendText(" ToolWindow")
   }
 
   private fun activateSchemaToolWindow() {
@@ -178,65 +187,8 @@ class SqliteViewImpl(
     }
   }
 
-  override fun startTableLoading(table: SqliteTable) {
-    // Delete table contents (row and columns)
-    setupResultSetTitle("Contents of table '${table.name}'")
-    //panel?.resultSetPane?.let { it.isVisible = true }
-    panel?.resultSetTable?.let { jbTable ->
-      setupResultSetTable(jbTable)
-      tableModel.rowCount = 0
-      tableModel.columnCount = 0
-      jbTable.setPaintBusy(true)
-    }
-  }
-
-  override fun showTableColumns(columns: List<SqliteColumn>) {
-    panel?.resultSetTable?.let { table ->
-      columns.forEach { c ->
-        tableModel.addColumn(c.name)
-      }
-
-      setResultSetTableColumns(table)
-    }
-  }
-
-  private fun setupResultSetTable(table: JBTable) {
-    if (table.model != tableModel) {
-      table.model = tableModel
-      table.setDefaultRenderer(columnClass, ResultSetTreeCellRenderer())
-      // Turn off JTable's auto resize so that JScrollPane will show a horizontal
-      // scroll bar.
-      table.autoResizeMode = JTable.AUTO_RESIZE_OFF
-      table.emptyText.text = "Table is empty"
-    }
-  }
-
   private fun setupResultSetTitle(title: String) {
     panel?.resultSetTitleLabel?.let { it.text = title }
-  }
-
-  private fun setResultSetTableColumns(table: JBTable) {
-    val headerRenderer = ResultSetTreeHeaderRenderer(table.tableHeader.defaultRenderer)
-    val width = Math.max(JBUI.scale(50), (table.parent.width - JBUI.scale(10)) / table.columnModel.columnCount)
-    for (index in 0 until table.columnModel.columnCount) {
-      val column = table.columnModel.getColumn(index)
-      column.preferredWidth = width
-      column.headerRenderer = headerRenderer
-    }
-  }
-
-  override fun showTableRowBatch(rows: List<SqliteRow>) {
-    panel?.resultSetTable?.let {
-      rows.forEach { row ->
-        val values = Vector<SqliteColumnValue>()
-        row.values.forEach { values.addElement(it) }
-        tableModel.addRow(values)
-      }
-    }
-  }
-
-  override fun stopTableLoading() {
-    panel?.resultSetTable?.setPaintBusy(false)
   }
 
   override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) {
@@ -248,26 +200,48 @@ class SqliteViewImpl(
     workBench.loadingStopped(errorMessage)
   }
 
-  override fun reportErrorRelatedToTable(table: SqliteTable, message: String, t: Throwable) {
-    reportError(message, t)
-  }
+  inner class TableViewResultSetImpl : ResultSetView {
+    override fun startTableLoading(tableName: String?) {
+      // We know that in SqliteViewImpl the table name will never be null,
+      // because each table shown here corresponds to a real table in the database.
+      assert(tableName != null)
 
-  private fun reportError(message: String, t: Throwable) {
-    if (t is CancellationException) {
-      return
+      setupResultSetTitle("Contents of table: '$tableName'")
+      panel?.resultSetTable?.let { jbTable ->
+        jbTable.setupResultSetTable(tableModel, columnClass)
+        tableModel.rowCount = 0
+        tableModel.columnCount = 0
+        jbTable.setPaintBusy(true)
+      }
     }
 
-    var errorMessage = message
-    t.message?.let {
-      errorMessage += ": " + t.message
+    override fun showTableColumns(columns: List<SqliteColumn>) {
+      panel?.resultSetTable?.let { table ->
+        columns.forEach { c ->
+          tableModel.addColumn(c.name)
+        }
+
+        table.setResultSetTableColumns()
+      }
     }
 
-    val notification = Notification("Sqlite Viewer",
-        "Sqlite Viewer",
-        errorMessage,
-        NotificationType.WARNING)
+    override fun showTableRowBatch(rows: List<SqliteRow>) {
+      panel?.resultSetTable?.let {
+        rows.forEach { row ->
+          val values = Vector<SqliteColumnValue>()
+          row.values.forEach { values.addElement(it) }
+          tableModel.addRow(values)
+        }
+      }
+    }
 
-    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
+    override fun stopTableLoading() {
+      panel?.resultSetTable?.setPaintBusy(false)
+    }
+
+    override fun reportErrorRelatedToTable(tableName: String?, message: String, t: Throwable) {
+      reportError(message, t)
+    }
   }
 
   class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
