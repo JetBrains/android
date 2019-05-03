@@ -325,7 +325,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     }
     final List<String> commandLine = ExternalProcessUtil
       .buildJavaCommandLine(javaExecutable, AndroidDxRunner.class.getName(),
-                            Collections.<String>emptyList(), classPath, vmOptions, programParamList);
+                            Collections.emptyList(), classPath, vmOptions, programParamList);
 
     LOG.info(AndroidCommonUtils.command2string(commandLine));
 
@@ -334,7 +334,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
 
     if (testingManager != null) {
       process = testingManager.getCommandExecutor().createProcess(
-        commands, Collections.<String, String>emptyMap());
+        commands, Collections.emptyMap());
     }
     else {
       process = Runtime.getRuntime().exec(commands);

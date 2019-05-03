@@ -37,7 +37,6 @@ import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,7 +139,7 @@ public class SdkComponentSource implements ExternalComponentSource {
     List<UpdatableExternalComponent> result = Lists.newArrayList();
     initIfNecessary(indicator);
 
-    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
+    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.of();
 
     for (com.android.repository.api.UpdatablePackage p : myPackages.getConsolidatedPkgs().values()) {
       if (remote) {

@@ -54,7 +54,7 @@ public class AttributesGrouper {
     COLORS("Colors", ImmutableList.of("color")),
     DRAWABLES("Drawables", ImmutableList.of("drawable")),
     METRICS("Metrics", ImmutableList.of("size", "width", "height")),
-    OTHER("Everything Else", Collections.<String>emptyList());
+    OTHER("Everything Else", Collections.emptyList());
 
     /**
      * Group name, as appears on properties panel

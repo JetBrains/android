@@ -33,7 +33,7 @@ public class GradleEditorEntityGroup implements Disposable {
   @NotNull private final List<GradleEditorEntity> myEntitiesView;
 
   public GradleEditorEntityGroup(@NotNull String name) {
-    this(name, Collections.<GradleEditorEntity>emptyList());
+    this(name, Collections.emptyList());
   }
 
   public GradleEditorEntityGroup(@NotNull String name, @NotNull Iterable<GradleEditorEntity> entities) {

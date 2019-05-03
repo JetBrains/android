@@ -135,7 +135,7 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
 
   public ColorPalette() {
     // Constructor used to display some content on the UI designer.
-    this(new StaticColorPaletteModel(Collections.<Color>emptyList()));
+    this(new StaticColorPaletteModel(Collections.emptyList()));
   }
 
   public void setModel(@NotNull ColorPaletteModel colorListModel) {

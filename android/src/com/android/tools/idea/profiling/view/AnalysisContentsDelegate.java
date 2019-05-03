@@ -218,7 +218,7 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
     root.removeAllChildren();
     myCategoryNodes.clear();
 
-    Set<AnalysisReport.Listener> singletonListener = Collections.<AnalysisReport.Listener>singleton(new AnalysisReport.Listener() {
+    Set<AnalysisReport.Listener> singletonListener = Collections.singleton(new AnalysisReport.Listener() {
       @Override
       public void onResultsAdded(@NonNull final List<AnalysisResultEntry<?>> entries) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {

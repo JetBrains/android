@@ -32,7 +32,7 @@ public class ThemeSelectionDialog extends DialogWrapper {
   @NotNull private final ThemeSelectionPanel myPanel;
 
   public ThemeSelectionDialog(@NotNull Configuration configuration) {
-    this(configuration, Collections.<String>emptySet());
+    this(configuration, Collections.emptySet());
   }
 
   public ThemeSelectionDialog(@NotNull Configuration configuration, @NotNull Set<String> excludedThemes) {

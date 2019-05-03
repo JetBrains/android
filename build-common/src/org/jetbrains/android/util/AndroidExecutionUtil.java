@@ -19,7 +19,7 @@ public final class AndroidExecutionUtil {
 
   @NotNull
     public static Map<AndroidCompilerMessageKind, List<String>> doExecute(String... argv) throws IOException {
-    return doExecute(argv, Collections.<String, String>emptyMap());
+    return doExecute(argv, Collections.emptyMap());
   }
 
   @NotNull

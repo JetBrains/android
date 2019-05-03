@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -105,7 +106,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java");
-    doTestGotoRelatedFile(file, Collections.<VirtualFile>emptyList(), PsiFile.class);
+    doTestGotoRelatedFile(file, Collections.emptyList(), PsiFile.class);
     final List<LineMarkerInfo> markerInfos = doGetRelatedLineMarkers();
     assertEmpty(markerInfos);
   }

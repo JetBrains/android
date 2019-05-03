@@ -66,7 +66,7 @@ import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParse
  */
 public class GradleEditorModelParserFacade {
 
-  private static final List<GradleEditorModelParser> ourParsers = Lists.<GradleEditorModelParser>newArrayList(
+  private static final List<GradleEditorModelParser> ourParsers = Lists.newArrayList(
     new GradleEditorModelParserV1()
   );
 

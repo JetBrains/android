@@ -72,11 +72,11 @@ public class AttributesGrouperTest {
   @Test
   public void testEmptySource() {
     ArrayList<EditedStyleItem> sink = Lists.newArrayList();
-    List<TableLabel> tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.GROUP, Collections.<EditedStyleItem>emptyList(), sink);
+    List<TableLabel> tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.GROUP, Collections.emptyList(), sink);
     assertThat(sink).isEmpty();
     assertThat(tableLabels).isEmpty();
 
-    tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.TYPE, Collections.<EditedStyleItem>emptyList(), sink);
+    tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.TYPE, Collections.emptyList(), sink);
     assertThat(sink).isEmpty();
     assertThat(tableLabels).isEmpty();
   }
