@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
 import com.intellij.compiler.CompilerIOUtil;
@@ -36,15 +37,15 @@ class ClassesAndJarsValidityState implements ValidityState {
   }
 
   ClassesAndJarsValidityState(@NotNull Collection<VirtualFile> files) {
-    myFiles = new HashMap<String, Long>();
-    Set<VirtualFile> visited = new HashSet<VirtualFile>();
+    myFiles = new HashMap<>();
+    Set<VirtualFile> visited = new HashSet<>();
     for (VirtualFile file : files) {
       fillMap(file, visited);
     }
   }
 
   ClassesAndJarsValidityState(@NotNull DataInput in) throws IOException {
-    myFiles = new HashMap<String, Long>();
+    myFiles = new HashMap<>();
     int size = in.readInt();
     while (size-- > 0) {
       final String path = CompilerIOUtil.readString(in);

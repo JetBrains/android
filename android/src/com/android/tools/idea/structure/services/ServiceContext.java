@@ -52,7 +52,7 @@ public final class ServiceContext {
 
   private final Map<String, ObservableValue> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
-  private final Map<AbstractProperty, Object> myWatched = new WeakHashMap<AbstractProperty, Object>();
+  private final Map<AbstractProperty, Object> myWatched = new WeakHashMap<>();
   private final BoolValueProperty myInstalled = new BoolValueProperty();
   private final BoolValueProperty myModified = new BoolValueProperty();
   private final BoolValueProperty myHiddenFromStructureDialog = new BoolValueProperty();

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
@@ -92,7 +93,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
         AndroidJpsBundle.message("android.jps.errors.manifest.not.found", module.getName())));
       return false;
     }
-    final ArrayList<String> assetsDirPaths = new ArrayList<String>();
+    final ArrayList<String> assetsDirPaths = new ArrayList<>();
     AndroidResourcePackagingBuildTarget.collectAssetDirs(extension, assetsDirPaths, true);
 
     final String outputFilePath = target.getOutputFile(context).getPath();
@@ -147,7 +148,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
       final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
       if (success) {
-        final List<String> srcFiles = new ArrayList<String>();
+        final List<String> srcFiles = new ArrayList<>();
         srcFiles.add(manifestFile.getPath());
         fillRecursively(resourceDirPaths, srcFiles);
         fillRecursively(assetsDirPaths, srcFiles);

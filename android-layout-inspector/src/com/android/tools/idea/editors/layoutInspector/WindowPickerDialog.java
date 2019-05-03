@@ -46,7 +46,7 @@ public class WindowPickerDialog extends DialogWrapper {
 
     myPanel = new JPanel(new BorderLayout());
 
-    myWindowsCombo = new ComboBox(new CollectionComboBoxModel<ClientWindow>(windows));
+    myWindowsCombo = new ComboBox(new CollectionComboBoxModel<>(windows));
     myWindowsCombo.setRenderer(new ClientWindowRenderer());
     myWindowsCombo.setSelectedIndex(0);
     myPanel.add(myWindowsCombo, BorderLayout.CENTER);

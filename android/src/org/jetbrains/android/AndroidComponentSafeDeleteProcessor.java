@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,7 +46,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
 
   @Override
   public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<UsageInfo> result) {
-    final ArrayList<UsageInfo> usages = new ArrayList<UsageInfo>();
+    final ArrayList<UsageInfo> usages = new ArrayList<>();
     final NonCodeUsageSearchInfo info = getBaseHandler().findUsages(element, allElementsToDelete, usages);
     if (info == null) {
       return info;

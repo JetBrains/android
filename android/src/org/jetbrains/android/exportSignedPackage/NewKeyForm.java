@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.jarutils.DebugKeyProvider;
@@ -96,7 +97,7 @@ public abstract class NewKeyForm {
     if (aliasList == null) {
       return prefix + '0';
     }
-    Set<String> aliasSet = new HashSet<String>();
+    Set<String> aliasSet = new HashSet<>();
     for (String alias : aliasList) {
       aliasSet.add(alias.toLowerCase());
     }

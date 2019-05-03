@@ -44,7 +44,7 @@ public class AndroidTestLocationProvider implements SMTestLocator {
     if (PROTOCOL_ID.equals(protocol)) {
       PsiElement element = findElement(path, project, scope);
       if (element != null) {
-        return Collections.singletonList((Location)new PsiLocation<PsiElement>(project, element));
+        return Collections.singletonList((Location)new PsiLocation<>(project, element));
       }
     }
 

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.codeInsight.PsiEquivalenceUtil;
@@ -187,7 +188,7 @@ class AndroidInlineUtil {
                                                      Collection<PsiElement> unambiguousUsages,
                                                      Collection<PsiElement> unsupportedUsages,
                                                      Collection<PsiElement> implicitlyInherited) {
-    final MultiMap<PsiElement, String> result = new MultiMap<PsiElement, String>();
+    final MultiMap<PsiElement, String> result = new MultiMap<>();
 
     for (PsiElement usage : nonXmlUsages) {
       result.putValue(usage, "Non-XML reference '" + toString(usage) + "' won't be updated");

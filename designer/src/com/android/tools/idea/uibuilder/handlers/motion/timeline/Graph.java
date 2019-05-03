@@ -62,7 +62,7 @@ public class Graph extends JPanel {
   public static final byte CIRCLE_STYLE = 2;
 
   Stroke myStroke = new BasicStroke(1f);
-  Vector<DrawItem> myDrawItems = new Vector<DrawItem>();
+  Vector<DrawItem> myDrawItems = new Vector<>();
   private int[] myStyle = new int[0];
 
   @Override

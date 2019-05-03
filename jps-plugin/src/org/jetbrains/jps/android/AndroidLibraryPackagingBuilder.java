@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
@@ -67,7 +68,7 @@ public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRo
     if (classesDir == null || !classesDir.isDirectory()) {
       return true;
     }
-    final Set<String> subdirs = new HashSet<String>();
+    final Set<String> subdirs = new HashSet<>();
     AndroidJpsUtil.addSubdirectories(classesDir, subdirs);
 
     if (!subdirs.isEmpty()) {

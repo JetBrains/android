@@ -3,7 +3,10 @@ package org.jetbrains.android.actions;
 
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -71,7 +74,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
     }
     assert project != null;
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    List<Module> modulesToProcess = new ArrayList<Module>();
+    List<Module> modulesToProcess = new ArrayList<>();
     for (AndroidFacet facet : facets) {
       module = facet.getModule();
       if (AndroidAutogenerator.supportsAutogeneration(facet)) {

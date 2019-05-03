@@ -210,7 +210,7 @@ public class TemplateUtils {
           max = Math.max(max, apiLevel);
           if (apiLevel > SdkVersionInfo.HIGHEST_KNOWN_API) {
             if (apiTargets == null) {
-              apiTargets = new SparseArray<IAndroidTarget>();
+              apiTargets = new SparseArray<>();
             }
             apiTargets.put(apiLevel, target);
           }
@@ -252,7 +252,7 @@ public class TemplateUtils {
     NodeList children = element.getChildNodes();
     // An iterator would have been more natural (to directly drive the child list
     // iteration) but iterators can't be used in enhanced for loops...
-    List<Element> result = new ArrayList<Element>(children.getLength());
+    List<Element> result = new ArrayList<>(children.getLength());
     for (int i = 0, n = children.getLength(); i < n; i++) {
       Node node = children.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {

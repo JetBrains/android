@@ -33,7 +33,7 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
 
   private Object mySelectedObject;
   private final SeparatedList myAllItems;
-  private final ArrayList<String> myRecentParentThemeList = new ArrayList<String>();
+  private final ArrayList<String> myRecentParentThemeList = new ArrayList<>();
 
   /**
    * @param defaultThemeList Default theme list in the combo, usually is taken from {@link ThemeEditorUtils#getDefaultThemeNames(ThemeResolver)}

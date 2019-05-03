@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.lint.detector.api.Issue;
@@ -17,7 +18,7 @@ public class State {
   private final VirtualFile myMainFile;
 
   private final String myMainFileContent;
-  private final List<ProblemData> myProblems = new ArrayList<ProblemData>();
+  private final List<ProblemData> myProblems = new ArrayList<>();
   private final Set<Issue> myIssues;
 
   private volatile boolean myDirty;

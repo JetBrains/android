@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
@@ -45,7 +46,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
 
   @Override
   public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry targetRegistry, TargetOutputIndex outputIndex) {
-    final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>();
+    final List<BuildTarget<?>> result = new ArrayList<>();
 
     for (JpsModule module : myProject.getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
@@ -99,9 +100,9 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
                                                           IgnoredFileIndex ignoredFileIndex,
                                                           BuildDataPaths dataPaths) {
     final List<AndroidPreDexBuildTarget.MyRootDescriptor> result =
-      new ArrayList<AndroidPreDexBuildTarget.MyRootDescriptor>();
-    final Set<JpsModule> libModules = new HashSet<JpsModule>();
-    final Set<String> externalJars = new HashSet<String>();
+      new ArrayList<>();
+    final Set<JpsModule> libModules = new HashSet<>();
+    final Set<String> externalJars = new HashSet<>();
 
     for (JpsModule module : myProject.getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);

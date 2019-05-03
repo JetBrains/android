@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -40,7 +41,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
 
   public ProGuardConfigFilesPanel() {
     super(new BorderLayout());
-    myModel = new CollectionListModel<String>();
+    myModel = new CollectionListModel<>();
     myList = new JBList(myModel);
 
     final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myList).
@@ -90,7 +91,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     if (paths.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<String> result = new ArrayList<String>(paths.size());
+    final List<String> result = new ArrayList<>(paths.size());
 
     for (String path : paths) {
       String url = VfsUtilCore.pathToUrl(path);
@@ -114,7 +115,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
   }
 
   public void setOsPaths(@NotNull List<String> paths) {
-    myModel = new CollectionListModel<String>(paths);
+    myModel = new CollectionListModel<>(paths);
     myList.setModel(myModel);
   }
 

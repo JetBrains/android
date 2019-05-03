@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
@@ -145,16 +131,16 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       .addActionListener(new MyGenSourceFieldListener(myAidlGenPathField, AndroidRootUtil.getAidlGenSourceRootPath(facet)));
 
     Module module = myContext.getModule();
-    
+
     myManifestFileField.getButton().addActionListener(
       new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getManifestFile(facet), true, new MyManifestFilter()));
-    
+
     myResFolderField.getButton().addActionListener(new MyFolderFieldListener(myResFolderField,
                                                                              AndroidRootUtil.getResourceDir(facet), false, null));
-    
+
     myAssetsFolderField.getButton().addActionListener(new MyFolderFieldListener(myAssetsFolderField,
                                                                                 AndroidRootUtil.getAssetsDir(facet), false, null));
-    
+
     myNativeLibsFolder.getButton().addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
                                                                                AndroidRootUtil.getLibsDir(facet), false, null));
 
@@ -166,7 +152,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         myProGuardConfigFilesPanel.setEnabled(myRunProguardCheckBox.isSelected());
       }
     });
-    
+
     myCustomDebugKeystoreField.getButton().addActionListener(new MyFolderFieldListener(myCustomDebugKeystoreField, null, true, null));
 
     myResetPathsButton.addActionListener(new ActionListener() {
@@ -308,7 +294,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private static String[] getDefaultApks(@NotNull Module module) {
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     String path = AndroidCompileUtil.getOutputPackage(module);
     if (path != null) {
       result.add(path);
@@ -857,7 +843,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     };
     return FileChooser.chooseFiles(descriptor, myContentPanel, myContext.getProject(), initialFile);
   }
-  
+
   private static class MyManifestFilter implements Condition<VirtualFile> {
 
     @Override

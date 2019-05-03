@@ -46,7 +46,7 @@ public final class StudioTemplateLoader implements TemplateLoader {
    */
   public StudioTemplateLoader(@NotNull File templateFolder) {
     myTemplateRootFolder = findTemplateRootFolder(templateFolder);
-    myLastTemplateFolders = new Stack<File>();
+    myLastTemplateFolders = new Stack<>();
     myLastTemplateFolders.push(templateFolder);
   }
 

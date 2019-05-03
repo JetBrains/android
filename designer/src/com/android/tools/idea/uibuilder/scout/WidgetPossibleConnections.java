@@ -39,11 +39,11 @@ public class WidgetPossibleConnections {
    */
   public WidgetPossibleConnections(ScoutWidget widget) {
     myWidget = widget;
-    this.north = new ArrayList<Connection>();
-    this.south = new ArrayList<Connection>();
-    this.east = new ArrayList<Connection>();
-    this.west = new ArrayList<Connection>();
-    this.baseline = new ArrayList<Connection>();
+    this.north = new ArrayList<>();
+    this.south = new ArrayList<>();
+    this.east = new ArrayList<>();
+    this.west = new ArrayList<>();
+    this.baseline = new ArrayList<>();
   }
 
   ScoutWidget getWidget() {

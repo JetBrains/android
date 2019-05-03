@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
@@ -59,7 +60,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
       if (activityClass == null) {
         return Collections.emptyList();
       }
-      final List<PsiClass> result = new ArrayList<PsiClass>();
+      final List<PsiClass> result = new ArrayList<>();
 
       for (GotoRelatedItem item : items) {
         final PsiElement element = item.getElement();
@@ -94,7 +95,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     if (activityClass == null) {
       return Collections.emptySet();
     }
-    final Set<PsiClass> result = new HashSet<PsiClass>();
+    final Set<PsiClass> result = new HashSet<>();
 
     ReferencesSearch.search(fields[0], scope).forEach(new Processor<PsiReference>() {
       @Override
@@ -148,7 +149,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     private final boolean myOnTheFly;
     private final Collection<PsiClass> myRelatedActivities;
 
-    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
+    final List<ProblemDescriptor> myResult = new ArrayList<>();
 
     private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly, @NotNull Collection<PsiClass> relatedActivities) {
       myInspectionManager = inspectionManager;
@@ -169,8 +170,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           continue;
         }
         final ResolveResult[] results = ref.multiResolve(false);
-        final Set<PsiClass> resolvedClasses = new HashSet<PsiClass>();
-        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<PsiClass>();
+        final Set<PsiClass> resolvedClasses = new HashSet<>();
+        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<>();
 
         for (ResolveResult result : results) {
           if (result instanceof OnClickConverter.MyResolveResult) {

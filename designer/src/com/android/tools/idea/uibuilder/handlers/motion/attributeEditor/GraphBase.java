@@ -64,7 +64,7 @@ public class GraphBase extends JPanel {
   private static JBColor ourEndPointColor  = EditorUtils.ourEasingGraphColor;
 
   private static Stroke ourStroke = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL);
-  Vector<DrawItem> myDrawItems = new Vector<DrawItem>();
+  Vector<DrawItem> myDrawItems = new Vector<>();
   private int[] pointMode = new int[0];
 
   void waveGen(int base) {

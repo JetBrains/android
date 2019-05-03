@@ -81,7 +81,7 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
           @Override
           public void generate(@NotNull final Processor<Usage> processor) {
             AdapterProcessor<UsageInfo, Usage> consumer =
-              new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
+              new AdapterProcessor<>(processor, UsageInfo2UsageAdapter.CONVERTER);
             findUsages(findModelCopy, project, consumer, processPresentation);
           }
         };

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
 import com.android.tools.adtui.common.StudioColorsKt;
@@ -111,7 +112,7 @@ public class TrackControls extends JPanel {
   private void popupSlowSpee(ActionEvent e, GanttEventListener.Actions action) {
     String[] list = {"0.25 x", "0.5 x", "1 x", "2 x", "4 x"};
     final float[] speed = {0.25f, 0.5f, 1, 2, 4};
-    final JList<String> displayedList = new JBList<String>(list);
+    final JList<String> displayedList = new JBList<>(list);
     JBPopupListener listener = new JBPopupListener.Adapter() {
       @Override
       public void onClosed(LightweightWindowEvent event) {

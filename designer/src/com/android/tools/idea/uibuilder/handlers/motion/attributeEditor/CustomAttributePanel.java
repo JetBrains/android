@@ -37,7 +37,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
  * Used to show custom attributes
  */
 public class CustomAttributePanel extends TagPanel {
-  private final Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
+  private final Vector<String> colNames = new Vector<>(Arrays.asList("Name", "Value"));
   private final Vector<Vector<Object>> data = new Vector<>();
   private final DefaultTableModel myTableModel = new CustomAttrTableModel(data, colNames);
   private final JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
@@ -118,7 +118,7 @@ public class CustomAttributePanel extends TagPanel {
     HashMap<String, Object> attr = tag.getAttributes();
     data.clear();
     for (String s : attr.keySet()) {
-      Vector<Object> v = new Vector<Object>(Arrays.asList(s, attr.get(s)));
+      Vector<Object> v = new Vector<>(Arrays.asList(s, attr.get(s)));
       data.add(v);
     }
     data.sort(Comparator.comparing(row -> ((String)row.get(0))));

@@ -33,7 +33,7 @@ import java.util.Set;
 public class BrUtil {
   private static final Logger LOG = Logger.getInstance(BrUtil.class);
   static Set<String> collectIds(Collection<? extends PsiModifierListOwner> psiElements) {
-    Set<String> properties = new HashSet<String>();
+    Set<String> properties = new HashSet<>();
     for (PsiModifierListOwner owner : psiElements) {
       String key = null;
       if (owner instanceof PsiField) {

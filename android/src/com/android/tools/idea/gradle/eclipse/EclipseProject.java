@@ -119,7 +119,7 @@ class EclipseProject implements Comparable<EclipseProject> {
       initInstrumentation();
     }
     else {
-      myDirectLibraries = new ArrayList<EclipseProject>(4);
+      myDirectLibraries = new ArrayList<>(4);
     }
 
     initClassPathEntries();
@@ -265,7 +265,7 @@ class EclipseProject implements Comparable<EclipseProject> {
   }
 
   private void initLibraries(@NonNull Properties properties) throws IOException {
-    myDirectLibraries = new ArrayList<EclipseProject>(4);
+    myDirectLibraries = new ArrayList<>(4);
 
     for (int i = 0; i < 1000; i++) {
       String key = String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, i);
@@ -1219,7 +1219,7 @@ class EclipseProject implements Comparable<EclipseProject> {
         return myDirectLibraries;
       }
 
-      List<EclipseProject> all = new ArrayList<EclipseProject>();
+      List<EclipseProject> all = new ArrayList<>();
       Set<EclipseProject> seen = Sets.newHashSet();
       Set<EclipseProject> path = Sets.newHashSet();
       seen.add(this);

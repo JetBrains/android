@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.util;
 
 import com.intellij.ProjectTopics;
@@ -51,7 +52,7 @@ public class AndroidDependenciesCache {
 
     if (cache == null) {
       cache = new AndroidDependenciesCache(module);
-      module.putUserData(KEY, new SoftReference<AndroidDependenciesCache>(cache));
+      module.putUserData(KEY, new SoftReference<>(cache));
     }
     return cache;
   }
@@ -73,13 +74,13 @@ public class AndroidDependenciesCache {
     List<WeakReference<AndroidFacet>> refs = listRef.get();
 
     if (refs == null) {
-      final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
-      collectAllAndroidDependencies(module, androidLibrariesOnly, facets, new HashSet<AndroidFacet>());
+      final List<AndroidFacet> facets = new ArrayList<>();
+      collectAllAndroidDependencies(module, androidLibrariesOnly, facets, new HashSet<>());
 
       refs = ContainerUtil.map(ContainerUtil.reverse(facets), new Function<AndroidFacet, WeakReference<AndroidFacet>>() {
         @Override
         public WeakReference<AndroidFacet> fun(AndroidFacet facet) {
-          return new WeakReference<AndroidFacet>(facet);
+          return new WeakReference<>(facet);
         }
       });
       listRef.set(refs);

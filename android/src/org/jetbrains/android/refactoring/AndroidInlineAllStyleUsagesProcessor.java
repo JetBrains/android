@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.lang.xml.XMLLanguage;
@@ -79,7 +80,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected UsageInfo[] findUsages() {
-    final Set<UsageInfo> usages = new HashSet<UsageInfo>();
+    final Set<UsageInfo> usages = new HashSet<>();
     AndroidInlineUtil.addReferences(myStyleElement, usages);
 
     for (PsiField field : AndroidResourceUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
@@ -91,7 +92,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
-    final List<StyleUsageData> inlineInfos = new ArrayList<StyleUsageData>();
+    final List<StyleUsageData> inlineInfos = new ArrayList<>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();
@@ -124,10 +125,10 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   }
 
   private static MultiMap<PsiElement, String> detectConflicts(UsageInfo[] usages) {
-    final List<PsiElement> nonXmlUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> unsupportedUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> unambiguousUsages = new ArrayList<PsiElement>();
-    final List<PsiElement> implicitlyInherited = new ArrayList<PsiElement>();
+    final List<PsiElement> nonXmlUsages = new ArrayList<>();
+    final List<PsiElement> unsupportedUsages = new ArrayList<>();
+    final List<PsiElement> unambiguousUsages = new ArrayList<>();
+    final List<PsiElement> implicitlyInherited = new ArrayList<>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();

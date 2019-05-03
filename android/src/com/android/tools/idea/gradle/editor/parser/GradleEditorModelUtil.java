@@ -169,7 +169,7 @@ public class GradleEditorModelUtil {
                                        @NotNull GradleEditorModelParseContext context,
                                        @Nullable AssignmentFilter filter) {
     Set<Variable> processed = Sets.newHashSet();
-    Stack<Variable> toProcess = new Stack<Variable>();
+    Stack<Variable> toProcess = new Stack<>();
     toProcess.addAll(variables);
     List<GradleEditorSourceBinding> sourceBindings = Lists.newArrayList();
     String value = "";

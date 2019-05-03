@@ -66,7 +66,7 @@ public class LayerDisplay {
   static class DeviceBridge {
     private static AndroidDebugBridge bridge;
 
-    private static final HashMap<IDevice, Integer> devicePortMap = new HashMap<IDevice, Integer>();
+    private static final HashMap<IDevice, Integer> devicePortMap = new HashMap<>();
     private static int nextLocalPort = Configuration.DEFAULT_SERVER_PORT;
 
     public static void initDebugBridge() {

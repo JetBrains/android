@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.resources.LocaleManager;
@@ -353,7 +353,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private ResourceQualifier[] filterUnsupportedQualifiers(ResourceQualifier[] qualifiers) {
-    final List<ResourceQualifier> result = new ArrayList<ResourceQualifier>();
+    final List<ResourceQualifier> result = new ArrayList<>();
     for (ResourceQualifier qualifier : qualifiers) {
       if (myEditors.containsKey(qualifier.getShortName())) {
         result.add(qualifier);
@@ -699,7 +699,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     private Density mySelected = null;
 
     DensityComboBoxModel() {
-      myList = new ArrayList<Density>();
+      myList = new ArrayList<>();
       for (Density density : Density.values()) {
         if (density.isRecommended()) {
           myList.add(density);
@@ -1114,7 +1114,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       JBLabel regionLabel = new JBLabel("Specific Region Only:");
 
-      SortedListModel<String> languageModel = new SortedListModel<String>(new Comparator<String>() {
+      SortedListModel<String> languageModel = new SortedListModel<>(new Comparator<String>() {
         @Override
         public int compare(String s1, String s2) {
           // Special language comparator: We want to prefer 2-letter language codes.
@@ -1196,19 +1196,21 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
-      final Ref<String> preferred = new Ref<String>(null);
-      SortedListModel<String> regionModel = new SortedListModel<String>(new Comparator<String>() {
+      final Ref<String> preferred = new Ref<>(null);
+      SortedListModel<String> regionModel = new SortedListModel<>(new Comparator<String>() {
         @Override
         public int compare(String s1, String s2) {
           // Sort "Any Region" to the top
           if (s1.equals(FAKE_VALUE)) {
             return -1;
-          } else if (s2.equals(FAKE_VALUE)) {
+          }
+          else if (s2.equals(FAKE_VALUE)) {
             return 1;
           }
           if (s1.equals(preferred.get())) {
             return -1;
-          } else if (s2.equals(preferred.get())) {
+          }
+          else if (s2.equals(preferred.get())) {
             return 1;
           }
           // Special language comparator: We want to prefer 2-letter language codes.

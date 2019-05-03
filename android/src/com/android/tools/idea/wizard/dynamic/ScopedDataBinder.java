@@ -353,7 +353,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
 
     @Nullable
     protected static Set<Key<?>> makeSetOf(Key<?>... elements) {
-      Set<Key<?>> keys = new HashSet<Key<?>>(elements.length);
+      Set<Key<?>> keys = new HashSet<>(elements.length);
       Collections.addAll(keys, elements);
       return keys;
     }

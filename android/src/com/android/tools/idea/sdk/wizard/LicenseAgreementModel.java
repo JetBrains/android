@@ -36,7 +36,7 @@ public final class LicenseAgreementModel extends WizardModel {
 
   private final Set<License> myLicenses = Sets.newHashSet();
 
-  private final OptionalProperty<File> mySdkRoot = new OptionalValueProperty<File>();
+  private final OptionalProperty<File> mySdkRoot = new OptionalValueProperty<>();
 
   public Set<License> getLicenses() {
     return myLicenses;

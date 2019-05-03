@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.tools;
 
 import com.android.SdkConstants;
@@ -63,7 +49,7 @@ public class AndroidApkBuilder {
   private static Map<AndroidCompilerMessageKind, List<String>> filterUsingKeystoreMessages(Map<AndroidCompilerMessageKind, List<String>> messages) {
     List<String> infoMessages = messages.get(INFORMATION);
     if (infoMessages == null) {
-      infoMessages = new ArrayList<String>();
+      infoMessages = new ArrayList<>();
       messages.put(INFORMATION, infoMessages);
     }
     final List<String> errors = messages.get(ERROR);
@@ -138,9 +124,9 @@ public class AndroidApkBuilder {
         sdkPath,
         customKeystorePath}, "\n"));
     }
-    final Map<AndroidCompilerMessageKind, List<String>> map = new HashMap<AndroidCompilerMessageKind, List<String>>();
-    map.put(ERROR, new ArrayList<String>());
-    map.put(WARNING, new ArrayList<String>());
+    final Map<AndroidCompilerMessageKind, List<String>> map = new HashMap<>();
+    map.put(ERROR, new ArrayList<>());
+    map.put(WARNING, new ArrayList<>());
 
     final File outputDir = new File(finalApk).getParentFile();
     if (!outputDir.exists() && !outputDir.mkdirs()) {
@@ -221,19 +207,19 @@ public class AndroidApkBuilder {
                                                                             @Nullable String customKeystorePath,
                                                                             boolean signed,
                                                                             @NotNull Condition<File> resourceFilter) {
-    final Map<AndroidCompilerMessageKind, List<String>> result = new HashMap<AndroidCompilerMessageKind, List<String>>();
-    result.put(ERROR, new ArrayList<String>());
-    result.put(INFORMATION, new ArrayList<String>());
-    result.put(WARNING, new ArrayList<String>());
+    final Map<AndroidCompilerMessageKind, List<String>> result = new HashMap<>();
+    result.put(ERROR, new ArrayList<>());
+    result.put(INFORMATION, new ArrayList<>());
+    result.put(WARNING, new ArrayList<>());
 
     FileOutputStream fos = null;
     SignedJarBuilder builder = null;
     try {
 
       String keyStoreOsPath = customKeystorePath != null && !customKeystorePath.isEmpty()
-                              ? customKeystorePath 
+                              ? customKeystorePath
                               : DebugKeyProvider.getDefaultKeyStoreOsPath();
-      
+
       DebugKeyProvider provider = createDebugKeyProvider(result, keyStoreOsPath);
 
       X509Certificate certificate = signed ? (X509Certificate)provider.getCertificate() : null;
@@ -296,16 +282,16 @@ public class AndroidApkBuilder {
 
       builder.writeFile(dexEntryFile, AndroidCommonUtils.CLASSES_FILE_NAME);
 
-      final HashSet<String> added = new HashSet<String>();
+      final HashSet<String> added = new HashSet<>();
       for (String resourceRootPath : javaResourceRoots) {
-        final HashSet<File> javaResources = new HashSet<File>();
+        final HashSet<File> javaResources = new HashSet<>();
         final File resourceRoot = new File(resourceRootPath);
         collectStandardJavaResources(resourceRoot, javaResources, resourceFilter);
         writeStandardJavaResources(javaResources, resourceRoot, builder, added);
       }
 
-      Set<String> duplicates = new HashSet<String>();
-      Set<String> entries = new HashSet<String>();
+      Set<String> duplicates = new HashSet<>();
+      Set<String> entries = new HashSet<>();
       for (String externalJar : externalJars) {
         collectDuplicateEntries(externalJar, entries, duplicates);
       }
@@ -326,7 +312,7 @@ public class AndroidApkBuilder {
         }
       }
 
-      final HashSet<String> nativeLibs = new HashSet<String>();
+      final HashSet<String> nativeLibs = new HashSet<>();
       for (String nativeLibsFolderPath : nativeLibsFolders) {
         final File nativeLibsFolder = new File(nativeLibsFolderPath);
         final File[] children = nativeLibsFolder.listFiles();
@@ -414,7 +400,7 @@ public class AndroidApkBuilder {
                                            boolean debugBuild,
                                            Set<String> added)
     throws IOException {
-    ArrayList<File> list = new ArrayList<File>();
+    ArrayList<File> list = new ArrayList<>();
     collectNativeLibraries(child, list, debugBuild);
 
     for (File file : list) {

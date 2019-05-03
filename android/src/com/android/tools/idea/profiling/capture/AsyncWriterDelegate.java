@@ -30,7 +30,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 class AsyncWriterDelegate implements Runnable {
   private static final Logger LOG = Logger.getInstance(AsyncWriterDelegate.class);
 
-  @NotNull private BlockingQueue<Message> myWriteQueue = new LinkedBlockingDeque<Message>();
+  @NotNull private BlockingQueue<Message> myWriteQueue = new LinkedBlockingDeque<>();
   private boolean myShouldContinue = true;
 
   private static abstract class Message {

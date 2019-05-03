@@ -50,7 +50,7 @@ public class GradleEditTaskDialog extends DialogWrapper {
         return super.getItems(prefix, cached, parameters);
       }
     };
-    myTaskField = new TextFieldWithAutoCompletion<String>(project, provider, true, null);
+    myTaskField = new TextFieldWithAutoCompletion<>(project, provider, true, null);
     myTaskPanel.add(myTaskField);
 
     init();

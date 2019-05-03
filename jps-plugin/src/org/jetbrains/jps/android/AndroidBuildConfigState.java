@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.util.containers.HashSet;
@@ -21,14 +22,14 @@ public class AndroidBuildConfigState implements ValidityState {
   public AndroidBuildConfigState(@NotNull String aPackage, @NotNull Collection<String> libPackages, boolean debug) {
     myPackage = aPackage;
     myDebug = debug;
-    myLibPackages = new HashSet<String>(libPackages);
+    myLibPackages = new HashSet<>(libPackages);
   }
 
   public AndroidBuildConfigState(@NotNull DataInput in) throws IOException {
     myPackage = in.readUTF();
 
     final int libPackagesCount = in.readInt();
-    myLibPackages = new HashSet<String>(libPackagesCount);
+    myLibPackages = new HashSet<>(libPackagesCount);
     for (int i = 0; i < libPackagesCount; i++) {
       myLibPackages.add(in.readUTF());
     }

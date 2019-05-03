@@ -212,7 +212,7 @@ public class GraphicsLayoutRenderer {
     assert device != null;
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(device);
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
-    List<ResourceValue> resourceLookupChain = new ArrayList<ResourceValue>();
+    List<ResourceValue> resourceLookupChain = new ArrayList<>();
     ResourceResolver resourceResolver =  ResourceResolver.copy(configuration.getResourceResolver());
     assert resourceResolver != null;
     // Create a resource resolver that will save the lookups on the passed List<>
@@ -467,7 +467,7 @@ public class GraphicsLayoutRenderer {
    */
   @NotNull
   public Set<String> getUsedAttrs() {
-    HashSet<String> usedAttrs = new HashSet<String>();
+    HashSet<String> usedAttrs = new HashSet<>();
     for(ResourceValue value : myResourceLookupChain) {
       if (!(value instanceof StyleItemResourceValue) || ((StyleItemResourceValue)value).getAttrName() == null) {
         // Only selects resources that are also attributes

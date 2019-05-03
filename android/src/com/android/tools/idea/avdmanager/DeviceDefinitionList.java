@@ -82,9 +82,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
 
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
-  private final ListTableModel<Device> myModel = new ListTableModel<Device>();
+  private final ListTableModel<Device> myModel = new ListTableModel<>();
   private TableView<Device> myTable;
-  private final ListTableModel<String> myCategoryModel = new ListTableModel<String>();
+  private final ListTableModel<String> myCategoryModel = new ListTableModel<>();
   private TableView<String> myCategoryList;
   private JButton myCreateProfileButton;
   private JButton myImportProfileButton;
@@ -418,7 +418,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     for (Device d : myDevices) {
       String category = getCategory(d);
       if (!myDeviceCategoryMap.containsKey(category)) {
-        myDeviceCategoryMap.put(category, new ArrayList<Device>(1));
+        myDeviceCategoryMap.put(category, new ArrayList<>(1));
       }
       myDeviceCategoryMap.get(category).add(d);
     }
@@ -482,8 +482,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void createUIComponents() {
-    myCategoryList = new TableView<String>();
-    myTable = new TableView<Device>();
+    myCategoryList = new TableView<>();
+    myTable = new TableView<>();
     myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   }
 

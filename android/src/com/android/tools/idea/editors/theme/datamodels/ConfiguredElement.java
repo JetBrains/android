@@ -57,6 +57,6 @@ public class ConfiguredElement<T> implements Configurable {
    * @param value               the value for this element
    */
   public static <T> ConfiguredElement<T> create(@NotNull FolderConfiguration folderConfiguration, @NotNull T value) {
-    return new ConfiguredElement<T>(folderConfiguration, value);
+    return new ConfiguredElement<>(folderConfiguration, value);
   }
 }

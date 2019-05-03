@@ -307,7 +307,7 @@ public class AttributeTagPanel extends TagPanel {
       if (keyframe != null) {
         HashMap<String, Object> tmp = new HashMap<>();
         keyframe.fill(tmp);
-        ArrayList<String> attributesNames = new ArrayList<String>(tmp.keySet());
+        ArrayList<String> attributesNames = new ArrayList<>(tmp.keySet());
         attributesNames.sort(EditorUtils.compareAttributes);
 
         for (String s : attributesNames) {

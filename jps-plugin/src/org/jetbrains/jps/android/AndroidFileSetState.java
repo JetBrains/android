@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Condition;
@@ -22,7 +23,7 @@ public class AndroidFileSetState implements ValidityState {
   private final Map<String, Long> myTimestamps;
 
   public AndroidFileSetState(@NotNull Collection<String> roots, @NotNull final Condition<File> filter, boolean recursively) {
-    myTimestamps = new HashMap<String, Long>();
+    myTimestamps = new HashMap<>();
 
     for (String rootPath : roots) {
       final File root = new File(rootPath);
@@ -46,7 +47,7 @@ public class AndroidFileSetState implements ValidityState {
 
   public AndroidFileSetState(DataInput in) throws IOException {
     final int resourcesCount = in.readInt();
-    myTimestamps = new HashMap<String, Long>(resourcesCount);
+    myTimestamps = new HashMap<>(resourcesCount);
 
     for (int i = 0; i < resourcesCount; i++) {
       final String filePath = in.readUTF();

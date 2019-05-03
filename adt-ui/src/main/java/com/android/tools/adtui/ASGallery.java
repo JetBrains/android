@@ -318,7 +318,7 @@ public class ASGallery<E> extends JBList {
     }
 
     public static <P, R> Function<P, Optional<R>> wrap(Function<P, R> function) {
-      return new ToOptionalFunction<P, R>(function);
+      return new ToOptionalFunction<>(function);
     }
 
     @Override

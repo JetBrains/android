@@ -56,8 +56,8 @@ public class ThemeEditorContext implements Disposable {
   @SuppressWarnings("NullableProblems")
   private @NotNull ThemeResolver myThemeResolver;
 
-  private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
-  private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
+  private final List<ChangeListener> myChangeListeners = new ArrayList<>();
+  private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<>();
   private boolean myEnabledListeners = true;
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override

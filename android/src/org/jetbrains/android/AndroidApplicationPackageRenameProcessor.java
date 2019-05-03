@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.intellij.facet.ProjectFacetManager;
@@ -46,7 +47,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
   public void renameElement(@NotNull PsiElement element, @NotNull String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiPackage) {
-      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<GenericAttributeValue, String>();
+      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<>();
 
       final Project project = element.getProject();
       final String oldPackageQName = ((PsiPackage)element).getQualifiedName();
@@ -115,7 +116,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
   @NotNull
   private static Map<GenericAttributeValue, PsiClass> buildAttr2ClassMap(@NotNull XmlFile file) {
-    final Map<GenericAttributeValue, PsiClass> map = new HashMap<GenericAttributeValue, PsiClass>();
+    final Map<GenericAttributeValue, PsiClass> map = new HashMap<>();
 
     processAllClassAttrValues(file, new Processor<Pair<GenericAttributeValue, PsiClass>>() {
       @Override

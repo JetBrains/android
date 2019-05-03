@@ -85,7 +85,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     if (!(element instanceof PsiJavaFile || element instanceof XmlFile) || quick && !UNIT_TEST_MODE || !isFoldingEnabled()) {
       return FoldingDescriptor.EMPTY;
     }
-    final List<FoldingDescriptor> result = new ArrayList<FoldingDescriptor>();
+    final List<FoldingDescriptor> result = new ArrayList<>();
     if (element instanceof PsiJavaFile) {
       final PsiJavaFile file = (PsiJavaFile) element;
       file.accept(new JavaRecursiveElementWalkingVisitor() {
@@ -241,7 +241,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       ASTNode node = foldElement.getNode();
       if (node != null) {
         TextRange textRange = foldElement.getTextRange();
-        HashSet<Object> dependencies = new HashSet<Object>();
+        HashSet<Object> dependencies = new HashSet<>();
         dependencies.add(foldElement);
         FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
         InlinedResource inlinedResource = new InlinedResource(type, name, appResources, descriptor, foldElement);

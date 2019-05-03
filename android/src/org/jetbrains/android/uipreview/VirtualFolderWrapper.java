@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
 import com.android.io.IAbstractFile;
@@ -66,7 +67,7 @@ public class VirtualFolderWrapper implements IAbstractFolder {
   @Override
   public String[] list(FilenameFilter filter) {
     final VirtualFile[] children = myFolder.getChildren();
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
 
     for (VirtualFile child : children) {
       final String name = child.getName();

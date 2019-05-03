@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.android.util.AndroidNativeLibData;
@@ -31,7 +32,7 @@ public class AndroidApkBuilderConfigState implements ValidityState {
     myCustomKeystorePath = in.readUTF();
 
     final int additionalNativeLibsCount = in.readInt();
-    myAdditionalNativeLibs = new ArrayList<AndroidNativeLibData>(additionalNativeLibsCount);
+    myAdditionalNativeLibs = new ArrayList<>(additionalNativeLibsCount);
     for (int i = 0; i < additionalNativeLibsCount; i++) {
       final String architecture = in.readUTF();
       final String path = in.readUTF();

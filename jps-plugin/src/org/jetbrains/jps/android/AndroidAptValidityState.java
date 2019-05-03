@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Pair;
@@ -42,7 +43,7 @@ public class AndroidAptValidityState implements ValidityState {
     myResources = resources;
     myValueResourceFilesTimestamps = valueResourceFilesTimestamps;
     myManifestElements = manifestElements;
-    myLibRTxtFilesAndPackages = new HashSet<Pair<String, String>>(libRTxtFilesAndPackages);
+    myLibRTxtFilesAndPackages = new HashSet<>(libRTxtFilesAndPackages);
     myPackageName = packageName;
     myProguardOutputCfgFile = proguardOutputCfgFile != null ? proguardOutputCfgFile : "";
     myRTxtOutputDir = rTxtOutputDir != null ? rTxtOutputDir : "";
@@ -63,13 +64,13 @@ public class AndroidAptValidityState implements ValidityState {
     myPackageName = in.readUTF();
 
     final int filesCount = in.readInt();
-    myResources = new HashMap<String, ResourceFileData>(filesCount);
+    myResources = new HashMap<>(filesCount);
 
     for (int i = 0; i < filesCount; i++) {
       final String filePath = in.readUTF();
 
       final int entriesCount = in.readInt();
-      final List<ResourceEntry> entries = new ArrayList<ResourceEntry>(entriesCount);
+      final List<ResourceEntry> entries = new ArrayList<>(entriesCount);
 
       for (int j = 0; j < entriesCount; j++) {
         final String resType = in.readUTF();
@@ -82,7 +83,7 @@ public class AndroidAptValidityState implements ValidityState {
     }
 
     final int manifestElementCount = in.readInt();
-    myManifestElements = new ArrayList<ResourceEntry>(manifestElementCount);
+    myManifestElements = new ArrayList<>(manifestElementCount);
 
     for (int i = 0; i < manifestElementCount; i++) {
       final String elementType = in.readUTF();
@@ -92,7 +93,7 @@ public class AndroidAptValidityState implements ValidityState {
     }
 
     final int libPackageCount = in.readInt();
-    myLibRTxtFilesAndPackages = new HashSet<Pair<String, String>>(libPackageCount);
+    myLibRTxtFilesAndPackages = new HashSet<>(libPackageCount);
 
     for (int i = 0; i < libPackageCount; i++) {
       final String libRTxtFilePath = in.readUTF();
@@ -105,7 +106,7 @@ public class AndroidAptValidityState implements ValidityState {
     myLibrary = in.readBoolean();
 
     final int valueResourceFilesCount = in.readInt();
-    myValueResourceFilesTimestamps = new TObjectLongHashMap<String>(valueResourceFilesCount);
+    myValueResourceFilesTimestamps = new TObjectLongHashMap<>(valueResourceFilesCount);
 
     for (int i = 0; i < valueResourceFilesCount; i++) {
       final String filePath = in.readUTF();

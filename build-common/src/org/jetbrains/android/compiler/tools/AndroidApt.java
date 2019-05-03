@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.tools;
 
 import com.android.SdkConstants;
@@ -71,7 +57,7 @@ public final class AndroidApt {
                                                                       @NotNull String[] extraPackages,
                                                                       boolean nonConstantFields,
                                                                       @Nullable String proguardCfgOutputFileOsPath) throws IOException {
-    final List<Pair<String, String>> libRTxtFilesAndPackages = new ArrayList<Pair<String, String>>();
+    final List<Pair<String, String>> libRTxtFilesAndPackages = new ArrayList<>();
 
     for (String extraPackage : extraPackages) {
       libRTxtFilesAndPackages.add(Pair.create((String)null, extraPackage));
@@ -91,9 +77,9 @@ public final class AndroidApt {
                                                                       @Nullable String proguardCfgOutputFileOsPath,
                                                                       @Nullable String rTxtOutDirOsPath,
                                                                       boolean optimizeRFile) throws IOException {
-    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>();
-    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
-    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
+    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<>();
+    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<>());
+    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<>());
 
     final File outOsDir = new File(outDirOsPath);
     if (!outOsDir.exists()) {
@@ -176,7 +162,7 @@ public final class AndroidApt {
                                                                          @Nullable String rTxtOutDirOsPath,
                                                                          boolean optimizeRFile)
     throws IOException {
-    final List<String> args = new ArrayList<String>();
+    final List<String> args = new ArrayList<>();
 
     BuildToolInfo buildToolInfo = target.getBuildToolInfo();
     if (buildToolInfo == null) {
@@ -194,7 +180,7 @@ public final class AndroidApt {
     if (resourceDirsOsPaths.length > 1) {
       args.add("--auto-add-overlay");
     }
-    final Set<String> extraPackages = new HashSet<String>();
+    final Set<String> extraPackages = new HashSet<>();
 
     for (Pair<String, String> pair : libRTxtFilesAndPackages) {
       extraPackages.add(pair.getSecond());
@@ -243,7 +229,7 @@ public final class AndroidApt {
       if (rFile.isFile()) {
         final SymbolLoader fullSymbolValues = new SymbolLoader(rFile);
         fullSymbolValues.load();
-        final MultiMap<String, SymbolLoader> libMap = new MultiMap<String, SymbolLoader>();
+        final MultiMap<String, SymbolLoader> libMap = new MultiMap<>();
 
         for (Pair<String, String> pair : libRTxtFilesAndPackages) {
           final File rTextFile = new File(pair.getFirst());
@@ -291,7 +277,7 @@ public final class AndroidApt {
       return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
     }
 
-    final ArrayList<String> args = new ArrayList<String>();
+    final ArrayList<String> args = new ArrayList<>();
 
     args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
@@ -367,7 +353,7 @@ public final class AndroidApt {
       return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
     }
 
-    final ArrayList<String> args = new ArrayList<String>();
+    final ArrayList<String> args = new ArrayList<>();
 
     args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
@@ -450,7 +436,7 @@ public final class AndroidApt {
 
   @NotNull
   private static String[] getNonEmptyExistingDirs(@NotNull String[] dirs) {
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
     for (String dirPath : dirs) {
       final File dir = new File(dirPath);
 
