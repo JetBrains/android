@@ -39,6 +39,9 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
 
   default void displayConfiguration(@NotNull PsDeclaredDependency dependency, @NotNull PsModule.ImportantFor importantFor) {
     if (dependency != getModel()) {
+      if (getModel() != null) {
+        modifyConfiguration();
+      }
       JComboBox<String> ui = getConfigurationUI();
       ActionListener[] listeners = ui.getActionListeners();
       try {
@@ -58,12 +61,11 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
         }
       }
     }
-
   }
 
   default void modifyConfiguration() {
     PsDeclaredDependency dependency = (PsDeclaredDependency) getModel();
-    String configuration = (String) getConfigurationUI().getSelectedItem();
+    String configuration = (String) getConfigurationUI().getEditor().getItem();
     if (dependency != null && configuration != null) {
         PsModule module = dependency.getParent();
         module.modifyDependencyConfiguration(dependency, configuration);
