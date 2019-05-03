@@ -71,6 +71,15 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
     if (profilerToolWindow != null) {
       // Prevents from starting profiling a pid restored by emulator snapshot or a pid that was previously alive.
       profilerToolWindow.disableAutoProfiling();
+
+      // Early-terminate a previous ongoing session to simplify startup profiling scenarios.
+      // Configuration and start of startup profiling is done while the old process/profiling session (if there is one) is still running.
+      // Previously, when the old process/session eventually ends and the new session starts, the daemon can accidentally undo/end the
+      // startup recording. By first ending the session here, we ensure the following sequence:
+      // 1. Stops profiling the old process
+      // 2. Configures startup profiling for the process to be launched
+      // 3. Starts profiling the new process
+      profilerToolWindow.getProfilers().getSessionsManager().endCurrentSession();
     }
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(env.getProject());
     featureTracker.trackRunWithProfiling();
