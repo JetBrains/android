@@ -213,10 +213,10 @@ public class HeapDumpCaptureObject implements CaptureObject {
     Snapshot snapshot;
     NativeRegistryPostProcessor nativeRegistryPostProcessor = new NativeRegistryPostProcessor();
     if (myProguardMap != null) {
-      snapshot = Snapshot.createSnapshot(buffer, myProguardMap, Arrays.asList(nativeRegistryPostProcessor));
+      snapshot = Snapshot.createSnapshot(buffer, myProguardMap, Collections.singletonList(nativeRegistryPostProcessor));
     }
     else {
-      snapshot = Snapshot.createSnapshot(buffer, new ProguardMap(), Arrays.asList(nativeRegistryPostProcessor));
+      snapshot = Snapshot.createSnapshot(buffer, new ProguardMap(), Collections.singletonList(nativeRegistryPostProcessor));
     }
     snapshot.computeDominators();
     myHasNativeAllocations = nativeRegistryPostProcessor.getHasNativeAllocations();
