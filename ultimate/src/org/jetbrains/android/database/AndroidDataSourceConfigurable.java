@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.database;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -22,7 +23,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
@@ -62,7 +62,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   private JBRadioButton myInternalStorageRadioButton;
 
   private IDevice mySelectedDevice = null;
-  private final Map<String, List<String>> myDatabaseMap = ContainerUtil.newLinkedHashMap();
+  private final Map<String, List<String>> myDatabaseMap = new LinkedHashMap<>();
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
   private final AndroidDataSource myTempDataSource;
