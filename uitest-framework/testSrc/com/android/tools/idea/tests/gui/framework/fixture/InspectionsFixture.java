@@ -20,10 +20,10 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
 import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -69,7 +69,7 @@ public class InspectionsFixture extends ToolWindowFixture {
 
     // The exact order of the results sometimes varies so sort the children alphabetically
     // instead to ensure stable test output
-    List<InspectionTreeNode> children = ContainerUtil.newArrayList(node.getChildren());
+    List<InspectionTreeNode> children = new ArrayList<>(node.getChildren());
     Collections.sort(children, Comparator.comparing(Object::toString));
     for (InspectionTreeNode child : children) {
       describe(child, sb, depth + 1);
