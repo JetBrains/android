@@ -61,7 +61,6 @@ import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
-import com.intellij.util.containers.ContainerUtil;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,6 +70,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -975,7 +975,7 @@ public class DeviceExplorerController {
 
       fileEntries.sort(Comparator.comparing(DeviceFileEntry::getFullPath));
 
-      List<String> problems = ContainerUtil.newLinkedList();
+      List<String> problems = new LinkedList<>();
       for (DeviceFileEntry fileEntry : fileEntries) {
         ListenableFuture<Void> futureDelete = fileEntry.delete();
         try {
