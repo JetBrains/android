@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.project.messages;
 
+import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
+import static com.intellij.openapi.util.text.StringUtil.join;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
@@ -37,22 +42,31 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationSour
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.SystemProperties;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-
-import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.util.text.StringUtil.join;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public abstract class AbstractSyncMessages implements Disposable {
 
   private Project myProject;
-  @NotNull private final ConcurrentHashMap<Object, List<NotificationData>> myCurrentNotifications = new ConcurrentHashMap<>();
-  @NotNull private final ConcurrentHashMap<Object, List<Failure>> myShownFailures = new ConcurrentHashMap<>();
+
+  @NotNull
+  private final Object myLock = new Object();
+
+  @GuardedBy("myLock")
+  @NotNull
+  private final HashMap<Object, List<NotificationData>> myCurrentNotifications = new HashMap<>();
+  @GuardedBy("myLock")
+  @NotNull
+  private final HashMap<Object, List<Failure>> myShownFailures = new HashMap<>();
   @NotNull private static final String PENDING_TASK_ID = "Pending taskId";
 
   protected AbstractSyncMessages(@NotNull Project project) {
@@ -70,37 +84,44 @@ public abstract class AbstractSyncMessages implements Disposable {
   private int countNotifications(@NotNull Predicate<NotificationData> condition) {
     int total = 0;
 
-    for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
-      for (NotificationData notificationData : notificationDataList) {
-        if (condition.test(notificationData)) {
-          total++;
+    synchronized (myLock) {
+      for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
+        for (NotificationData notificationData : notificationDataList) {
+          if (condition.test(notificationData)) {
+            total++;
+          }
         }
       }
     }
     return total;
-
   }
 
   public boolean isEmpty() {
-    return myCurrentNotifications.isEmpty();
+    synchronized (myLock) {
+      return myCurrentNotifications.isEmpty();
+    }
   }
 
   public void removeAllMessages() {
-    myCurrentNotifications.clear();
+    synchronized (myLock) {
+      myCurrentNotifications.clear();
+    }
   }
 
   public void removeMessages(@NotNull String... groupNames) {
     Set<String> groupSet = new HashSet<>(Arrays.asList(groupNames));
     LinkedList<Object> toRemove = new LinkedList<>();
-    for (Object id : myCurrentNotifications.keySet()) {
-      List<NotificationData> taskNotifications = myCurrentNotifications.get(id);
-      taskNotifications.removeIf(notification -> groupSet.contains(notification.getTitle()));
-      if (taskNotifications.isEmpty()) {
-        toRemove.add(id);
+    synchronized (myLock) {
+      for (Object id : myCurrentNotifications.keySet()) {
+        List<NotificationData> taskNotifications = myCurrentNotifications.get(id);
+        taskNotifications.removeIf(notification -> groupSet.contains(notification.getTitle()));
+        if (taskNotifications.isEmpty()) {
+          toRemove.add(id);
+        }
       }
-    }
-    for (Object taskId : toRemove) {
-      myCurrentNotifications.remove(taskId);
+      for (Object taskId : toRemove) {
+        myCurrentNotifications.remove(taskId);
+      }
     }
   }
 
@@ -173,7 +194,9 @@ public abstract class AbstractSyncMessages implements Disposable {
     else {
       showNotification(notification, taskId);
     }
-    myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
+    synchronized (myLock) {
+      myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
+    }
   }
 
   /**
@@ -183,13 +206,17 @@ public abstract class AbstractSyncMessages implements Disposable {
    */
   @NotNull
   public List<Failure> showEvents(@NotNull ExternalSystemTaskId taskId) {
+    List<Failure> result;
     // Show notifications created without a taskId
-    for (NotificationData notification : myCurrentNotifications.getOrDefault(PENDING_TASK_ID, Collections.emptyList())) {
-      showNotification(notification, taskId);
+    synchronized (myLock) {
+      for (NotificationData notification : myCurrentNotifications.getOrDefault(PENDING_TASK_ID, Collections.emptyList())) {
+        showNotification(notification, taskId);
+      }
+      myCurrentNotifications.remove(taskId);
+      myCurrentNotifications.remove(PENDING_TASK_ID);
+
+      result = myShownFailures.remove(taskId);
     }
-    myCurrentNotifications.remove(taskId);
-    myCurrentNotifications.remove(PENDING_TASK_ID);
-    List<Failure> result = myShownFailures.remove(taskId);
     if (result == null) {
       result = Collections.emptyList();
     }
@@ -224,8 +251,10 @@ public abstract class AbstractSyncMessages implements Disposable {
     // Only include errors in the summary text output
     // This has the side effect of not opening the right hand bar if there are no failures
     if (issueEvent.getKind() == MessageEvent.Kind.ERROR) {
-      myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>())
-        .addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
+      synchronized (myLock) {
+        myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>())
+          .addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
+      }
     }
   }
 
