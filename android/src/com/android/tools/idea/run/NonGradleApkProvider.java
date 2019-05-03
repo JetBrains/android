@@ -130,7 +130,7 @@ public class NonGradleApkProvider implements ApkProvider {
                                            @NotNull String mainPackageName) throws ApkProvisionException {
     final Map<String, List<String>> packageName2ModuleNames = new HashMap<String, List<String>>();
     packageName2ModuleNames.put(
-      mainPackageName, new ArrayList<String>(Arrays.asList(facet.getModule().getName())));
+      mainPackageName, new ArrayList<String>(Collections.singletonList(facet.getModule().getName())));
 
     for (Map.Entry<AndroidFacet, String> entry : additionalFacet2PackageName.entrySet()) {
       final String moduleName = entry.getKey().getModule().getName();

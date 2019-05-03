@@ -15,12 +15,6 @@
  */
 package com.android.tools.idea.npw.instantapp;
 
-import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
-import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static org.jetbrains.android.util.AndroidBundle.message;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
@@ -33,19 +27,27 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.intellij.openapi.project.Project;
-import java.awt.Image;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.Collections;
+
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
+import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewInstantAppModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
     if(StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.get() &&
        !AndroidGradleModuleUtils.projectContainsFeatureModule(project)) {
-      return Arrays.asList();
+      return Collections.emptyList();
     }
     return Arrays.asList(
       new FeatureTemplateGalleryEntry(),

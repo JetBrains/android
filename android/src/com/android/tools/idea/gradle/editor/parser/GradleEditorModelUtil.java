@@ -46,7 +46,7 @@ public class GradleEditorModelUtil {
    * Get more information about that at the
    * <a href="http://www.gradle.org/docs/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project.extraproperties">gradle docs</a>.
    */
-  public static final List<String> EXTRA_PROPERTIES_QUALIFIER = Arrays.asList("ext");
+  public static final List<String> EXTRA_PROPERTIES_QUALIFIER = Collections.singletonList("ext");
 
   private static final Logger LOG = Logger.getInstance(GradleEditorModelUtil.class);
 

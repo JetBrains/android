@@ -37,7 +37,7 @@ import com.android.tools.idea.uibuilder.scout.ScoutWidget;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -99,7 +99,7 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         NlComponentHelperKt.setX(component, Coordinates.dpToPx(getComponent().getScene().getDesignSurface(), dx));
         NlComponentHelperKt.setY(component, Coordinates.dpToPx(getComponent().getScene().getDesignSurface(), dy));
         ScoutWidget parentScoutWidget = new ScoutWidget(myComponent.getParent().getNlComponent(), null);
-        ScoutWidget[] scoutWidgets = ScoutWidget.create(Arrays.asList(component), parentScoutWidget);
+        ScoutWidget[] scoutWidgets = ScoutWidget.create(Collections.singletonList(component), parentScoutWidget);
         int margin = Scout.getMargin();
         if (horizontalMatchParent) {
           ScoutArrange.expandHorizontally(scoutWidgets, parentScoutWidget, margin, false);

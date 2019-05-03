@@ -50,7 +50,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -487,11 +487,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   private List<NlComponent> getSelectionFrom(@NotNull NlComponent component, @NotNull String id) {
     if (component.getId().equals(id)) {
-      return Arrays.asList(component);
+      return Collections.singletonList(component);
     }
     for (NlComponent child : component.getChildren()) {
       if (child.getId().equals(id)) {
-        return Arrays.asList(child);
+        return Collections.singletonList(child);
       }
     }
     return new ArrayList<>();
