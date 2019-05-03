@@ -31,7 +31,6 @@ import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -65,7 +64,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
   @NotNull
   @Override
   protected Action[] createActions() {
-    List<Action> actions = ContainerUtil.newArrayList();
+    List<Action> actions = new ArrayList<>();
 
     actions.add(new AbstractAction("Update Now") {
       @Override

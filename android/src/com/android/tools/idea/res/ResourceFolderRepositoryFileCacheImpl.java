@@ -40,10 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manages a local file cache for ResourceFolderRepository state, for faster project reload.
@@ -283,7 +280,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     static List<File> loadListOfProjectCaches(@NotNull File cacheRootDir) throws IOException {
       File lruFile = new File(cacheRootDir, LRU_FILE);
       if (!lruFile.exists()) {
-        return ContainerUtil.newArrayList();
+        return new ArrayList<>();
       }
       FileInputStream fin = null;
       try {
@@ -328,7 +325,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @VisibleForTesting
     static List<File> updateLRUList(Project currentProject, List<File> projectsList, int maxProjectCaches) {
-      List<File> projectsToRemove = ContainerUtil.newArrayList();
+      List<File> projectsToRemove = new ArrayList<>();
       Path currentProjectPath = ResourceFolderRepositoryFileCacheService.get().getProjectDir(currentProject);
       if (currentProjectPath == null) {
         return projectsToRemove;
