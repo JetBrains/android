@@ -68,6 +68,10 @@ public class AndroidLogcatView implements Disposable {
   static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
 
+  /**
+   * This is a fake version of the selected app filter that acts as a placeholder before a real one
+   * is swapped in, which happens when the pulldown of processes is populated.
+   */
   static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(SELECTED_APP_FILTER);
   static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(NO_FILTERS);
 
