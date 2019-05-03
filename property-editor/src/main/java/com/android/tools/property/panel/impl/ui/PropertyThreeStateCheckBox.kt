@@ -43,11 +43,14 @@ class PropertyThreeStateCheckBox(model: ThreeStateBooleanPropertyEditorModel) :
   }
 }
 
-private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPropertyEditorModel) : ThreeStateCheckBox(),
-                                                                                                          DataProvider {
+private class CustomThreeStateCheckBox(
+  private val propertyModel: ThreeStateBooleanPropertyEditorModel
+) : ThreeStateCheckBox(), DataProvider {
+
   private var stateChangeFromModel = false
 
   init {
+    isOpaque = false // This avoids obscuring the text field border
     state = toThreeStateValue(propertyModel.value)
     background = secondaryPanelBackground
     HelpSupportBinding.registerHelpKeyActions(this, { propertyModel.property })
