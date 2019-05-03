@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.gradle.eclipse;
 
 import com.android.annotations.NonNull;
@@ -8,7 +9,6 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.util.PropertiesFiles;
@@ -39,9 +39,7 @@ import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
-import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.truth.Truth.assertAbout;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 
@@ -3118,7 +3116,7 @@ public class GradleImportTest extends AndroidTestCase {
     File projectDir = createProject("test1", "test.pkg");
 
     createProjectProperties(projectDir, "android-19", null, null, null,
-                            Collections.<File>emptyList());
+                            Collections.emptyList());
 
     File libs = new File(projectDir, "libs");
     libs.mkdirs();
@@ -3150,7 +3148,7 @@ public class GradleImportTest extends AndroidTestCase {
     File projectDir = createProject("test1", "test.pkg");
 
     createProjectProperties(projectDir, "android-L", null, null, null,
-                            Collections.<File>emptyList());
+                            Collections.emptyList());
 
     File libs = new File(projectDir, "libs");
     libs.mkdirs();

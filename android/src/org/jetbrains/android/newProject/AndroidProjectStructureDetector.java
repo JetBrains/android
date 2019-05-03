@@ -5,7 +5,6 @@ import com.android.SdkConstants;
 import com.intellij.ide.util.importProject.ModuleDescriptor;
 import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
-import com.intellij.ide.util.projectWizard.importSources.DetectedSourceRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
 import com.intellij.openapi.module.JavaModuleType;
@@ -63,7 +62,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
       }
 
       if (!javaSrcRootInside) {
-        modules.add(new ModuleDescriptor(root.getDirectory(), JavaModuleType.getModuleType(), Collections.<DetectedSourceRoot>emptyList()));
+        modules.add(new ModuleDescriptor(root.getDirectory(), JavaModuleType.getModuleType(), Collections.emptyList()));
       }
     }
     projectDescriptor.setModules(modules);

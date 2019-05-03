@@ -79,7 +79,7 @@ public class ASGallery<E> extends JBList {
   @Nullable private Action myDefaultAction;
 
   public ASGallery() {
-    this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0), null);
+    this(new DefaultListModel(), Functions.constant(null), Functions.toStringFunction(), new Dimension(0, 0), null);
   }
 
   public ASGallery(@NotNull ListModel model,

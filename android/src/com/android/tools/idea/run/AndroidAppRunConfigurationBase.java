@@ -46,7 +46,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.DefaultJDOMExternalizer;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -60,7 +63,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
@@ -175,7 +181,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidAppRunConfigurationBase> editor =
-      new AndroidRunConfigurationEditor<>(project, Predicates.<AndroidFacet>alwaysFalse(), this);
+      new AndroidRunConfigurationEditor<>(project, Predicates.alwaysFalse(), this);
     editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
     return editor;
   }

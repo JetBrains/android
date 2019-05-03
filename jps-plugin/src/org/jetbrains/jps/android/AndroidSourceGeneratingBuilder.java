@@ -1185,7 +1185,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     else {
       final boolean idProvidingType = FolderTypeRelationship.isIdGeneratingFolderType(resourceFolderType);
       final ResourceFileData data =
-        new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFileTimestamp : 0);
+        new ResourceFileData(Collections.emptyList(), idProvidingType ? resFileTimestamp : 0);
       resDataMap.put(resFilePath, data);
     }
   }

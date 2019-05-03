@@ -318,7 +318,7 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
           GradleEditorSourceBinding sourceBinding = buildSourceBinding(assignment, context.getProject());
           if (sourceBinding != null) {
             repositories.add(
-              new GradleEditorRepositoryEntity(name, value, Collections.<GradleEditorSourceBinding>emptyList(), sourceBinding, metaData,
+              new GradleEditorRepositoryEntity(name, value, Collections.emptyList(), sourceBinding, metaData,
                                                sourceBinding, helpId));
           }
         }

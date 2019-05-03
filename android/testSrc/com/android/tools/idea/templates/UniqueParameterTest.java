@@ -22,12 +22,8 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Nullable;
@@ -204,10 +200,10 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
   public void testRelatedValue() throws Exception {
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.<Object>of("bar", "fragment_foo"));
-    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.<Object>of("bar", "fragment_bar"));
+    assertViolates(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.of("bar", "fragment_foo"));
+    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.of("bar", "fragment_bar"));
 
     myParameter.constraints.remove(Parameter.Constraint.UNIQUE);
-    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.<Object>of("bar", "fragment_foo"));
+    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.of("bar", "fragment_foo"));
   }
 }

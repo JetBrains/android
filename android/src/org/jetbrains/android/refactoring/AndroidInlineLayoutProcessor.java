@@ -180,7 +180,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
       }
     }
     return AndroidInlineUtil.buildConflicts(nonXmlUsages, unambiguousUsages, unsupportedUsages,
-                                            Collections.<PsiElement>emptyList());
+                                            Collections.emptyList());
   }
 
   @NotNull

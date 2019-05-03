@@ -1137,7 +1137,7 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   @NonNull
   public List<String> getInferredLibraries() {
-    return myInferredLibraries == null ? Collections.<String>emptyList() : myInferredLibraries;
+    return myInferredLibraries == null ? Collections.emptyList() : myInferredLibraries;
   }
 
   @NonNull
@@ -1147,12 +1147,12 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   @NonNull
   public List<File> getTestJarPaths() {
-    return myInstrumentationJarPaths != null ? myInstrumentationJarPaths : Collections.<File>emptyList();
+    return myInstrumentationJarPaths != null ? myInstrumentationJarPaths : Collections.emptyList();
   }
 
   @NonNull
   public List<File> getNativeLibs() {
-    return myNativeLibs != null ? myNativeLibs : Collections.<File>emptyList();
+    return myNativeLibs != null ? myNativeLibs : Collections.emptyList();
   }
 
   @Nullable

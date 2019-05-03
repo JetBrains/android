@@ -1170,8 +1170,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents =
-      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
-                                     myAvdIdRow);
+      Lists.newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
+                         myAvdIdRow);
   }
 
   @Override

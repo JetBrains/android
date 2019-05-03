@@ -26,7 +26,9 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Utility class which stores intermediate information during building {@link GradleEditorEntity} from the <code>build.gradle</code>.
@@ -169,7 +171,7 @@ public class GradleEditorModelParseContext {
   @NotNull
   public Collection<Assignment> getAssignments(@NotNull Variable variable) {
     Collection<Assignment> result = myAssignmentsByVariable.get(variable);
-    return result == null ? Collections.<Assignment>emptyList() : result;
+    return result == null ? Collections.emptyList() : result;
   }
 
   /**
@@ -181,7 +183,7 @@ public class GradleEditorModelParseContext {
   @NotNull
   public Collection<Assignment> getAssignments(@NotNull List<String> codeStructure) {
     Collection<Assignment> result = myAssignmentsByCodeStructure.get(codeStructure);
-    return result == null ? Collections.<Assignment>emptyList() : result;
+    return result == null ? Collections.emptyList() : result;
   }
 
   /**
@@ -397,10 +399,10 @@ public class GradleEditorModelParseContext {
       this.lValue = lValue;
       this.lValueLocation = lValueLocation;
       this.rValueLocation = rValueLocation;
-      this.codeStructure = codeStructure.isEmpty() ? Collections.<String>emptyList() : ImmutableList.copyOf(codeStructure);
+      this.codeStructure = codeStructure.isEmpty() ? Collections.emptyList() : ImmutableList.copyOf(codeStructure);
       this.value = value;
       this.rValueString = rValueString;
-      this.dependencies = dependencies.isEmpty() ? ImmutableMultimap.<Variable, Location>of() : ImmutableMultimap.copyOf(dependencies);
+      this.dependencies = dependencies.isEmpty() ? ImmutableMultimap.of() : ImmutableMultimap.copyOf(dependencies);
     }
 
     @Override

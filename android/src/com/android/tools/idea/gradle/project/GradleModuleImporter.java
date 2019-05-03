@@ -171,7 +171,7 @@ public final class GradleModuleImporter extends ModuleImporter {
         dependencyComputer = Suppliers.compose(parser, Suppliers.ofInstance(location));
       }
       else {
-        dependencyComputer = Suppliers.ofInstance(ImmutableSet.<String>of());
+        dependencyComputer = Suppliers.ofInstance(ImmutableSet.of());
       }
       modulesSet.add(new ModuleToImport(entry.getKey(), location, dependencyComputer));
     }
