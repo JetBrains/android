@@ -40,7 +40,7 @@ import java.util.List;
  */
 public final class AvdDeviceData {
   private StringProperty myName = new StringValueProperty();
-  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
+  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<>();
   private StringProperty myManufacturer = new StringValueProperty();
   private StringProperty myTagId = new StringValueProperty();
   private StringProperty myDeviceId = new StringValueProperty();
@@ -49,11 +49,11 @@ public final class AvdDeviceData {
   private IntProperty myScreenResolutionWidth = new IntValueProperty();
   private IntProperty myScreenResolutionHeight = new IntValueProperty();
 
-  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
+  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<>(new Storage(0, Storage.Unit.MiB));
 
   private BoolProperty myHasHardwareButtons = new BoolValueProperty();
   private BoolProperty myHasHardwareKeyboard = new BoolValueProperty();
-  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<Navigation>();
+  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<>();
 
   private BoolProperty mySupportsLandscape = new BoolValueProperty();
   private BoolProperty mySupportsPortrait = new BoolValueProperty();
@@ -66,7 +66,7 @@ public final class AvdDeviceData {
   private BoolProperty myHasGyroscope = new BoolValueProperty();
   private BoolProperty myHasGps = new BoolValueProperty();
   private BoolProperty myHasProximitySensor = new BoolValueProperty();
-  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
+  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<>();
   private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
   private BoolValueProperty myIsTv = new BoolValueProperty();
@@ -76,9 +76,9 @@ public final class AvdDeviceData {
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
-  private ObjectProperty<Density> myDensity = new ObjectValueProperty<Density>(Density.MEDIUM);
+  private ObjectProperty<Density> myDensity = new ObjectValueProperty<>(Density.MEDIUM);
 
-  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
+  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<>();
 
   private DoubleExpression myScreenDpi =
     // Every time the screen size is changed we calculate its dpi to validate it on the step

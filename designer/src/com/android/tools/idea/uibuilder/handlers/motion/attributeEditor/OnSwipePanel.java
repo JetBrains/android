@@ -41,7 +41,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
  * Used for OnSwipeControls
  */
 public class OnSwipePanel extends TagPanel {
-  private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
+  private Vector<String> colNames = new Vector<>(Arrays.asList("Name", "Value"));
   private Vector<Vector<Object>> data = new Vector<>();
   private DefaultTableModel myTableModel = new OnSwipeTableModel(data, colNames);
   MotionSceneModel.OnSwipeTag myOnSwipeTag;
@@ -160,7 +160,7 @@ public class OnSwipePanel extends TagPanel {
     HashMap<String, Object> attr = tag.getAttributes();
     data.clear();
     for (String s : attr.keySet()) {
-      Vector<Object> v = new Vector<Object>(Arrays.asList(s, attr.get(s)));
+      Vector<Object> v = new Vector<>(Arrays.asList(s, attr.get(s)));
       data.add(v);
     }
     myTableModel.fireTableDataChanged();

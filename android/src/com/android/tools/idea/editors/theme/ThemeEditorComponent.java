@@ -915,7 +915,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
     });
 
-    myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
+    myAttributesSorter = new TableRowSorter<>(myModel);
     // This is only used when the sort keys are set (only set in simple mode).
     myAttributesSorter.setComparator(0, SIMPLE_MODE_COMPARATOR);
 
@@ -945,7 +945,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
             return;
           }
 
-          HashSet<String> attributeNames = new HashSet<String>(references.size());
+          HashSet<String> attributeNames = new HashSet<>(references.size());
           for (EditedStyleItem item : references) {
             attributeNames.add(item.getQualifiedName());
           }
@@ -1032,7 +1032,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     SimpleModeFilter() {
       myIsFilterEnabled = true;
-      filterAttributes = new HashSet<String>();
+      filterAttributes = new HashSet<>();
     }
 
     public void configure(final Set<String> availableAttributes, boolean appCompat) {

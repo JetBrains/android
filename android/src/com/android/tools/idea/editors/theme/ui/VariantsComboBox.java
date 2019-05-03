@@ -53,7 +53,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
   private static final Border VARIANT_ITEM_BORDER = new JBEmptyBorder(5);
   private static final JBColor VARIANT_MENU_BACKGROUND_COLOR = JBColor.WHITE;
 
-  private final List<PopupClosingListener> myPopupClosingListeners = new ArrayList<PopupClosingListener>();
+  private final List<PopupClosingListener> myPopupClosingListeners = new ArrayList<>();
   private ComboBoxModel myModel = new DefaultComboBoxModel();
   private final ListDataListener myListDataListener = new ListDataListener() {
     @Override

@@ -518,7 +518,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   }
 
   private static class SortedListModel extends AbstractListModel implements Iterable<NamedObject> {
-    private final SortedList<NamedObject> model = new SortedList<NamedObject>(new Comparator<NamedObject>() {
+    private final SortedList<NamedObject> model = new SortedList<>(new Comparator<NamedObject>() {
       @Override
       public int compare(NamedObject o1, NamedObject o2) {
         assert o1 != null;

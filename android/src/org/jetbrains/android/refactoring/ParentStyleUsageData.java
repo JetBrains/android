@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.psi.PsiFile;
@@ -62,7 +63,7 @@ class ParentStyleUsageData implements StyleUsageData {
   }
 
   private static Map<String, String> toId2ValueMap(Map<AndroidAttributeInfo, String> info2ValueMap) {
-    final Map<String, String> result = new HashMap<String, String>(info2ValueMap.size());
+    final Map<String, String> result = new HashMap<>(info2ValueMap.size());
 
     for (Map.Entry<AndroidAttributeInfo, String> entry : info2ValueMap.entrySet()) {
       result.put(entry.getKey().getAttributeId(), entry.getValue());

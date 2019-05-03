@@ -679,7 +679,7 @@ public class ScoutArrange {
     clip.y = selectBounds.y - gapNorth;
     clip.height = selectBounds.height + gapSouth + gapNorth;
 
-    ArrayList<ScoutWidget> selectedList = new ArrayList<ScoutWidget>(Arrays.asList(list));
+    ArrayList<ScoutWidget> selectedList = new ArrayList<>(Arrays.asList(list));
     while (!selectedList.isEmpty()) {
       ScoutWidget widget = selectedList.remove(0);
       ArrayList<ScoutWidget> col = new ArrayList<>();
@@ -728,7 +728,7 @@ public class ScoutArrange {
     clip.x = selectBounds.x - gapWest;
     clip.width = selectBounds.width + gapEast + gapWest;
     ArrayList<ScoutWidget> selectedList;
-    selectedList = new ArrayList<ScoutWidget>(Arrays.asList(list));
+    selectedList = new ArrayList<>(Arrays.asList(list));
     while (!selectedList.isEmpty()) {
       ScoutWidget widget = selectedList.remove(0);
       ArrayList<ScoutWidget> row = new ArrayList<>();

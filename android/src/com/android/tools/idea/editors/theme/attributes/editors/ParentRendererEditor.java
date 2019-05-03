@@ -64,7 +64,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
   private static final Logger LOG = Logger.getInstance(ParentRendererEditor.class);
 
   public static final String NO_PARENT = "[no parent]";
-  private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel<String>(ImmutableList.of(NO_PARENT), NO_PARENT);
+  private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel<>(ImmutableList.of(NO_PARENT), NO_PARENT);
 
   private final JComboBox myParentComboBox;
   private final VariantsComboBox myVariantsComboBox;
@@ -211,7 +211,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
       }
     }
 
-    myVariantsComboBox.setModel(new CollectionComboBoxModel<VariantsComboItem>(variants, variants.get(0)));
+    myVariantsComboBox.setModel(new CollectionComboBoxModel<>(variants, variants.get(0)));
   }
 
   @Override

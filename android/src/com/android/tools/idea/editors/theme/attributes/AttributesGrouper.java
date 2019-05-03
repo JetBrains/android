@@ -22,10 +22,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-
-import org.jetbrains.annotations.NotNull;
 
 public class AttributesGrouper {
   private AttributesGrouper() { }
@@ -95,7 +94,7 @@ public class AttributesGrouper {
       classes.put(Group.getGroupFromName(name), item);
     }
 
-    final List<TableLabel> labels = new ArrayList<TableLabel>();
+    final List<TableLabel> labels = new ArrayList<>();
     int offset = 0;
     for (Group group : Group.values()) {
       Collection<EditedStyleItem> elements = classes.get(group);
@@ -123,10 +122,10 @@ public class AttributesGrouper {
     // A TreeMap is used to ensure the keys are sorted in alphabetical order
     // ArrayLists are used for values to ensure that they stay in the same order they came in
     Multimap<String, EditedStyleItem> classes =
-      Multimaps.newListMultimap(new TreeMap<String, Collection<EditedStyleItem>>(), new Supplier<List<EditedStyleItem>>() {
+      Multimaps.newListMultimap(new TreeMap<>(), new Supplier<List<EditedStyleItem>>() {
         @Override
         public List<EditedStyleItem> get() {
-          return new ArrayList<EditedStyleItem>();
+          return new ArrayList<>();
         }
       });
     for (EditedStyleItem item : source){
@@ -134,7 +133,7 @@ public class AttributesGrouper {
       classes.put(group, item);
     }
 
-    final List<TableLabel> labels = new ArrayList<TableLabel>();
+    final List<TableLabel> labels = new ArrayList<>();
     int offset = 0;
     sink.clear();
     for (String group : classes.keySet()) {

@@ -58,7 +58,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   private JLabel myDescriptionLabel;
   private JBLabel myErrorWarningLabel;
   private JPanel mySouthPanel;
-  private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
+  private Map<Component, String> myControlDescriptions = new WeakHashMap<>();
 
   public DynamicWizardStepWithDescription(@Nullable Disposable parentDisposable) {
     myDisposable = parentDisposable;

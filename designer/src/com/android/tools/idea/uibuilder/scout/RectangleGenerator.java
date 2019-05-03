@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.uibuilder.scout;
 
 import com.android.tools.idea.common.model.NlComponent;
@@ -62,7 +63,7 @@ public class RectangleGenerator {
    * @return
    */
   public ArrayList<ScoutWidget> random(int count, int sizeRatio, int width, int height) {
-    recs = new ArrayList<ScoutWidget>();
+    recs = new ArrayList<>();
     FakeWidget parent = new FakeWidget(null);
     parent.setX(0);
     parent.setY(0);

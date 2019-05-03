@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
 import com.android.tools.idea.lang.aidl.AidlFileType;
@@ -93,7 +79,7 @@ import java.util.regex.Matcher;
 public class AndroidCompileUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidCompileUtil");
 
-  private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<Boolean>(AndroidCommonUtils.RELEASE_BUILD_OPTION);
+  private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<>(AndroidCommonUtils.RELEASE_BUILD_OPTION);
   @NonNls private static final String RESOURCES_CACHE_DIR_NAME = "res-cache";
   @NonNls private static final String GEN_MODULE_PREFIX = "~generated_";
 
@@ -106,7 +92,7 @@ public class AndroidCompileUtil {
 
   @NotNull
   public static <T> Map<CompilerMessageCategory, T> toCompilerMessageCategoryKeys(@NotNull Map<AndroidCompilerMessageKind, T> map) {
-    final Map<CompilerMessageCategory, T> result = new HashMap<CompilerMessageCategory, T>();
+    final Map<CompilerMessageCategory, T> result = new HashMap<>();
 
     for (Map.Entry<AndroidCompilerMessageKind, T> entry : map.entrySet()) {
       final AndroidCompilerMessageKind key = entry.getKey();
@@ -135,12 +121,12 @@ public class AndroidCompileUtil {
     }
     final VirtualFile proguardCfg = root.findChild(AndroidCommonUtils.PROGUARD_CFG_FILE_NAME);
     if (proguardCfg != null) {
-      return new Pair<VirtualFile, Boolean>(proguardCfg, true);
+      return new Pair<>(proguardCfg, true);
     }
 
     final VirtualFile oldProguardCfg = root.findChild(OLD_PROGUARD_CFG_FILE_NAME);
     if (oldProguardCfg != null) {
-      return new Pair<VirtualFile, Boolean>(oldProguardCfg, false);
+      return new Pair<>(oldProguardCfg, false);
     }
     return null;
   }
@@ -220,7 +206,7 @@ public class AndroidCompileUtil {
   private static void unexcludeRootIfNecessary(@NotNull VirtualFile root,
                                                @NotNull ModifiableRootModel model,
                                                @NotNull Ref<Boolean> modelChangedFlag) {
-    Set<VirtualFile> excludedRoots = new HashSet<VirtualFile>(Arrays.asList(model.getExcludeRoots()));
+    Set<VirtualFile> excludedRoots = new HashSet<>(Arrays.asList(model.getExcludeRoots()));
     VirtualFile excludedRoot = root;
     while (excludedRoot != null && !excludedRoots.contains(excludedRoot)) {
       excludedRoot = excludedRoot.getParent();
@@ -228,7 +214,7 @@ public class AndroidCompileUtil {
     if (excludedRoot == null) {
       return;
     }
-    Set<VirtualFile> rootsToExclude = new HashSet<VirtualFile>();
+    Set<VirtualFile> rootsToExclude = new HashSet<>();
     collectChildrenRecursively(excludedRoot, root, rootsToExclude);
     ContentEntry contentEntry = findContentEntryForRoot(model, excludedRoot);
     if (contentEntry != null) {
@@ -618,8 +604,8 @@ public class AndroidCompileUtil {
     if (facet.getConfiguration().isLibraryProject()) {
       removeGenModule(model, modelChangedFlag);
     }
-    final Set<String> genRootsToCreate = new HashSet<String>();
-    final Set<String> genRootsToInit = new HashSet<String>();
+    final Set<String> genRootsToCreate = new HashSet<>();
+    final Set<String> genRootsToInit = new HashSet<>();
 
     final String buildConfigGenRootPath = AndroidRootUtil.getBuildconfigGenSourceRootPath(facet);
 
@@ -655,7 +641,7 @@ public class AndroidCompileUtil {
   private static void excludeAllBuildConfigsFromCompilation(AndroidFacet facet, VirtualFile sourceRoot) {
     final Module module = facet.getModule();
     final Project project = module.getProject();
-    final Set<String> packages = new HashSet<String>();
+    final Set<String> packages = new HashSet<>();
 
     final Manifest manifest = facet.getManifest();
     final String aPackage = manifest != null ? manifest.getPackage().getStringValue() : null;
@@ -847,10 +833,10 @@ public class AndroidCompileUtil {
 
   @NotNull
   public static String[] getLibPackages(@NotNull Module module, @NotNull String packageName) {
-    final Set<String> packageSet = new HashSet<String>();
+    final Set<String> packageSet = new HashSet<>();
     packageSet.add(packageName);
 
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
 
     for (String libPackage : AndroidUtils.getDepLibsPackages(module)) {
       if (packageSet.add(libPackage)) {
@@ -923,7 +909,7 @@ public class AndroidCompileUtil {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
+        final List<ModifiableRootModel> modelsToCommit = new ArrayList<>();
 
         for (final AndroidFacet facet : facets) {
           if (facet.requiresAndroidModel()) {

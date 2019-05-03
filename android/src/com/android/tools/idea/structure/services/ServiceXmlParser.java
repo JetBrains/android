@@ -100,7 +100,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private final Module myModule;
   @NotNull private final File myRootPath;
   @NotNull private final ServiceContext myContext;
-  @NotNull private final Stack<String> myTagStack = new Stack<String>();
+  @NotNull private final Stack<String> myTagStack = new Stack<>();
 
   @NotNull private ServicePanelBuilder myPanelBuilder;
 

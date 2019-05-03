@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -146,8 +147,8 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       }
     }
 
-    final Map<File, ModuleBuildTarget> idlFilesToCompile = new HashMap<File, ModuleBuildTarget>();
-    final Map<File, ModuleBuildTarget> rsFilesToCompile = new HashMap<File, ModuleBuildTarget>();
+    final Map<File, ModuleBuildTarget> idlFilesToCompile = new HashMap<>();
+    final Map<File, ModuleBuildTarget> rsFilesToCompile = new HashMap<>();
 
     dirtyFilesHolder.processDirtyFiles(new FileProcessor<JavaSourceRootDescriptor, ModuleBuildTarget>() {
       @Override
@@ -242,13 +243,13 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static List<String> filterExcludedByOtherProviders(@NotNull JpsModule module, @NotNull Collection<String> genRoots) {
-    final Set<String> genRootPaths = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
+    final Set<String> genRootPaths = new THashSet<>(FileUtil.PATH_HASHING_STRATEGY);
 
     for (String genRoot : genRoots) {
       genRootPaths.add(FileUtil.toSystemIndependentName(genRoot));
     }
-    final List<String> result = new ArrayList<String>();
-    final List<JpsModuleSourceRoot> genSourceRoots = new ArrayList<JpsModuleSourceRoot>();
+    final List<String> result = new ArrayList<>();
+    final List<JpsModuleSourceRoot> genSourceRoots = new ArrayList<>();
 
     for (JpsModuleSourceRoot root : module.getSourceRoots()) {
       if (genRootPaths.contains(FileUtil.toSystemIndependentName(root.getFile().getPath()))) {
@@ -299,7 +300,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final Set<String> genDirs = AndroidJpsUtil.getGenDirs(data.getAndroidExtension());
       final List<String> filteredGenDirs = filterExcludedByOtherProviders(module, genDirs);
 
-      final Set<String> forciblyExcludedDirs = new HashSet<String>(genDirs);
+      final Set<String> forciblyExcludedDirs = new HashSet<>(genDirs);
       forciblyExcludedDirs.removeAll(filteredGenDirs);
       warnUserAboutForciblyExcludedRoots(forciblyExcludedDirs, context);
 
@@ -322,7 +323,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       }
       final File outDir = AndroidJpsUtil.getCopiedSourcesStorage(module, dataManager.getDataPaths());
       clearDirectoryIfNotEmpty(outDir, context, ANDROID_GENERATED_SOURCES_PROCESSOR);
-      final List<Pair<String, String>> copiedFiles = new ArrayList<Pair<String, String>>();
+      final List<Pair<String, String>> copiedFiles = new ArrayList<>();
 
       for (String path : filteredGenDirs) {
         final File dir = new File(path);
@@ -361,7 +362,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       }
       final File generatedSourcesDir = AndroidJpsUtil.getGeneratedSourcesStorage(
         module, dataManager.getDataPaths());
-      final List<String> deletedFiles = new ArrayList<String>();
+      final List<String> deletedFiles = new ArrayList<>();
 
       if (!removeCopiedFilesDuplicatingGeneratedFiles(context, outDir, generatedSourcesDir, deletedFiles)) {
         success.set(false);
@@ -606,7 +607,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
         final String packageName = moduleData.getPackage();
         final boolean debug = !AndroidJpsUtil.isReleaseBuild(context);
-        final Set<String> libPackages = new HashSet<String>(getDepLibPackages(module).values());
+        final Set<String> libPackages = new HashSet<>(getDepLibPackages(module).values());
         libPackages.remove(packageName);
 
         final AndroidBuildConfigState newState = new AndroidBuildConfigState(packageName, libPackages, debug);
@@ -814,7 +815,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           success = false;
         }
         else {
-          final List<File> newFiles = new ArrayList<File>();
+          final List<File> newFiles = new ArrayList<>();
           AndroidCommonUtils.moveAllFiles(tmpOutputDirectory, rsOutputDirectory, newFiles);
 
           final File bcFile = new File(rawDir, FileUtil.getNameWithoutExtension(file) + ".bc");
@@ -915,12 +916,12 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           LOG.info(e);
           oldState = null;
         }
-        final Map<String, ResourceFileData> resources = new HashMap<String, ResourceFileData>();
-        final TObjectLongHashMap<String> valueResFilesTimestamps = new TObjectLongHashMap<String>();
+        final Map<String, ResourceFileData> resources = new HashMap<>();
+        final TObjectLongHashMap<String> valueResFilesTimestamps = new TObjectLongHashMap<>();
         collectResources(resPaths, resources, valueResFilesTimestamps, oldState);
 
         final List<ResourceEntry> manifestElements = collectManifestElements(manifestFile);
-        final List<Pair<String, String>> libRTextFilesAndPackages = new ArrayList<Pair<String, String>>(packageMap.size());
+        final List<Pair<String, String>> libRTextFilesAndPackages = new ArrayList<>(packageMap.size());
 
         for (Map.Entry<JpsModule, String> entry1 : packageMap.entrySet()) {
           final String libPackage = entry1.getValue();
@@ -1091,7 +1092,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static List<File> collectJavaFilesRecursively(@NotNull File dir) {
-    final List<File> result = new ArrayList<File>();
+    final List<File> result = new ArrayList<>();
 
     FileUtil.processFilesRecursively(dir, new Processor<File>() {
       @Override
@@ -1107,7 +1108,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static Map<JpsModule, String> getDepLibPackages(@NotNull JpsModule module) throws IOException {
-    final Map<JpsModule, String> result = new HashMap<JpsModule, String>();
+    final Map<JpsModule, String> result = new HashMap<>();
 
     for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(module, true)) {
       final File depManifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(depExtension);
@@ -1193,7 +1194,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static List<ResourceEntry> collectManifestElements(@NotNull File manifestFile) throws IOException {
     final InputStream inputStream = new BufferedInputStream(new FileInputStream(manifestFile));
     try {
-      final List<ResourceEntry> result = new ArrayList<ResourceEntry>();
+      final List<ResourceEntry> result = new ArrayList<>();
 
       FormsParsing.parse(inputStream, new FormsParsing.IXMLBuilderAdapter() {
         String myLastName;
@@ -1253,7 +1254,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   @Nullable
   private static Map<JpsModule, MyModuleData> computeModuleDatas(@NotNull Collection<JpsModule> modules, @NotNull CompileContext context)
     throws IOException {
-    final Map<JpsModule, MyModuleData> moduleDataMap = new HashMap<JpsModule, MyModuleData>();
+    final Map<JpsModule, MyModuleData> moduleDataMap = new HashMap<>();
 
     boolean success = true;
 
@@ -1420,9 +1421,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       return false;
     }
 
-    final Set<JpsArtifact> debugArtifacts = new HashSet<JpsArtifact>();
-    final Set<JpsArtifact> releaseArtifacts = new HashSet<JpsArtifact>();
-    final Map<String, List<JpsArtifact>> moduleName2Artifact = new HashMap<String, List<JpsArtifact>>();
+    final Set<JpsArtifact> debugArtifacts = new HashSet<>();
+    final Set<JpsArtifact> releaseArtifacts = new HashSet<>();
+    final Map<String, List<JpsArtifact>> moduleName2Artifact = new HashMap<>();
 
     for (JpsArtifact artifact : artifacts) {
       final JpsElement properties = artifact.getProperties();
@@ -1446,7 +1447,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         List<JpsArtifact> list = moduleName2Artifact.get(moduleName);
 
         if (list == null) {
-          list = new ArrayList<JpsArtifact>();
+          list = new ArrayList<>();
           moduleName2Artifact.put(moduleName, list);
         }
         list.add(artifact);

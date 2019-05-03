@@ -55,7 +55,7 @@ public class DataBindingOutputParser implements PatternAwareOutputParser {
   private static boolean parseErrorIn(@NotNull String output, @NotNull List<Message> messages) {
     String message;
     String file = "";
-    List<Location> locations = new ArrayList<Location>();
+    List<Location> locations = new ArrayList<>();
     int msgStart = output.indexOf(MSG_KEY);
     if (msgStart < 0) {
       message = output;
@@ -94,7 +94,7 @@ public class DataBindingOutputParser implements PatternAwareOutputParser {
     if (StringUtil.isEmpty(file)) {
       return false;
     }
-    List<SourceFilePosition> sourceFilePositions = new ArrayList<SourceFilePosition>();
+    List<SourceFilePosition> sourceFilePositions = new ArrayList<>();
     File sourceFile = new File(file);
     if (locations.isEmpty()) {
       messages.add(new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN));

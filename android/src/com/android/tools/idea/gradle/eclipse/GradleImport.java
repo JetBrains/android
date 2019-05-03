@@ -1190,7 +1190,7 @@ public class GradleImport {
    */
   @NonNull
   public Map<String, File> getDetectedModuleLocations() {
-    TreeMap<String, File> modules = new TreeMap<String, File>();
+    TreeMap<String, File> modules = new TreeMap<>();
     for (ImportModule module : myModules) {
       modules.put(module.getModuleName(), module.getCanonicalModuleDir());
     }

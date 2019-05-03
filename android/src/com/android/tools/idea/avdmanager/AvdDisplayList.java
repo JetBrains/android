@@ -53,8 +53,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * A UI component which lists the existing AVDs
@@ -72,10 +72,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final AvdListDialog myDialog;
 
   private TableView<AvdInfo> myTable;
-  private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
+  private ListTableModel<AvdInfo> myModel = new ListTableModel<>();
   private Set<AvdSelectionListener> myListeners = Sets.newHashSet();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
-  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<String, HighlightableIconPair>(8);
+  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<>(8);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -106,7 +106,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myProject = project;
     myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
-    myTable = new TableView<AvdInfo>();
+    myTable = new TableView<>();
     myTable.setModelAndUpdateColumns(myModel);
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());

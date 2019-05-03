@@ -44,7 +44,7 @@ public enum FillPolicy {
   /** This view wants to fill vertically, but only in a horizontal context */
   HEIGHT_IN_HORIZONTAL;
 
-  static final Map<String, FillPolicy> ourNameToPolicy = new HashMap<String, FillPolicy>();
+  static final Map<String, FillPolicy> ourNameToPolicy = new HashMap<>();
   static {
     for (FillPolicy pref : FillPolicy.values()) {
       ourNameToPolicy.put(pref.toString().toLowerCase(Locale.US), pref);

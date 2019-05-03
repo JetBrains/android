@@ -50,7 +50,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   NlComponent mNlComponent;
   private boolean mKeepExistingConnections = true;
   private Rectangle mRectangle;
-  HashMap<String, ScoutWidget> myChildMap = new HashMap<String, ScoutWidget>();
+  HashMap<String, ScoutWidget> myChildMap = new HashMap<>();
   private static final String ATT_LL = SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
   private static final String ATT_LR = SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
   private static final String ATT_RL = SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;

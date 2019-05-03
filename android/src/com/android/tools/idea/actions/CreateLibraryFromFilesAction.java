@@ -185,7 +185,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
         if (moduleGradlePath == null) { return; }
         final GradleBuildFile buildFile = mySettingsFile.getModuleBuildFile(moduleGradlePath);
         List<Dependency> value = (List<Dependency>)buildFile.getValue(BuildFileKey.DEPENDENCIES);
-        final List<Dependency> dependencies = value != null ? value : new ArrayList<Dependency>();
+        final List<Dependency> dependencies = value != null ? value : new ArrayList<>();
         boolean added = false;
         for (OrderRoot root : myRoots) {
           VirtualFile parent = buildFile.getFile().getParent();

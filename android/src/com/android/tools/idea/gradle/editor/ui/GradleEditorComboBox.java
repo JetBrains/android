@@ -62,7 +62,7 @@ public class GradleEditorComboBox extends ComboBox {
   }
 
   public void setTable(@NonNull JTable table) {
-    myTableRef = new WeakReference<JTable>(table);
+    myTableRef = new WeakReference<>(table);
   }
 
   /**

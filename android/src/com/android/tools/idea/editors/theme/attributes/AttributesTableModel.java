@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -24,7 +25,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +32,8 @@ import spantable.CellSpanModel;
 
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Table model for Theme Editor
@@ -52,7 +52,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private final AttributesGrouper.GroupBy myGroupBy;
   private final ThemeEditorContext myContext;
 
-  private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
+  private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<>();
   private final ParentAttribute myParentAttribute = new ParentAttribute();
 
   public interface ThemePropertyChangedListener {
@@ -77,8 +77,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
                               @NotNull AttributesGrouper.GroupBy groupBy,
                               @NotNull ThemeEditorContext context) {
     myContext = context;
-    myAttributes = new ArrayList<EditedStyleItem>();
-    myLabels = new ArrayList<TableLabel>();
+    myAttributes = new ArrayList<>();
+    myLabels = new ArrayList<>();
     mySelectedStyle = selectedStyle;
     myGroupBy = groupBy;
     reloadContent();

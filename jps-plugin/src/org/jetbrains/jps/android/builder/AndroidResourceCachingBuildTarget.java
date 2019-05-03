@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.util.containers.HashSet;
@@ -34,7 +35,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
 
     if (extension != null) {
-      final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
+      final List<BuildRootDescriptor> result = new ArrayList<>();
 
       for (File resOverlayDir : extension.getResourceOverlayDirs()) {
         result.add(new BuildRootDescriptorImpl(this, resOverlayDir));
@@ -45,7 +46,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
         result.add(new BuildRootDescriptorImpl(this, resourceDir));
       }
       if (!extension.isLibrary()) {
-        final Set<String> aarResDirPaths = new HashSet<String>();
+        final Set<String> aarResDirPaths = new HashSet<>();
         AndroidJpsUtil.collectResDirectoriesFromAarDeps(myModule, aarResDirPaths);
 
         for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(myModule, true)) {

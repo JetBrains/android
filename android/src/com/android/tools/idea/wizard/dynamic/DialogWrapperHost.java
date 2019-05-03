@@ -53,7 +53,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
 
   private DynamicWizard myWizard;
   private TallImageComponent myIcon = new TallImageComponent(null);
-  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<ProgressIndicator>();
+  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<>();
 
   private JPanel myCenterPanel;
 

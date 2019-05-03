@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.Pair;
@@ -38,7 +39,7 @@ public class AndroidAarDepsBuildTarget extends AndroidBuildTarget {
                                                                BuildDataPaths dataPaths) {
     final Set<JpsLibrary> libraries = JpsJavaExtensionService.getInstance().enumerateDependencies(
       Collections.singleton(myModule)).runtimeOnly().productionOnly().getLibraries();
-    final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
+    final List<BuildRootDescriptor> result = new ArrayList<>();
 
     for (JpsLibrary library : libraries) {
       final Pair<File, List<File>> pair = AndroidJpsUtil.getResDirAndJarsIfAar(library);

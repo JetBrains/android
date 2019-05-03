@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class AndroidAdditionalRootProviderService extends AdditionalRootsProvide
   public List<JavaSourceRootDescriptor> getAdditionalRoots(@NotNull BuildTarget<JavaSourceRootDescriptor> target, BuildDataPaths dataPaths) {
     ModuleBuildTarget buildTarget = (ModuleBuildTarget)target;
     final File generatedSourcesRoot = AndroidJpsUtil.getGeneratedSourcesStorage(buildTarget.getModule(), dataPaths);
-    final List<JavaSourceRootDescriptor> result = new ArrayList<JavaSourceRootDescriptor>();
+    final List<JavaSourceRootDescriptor> result = new ArrayList<>();
 
     addRoot(result, buildTarget, new File(generatedSourcesRoot, AndroidJpsUtil.AAPT_GENERATED_SOURCE_ROOT_NAME));
     addRoot(result, buildTarget, new File(generatedSourcesRoot, AndroidJpsUtil.AIDL_GENERATED_SOURCE_ROOT_NAME));

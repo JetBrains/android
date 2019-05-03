@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.importDependencies;
 
 import com.intellij.openapi.project.Project;
@@ -21,7 +22,7 @@ import java.util.Map;
 class ImportDependenciesDialog extends DialogWrapper {
   private final CheckBoxList myCheckBoxList = new CheckBoxList();
   private final List<ImportDependenciesTask> myTasks;
-  private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<ImportDependenciesTask, JCheckBox>();
+  private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<>();
 
   protected ImportDependenciesDialog(Project project, List<ImportDependenciesTask> tasks) {
     super(project, false);
@@ -52,7 +53,7 @@ class ImportDependenciesDialog extends DialogWrapper {
   }
 
   public List<ImportDependenciesTask> getSelectedTasks() {
-    final List<ImportDependenciesTask> result = new ArrayList<ImportDependenciesTask>();
+    final List<ImportDependenciesTask> result = new ArrayList<>();
     for (ImportDependenciesTask task : myTasks) {
       if (myTask2Checkbox.get(task).isSelected()) {
         result.add(task);

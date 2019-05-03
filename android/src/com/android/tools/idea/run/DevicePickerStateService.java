@@ -27,11 +27,11 @@ import java.util.Set;
 
 public class DevicePickerStateService {
   /** A map from launch configuration id to the state of devices at the time of the launch. */
-  private TIntObjectHashMap<DeviceStateAtLaunch> myLastUsedDevices = new TIntObjectHashMap<DeviceStateAtLaunch>();
+  private TIntObjectHashMap<DeviceStateAtLaunch> myLastUsedDevices = new TIntObjectHashMap<>();
 
   /** A map from launch configuration id to the deploy target picker dialog's result. */
   private TIntObjectHashMap<DeployTarget> myDeployPickerResults =
-    new TIntObjectHashMap<DeployTarget>();
+    new TIntObjectHashMap<>();
 
   public static DevicePickerStateService getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, DevicePickerStateService.class);

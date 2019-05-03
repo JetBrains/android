@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.newProject;
 
 import com.android.SdkConstants;
@@ -25,7 +26,7 @@ import java.util.Set;
  */
 public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
 
-  private static final Set<String> ADT_INTERNAL_LIBS = new HashSet<String>(Arrays.asList(
+  private static final Set<String> ADT_INTERNAL_LIBS = new HashSet<>(Arrays.asList(
     "com.android.ide.eclipse.adt.ANDROID_FRAMEWORK",
     "com.android.ide.eclipse.adt.LIBRARIES"));
 

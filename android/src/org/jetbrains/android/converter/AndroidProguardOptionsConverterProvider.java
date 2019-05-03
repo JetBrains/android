@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.converter;
 
 import com.intellij.conversion.*;
@@ -88,7 +88,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       if (includeSystemCfgElement != null) {
         confElement.removeContent(includeSystemCfgElement);
       }
-      final List<String> proguardCfgUrls = new ArrayList<String>();
+      final List<String> proguardCfgUrls = new ArrayList<>();
 
       if (!Boolean.FALSE.toString().equals(includeSystemCfgStr)) {
         proguardCfgUrls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
@@ -147,7 +147,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       if (includeSystemCfgElement != null) {
         element.removeContent(includeSystemCfgElement);
       }
-      final List<String> proguardCfgUrls = new ArrayList<String>();
+      final List<String> proguardCfgUrls = new ArrayList<>();
 
       if (Boolean.parseBoolean(includeSystemCfgStr)) {
         proguardCfgUrls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);

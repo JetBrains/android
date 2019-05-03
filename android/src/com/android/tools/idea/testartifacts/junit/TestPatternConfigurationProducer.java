@@ -60,7 +60,7 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
   protected boolean setupConfigurationFromContext(@NotNull AndroidJUnitConfiguration configuration,
                                                   @NotNull ConfigurationContext context,
                                                   @NotNull Ref<PsiElement> sourceElement) {
-    LinkedHashSet<String> classes = new LinkedHashSet<String>();
+    LinkedHashSet<String> classes = new LinkedHashSet<>();
     PsiElement element = checkPatterns(context, classes);
     if (element == null) {
       return false;

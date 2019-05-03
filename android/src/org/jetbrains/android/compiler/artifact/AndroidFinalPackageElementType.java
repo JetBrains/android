@@ -1,6 +1,4 @@
-/*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.compiler.artifact;
 
@@ -48,7 +46,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
 
   @NotNull
   private static List<AndroidFacet> getAndroidApplicationFacets(@NotNull ArtifactEditorContext context, @NotNull Module[] modules) {
-    final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
+    final List<AndroidFacet> result = new ArrayList<>();
     for (Module module : modules) {
       for (AndroidFacet facet : context.getFacetsProvider().getFacetsByType(module, AndroidFacet.ID)) {
         if (facet.getConfiguration().isAppProject()) {

@@ -160,7 +160,7 @@ public class SkinLayoutDefinition {
   }
 
   private static List<String> sort(Set<String> set) {
-    ArrayList<String> list = new ArrayList<String>(set);
+    ArrayList<String> list = new ArrayList<>(set);
     Collections.sort(list);
     return list;
   }

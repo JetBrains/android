@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
@@ -92,7 +93,7 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
     if (roots.isEmpty()) {
       return true;
     }
-    final List<String> inputDirs = new ArrayList<String>();
+    final List<String> inputDirs = new ArrayList<>();
 
     for (BuildRootDescriptor root : roots) {
       final File f = root.getRootFile();
@@ -107,7 +108,7 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
     if (success) {
-      final Map<String, File> outputFiles = new HashMap<String, File>();
+      final Map<String, File> outputFiles = new HashMap<>();
 
       FileUtil.processFilesRecursively(resCacheDir, new Processor<File>() {
         @Override

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.newProject;
 
 import com.android.SdkConstants;
@@ -40,7 +41,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
   public void setupProjectStructure(@NotNull Collection<DetectedProjectRoot> roots,
                                     @NotNull ProjectDescriptor projectDescriptor,
                                     @NotNull ProjectFromSourcesBuilder builder) {
-    final List<File> existingRoots = new ArrayList<File>();
+    final List<File> existingRoots = new ArrayList<>();
 
     for (ProjectStructureDetector detector : ProjectStructureDetector.EP_NAME.getExtensions()) {
       if (detector != this) {
@@ -49,7 +50,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
         }
       }
     }
-    final List<ModuleDescriptor> modules = new ArrayList<ModuleDescriptor>();
+    final List<ModuleDescriptor> modules = new ArrayList<>();
 
     for (DetectedProjectRoot root : roots) {
       final File dir = root.getDirectory();

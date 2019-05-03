@@ -114,7 +114,7 @@ public class FlagRendererEditor extends TypedCellRendererEditor<EditedStyleItem,
   }
 
   private class FlagDialog extends DialogWrapper {
-    private final HashSet<String> mySelectedFlags = new HashSet<String>();
+    private final HashSet<String> mySelectedFlags = new HashSet<>();
 
     FlagDialog() {
       super(false);

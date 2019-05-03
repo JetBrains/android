@@ -216,7 +216,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
     if (attribute == null) {
       value = id;
     } else {
-      List<String> ids = new ArrayList<String>();
+      List<String> ids = new ArrayList<>();
       for (String existing : Splitter.on(',').trimResults().split(attribute.getValue())) {
         if (!existing.equals(id)) {
           ids.add(existing);

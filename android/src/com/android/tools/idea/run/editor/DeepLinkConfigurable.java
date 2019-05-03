@@ -59,7 +59,7 @@ public class DeepLinkConfigurable implements LaunchOptionConfigurable<DeepLinkLa
   }
 
   private void createUIComponents() {
-    myDeepLinkField = new ComponentWithBrowseButton<JBTextField>(new JBTextField(), null);
+    myDeepLinkField = new ComponentWithBrowseButton<>(new JBTextField(), null);
   }
 
   @Nullable

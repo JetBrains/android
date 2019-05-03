@@ -24,7 +24,7 @@ import java.util.*;
 
 public class AspectModel<T extends Enum<T>> extends AspectObserver {
 
-  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency<T>, Boolean>());
+  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<>());
 
   public void changed(T aspect) {
     ArrayList<Dependency<T>> deps = new ArrayList<>(myDependencies.size());

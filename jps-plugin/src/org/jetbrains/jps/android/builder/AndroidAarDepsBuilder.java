@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
@@ -68,7 +69,7 @@ public class AndroidAarDepsBuilder extends AndroidTargetBuilder<BuildRootDescrip
     if (outputDir == null) {
       return false;
     }
-    final List<String> srcJarFiles = new ArrayList<String>();
+    final List<String> srcJarFiles = new ArrayList<>();
 
     for (BuildRootDescriptor descriptor : context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context)) {
       final File file = descriptor.getRootFile();

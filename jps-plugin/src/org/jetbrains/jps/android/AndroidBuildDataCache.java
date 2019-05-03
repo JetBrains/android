@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.io.FileUtil;
@@ -23,8 +24,8 @@ import java.util.*;
 public class AndroidBuildDataCache {
   private static AndroidBuildDataCache ourInstance;
 
-  private final Map<JpsModule, MyAndroidDeps> myModule2AndroidDeps = new HashMap<JpsModule, MyAndroidDeps>();
-  private final Map<String, List<ResourceEntry>> myParsedValueResourceFiles = new HashMap<String, List<ResourceEntry>>();
+  private final Map<JpsModule, MyAndroidDeps> myModule2AndroidDeps = new HashMap<>();
+  private final Map<String, List<ResourceEntry>> myParsedValueResourceFiles = new HashMap<>();
 
   @NotNull
   public static AndroidBuildDataCache getInstance() {
@@ -53,7 +54,7 @@ public class AndroidBuildDataCache {
   @NotNull
   private static List<ResourceEntry> parseValueResourceFile(@NotNull File valueResXmlFile)
     throws IOException {
-    final ArrayList<ResourceEntry> result = new ArrayList<ResourceEntry>();
+    final ArrayList<ResourceEntry> result = new ArrayList<>();
 
     final InputStream inputStream = new BufferedInputStream(new FileInputStream(valueResXmlFile));
     try {
@@ -90,7 +91,7 @@ public class AndroidBuildDataCache {
   private static MyAndroidDeps computeAndroidDependencies(@NotNull JpsModule module) {
     final MyAndroidDeps result = new MyAndroidDeps();
     final boolean recursively = AndroidJpsUtil.shouldProcessDependenciesRecursively(module);
-    collectAndroidDependencies(module, result, new HashSet<String>(), true, recursively);
+    collectAndroidDependencies(module, result, new HashSet<>(), true, recursively);
     Collections.reverse(result.myAndroidDeps);
     Collections.reverse(result.myLibAndroidDeps);
     return result;
@@ -102,7 +103,7 @@ public class AndroidBuildDataCache {
                                                  boolean fillLibs,
                                                  boolean recursively) {
     final List<JpsDependencyElement> dependencies =
-      new ArrayList<JpsDependencyElement>(JpsJavaExtensionService.getInstance().getDependencies(
+      new ArrayList<>(JpsJavaExtensionService.getInstance().getDependencies(
         module, JpsJavaClasspathKind.PRODUCTION_RUNTIME, false));
 
     for (int i = dependencies.size() - 1; i >= 0; i--) {
@@ -171,7 +172,7 @@ public class AndroidBuildDataCache {
   }
 
   private static class MyAndroidDeps {
-    final List<JpsAndroidModuleExtension> myAndroidDeps = new ArrayList<JpsAndroidModuleExtension>();
-    final List<JpsAndroidModuleExtension> myLibAndroidDeps = new ArrayList<JpsAndroidModuleExtension>();
+    final List<JpsAndroidModuleExtension> myAndroidDeps = new ArrayList<>();
+    final List<JpsAndroidModuleExtension> myLibAndroidDeps = new ArrayList<>();
   }
 }

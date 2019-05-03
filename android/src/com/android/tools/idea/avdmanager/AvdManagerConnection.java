@@ -541,7 +541,7 @@ public class AvdManagerConnection {
     }
 
     // Extract the proxy information
-    List<String> proxyParameters = new ArrayList<String>();
+    List<String> proxyParameters = new ArrayList<>();
 
     List<Pair<String, String>> myPropList = httpInstance.getJvmProperties(false, null);
     for (Pair<String, String> kv : myPropList) {

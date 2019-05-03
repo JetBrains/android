@@ -59,9 +59,9 @@ class StackTraceExpander {
   @NotNull private final String myStackTracePrefix;
   @NotNull private final String myCauseLinePrefix;
 
-  private List<String> myProcessedLines = new ArrayList<String>();
-  private List<String> myCurrentStack = new ArrayList<String>();
-  private List<String> myPreviousStack = new ArrayList<String>();
+  private List<String> myProcessedLines = new ArrayList<>();
+  private List<String> myCurrentStack = new ArrayList<>();
+  private List<String> myPreviousStack = new ArrayList<>();
 
   /**
    * True if we've started parsing lines that match the {@link #EXCEPTION_LINE_PATTERN} and

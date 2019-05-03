@@ -40,7 +40,7 @@ public class EditResourcePanel extends JBScrollPane {
   private JTabbedPane myEditorTabs;
 
   private @NotNull List<ResourceItem> myVariants = Collections.emptyList();
-  private final @NotNull Map<Component, ResourceEditorTab> myAllTabs = new HashMap<Component, ResourceEditorTab>();
+  private final @NotNull Map<Component, ResourceEditorTab> myAllTabs = new HashMap<>();
 
   public EditResourcePanel(@Nullable String resourceName) {
     Color notificationsBackgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
