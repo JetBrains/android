@@ -48,6 +48,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +63,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
 
   public static final String INCLUDE_METHOD = "include";
   public static final String CUSTOM_LOCATION_FORMAT = "project('%1$s').projectDir = new File('%2$s')";
-  private static final Iterable<String> EMPTY_ITERABLE = Arrays.asList(new String[] {});
+  private static final Iterable<String> EMPTY_ITERABLE = Collections.emptyList();
 
   /**
    * Returns a handle to settings.gradle in project root or creates a new file if one does not already exist.

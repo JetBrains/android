@@ -28,7 +28,10 @@ import com.intellij.openapi.util.TextRange;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -109,7 +112,7 @@ public class GradleEditorDependencyParser {
       versionValueManager = new LibraryVersionsManager(group.value, artifact.value);
     }
     return new ExternalDependencyGradleEditorEntity(assignment.lValue.name,
-                                                    Arrays.asList(scopeSourceBinding),
+                                                    Collections.singletonList(scopeSourceBinding),
                                                     group.value,
                                                     group.sourceBindings,
                                                     artifact.value,

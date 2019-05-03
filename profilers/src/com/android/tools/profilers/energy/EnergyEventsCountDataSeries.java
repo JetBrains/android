@@ -22,10 +22,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A data series to count how many energy events are merged into one.
@@ -83,7 +80,7 @@ public final class EnergyEventsCountDataSeries implements DataSeries<Long> {
         activeEventGroups.remove(eventData.value.getEventId());
       }
     }
-    return Arrays.asList(new SeriesData(position, Long.valueOf(activeEventGroups.size())));
+    return Collections.singletonList(new SeriesData(position, Long.valueOf(activeEventGroups.size())));
   }
 
   public List<EnergyDuration.Kind> getKindsFilter() {
