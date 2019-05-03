@@ -3,9 +3,7 @@ package org.jetbrains.android.actions;
 
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -34,8 +32,8 @@ public class AndroidRegenerateSourcesAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    final Module module = e.getData(DataKeys.MODULE);
-    final Project project = e.getData(DataKeys.PROJECT);
+    final Module module = e.getData(LangDataKeys.MODULE);
+    final Project project = e.getData(CommonDataKeys.PROJECT);
     boolean visible = project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty();
     String title = TITLE;
 
@@ -65,8 +63,8 @@ public class AndroidRegenerateSourcesAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getData(DataKeys.PROJECT);
-    Module module = e.getData(DataKeys.MODULE);
+    Project project = e.getData(CommonDataKeys.PROJECT);
+    Module module = e.getData(LangDataKeys.MODULE);
     if (module != null) {
       generate(project, module);
       return;
