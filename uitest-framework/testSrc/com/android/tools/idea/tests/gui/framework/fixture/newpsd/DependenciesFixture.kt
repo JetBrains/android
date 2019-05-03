@@ -35,30 +35,6 @@ class DependenciesFixture(
   fun findDependenciesTable(): JTableFixture =
     JTableFixture(robot(), robot().finder().findByType<TableView<*>>(container))
 
-  fun findScopeEditor(): JTextComponentFixture =
-    object : JTextComponentFixture(robot(), robot().finder().findByName("scope", JTextField::class.java, true)) {
-      override fun selectAll(): JTextComponentFixture {
-        super.selectAll()
-        waitForIdle()
-        return this
-      }
-      override fun deleteText(): JTextComponentFixture {
-        super.selectAll()
-        waitForIdle()
-        return this
-      }
-      override fun enterText(text: String): JTextComponentFixture {
-        super.enterText(text)
-        waitForIdle()
-        return this
-      }
-      override fun pressAndReleaseKeys(vararg keyCodes: Int): JTextComponentFixture {
-        super.pressAndReleaseKeys(*keyCodes)
-        waitForIdle()
-        return this
-      }
-  }
-
   fun findConfigurationCombo(): JComboBoxFixture =
     object : JComboBoxFixture(robot(), robot().finder().findByName("configuration", JComboBox::class.java, true)) {
       override fun selectAllText(): JComboBoxFixture {
