@@ -126,6 +126,7 @@ public class GradleSyncState {
   private long mySourceGenerationEndedTimeStamp = -1L;
   private long mySyncFailedTimeStamp = -1L;
   private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
+  private boolean myShouldRemoveModelsOnFailure = false;
 
   @GuardedBy("myLock")
   @Nullable private ExternalSystemTaskId myExternalSystemTaskId;
@@ -218,6 +219,7 @@ public class GradleSyncState {
       mySyncSkipped = request.useCachedGradleModels;
       mySyncInProgress = true;
     }
+    myShouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null;
 
     String syncType = NewGradleSync.isSingleVariantSync(myProject) ? "single-variant" : "IDEA";
     LOG.info(String.format("Started %1$s sync with Gradle for project '%2$s'.", syncType, myProject.getName()));
@@ -325,6 +327,9 @@ public class GradleSyncState {
       syncFinished(syncEndTimestamp);
       return;
     }
+    if (myShouldRemoveModelsOnFailure) {
+      removeAndroidModels(myProject);
+    }
     setSyncFailedTimeStamp(syncEndTimestamp);
     String msg = "Gradle sync failed";
     if (isNotEmpty(message)) {
@@ -346,7 +351,6 @@ public class GradleSyncState {
       //noinspection UseOfSystemOutOrSystemErr
       System.out.println("***** sync error: " + toLog);
     }
-
 
     logSyncEvent(GRADLE_SYNC_FAILURE);
 
@@ -777,5 +781,18 @@ public class GradleSyncState {
     }
     // Gradle part has not been done
     return -1;
+  }
+
+  // See issue: https://code.google.com/p/android/issues/detail?id=64508
+  private static void removeAndroidModels(@NotNull Project project) {
+    // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
+    // failure.
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        facet.getConfiguration().setModel(null);
+      }
+    }
   }
 }
