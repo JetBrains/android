@@ -120,9 +120,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -333,10 +331,6 @@ public final class TemplateValueInjector {
 
     myTemplateValues.put(ATTR_IS_GRADLE, true);
 
-    // TODO: Check if this is used at all by the templates
-    myTemplateValues.put("target.files", new HashSet<>());
-    myTemplateValues.put("files.to.open", new ArrayList<>());
-
     // TODO: Check this one with Joe. It seems to be used by the old code on Import module, but can't find it on new code
     myTemplateValues.put(ATTR_CREATE_ACTIVITY, false);
 
@@ -454,7 +448,7 @@ public final class TemplateValueInjector {
     }
   }
 
-  private boolean isEAP(String version) {
+  private static boolean isEAP(String version) {
     return version.contains("rc") || version.contains("eap") || version.contains("-M");
   }
 
