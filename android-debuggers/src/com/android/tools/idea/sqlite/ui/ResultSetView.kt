@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,16 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteRow
 
-interface SqliteViewListener {
-  fun tableNodeActionInvoked(table: SqliteTable)
+/**
+ * Interface used to abstract views that display the content of SQL tables.
+ */
+interface ResultSetView {
+  fun startTableLoading(tableName: String?)
+  fun showTableColumns(columns: List<SqliteColumn>)
+  fun showTableRowBatch(rows: List<SqliteRow>)
+  fun stopTableLoading()
+  fun reportErrorRelatedToTable(tableName: String?, message: String, t: Throwable)
 }
