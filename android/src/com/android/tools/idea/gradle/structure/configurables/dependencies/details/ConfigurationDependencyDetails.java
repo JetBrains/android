@@ -51,7 +51,7 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
         ui.removeAllItems();
         String configuration = dependency.getJoinedConfigurationNames();
         ui.addItem(configuration);
-        for (String c : dependency.getParent().getConfigurations(PsModule.ImportantFor.LIBRARY)) {
+        for (String c : dependency.getParent().getConfigurations(importantFor)) {
           if (c != configuration) ui.addItem(c);
         }
         ui.setSelectedItem(configuration);
