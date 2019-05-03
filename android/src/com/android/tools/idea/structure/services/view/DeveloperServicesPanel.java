@@ -19,7 +19,6 @@ import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
-import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -40,6 +39,8 @@ import java.util.List;
  * A vertical list of {@link DeveloperServicePanel}s.
  */
 public final class DeveloperServicesPanel extends EditorPanel {
+  private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
+  private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
 
   // Keep a copy of service panel children so we can iterate over them directly
   private final List<DeveloperServicePanel> myPanelsList = Lists.newArrayList();
@@ -62,8 +63,8 @@ public final class DeveloperServicesPanel extends EditorPanel {
     myModuleCombo.setRenderer(renderer);
 
     final JScrollBar scrollBar = myScrollPane.getVerticalScrollBar();
-    scrollBar.setUnitIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_UNIT_INCREMENT);
-    scrollBar.setBlockIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_BLOCK_INCREMENT);
+    scrollBar.setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
+    scrollBar.setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
 
     myServicesPanel.setBorder(new TitledBorder(serviceCategory.getDisplayName()));
     updateServicePanels(serviceCategory);
