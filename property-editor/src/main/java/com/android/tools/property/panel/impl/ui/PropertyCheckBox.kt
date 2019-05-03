@@ -51,6 +51,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     set(value) { model.isSelected = value }
 
   init {
+    isOpaque = false // This avoids obscuring the text field border
     state = toStateValue(propertyModel.value)
     background = secondaryPanelBackground
     HelpSupportBinding.registerHelpKeyActions(this, { propertyModel.property })
