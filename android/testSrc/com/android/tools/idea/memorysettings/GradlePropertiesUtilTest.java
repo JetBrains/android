@@ -25,6 +25,20 @@ import java.io.File;
 
 public class GradlePropertiesUtilTest extends IdeaTestCase {
 
+  public void testHasJvmArgs() throws Exception {
+    File propertiesFilePath = createTempFile("gradle.properties", "org.gradle.jvmargs=-Xms800M");
+    GradleProperties properties = new GradleProperties(propertiesFilePath);
+    assertTrue(GradlePropertiesUtil.hasJvmArgs(properties));
+
+    propertiesFilePath = createTempFile("gradle.properties", "");
+    properties = new GradleProperties(propertiesFilePath);
+    assertFalse(GradlePropertiesUtil.hasJvmArgs(properties));
+
+    propertiesFilePath = createTempFile("gradle.properties", "kotlin.code.style=official");
+    properties = new GradleProperties(propertiesFilePath);
+    assertFalse(GradlePropertiesUtil.hasJvmArgs(properties));
+  }
+
   public void testNoDaemonXmx() throws Exception {
     checkXmx("", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);
     checkXmx("org.gradle.jvmargs=", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);

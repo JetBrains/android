@@ -33,6 +33,9 @@ public class GradlePropertiesUtil {
   private static final String INNER_DELIMITER = ",";
   private static final String KOTLIN_JVM_OPTIONS_PROPERTY = "-Dkotlin.daemon.jvm.options";
 
+  static boolean hasJvmArgs(GradleProperties properties) {
+    return properties != null && properties.getJvmArgs() != null;
+  }
   static int getGradleDaemonXmx(GradleProperties properties) {
     return properties == null ? -1 : getXmxFromVmArgs(properties.getJvmArgs(), TOP_SPLIT_REGEX);
   }
