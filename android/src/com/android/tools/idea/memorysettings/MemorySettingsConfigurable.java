@@ -126,19 +126,20 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     private int mySelectedIdeXmx;
     private int mySelectedGradleXmx;
     private int mySelectedKotlinXmx;
+    private DaemonMemorySettings myDaemonMemorySettings;
 
     MyComponent() {
-      // Set the memory settings slider
+      // Set the memory settings panel
       myCurrentIdeXmx = MemorySettingsUtil.getCurrentXmx();
       mySelectedIdeXmx = myCurrentIdeXmx;
       myProject = MemorySettingsUtil.getCurrentProject();
       myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(myProject, myCurrentIdeXmx);
 
+      setUI();
       MemorySettingsUtil.log(MemorySettingsEvent.EventKind.SHOW_CONFIG_DIALOG,
                              myCurrentIdeXmx, myCurrentGradleXmx, myCurrentKotlinXmx,
                              myRecommendedIdeXmx, -1, -1,
                              -1, -1, -1);
-      setUI();
     }
 
     private void setUI() {
@@ -180,11 +181,12 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                 });
 
       if (myProject != null) {
-        myCurrentGradleXmx = MemorySettingsUtil.getProjectGradleDaemonXmx();
+        myDaemonMemorySettings = new DaemonMemorySettings(myProject);
+        myCurrentGradleXmx = myDaemonMemorySettings.getProjectGradleDaemonXmx();
         mySelectedGradleXmx = myCurrentGradleXmx;
         setXmxBox(myGradleDaemonXmxBox, myCurrentGradleXmx, -1,
-                  MemorySettingsUtil.getDefaultGradleDaemonXmx(),
-                  MemorySettingsUtil.MAX_GRADLE_DAEMON_XMX_IN_MB,
+                  myDaemonMemorySettings.getDefaultGradleDaemonXmx(),
+                  DaemonMemorySettings.MAX_GRADLE_DAEMON_XMX_IN_MB,
                   SIZE_INCREMENT / 2,
                   new ItemListener() {
                     @Override
@@ -195,11 +197,11 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                     }
                   });
 
-        myCurrentKotlinXmx = MemorySettingsUtil.getProjectKotlinDaemonXmx();
+        myCurrentKotlinXmx = myDaemonMemorySettings.getProjectKotlinDaemonXmx();
         mySelectedKotlinXmx = myCurrentKotlinXmx;
         setXmxBox(myKotlinDaemonXmxBox, myCurrentKotlinXmx, -1,
-                  MemorySettingsUtil.getDefaultKotlinDaemonXmx(),
-                  MemorySettingsUtil.MAX_KOTLIN_DAEMON_XMX_IN_MB,
+                  myDaemonMemorySettings.getDefaultKotlinDaemonXmx(),
+                  DaemonMemorySettings.MAX_KOTLIN_DAEMON_XMX_IN_MB,
                   SIZE_INCREMENT / 2,
                   new ItemListener() {
                     @Override
@@ -330,7 +332,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         myCurrentKotlinXmx = mySelectedKotlinXmx;
       }
       if (isGradleXmxModified || isKotlinXmxModified) {
-        MemorySettingsUtil.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
+        myDaemonMemorySettings.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
         changed = true;
       }
 
