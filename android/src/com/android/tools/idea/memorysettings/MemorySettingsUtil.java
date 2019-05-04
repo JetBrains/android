@@ -45,7 +45,7 @@ public class MemorySettingsUtil {
 
   static final int NO_XMX_IN_VM_ARGS = -1;
 
-  public static final int getIdeXmxCapInGB() {
+  static final int getIdeXmxCapInGB() {
     return StudioFlags.LOW_IDE_XMX_CAP.get() ? LOW_IDE_XMX_CAP_IN_GB : HIGH_IDE_XMX_CAP_IN_GB;
   }
 

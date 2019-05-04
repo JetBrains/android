@@ -48,7 +48,9 @@ import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.DaemonsUi;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
-/** A class to provide a memory settings configurable dialog. */
+/**
+ * A class to provide a memory settings configurable dialog.
+ */
 public class MemorySettingsConfigurable implements SearchableConfigurable {
   private MyComponent myComponent;
 
@@ -153,22 +155,23 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
         myApplyRecommendationLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.use.recommended.values"));
         myApplyRecommendationLabel.addHyperlinkListener(new HyperlinkAdapter() {
-           @Override
-           protected void hyperlinkActivated(HyperlinkEvent e) {
-             myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
-             mySelectedIdeXmx = myRecommendedIdeXmx;
-             MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
-                                    myCurrentIdeXmx, myCurrentGradleXmx, myCurrentKotlinXmx,
-                                    myRecommendedIdeXmx, -1, -1,
-                                    myRecommendedIdeXmx, -1, -1);
-           }
-         });
-       } else {
-         myIdeInfoLabel.setVisible(false);
-         myApplyRecommendationLabel.setVisible(false);
-       }
+          @Override
+          protected void hyperlinkActivated(HyperlinkEvent e) {
+            myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
+            mySelectedIdeXmx = myRecommendedIdeXmx;
+            MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
+                                   myCurrentIdeXmx, myCurrentGradleXmx, myCurrentKotlinXmx,
+                                   myRecommendedIdeXmx, -1, -1,
+                                   myRecommendedIdeXmx, -1, -1);
+          }
+        });
+      }
+      else {
+        myIdeInfoLabel.setVisible(false);
+        myApplyRecommendationLabel.setVisible(false);
+      }
 
-      int machineMem =  MemorySettingsUtil.getMachineMem();
+      int machineMem = MemorySettingsUtil.getMachineMem();
       int maxXmx = getMaxXmx(machineMem);
       setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, DEFAULT_IDE_XMX, maxXmx, SIZE_INCREMENT,
                 new ItemListener() {
@@ -217,9 +220,10 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         myShowDaemonsLabel.addHyperlinkListener(
           new HyperlinkAdapter() {
             DaemonsUi myUi;
+
             @Override
             protected void hyperlinkActivated(HyperlinkEvent e) {
-               myUi = new DaemonsUi(myProject) {
+              myUi = new DaemonsUi(myProject) {
                 @Override
                 public void dispose() {
                   myUi = null;
@@ -229,7 +233,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
               myUi.show(daemonsStatus);
             }
           });
-      } else {
+      }
+      else {
         myDaemonPanel.setVisible(false);
         myDaemonInfoLabel.setVisible(false);
         myShowDaemonsLabel.setVisible(false);
@@ -283,7 +288,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           else if (value.equals(Integer.valueOf(recommended))) {
             append(String.format(Locale.US, "%s - recommended", memSizeText(recommended)),
                    new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
-          } else {
+          }
+          else {
             append(memSizeText(value), SimpleTextAttributes.REGULAR_ATTRIBUTES);
           }
         }
@@ -325,15 +331,20 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
       boolean isGradleXmxModified = isGradleDaemonXmxModified();
       boolean isKotlinXmxModified = isKotlinDaemonXmxModified();
-      if (isGradleXmxModified) {
-        myCurrentGradleXmx = mySelectedGradleXmx;
-      }
-      if (isKotlinXmxModified) {
-        myCurrentKotlinXmx = mySelectedKotlinXmx;
-      }
       if (isGradleXmxModified || isKotlinXmxModified) {
-        myDaemonMemorySettings.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
-        changed = true;
+        if (isGradleXmxModified && myDaemonMemorySettings.hasUserGradleDaemonXmx() ||
+            isKotlinXmxModified && myDaemonMemorySettings.hasUserKotlinDaemonXmx()) {
+          showWarning(myDaemonMemorySettings.getUserPropertiesPath());
+        } else {
+          if (isGradleXmxModified) {
+            myCurrentGradleXmx = mySelectedGradleXmx;
+          }
+          if (isKotlinXmxModified) {
+            myCurrentKotlinXmx = mySelectedKotlinXmx;
+          }
+          myDaemonMemorySettings.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
+          changed = true;
+        }
       }
 
       if (isIdeXmxModified()) {
@@ -352,6 +363,12 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       }
     }
 
+    private void showWarning(String propertiesPath) {
+      Messages.showWarningDialog(myProject,
+                                 AndroidBundle.message("memory.settings.has.user.properties", propertiesPath),
+                                 "User gradle properties exist");
+    }
+
     // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and a hard cap (4GB or 8GB)
     private static int getMaxXmx(int machineMem) {
       int ideXmxCap = MemorySettingsUtil.getIdeXmxCapInGB();
@@ -363,5 +380,3 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
   }
 }
-
-
