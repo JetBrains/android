@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DaemonMemorySettingsUtil {
+public class GradlePropertiesUtil {
   private static final String XMX_PROPERTY = "-Xmx";
   private static final String TOP_SPLIT_REGEX = "([^ \"']|\"[^\"]*\"|'[^']*')+";
   private static final String INNER_SPLIT_REGEX = "([^, \"']|\"[^\"]*\"|'[^']*')+";
@@ -33,15 +33,15 @@ public class DaemonMemorySettingsUtil {
   private static final String INNER_DELIMITER = ",";
   private static final String KOTLIN_JVM_OPTIONS_PROPERTY = "-Dkotlin.daemon.jvm.options";
 
-  public static int getGradleDaemonXmx(GradleProperties properties) {
+  static int getGradleDaemonXmx(GradleProperties properties) {
     return properties == null ? -1 : getXmxFromVmArgs(properties.getJvmArgs(), TOP_SPLIT_REGEX);
   }
 
-  public static int getKotlinDaemonXmx(GradleProperties properties) {
+  static int getKotlinDaemonXmx(GradleProperties properties) {
     return properties == null ? -1 : getKotlinXmxFromVMArgs(properties.getJvmArgs());
   }
 
-  public static void setDaemonXmx(GradleProperties properties, int gradleValue, int kotlinValue) throws IOException {
+  static void setDaemonXmx(GradleProperties properties, int gradleValue, int kotlinValue) throws IOException {
     if (gradleValue > 0 || kotlinValue > 0) {
       properties.setJvmArgs(setDaemonXmx(properties.getJvmArgs(), gradleValue, kotlinValue));
       properties.save();
@@ -62,7 +62,8 @@ public class DaemonMemorySettingsUtil {
       int i = getLastIndexOfProperty(properties, KOTLIN_JVM_OPTIONS_PROPERTY);
       if (i == -1) {
         properties.add(1, kotlinXmxJvmOption(kotlinValue));
-      } else {
+      }
+      else {
         String kotlinDaemonJvmOptions = getKotlinDaemonJvmOptions(properties.get(i));
         String newKotlinDaemonJvmOptions = setXmxInVmArgs(kotlinDaemonJvmOptions, INNER_SPLIT_REGEX, INNER_DELIMITER, kotlinValue);
         properties.set(i, String.format(Locale.US, "%s=\"%s\"", KOTLIN_JVM_OPTIONS_PROPERTY, newKotlinDaemonJvmOptions));
@@ -80,7 +81,8 @@ public class DaemonMemorySettingsUtil {
     int i = getLastIndexOfProperty(properties, XMX_PROPERTY);
     if (i == -1) {
       properties.add(1, getXmxString(value));
-    } else {
+    }
+    else {
       properties.set(i, getXmxString(value));
     }
     return String.join(delimiter, properties);
@@ -105,7 +107,7 @@ public class DaemonMemorySettingsUtil {
   }
 
   private static int getLastIndexOfProperty(List<String> properties, String prefix) {
-    for (int i = properties.size() - 1; i >= 0; i --) {
+    for (int i = properties.size() - 1; i >= 0; i--) {
       String property = properties.get(i);
       if (property.startsWith(prefix)) {
         return i;
