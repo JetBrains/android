@@ -53,8 +53,6 @@ import com.google.common.collect.Maps;
 import com.intellij.ide.scratch.ScratchFileService;
 import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
@@ -211,9 +209,11 @@ public final class RenderTemplateModel extends WizardModel {
     return myAndroidSdkInfo;
   }
 
+  @NotNull
   public List<File> getCreatedFiles() {
     return myCreatedFiles;
   }
+
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
@@ -289,17 +289,17 @@ public final class RenderTemplateModel extends WizardModel {
       final AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
 
-      myRenderSuccess = new WriteCommandAction<Boolean>(project, myCommandName) {
-        @Override
-        protected void run(@NotNull Result<Boolean> result) {
+      try {
+        WriteCommandAction.writeCommandAction(project).withName(myCommandName).run(() -> {
           boolean success = renderTemplate(false, project, paths, myCreatedFiles, myFilesToReformat);
           if (success && myIconGenerator != null) {
             myIconGenerator.generateIconsToDisk(paths);
           }
-
-          result.setResult(success);
-        }
-      }.execute().getResultObject();
+          myRenderSuccess = success;
+        });
+      }
+      catch (Throwable ignored) {
+      }
     }
 
     @UiThread
@@ -357,18 +357,16 @@ public final class RenderTemplateModel extends WizardModel {
         myTemplateValues.put(ACTIVITY_TEMPLATE_NAME, StringUtils.deleteWhitespace(template.getMetadata().getTitle()));
       }
 
-      // @formatter:off
-    final RenderingContext context = RenderingContext.Builder.newContext(template, project)
-      .withCommandName(myCommandName)
-      .withDryRun(dryRun)
-      .withShowErrors(true)
-      .withModuleRoot(paths.getModuleRoot())
-      .withModule(getModule())
-      .withParams(myTemplateValues)
-      .intoOpenFiles(filesToOpen)
-      .intoTargetFiles(filesToReformat)
-      .build();
-    // @formatter:on
+      final RenderingContext context = RenderingContext.Builder.newContext(template, project)
+        .withCommandName(myCommandName)
+        .withDryRun(dryRun)
+        .withShowErrors(true)
+        .withModuleRoot(paths.getModuleRoot())
+        .withModule(getModule())
+        .withParams(myTemplateValues)
+        .intoOpenFiles(filesToOpen)
+        .intoTargetFiles(filesToReformat)
+        .build();
       return template.render(context, dryRun);
     }
   }
