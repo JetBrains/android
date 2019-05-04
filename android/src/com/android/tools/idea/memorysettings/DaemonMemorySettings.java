@@ -23,34 +23,60 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.project.AndroidNotification;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This class specifies both user-level and project-level Gradle properties for a project.
+ * The user-level properties take priority over the project-level ones.
+ * See <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties">Gradle doc</a>
+ */
 public class DaemonMemorySettings {
   private static final Logger LOG = Logger.getInstance(DaemonMemorySettings.class);
-
   private static final int LOW_GRADLE_DAEMON_XMX_IN_MB = 1024;
   private static final int HIGH_GRADLE_DAEMON_XMX_IN_MB = 1536;
 
   static final int MAX_GRADLE_DAEMON_XMX_IN_MB = 2048;
   static final int MAX_KOTLIN_DAEMON_XMX_IN_MB = 2048;
 
-  private Project project;
+  private final Project project;
+  private final GradleProperties projectProperties;
+  private final GradleUserProperties userProperties;
 
   DaemonMemorySettings(Project project) {
     this.project = project;
+    this.projectProperties = getProjectProperties();
+    this.userProperties = new GradleUserProperties();
+  }
+
+  @VisibleForTesting
+  DaemonMemorySettings(GradleProperties projectProperties) {
+    this.project = null;
+    this.projectProperties = projectProperties;
+    this.userProperties = new GradleUserProperties();
   }
 
   int getDefaultGradleDaemonXmx() {
     return SystemInfo.is32Bit ? LOW_GRADLE_DAEMON_XMX_IN_MB : HIGH_GRADLE_DAEMON_XMX_IN_MB;
   }
 
+  boolean hasUserGradleDaemonXmx() {
+    return userProperties.getGradleXmx() > 0;
+  }
+
+  String getUserPropertiesPath() {
+    File path = userProperties.getPropertiesPath();
+    return path == null ? null : path.getPath();
+  }
+
   int getProjectGradleDaemonXmx() {
-    return getGradleDaemonXmx(getProjectProperties());
+    return userProperties.getPropertiesPath() != null ? userProperties.getGradleXmx() : getGradleDaemonXmx(projectProperties);
   }
 
   int getDefaultKotlinDaemonXmx() {
@@ -58,9 +84,16 @@ public class DaemonMemorySettings {
     return getProjectGradleDaemonXmx();
   }
 
+  boolean hasUserKotlinDaemonXmx() {
+    return userProperties.getKotlinXmx() > 0;
+  }
+
   int getProjectKotlinDaemonXmx() {
-    int xmx = getKotlinDaemonXmx(getProjectProperties());
-    return xmx > 0 ? xmx : getDefaultKotlinDaemonXmx();
+    if (userProperties.getPropertiesPath() != null) {
+      return userProperties.getKotlinXmx();
+    }
+    int xmx = getKotlinDaemonXmx(projectProperties);
+    return xmx > 0 ? xmx : getGradleDaemonXmx(projectProperties);
   }
 
   @Nullable
@@ -75,13 +108,12 @@ public class DaemonMemorySettings {
 
   void saveProjectDaemonXmx(int newGradleValue, int newKotlinValue) {
     LOG.info(String.format(Locale.US, "saving new daemon Xmx value: Gradle %d, Kotlin %d", newGradleValue, newKotlinValue));
-    GradleProperties properties = getProjectProperties();
-    if (properties == null) {
+    if (projectProperties == null) {
       reportSaveError("Null gradle properties", null);
     }
     else {
       try {
-        setDaemonXmx(properties, newGradleValue, newKotlinValue);
+        setDaemonXmx(projectProperties, newGradleValue, newKotlinValue);
       }
       catch (IOException e) {
         String err = "Failed to save new Xmx value to gradle.properties";
