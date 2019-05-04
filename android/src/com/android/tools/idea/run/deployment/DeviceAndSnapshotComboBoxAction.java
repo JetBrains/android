@@ -44,6 +44,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.util.ui.JBUI;
@@ -75,6 +77,12 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
 
   private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
+
+  /**
+   * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
+   * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
+   */
+  public static final Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE = Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
@@ -427,6 +435,17 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     RunProfile configuration = settings.getConfiguration();
+
+    // Run configurations can explicitly specify they target a local device through DEPLOY_TO_LOCAL_DEVICE.
+    if (configuration instanceof UserDataHolder) {
+      Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
+      if (deploysToLocalDevice != null && deploysToLocalDevice.booleanValue()) {
+        presentation.setDescription(null);
+        presentation.setEnabled(true);
+
+        return;
+      }
+    }
 
     if (!(configuration instanceof AndroidRunConfiguration || configuration instanceof AndroidTestRunConfiguration)) {
       presentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
