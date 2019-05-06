@@ -17,13 +17,13 @@ package com.android.tools.idea.uibuilder.handlers.linear.draw;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.util.ui.JBUI;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 
 /**
  * Draw a rectangle to show the the potential position of a dragged component
