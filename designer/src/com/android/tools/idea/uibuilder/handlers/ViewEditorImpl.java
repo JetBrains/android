@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
@@ -24,7 +28,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -38,6 +41,7 @@ import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
@@ -281,7 +285,14 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void openResourceFile(@NotNull String resourceId) {
-    DesignSurfaceHelper.openResource(myConfiguration, resourceId, myModel.getVirtualFile());
+    ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
+    ResourceValue resValue = resourceResolver.findResValue(resourceId, false);
+
+    VirtualFile file = ResourceHelper.resolveLayout(resourceResolver, resValue);
+    if (file == null) {
+      return;
+    }
+    LayoutNavigationManager.getInstance(myConfiguration.getModule().getProject()).pushFile(myModel.getVirtualFile(), file);
   }
 
   /**
