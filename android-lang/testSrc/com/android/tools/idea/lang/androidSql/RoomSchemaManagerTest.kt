@@ -56,7 +56,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
     // Below we're adding a new source root, make sure we're not modifying a reusable light project.
     assertThat((project as? ProjectImpl)?.isLight ?: false).named("project is light").isFalse()
     val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
-    PsiTestUtil.addSourceRoot(myModule, testSrc, true)
+    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true)
     val testFile = myFixture.addFileToProject("${testSrc.name}/TestFile.java", "")
 
     myFixture.addFileToProject(

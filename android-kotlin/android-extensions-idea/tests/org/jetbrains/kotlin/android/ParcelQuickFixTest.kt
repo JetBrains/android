@@ -31,15 +31,15 @@ abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
 
     val androidSdk = TestUtils.getSdk()
     val androidJarDir = File(androidSdk, "platforms").listFiles().first { it.name.startsWith("android-") }
-    ConfigLibraryUtil.addLibrary(myModule, "androidJar", androidJarDir.absolutePath, arrayOf("android.jar"))
+    ConfigLibraryUtil.addLibrary(myFixture.module, "androidJar", androidJarDir.absolutePath, arrayOf("android.jar"))
 
     val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
-    ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", "$kotlinPlugin/kotlinc/lib", arrayOf("android-extensions-runtime.jar"))
+    ConfigLibraryUtil.addLibrary(myFixture.module, "androidExtensionsRuntime", "$kotlinPlugin/kotlinc/lib", arrayOf("android-extensions-runtime.jar"))
   }
 
   override fun tearDown() {
-    ConfigLibraryUtil.removeLibrary(myModule, "androidJar")
-    ConfigLibraryUtil.removeLibrary(myModule, "androidExtensionsRuntime")
+    ConfigLibraryUtil.removeLibrary(myFixture.module, "androidJar")
+    ConfigLibraryUtil.removeLibrary(myFixture.module, "androidExtensionsRuntime")
 
     super.tearDown()
   }
