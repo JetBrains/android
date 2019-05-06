@@ -36,6 +36,7 @@ import static com.android.tools.idea.uibuilder.LayoutTestUtilities.pressMouse;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.releaseMouse;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
@@ -214,7 +215,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     // Now select with ctrl
     clickMouse(manager, MouseEvent.BUTTON1, 1,
                Coordinates.getSwingXDip(screenView, button.getCenterX()),
-               Coordinates.getSwingYDip(screenView, button.getCenterY()), InputEvent.CTRL_MASK);
+               Coordinates.getSwingYDip(screenView, button.getCenterY()), AdtUiUtils.getActionMask());
 
     selections = surface.getSelectionModel().getSelection();
     assertEquals(2, selections.size());
