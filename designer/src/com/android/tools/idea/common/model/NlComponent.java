@@ -28,8 +28,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
-import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
