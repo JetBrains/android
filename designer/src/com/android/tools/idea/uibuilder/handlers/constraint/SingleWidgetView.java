@@ -21,7 +21,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstra
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_TOP;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
