@@ -24,11 +24,12 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
 import com.android.SdkConstants;
-import com.google.common.base.Preconditions;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
@@ -60,6 +61,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
+import com.intellij.util.IncorrectOperationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -152,7 +154,8 @@ public class NavigationSchema implements Disposable {
    * there's no way for us to know which the default Navigator is without this static mapping.
    * TODO: it would be nice to have this specified by the platform somehow that didn't require hardcoding of class names in Studio.
    */
-  private Map<DestinationType, String> myTypeToRootTag;
+  @NotNull
+  private ImmutableMap<DestinationType, String> myTypeToRootTag = ImmutableMap.of();
   public static final String ROOT_ACTIVITY_NAVIGATOR = "androidx.navigation.ActivityNavigator";
   public static final String ROOT_FRAGMENT_NAVIGATOR = "androidx.navigation.fragment.FragmentNavigator";
   public static final String ROOT_NAV_GRAPH_NAVIGATOR = "androidx.navigation.NavGraphNavigator";
@@ -329,7 +332,8 @@ public class NavigationSchema implements Disposable {
   /**
    * List of class key information. Only used for cache invalidation.
    */
-  private ImmutableList<NavigatorKeyInfo> myNavigatorCacheKeys;
+  @NotNull
+  private ImmutableList<NavigatorKeyInfo> myNavigatorCacheKeys = ImmutableList.of();
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -343,17 +347,20 @@ public class NavigationSchema implements Disposable {
    * This includes all destination classes that are directly referenced by Navigators in ClassType annotations on their NavDestination
    * subclasses. in the project or libraries (including the basic ones from the navigation library).
    */
-  private ImmutableMultimap<DestinationType, TypeRef> myTypeToDestinationClass;
+  @NotNull
+  private ImmutableMultimap<DestinationType, TypeRef> myTypeToDestinationClass = ImmutableMultimap.of();
 
   /**
    * Map from tag name to destination class. This should include all tags and destination classes
    */
-  private ImmutableMultimap<String, TypeRef> myTagToDestinationClass;
+  @NotNull
+  private ImmutableMultimap<String, TypeRef> myTagToDestinationClass = ImmutableMultimap.of();
 
   /**
    * Map from tag name to styleable class (that is, class corresponding to an xml tag with attributes defined in attrs.xml).
    */
-  private ImmutableMultimap<String, TypeRef> myTagToStyleables;
+  @NotNull
+  private ImmutableMultimap<String, TypeRef> myTagToStyleables = ImmutableMultimap.of();
 
   @Override
   public int hashCode() {
@@ -391,8 +398,10 @@ public class NavigationSchema implements Disposable {
   @NotNull
   public static synchronized NavigationSchema get(@NotNull Module module) {
     NavigationSchema result = ourSchemas.get(module);
-    Preconditions.checkNotNull(result, "NavigationSchema must be created first!");
-    return result;
+
+    // If there is no schema available it may indicate that the module has already been disposed.
+    // Return an empty schema that can be accessed but contains no data.
+    return result == null ? new NavigationSchema(module) : result;
   }
 
   /**
@@ -404,12 +413,18 @@ public class NavigationSchema implements Disposable {
     if (result == null) {
       result = new NavigationSchema(module);
       result.init();
-      Disposer.register(module, result);
       ourSchemas.put(module, result);
+      try {
+        Disposer.register(module, result);
+      }
+      catch (IncorrectOperationException ignore) {
+        result.dispose();
+      }
     }
   }
 
-  private NavigationSchema(@NotNull Module module) {
+  @VisibleForTesting
+  public NavigationSchema(@NotNull Module module) {
     myModule = module;
   }
 
@@ -667,12 +682,15 @@ public class NavigationSchema implements Disposable {
   /**
    * Builds a map from DestinationType to the default tag to be used for that type.
    */
-  private Map<DestinationType, String> buildTypeToDefaultTag(Map<PsiClass, String> navigatorToTag) {
-    Map<DestinationType, String> result = new HashMap<>();
-    result.put(FRAGMENT, navigatorToTag.get(getClass(ROOT_FRAGMENT_NAVIGATOR)));
-    result.put(ACTIVITY, navigatorToTag.get(getClass(ROOT_ACTIVITY_NAVIGATOR)));
-    result.put(NAVIGATION, navigatorToTag.get(getClass(ROOT_NAV_GRAPH_NAVIGATOR)));
-    return result;
+  @NotNull
+  private ImmutableMap<DestinationType, String> buildTypeToDefaultTag(Map<PsiClass, String> navigatorToTag) {
+    ImmutableMap.Builder<DestinationType, String> builder = ImmutableMap.builder();
+
+    builder.put(FRAGMENT, navigatorToTag.get(getClass(ROOT_FRAGMENT_NAVIGATOR)));
+    builder.put(ACTIVITY, navigatorToTag.get(getClass(ROOT_ACTIVITY_NAVIGATOR)));
+    builder.put(NAVIGATION, navigatorToTag.get(getClass(ROOT_NAV_GRAPH_NAVIGATOR)));
+
+    return builder.build();
   }
 
   //endregion
@@ -705,6 +723,10 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   public CompletableFuture<NavigationSchema> rebuildSchema() {
+    if (myModule.isDisposed()) {
+      return CompletableFuture.completedFuture(new NavigationSchema(myModule));
+    }
+
     CompletableFuture<NavigationSchema> task;
     synchronized (myTaskLock) {
       if (myRebuildTask != null) {
@@ -714,6 +736,7 @@ public class NavigationSchema implements Disposable {
       myRebuildTask = new CompletableFuture<>();
       task = myRebuildTask;
     }
+
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       NavigationSchema newVersion = new NavigationSchema(myModule);
       DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
@@ -739,11 +762,20 @@ public class NavigationSchema implements Disposable {
         }
         return;
       }
-      Disposer.register(myModule, newVersion);
       ourSchemas.put(myModule, newVersion);
-      synchronized (myTaskLock) {
-        myRebuildTask.complete(newVersion);
+
+      boolean registered = false;
+      try {
+        Disposer.register(myModule, newVersion);
+        registered = true;
       }
+      catch (IncorrectOperationException ignore) {
+        newVersion.dispose();
+      }
+      synchronized (myTaskLock) {
+        myRebuildTask.complete(registered ? newVersion : new NavigationSchema(myModule));
+      }
+
       List<Runnable> listeners;
       synchronized (ourListenerLock) {
         listeners = new ArrayList<>(ourListeners.get(myModule));
