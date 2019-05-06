@@ -20,9 +20,7 @@ import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.ClickListener;
-import com.intellij.ui.CollectionListModel;
-import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.*;
 import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBList;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +39,7 @@ public class InstantRunFeedbackDialog extends DialogWrapper {
 
   private JPanel myPanel;
   private JTextArea myIssueTextArea;
-  private JBList<Path> myFilesList;
+  private JBList myFilesList;
   private String myIssueText;
 
   protected InstantRunFeedbackDialog(@NotNull Project project) {
@@ -51,7 +49,12 @@ public class InstantRunFeedbackDialog extends DialogWrapper {
     myFilesList.setEmptyText("No Log Files found");
     myLogs = FlightRecorder.get(project).getAllLogs();
     myFilesList.setModel(new CollectionListModel<>(myLogs));
-    myFilesList.setCellRenderer(SimpleListCellRenderer.create("", Path::toString));
+    myFilesList.setCellRenderer(new ColoredListCellRenderer<Path>() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList list, Path value, int index, boolean selected, boolean hasFocus) {
+        append(value.toString());
+      }
+    });
 
     myFilesList.setSelectionModel(new SingleSelectionModel());
     myFilesList.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -59,9 +62,9 @@ public class InstantRunFeedbackDialog extends DialogWrapper {
       @Override
       public boolean onClick(@NotNull MouseEvent event, int clickCount) {
         if (event.getButton() == MouseEvent.BUTTON1) {
-          Path selectedValue = myFilesList.getSelectedValue();
-          if (selectedValue != null) {
-            ShowFilePathAction.openFile(selectedValue.toFile());
+          Object selectedValue = myFilesList.getSelectedValue();
+          if (selectedValue instanceof Path) {
+            ShowFilePathAction.openFile(((Path)selectedValue).toFile());
             return true;
           }
         }

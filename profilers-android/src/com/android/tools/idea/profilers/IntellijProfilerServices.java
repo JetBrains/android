@@ -46,7 +46,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -368,7 +367,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedFiles())
       .anyMatch(file -> {
         String extension = file.getExtension();
-        return extension != null && nativeExtensions.contains(StringUtil.toLowerCase(extension));
+        return extension != null && nativeExtensions.contains(extension.toLowerCase());
       });
   }
 

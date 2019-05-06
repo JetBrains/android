@@ -16,9 +16,8 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ViewTransform;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
-import com.intellij.openapi.util.text.StringUtil;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ViewTransform;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
@@ -138,7 +137,7 @@ public class TextWidget extends WidgetDecorator {
 
     String string = getText();
     if (mToUpperCase) {
-      string = StringUtil.toUpperCase(string);
+      string = string.toUpperCase();
     }
     int tw = fm.stringWidth(string) + 2 * (mHorizontalPadding + mHorizontalMargin);
     int th = fm.getMaxAscent() + 2 * fm.getMaxDescent() + 2 * (mVerticalPadding + mVerticalMargin);
@@ -204,7 +203,7 @@ public class TextWidget extends WidgetDecorator {
     g.setColor(color);
     String string = getText();
     if (mToUpperCase) {
-      string = StringUtil.toUpperCase(string);
+      string = string.toUpperCase();
     }
     int ftx = 0;
     int fty = 0;

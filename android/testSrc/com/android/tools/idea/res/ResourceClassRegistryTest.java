@@ -39,7 +39,7 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myRegistry = spy(ResourceClassRegistry.get(getProject()));
-    myIdManager = ResourceIdManager.get(getModule());
+    myIdManager = ResourceIdManager.get(myModule);
   }
 
   @Override
