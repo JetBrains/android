@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -37,6 +38,7 @@ import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.content.Content;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -71,14 +73,16 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
       descriptor = manager.findContentDescriptor(env.getExecutor(), result.getProcessHandler());
     }
 
-    if (descriptor == null) {
+    if (descriptor == null || descriptor.getAttachedContent() == null) {
       descriptor = DefaultProgramRunnerKt.showRunContent(result, env);
     }
-    else if (!(descriptor instanceof HidableRunContentDescriptor)) {
+    else if (!(descriptor instanceof HiddenRunContentDescriptor)) {
       // Since we got to this branch, it implies we're swapping for the first time. In this case,
       // create a wrapper descriptor so that the ExecutionManager doesn't try to "show" it
       // (which actually creates a new descriptor and wipes out the old one).
-      descriptor = new HidableRunContentDescriptor(descriptor, true);
+      Content content = descriptor.getAttachedContent();
+      descriptor = new HiddenRunContentDescriptor(descriptor);
+      content.putUserData(RunContentDescriptor.DESCRIPTOR_KEY, descriptor);
     }
 
     if (descriptor != null) {
@@ -101,14 +105,15 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
     return descriptor;
   }
 
-  private static class HidableRunContentDescriptor extends RunContentDescriptor {
+  @VisibleForTesting
+  static class HiddenRunContentDescriptor extends RunContentDescriptor {
+    @NotNull
     private final RunContentDescriptor myDelegate;
-    private final boolean myIsHidden;
 
-    public HidableRunContentDescriptor(@NotNull RunContentDescriptor delegate, boolean isHidden) {
+    private HiddenRunContentDescriptor(@NotNull RunContentDescriptor delegate) {
       super(null, null, new JLabel(), "hidden", null, null, null);
       myDelegate = delegate;
-      myIsHidden = isHidden;
+      Disposer.register(this, myDelegate);
     }
 
     @Override
@@ -129,7 +134,6 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
 
     @Override
     public void dispose() {
-      myDelegate.dispose();
     }
 
     @Nullable
@@ -269,7 +273,7 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
 
     @Override
     public boolean isHiddenContent() {
-      return myIsHidden;
+      return true;
     }
 
     @NotNull
