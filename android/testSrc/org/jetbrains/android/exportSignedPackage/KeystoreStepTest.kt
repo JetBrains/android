@@ -41,7 +41,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
   private lateinit var facets: MutableList<AndroidFacet>
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(getProject(), testRootDisposable)
+    ideComponents = IdeComponents(LightPlatformTestCase.getProject(), testRootDisposable)
     facets = ArrayList()
   }
 
@@ -133,7 +133,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(getProject())
+    `when`(wizard.project).thenReturn(LightPlatformTestCase.getProject())
     return wizard
   }
 
@@ -225,7 +225,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
     keystoreStep.commitForNext()
 
     // Now check that the old-style password is erased
-    assertEquals(null, passwordSafe.getPassword(getProject(), legacyRequestor, keyPasswordKey))
+    assertEquals(null, passwordSafe.getPassword(LightPlatformTestCase.getProject(), legacyRequestor, keyPasswordKey))
   }
 
   class PasswordSafeMock : PasswordSafe() {

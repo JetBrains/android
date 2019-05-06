@@ -44,7 +44,7 @@ import static com.android.ide.common.resources.configuration.LocaleQualifier.FAK
 public abstract class DeviceConfiguratorPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.DeviceConfiguratorPanel");
 
-  private JBList<ResourceQualifier> myAvailableQualifiersList;
+  private JBList myAvailableQualifiersList;
   private JButton myAddQualifierButton;
   private JButton myRemoveQualifierButton;
   private JPanel myQualifierOptionsPanel;
@@ -54,7 +54,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private final FolderConfiguration myAvailableQualifiersConfig = FolderConfiguration.createDefault();
   private final FolderConfiguration myChosenQualifiersConfig = new FolderConfiguration();
   private FolderConfiguration myActualQualifiersConfig = new FolderConfiguration();
-  private JBList<ResourceQualifier> myChosenQualifiersList;
+  private JBList myChosenQualifiersList;
 
   private final DocumentListener myUpdatingDocumentListener = new DocumentAdapter() {
     @Override
@@ -148,25 +148,38 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       myQualifierOptionsPanel.add(editor.getComponent(), name);
     }
 
-    myAvailableQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      if (value == null) return;
-      label.setText(value.getShortName());
-      label.setIcon(getResourceIcon(value));
-    }));
+    myAvailableQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        if (value instanceof ResourceQualifier) {
+          ResourceQualifier qualifier = (ResourceQualifier)value;
+          append(qualifier.getShortName());
+          setIcon(getResourceIcon(qualifier));
+        }
+      }
+    });
 
-    myChosenQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      if (value == null) return;
-      ResourceQualifier qualifier = getActualQualifier(value);
-      String shortDisplayValue = qualifier.getShortDisplayValue();
-      label.setText(shortDisplayValue != null && !shortDisplayValue.isEmpty() ?
-                    shortDisplayValue : qualifier.getShortName() + " (?)");
-      label.setIcon(getResourceIcon(qualifier));
-    }));
+    myChosenQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        if (value instanceof ResourceQualifier) {
+          final ResourceQualifier qualifier = getActualQualifier((ResourceQualifier)value);
+          final String shortDisplayValue = qualifier.getShortDisplayValue();
+          if (shortDisplayValue != null && !shortDisplayValue.isEmpty()) {
+            append(shortDisplayValue);
+          }
+          else {
+            append(qualifier.getShortName() + " (?)");
+          }
+          setIcon(getResourceIcon(qualifier));
+        }
+      }
+    });
 
     myAddQualifierButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ResourceQualifier selectedQualifier = myAvailableQualifiersList.getSelectedValue();
+        final ResourceQualifier selectedQualifier = (ResourceQualifier)myAvailableQualifiersList.getSelectedValue();
         if (selectedQualifier != null) {
           final int index = myAvailableQualifiersList.getSelectedIndex();
 
@@ -187,7 +200,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myRemoveQualifierButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
+        final ResourceQualifier selectedQualifier = (ResourceQualifier)myChosenQualifiersList.getSelectedValue();
         if (selectedQualifier != null) {
           final int index = myChosenQualifiersList.getSelectedIndex();
 
@@ -303,7 +316,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private void updateQualifierEditor() {
-    ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
+    final ResourceQualifier selectedQualifier = (ResourceQualifier)myChosenQualifiersList.getSelectedValue();
     if (selectedQualifier != null && myEditors.containsKey(selectedQualifier.getShortName())) {
       final CardLayout layout = (CardLayout)myQualifierOptionsPanel.getLayout();
       layout.show(myQualifierOptionsPanel, selectedQualifier.getShortName());
@@ -322,7 +335,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private void updateLists() {
     Object qualifier = myAvailableQualifiersList.getSelectedValue();
     final ResourceQualifier[] availableQualifiers = filterUnsupportedQualifiers(myAvailableQualifiersConfig.getQualifiers());
-    myAvailableQualifiersList.setModel(new CollectionListModel<>(availableQualifiers));
+    myAvailableQualifiersList.setModel(new CollectionListModel(availableQualifiers));
     myAvailableQualifiersList.setSelectedValue(qualifier, true);
 
     if (myAvailableQualifiersList.getSelectedValue() == null && myAvailableQualifiersList.getItemsCount() > 0) {
@@ -331,7 +344,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     qualifier = myChosenQualifiersList.getSelectedValue();
     final ResourceQualifier[] chosenQualifiers = filterUnsupportedQualifiers(myChosenQualifiersConfig.getQualifiers());
-    myChosenQualifiersList.setModel(new CollectionListModel<>(chosenQualifiers));
+    myChosenQualifiersList.setModel(new CollectionListModel(chosenQualifiers));
     myChosenQualifiersList.setSelectedValue(qualifier, true);
 
     if (myChosenQualifiersList.getSelectedValue() == null && myChosenQualifiersList.getItemsCount() > 0) {
@@ -357,7 +370,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myQualifierOptionsPanel = new JPanel(new CardLayout());
 
     final JPanel leftPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
-    myAvailableQualifiersList = new JBList<>();
+    myAvailableQualifiersList = new JBList();
     myAvailableQualifiersList.setMinimumSize(JBUI.size(10, 10));
     JBLabel label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.available.qualifiers.label"));
     label.setLabelFor(myAvailableQualifiersList);
@@ -366,7 +379,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
     final JPanel rightPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
-    myChosenQualifiersList = new JBList<>();
+    myChosenQualifiersList = new JBList();
     myChosenQualifiersList.setMinimumSize(JBUI.size(10, 10));
     label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
     label.setLabelFor(myChosenQualifiersList);
@@ -1081,8 +1094,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private class MyLocaleEditor extends MyQualifierEditor<LocaleQualifier> {
-    private final JBList<String> myLanguageList = new JBList<>();
-    private final JBList<String> myRegionList = new JBList<>();
+    private final JBList myLanguageList = new JBList();
+    private final JBList myRegionList = new JBList();
     private JBCheckBox myShowAllRegions;
     private JBLabel myWarningsLabel;
 
@@ -1168,13 +1181,13 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         @Override
         public void valueChanged(ListSelectionEvent listSelectionEvent) {
           // If selecting languages, attempt to pick relevant regions, if applicable
-          updateRegionList(myLanguageList.getSelectedValue());
+          updateRegionList((String)myLanguageList.getSelectedValue());
         }
       });
       myShowAllRegions.addChangeListener(new ChangeListener() {
         @Override
         public void stateChanged(ChangeEvent changeEvent) {
-          updateRegionList(myLanguageList.getSelectedValue());
+          updateRegionList((String)myLanguageList.getSelectedValue());
         }
       });
 
@@ -1272,11 +1285,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @NotNull
     @Override
     LocaleQualifier apply() throws InvalidOptionValueException {
-      String selectedLanguage = myLanguageList.getSelectedValue();
+      String selectedLanguage = (String)myLanguageList.getSelectedValue();
       if (selectedLanguage == null) {
         throw new InvalidOptionValueException("Select a language tag");
       }
-      String selectedRegion = myRegionList.getSelectedValue();
+      String selectedRegion = (String)myRegionList.getSelectedValue();
       if (FAKE_VALUE.equals(selectedRegion)) {
         selectedRegion = null;
       }

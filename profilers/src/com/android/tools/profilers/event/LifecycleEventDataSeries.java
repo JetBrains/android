@@ -25,12 +25,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
-import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class LifecycleEventDataSeries implements DataSeries<EventAction<LifecycleEvent>> {
 
@@ -90,7 +88,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
             if (i != data.getStateChangesCount() - 1) {
               break;
             }
-            displayString = String.format("%s - %s", displayString, StringUtil.toLowerCase(state.getState().toString()));
+            displayString = String.format("%s - %s", displayString, state.getState().toString().toLowerCase());
             // Falls-through to REMOVED
           case REMOVED:
             // Remove is also a fallthrough as this is the event that gets set when we terminate a fragment.
@@ -113,7 +111,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
             break;
           }
           else {
-            displayString = String.format("%s - %s", displayString, StringUtil.toLowerCase(state.getState().toString()));
+            displayString = String.format("%s - %s", displayString, state.getState().toString().toLowerCase());
           }
         }
 

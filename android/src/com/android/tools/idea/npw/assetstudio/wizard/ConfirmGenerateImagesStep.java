@@ -184,7 +184,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         myPreviewIcon.setIcon(icon);
         myPreviewIcon.setVisible(true);
 
-        String extension = StringUtil.toUpperCase(FileUtilRt.getExtension(node.getFile().getName()));
+        //noinspection StringToUpperCaseOrToLowerCaseWithoutLocale  // file names are not locale sensitive
+        String extension = FileUtilRt.getExtension(node.getFile().getName()).toUpperCase();
         if (StringUtil.isEmpty(extension)) {
           myFileTypeTextField.setText("N/A");
         }

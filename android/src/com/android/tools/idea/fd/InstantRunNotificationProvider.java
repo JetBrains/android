@@ -26,6 +26,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -100,7 +101,7 @@ public class InstantRunNotificationProvider {
           if (!myVerifierStatus.isEmpty()) {
             sb.append(' ');
             // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
-            sb.append(StringUtil.capitalizeWords(StringUtil.toLowerCase(myVerifierStatus).replace('_', ' '), true));
+            sb.append(StringUtil.capitalizeWords(myVerifierStatus.toLowerCase(Locale.US).replace('_', ' '), true));
             sb.append('.');
           }
         }
@@ -121,7 +122,7 @@ public class InstantRunNotificationProvider {
           if (!myVerifierStatus.isEmpty()) {
             sb.append(' ');
             // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
-            sb.append(StringUtil.capitalizeWords(StringUtil.toLowerCase(myVerifierStatus).replace('_', ' '), true));
+            sb.append(StringUtil.capitalizeWords(myVerifierStatus.toLowerCase(Locale.US).replace('_', ' '), true));
             sb.append('.');
           }
         } else if (buildCause.getBuildMode() == BuildMode.FULL) {

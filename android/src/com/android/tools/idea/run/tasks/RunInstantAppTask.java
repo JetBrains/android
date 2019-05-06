@@ -26,7 +26,6 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.android.instantapps.sdk.api.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -170,7 +169,7 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   private static boolean isSingleZipFile(List<ApkFileUnit> artifactFiles) {
-    return artifactFiles.size() == 1 && StringUtil.toLowerCase(artifactFiles.get(0).getApkFile().getName()).endsWith(".zip");
+    return artifactFiles.size() == 1 && artifactFiles.get(0).getApkFile().getName().toLowerCase().endsWith(".zip");
   }
 
   private static class NullProgressIndicator implements ProgressIndicator {

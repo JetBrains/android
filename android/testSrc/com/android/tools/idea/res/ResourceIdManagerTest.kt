@@ -26,6 +26,7 @@ import org.junit.Assert.assertNotEquals
 class ResourceIdManagerTest : LightCodeInsightFixtureTestCase() {
   override fun getProjectDescriptor() = AndroidFacetProjectDescriptor
 
+  private val module get() = myModule
   private lateinit var facet: AndroidFacet
   private lateinit var idManager: ResourceIdManager
 

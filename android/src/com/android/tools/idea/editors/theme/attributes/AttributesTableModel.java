@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -33,10 +32,8 @@ import spantable.CellSpanModel;
 
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Table model for Theme Editor
@@ -317,7 +314,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       AttributeDefinition attrDefinition =
         ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), item.getSelectedValue());
 
-      String attributeName = StringUtil.toLowerCase(item.getAttrName());
+      String attributeName = item.getAttrName().toLowerCase(Locale.US);
 
       if (urlType == ResourceType.COLOR ||
           ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR) ||

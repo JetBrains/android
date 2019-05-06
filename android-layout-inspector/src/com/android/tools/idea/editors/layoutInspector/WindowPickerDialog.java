@@ -21,7 +21,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ public class WindowPickerDialog extends DialogWrapper {
   @NonNls private static final String WINDOW_PICKER_DIMENSIONS_KEY = "LayoutInspector.WindowPicker.Options.Dimensions";
 
   private final JPanel myPanel;
-  private final JComboBox<ClientWindow> myWindowsCombo;
+  private final JComboBox myWindowsCombo;
 
   @Nullable ClientWindow mySelectedWindow;
 
@@ -45,8 +46,8 @@ public class WindowPickerDialog extends DialogWrapper {
 
     myPanel = new JPanel(new BorderLayout());
 
-    myWindowsCombo = new ComboBox<>(new CollectionComboBoxModel<>(windows));
-    myWindowsCombo.setRenderer(SimpleListCellRenderer.create("", ClientWindow::getDisplayName));
+    myWindowsCombo = new ComboBox(new CollectionComboBoxModel<>(windows));
+    myWindowsCombo.setRenderer(new ClientWindowRenderer());
     myWindowsCombo.setSelectedIndex(0);
     myPanel.add(myWindowsCombo, BorderLayout.CENTER);
 
@@ -77,5 +78,13 @@ public class WindowPickerDialog extends DialogWrapper {
   @Nullable
   public ClientWindow getSelectedWindow() {
     return mySelectedWindow;
+  }
+
+  private static class ClientWindowRenderer extends ColoredListCellRenderer {
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      assert value instanceof ClientWindow;
+      append(((ClientWindow)value).getDisplayName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    }
   }
 }

@@ -7,7 +7,6 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +99,7 @@ public abstract class NewKeyForm {
     }
     Set<String> aliasSet = new HashSet<>();
     for (String alias : aliasList) {
-      aliasSet.add(StringUtil.toLowerCase(alias));
+      aliasSet.add(alias.toLowerCase());
     }
     for (int i = 0; ; i++) {
       String alias = prefix + i;

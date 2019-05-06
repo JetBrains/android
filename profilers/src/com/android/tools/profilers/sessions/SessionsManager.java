@@ -21,11 +21,11 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
+import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -357,7 +357,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (indexOfDot == -1) {
       return false;
     }
-    String extension = StringUtil.toLowerCase(file.getName().substring(indexOfDot + 1));
+    String extension = file.getName().substring(indexOfDot + 1).toLowerCase(Locale.US);
     if (myImportHandlers.get(extension) == null) {
       return false;
     }

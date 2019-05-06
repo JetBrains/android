@@ -19,7 +19,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -32,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
+import java.util.Locale;
 
 import static com.android.SdkConstants.CLASS_R;
 import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
@@ -183,7 +183,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
             return false;
           }
           String path = FileUtil.toSystemIndependentName(vFile.getPath());
-          if (StringUtil.toLowerCase(path).contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")) {
+          if (path.toLowerCase(Locale.US).contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")) {
             if (!ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty()) {
               VirtualFile jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile);
               return jarFile != null && SdkConstants.FN_FRAMEWORK_LIBRARY.equals(jarFile.getName());

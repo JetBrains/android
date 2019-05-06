@@ -34,7 +34,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -49,10 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -72,7 +68,7 @@ public final class Parameter {
     SEPARATOR;
 
     public static Type get(@NotNull String name) {
-      name = StringUtil.toUpperCase(name);
+      name = name.toUpperCase(Locale.US);
       try {
         return valueOf(name);
       }
@@ -153,7 +149,7 @@ public final class Parameter {
     URI_AUTHORITY;
 
     public static Constraint get(@NotNull String name) {
-      name = StringUtil.toUpperCase(name);
+      name = name.toUpperCase(Locale.US);
       try {
         return valueOf(name);
       }

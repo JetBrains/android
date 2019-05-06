@@ -13,6 +13,7 @@ import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.application.UtilKt;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
@@ -50,6 +51,7 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -483,7 +485,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myModuleName = moduleName;
     }
 
-    @NotNull
     @Override
     protected Module createModule() {
       Project project = myFixtureBuilder.getFixture().getProject();
@@ -496,7 +497,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       return ModuleManager.getInstance(project).newModule(moduleFilePath, ModuleTypeId.JAVA_MODULE);
     }
 
-    @NotNull
     @Override
     protected ModuleFixtureImpl instantiateFixture() {
       return new ModuleFixtureImpl(this);
