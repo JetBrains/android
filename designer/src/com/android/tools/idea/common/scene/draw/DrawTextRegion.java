@@ -24,7 +24,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.intellij.openapi.util.text.StringUtil;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
@@ -199,7 +198,7 @@ public class DrawTextRegion extends DrawRegion {
     g2d.setColor(color);
     String string = mText;
     if (mToUpperCase) {
-      string = StringUtil.toUpperCase(string);
+      string = string.toUpperCase();
     }
     int ftx = 0;
     int fty = 0;

@@ -50,7 +50,6 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -61,8 +60,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -328,7 +327,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       formFactor = formFactor.baseFormFactor;
     }
     String name = formFactor.id;
-    return StringUtil.toLowerCase(name.replaceAll("\\s", "_"));
+    return name.replaceAll("\\s", "_").toLowerCase(Locale.US);
   }
 
   private static class FormFactorInfo {

@@ -32,10 +32,10 @@ import java.util.List;
 
 public class ResourceTablePanel {
   private JPanel myContainer;
-  private ComboBox<PackageChunk> myPackageCombo;
+  private ComboBox myPackageCombo;
 
   private Splitter mySplitter;
-  private JBList<TypeSpecChunk> myTypesList;
+  private JBList myTypesList;
   private JBTable myResourceTypeTable;
   private SimpleColoredComponent myResourceTableHeader;
 
@@ -52,17 +52,30 @@ public class ResourceTablePanel {
     ResourceTableChunk resourceTableChunk = (ResourceTableChunk)chunks.get(0);
     Collection<PackageChunk> packages = resourceTableChunk.getPackages();
     myPackageCombo.setModel(new CollectionComboBoxModel<>(ImmutableList.copyOf(packages)));
-    myPackageCombo.setRenderer(SimpleListCellRenderer.create("", PackageChunk::getPackageName));
+    myPackageCombo.setRenderer(new ColoredListCellRenderer<PackageChunk>() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList list, PackageChunk value, int index, boolean selected, boolean hasFocus) {
+        append(value.getPackageName());
+      }
+    });
 
     assert packages.size() == 1;
     PackageChunk packageChunk = packages.stream().findFirst().get();
 
     myTypesList.setModel(new CollectionListModel<>(packageChunk.getTypeSpecChunks()));
-    myTypesList.setCellRenderer(SimpleListCellRenderer.create("", TypeSpecChunk::getTypeName));
+    myTypesList.setCellRenderer(new ColoredListCellRenderer<TypeSpecChunk>() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList list, TypeSpecChunk value, int index, boolean selected, boolean hasFocus) {
+        append(value.getTypeName());
+      }
+    });
     myTypesList.addListSelectionListener(e -> {
-      TypeSpecChunk typeSpecChunk = myTypesList.getSelectedValue();
-      if (typeSpecChunk == null) return;
+      Object selectedValue = myTypesList.getSelectedValue();
+      if (!(selectedValue instanceof TypeSpecChunk)) {
+        return;
+      }
 
+      TypeSpecChunk typeSpecChunk = (TypeSpecChunk)selectedValue;
       myResourceTypeTable
         .setModel(new ResourceTypeTableModel(resourceTableChunk.getStringPool(), packageChunk, typeSpecChunk));
 
@@ -84,7 +97,7 @@ public class ResourceTablePanel {
 
   private void createUIComponents() {
     JBLabel label = new JBLabel("Resource Types");
-    myTypesList = new JBList<>();
+    myTypesList = new JBList();
 
     JPanel resourceTypesPanel = new JPanel(new BorderLayout());
     resourceTypesPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP));

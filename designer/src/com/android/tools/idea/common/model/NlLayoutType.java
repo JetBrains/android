@@ -17,14 +17,13 @@ package com.android.tools.idea.common.model;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.common.editor.SetZoomActionGroups;
-import com.android.tools.idea.common.editor.ToolbarActionGroups;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
 import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
+import com.android.tools.idea.common.editor.SetZoomActionGroups;
+import com.android.tools.idea.common.editor.ToolbarActionGroups;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.FileDescriptionUtils;
 import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription;
@@ -32,9 +31,11 @@ import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.Locale;
 
 /**
  * Describes the supported types of editors (where each editor type refers to the type of resource that the editor can handle
@@ -181,7 +182,7 @@ public enum NlLayoutType {
 
   @NotNull
   public String getPaletteFileName() {
-    return StringUtil.toLowerCase(toString()) + "_palette.xml";
+    return toString().toLowerCase(Locale.ROOT) + "_palette.xml";
   }
 
   @NotNull
