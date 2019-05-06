@@ -304,7 +304,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     group.add(myRunOnMultipleDevicesAction);
     group.add(myOpenAvdManagerAction);
 
-    AnAction action = getTroubleshootDeviceConnectionsAction();
+    AnAction action = ActionManager.getInstance().getAction("DeveloperServices.ConnectionAssistant");
 
     if (action == null) {
       return group;
@@ -358,22 +358,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .setProject(project)
       .setDevice(device)
       .build();
-  }
-
-  @Nullable
-  private static AnAction getTroubleshootDeviceConnectionsAction() {
-    AnAction action = ActionManager.getInstance().getAction("DeveloperServices.ConnectionAssistant");
-
-    if (action == null) {
-      return null;
-    }
-
-    Presentation presentation = action.getTemplatePresentation();
-
-    presentation.setIcon(null);
-    presentation.setText("Troubleshoot device connections");
-
-    return action;
   }
 
   @Override
