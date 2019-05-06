@@ -490,9 +490,14 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
     // So we'll just make sure the following gets run on the EDT thread and wait for its result.
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+      RunManager runManager = RunManager.getInstance(project);
+      RunnerAndConfigurationSettings settings = runManager.getSelectedConfiguration();
 
-      if (settings == null) {
+      // There is a bug in {@link com.intellij.execution.impl.RunManagerImplKt#clear(boolean)} where it's possible the selected setting's
+      // RunConfiguration is be non-existent in the RunManager. This happens when temporary/shared RunnerAndConfigurationSettings are
+      // cleared from the list of RunnerAndConfigurationSettings, and the selected RunnerAndConfigurationSettings is temporary/shared and
+      // left dangling.
+      if (settings == null || runManager.findSettings(settings.getConfiguration()) == null) {
         return;
       }
 
