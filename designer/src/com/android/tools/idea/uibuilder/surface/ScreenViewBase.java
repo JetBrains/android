@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
+
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
  * View of a device/screen/layout.

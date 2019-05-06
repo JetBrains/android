@@ -16,10 +16,18 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
-import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
-
 import static com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw.sFont;
+
+import com.android.tools.idea.common.scene.draw.ColorSet;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Polygon;
+import java.awt.Stroke;
+import java.awt.geom.RoundRectangle2D;
 
 /**
  * Utility drawing class
@@ -67,7 +75,7 @@ public class WidgetDraw {
      * @param above    the tooltip should be drawn above the anchor point if true, other it will be drawn below
      */
     public static void drawTooltip(Graphics2D g, ColorSet colorSet, String[] lines, int x, int y,
-            boolean above) {
+                                   boolean above) {
         if (lines == null) {
             return;
         }
