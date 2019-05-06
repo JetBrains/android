@@ -22,7 +22,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -165,7 +164,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
    */
   @NotNull
   private static String convertToPaletteIconName(@NotNull String tagName) {
-    return StringUtil.toUpperCase(SdkVersionInfo.camelCaseToUnderlines(tagName));
+    return SdkVersionInfo.camelCaseToUnderlines(tagName).toUpperCase();
   }
 
   @NotNull

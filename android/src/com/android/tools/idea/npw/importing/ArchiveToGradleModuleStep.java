@@ -16,8 +16,6 @@
 package com.android.tools.idea.npw.importing;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -25,6 +23,8 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.base.Strings;
@@ -33,7 +33,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.util.AndroidBundle;
@@ -84,7 +83,7 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
 
   static boolean isValidExtension(VirtualFile file) {
     @NonNls String extension = file.getExtension();
-    return extension != null && SUPPORTED_EXTENSIONS.contains(StringUtil.toLowerCase(extension));
+    return extension != null && SUPPORTED_EXTENSIONS.contains(extension.toLowerCase());
   }
 
   @Override

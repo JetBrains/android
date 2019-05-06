@@ -20,9 +20,9 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class ShellCommandLauncher {
@@ -47,7 +47,7 @@ public class ShellCommandLauncher {
     }
 
     String output = receiver.getOutput();
-    if (StringUtil.toLowerCase(output).contains("error")) {
+    if (output.toLowerCase(Locale.US).contains("error")) {
       launchStatus.terminateLaunch("Error while executing: " + command);
       printer.stderr(output);
       return false;

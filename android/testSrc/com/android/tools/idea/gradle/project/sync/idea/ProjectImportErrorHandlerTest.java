@@ -67,7 +67,7 @@ public class ProjectImportErrorHandlerTest {
     IllegalStateException cause = new IllegalStateException("Failed to find Build Tools revision 24.0.3");
     BuildException error = new BuildException("Could not run build action.", cause);
 
-    ExternalSystemException userFriendlyError = errorHandler.getUserFriendlyError(null, error, "fakeProjectPath", null);
+    ExternalSystemException userFriendlyError = errorHandler.getUserFriendlyError(error, "fakeProjectPath", null);
     assertNotNull(userFriendlyError);
     assertEquals("Failed to find Build Tools revision 24.0.3", userFriendlyError.getMessage());
   }
@@ -78,7 +78,7 @@ public class ProjectImportErrorHandlerTest {
     ProjectImportErrorHandler errorHandler = new ProjectImportErrorHandler();
     Throwable error = new Throwable("some random sync error");
 
-    ExternalSystemException userFriendlyError = errorHandler.getUserFriendlyError(null, error, "fakeProjectPath", null);
+    ExternalSystemException userFriendlyError = errorHandler.getUserFriendlyError(error, "fakeProjectPath", null);
     assertNotNull(userFriendlyError);
     assertEquals("Cause: some random sync error", userFriendlyError.getMessage());
   }

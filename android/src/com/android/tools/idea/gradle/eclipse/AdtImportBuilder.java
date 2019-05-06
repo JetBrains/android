@@ -51,7 +51,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 /**
  * Importer which can import an ADT project as a Gradle project (it will first
  * run the Eclipse importer, which generates a Gradle project, and then it will
- * delegate to {@link org.jetbrains.plugins.gradle.service.project.wizard.JavaGradleProjectImportBuilder}
+ * delegate to {@link org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder}
  * to perform the IntelliJ model import.
  */
 public class AdtImportBuilder extends ProjectImportBuilder<String> {

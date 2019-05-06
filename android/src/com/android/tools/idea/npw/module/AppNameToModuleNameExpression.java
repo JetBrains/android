@@ -21,9 +21,10 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Locale;
 
 /**
  * This Expression takes the Application name (eg: "My Application"), and returns a valid module name (eg: "myapplication").
@@ -45,7 +46,8 @@ public class AppNameToModuleNameExpression extends Expression<String> {
   @NotNull
   @Override
   public String get() {
-    String moduleName = StringUtil.toLowerCase(myApplicationName.get())
+    String moduleName = myApplicationName.get()
+      .toLowerCase(Locale.US)
       .replaceAll("\\s", "");;
 
     int i = 2;

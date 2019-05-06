@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,7 +47,7 @@ public enum FillPolicy {
   static final Map<String, FillPolicy> ourNameToPolicy = new HashMap<>();
   static {
     for (FillPolicy pref : FillPolicy.values()) {
-      ourNameToPolicy.put(StringUtil.toLowerCase(pref.toString()), pref);
+      ourNameToPolicy.put(pref.toString().toLowerCase(Locale.US), pref);
     }
   }
 

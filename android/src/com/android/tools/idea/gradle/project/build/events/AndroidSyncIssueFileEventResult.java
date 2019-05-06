@@ -28,9 +28,7 @@ public class AndroidSyncIssueFileEventResult extends AndroidSyncIssueEventResult
   public AndroidSyncIssueFileEventResult(@NotNull NotificationData notificationData) {
     super(notificationData);
     assert notificationData.getFilePath() != null;
-    int line = notificationData.getLine() < 0 ? -1 : notificationData.getLine() - 1;
-    int column = notificationData.getColumn() < 0 ? -1 : notificationData.getColumn() - 1;
-    myFilePosition = new FilePosition(new File(notificationData.getFilePath()), line, column);
+    myFilePosition = new FilePosition(new File(notificationData.getFilePath()), notificationData.getLine(), notificationData.getColumn());
   }
 
   @Override

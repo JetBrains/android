@@ -73,7 +73,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     myModuleSelector = moduleSelector;
 
     myDeployOptionCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(InstallOption.values())));
-    myDeployOptionCombo.setRenderer(SimpleListCellRenderer.create("", o -> o.displayName));
+    myDeployOptionCombo.setRenderer(new InstallOption.Renderer());
     myDeployOptionCombo.addActionListener(this);
     myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
 
@@ -95,7 +95,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     myPmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'pm install' command");
 
     myLaunchOptionCombo.setModel(new CollectionComboBoxModel<>(new ArrayList<>(AndroidRunConfiguration.LAUNCH_OPTIONS)));
-    myLaunchOptionCombo.setRenderer(SimpleListCellRenderer.create("", LaunchOption::getDisplayName));
+    myLaunchOptionCombo.setRenderer(new LaunchOption.Renderer());
     myLaunchOptionCombo.addActionListener(this);
 
     myAmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'am start' command");

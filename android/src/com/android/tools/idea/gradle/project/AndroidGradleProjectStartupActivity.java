@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
@@ -28,18 +27,13 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
-    if ((
-          // We only request sync if we know this is an Android project.
-
-          // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
-          !gradleProjectInfo.getAndroidModules().isEmpty()
-          // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-          || IdeInfo.getInstance().isAndroidStudio() && gradleProjectInfo.isBuildWithGradle()
-          // Opening a project without .idea directory (including a newly created).
-          || gradleProjectInfo.isImportedProject()
-        ) &&
+    if (!gradleProjectInfo.getAndroidModules().isEmpty() &&
         !gradleProjectInfo.isSkipStartupActivity()) {
-
+      // http://b/62543184
+      // If the project was created with the "New Project" wizard or imported, there is no need to sync again.
+      // This code path should only be executed when:
+      // 1. Opening an existing project from the list of "recent projects" in the "Welcome" page
+      // 2. Reopening the IDE and automatically reloading the current open project
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
       request.useCachedGradleModels = true;
 

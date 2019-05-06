@@ -27,11 +27,11 @@ import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
@@ -237,7 +237,7 @@ public final class NewProjectModuleModel extends WizardModel {
       // Form factors like Android Auto build upon another form factor
       formFactor = formFactor.baseFormFactor;
     }
-    return StringUtil.toLowerCase(formFactor.id.replaceAll("\\s", "_"));
+    return formFactor.id.replaceAll("\\s", "_").toLowerCase(Locale.US);
   }
 
   private static void addRenderDefaultTemplateValues(RenderTemplateModel renderTemplateModel) {
