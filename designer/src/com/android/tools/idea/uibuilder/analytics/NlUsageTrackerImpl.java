@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.AndroidAttribute;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -295,13 +296,25 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   public void logPropertyChange(@NotNull NelePropertyItem property,
                                 int filterMatches) {
     LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
-      .setAttribute(UsageTrackerUtil.convertAttribute(property))
+      .setAttribute(convertAttribute(property))
       .setSearchOption(convertFilterMatches(filterMatches));
     for (NlComponent component : property.getComponents()) {
       builder.addView(convertTagName(component.getTagName()));
     }
     logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.ATTRIBUTE_CHANGE, (event) -> event.setAttributeChangeEvent(builder));
   }
+
+  @NotNull
+  private static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
+    AndroidFacet facet = property.getModel().getFacet();
+    AndroidAttribute.AttributeNamespace namespace = UsageTrackerUtil.convertNamespace(property.getNamespace());
+
+    return AndroidAttribute.newBuilder()
+      .setAttributeName(UsageTrackerUtil.convertAttributeName(property.getName(), namespace, property.getLibraryName(), facet))
+      .setAttributeNamespace(namespace)
+      .build();
+  }
+
 
   @Override
   public void logFavoritesChange(@NotNull String addedPropertyName,
