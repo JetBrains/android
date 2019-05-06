@@ -89,7 +89,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
-  private List<Throwable> myTraces;
   @GuardedBy("myMessages")
   private final List<RenderProblem> myMessages = new ArrayList<>();
   private List<RenderProblem> myFidelityWarnings;
@@ -253,14 +252,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     return myHaveExceptions || hasMessage ||
            myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
-  }
-
-  /**
-   * Returns a list of traces encountered during rendering, or null if none
-   */
-  @NotNull
-  public List<Throwable> getTraces() {
-    return myTraces != null ? myTraces : Collections.emptyList();
   }
 
   /**
@@ -445,7 +436,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
         return;
       }
 
-      recordThrowable(throwable);
       myHaveExceptions = true;
     }
 
@@ -459,18 +449,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   }
 
   // ---- Tags ----
-
-  /**
-   * Record that the given exception was encountered during rendering
-   *
-   * @param throwable the exception that was raised
-   */
-  public void recordThrowable(@NotNull Throwable throwable) {
-    if (myTraces == null) {
-      myTraces = new ArrayList<>();
-    }
-    myTraces.add(throwable);
-  }
 
   @Override
   public void warning(@Nullable String tag, @NotNull String message, @Nullable Object viewCookie, @Nullable Object data) {
