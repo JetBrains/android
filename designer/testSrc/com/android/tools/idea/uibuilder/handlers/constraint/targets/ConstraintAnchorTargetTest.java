@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -28,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Point;
-import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -323,7 +323,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertTrue(target.isConnected());
 
-    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
+    myScene.updateModifiers(AdtUiUtils.getActionMask());
     myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertFalse(target.isConnected());
