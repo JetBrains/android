@@ -17,7 +17,6 @@ package org.jetbrains.android.dom
 
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
@@ -57,7 +56,7 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
 
   override fun tearDown() = runInEdtAndWait { super.tearDown() }
 
-  fun testTagBody() {
+  fun testTagBodyIds() {
     // Given:
     val stringsXml = myFixture.addFileToProject(
       "res/values/strings.xml",
@@ -72,13 +71,34 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
-    typeAtCharacter()
+    typeCharacter('@')
 
     // Then:
     assertThat(myFixture.lookupElementStrings).containsExactly("@string/foo", "@string/bar", "@android:")
   }
 
-  fun testAttrValueLayout() {
+  fun testTagBodyAttributes() {
+    // Given:
+    val stringsXml = myFixture.addFileToProject(
+      "res/values/strings.xml",
+      // language=xml
+      """
+      <resources>
+        <string name='foo'>foo</string>
+        <string name='bar'>$caret</string>
+      </resources>
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
+
+    // Given:
+    typeCharacter('?')
+
+    // Then:
+    assertThat(myFixture.lookupElementStrings).isNull()
+  }
+
+  fun testAttrValueLayoutIds() {
     // Given:
     val stringsXml = myFixture.addFileToProject(
       "res/layout/my_layout.xml",
@@ -92,10 +112,30 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
-    typeAtCharacter()
+    typeCharacter('@')
 
     // Then:
     assertThat(myFixture.lookupElementStrings).containsExactly("@android:")
+  }
+
+  fun testAttrValueLayoutAttributes() {
+    // Given:
+    val stringsXml = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=xml
+      """
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="$caret"
+        android:layout_height="match_parent" />
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
+
+    // Given:
+    typeCharacter('?')
+
+    // Then:
+    assertThat(myFixture.lookupElementStrings).isNotEmpty()
   }
 
   fun testAttrValueManifest() {
@@ -103,7 +143,7 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
     myFixture.configureFromTempProjectFile("./AndroidManifest.xml")
 
     // Given:
-    typeAtCharacter()
+    typeCharacter('@')
 
     // Then:
     assertThat(myFixture.lookupElementStrings).containsExactly("@android:")
@@ -124,14 +164,14 @@ class AndroidXmlTypedHandlerTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(stringsXml.virtualFile)
 
     // Given:
-    typeAtCharacter()
+    typeCharacter('@')
 
     // Then:
     assertThat(myFixture.lookupElementStrings).containsExactly("@style/foo", "@style/bar", "@android:")
   }
 
-  private fun typeAtCharacter() {
-    myFixture.type('@')
+  private fun typeCharacter(character: Char) {
+    myFixture.type(character)
     tester.joinAutopopup()
     tester.joinCompletion()
   }

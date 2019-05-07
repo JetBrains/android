@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -32,6 +34,7 @@ public class CreateResourceTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/37105406
   @Test
   public void testLibraryPrefix() throws IOException {
     // Tests creating a new resource in a library project with a predefined library prefix,
@@ -50,7 +53,7 @@ public class CreateResourceTest {
 
     editor.invokeQuickfixAction("Create layout resource file");
 
-    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
+    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(guiTest.ideFrame());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_x.xml");
     dialog.clickCancel();
@@ -64,7 +67,7 @@ public class CreateResourceTest {
 
     editor.invokeQuickfixAction("Create layout resource file");
 
-    dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
+    dialog = CreateResourceFileDialogFixture.find(guiTest.ideFrame());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_y.xml");
     dialog.clickCancel();

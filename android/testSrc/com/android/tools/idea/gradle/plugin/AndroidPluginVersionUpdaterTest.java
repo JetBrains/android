@@ -61,7 +61,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
-    myVersionUpdater.handleUpdateResult(result, false);
+    myVersionUpdater.handleUpdateResult(result);
     verify(mySyncState, never()).syncEnded();
   }
 
@@ -69,9 +69,9 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setPluginVersionUpdateError(new Throwable());
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(times(1));
+    verifyLastSyncFailed(times(1));
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(times(1));
   }
@@ -80,9 +80,9 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setGradleVersionUpdateError(new Throwable());
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(times(1));
+    verifyLastSyncFailed(times(1));
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(never());
   }
@@ -91,9 +91,9 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(never());
+    verifyLastSyncFailed(never());
     verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
     verifyTextSearch(never());
   }
@@ -102,24 +102,24 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.gradleVersionUpdated();
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(never());
+    verifyLastSyncFailed(never());
     verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
     verifyTextSearch(never());
   }
 
   public void testHandleUpdateResultWithNoVersionsUpdatedAndNoErrors() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(never());
+    verifyLastSyncFailed(never());
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(never());
   }
 
-  private void verifyLastSyncInvalidated(@NotNull VerificationMode verificationMode) {
-    verify(mySyncState, verificationMode).invalidateLastSync(any());
+  private void verifyLastSyncFailed(@NotNull VerificationMode verificationMode) {
+    verify(mySyncState, verificationMode).syncFailed(any(), any(), any());
   }
 
   private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode, @NotNull GradleSyncStats.Trigger trigger) {

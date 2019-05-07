@@ -153,7 +153,7 @@ public class GradleSyncInvoker {
       }
     };
 
-    GradleSyncState.getInstance(project).syncTaskCreated(request);
+    GradleSyncState.getInstance(project).syncTaskCreated(request, listener);
 
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
@@ -233,20 +233,10 @@ public class GradleSyncInvoker {
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
-    boolean started;
-    if (request.useCachedGradleModels) {
-      started = GradleSyncState.getInstance(project).skippedSyncStarted(!isImportedProject, request);
-    }
-    else {
-      started = GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request);
-    }
-    if (!started) {
+    if (!GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request, listener)) {
       return;
     }
 
-    if (listener != null) {
-      listener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
-    }
 
     boolean useNewGradleSync = NewGradleSync.isEnabled(project);
     if (request.variantOnlySyncOptions == null) {
@@ -272,14 +262,8 @@ public class GradleSyncInvoker {
     // Create an external task so we can display messages associated to it in the build view
     ExternalSystemTaskId taskId = createFailedPreCheckSyncTaskWithStartMessage(project);
     syncState.setExternalSystemTaskId(taskId);
-    if (syncState.syncStarted(true, request)) {
-      if (syncListener != null) {
-        syncListener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
-      }
-      syncState.syncFailed(failureCause);
-      if (syncListener != null) {
-        syncListener.syncFailed(project, failureCause);
-      }
+    if (syncState.syncStarted(true, request, syncListener)) {
+      syncState.syncFailed(failureCause, null, syncListener);
     }
 
     // Let build view know there were issues

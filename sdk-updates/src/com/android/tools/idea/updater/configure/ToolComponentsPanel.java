@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static com.android.repository.util.RepoPackageUtilKt.getRepoPackagePrefix;
+
 import com.android.SdkConstants;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.installer.MavenInstallListener;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
+import com.android.tools.idea.welcome.install.Haxm;
 import com.google.common.collect.*;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
@@ -46,6 +50,10 @@ public class ToolComponentsPanel {
                                 SdkConstants.FD_EXTRAS,
                                 SdkConstants.FD_ANDROID_EXTRAS,
                                 SdkConstants.FD_GAPID));
+
+  // TODO: Add more fine-grained support for ChromeOS to SDK repo infrastructure (b/131738330)
+  private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
+    ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.REPO_PACKAGE_PATH);
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
@@ -151,25 +159,34 @@ public class ToolComponentsPanel {
     myMultiVersionPackages.clear();
     myToolsPackages.clear();
     for (UpdatablePackage p : toolsPackages) {
-      String prefix = p.getRepresentative().getPath();
-      int lastSegmentIndex = prefix.lastIndexOf(';');
+      String path = p.getRepresentative().getPath();
+      if (shouldAlwaysHide(path)) {
+        continue;
+      }
+
       boolean found = false;
-      if (lastSegmentIndex > 0) {
-        prefix = prefix.substring(0, lastSegmentIndex);
-        if (prefix.equals(PatchInstallerUtil.PATCHER_PATH_PREFIX)) {
-          // We don't want to show the patcher in the UI
-          continue;
-        }
-        if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
-          myMultiVersionPackages.put(prefix, p);
-          found = true;
-        }
+      String prefix = getRepoPackagePrefix(path);
+      if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
+        myMultiVersionPackages.put(prefix, p);
+        found = true;
       }
       if (!found) {
         myToolsPackages.add(p);
       }
     }
     updateToolsItems();
+  }
+
+  private static boolean shouldAlwaysHide(@NotNull String path) {
+    String prefix = getRepoPackagePrefix(path);
+    if (prefix.equals(PatchInstallerUtil.PATCHER_PATH_PREFIX)) {
+      // We don't want to show the patcher in the UI
+      return true;
+    }
+    if (SystemInfo.isChromeOS && CHROME_OS_INCOMPATIBLE_PATHS.contains(path)) {
+      return true;
+    }
+    return false;
   }
 
   public void startLoading() {

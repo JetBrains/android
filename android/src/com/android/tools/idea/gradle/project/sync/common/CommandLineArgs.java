@@ -31,7 +31,6 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
@@ -52,24 +51,20 @@ public class CommandLineArgs {
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
-  @NotNull private final AndroidStudioGradleIdeSettings myIdeSettings;
   private final boolean myIsNewSync;
 
   public CommandLineArgs(boolean isNewSync) {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(),
-         AndroidStudioGradleIdeSettings.getInstance(), isNewSync);
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), isNewSync);
   }
 
   @VisibleForTesting
   CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
                   @NotNull IdeInfo ideInfo,
                   @NotNull GradleInitScripts initScripts,
-                  @NotNull AndroidStudioGradleIdeSettings ideSettings,
                   boolean isNewSync) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
-    myIdeSettings = ideSettings;
     myIsNewSync = isNewSync;
   }
 
@@ -122,7 +117,7 @@ public class CommandLineArgs {
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get() && (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode)) {
+    if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get() && (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() || isTestingMode)) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;

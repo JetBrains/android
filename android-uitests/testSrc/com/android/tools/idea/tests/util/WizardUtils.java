@@ -40,6 +40,11 @@ public final class WizardUtils {
       .enterPackageName("com.google.myapplication")
       .wizard()
       .clickFinish();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
   }
 }

@@ -17,14 +17,19 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
+import com.android.tools.idea.editors.manifest.StaleManifestNotificationProvider;
 import com.android.utils.SdkUtils;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.treeStructure.Tree;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
@@ -62,14 +67,27 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
     return waitForLoadingToFinish(Wait.seconds(5));
   }
 
+  private Collection<EditorNotificationPanel> findEditorNotificationsWithText(String text) {
+    return robot()
+      .finder()
+      .findAll(JLabelMatcher.withText(text))
+      .stream()
+      .map(label -> (EditorNotificationPanel) label.getParent().getParent())
+      .collect(Collectors.toList());
+  }
+
   public MergedManifestFixture waitForLoadingToFinish(@NotNull Wait wait) {
-    wait.expecting("Merged manifest finished loading").until(() -> {
+    wait.expecting("merged manifest loading spinner to go away").until(() -> {
       if (myLoadingPanel.hasError()) {
         return true;
       }
       return myInfoPane.target().isShowing() && myTree.target().isShowing();
     });
     assertFalse(myLoadingPanel.hasError());
+    wait.expecting("fresh merged manifest").until(() ->
+      findEditorNotificationsWithText(StaleManifestNotificationProvider.RECOMPUTING_MESSAGE).isEmpty()
+    );
+    Truth.assertThat(findEditorNotificationsWithText(StaleManifestNotificationProvider.FAILED_TO_RECOMPUTE_MESSAGE)).isEmpty();
     return this;
   }
 

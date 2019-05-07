@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.editors.sqlite
 
-import com.android.tools.idea.flags.StudioFlags.SQLITE_VIEWER_ENABLED
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Simple abstraction over enabled/disabling the Sqlite editor feature.
- */
+import com.android.tools.idea.flags.StudioFlags.SQLITE_VIEWER_ENABLED
+
 object SqliteViewer {
   val isFeatureEnabled: Boolean
     get() = SQLITE_VIEWER_ENABLED.get()

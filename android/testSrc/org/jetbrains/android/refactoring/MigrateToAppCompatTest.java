@@ -16,18 +16,24 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.SmartHashMap;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.migration.MigrationMapEntry;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -272,9 +278,12 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
   }
 
   public void testMigrationQuickFix() throws Exception {
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
+    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
+    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       testProjectSystem, getTestRootDisposable());
+
     myFixture.enableInspections(new AndroidLintAppCompatCustomViewInspection());
-    myFixture.copyFileToProject(BASE_PATH + "appcompat_manifest.xml",
-                                "additionalModules/appcompat/AndroidManifest.xml");
     myFixture.copyFileToProject(BASE_PATH + "theme_material_manifest.xml", "AndroidManifest.xml");
     VirtualFile file = myFixture.copyFileToProject(
       BASE_PATH + "CustomView_highlighted.java", "src/p1/p2/CustomView.java");

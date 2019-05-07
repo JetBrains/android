@@ -20,9 +20,10 @@ import com.google.common.base.Objects
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import org.jdom.Element
+import java.util.*
 
 /**
- * Persistent [state][FileEditorState] associated with a file opened with a [SqliteEditor].
+ * Persistent [state][FileEditorState] accociated with a file opened with a [SqliteEditor].
  */
 class SqliteEditorState(val deviceFileId: DeviceFileId) : FileEditorState {
 

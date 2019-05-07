@@ -81,7 +81,7 @@ open class ConfigPanel<in ModelT>(
     }
 
     context.add(object : GradleSyncListener {
-      override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) = refresh()
+      override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) = refresh()
       override fun syncSucceeded(project: Project) = refresh()
       override fun syncFailed(project: Project, errorMessage: String) = refresh()
       override fun syncSkipped(project: Project) = refresh()
