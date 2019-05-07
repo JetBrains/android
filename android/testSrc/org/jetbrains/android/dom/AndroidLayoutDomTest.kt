@@ -26,6 +26,8 @@ import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlTag
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PsiTestUtil
@@ -273,6 +275,80 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   override fun getPathToCopy(testFileName: String): String {
     return "res/layout/$testFileName"
+  }
+
+  fun testStylesItemReferenceAndroid() {
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="android:textStyle"/>
+        </style>
+      </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("android:textS|tyle")
+    val navigationElement = myFixture.elementAtCaret.navigationElement
+    assertThat(navigationElement.parentOfType(XmlTag::class)!!.text).isEqualTo(
+      //language=XML
+      """
+      <attr name="textStyle">
+              <flag name="normal" value="0" />
+              <flag name="bold" value="1" />
+              <flag name="italic" value="2" />
+          </attr>""".trimIndent())
+    assertThat(navigationElement.containingFile.parent!!.name + "/" + navigationElement.containingFile.name).isEqualTo("values/attrs.xml")
+  }
+
+  fun testStylesItemReferenceResAuto() {
+    myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="layout_behavior"/>
+        </style>
+      </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("la|yout_behavior")
+    val navigationElement = myFixture.elementAtCaret.navigationElement
+    assertThat(navigationElement.parentOfType(XmlTag::class)!!.text).isEqualTo(
+      //language=XML
+      """<attr name="layout_behavior" format="string" />""")
+    assertThat(navigationElement.containingFile.parent!!.name + "/" + navigationElement.containingFile.name).isEqualTo("values/coordinatorlayout_attrs.xml")
+  }
+
+  fun testStylesItemCompletionAndroid() {
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="layout_wid"/>
+        </style>
+      </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("layout_wid|")
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("android:layout_width")
+  }
+
+  fun testStylesItemCompletionResAuto() {
+    myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=xml
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="layout_be"/>
+        </style>
+      </resources>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("layout_be|")
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("layout_behavior")
   }
 
   fun testAttributeNameCompletion1() {
