@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -53,7 +54,9 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
     }
 
     if (type.isCreate()) {
-      newChild.setAndroidAttribute(ATTR_FILL_VIEWPORT, "true");
+      NlWriteCommandActionUtil.run(newChild, "Setting fill_viewport", () -> {
+        newChild.setAndroidAttribute(ATTR_FILL_VIEWPORT, "true");
+      });
     }
     return true;
   }
