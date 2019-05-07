@@ -81,4 +81,3 @@ com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.and
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog$ResourcePanel.allowEditing
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
-com.android.tools.idea.templates.TemplateManager.getCategoryTable|com.android.tools.idea.templates.TemplateManager.getCategoryTable
