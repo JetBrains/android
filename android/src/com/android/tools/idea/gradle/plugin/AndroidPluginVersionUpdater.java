@@ -101,9 +101,7 @@ public class AndroidPluginVersionUpdater {
     return foundPlugin[0];
   }
 
-  public UpdateResult updatePluginVersionAndSync(@NotNull GradleVersion pluginVersion,
-                                                 @Nullable GradleVersion gradleVersion,
-                                                 boolean invalidateLastSyncOnFailure) {
+  public UpdateResult updatePluginVersionAndSync(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
     UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion);
 
     Throwable pluginVersionUpdateError = result.getPluginVersionUpdateError();
@@ -118,19 +116,23 @@ public class AndroidPluginVersionUpdater {
       logUpdateError(msg, gradleVersionUpdateError);
     }
 
-    handleUpdateResult(result, invalidateLastSyncOnFailure);
+    handleUpdateResult(result);
     return result;
   }
 
   @VisibleForTesting
-  void handleUpdateResult(@NotNull UpdateResult result, boolean invalidateLastSyncOnFailure) {
-    Throwable pluginVersionUpdateError = result.getPluginVersionUpdateError();
-    if (pluginVersionUpdateError != null || result.getGradleVersionUpdateError() != null) {
-      if (invalidateLastSyncOnFailure) {
-        mySyncState.invalidateLastSync("Failed to update either Android plugin version or Gradle version");
-      }
+  void handleUpdateResult(@NotNull UpdateResult result) {
+    Throwable versionUpdateError = result.getPluginVersionUpdateError();
+    boolean gradleVersionFailed = false;
+    if (versionUpdateError == null) {
+      versionUpdateError = result.getGradleVersionUpdateError();
+      gradleVersionFailed = versionUpdateError != null;
+    }
 
-      if (pluginVersionUpdateError != null) {
+    if (versionUpdateError != null) {
+      String message = String.format("Failed to update %s version", gradleVersionFailed ? "Gradle" : "Android Gradle Plugin");
+      mySyncState.syncFailed(message, versionUpdateError, null);
+      if (!gradleVersionFailed) {
         myTextSearch.execute();
       }
     }

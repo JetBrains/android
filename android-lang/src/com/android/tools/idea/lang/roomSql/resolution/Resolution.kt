@@ -150,10 +150,11 @@ private fun pushNextElements(
       }
       is RoomSelectStatement -> {
         if (previous == element.orderClause) {
-          for (selectCore in element.selectCoreList) {
-            selectCore?.selectCoreSelect?.resultColumns?.pushOnStack()
-            selectCore?.selectCoreSelect?.fromClause?.pushOnStack()
-          }
+          // We need to process only first selectCore because the column names of the first query determine the column names of the combined result set.
+          // Look at https://www.sqlite.org/lang_select.html#orderby
+          val selectCore = element.selectCoreList.firstOrNull()
+          selectCore?.selectCoreSelect?.resultColumns?.pushOnStack()
+          selectCore?.selectCoreSelect?.fromClause?.pushOnStack()
         }
       }
       is RoomDeleteStatement -> {

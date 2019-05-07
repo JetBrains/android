@@ -50,7 +50,7 @@ class DataBindingDefaultTrackerTest {
       try {
         UsageTracker.setWriterForTest(tracker)
         val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
+        syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
         syncState.syncEnded()
 
         assertThat(

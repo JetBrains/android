@@ -37,6 +37,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -44,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiManagerEx;
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +79,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   protected void loadSimpleApplication() throws Exception {
     super.loadSimpleApplication();
     // Make sure the file hashes are updated before the test is run
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false);
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
   }
 
@@ -190,7 +192,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false);
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
     runFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
@@ -204,14 +206,14 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false);
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
     assertFalse(myGradleFiles.areGradleFilesModified());
   }
 
   public void testModifiedWhenModifiedDuringSync() throws Exception {
     loadSimpleApplication();
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false);
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
@@ -226,7 +228,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
     }), true);
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false);
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
@@ -255,6 +257,14 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertTrue(myGradleFiles.isGradleFile(psiFile));
   }
 
+  public void testIsGradleFileWithKotlinSettings() {
+    // We need to create a file with EventSystemEnabled == false to get the PsiFile to return a null virtual file.
+    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+      .createFileFromText(FN_SETTINGS_GRADLE_KTS, FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
+    // This should
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
   public void testNothingInDefaultProject() {
     /* Prior to fix this would throw
     ERROR: Assertion failed: Please don't register startup activities for the default project: they won't ever be run
@@ -280,7 +290,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     boolean deleted = path.delete();
     assertTrue(deleted);
     assertTrue(getAppBuildFile().exists());
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false);
     assertFalse(myGradleFiles.areGradleFilesModified());
     assertFalse(myGradleFiles.hasHashForFile(getAppBuildFile()));
   }

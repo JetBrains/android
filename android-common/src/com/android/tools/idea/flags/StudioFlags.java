@@ -22,6 +22,7 @@ import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +48,14 @@ public final class StudioFlags {
       userOverrides = new DefaultFlagOverrides();
     }
     return new Flags(userOverrides, new PropertyOverrides());
+  }
+
+  private static boolean isDevBuild() {
+    if (ApplicationManager.getApplication() == null) {
+      return true;
+    }
+    ApplicationInfo applicationInfo = ApplicationInfo.getInstance();
+    return applicationInfo == null || applicationInfo.getStrictVersion().equals("0.0.0.0");
   }
 
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
@@ -381,8 +390,7 @@ public final class StudioFlags {
     false);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
-    "Makes Gradle use development offline repositories such as /out/repo",
-    false);
+    "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
 
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(

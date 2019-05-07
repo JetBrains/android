@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -234,7 +233,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
         // Inject embedded repository if it's enabled by user or if in testing mode.
-        if (AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled() || isInTestingMode()) {
+        if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() || isInTestingMode()) {
           if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
             GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
           }

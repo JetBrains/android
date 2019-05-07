@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
@@ -32,16 +33,17 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   public void runActivity(@NotNull Project project) {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
     if ((
-      // We only request sync if we know this is an Android project
-          !gradleProjectInfo.getAndroidModules().isEmpty() // because it has Android modules.
-          || gradleProjectInfo.isImportedProject() // because it was initialized by our importer.
+      // We only request sync if we know this is an Android project.
+
+      // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
+      !gradleProjectInfo.getAndroidModules().isEmpty()
+      // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
+      || IdeInfo.getInstance().isAndroidStudio() && gradleProjectInfo.isBuildWithGradle()
+      // Opening a project without .idea directory (including a newly created).
+      || gradleProjectInfo.isImportedProject()
         ) &&
         !gradleProjectInfo.isSkipStartupActivity()) {
-      // http://b/62543184
-      // If the project was created with the "New Project" wizard or imported, there is no need to sync again.
-      // This code path should only be executed when:
-      // 1. Opening an existing project from the list of "recent projects" in the "Welcome" page
-      // 2. Reopening the IDE and automatically reloading the current open project
+
       GradleSyncStats.Trigger trigger =
         gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);

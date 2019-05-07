@@ -157,7 +157,7 @@ iml_module(
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:licenses",
-        "//prebuilts/studio/sdk:ndk-bundle",
+        "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
@@ -311,6 +311,10 @@ filegroup(
     name = "deploy-artifacts",
     srcs = select({
         "//tools/base/bazel:remote_windows": [
+            "//tools/base/deploy/proto:deploy_java_proto",
+        ],
+        "//tools/base/bazel:windows": [
+            "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [

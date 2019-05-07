@@ -43,67 +43,126 @@ import org.jetbrains.android.util.AndroidBundle
  * StateManager for RestartAdbAction, displays if there are any connected devices to the user through the
  * state message.
  */
-class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable {
-  private lateinit var myProject: Project
-  private var myAdbFuture: ListenableFuture<AndroidDebugBridge>? = null
-  private var myLoading: Boolean = false
+class RestartAdbActionStateManager : AssistActionStateManager() {
+
+  private val projectStates = mutableMapOf<Project, State>()
+
+  private inner class State(val project: Project) : AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable {
+    private var adbFuture: ListenableFuture<AndroidDebugBridge>? = null
+    private var loading = false
+
+    init {
+      AndroidDebugBridge.addDebugBridgeChangeListener(this)
+      AndroidDebugBridge.addDeviceChangeListener(this)
+      Disposer.register(project, this)
+      initDebugBridge()
+    }
+
+    fun initDebugBridge() {
+      val adb = AndroidSdkUtils.getAdb(project) ?: return
+      adbFuture = AdbService.getInstance().getDebugBridge(adb) ?: return
+
+      Futures.addCallback(adbFuture, object : FutureCallback<AndroidDebugBridge> {
+        override fun onSuccess(bridge: AndroidDebugBridge?) {
+          refreshDependencyState(project)
+        }
+
+        override fun onFailure(t: Throwable?) {
+          refreshDependencyState(project)
+        }
+      }, EdtExecutor.INSTANCE)
+    }
+
+    private fun setLoading(loading: Boolean) {
+      this.loading = loading
+      refreshDependencyState(project)
+    }
+
+    override fun bridgeChanged(bridge: AndroidDebugBridge?) {}
+
+    override fun restartInitiated() {
+      setLoading(true)
+    }
+
+    override fun restartCompleted(isSuccessful: Boolean) {
+      setLoading(false)
+    }
+
+    override fun deviceConnected(device: IDevice) {
+        refreshDependencyState(project)
+    }
+
+    override fun deviceDisconnected(device: IDevice) {
+      refreshDependencyState(project)
+    }
+
+    override fun deviceChanged(device: IDevice, changeMask: Int) {
+      refreshDependencyState(project)
+    }
+
+    override fun dispose() {
+      AndroidDebugBridge.removeDebugBridgeChangeListener(this)
+      AndroidDebugBridge.removeDeviceChangeListener(this)
+      projectStates.remove(project)
+    }
+
+    fun getAssistActionState(): AssistActionState {
+      if (loading) return DefaultActionState.IN_PROGRESS
+      if (adbFuture == null) return DefaultActionState.INCOMPLETE
+      if (!adbFuture!!.isDone) return DefaultActionState.IN_PROGRESS
+
+      val adb = AndroidDebugBridge.getBridge()
+      if (adb == null || adb.devices.isEmpty()) {
+        return DefaultActionState.ERROR_RETRY
+      }
+      return CustomSuccessState
+    }
+
+    fun getStateDisplay(): StatefulButtonMessage {
+      val state = getAssistActionState()
+      val (title, body) = when (state) {
+        DefaultActionState.IN_PROGRESS -> ButtonMessage(AndroidBundle.message("connection.assistant.loading"))
+        CustomSuccessState, DefaultActionState.ERROR_RETRY -> {
+          val adb = AndroidDebugBridge.getBridge()
+
+          val deviceCount = adb?.devices?.size ?: -1
+          UsageTracker.log(
+            AndroidStudioEvent.newBuilder()
+              .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+              .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
+                                             .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
+                                             .setAdbDevicesDetected(deviceCount))
+              .withProjectId(project))
+
+          if (adb != null) {
+            generateMessage(adb.devices)
+          }
+          else {
+            ButtonMessage(AndroidBundle.message("connection.assistant.adb.failure"))
+          }
+
+        }
+        else -> {
+          ButtonMessage(AndroidBundle.message("connection.assistant.adb.unexpected"))
+        }
+      }
+
+      return StatefulButtonMessage(title, state, body)
+    }
+  }
 
   override fun init(project: Project, actionData: ActionData) {
-    myProject = project
-    initDebugBridge(myProject)
-    AndroidDebugBridge.addDebugBridgeChangeListener(this)
-    AndroidDebugBridge.addDeviceChangeListener(this)
-
-    Disposer.register(project, this)
-
+    projectStates.computeIfAbsent(project, ::State)
     refreshDependencyState(project)
   }
 
   override fun getId(): String = RestartAdbAction.ACTION_ID
 
-  override fun getState(project: Project, actionData: ActionData): AssistActionState {
-    if (myLoading) return DefaultActionState.IN_PROGRESS
-    if (myAdbFuture == null) return DefaultActionState.INCOMPLETE
-    if (!myAdbFuture!!.isDone) return DefaultActionState.IN_PROGRESS
+  override fun getState(project: Project, actionData: ActionData) =
+    projectStates[project]?.getAssistActionState() ?: throw IllegalStateException("getState called before init for this project")
 
-    val adb = AndroidDebugBridge.getBridge()
-    if (adb == null || adb.devices.isEmpty()) {
-      return DefaultActionState.ERROR_RETRY
-    }
-    return CustomSuccessState
-  }
-
-  override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage {
-    val state = getState(project, actionData)
-    val (title, body) = when (state) {
-      DefaultActionState.IN_PROGRESS -> ButtonMessage(AndroidBundle.message("connection.assistant.loading"))
-      CustomSuccessState, DefaultActionState.ERROR_RETRY -> {
-        val adb = AndroidDebugBridge.getBridge()
-
-        val deviceCount = adb?.devices?.size ?: -1
-        UsageTracker.log(
-          AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-            .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
-              .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
-              .setAdbDevicesDetected(deviceCount))
-            .withProjectId(project))
-
-        if (adb != null) {
-          generateMessage(adb.devices)
-        }
-        else {
-          ButtonMessage(AndroidBundle.message("connection.assistant.adb.failure"))
-        }
-
-      }
-      else -> {
-        ButtonMessage(AndroidBundle.message("connection.assistant.adb.unexpected"))
-      }
-    }
-
-    return StatefulButtonMessage(title, state, body)
-  }
+  override fun getStateDisplay(project: Project, actionData: ActionData, message: String?) =
+    projectStates[project]?.getStateDisplay() ?: throw IllegalStateException("getStateDisplay called before init for this project")
 
   private fun generateMessage(devices: Array<IDevice>): ButtonMessage {
     return if (devices.isEmpty()) {
@@ -125,53 +184,6 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
       }
       ButtonMessage(title, htmlBodyBuilder.html)
     }
-  }
-
-  private fun setLoading(loading: Boolean) {
-    myLoading = loading
-    refreshDependencyState(myProject)
-  }
-
-  private fun initDebugBridge(project: Project) {
-    val adb = AndroidSdkUtils.getAdb(project) ?: return
-    myAdbFuture = AdbService.getInstance().getDebugBridge(adb) ?: return
-
-    Futures.addCallback(myAdbFuture, object : FutureCallback<AndroidDebugBridge> {
-      override fun onSuccess(bridge: AndroidDebugBridge?) {
-        refreshDependencyState(project)
-      }
-
-      override fun onFailure(t: Throwable?) {
-        refreshDependencyState(project)
-      }
-    }, EdtExecutor.INSTANCE)
-  }
-
-  override fun dispose() {
-    AndroidDebugBridge.removeDebugBridgeChangeListener(this)
-    AndroidDebugBridge.removeDeviceChangeListener(this)
-  }
-
-  override fun bridgeChanged(bridge: AndroidDebugBridge?) {}
-
-  override fun restartInitiated() {
-    setLoading(true)
-  }
-
-  override fun restartCompleted(isSuccessful: Boolean) {
-    setLoading(false)
-  }
-
-  override fun deviceConnected(device: IDevice) {
-    refreshDependencyState(myProject)
-  }
-
-  override fun deviceDisconnected(device: IDevice) {
-    refreshDependencyState(myProject)
-  }
-
-  override fun deviceChanged(device: IDevice, changeMask: Int) {
-    refreshDependencyState(myProject)
   }
 
 }

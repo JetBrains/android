@@ -40,11 +40,6 @@ android {
                 abiFilters 'arm64-v8a'
             }
         }
-        arm {
-            ndk {
-                abiFilter 'armeabi'
-            }
-        }
         x86 {
             ndk {
                 abiFilter 'x86'
@@ -55,14 +50,9 @@ android {
                 abiFilter 'x86_64'
             }
         }
-        mips {
-            ndk {
-                abiFilters 'mips', 'mips64'
-            }
-        }
         all {
             ndk {
-                abiFilters 'mips', 'mips64', 'x86', 'x86_64'
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
     }

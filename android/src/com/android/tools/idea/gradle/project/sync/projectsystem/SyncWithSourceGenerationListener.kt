@@ -46,7 +46,7 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
   override fun syncTaskCreated(project: Project, request: GradleSyncInvoker.Request) {
   }
 
-  override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) {
+  override fun syncStarted(project: Project, sourceGenerationRequested: Boolean) {
     sourceGenerationFuture = if (sourceGenerationRequested) CompletableFuture() else null
   }
 

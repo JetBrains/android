@@ -206,7 +206,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     }
   }
 
-
   private void injectRepaintManagerMock() {
     RepaintManager current = RepaintManager.currentManager(null);
     assert current != null;

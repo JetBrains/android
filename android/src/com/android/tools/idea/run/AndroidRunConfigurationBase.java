@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -306,17 +305,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
     // If we are debugging on a device, then the app needs to be debuggable
-    for (ListenableFuture<IDevice> future : deviceFutures.get()) {
-      if (!future.isDone()) {
-        // this is an emulator, and we assume that all emulators are debuggable
-        continue;
-      }
-
-      @SuppressWarnings("UnstableApiUsage")
-      IDevice device = Futures.getUnchecked(future);
-
-      if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
-        return AndroidBundle.message("android.cannot.debug.noDebugPermissions", moduleName, device.getName());
+    for (AndroidDevice androidDevice : deviceFutures.getDevices()) {
+      if (!androidDevice.isDebuggable() && !LaunchUtils.canDebugApp(facet)) {
+        String deviceName;
+        if (!androidDevice.getLaunchedDevice().isDone()) {
+          deviceName = androidDevice.getName();
+        }
+        else {
+          @SuppressWarnings("UnstableApiUsage")
+          IDevice device = Futures.getUnchecked(androidDevice.getLaunchedDevice());
+          deviceName = device.getName();
+        }
+        return AndroidBundle.message("android.cannot.debug.noDebugPermissions", moduleName, deviceName);
       }
     }
 

@@ -31,7 +31,7 @@ public class NdkModuleModelTest extends AndroidGradleTestCase {
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(appModule);
     assertNotNull(ndkModuleModel);
     // Verify that the name contains both of variant and abi.
-    assertThat(ndkModuleModel.getNdkVariantNames()).contains("armRelease-x86");
+    assertThat(ndkModuleModel.getNdkVariantNames()).contains("arm8Release-x86");
   }
 
   public void testEqualsHash() {

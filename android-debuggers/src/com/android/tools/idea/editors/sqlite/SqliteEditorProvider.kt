@@ -24,9 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jdom.Element
 
-/**
- * Implementation of [FileEditorProvider] for Sqlite files.
- */
 class SqliteEditorProvider : FileEditorProvider, DumbAware {
 
   override fun accept(project: Project, file: VirtualFile): Boolean {

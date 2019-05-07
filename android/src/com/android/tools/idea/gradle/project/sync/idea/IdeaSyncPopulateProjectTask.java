@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -33,8 +32,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class IdeaSyncPopulateProjectTask {
@@ -59,72 +56,56 @@ public class IdeaSyncPopulateProjectTask {
     myDataManager = dataManager;
   }
 
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
-    populateProject(projectInfo, taskId, null, null);
-  }
-
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
-                              @Nullable Runnable syncFinishedCallback) {
-    doPopulateProject(projectInfo, taskId, setupRequest, syncFinishedCallback);
+                              @Nullable GradleSyncListener syncListener) {
+    doPopulateProject(projectInfo, taskId, setupRequest, syncListener);
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
                                  @NotNull ExternalSystemTaskId taskId,
                                  @Nullable PostSyncProjectSetup.Request setupRequest,
-                                 @Nullable Runnable syncFinishedCallback) {
+                                 @Nullable GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(projectInfo, taskId, new EmptyProgressIndicator(), setupRequest, syncFinishedCallback);
+      populate(projectInfo, taskId, new EmptyProgressIndicator(), setupRequest, syncListener);
       return;
     }
 
     Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        populate(projectInfo, taskId, indicator, setupRequest, syncFinishedCallback);
+        populate(projectInfo, taskId, indicator, setupRequest, syncListener);
       }
     };
     task.queue();
-  }
-
-  private void populate(@NotNull DataNode<ProjectData> projectInfo,
-                        @NotNull ExternalSystemTaskId taskId,
-                        @NotNull ProgressIndicator indicator,
-                        @Nullable PostSyncProjectSetup.Request setupRequest,
-                        @Nullable Runnable syncFinishedCallback) {
-    doPopulateProject(projectInfo, myProject, setupRequest);
-    if (syncFinishedCallback != null) {
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        syncFinishedCallback.run();
-      }
-      else {
-        TransactionGuard.getInstance().submitTransactionLater(myProject, syncFinishedCallback);
-      }
-    }
-    if (setupRequest != null) {
-      PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator, taskId);
-    }
   }
 
   /**
    * Reuse external system 'selective import' feature for importing of the project sub-set.
    * And do not ignore projectNode children data, e.g. project libraries
    */
-  @VisibleForTesting
-  void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
-                         @NotNull Project project,
-                         @Nullable PostSyncProjectSetup.Request setupRequest) {
+  private void populate(@NotNull DataNode<ProjectData> projectInfo,
+                        @NotNull ExternalSystemTaskId taskId,
+                        @NotNull ProgressIndicator indicator,
+                        @Nullable PostSyncProjectSetup.Request setupRequest,
+                        @Nullable GradleSyncListener syncListener) {
     try {
-      myDataManager.importData(projectInfo, project, true /* synchronous */);
-    }
-    catch (Throwable unexpected) {
-      String message = nullToEmpty(getRootCause(unexpected).getMessage());
-
-      Logger.getInstance(getClass()).warn("Sync failed: " + message, unexpected);
-
+      myDataManager.importData(projectInfo, myProject, true /* synchronous */);
+      if (syncListener != null) {
+        if (setupRequest != null && setupRequest.usingCachedGradleModels) {
+          syncListener.syncSkipped(myProject);
+        }
+        else {
+          syncListener.syncSucceeded(myProject);
+        }
+      }
+      if (setupRequest != null) {
+        PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator, taskId, syncListener);
+      }
+    } catch (Throwable unexpected) {
       // See https://code.google.com/p/android/issues/detail?id=268806
       if (setupRequest != null && setupRequest.usingCachedGradleModels) {
         // This happened when a newer version of IDEA cannot read the cache of a Gradle project created with an older IDE version.
@@ -134,7 +115,7 @@ public class IdeaSyncPopulateProjectTask {
       }
 
       // Notify sync failed, so the "Sync" action is enabled again.
-      mySyncState.syncFailed(message);
+      mySyncState.syncFailed(unexpected.getMessage(), unexpected, syncListener);
     }
   }
 }

@@ -87,7 +87,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {
       MergingReport.Record record = records.get(c);
-      errors[c] = ManifestPanel.getErrorHtml(myAndroidFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, null);
+      errors[c] = ManifestPanel.getErrorHtml(myAndroidFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, null, true);
     }
     return errors;
   }

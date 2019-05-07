@@ -49,6 +49,7 @@ private fun Signature.isWhitelisted(): Boolean =
   anyTypeContains("org.fest.swing") ||
   entry(-3) == "com.intellij.util.ref.DebugReflectionUtil#allFields" ||
   entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
+  entry(-4) == "java.io.DeleteOnExitHook#files" ||
 
   // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
   entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
@@ -59,6 +60,7 @@ private fun Signature.isWhitelisted(): Boolean =
   entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
   entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
   entry(-3) == "com.intellij.openapi.fileEditor.impl.EditorWindow#myRemovedTabs" ||
+  entry(-3) == "com.intellij.notification.EventLog\$ProjectTracker#myInitial" ||
   entry(2) == "sun.java2d.Disposer#records" ||
   entry(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
   entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" // b/126447315

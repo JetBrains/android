@@ -119,7 +119,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
@@ -141,7 +141,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     tasks.add(newTask);
     myRunManager.setBeforeRunTasks(runConfiguration, tasks);
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
 
     verify(myGradleProjectInfo, times(2)).setNewProject(false);
@@ -157,9 +157,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.usingCachedGradleModels = true;
     request.lastSyncTimestamp = lastSyncTimestamp;
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
-    verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
+    verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp, null);
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_CACHED_SETUP_FAILED);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
 
@@ -175,9 +175,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.usingCachedGradleModels = false;
     request.lastSyncTimestamp = 1L;
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
-    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncEnded();
   }
 
@@ -190,14 +190,14 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.lastSyncTimestamp = 1L;
 
     try {
-      mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+      mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
       fail();
     }
     catch (Throwable t) {
       // Exception is expected
     }
 
-    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncEnded();
   }
 
@@ -209,7 +209,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.generateSourcesAfterSync = true;
     request.cleanProjectAfterSync = true;
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
     Project project = getProject();
     verify(myDependencySetupIssues, times(1)).reportIssues();
@@ -221,7 +221,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
     verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
-    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncEnded();
 
     // Source generation should not be invoked if sync failed.
@@ -244,7 +244,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
       }
     };
 
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
     // verify "clean" was invoked.
     verify(myProjectBuilder).cleanAndGenerateSources();
@@ -264,7 +264,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 
     // verify java language level was updated to 1.8.
     assertEquals(LanguageLevel.JDK_1_8, ex.getLanguageLevel());

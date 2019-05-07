@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class TimeBasedMemorySettingsCheckerReminder {
   private static final String MEMORY_SETTINGS_DO_NOT_ASK_FOR_ALL_PROPERTY =
-    "memory.settings.do.not.ask.ever";
+    "memory.settings.postsync.do.not.show.again";
   private static final String MEMORY_SETTINGS_DO_NOT_ASK_FOR_PROJECT_PROPERTY =
-    "memory.settings.do.not.ask.for.project";
+    "memory.settings.postsync.do.not.ask.for.project";
   private static final String MEMORY_SETTINGS_POST_SYNC_CHECK_TIMESTAMP_PROPERTY =
     "memory.settings.last.check.timestamp";
 
