@@ -25,12 +25,12 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -38,8 +38,10 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Pair;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import java.util.ArrayDeque;
@@ -48,18 +50,21 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StyleItemNameConverter extends ResolvingConverter<String> {
+public class StyleItemNameConverter extends ResolvingConverter<ResourceUrl> {
 
   @NotNull
   @Override
-  public Collection<String> getVariants(ConvertContext context) {
-    List<String> result = Lists.newArrayList();
+  public Collection<ResourceUrl> getVariants(ConvertContext context) {
+    List<ResourceUrl> result = Lists.newArrayList();
 
     if (context.getModule() != null && context.getTag() != null) {
       XmlTag styleTag = context.getTag().getParentTag();
@@ -73,12 +78,38 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
         for (ResourceReference attr : attrDefs.getAttrs()) {
-          result.add(attr.getQualifiedName());
+          result.add(attr.getResourceUrl());
         }
       }
     }
 
+    AndroidFacet facet = AndroidFacet.getInstance(context);
+    if (facet != null) {
+      LocalResourceManager localResourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+      AttributeDefinitions attrDefs = localResourceManager.getAttributeDefinitions();
+      for (ResourceReference attr : attrDefs.getAttrs()) {
+        result.add(attr.getResourceUrl());
+      }
+    }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement resolve(ResourceUrl resource, ConvertContext context) {
+    if (context.getXmlElement() == null) {
+      return null;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(context.getFile());
+    if (facet == null) {
+      return null;
+    }
+    ResourceNamespace resourceNamespace = ResourceHelper.resolveResourceNamespace(context.getXmlElement(), resource.namespace);
+    if (resourceNamespace == null) {
+      return null;
+    }
+    return ArrayUtil.getFirstElement(AndroidResourceToPsiResolver.getInstance()
+      .getXmlAttributeNameGotoDeclarationTargets(resource.name, resourceNamespace, context.getXmlElement(), facet));
   }
 
   /**
@@ -87,7 +118,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
    * will show both in the completion list.
    */
   @NotNull
-  private static Collection<String> getAttributesUsedByParentStyle(@NotNull XmlTag styleTag) {
+  private static Collection<ResourceUrl> getAttributesUsedByParentStyle(@NotNull XmlTag styleTag) {
     Module module = ModuleUtilCore.findModuleForPsiElement(styleTag);
     if (module == null) {
       return Collections.emptyList();
@@ -111,7 +142,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
 
     ResourceNamespace namespace = namespacesContext.getCurrentNs();
     ResourceNamespace.Resolver resolver = namespacesContext.getResolver();
-    HashSet<String> attributeNames = new HashSet<>();
+    HashSet<ResourceUrl> attributeNames = new HashSet<>();
 
     ArrayDeque<Pair<ResourceItem, Integer>> toExplore = new ArrayDeque<>();
     for (ResourceItem parentStyle : parentStyles) {
@@ -136,7 +167,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
         if (!value.isFramework()) {
           ResourceReference attr = value.getAttr();
           if (attr != null) {
-            attributeNames.add(attr.getRelativeResourceUrl(namespace, resolver).getQualifiedName());
+            attributeNames.add(attr.getRelativeResourceUrl(namespace, resolver));
           }
         }
       }
@@ -181,17 +212,19 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public LookupElement createLookupElement(String s) {
-    if (s == null) {
+  public LookupElement createLookupElement(ResourceUrl resourceUrl) {
+    if (resourceUrl == null) {
       return null;
     }
 
     // Prioritize non framework attributes at the top
-    return PrioritizedLookupElement.withPriority(LookupElementBuilder.create(s), s.startsWith(SdkConstants.PREFIX_ANDROID) ? 0 : 1);
+    return PrioritizedLookupElement.withPriority(
+      LookupElementBuilder.create(resourceUrl.getQualifiedName()),
+      resourceUrl.getQualifiedName().startsWith(SdkConstants.PREFIX_ANDROID) ? 0 : 1);
   }
 
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public ResourceUrl fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) {
       return null;
     }
@@ -205,36 +238,14 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
     if (attrUrl == null) {
       return null;
     }
-
-    ResourceReference attributeReference = ResourceHelper.resolve(attrUrl, xmlElement);
-    if (attributeReference == null) {
-      return null;
-    }
-
-    // Get module from the context, not XmlElement itself. When browsing AAR sources, XmlElement has no module but a module consuming the
-    // AAR may be in the context.
-    Module module = context.getModule();
-    if (module == null) {
-      return null;
-    }
-
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
-    if (repositoryManager == null) {
-      return null;
-    }
-
-    ResourceRepository repository = attributeReference.getNamespace() == ResourceNamespace.ANDROID ?
-                                            repositoryManager.getFrameworkResources(false) :
-                                            repositoryManager.getAppResources();
-    if (repository == null) {
-      return null;
-    }
-
-    return repository.getResources(attributeReference).isEmpty() ? null : s;
+    return attrUrl;
   }
 
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
-    return s;
+  public String toString(@Nullable ResourceUrl resourceUrl, ConvertContext context) {
+    if (resourceUrl == null) {
+      return null;
+    }
+    return resourceUrl.toString();
   }
 }
