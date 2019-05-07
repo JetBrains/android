@@ -28,6 +28,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -68,8 +70,9 @@ public class MarginPopup extends JPanel {
     }
   }
 
+  private static final float DEFAULT_FONT_SIZE = 12f;
   private static final String DEFAULT_RES_DISPLAY = "@ ...";
-  private final JBTextField DEFAULT_MARGIN = new JBTextField("Default Margin : ");
+  private final JBTextField myDefaultMargin = new JBTextField("Default Margin : ");
   private final JBTextField myTextField = new JBTextField();
   private final JButton[] myHistoryButtons = new JButton[3];
   private final JButton myResourcePickerButton = new JButton();
@@ -85,6 +88,10 @@ public class MarginPopup extends JPanel {
   }
 
   public void setPopup(@Nullable JBPopup popup) {
+    for (Component component : getComponents()) {
+      updateFontsForPresentationMode(component);
+    }
+
     myPopup = popup;
   }
 
@@ -161,18 +168,19 @@ public class MarginPopup extends JPanel {
   public MarginPopup(final ActionListener resourcePickerActionListener) {
     super(new GridBagLayout());
     setBackground(JBColor.background());
+
     GridBagConstraints gc = new GridBagConstraints();
-    DEFAULT_MARGIN.setEditable(false);
-    DEFAULT_MARGIN.setFocusable(false);
-    DEFAULT_MARGIN.setBorder(BorderFactory.createEmptyBorder());
+    myDefaultMargin.setEditable(false);
+    myDefaultMargin.setFocusable(false);
+    myDefaultMargin.setBorder(BorderFactory.createEmptyBorder());
 
     gc.gridx = 0;
     gc.gridy = 0;
     gc.gridwidth = 2;
     gc.insets = JBUI.insets(10, 5, 5, 0);
     gc.fill = GridBagConstraints.BOTH;
-    DEFAULT_MARGIN.setHorizontalAlignment(SwingConstants.RIGHT);
-    add(DEFAULT_MARGIN, gc);
+    myDefaultMargin.setHorizontalAlignment(SwingConstants.RIGHT);
+    add(myDefaultMargin, gc);
 
     gc.gridx = 2;
     gc.gridy = 0;
@@ -211,7 +219,7 @@ public class MarginPopup extends JPanel {
     });
     gc.fill = GridBagConstraints.HORIZONTAL;
     myTextField.addActionListener(mTextListener);
-    Insets margin = new Insets(0, 0, 0, 0);
+    Insets margin = JBUI.insets(0, 0, 0, 0);
     for (int i = 0; i < 4; i++) {
       JButton b = new JButton("" + myDefaultValues[i]);
       b.setMargin(margin);
@@ -225,7 +233,6 @@ public class MarginPopup extends JPanel {
     gc.insets.bottom = JBUI.scale(7);
     for (int i = 0; i < myHistoryButtons.length; i++) {
       myHistoryButtons[i] = new JButton("XXX");
-      myHistoryButtons[i].setPreferredSize(myHistoryButtons[i].getPreferredSize());
       myHistoryButtons[i].setMargin(margin);
       if (myHistoryValues[i] > 0) {
         myHistoryButtons[i].setText(Integer.toString(myHistoryValues[i]));
@@ -238,7 +245,6 @@ public class MarginPopup extends JPanel {
       gc.gridx = i;
       gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
       gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
-      //Insets in = myHistoryButtons[i].getMargin();
       add(myHistoryButtons[i], gc);
     }
     myResourcePickerButton.setMargin(margin);
@@ -263,5 +269,10 @@ public class MarginPopup extends JPanel {
 
   public JComponent getTextField() {
     return myTextField;
+  }
+
+  private void updateFontsForPresentationMode(Component component) {
+    Font font = component.getFont();
+    component.setFont(font.deriveFont((float) JBUI.scaleFontSize(DEFAULT_FONT_SIZE)));
   }
 }
