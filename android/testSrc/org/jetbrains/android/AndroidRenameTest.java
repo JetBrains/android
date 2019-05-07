@@ -457,6 +457,43 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/attrs9.xml", BASE_PATH + "attrs9_after.xml", true);
   }
 
+  public void testItemAttr() throws Throwable {
+    createManifest();
+    PsiFile file = myFixture.addFileToProject(
+      "res/values/style.xml",
+      //language=XML
+      "<resources>\n" +
+      "    <style name=\"Example\">\n" +
+      "        <item name=\"att<caret>r\">true</item>\n" +
+      "    </style>\n" +
+      "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.addFileToProject(
+      "res/values/attrs.xml",
+      //language=xml
+      "<resources>\n" +
+      "  <declare-styleable name=\"LabelView\">\n" +
+      "    <attr name=\"attr\" format=\"boolean\" />\n" +
+      "  </declare-styleable>\n" +
+      "</resources>");
+    checkAndRename("attr1");
+    myFixture.checkResult(
+      //language=XML
+      "<resources>\n" +
+      "    <style name=\"Example\">\n" +
+      "        <item name=\"attr1\">true</item>\n" +
+      "    </style>\n" +
+      "</resources>", true);
+    myFixture.checkResult(
+      "res/values/attrs.xml",
+      //language=xml
+      "<resources>\n" +
+      "  <declare-styleable name=\"LabelView\">\n" +
+      "    <attr name=\"attr1\" format=\"boolean\" />\n" +
+      "  </declare-styleable>\n" +
+      "</resources>", true);
+  }
+
   public void testRenameDeclareStyleableFromJava() throws Throwable {
     // Renaming an R styleable field should update the declare styleable declaration, as well as
     // any field references, including those for the attributes
