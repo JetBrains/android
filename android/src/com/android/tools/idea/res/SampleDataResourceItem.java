@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -216,6 +217,12 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
     }, () -> vFile.getModificationStamp() + 1, jsonPointer, ContentType.UNKNOWN);
   }
 
+  @NotNull
+  private static String getTextFromPsiElementPointer(SmartPsiElementPointer<PsiElement> pointer) {
+    PsiElement rootJsonElement = pointer.getElement();
+    return rootJsonElement != null ? rootJsonElement.getText() : "";
+  }
+
   /**
    * Returns a {@link SampleDataResourceItem}s from the given {@link PsiFileSystemItem}. The method will detect the type
    * of file or directory and return a number of items.
@@ -234,7 +241,8 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
     switch (extension) {
       case EXT_JSON: {
         SampleDataJsonParser parser;
-        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(psiPointer.getVirtualFile()))) {
+        String jsonText = getTextFromPsiElementPointer(psiPointer);
+        try (StringReader reader = new StringReader(jsonText)) {
           parser = SampleDataJsonParser.parse(reader);
         }
         if (parser == null) {
@@ -252,16 +260,18 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
       case EXT_CSV: {
         SampleDataCsvParser parser;
-        VirtualFile vFile = sampleDataSource.getVirtualFile();
-        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(vFile))) {
+        String csvText = getTextFromPsiElementPointer(psiPointer);
+        try (StringReader reader = new StringReader(csvText)) {
           parser = SampleDataCsvParser.parse(reader);
         }
+
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
           items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, namespace,
-                                               new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
-                                               () -> vFile.getModificationStamp() + 1, psiPointer, ContentType.UNKNOWN));
+                                               new HardcodedContent(Joiner.on('\n').join(parser.getPath(path))),
+                                               () -> psiPointer.getVirtualFile().getModificationStamp() + 1, psiPointer,
+                                               ContentType.UNKNOWN));
         }
         return items.build();
       }
