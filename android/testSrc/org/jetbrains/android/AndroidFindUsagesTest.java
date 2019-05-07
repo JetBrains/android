@@ -422,6 +422,98 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     assertEquals(expected, describeUsages(references));
   }
 
+  public void testStyleItemAttr() throws Throwable {
+    createManifest();
+    PsiFile file = myFixture.addFileToProject(
+      "res/values/style.xml",
+      //language=XML
+      "<resources>\n" +
+      "    <style name=\"Example\">\n" +
+      "        <item name=\"newAtt<caret>r\">true</item>\n" +
+      "    </style>\n" +
+      "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.addFileToProject(
+      "res/values/attrs.xml",
+      //language=XML
+      "<resources>\n" +
+      "  <declare-styleable name=\"LabelView\">\n" +
+      "    <attr name=\"newAttr\" format=\"boolean\" />\n" +
+      "  </declare-styleable>\n" +
+      "</resources>");
+    myFixture.addFileToProject(
+      "src/p1/p2/MyView.java",
+      //language=JAVA
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.content.Context;\n" +
+      "import android.content.res.TypedArray;\n" +
+      "import android.util.AttributeSet;\n" +
+      "import android.widget.Button;\n" +
+      "\n" +
+      "@SuppressWarnings(\"UnusedDeclaration\")\n" +
+      "public class MyView extends Button {\n" +
+      "    public MyView(Context context, AttributeSet attrs, int defStyle) {\n" +
+      "        super(context, attrs, defStyle);\n" +
+      "        int attribute = R.attr.newAttr;\n" +
+      "    }\n" +
+      "}\n");
+    Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
+    String expected = "MyView.java:12:\n" +
+                      "  int attribute = R.attr.newAttr;\n" +
+                      "                         |~~~~~~~\n" +
+                      "values/style.xml:3:\n" +
+                      "  <item name=\"newAttr\">true</item>\n" +
+                      "              |~~~~~~~            \n";
+    assertThat(describeUsages(references)).isEqualTo(expected);
+  }
+
+  public void testStyleItemAttrFromJava() throws Throwable {
+    createManifest();
+    myFixture.addFileToProject(
+      "res/values/style.xml",
+       //language=XML
+       "<resources>\n" +
+       "    <style name=\"Example\">\n" +
+       "        <item name=\"newAttr\">true</item>\n" +
+       "    </style>\n" +
+       "</resources>");
+    myFixture.addFileToProject(
+      "res/values/attrs.xml",
+      //language=XML
+      "<resources>\n" +
+      "  <declare-styleable name=\"LabelView\">\n" +
+      "    <attr name=\"newAttr\" format=\"boolean\" />\n" +
+      "  </declare-styleable>\n" +
+      "</resources>");
+    PsiFile file = myFixture.addFileToProject(
+      "src/p1/p2/MyView.java",
+       //language=JAVA
+       "package p1.p2;\n" +
+       "\n" +
+       "import android.content.Context;\n" +
+       "import android.content.res.TypedArray;\n" +
+       "import android.util.AttributeSet;\n" +
+       "import android.widget.Button;\n" +
+       "\n" +
+       "@SuppressWarnings(\"UnusedDeclaration\")\n" +
+       "public class MyView extends Button {\n" +
+       "    public MyView(Context context, AttributeSet attrs, int defStyle) {\n" +
+       "        super(context, attrs, defStyle);\n" +
+       "        int attribute = R.attr.newA<caret>ttr;\n" +
+       "    }\n" +
+       "}\n");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
+    String expected = "MyView.java:12:\n" +
+                      "  int attribute = R.attr.newAttr;\n" +
+                      "                         |~~~~~~~\n" +
+                      "values/style.xml:3:\n" +
+                      "  <item name=\"newAttr\">true</item>\n" +
+                      "              |~~~~~~~            \n";
+    assertThat(describeUsages(references)).isEqualTo(expected);
+  }
+
   public void testIdDeclarations() throws Throwable {
     Collection<UsageInfo> references = findCodeUsages("fu12_layout.xml", "res/layout/f12_layout.xml");
     assertEquals("layout/f12_layout.xml:26:\n" +

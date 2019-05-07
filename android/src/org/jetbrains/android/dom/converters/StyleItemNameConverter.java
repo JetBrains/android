@@ -38,7 +38,10 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
@@ -50,11 +53,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
+import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,6 +115,37 @@ public class StyleItemNameConverter extends ResolvingConverter<ResourceUrl> {
     }
     return ArrayUtil.getFirstElement(AndroidResourceToPsiResolver.getInstance()
       .getXmlAttributeNameGotoDeclarationTargets(resource.name, resourceNamespace, context.getXmlElement(), facet));
+  }
+
+  @Override
+  public boolean isReferenceTo(@NotNull PsiElement element,
+                               String stringValue,
+                               @Nullable ResourceUrl resolveResult,
+                               ConvertContext context) {
+    if (element instanceof LazyValueResourceElementWrapper) {
+      element = ((LazyValueResourceElementWrapper)element).computeElement();
+
+      if (element == null) {
+        return false;
+      }
+    }
+    PsiElement target = resolve(resolveResult, context);
+    if (element.getManager().areElementsEquivalent(target, element)) {
+      return true;
+    }
+
+    PsiFile psiFile = element.getContainingFile();
+    VirtualFile vFile = psiFile != null ? psiFile.getVirtualFile() : null;
+    if (target instanceof LazyValueResourceElementWrapper && vFile != null) {
+      ValueResourceInfo info = ((LazyValueResourceElementWrapper)target).getResourceInfo();
+      if (info.getContainingFile().equals(vFile)) {
+        XmlAttributeValue realTarget = info.computeXmlElement();
+        if (element.getManager().areElementsEquivalent(realTarget, element)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
