@@ -66,7 +66,7 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
   default void modifyConfiguration() {
     PsDeclaredDependency dependency = (PsDeclaredDependency) getModel();
     String configuration = (String) getConfigurationUI().getEditor().getItem();
-    if (dependency != null && configuration != null) {
+    if (dependency != null && configuration != null && !configuration.equals(dependency.getConfigurationName())) {
         PsModule module = dependency.getParent();
         module.modifyDependencyConfiguration(dependency, configuration);
     }
