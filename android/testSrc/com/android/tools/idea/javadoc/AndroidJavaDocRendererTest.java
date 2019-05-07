@@ -357,7 +357,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
 
   public void testStyleName() {
     checkJavadoc("/javadoc/styles/styles_attribute_documentation.xml", "res/values/styles.xml",
-                 "Default text typeface style.");
+                 "<html><body><B>android:textStyle</B><br/>Default text typeface style.<br/><hr/><BR/>@android:attr/textStyle<BR/><BR/></body></html>");
   }
 
   public void testInjectExternalDocumentation() {
