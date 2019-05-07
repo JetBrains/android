@@ -18,6 +18,7 @@ COMMON_DATA = [
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
     "//prebuilts/studio/sdk:cmake",
+    "//prebuilts/studio/sdk:ndk",
     "//prebuilts/studio/sdk:ndk-bundle",
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:platform-tools",
