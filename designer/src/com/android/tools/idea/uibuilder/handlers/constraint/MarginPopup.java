@@ -170,6 +170,16 @@ public class MarginPopup extends JPanel {
 
   public MarginPopup() {
     super(new GridBagLayout());
+
+    // Bug: b/132078844
+    // The following 3 lines will enable the user to navigate to all the buttons with the <tab> key.
+    // The reason these lines are necessary is because AbstractPopup installs a FocusTraversalPolicy
+    // in the popup Window which only can navigate to one control: the preferred control.
+    // This workaround can be removed if that problem is fixed.
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    setFocusCycleRoot(true);
+
     setBackground(JBColor.background());
 
     GridBagConstraints gc = new GridBagConstraints();

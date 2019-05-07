@@ -1182,6 +1182,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           .build();
         dialog.setTitle(PICK_A_DIMENSION);
 
+        if (myMarginPopup != null) {
+          myMarginPopup.cancel();
+        }
         if (dialog.showAndGet()) {
           resolveResValue(dialog);
         }
