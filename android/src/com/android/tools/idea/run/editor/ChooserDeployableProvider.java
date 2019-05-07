@@ -148,5 +148,43 @@ public final class ChooserDeployableProvider implements DeployableProvider {
         return Collections.emptyList();
       }
     }
+
+    @Override
+    public boolean isOnline() {
+      if (!myAndroidDevice.isRunning()) {
+        return false;
+      }
+
+      Future<IDevice> iDeviceFuture = myAndroidDevice.getLaunchedDevice();
+      if (!iDeviceFuture.isDone() || iDeviceFuture.isCancelled()) {
+        return false;
+      }
+
+      try {
+        return iDeviceFuture.get().isOnline();
+      }
+      catch (Exception e) {
+        return false;
+      }
+    }
+
+    @Override
+    public boolean isUnauthorized() {
+      if (!myAndroidDevice.isRunning()) {
+        return false;
+      }
+
+      Future<IDevice> iDeviceFuture = myAndroidDevice.getLaunchedDevice();
+      if (!iDeviceFuture.isDone() || iDeviceFuture.isCancelled()) {
+        return false;
+      }
+
+      try {
+        return iDeviceFuture.get().getState() == IDevice.DeviceState.UNAUTHORIZED;
+      }
+      catch (Exception e) {
+        return false;
+      }
+    }
   }
 }

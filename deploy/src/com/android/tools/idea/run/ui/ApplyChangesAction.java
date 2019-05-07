@@ -60,7 +60,7 @@ public class ApplyChangesAction extends BaseAction {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
       if (AndroidCommonUtils.isTestConfiguration(id) || AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
-        e.getPresentation().setEnabled(false);
+        disableAction(e.getPresentation(), "test project", "the selected configuration is a test configuration");
       }
     }
   }

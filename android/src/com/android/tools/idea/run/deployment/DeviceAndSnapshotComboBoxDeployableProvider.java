@@ -81,5 +81,23 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       }
       return Deployable.searchClientsForPackage(iDevice, myPackageName);
     }
+
+    @Override
+    public boolean isOnline() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
+      }
+      return iDevice.isOnline();
+    }
+
+    @Override
+    public boolean isUnauthorized() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
+      }
+      return iDevice.getState() == IDevice.DeviceState.UNAUTHORIZED;
+    }
   }
 }
