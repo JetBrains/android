@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
@@ -71,6 +72,24 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     @Override
     public boolean isApplicationRunningOnDeployable() {
       return myDevice.isRunning(myPackageName);
+    }
+
+    @Override
+    public boolean isOnline() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
+      }
+      return iDevice.isOnline();
+    }
+
+    @Override
+    public boolean isUnauthorized() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
+      }
+      return iDevice.getState() == IDevice.DeviceState.UNAUTHORIZED;
     }
   }
 }
