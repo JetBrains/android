@@ -86,8 +86,8 @@ object DesignLookup {
     val style = styles.firstOrNull() as? Style ?: return null
     val tag = style.xmlElement as? XmlTag ?: return null
     val prefix = getNamespaceResolver(tag).uriToPrefix(property.namespace) ?: computeDefaultStylePrefix(property)
-    val itemName = ResourceUrl.createAttrReference(prefix, property.name).toString()
-    val item = style.items.firstOrNull { it.name.value == itemName }
+    val resourceItem = ResourceUrl.createAttrReference(prefix, property.name)
+    val item = style.items.firstOrNull { it.name.value == resourceItem }
     return item?.xmlTag?.getAttribute(ATTR_NAME) ?: tag
   }
 
