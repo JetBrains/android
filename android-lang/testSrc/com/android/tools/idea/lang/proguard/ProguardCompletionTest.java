@@ -80,6 +80,12 @@ public class ProguardCompletionTest extends LightCodeInsightFixtureTestCase {
     assertTrue("Expected no highlights", highlights.isEmpty());
   }
 
+  public void testIncludeCompletion()  throws Throwable {
+    myFixture.addFileToProject("zzz.pro", "");
+    myFixture.addFileToProject("ijklk.pro", "");
+    performTestCompletionVariants("includecompletion.pro", "includecompletion.pro", "ijklk.pro");
+  }
+
   /**
    * Tests basic completion on the input file {@code fileBefore} at caret position, comparing it
    * against the contents of the file {@code fileAfter}.
@@ -106,7 +112,7 @@ public class ProguardCompletionTest extends LightCodeInsightFixtureTestCase {
     // myFixture.testCompletionVariants(fileBefore, expectedVariants);
 
     LookupElement[] completions = myFixture.complete(CompletionType.BASIC);
-    assertNotNull("Expected at least one completion in " + fileBefore, completions);
+    assertNotNull("Expected at least two completions in " + fileBefore, completions);
 
     // Transform array of LookupElement into a List of Strings.
     List<String> completionVariants =
