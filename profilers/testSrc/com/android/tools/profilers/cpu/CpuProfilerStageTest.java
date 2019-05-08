@@ -48,6 +48,7 @@ import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
@@ -744,8 +745,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
 
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
-
-    myStage.setCapture(new AtraceParser(1).parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0));
+    CpuCapture cpuCapture = new AtraceParser(1)
+      .parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0);
+    myStage.setCapture(cpuCapture);
     myStage.enter();
     myStage.setTooltip(new CpuKernelTooltip(myStage));
     assertThat(myStage.getTooltip()).isInstanceOf(CpuKernelTooltip.class);
@@ -760,7 +762,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     List<SeriesData<CpuThreadSliceInfo>> cpuSeriesData = new ArrayList<>();
     cpuSeriesData.add(new SeriesData<>(5, CpuThreadSliceInfo.NULL_THREAD));
     cpuSeriesData.add(new SeriesData<>(10, new CpuThreadSliceInfo(0, "Test", 0, "Test")));
-    AtraceDataSeries<CpuThreadSliceInfo> series = new AtraceDataSeries<>(myStage, (capture) -> cpuSeriesData);
+    AtraceDataSeries<CpuThreadSliceInfo> series = new AtraceDataSeries<>((AtraceCpuCapture)cpuCapture, (capture) -> cpuSeriesData);
     tooltip.setCpuSeries(1, series);
     assertThat(tooltip.getCpuThreadSliceInfo().getProcessName()).isEqualTo("Test");
 

@@ -76,7 +76,7 @@ public class CpuThreadsModelTest {
 
   @Test
   public void updateRange() {
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myProfilers), ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
     // Make sure there are no threads before calling update
     assertThat(myThreadsModel.getSize()).isEqualTo(0);
 
@@ -141,7 +141,7 @@ public class CpuThreadsModelTest {
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(10));
 
     // Create new model so we sort on our first queried range.
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myProfilers), ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
 
     assertThat(myThreadsModel.getSize()).isEqualTo(8);
     // Main thread gets sorted first per thread id passed into reset function.
@@ -189,7 +189,7 @@ public class CpuThreadsModelTest {
   @Test
   public void notEmptyWhenInitialized() {
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5));
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(myProfilers), ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, myProfilers, ProfilersTestData.SESSION_DATA, false);
     assertThat(myThreadsModel.getSize()).isEqualTo(1);
   }
 

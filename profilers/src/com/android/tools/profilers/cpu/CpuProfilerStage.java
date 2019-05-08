@@ -261,7 +261,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // Create an event representing the traces within the view range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
 
-    myThreadsStates = new CpuThreadsModel(viewRange, this, mySession);
+    myThreadsStates = new CpuThreadsModel(viewRange, profilers, mySession, myIsImportTraceMode);
     myCpuKernelModel = new CpuKernelModel(viewRange, this);
     myFramesModel = new CpuFramesModel(viewRange, this);
 
@@ -727,9 +727,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         timeline.reset((long)(captureRangeNs.getMin()), (long)(captureRangeNs.getMax() + expandAmountNs));
         timeline.setIsPaused(true);
 
-        // We must set build the thread model before setting the capture, otherwise we won't be able to properly set the thread after
-        // CpuCaptureModel#setCapture updates the thread id.
-        myThreadsStates.buildImportedTraceThreads(parsedCapture);
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         // We need to expand the end of the data range. Giving us the padding on the right side to show the view. If we don't do this
@@ -1045,6 +1042,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void setAndSelectCapture(@NotNull CpuCapture capture) {
+    // We must build the thread model before setting the capture, otherwise we won't be able to properly select the thread after
+    // CpuCaptureModel#setCapture updates the thread id.
+    myThreadsStates.updateTraceThreadsForCapture(capture);
+
     // Setting the selection range will cause the timeline to stop.
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     timeline.getSelectionRange().set(capture.getRange());

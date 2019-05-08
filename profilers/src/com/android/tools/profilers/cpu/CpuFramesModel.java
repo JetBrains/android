@@ -59,10 +59,10 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
       // For now we hard code the main thread, and the render thread frame information.
       addElement(new FrameState("Main", new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS,
                                                                     capture.getMainThreadId(),
-                                                                    SLOW_FRAME_RATE_US), myStage));
+                                                                    SLOW_FRAME_RATE_US), atraceCapture));
       addElement(new FrameState("Render", new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS,
                                                                       atraceCapture.getRenderThreadId(),
-                                                                      SLOW_FRAME_RATE_US), myStage));
+                                                                      SLOW_FRAME_RATE_US), atraceCapture));
     }
     contentsChanged();
   }
@@ -79,11 +79,11 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     private final String myThreadName;
     private final int myThreadId;
 
-    public FrameState(String threadName, @NotNull AtraceFrameFilterConfig filter, @NotNull CpuProfilerStage stage) {
+    public FrameState(String threadName, @NotNull AtraceFrameFilterConfig filter, @NotNull AtraceCpuCapture atraceCapture) {
       myModel = new StateChartModel<>();
       myThreadName = threadName;
       myThreadId = filter.getThreadId();
-      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(stage, capture -> capture.getFrames(filter));
+      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCapture, capture -> capture.getFrames(filter));
       myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
     }
 
