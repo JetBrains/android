@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class EnumSupportFactoryTest extends PropertyTestCase {
-  private static final List<String> AVAILABLE_SIZES_IN_CONSTRAINT_LAYOUT = ImmutableList.of("match_constraint", "wrap_content");
+  private static final List<String> AVAILABLE_SIZES_IN_CONSTRAINT_LAYOUT = ImmutableList.of("0dp (match constraint)", "wrap_content");
 
   @Override
   public void setUp() throws Exception {

@@ -227,7 +227,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   @NotNull
   public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
-    Map<String, String> values = ImmutableMap.of("0dp", "match_constraint", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
+    Map<String, String> values = ImmutableMap.of("0dp", "0dp (match constraint)", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
     return ImmutableMap.of(ATTR_LAYOUT_WIDTH, values,
                            ATTR_LAYOUT_HEIGHT, values);
   }
