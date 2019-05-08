@@ -231,7 +231,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         startTransportDaemon(transportDevice);
         getLogger().info("Terminating Transport thread");
       }
-      catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException | SyncException e) {
+      catch (ShellCommandUnresponsiveException | SyncException e) {
         myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
         getLogger().error("Error when trying to spawn Transport daemon", e);
       }
@@ -239,6 +239,10 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
         // We don't want to crash in this case.
         getLogger().warn("Error when trying to spawn Transport", e);
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+      }
+      catch (TimeoutException | InterruptedException e) {
+        // These happen when users unplug their devices or if studio is closed. We don't need to surface the exceptions here.
         myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
       }
     }
