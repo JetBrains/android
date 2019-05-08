@@ -65,36 +65,4 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     AnAction selectProjectToImportAction = ActionManager.getInstance().getAction("ExternalSystem.SelectProjectDataToImport");
     assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
   }
-
-  public void testModifyCodeStyleSettingsReplacesVersion1WithVersion3() {
-    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
-
-    CodeStyleScheme scheme = schemes.createNewScheme("New Scheme", schemes.getDefaultScheme());
-    scheme.getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE)
-      .setArrangementSettings(AndroidXmlPredefinedCodeStyle.createVersion1Settings());
-
-    schemes.setCurrentScheme(scheme);
-
-    GradleSpecificInitializer.modifyCodeStyleSettings();
-
-    assertThat(schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).getArrangementSettings())
-      .isEqualTo(AndroidXmlPredefinedCodeStyle.createVersion3Settings());
-  }
-
-  public void testModifyCodeStyleSettingsDoesntReplaceVersion1() {
-    StdArrangementMatchRule rule = AndroidXmlRearranger.newAttributeRule("xmlns:android", "^$", Order.KEEP);
-    ArrangementSettings settings = StdArrangementSettings.createByMatchRules(Collections.emptyList(), Collections.singletonList(rule));
-
-    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
-
-    CodeStyleScheme scheme = schemes.createNewScheme("New Scheme", schemes.getDefaultScheme());
-    scheme.getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).setArrangementSettings(settings);
-
-    schemes.setCurrentScheme(scheme);
-
-    GradleSpecificInitializer.modifyCodeStyleSettings();
-
-    assertThat(schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).getArrangementSettings())
-      .isEqualTo(settings);
-  }
 }
