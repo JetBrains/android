@@ -84,7 +84,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
 
-  private JComboBox myDebuggerTypeCombo;
+  private JComboBox<AndroidDebugger> myDebuggerTypeCombo;
   private JLabel myDebuggerLabel;
 
   private String myLastSelectedDevice;
@@ -238,7 +238,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
     myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
-    myDebuggerTypeCombo.setRenderer(new AndroidDebugger.Renderer());
+    myDebuggerTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
     if (selectedDebugger != null) {
       myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
     }
