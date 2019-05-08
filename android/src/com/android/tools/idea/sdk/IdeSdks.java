@@ -19,6 +19,7 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
@@ -543,9 +544,10 @@ public class IdeSdks {
     return doGetJdkFromPathOrParent(SystemProperties.getJavaHome());
   }
 
+  @VisibleForTesting
   @Nullable
-  private static String doGetJdkFromPathOrParent(@Nullable String path) {
-    if ((path == null) || path == "") {
+  static String doGetJdkFromPathOrParent(@Nullable String path) {
+    if (isNullOrEmpty(path)) {
       return null;
     }
     File pathFile = new File(toSystemDependentName(path));
@@ -554,7 +556,11 @@ public class IdeSdks {
       return result;
     }
     // Sometimes JAVA_HOME is set to a JRE inside a JDK, see if this is the case
-    return doGetJdkFromPath(pathFile.getParentFile());
+    File parentFile = pathFile.getParentFile();
+    if (parentFile != null) {
+      return doGetJdkFromPath(parentFile);
+    }
+    return null;
   }
 
   @Nullable
