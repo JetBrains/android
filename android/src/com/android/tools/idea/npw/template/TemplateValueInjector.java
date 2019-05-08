@@ -26,6 +26,13 @@ import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultD
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_AIDL_DIR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_AIDL_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_APP_BAR_OVERLAY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_IS_APP_COMPAT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NO_ACTION_BAR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_POPUP_OVERLAY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_NAME;
@@ -89,6 +96,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -97,6 +106,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
@@ -118,9 +128,11 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -151,6 +163,7 @@ public final class TemplateValueInjector {
    */
   public TemplateValueInjector setFacet(@NotNull AndroidFacet facet) {
     addDebugKeyStore(myTemplateValues, facet);
+    addApplicationTheme(myTemplateValues, facet);
 
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, false); // Android Modules are called Gradle Projects
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.getConfiguration().isLibraryProject());
@@ -507,6 +520,49 @@ public final class TemplateValueInjector {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
     GradleVersion pluginVersion = (androidPluginInfo == null) ? null : androidPluginInfo.getPluginVersion();
     return (pluginVersion == null) ? defaultGradleVersion : pluginVersion;
+  }
+
+  private static void addApplicationTheme(@NotNull Map<String, Object> templateValues, @NotNull AndroidFacet facet) {
+    Module module = facet.getModule();
+    VirtualFile projectFile = module.getProject().getProjectFile();
+    if (projectFile == null) {
+      return;
+    }
+
+    ThemeHelper helper = new ThemeHelper(module);
+    String themeName = helper.getAppThemeName();
+    if (themeName == null) {
+      return;
+    }
+
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(projectFile);
+
+    Map<String, Object> map = new HashMap<>();
+    map.put(ATTR_APP_THEME_NAME, themeName);
+    map.put(ATTR_APP_THEME_IS_APP_COMPAT, helper.isAppCompatTheme(themeName));
+    map.put(ATTR_APP_THEME_EXISTS, true);
+    Boolean hasActionBar = ThemeHelper.hasActionBar(configuration, themeName);
+    addDerivedTheme(map, themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == Boolean.FALSE, helper, configuration);
+    addDerivedTheme(map, themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false, helper, configuration);
+    addDerivedTheme(map, themeName, ATTR_APP_THEME_POPUP_OVERLAY, false, helper, configuration);
+
+    templateValues.put(ATTR_APP_THEME, map);
+  }
+
+  private static void addDerivedTheme(@NotNull Map<String, Object> map,
+                                      @NotNull String themeName,
+                                      @NotNull String derivedThemeName,
+                                      boolean useBaseThemeAsDerivedTheme,
+                                      @NotNull ThemeHelper helper,
+                                      @NotNull Configuration configuration) {
+    String fullThemeName = useBaseThemeAsDerivedTheme ? themeName : themeName + "." + derivedThemeName;
+    boolean exists = ThemeHelper.themeExists(configuration, fullThemeName);
+    if (!exists && !helper.isLocalTheme(themeName)) {
+      fullThemeName = derivedThemeName;
+      exists = helper.isLocalTheme(derivedThemeName);
+    }
+    map.put(ATTR_APP_THEME_NAME + derivedThemeName, fullThemeName);
+    map.put(ATTR_APP_THEME_EXISTS + derivedThemeName, exists);
   }
 
   private static Logger getLog() {
