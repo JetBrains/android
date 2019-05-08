@@ -27,12 +27,22 @@ import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class RecyclerViewHandlerTest extends LayoutTestCase {
   private int selectionUpdateCount;
+
+  public void testXmlForDragPreview() {
+    RecyclerViewHandler handler = new RecyclerViewHandler();
+    assertThat(handler.getXml(RECYCLER_VIEW.newName(), XmlType.DRAG_PREVIEW)).isEqualTo(
+      "<androidx.recyclerview.widget.RecyclerView\n" +
+      "    android:layout_width=\"wrap_content\"\n" +
+      "    android:layout_height=\"wrap_content\" />\n"
+    );
+  }
 
   public void testDrag() {
     ScreenFixture screen = screen(createModel());
