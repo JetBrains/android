@@ -21,6 +21,7 @@
     psiImplClassSuffix="Impl"
     psiPackage="com.android.tools.idea.lang.proguard.psi"
     psiImplPackage="com.android.tools.idea.lang.proguard.psi.impl"
+    psiImplUtilClass="com.android.tools.idea.lang.proguard.psi.impl.ProguardPsiImplUtil"
 
     elementTypeHolderClass="com.android.tools.idea.lang.proguard.psi.ProguardTypes"
     elementTypeClass="com.android.tools.idea.lang.proguard.psi.ProguardElementType"
@@ -46,7 +47,7 @@ multiLineFlag ::= FLAG_NAME FLAG_ARG* javaSection
 
 includeFlag ::= INCLUDE_FLAG_NAME includeArg
 
-includeArg ::= INCLUDE_FLAG_ARG
+includeArg ::= INCLUDE_FLAG_ARG { methods=[getReferences] }
 
 singleLineFlag ::= FLAG_NAME FLAG_ARG*
 

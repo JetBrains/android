@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguard.psi.ProguardTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguard.psi.*;
+import com.intellij.psi.PsiReference;
 
 public class ProguardIncludeArgImpl extends ASTWrapperPsiElement implements ProguardIncludeArg {
 
@@ -41,6 +42,11 @@ public class ProguardIncludeArgImpl extends ASTWrapperPsiElement implements Prog
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardVisitor) accept((ProguardVisitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  public PsiReference[] getReferences() {
+    return ProguardPsiImplUtil.getReferences(this);
   }
 
 }
