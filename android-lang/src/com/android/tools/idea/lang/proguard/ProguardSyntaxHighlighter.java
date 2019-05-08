@@ -71,10 +71,10 @@ public class ProguardSyntaxHighlighter extends SyntaxHighlighterBase {
     if (tokenType.equals(ProguardTypes.CLOSE_BRACE) || tokenType.equals(ProguardTypes.OPEN_BRACE)) {
       return OPERATOR_KEY;
     }
-    if (tokenType.equals(ProguardTypes.FLAG_NAME)) {
+    if (tokenType.equals(ProguardTypes.FLAG_NAME) || tokenType.equals(ProguardTypes.INCLUDE_FLAG_NAME)) {
       return FLAG_NAME_KEY;
     }
-    if (tokenType.equals(ProguardTypes.FLAG_ARG)) {
+    if (tokenType.equals(ProguardTypes.FLAG_ARG) || tokenType.equals(ProguardTypes.INCLUDE_FLAG_ARG)) {
       return FLAG_ARG_KEY;
     }
 
