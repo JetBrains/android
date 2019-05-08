@@ -117,13 +117,26 @@ public class ProguardParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // INCLUDE_FLAG_NAME INCLUDE_FLAG_ARG
+  // INCLUDE_FLAG_ARG
+  public static boolean includeArg(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "includeArg")) return false;
+    if (!nextTokenIs(b, INCLUDE_FLAG_ARG)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, INCLUDE_FLAG_ARG);
+    exit_section_(b, m, INCLUDE_ARG, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // INCLUDE_FLAG_NAME includeArg
   public static boolean includeFlag(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "includeFlag")) return false;
     if (!nextTokenIs(b, INCLUDE_FLAG_NAME)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, INCLUDE_FLAG_NAME, INCLUDE_FLAG_ARG);
+    r = consumeToken(b, INCLUDE_FLAG_NAME);
+    r = r && includeArg(b, l + 1);
     exit_section_(b, m, INCLUDE_FLAG, r);
     return r;
   }
