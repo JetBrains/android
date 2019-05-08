@@ -23,7 +23,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.google.common.collect.Maps;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import java.util.Map;
@@ -212,26 +212,20 @@ public class FlagManager {
   @NotNull
   public ListCellRenderer getLanguageCodeCellRenderer() {
     final Function<Object, String> nameMapper = getLanguageNameMapper();
-    return new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        append(nameMapper.fun(value));
-        setIcon(getFlag((String)value, null));
-      }
-    };
+    return SimpleListCellRenderer.create((label, value, index) -> {
+      label.setText(nameMapper.fun(value));
+      label.setIcon(getFlag((String)value, null));
+    });
   }
 
   /** Returns a {@link ListCellRenderer} suitable for displaying regions when the list model contains String region codes */
   @NotNull
   public ListCellRenderer getRegionCodeCellRenderer() {
     final Function<Object, String> nameMapper = getRegionNameMapper();
-    return new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        append(nameMapper.fun(value));
-        setIcon(getFlag(null, (String)value));
-      }
-    };
+    return SimpleListCellRenderer.create((label, value, index) -> {
+      label.setText(nameMapper.fun(value));
+      label.setIcon(getFlag(null, (String)value));
+    });
   }
 
   /** A function which maps from language code to a language label: code + name */

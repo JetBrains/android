@@ -20,9 +20,9 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -64,12 +64,7 @@ public class StorageField extends JPanel {
 
     myUnitsCombo.setSelectedItem(DEFAULT_UNIT);
 
-    myUnitsCombo.setRenderer(new ColoredListCellRenderer<Unit>() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Unit value, int index, boolean selected, boolean hasFocus) {
-        append(value.getDisplayValue());
-      }
-    });
+    myUnitsCombo.setRenderer(SimpleListCellRenderer.create("", Unit::getDisplayValue));
 
     myValueField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
