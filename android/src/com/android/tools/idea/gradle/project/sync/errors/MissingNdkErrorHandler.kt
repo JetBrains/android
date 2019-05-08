@@ -27,12 +27,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.openapi.module.ModuleManager
 
 class MissingNdkErrorHandler : BaseSyncErrorHandler() {
-  // No version of NDK matched the requested version 20. Versions available locally: 19.2.5345600
   override fun findErrorMessage(rootCause: Throwable, project: Project): String? {
     return when {
       matchesNdkNotConfigured(rootCause.message!!) -> {
         SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
         "NDK not configured."
+      }
+      matchesKnownLocatorIssue(rootCause.message!!) -> {
+        SyncErrorHandler.updateUsageTracker(project, NDK_NOT_CONFIGURED)
+        rootCause.message!!
       }
       matchesTriedInstall(rootCause.message!!) -> {
         SyncErrorHandler.updateUsageTracker(project, FAILED_TO_INSTALL_NDK_BUNDLE)
@@ -51,6 +54,15 @@ class MissingNdkErrorHandler : BaseSyncErrorHandler() {
            errorMessage.startsWith("NDK location not found.") ||
            errorMessage.startsWith("Requested NDK version") ||
            errorMessage.startsWith("No version of NDK matched the requested version")
+  }
+
+  /**
+   * Messages that indicate the user messed up something in build.gradle android.ndkVersion.
+   */
+  private fun matchesKnownLocatorIssue(errorMessage: String): Boolean {
+    return (errorMessage.startsWith("Specified android.ndkVersion")
+              && errorMessage.contains("does not have enough precision")) ||
+           (errorMessage.startsWith("Location specified by ndk.dir"))
   }
 
   /**
