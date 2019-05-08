@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -46,9 +45,10 @@ public final class GenerateIconsModel extends WizardModel {
    *
    * @param androidFacet the Android facet
    * @param wizardId the id of the wizard owning the model. Used as a key for storing wizard state.
+   * @param template the template determining the output directories
    */
-  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId) {
-    myPaths = AndroidPackageUtils.getModuleTemplates(androidFacet, null).get(0).getPaths();
+  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull AndroidModuleTemplate template) {
+    myPaths = template;
     Project project = androidFacet.getModule().getProject();
     myStateStorage = ServiceManager.getService(project, StateStorage.class);
     assert myStateStorage != null;
