@@ -20,7 +20,6 @@ import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -28,7 +27,6 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -44,7 +42,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
@@ -62,7 +59,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.Messages;
@@ -106,7 +102,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
   @NonNls public static final String IDE_SDKS_LOCATION_VIEW = "IdeSdksView";
 
-  private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
+  private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR_FORMAT = "Please choose a valid JDK %s directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
 
@@ -291,9 +287,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (!isModified()) {
       return;
     }
-    File validJdkLocation = validateJdkPath(getJdkLocation());
-    if (validJdkLocation == null) {
-      throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
+    if (validateJdkPath(getJdkLocation()) == null) {
+      throw new ConfigurationException(generateChooseValidJdkDirectoryError());
     }
     ApplicationManager.getApplication().runWriteAction(() -> {
       // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
@@ -308,6 +303,11 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         IdeSdks.updateWelcomeRunAndroidSdkAction();
       }
     });
+  }
+
+  @NotNull
+  public static String generateChooseValidJdkDirectoryError() {
+    return String.format(CHOOSE_VALID_JDK_DIRECTORY_ERR_FORMAT, IdeSdks.getInstance().getRunningVersionOrDefault().getDescription());
   }
 
   private void saveAndroidNdkPath() {
@@ -438,9 +438,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       suggestedDir = findFileByIoFile(jdkLocation, false);
     }
     VirtualFile chosen = chooseFile(createSingleFolderDescriptor("Choose JDK Location", file -> {
-      File validJdkLocation = validateJdkPath(file);
-      if (validJdkLocation == null) {
-        throw new IllegalArgumentException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
+      if (validateJdkPath(file) == null) {
+        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
       }
       return null;
     }), null, suggestedDir);
@@ -626,9 +625,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
 
     if (!myUseEmbeddedJdkRadioButton.isSelected()) {
-      File validJdkLocation = validateJdkPath(getJdkLocation());
-      if (validJdkLocation == null) {
-        throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
+      if (validateJdkPath(getJdkLocation()) == null) {
+        throw new ConfigurationException(generateChooseValidJdkDirectoryError());
       }
     }
 
@@ -650,21 +648,10 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       errors.add(error);
     }
 
-    File jdkLocation;
-    jdkLocation = validateJdkPath(getJdkLocation());
-
-    if (jdkLocation == null) {
+    if (validateJdkPath(getJdkLocation()) == null) {
       ProjectConfigurationError error =
-        new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
+        new ProjectConfigurationError(generateChooseValidJdkDirectoryError(), myJdkLocationTextField.getTextField());
       errors.add(error);
-    }
-    else {
-      JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
-      if (version == null || !version.isAtLeast(JDK_1_8)) {
-        ProjectConfigurationError error =
-          new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());
-        errors.add(error);
-      }
     }
 
     msg = validateAndroidNdkPath();
@@ -747,21 +734,16 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   /**
-   * Validates that the given directory belongs to a JDK installation.
+   * Validates that the given directory belongs to a valid JDK installation.
    * @param file the directory to validate.
    * @return the path of the JDK installation if valid, or {@code null} if the path is not valid.
    */
   @Nullable
   private File validateJdkPath(@NotNull File file) {
-    if (checkForJdk(file)) {
-      return file;
-    }
-    if (SystemInfo.isMac) {
-      File potentialPath = new File(file, MAC_JDK_CONTENT_PATH);
-      if (potentialPath.isDirectory() && checkForJdk(potentialPath)) {
-        myJdkLocationTextField.setText(potentialPath.getPath());
-        return potentialPath;
-      }
+    File possiblePath = IdeSdks.getInstance().validateJdkPath(file);
+    if (possiblePath != null) {
+      myJdkLocationTextField.setText(possiblePath.getPath());
+      return possiblePath;
     }
     return null;
   }

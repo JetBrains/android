@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -103,9 +102,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
       suggestedDir = findFileByIoFile(jdkLocation, false);
     }
     VirtualFile chosen = chooseFile(createSingleFolderDescriptor(file -> {
-      File validJdkLocation = validateJdkPath(file);
-      if (validJdkLocation == null) {
-        throw new IllegalArgumentException("Please choose a valid JDK directory.");
+      if (validateJdkPath(file) == null) {
+        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
       }
       return null;
     }), null, suggestedDir);
@@ -143,15 +141,10 @@ public class JdkSetupStep extends FirstRunWizardStep {
 
   @Nullable
   private File validateJdkPath(@NotNull File file) {
-    if (checkForJdk(file)) {
-      return file;
-    }
-    if (SystemInfo.isMac) {
-      File potentialPath = new File(file, MAC_JDK_CONTENT_PATH);
-      if (potentialPath.isDirectory() && checkForJdk(potentialPath)) {
-        myJdkLocationTextField.setText(potentialPath.getPath());
-        return potentialPath;
-      }
+    File possiblePath = IdeSdks.getInstance().validateJdkPath(file);
+    if (possiblePath != null) {
+      myJdkLocationTextField.setText(possiblePath.getPath());
+      return possiblePath;
     }
     return null;
   }
@@ -187,9 +180,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
   }
 
   private boolean isValidJdkPath() {
-    File chosenPath = toSystemDependentPath(myJdkLocationTextField.getText());
-    File validatedPath = validateJdkPath(chosenPath);
-    return validatedPath != null;
+    return validateJdkPath(toSystemDependentPath(myJdkLocationTextField.getText())) != null;
   }
 
   @Override
