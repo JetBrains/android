@@ -86,4 +86,28 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     spyIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */);
     verify(spyIdeSdks).getJdkPath();
   }
+
+  /**
+   * Calling doGetJdkFromPathOrParent should not result in NPE if it is set to "/" (b/132219284)
+   */
+  public void testDoGetJdkFromPathOrParentRoot() {
+    String path = IdeSdks.doGetJdkFromPathOrParent("/");
+    assertThat(path).isNull();
+  }
+
+  /**
+   * Calling doGetJdkFromPathOrParent should not result in NPE if it is set to "" (b/132219284)
+   */
+  public void testDDoGetJdkFromPathOrParentEmpty() {
+    String path = IdeSdks.doGetJdkFromPathOrParent("");
+    assertThat(path).isNull();
+  }
+
+  /**
+   * Calling doGetJdkFromPathOrParent should not result in NPE if it is not a valid path (b/132219284)
+   */
+  public void testDoGetJdkFromPathOrParentSpaces() {
+    String path = IdeSdks.doGetJdkFromPathOrParent("  ");
+    assertThat(path).isNull();
+  }
 }
