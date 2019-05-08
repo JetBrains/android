@@ -28,7 +28,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -43,15 +42,11 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolder;
-import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
-import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -263,19 +258,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       @Override
       protected JBPopup createPopup(@NotNull Runnable runnable) {
         DataContext context = getDataContext();
-
-        ActionGroup group = createPopupActionGroup(this, context);
-        boolean show = shouldShowDisabledActions();
-        int count = getMaxRows();
-        Condition<AnAction> condition = getPreselectCondition();
-
-        ListPopupImpl popup = new ActionGroupPopup(null, group, context, false, true, show, false, runnable, count, condition, null, true);
-        popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
-
-        // noinspection unchecked
-        popup.getList().setCellRenderer(new CellRenderer(popup));
-
-        return popup;
+        return new Popup(createPopupActionGroup(this, context), context, runnable);
       }
     };
 
