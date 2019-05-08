@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -36,7 +38,14 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -60,15 +69,19 @@ public class ResourceFolderRegistry implements Disposable {
   @NotNull private Project myProject;
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
+  @NotNull private final ImmutableList<Cache<VirtualFile, ResourceFolderRepository>> myCaches =
+      ImmutableList.of(myNamespacedCache, myNonNamespacedCache);
 
   public ResourceFolderRegistry(@NotNull Project project) {
     myProject = project;
-    project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    MessageBusConnection connection = project.getMessageBus().connect(this);
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         removeStaleEntries();
       }
     });
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new VfsListener());
   }
 
   @NotNull
@@ -226,6 +239,36 @@ public class ResourceFolderRegistry implements Disposable {
     public CachedRepositories(@Nullable ResourceFolderRepository namespaced, @Nullable ResourceFolderRepository nonNamespaced) {
       this.namespaced = namespaced;
       this.nonNamespaced = nonNamespaced;
+    }
+  }
+
+  private class VfsListener implements BulkFileListener {
+    @UiThread
+    @Override
+    public void before(@NotNull List<? extends VFileEvent> events) {
+      for (VFileEvent event : events) {
+        if (event instanceof VFileMoveEvent) {
+          onFileOrDirectoryRemoved(((VFileMoveEvent)event).getFile());
+        }
+        else if (event instanceof VFileDeleteEvent) {
+          onFileOrDirectoryRemoved(((VFileDeleteEvent)event).getFile());
+        }
+        else if (event instanceof VFilePropertyChangeEvent &&
+                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+          onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
+        }
+      }
+    }
+
+    private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
+      for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
+        for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+          ResourceFolderRepository repository = cache.getIfPresent(dir);
+          if (repository != null) {
+            repository.onFileOrDirectoryRemoved(file);
+          }
+        }
+      }
     }
   }
 }
