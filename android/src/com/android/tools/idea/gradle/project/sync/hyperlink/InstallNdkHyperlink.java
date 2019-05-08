@@ -65,19 +65,18 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    File path = getNdkPath(project);
-    if (path != null) {
-      // Try to install SDK in local.properties.
-      SelectNdkDialog dialog = new SelectNdkDialog(path.getPath(), false, true /* show "download" link */);
-      dialog.setModal(true);
-      if (dialog.showAndGet() && setNdkPath(project, dialog.getAndroidNdkPath())) {
-        // Saving NDK path is successful.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INSTALLED);
-      }
-      return;
+    // Remove any value old value from ndk.dir
+    try {
+      LocalProperties localProperties = new LocalProperties(project);
+      localProperties.setAndroidNdkPath((File)null);
+      localProperties.save();
+    }
+    catch (IOException e) {
+      // If we couldn't remove ndk.dir continue on anyway. There will be a diagnostic
+      // message from Android Gradle Plugin
     }
 
-    // There is no path. Try installing from SDK.
+    // Install from NDK
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
@@ -126,42 +125,6 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
       ModalityState.any());
     sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
-  }
-
-  @Nullable
-  private static File getNdkPath(@NotNull Project project) {
-    try {
-      return new LocalProperties(project).getAndroidNdkPath();
-    }
-    catch (IOException e) {
-      String msg = String.format("Unable to read local.properties file of Project '%1$s'", project.getName());
-      Logger.getInstance(InstallNdkHyperlink.class).info(msg, e);
-    }
-    return null;
-  }
-
-  private static boolean setNdkPath(@NotNull Project project, @Nullable String ndkPath) {
-    LocalProperties localProperties;
-    try {
-      localProperties = new LocalProperties(project);
-    }
-    catch (IOException e) {
-      String msg = String.format("Unable to read local.properties file of Project '%1$s':\n%2$s", project.getName(), e.getMessage());
-      Messages.showErrorDialog(project, msg, ERROR_TITLE);
-      return false;
-    }
-    try {
-      localProperties.setAndroidNdkPath(ndkPath == null ? null : new File(ndkPath));
-      localProperties.save();
-    }
-    catch (IOException e) {
-      String msg =
-        String.format("Unable to save local.properties file of Project '%1$s: %2$s", localProperties.getPropertiesFilePath().getPath(),
-                      e.getMessage());
-      Messages.showErrorDialog(project, msg, ERROR_TITLE);
-      return false;
-    }
-    return true;
   }
 
   private static void notifyNdkPackageNotFound(@NotNull Project project) {
