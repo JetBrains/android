@@ -22,7 +22,6 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixNdkVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.SetNdkDirHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
