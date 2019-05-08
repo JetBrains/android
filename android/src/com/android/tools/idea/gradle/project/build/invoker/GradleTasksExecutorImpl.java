@@ -15,28 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.tools.idea.gradle.project.build.BuildStatus.CANCELED;
-import static com.android.tools.idea.gradle.project.build.BuildStatus.FAILED;
-import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
-import static com.android.tools.idea.gradle.util.GradleUtil.attemptToUseEmbeddedGradle;
-import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
-import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.INFO;
-import static com.intellij.openapi.util.text.StringUtil.formatDuration;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ArrayUtil.toStringArray;
-import static com.intellij.util.ExceptionUtil.getRootCause;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
-
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
@@ -80,21 +58,9 @@ import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerAdapter;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
 import net.jcip.annotations.GuardedBy;
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildActionExecuter;
-import org.gradle.tooling.BuildCancelledException;
-import org.gradle.tooling.BuildException;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.CancellationTokenSource;
-import org.gradle.tooling.LongRunningOperation;
-import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.*;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,6 +68,30 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.util.text.StringUtil.formatDuration;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ExceptionUtil.getRootCause;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class GradleTasksExecutorImpl extends GradleTasksExecutor {
   private static final long ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/;
@@ -337,9 +327,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
           if (taskListener != null) {
             if (buildError != null) {
+              BuildEnvironment buildEnvironment =
+                GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
               GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
               ExternalSystemException userFriendlyError =
-                projectResolverChain.getUserFriendlyError(buildError, myRequest.getBuildFilePath().getPath(), null);
+                projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, myRequest.getBuildFilePath().getPath(), null);
               taskListener.onFailure(id, userFriendlyError);
             }
             else {
