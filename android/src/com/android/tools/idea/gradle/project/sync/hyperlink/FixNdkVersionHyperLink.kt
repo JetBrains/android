@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
+import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -27,6 +28,12 @@ class FixNdkVersionHyperlink(
    "Update NDK version to '$version' and sync project") {
 
   override fun execute(project: Project) {
+    // Remove any value old value from ndk.dir
+    val localProperties = LocalProperties(project)
+    localProperties.androidNdkPath = null
+    localProperties.save()
+
+    // Rewrite android.ndkVersion.
     val processor = FixNdkVersionProcessor(project, buildFiles, version)
     processor.run()
   }
