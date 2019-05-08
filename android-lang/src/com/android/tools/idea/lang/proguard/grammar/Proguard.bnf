@@ -44,7 +44,9 @@ private flag ::= (multiLineFlag | includeFlag comment? | singleLineFlag comment?
 
 multiLineFlag ::= FLAG_NAME FLAG_ARG* javaSection
 
-includeFlag ::= INCLUDE_FLAG_NAME INCLUDE_FLAG_ARG
+includeFlag ::= INCLUDE_FLAG_NAME includeArg
+
+includeArg ::= INCLUDE_FLAG_ARG
 
 singleLineFlag ::= FLAG_NAME FLAG_ARG*
 

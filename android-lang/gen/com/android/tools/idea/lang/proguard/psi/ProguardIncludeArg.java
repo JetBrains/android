@@ -22,9 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardIncludeFlag extends PsiElement {
-
-  @NotNull
-  ProguardIncludeArg getIncludeArg();
+public interface ProguardIncludeArg extends PsiElement {
 
 }
