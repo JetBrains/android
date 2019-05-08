@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
@@ -46,7 +47,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
   @Override
   @Nullable
-  public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
+  public ExternalSystemException getUserFriendlyError(@Nullable BuildEnvironment buildEnvironment,
+                                                      @NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
     if (error instanceof ExternalSystemException) {
