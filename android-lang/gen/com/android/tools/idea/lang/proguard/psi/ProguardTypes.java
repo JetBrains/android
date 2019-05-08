@@ -26,6 +26,7 @@ import com.android.tools.idea.lang.proguard.psi.impl.*;
 public interface ProguardTypes {
 
   IElementType COMMENT = new ProguardElementType("COMMENT");
+  IElementType INCLUDE_ARG = new ProguardElementType("INCLUDE_ARG");
   IElementType INCLUDE_FLAG = new ProguardElementType("INCLUDE_FLAG");
   IElementType JAVA_SECTION = new ProguardElementType("JAVA_SECTION");
   IElementType MULTI_LINE_FLAG = new ProguardElementType("MULTI_LINE_FLAG");
@@ -47,6 +48,9 @@ public interface ProguardTypes {
       IElementType type = node.getElementType();
       if (type == COMMENT) {
         return new ProguardCommentImpl(node);
+      }
+      else if (type == INCLUDE_ARG) {
+        return new ProguardIncludeArgImpl(node);
       }
       else if (type == INCLUDE_FLAG) {
         return new ProguardIncludeFlagImpl(node);

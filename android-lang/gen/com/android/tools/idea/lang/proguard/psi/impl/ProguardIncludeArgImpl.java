@@ -28,25 +28,19 @@ import static com.android.tools.idea.lang.proguard.psi.ProguardTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguard.psi.*;
 
-public class ProguardIncludeFlagImpl extends ASTWrapperPsiElement implements ProguardIncludeFlag {
+public class ProguardIncludeArgImpl extends ASTWrapperPsiElement implements ProguardIncludeArg {
 
-  public ProguardIncludeFlagImpl(@NotNull ASTNode node) {
+  public ProguardIncludeArgImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardVisitor visitor) {
-    visitor.visitIncludeFlag(this);
+    visitor.visitIncludeArg(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardVisitor) accept((ProguardVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public ProguardIncludeArg getIncludeArg() {
-    return findNotNullChildByClass(ProguardIncludeArg.class);
   }
 
 }
