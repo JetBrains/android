@@ -19,6 +19,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +31,7 @@ import java.util.Map;
 public class AndroidDebuggerPanel {
   private final AndroidDebuggerContext myAndroidDebuggerContext;
   private JPanel myPanel;
-  private JComboBox myDebuggerType;
+  private JComboBox<AndroidDebugger> myDebuggerType;
 
   private JPanel myOptionPanel;
   private JComponent myOptionComponent;
@@ -49,7 +50,7 @@ public class AndroidDebuggerPanel {
         }
       }
     });
-    myDebuggerType.setRenderer(new AndroidDebugger.Renderer());
+    myDebuggerType.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
 
     for (AndroidDebugger androidDebugger: myAndroidDebuggerContext.getAndroidDebuggers()) {
       AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = androidDebugger.createConfigurable(runConfiguration);

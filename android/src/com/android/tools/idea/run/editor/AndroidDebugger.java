@@ -22,13 +22,11 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.Set;
 
 public interface AndroidDebugger<S extends AndroidDebuggerState> {
@@ -66,13 +64,6 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @return true if it should be the default.
    */
   boolean shouldBeDefault();
-
-  class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, AndroidDebugger debugger, int index, boolean selected, boolean hasFocus) {
-      append(debugger.getDisplayName());
-    }
-  }
 
   @NotNull
   String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version);
