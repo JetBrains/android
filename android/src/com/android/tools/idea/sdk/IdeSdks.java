@@ -81,6 +81,7 @@ import org.jetbrains.annotations.TestOnly;
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
+  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_1_8;
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
@@ -577,7 +578,7 @@ public class IdeSdks {
    */
   @Nullable
   public Sdk getJdk() {
-    return getJdk(JDK_1_8);
+    return getJdk(DEFAULT_JDK_VERSION);
   }
 
   @Nullable
@@ -728,5 +729,62 @@ public class IdeSdks {
         ProjectJdkTable.getInstance().removeJdk(sdk);
       }
     }));
+  }
+
+  /**
+   * Validates that the given directory belongs to a valid JDK installation.
+   * @param file the directory to validate.
+   * @return the path of the JDK installation if valid, or {@code null} if the path is not valid.
+   */
+  @Nullable
+  public File validateJdkPath(@NotNull File file) {
+    File possiblePath = null;
+    if (checkForJdk(file)) {
+      possiblePath = file;
+    }
+    else if (SystemInfo.isMac) {
+      File macPath = new File(file, MAC_JDK_CONTENT_PATH);
+      if (macPath.isDirectory() && checkForJdk(macPath)) {
+        possiblePath = macPath;
+      }
+    }
+    JavaSdkVersion expectedVersion = getRunningVersionOrDefault();
+    if (isJdkSameVersion(possiblePath, expectedVersion)) {
+      return possiblePath;
+    }
+    return null;
+  }
+
+  /**
+   * Look for the Java version currently used in this order:
+   *   - System property "java.version" (should be what the IDE is currently using)
+   *   - Embedded JDK
+   *   - {@link IdeSdks.DEFAULT_JDK_VERSION}
+   */
+  @NotNull
+  public JavaSdkVersion getRunningVersionOrDefault() {
+    String versionString = System.getProperty("java.version");
+    if (versionString != null) {
+      JavaSdkVersion currentlyRunning = JavaSdkVersion.fromVersionString(versionString);
+      if (currentlyRunning != null) {
+        return currentlyRunning;
+      }
+    }
+    JavaSdkVersion embeddedVersion = Jdks.getInstance().findVersion(myEmbeddedDistributionPaths.getEmbeddedJdkPath());
+    return embeddedVersion != null ? embeddedVersion : DEFAULT_JDK_VERSION;
+  }
+
+  /**
+   * Tells whether the given location is a valid JDK location and its version is the one expected.
+   * @param jdkLocation File with the JDK location.
+   * @param expectedVersion The expected java version.
+   * @return true if the folder is a valid JDK location and it has the given version.
+   */
+  public static boolean isJdkSameVersion(@Nullable File jdkLocation, @NotNull JavaSdkVersion expectedVersion) {
+    if (jdkLocation == null) {
+      return false;
+    }
+    JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
+    return version != null && version.compareTo(expectedVersion) == 0;
   }
 }
