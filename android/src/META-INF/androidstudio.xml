@@ -146,6 +146,7 @@
                      groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
                      enabledByDefault="true" level="WARNING"
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
+    <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
   </extensions>
 
