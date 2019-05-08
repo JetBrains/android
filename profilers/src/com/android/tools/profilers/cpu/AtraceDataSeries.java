@@ -32,20 +32,18 @@ public class AtraceDataSeries<T> extends InMemoryDataSeries<T> {
   @NotNull
   private final NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> mySeriesDataFunction;
 
-  @NotNull
-  private final CpuProfilerStage myStage;
+  private final AtraceCpuCapture myCapture;
 
-  public AtraceDataSeries(@NotNull CpuProfilerStage stage, @NotNull NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> seriesDataFunction) {
-    myStage = stage;
+  public AtraceDataSeries(AtraceCpuCapture capture, @NotNull NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> seriesDataFunction) {
+    myCapture = capture;
     mySeriesDataFunction = seriesDataFunction;
   }
 
   @Override
   protected List<SeriesData<T>> inMemoryDataList() {
-    CpuCapture capture = myStage.getCapture();
-    if (!(capture instanceof AtraceCpuCapture)) {
+    if (myCapture == null) {
       return Collections.emptyList();
     }
-    return mySeriesDataFunction.fun((AtraceCpuCapture)capture);
+    return mySeriesDataFunction.fun(myCapture);
   }
 }
