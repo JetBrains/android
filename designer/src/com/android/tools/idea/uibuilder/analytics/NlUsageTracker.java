@@ -15,43 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Interface for usage tracking in the layout editor. Not that implementations of these methods should aim to return immediately.
  */
 public interface NlUsageTracker {
 
-  @VisibleForTesting NlUsageTracker NOP_TRACKER = new NlNopTracker();
-  @VisibleForTesting DesignerUsageTrackerManager<NlUsageTracker, DesignSurface> MANAGER = new DesignerUsageTrackerManager<>(
-    (a, b, c) -> new NlUsageTrackerImpl(a, b, c), NOP_TRACKER
-  );
-
-  /**
-   * Logs a layout editor event in the usage tracker. Note that rendering actions should be logged through the
-   * {@link #logRenderResult} method so it contains additional information about the render result.
-   */
-  void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType);
-
-  /**
-   * Logs a render action.
-   *
-   * @param trigger The event that triggered the render action or null if not known.
-   */
-  void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, long totalRenderTimeMs);
+  DesignerUsageTrackerManager<NlUsageTracker, DesignSurface> MANAGER =
+    new DesignerUsageTrackerManager<>((executor, surface, eventLogger) -> new NlUsageTrackerImpl(executor, surface, eventLogger),
+                                      new NlNopTracker()
+    );
 
   /**
    * Logs a component drop from the palette to either the design surface of the component tree.
