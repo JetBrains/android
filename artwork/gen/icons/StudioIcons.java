@@ -356,11 +356,11 @@ public class StudioIcons {
       public static final Icon CYCLE_CHAIN_PACKED = load("/studio/icons/layout-editor/toolbar/cycle-chain-packed.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_SPREAD_INLINE = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread-inline.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_SPREAD = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread.svg"); // 16x16
+      public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/layout-editor/toolbar/device-automotive.svg"); // 16x16
       public static final Icon DEVICE_PHONE = load("/studio/icons/layout-editor/toolbar/device-phone.svg"); // 16x16
       public static final Icon DEVICE_SCREEN = load("/studio/icons/layout-editor/toolbar/device-screen.svg"); // 16x16
       public static final Icon DEVICE_TABLET = load("/studio/icons/layout-editor/toolbar/device-tablet.svg"); // 16x16
       public static final Icon DEVICE_TV = load("/studio/icons/layout-editor/toolbar/device-tv.svg"); // 16x16
-      public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/layout-editor/toolbar/device-automotive.svg"); // 16x16
       public static final Icon DEVICE_WEAR = load("/studio/icons/layout-editor/toolbar/device-wear.svg"); // 16x16
       public static final Icon DISTRIBUTE_HORIZONTAL_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/distribute-horizontal-constraint.svg"); // 16x16
       public static final Icon DISTRIBUTE_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/distribute-horizontal.svg"); // 16x16
