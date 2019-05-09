@@ -332,8 +332,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       boolean isGradleXmxModified = isGradleDaemonXmxModified();
       boolean isKotlinXmxModified = isKotlinDaemonXmxModified();
       if (isGradleXmxModified || isKotlinXmxModified) {
-        if (isGradleXmxModified && myDaemonMemorySettings.hasUserGradleDaemonXmx() ||
-            isKotlinXmxModified && myDaemonMemorySettings.hasUserKotlinDaemonXmx()) {
+        if (myDaemonMemorySettings.hasUserPropertiesPath()) {
           showWarning(myDaemonMemorySettings.getUserPropertiesPath());
         } else {
           if (isGradleXmxModified) {
