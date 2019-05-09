@@ -149,7 +149,7 @@ public class EmulatorTargetChooser {
       return ImmutableList.of();
     }
 
-    AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
     AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
     if (platform == null) {
       Logger.getInstance(EmulatorTargetChooser.class).error("Android Platform not set for module: " + facet.getModule().getName());

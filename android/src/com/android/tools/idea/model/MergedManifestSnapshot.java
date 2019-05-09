@@ -50,7 +50,7 @@ import org.w3c.dom.Node;
 /**
  * An immutable snapshot of the merged manifests at a point in time.
  */
-public final class MergedManifestSnapshot {
+public class MergedManifestSnapshot {
   private final long myCreationTimeMs = Clock.getTime();
   private final Module myModule;
   @Nullable private final String myPackageName;

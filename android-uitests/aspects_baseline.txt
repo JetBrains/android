@@ -36,7 +36,7 @@ com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot|com.android.
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.AndroidImportFilter.getApplicationPackage
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.editors.manifest.ManifestEditor.reload
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getPackage
-com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getRuntimeMinSdkVersion
+com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.AndroidModuleInfo.getRuntimeMinSdkVersionSynchronously
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.model.MergedManifestManager.getSnapshot
 com.android.tools.idea.model.MergedManifestManager.getSnapshot|com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerKt.createResourceResolver
 com.android.tools.idea.model.MergedManifestManager.readSnapshotFromDisk|com.android.tools.idea.model.MergedManifestManager.getFreshSnapshot
