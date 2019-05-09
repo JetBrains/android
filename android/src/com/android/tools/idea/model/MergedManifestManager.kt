@@ -216,10 +216,10 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
  * Module service responsible for offloading merged manifest computations
  * to a worker thread and maintaining a cache of the resulting [MergedManifestSnapshot].
  */
-class MergedManifestManager(module: Module) {
+open class MergedManifestManager(module: Module) {
   private val supplier: MergedManifestSupplier
-  val mergedManifest: AsyncSupplier<MergedManifestSnapshot> get() = supplier
-  val modificationTracker: ModificationTracker get() = supplier
+  open val mergedManifest: AsyncSupplier<MergedManifestSnapshot> get() = supplier
+  open val modificationTracker: ModificationTracker get() = supplier
 
   init {
     val facet = module.androidFacet
