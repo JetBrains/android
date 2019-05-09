@@ -17,11 +17,22 @@ package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.View
+import com.android.tools.profiler.proto.Common
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import java.awt.Image
 import java.util.Enumeration
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
@@ -30,6 +41,7 @@ import javax.swing.tree.TreeSelectionModel
 
 class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
+  private var client: InspectorClient? = null
   private val tree = Tree()
   private val contentPane = JBScrollPane(tree)
 
@@ -50,11 +62,9 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector = toolContext
     layoutInspector?.modelChangeListeners?.add(this::modelChanged)
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
-    layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, new ->
-      if (new != null) {
-        tree.model = DefaultTreeModel(MyTreeNode(new, null))
-      }
-    }
+    client = layoutInspector?.client
+    client?.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
+    client?.registerProcessEnded(::clearComponentTree)
     if (toolContext != null) {
       modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
     }
@@ -65,9 +75,103 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   override fun dispose() {
   }
 
-  private fun modelModified(old: InspectorView?, new: InspectorView?) {
-    layoutInspector?.let { inspector ->
-      tree.model = DefaultTreeModel(MyTreeNode(inspector.layoutInspectorModel.root, null))
+  private fun clearComponentTree() {
+    val application = ApplicationManager.getApplication()
+    application.invokeLater {
+      val emptyRoot = ViewNode(0, "empty", null, 0, 0, 1, 1, null, "")
+      layoutInspector?.layoutInspectorModel?.update(emptyRoot)
+    }
+  }
+
+  private fun loadComponentTree(event: LayoutInspectorEvent) {
+    val application = ApplicationManager.getApplication()
+    application.executeOnPooledThread {
+      val loader = ComponentTreeLoader(event.tree)
+      val root = loader.loadRootView()
+      val bytes = client?.getPayload(event.tree.payloadId) ?: return@executeOnPooledThread
+      var viewRoot: InspectorView? = null
+      if (bytes.isNotEmpty()) {
+        viewRoot = SkiaParser().getViewTree(bytes)
+      }
+      if (viewRoot != null) {
+        val imageLoader = ComponentImageLoader(root, viewRoot)
+        imageLoader.loadImages()
+      }
+
+      application.invokeLater {
+        layoutInspector?.layoutInspectorModel?.update(root)
+      }
+    }
+  }
+
+  class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {
+    private val nodeMap = root.flatten().associateBy { it.drawId }
+    private val viewMap = viewRoot.flatten().associateBy { it.id.toLong() }
+
+    fun loadImages() {
+      for ((drawId, node) in nodeMap) {
+        val view = viewMap[drawId] ?: continue
+        node.imageBottom = view.image
+        addChildNodeImages(node, view)
+      }
+    }
+
+    private fun addChildNodeImages(node: ViewNode, view: InspectorView) {
+      var beforeChildren = true
+      for (child in view.children.values) {
+        val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
+        when {
+          isChildNode -> beforeChildren = false
+          beforeChildren -> node.imageBottom = combine(node.imageBottom, child)
+          else -> node.imageTop = combine(node.imageTop, child)
+        }
+        if (!isChildNode) {
+          // Some Skia views are several levels deep:
+          addChildNodeImages(node, child)
+        }
+      }
+    }
+
+    private fun combine(image: Image?, view: InspectorView): Image? =
+      when {
+        view.image == null -> image
+        image == null -> view.image
+        else -> {
+          // Combine the images...
+          val g = image.graphics
+          UIUtil.drawImage(g, view.image!!, 0, 0, null)
+          g.dispose()
+          image
+        }
+      }
+  }
+
+  private class ComponentTreeLoader(private val tree: ComponentTreeEvent) {
+    val stringTable = StringTable(tree.stringList)
+
+    fun loadRootView(): ViewNode {
+      return loadView(tree.root, null)
+    }
+
+    fun loadView(view: View, parent: ViewNode?): ViewNode {
+      val qualifiedName = "${stringTable[view.packageName]}.${stringTable[view.className]}"
+      val viewId = stringTable[view.viewId]
+      val textValue = stringTable[view.textValue]
+      val layout = stringTable[view.layout]
+      val x = view.x + (parent?.x ?: 0)
+      val y = view.y + (parent?.y ?: 0)
+      val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.width, view.height, viewId, textValue)
+      view.subViewList.map { loadView(it, node) }.forEach { node.children[it.drawId] = it }
+      return node
+    }
+  }
+
+  @Suppress("UNUSED_PARAMETER")
+  private fun modelModified(old: ViewNode?, new: ViewNode?, structuralChange: Boolean) {
+    if (structuralChange) {
+      layoutInspector?.let { inspector ->
+        tree.model = DefaultTreeModel(MyTreeNode(inspector.layoutInspectorModel.root, null))
+      }
     }
   }
 
@@ -77,7 +181,8 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     new.selectionListeners.add(this::selectionChanged)
   }
 
-  private fun selectionChanged(old: InspectorView?, new: InspectorView?) {
+  @Suppress("UNUSED_PARAMETER")
+  private fun selectionChanged(old: ViewNode?, new: ViewNode?) {
     if (new == null) {
       tree.clearSelection()
       return
@@ -85,8 +190,8 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     tree.selectionPath = (tree.model.root as MyTreeNode).findPath(new)
   }
 
-  private class MyTreeNode(val root: InspectorView, val _parent: MyTreeNode?) : TreeNode {
-    val _children = root.children.values.map { MyTreeNode(it, this) }
+  private class MyTreeNode(val root: ViewNode, val _parent: MyTreeNode?) : TreeNode {
+    private val _children = root.children.values.map { MyTreeNode(it, this) }
 
     override fun children(): Enumeration<*> {
       return _children.toEnumeration()
@@ -104,9 +209,9 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
 
     override fun getAllowsChildren() = true
 
-    override fun toString() = "${root.id}: ${root.type}"
+    override fun toString() = "${root.drawId}: ${root.qualifiedName.substringAfterLast('.')}"
 
-    fun findPath(target: InspectorView) : TreePath? {
+    fun findPath(target: ViewNode) : TreePath? {
       val nodes = mutableListOf<MyTreeNode>()
       if (findPathInternal(target, nodes)) {
         return TreePath(nodes.reversed().toTypedArray())
@@ -114,7 +219,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       return null
     }
 
-    fun findPathInternal(target: InspectorView, collector: MutableList<MyTreeNode>): Boolean {
+    fun findPathInternal(target: ViewNode, collector: MutableList<MyTreeNode>): Boolean {
       if (root == target) {
         collector.add(this)
         return true

@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade
 
 import com.android.builder.model.*
+import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.UnusedModelMethodException
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.androidproject.AndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.Variant
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.BuildTypeContainerStub
@@ -25,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.stubs.ProductFlavorContainerStub
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import java.io.File
+import java.util.function.Consumer
 
 open class LegacyAndroidProject(private val androidProject: AndroidProject, private val variant: Variant) : OldAndroidProject {
   override fun getModelVersion(): String = androidProject.modelVersion
@@ -57,10 +61,13 @@ open class LegacyAndroidProject(private val androidProject: AndroidProject, priv
   override fun getPluginGeneration(): Int = throw UnusedModelMethodException("getPluginGeneration")
   override fun getResourcePrefix(): String? = throw UnusedModelMethodException("getResourcePrefix") // use namespacing instead
   override fun getBuildToolsVersion(): String = throw UnusedModelMethodException("getBuildToolsVersion")
-  override fun getFrameworkSources(): Collection<File> = throw UnusedModelMethodException("getFrameworkSources")
-  override fun getExtraArtifacts(): Collection<ArtifactMetaData> = throw UnusedModelMethodException("getExtraArtifacts")
   @Deprecated("use sync issues", ReplaceWith("getSyncIssues()"))
   override fun getUnresolvedDependencies(): Collection<String> = throw UnusedModelMethodException("getUnresolvedDependencies")
+
+  override fun getParsedModelVersion(): GradleVersion? = throw UnusedModelMethodException("getParsedModelVersion")
+  override fun forEachVariant(action: Consumer<IdeVariant>) = throw UnusedModelMethodException("forEachVariant")
+  override fun addVariants(variants: MutableCollection<com.android.builder.model.Variant>, factory: IdeDependenciesFactory) = throw UnusedModelMethodException("addVariants")
+  override fun addSyncIssues(syncIssues: MutableCollection<SyncIssue>)  = throw UnusedModelMethodException("addSyncIssues")
 
   override fun toString(): String = "LegacyAndroidProject{" +
                                     "modelVersion=$modelVersion," +

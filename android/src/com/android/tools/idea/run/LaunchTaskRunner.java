@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.NonNull;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
@@ -39,6 +41,9 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +58,7 @@ import java.util.concurrent.TimeoutException;
 
 public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final String myConfigName;
+  @NotNull private final String myApplicationId;
   @Nullable private final String myExecutionTargetName; // Change to NotNull once everything is moved over to DeviceAndSnapshot
   @NotNull private final LaunchInfo myLaunchInfo;
   @NotNull private final ProcessHandler myProcessHandler;
@@ -66,6 +72,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   public LaunchTaskRunner(@NotNull Project project,
                           @NotNull String configName,
+                          @NotNull String applicationId,
                           @Nullable String executionTargetName,
                           @NotNull LaunchInfo launchInfo,
                           @NotNull ProcessHandler processHandler,
@@ -76,6 +83,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     super(project, "Launching " + configName);
 
     myConfigName = configName;
+    myApplicationId = applicationId;
     myExecutionTargetName = executionTargetName;
     myLaunchInfo = launchInfo;
     myProcessHandler = processHandler;
@@ -91,8 +99,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     indicator.setIndeterminate(false);
     myStats.beginLaunchTasks();
 
-    LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
-    ConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
+    ProcessHandlerLaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
+    ProcessHandlerConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
     List<ListenableFuture<IDevice>> listenableDeviceFutures = myDeviceFutures.get();
     AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
                                     ? myDeviceFutures.getDevices().get(0).getVersion()
@@ -194,13 +202,26 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
 
       if (debugSessionTask != null) {
-        debugSessionTask
-          .perform(myLaunchInfo, device, (ProcessHandlerLaunchStatus)launchStatus, (ProcessHandlerConsolePrinter)consolePrinter);
+        debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
       }
-      else { // we only need to inform the process handler if certain scenarios
+      else { // we only need to inform the process handler in certain scenarios
         if (myProcessHandler instanceof AndroidProcessHandler) { // we aren't debugging (in which case its a DebugProcessHandler)
-          AndroidProcessHandler procHandler = (AndroidProcessHandler) myProcessHandler;
-          procHandler.addTargetDevice(device);
+          boolean deviceStillAlive = true;
+          if (!isSwap()) {
+            DeviceTerminationListener listener = new DeviceTerminationListener(device, myApplicationId);
+            try {
+              // ensure all Clients are killed prior to handing off to the AndroidProcessHandler
+              listener.await(1, TimeUnit.SECONDS);
+            }
+            catch (InterruptedException ignored) {
+            }
+            deviceStillAlive = listener.getIsDeviceAlive();
+          }
+
+          if (deviceStillAlive) {
+            AndroidProcessHandler procHandler = (AndroidProcessHandler)myProcessHandler;
+            procHandler.addTargetDevice(device);
+          }
         }
       }
     }
@@ -263,20 +284,75 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   }
 
   private boolean isSwap() {
-    return Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY)) ||
-           Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY));
+    return myLaunchInfo.env.getUserData(SwapInfo.SWAP_INFO_KEY) != null;
   }
 
   @NotNull
   private String getLaunchVerb() {
-    if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(ApplyChangesAction.KEY))) {
-      return "Applying changes to";
+    SwapInfo swapInfo = myLaunchInfo.env.getUserData(SwapInfo.SWAP_INFO_KEY);
+    if (swapInfo != null) {
+      if (swapInfo.getType() == SwapInfo.SwapType.APPLY_CHANGES) {
+        return "Applying changes to";
+      }
+      else if (swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES) {
+        return "Applying code changes to";
+      }
     }
-    else if (Boolean.TRUE.equals(myLaunchInfo.env.getCopyableUserData(CodeSwapAction.KEY))) {
-      return "Applying code changes to";
+    return "Launching";
+  }
+
+  private static class DeviceTerminationListener implements AndroidDebugBridge.IDeviceChangeListener {
+    @NotNull private final IDevice myIDevice;
+    @NotNull private final List<Client> myClientsToWaitFor;
+    @NotNull private final CountDownLatch myProcessKilledLatch = new CountDownLatch(1);
+    private volatile boolean myIsDeviceAlive = true;
+
+    private DeviceTerminationListener(@NotNull IDevice iDevice, @NotNull String applicationId) {
+      myIDevice = iDevice;
+      myClientsToWaitFor = Collections.synchronizedList(DeploymentApplicationService.getInstance().findClient(myIDevice, applicationId));
+      if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
+        myProcessKilledLatch.countDown();
+      }
+      else {
+        AndroidDebugBridge.addDeviceChangeListener(this);
+        checkDone();
+      }
     }
-    else {
-      return "Launching";
+
+    public void await(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
+      myProcessKilledLatch.await(timeout, unit);
+    }
+
+    public boolean getIsDeviceAlive() {
+      return myIsDeviceAlive;
+    }
+
+    @Override
+    public void deviceConnected(@NonNull IDevice device) {}
+
+    @Override
+    public void deviceDisconnected(@NonNull IDevice device) {
+      myIsDeviceAlive = false;
+      myProcessKilledLatch.countDown();
+      AndroidDebugBridge.removeDeviceChangeListener(this);
+    }
+
+    @Override
+    public void deviceChanged(@NonNull IDevice changedDevice, int changeMask) {
+      if (changedDevice != myIDevice || (changeMask & IDevice.CHANGE_CLIENT_LIST) == 0) {
+        checkDone();
+        return;
+      }
+
+      myClientsToWaitFor.retainAll(Arrays.asList(changedDevice.getClients()));
+      checkDone();
+    }
+
+    private void checkDone() {
+      if (myClientsToWaitFor.isEmpty()) {
+        myProcessKilledLatch.countDown();
+        AndroidDebugBridge.removeDeviceChangeListener(this);
+      }
     }
   }
 }

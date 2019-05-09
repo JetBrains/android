@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -497,6 +498,23 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     assertEquals("Not applicable for the \"ExampleUnitTest\" configuration", myPresentation.getDescription());
     assertFalse(myPresentation.isEnabled());
+  }
+
+  @Test
+  public void updatePresentationConfigurationIsntAndroidRunConfigurationNorAndroidTestRunConfigurationButDeploysToLocalDevice() {
+    // Arrange
+    RunConfigurationBase configuration = Mockito.mock(RunConfigurationBase.class);
+    Mockito.when(configuration.getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE)).thenReturn(true);
+
+    RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(settings.getConfiguration()).thenReturn(configuration);
+
+    // Act
+    DeviceAndSnapshotComboBoxAction.updatePresentation(myPresentation, settings);
+
+    // Assert
+    assertNull(myPresentation.getDescription());
+    assertTrue(myPresentation.isEnabled());
   }
 
   @Test

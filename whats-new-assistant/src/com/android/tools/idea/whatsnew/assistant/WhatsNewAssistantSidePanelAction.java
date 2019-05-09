@@ -21,6 +21,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -32,7 +33,16 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
   private static WhatsNewAction action = new WhatsNewAction();
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
+    // Project being null can happen when Studio first starts and doesn't have window focus
+    Presentation presentation = e.getPresentation();
+    if (e.getProject() == null) {
+      presentation.setEnabled(false);
+    }
+    else if (!presentation.isEnabled()) {
+      presentation.setEnabled(true);
+    }
+
     action.update(e);
   }
 
@@ -44,15 +54,17 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
     }
 
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                     .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                                                     .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
-                                                       WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
+                       .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
+                       .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
+                         WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
     super.openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, event.getProject());
 
-    addToolWindowListener(event.getProject());
+    if (event.getProject() != null) {
+      addToolWindowListener(event.getProject());
+    }
   }
 
-  private void addToolWindowListener(Project project) {
+  private void addToolWindowListener(@NotNull Project project) {
     ToolWindowManagerListener listener = new ToolWindowManagerListener() {
       @Override
       public void toolWindowRegistered(@NotNull String id) {

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
@@ -47,7 +46,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
       loadSimpleApplication();
 
-      AndroidProject androidProject = getAndroidProjectInApp();
+      IdeAndroidProject androidProject = getAndroidProjectInApp();
       // Verify AndroidProject was copied.
       assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
 
@@ -56,7 +55,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
       SyncListener syncListener = requestSync(request);
       assertTrue(syncListener.isSyncSkipped());
 
-      AndroidProject cached = getAndroidProjectInApp();
+      IdeAndroidProject cached = getAndroidProjectInApp();
       // Verify AndroidProject was deserialized.
       assertThat(cached).isInstanceOf(IdeAndroidProjectImpl.class);
 
@@ -70,7 +69,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   public void ignore_testSyncWithGradle2Dot2() throws Exception {
     syncProjectWithGradle2Dot2();
 
-    AndroidProject androidProject = getAndroidProjectInApp();
+    IdeAndroidProject androidProject = getAndroidProjectInApp();
     // Verify AndroidProject was copied.
     assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
   }

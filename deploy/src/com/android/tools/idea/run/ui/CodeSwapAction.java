@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.ui;
 
+import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -22,7 +23,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import javax.swing.KeyStroke;
@@ -32,8 +32,6 @@ import org.jetbrains.annotations.NotNull;
 public class CodeSwapAction extends BaseAction {
 
   public static final String ID = "android.deploy.CodeSwap";
-
-  public static final Key<Boolean> KEY = Key.create(ID);
 
   public static final String NAME = "Apply Code Changes";
 
@@ -45,7 +43,7 @@ public class CodeSwapAction extends BaseAction {
   private static final String DESC = "Attempt to apply only code changes without restarting anything.";
 
   public CodeSwapAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT, DESC);
+    super(ID, NAME, SwapInfo.SwapType.APPLY_CODE_CHANGES, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT, DESC);
   }
 
   @Override
@@ -64,7 +62,6 @@ public class CodeSwapAction extends BaseAction {
       String id = type.getId();
       if (AndroidCommonUtils.isTestConfiguration(id)) {
         e.getPresentation().setEnabled(false);
-        return;
       }
     }
   }

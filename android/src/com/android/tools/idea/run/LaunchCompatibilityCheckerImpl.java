@@ -24,9 +24,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import java.util.EnumSet;
 import java.util.Set;
@@ -87,9 +86,8 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     LaunchCompatibility launchCompatibility = LaunchCompatibility.YES;
 
     if (myEnvironment != null && myAndroidRunConfigurationBase != null) {
-      Boolean applyChanges = myEnvironment.getCopyableUserData(ApplyChangesAction.KEY);
-      Boolean codeSwap = myEnvironment.getCopyableUserData(CodeSwapAction.KEY);
-      if ((applyChanges != null && applyChanges) || (codeSwap != null && codeSwap)) {
+      SwapInfo swapInfo = myEnvironment.getUserData(SwapInfo.SWAP_INFO_KEY);
+      if (swapInfo != null) {
         if (device.getVersion().compareTo(AndroidVersion.VersionCodes.O, null) < 0) {
           launchCompatibility = new LaunchCompatibility(NO, "The device needs to be running Oreo or newer.");
         }

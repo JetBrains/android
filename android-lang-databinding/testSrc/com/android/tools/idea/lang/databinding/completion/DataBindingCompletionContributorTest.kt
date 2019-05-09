@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.facet.FacetManager
 import com.intellij.psi.PsiField
 import com.intellij.testFramework.EdtRule
@@ -1172,5 +1173,50 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:gravity="center"
             android:onClick="@{Model}"/>
       </layout>
-    """.trimIndent())  }
+    """.trimIndent())
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_classWithSubstitutor() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public Data<String, Integer> data;
+      }
+
+      class Data<T, R> {
+        public R setData(T data) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.data.<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+    val getDataLookupElement = fixture.lookupElements!!.first { it.lookupString == "setData" }
+    val presentation = LookupElementPresentation()
+    getDataLookupElement.renderElement(presentation)
+    // presentation.typeText represents string for the return type, which should contain "Integer" instead of "R".
+    assertThat(presentation.typeText).contains("Integer")
+    // presentation.tailText represents string for parameters, which should contain "String" instead of "T".
+    assertThat(presentation.tailText).contains("String")
+  }
 }

@@ -29,8 +29,6 @@ class CommonDragTargetTest : SceneTest() {
   override fun setUp() {
     super.setUp()
     StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
-
-    myScene.isLiveRenderingEnabled = false
   }
 
   override fun tearDown() {
@@ -217,13 +215,11 @@ class CommonDragTargetTest : SceneTest() {
     setAutoConnection(textView, autoconnected)
   }
 
-  fun testDragComponentWithLiveRendering() {
-    // Regression test for b/123758530
+  fun testDragComponentInConstraintLayout() {
+    // Regression test for b/123758530 and b/129681462
 
     val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
     val textView = myScreen.get("@id/textView").sceneComponent!!
-
-    myScene.isLiveRenderingEnabled = true
 
     val x = textView.drawX
     val y = textView.drawY
@@ -232,29 +228,8 @@ class CommonDragTargetTest : SceneTest() {
     myInteraction.mouseDrag((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
                             (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
 
-    // When enable live rendering, [SceneComponent.setPosition] should not be called. So the position should be same as before
     assertTrue(x == textView.drawX)
     assertTrue(y == textView.drawY)
-  }
-
-  fun testDragComponentWithoutLiveRendering() {
-    // Regression test for b/123758530
-
-    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
-    val textView = myScreen.get("@id/textView").sceneComponent!!
-
-    myScene.isLiveRenderingEnabled = false
-
-    val x = textView.drawX
-    val y = textView.drawY
-
-    myInteraction.mouseDown("textView")
-    myInteraction.mouseDrag((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-                            (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
-
-    // When disable live rendering, [SceneComponent.setPosition] should be called my [CommonDragTarget]
-    assertFalse(x == textView.drawX)
-    assertFalse(y == textView.drawY)
   }
 
   private fun setAutoConnection(component: SceneComponent, on: Boolean) {

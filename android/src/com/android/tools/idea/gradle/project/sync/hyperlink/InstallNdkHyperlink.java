@@ -22,14 +22,17 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED;
 
 import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectNdkDialog;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
@@ -42,35 +45,38 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InstallNdkHyperlink extends NotificationHyperlink {
   private static final String ERROR_TITLE = "Gradle Sync Error";
+  private final List<VirtualFile> buildFiles;
 
-  public InstallNdkHyperlink() {
-    super("install.ndk", "Install NDK");
+  public InstallNdkHyperlink(List<VirtualFile> buildFiles) {
+    super("install.ndk", "Install latest NDK and sync project");
+    this.buildFiles = buildFiles;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    File path = getNdkPath(project);
-    if (path != null) {
-      // Try to install SDK in local.properties.
-      SelectNdkDialog dialog = new SelectNdkDialog(path.getPath(), false, true /* show "download" link */);
-      dialog.setModal(true);
-      if (dialog.showAndGet() && setNdkPath(project, dialog.getAndroidNdkPath())) {
-        // Saving NDK path is successful.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INSTALLED);
-      }
-      return;
+    // Remove any value old value from ndk.dir
+    try {
+      LocalProperties localProperties = new LocalProperties(project);
+      localProperties.setAndroidNdkPath((File)null);
+      localProperties.save();
+    }
+    catch (IOException e) {
+      // If we couldn't remove ndk.dir continue on anyway. There will be a diagnostic
+      // message from Android Gradle Plugin
     }
 
-    // There is no path. Try installing from SDK.
+    // Install from NDK
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
@@ -103,7 +109,12 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
         if (ndkPath != null) {
           ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPath), true);
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INSTALLED);
+            LocalPackage highestLocalNdk = IdeSdks.getInstance().getHighestLocalNdkPackage();
+            if (highestLocalNdk != null) {
+              new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
+            } else {
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INSTALLED);
+            }
           }
           return;
         }
@@ -114,42 +125,6 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
       ModalityState.any());
     sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
-  }
-
-  @Nullable
-  private static File getNdkPath(@NotNull Project project) {
-    try {
-      return new LocalProperties(project).getAndroidNdkPath();
-    }
-    catch (IOException e) {
-      String msg = String.format("Unable to read local.properties file of Project '%1$s'", project.getName());
-      Logger.getInstance(InstallNdkHyperlink.class).info(msg, e);
-    }
-    return null;
-  }
-
-  private static boolean setNdkPath(@NotNull Project project, @Nullable String ndkPath) {
-    LocalProperties localProperties;
-    try {
-      localProperties = new LocalProperties(project);
-    }
-    catch (IOException e) {
-      String msg = String.format("Unable to read local.properties file of Project '%1$s':\n%2$s", project.getName(), e.getMessage());
-      Messages.showErrorDialog(project, msg, ERROR_TITLE);
-      return false;
-    }
-    try {
-      localProperties.setAndroidNdkPath(ndkPath == null ? null : new File(ndkPath));
-      localProperties.save();
-    }
-    catch (IOException e) {
-      String msg =
-        String.format("Unable to save local.properties file of Project '%1$s: %2$s", localProperties.getPropertiesFilePath().getPath(),
-                      e.getMessage());
-      Messages.showErrorDialog(project, msg, ERROR_TITLE);
-      return false;
-    }
-    return true;
   }
 
   private static void notifyNdkPackageNotFound(@NotNull Project project) {

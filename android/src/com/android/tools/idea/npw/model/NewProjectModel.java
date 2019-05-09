@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.model;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.IdeInfo;
@@ -379,6 +381,7 @@ public class NewProjectModel extends WizardModel {
 
   private class ProjectTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
 
+    @WorkerThread
     @Override
     public boolean doDryRun() {
       if (project().getValueOrNull() == null) {
@@ -389,6 +392,7 @@ public class NewProjectModel extends WizardModel {
       return true;
     }
 
+    @WorkerThread
     @Override
     public void render() {
       performCreateProject(false);
@@ -402,9 +406,12 @@ public class NewProjectModel extends WizardModel {
       }
 
       saveWizardState();
+    }
 
-      // Allow all other Wizard models to run handleFinished() (and the Wizard to close), before starting the (slow) import process.
-      ApplicationManager.getApplication().invokeLater(this::performGradleImport);
+    @UiThread
+    @Override
+    public void finish() {
+      performGradleImport();
     }
 
     private void performCreateProject(boolean dryRun) {

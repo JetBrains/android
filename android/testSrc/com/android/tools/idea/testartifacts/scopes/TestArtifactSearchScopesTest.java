@@ -74,10 +74,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testSrcFolderIncluding() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
 
-    VirtualFile unitTestSource = createFile("module1/src/test/java/Test.java");
-    VirtualFile androidTestSource = createFile("module1/src/androidTest/java/Test.java");
+    VirtualFile unitTestSource = createFileIfNotExists("module1/src/test/java/Test.java");
+    VirtualFile androidTestSource = createFileIfNotExists("module1/src/androidTest/java/Test.java");
 
     assertTrue(scopes.isUnitTestSource(unitTestSource));
     assertFalse(scopes.isUnitTestSource(androidTestSource));
@@ -86,11 +86,25 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.isAndroidTestSource(unitTestSource));
   }
 
-  public void testModulesExcluding() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
+  public void testProjectRootFolderOfTestProjectType() throws Exception {
+    // Module4 is an android test project (applied plugin com.android.test).
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module4");
 
-    VirtualFile module3JavaRoot = createFile("module3/src/main/java/Main.java");
-    VirtualFile module3RsRoot = createFile("module3/src/main/rs/Main.rs");
+    VirtualFile module4Root = createFileIfNotExists("module4");
+    VirtualFile module4Source = createFileIfNotExists("module4/src/main/java/Test.java");
+
+    assertFalse(scopes.isUnitTestSource(module4Root));
+    assertFalse(scopes.isUnitTestSource(module4Source));
+
+    assertTrue(scopes.isAndroidTestSource(module4Root));
+    assertTrue(scopes.isAndroidTestSource(module4Source));
+  }
+
+  public void testModulesExcluding() throws Exception {
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
+
+    VirtualFile module3JavaRoot = createFileIfNotExists("module3/src/main/java/Main.java");
+    VirtualFile module3RsRoot = createFileIfNotExists("module3/src/main/rs/Main.rs");
 
     assertTrue(scopes.getUnitTestExcludeScope().accept(module3JavaRoot));
     assertTrue(scopes.getUnitTestExcludeScope().accept(module3RsRoot));
@@ -100,7 +114,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testLibrariesExcluding() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
@@ -126,7 +140,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
@@ -138,7 +152,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     // Now add gson to unit test dependencies as well
     VirtualFile buildFile = getGradleBuildFile(scopes.getModule());
     assertNotNull(buildFile);
-    appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.2.4' }\n");
+    appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.8.0' }\n");
 
     CountDownLatch latch = new CountDownLatch(1);
     GradleSyncListener postSetupListener = new GradleSyncListener() {
@@ -198,7 +212,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private VirtualFile createFile(@NotNull String relativePath) {
+  private VirtualFile createFileIfNotExists(@NotNull String relativePath) {
     File file = new File(myFixture.getProject().getBasePath(), toSystemDependentPath(relativePath));
     FileUtil.createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
@@ -207,9 +221,9 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private TestArtifactSearchScopes loadMultiProjectAndTestScopes() throws Exception {
+  private TestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
-    Module module1 = myModules.getModule("module1");
+    Module module1 = myModules.getModule(moduleName);
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;

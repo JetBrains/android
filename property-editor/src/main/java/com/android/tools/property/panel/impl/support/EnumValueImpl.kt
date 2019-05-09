@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 
 /**
  * Implementation of [EnumValue]
@@ -92,9 +93,11 @@ sealed class BaseActionEnumValue(val action: AnAction) : EnumValue {
   }
 
   override fun select(property: PropertyItem): Boolean {
-    val propertyContext = DataContext { property }
-    val event = AnActionEvent(null, propertyContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0)
-    action.actionPerformed(event)
+    ApplicationManager.getApplication().invokeLater {
+      val propertyContext = DataContext { property }
+      val event = AnActionEvent(null, propertyContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0)
+      action.actionPerformed(event)
+    }
     return false
   }
 

@@ -17,21 +17,15 @@
 package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.*
-import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.resolveLayout
-import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.google.common.io.CharStreams
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
@@ -42,24 +36,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 
-/**
- * Opens the resource using the resource resolver in the configuration.
- *
- * @param reference  the resource reference
- * @param currentFile the currently open file. It's pushed onto the file navigation stack under the resource to open.
- * @return true if the resource was opened
- * @see RenderResources#findResValue(String, boolean)
- */
-fun openResource(configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
-  val resourceResolver = configuration.resourceResolver ?: return false
-  val resValue = resourceResolver.findResValue(reference, false)
-  val file = resourceResolver.resolveLayout(resValue) ?: return false
-  if (currentFile != null) {
-    return LayoutNavigationManager.getInstance(configuration.module.project).pushFile(currentFile, file)
-  }
-  val editors = FileEditorManager.getInstance(configuration.module.project).openFile(file, true, true)
-  return editors.isNotEmpty()
-}
+private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
   return ResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
@@ -74,7 +51,7 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
     }
   }
   catch (exception: IOException) {
-    Logger.getInstance(ViewEditorImpl::class.java).warn(exception)
+    logger.warn(exception)
   }
 }
 
@@ -102,7 +79,7 @@ private fun createResourceFile(project: Project,
       document.setText(resourceFileContent)
     }
     catch (exception: IOException) {
-      Logger.getInstance(ViewEditorImpl::class.java).warn(exception)
+      logger.warn(exception)
     }
   }
 }
@@ -112,7 +89,7 @@ private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, chi
   val resourceDirectory = ResourceFolderManager.getInstance(facet).primaryFolder
 
   if (resourceDirectory == null) {
-    Logger.getInstance("DesignSurfaceHelper").warn("resourceDirectory is null")
+    logger.warn("resourceDirectory is null")
     return null
   }
 

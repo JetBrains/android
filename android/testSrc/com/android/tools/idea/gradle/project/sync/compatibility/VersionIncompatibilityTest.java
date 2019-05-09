@@ -43,7 +43,7 @@ public class VersionIncompatibilityTest extends IdeaTestCase {
   }
 
   public void testReportMessagesWithWarning() {
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Component base = new Component("android-gradle-plugin", "2.1.3", null);
     Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(ANDROID_GRADLE_PLUGIN, "2.1.3");
@@ -70,7 +70,7 @@ public class VersionIncompatibilityTest extends IdeaTestCase {
   }
 
   public void testReportMessagesWithError() {
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Component base = new Component("grade", "2.14.1", null);
     Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(GRADLE, "2.14.1");

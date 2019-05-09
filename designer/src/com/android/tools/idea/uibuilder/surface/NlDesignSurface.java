@@ -22,6 +22,10 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOV
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -442,6 +446,20 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
+  @NotNull
+  public ItemTransferable getSelectionAsTransferable() {
+    NlModel model = getModel();
+
+    ImmutableList<DnDTransferComponent> components =
+      getSelectionModel().getSelection().stream()
+        .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(),
+                                                   NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)))
+        .collect(
+          ImmutableCollectors.toImmutableList());
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
+  }
+
+  @Override
   @SwingCoordinate
   public int getContentOriginX() {
     return myScreenX;
@@ -451,6 +469,34 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate
   public int getContentOriginY() {
     return myScreenY;
+  }
+
+  @Override
+  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (isPreviewSurface()) {
+      onClickPreview(x, y, false);
+    }
+  }
+
+  @Override
+  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (isPreviewSurface()) {
+      onClickPreview(x, y, true);
+    }
+    else {
+      super.onDoubleClick(x, y);
+    }
+  }
+
+  private void onClickPreview(int x, int y, boolean needsFocusEditor) {
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView == null) {
+      return;
+    }
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
+    if (component != null) {
+      NlComponentHelperKt.tryNavigateTo(component, needsFocusEditor);
+    }
   }
 
   public boolean isStackVertically() {

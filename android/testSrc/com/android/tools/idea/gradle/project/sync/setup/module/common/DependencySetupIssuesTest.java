@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
-import org.mockito.Mock;
-
-import java.util.List;
-
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IdeaTestCase;
+import java.util.List;
 
 /**
  * Tests for {@link DependencySetupIssues}.
  */
 public class DependencySetupIssuesTest extends IdeaTestCase {
-  @Mock private GradleSyncState mySyncState;
-  @Mock private GradleSyncSummary mySyncSummary;
-
   private GradleSyncMessagesStub mySyncMessages;
   private DependencySetupIssues myIssues;
 
@@ -47,11 +39,10 @@ public class DependencySetupIssuesTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
 
     Project project = getProject();
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
-    myIssues = new DependencySetupIssues(project, mySyncState, mySyncMessages);
+    myIssues = new DependencySetupIssues(mySyncMessages);
   }
 
   public void testAddMissingModule() {
@@ -77,18 +68,14 @@ public class DependencySetupIssuesTest extends IdeaTestCase {
     missingModule = missingModules.get(1);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib3");
     assertThat(missingModule.dependentNames).containsExactly("app1");
-
-    verify(mySyncSummary, times(1)).setSyncErrorsFound(true);
   }
 
   public void testAddMissingModuleWithBackupLibrary() {
     myIssues.addMissingModule(":lib2", "app2", "library2.jar");
-    verify(mySyncSummary, never()).setSyncErrorsFound(true);
   }
 
   public void testAddMissingModuleWithoutBackupLibrary() {
     myIssues.addMissingModule(":lib2", "app2", null);
-    verify(mySyncSummary, times(1)).setSyncErrorsFound(true);
   }
 
   public void testAddDependentOnLibraryWithoutBinaryPath() {
@@ -96,8 +83,6 @@ public class DependencySetupIssuesTest extends IdeaTestCase {
     myIssues.addMissingBinaryPath("app2");
     myIssues.addMissingBinaryPath("app1");
     assertThat(myIssues.getDependentsOnLibrariesWithoutBinaryPath()).containsExactly("app1", "app2").inOrder();
-
-    verify(mySyncSummary, times(3)).setSyncErrorsFound(true);
   }
 
   public void testReportIssues() {

@@ -22,6 +22,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestLoggerFactory
 import org.junit.rules.ExternalResource
+import javax.swing.SwingUtilities
 
 /**
  * An Application rule that sets up a test [com.intellij.openapi.application.Application].
@@ -32,7 +33,7 @@ import org.junit.rules.ExternalResource
 open class ApplicationRule : ExternalResource() {
 
   private var rootDisposable: Disposable? = Disposer.newDisposable()
-  private var application: MockApplication? = MockApplication(rootDisposable!!)
+  private var application: MockApplication? = TestApplication(rootDisposable!!)
 
   val testRootDisposable: Disposable
     get() = rootDisposable!!
@@ -69,5 +70,11 @@ open class ApplicationRule : ExternalResource() {
     val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
     field.isAccessible = true
     field.set(null, null)
+  }
+
+  private class TestApplication(disposable: Disposable): MockApplication(disposable) {
+    override fun invokeLater(runnable: Runnable) {
+      SwingUtilities.invokeLater(runnable)
+    }
   }
 }

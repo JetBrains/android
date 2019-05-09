@@ -13,4 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-include ':module1', ':module2', ':module3'
+include ':module1', ':module2', ':module3', ':module4'

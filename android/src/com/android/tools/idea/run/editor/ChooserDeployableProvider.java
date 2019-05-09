@@ -27,6 +27,7 @@ import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -128,23 +129,60 @@ public final class ChooserDeployableProvider implements DeployableProvider {
       }
     }
 
+    @NotNull
     @Override
-    public boolean isApplicationRunningOnDeployable() {
+    public List<Client> searchClientsForPackage() {
       if (!myAndroidDevice.isRunning()) {
-        return false;
+        return Collections.emptyList();
       }
 
       try {
         // The get() operation could take a long time and this could get called on the EDT, so we'll only do a quick check.
         IDevice device = myAndroidDevice.getLaunchedDevice().get(0, TimeUnit.NANOSECONDS);
         if (device == null || !device.isOnline()) {
-          return false;
+          return Collections.emptyList();
         }
-        // If the app doesn't have a Client associated with it, it's not running and should return false.
-        List<Client> clients = Deployable.searchClientsForPackage(device, myPackageName);
-        return !clients.isEmpty();
+        return Deployable.searchClientsForPackage(device, myPackageName);
       }
       catch (InterruptedException | ExecutionException | TimeoutException e) {
+        return Collections.emptyList();
+      }
+    }
+
+    @Override
+    public boolean isOnline() {
+      if (!myAndroidDevice.isRunning()) {
+        return false;
+      }
+
+      Future<IDevice> iDeviceFuture = myAndroidDevice.getLaunchedDevice();
+      if (!iDeviceFuture.isDone() || iDeviceFuture.isCancelled()) {
+        return false;
+      }
+
+      try {
+        return iDeviceFuture.get().isOnline();
+      }
+      catch (Exception e) {
+        return false;
+      }
+    }
+
+    @Override
+    public boolean isUnauthorized() {
+      if (!myAndroidDevice.isRunning()) {
+        return false;
+      }
+
+      Future<IDevice> iDeviceFuture = myAndroidDevice.getLaunchedDevice();
+      if (!iDeviceFuture.isDone() || iDeviceFuture.isCancelled()) {
+        return false;
+      }
+
+      try {
+        return iDeviceFuture.get().getState() == IDevice.DeviceState.UNAUTHORIZED;
+      }
+      catch (Exception e) {
         return false;
       }
     }

@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.model
+apply plugin: 'com.android.test'
 
-import com.android.tools.idea.layoutinspector.model
-import com.intellij.testFramework.UsefulTestCase
-import org.junit.Test
+android {
+  compileSdkVersion 19
+  buildToolsVersion '19.1.0'
 
-class InspectorViewTest {
-  @Test
-  fun testFlatten() {
-    val model = model {
-      view("rootId") {
-        view("v1") {
-          view("v3")
-        }
-        view("v2")
-      }
-    }
-
-    UsefulTestCase.assertSameElements(model.root.flatten().map { it.id }, "rootId", "v1", "v3", "v2")
-    UsefulTestCase.assertSameElements(model.root.children["v1"]!!.flatten().map { it.id }, "v1", "v3")
+  defaultConfig {
+    minSdkVersion 15
+    targetSdkVersion 19
   }
+  targetProjectPath ':module1'
 }

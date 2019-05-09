@@ -18,7 +18,6 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D

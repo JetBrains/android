@@ -20,17 +20,18 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.PsiNavigateUtil;
 import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Action which navigates to the primary selected XML element
@@ -67,9 +68,21 @@ public class GotoComponentAction extends DumbAwareAction {
     }
 
     mySurface.deactivate();
-    if (componentToNavigate == null || !NlComponentHelperKt.navigateTo(componentToNavigate)) {
+    if (model != null && !navigateToXml(componentToNavigate)) {
       switchTab(model);
     }
+  }
+
+  private static boolean navigateToXml(@Nullable NlComponent component) {
+    if (component == null) {
+      return false;
+    }
+    XmlTag tag = component.getTag();
+    if (tag == null) {
+      return false;
+    }
+    PsiNavigateUtil.navigate(tag);
+    return true;
   }
 
   /**

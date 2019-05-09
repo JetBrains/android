@@ -70,7 +70,6 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.NativeAndroidProject;
@@ -588,7 +587,7 @@ public final class GradleUtil {
 
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
+        IdeAndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
         if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
@@ -616,7 +615,7 @@ public final class GradleUtil {
   public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      AndroidProject androidProject = androidModel.getAndroidProject();
+      IdeAndroidProject androidProject = androidModel.getAndroidProject();
       return GradleVersion.tryParse(androidProject.getModelVersion());
     }
 

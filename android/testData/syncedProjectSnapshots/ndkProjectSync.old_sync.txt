@@ -40,8 +40,8 @@ PROJECT             : testNdkProjectSync
             TypeId              : native-android-gradle
             SelectedBuildVariant          : arm7Debug-arm64-v8a
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/arm7Debug/compileArm7DebugAidl/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/arm7DebugAndroidTest/compileArm7DebugAndroidTestAidl/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/arm7Debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/arm7DebugAndroidTest/out [-]
             JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/arm7Debug/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/arm7DebugAndroidTest/out [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/arm7DebugUnitTest/out [-]

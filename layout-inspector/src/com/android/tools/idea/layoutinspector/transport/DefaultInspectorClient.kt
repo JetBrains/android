@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.CollectingOutputReceiver
+import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.concurrent.EdtExecutor
+import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -26,13 +32,33 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.dialog
+import com.intellij.ui.layout.panel
+import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.AndroidSdkUtils
+import java.awt.Component
+import java.awt.event.ActionEvent
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
+import javax.swing.AbstractAction
+import javax.swing.JLabel
 
-object DefaultInspectorClient : InspectorClient {
+private const val MAX_RETRY_COUNT = 60
+
+class DefaultInspectorClient(private val project: Project) : InspectorClient {
   private var client = TransportClient(TransportService.getInstance().channelName)
   private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
                                                                   TimeUnit.MILLISECONDS.toNanos(100),
@@ -40,10 +66,21 @@ object DefaultInspectorClient : InspectorClient {
 
   private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
-  private var agentConnected = false
-  private var captureStarted = false
 
+  private val endListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
+  private var adb: ListenableFuture<AndroidDebugBridge>? = null
+
+  override var isConnected = false
+    private set
+
+  override var isCapturing = false
+    private set
+
+  init {
+    registerProcessEnded()
+    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance().getDebugBridge(it) }
+  }
 
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
@@ -57,7 +94,7 @@ object DefaultInspectorClient : InspectorClient {
       groupId = { groupId.number.toLong() },
       processId = selectedProcess::getPid) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
-          selectedProcess != Common.Process.getDefaultInstance() && agentConnected &&
+          selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
           it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
         callback(it.layoutInspectorEvent)
         lastResponseTimePerGroup[it.groupId] = it.timestamp
@@ -65,10 +102,33 @@ object DefaultInspectorClient : InspectorClient {
     })
   }
 
+  override fun registerProcessEnded(callback: () -> Unit) {
+    endListeners.add(callback)
+  }
+
+  private fun registerProcessEnded() {
+    // TODO: unregister listeners
+    transportPoller.registerListener(TransportEventListener(
+      eventKind = Common.Event.Kind.PROCESS,
+      executor = MoreExecutors.directExecutor(),
+      streamId = selectedStream::getStreamId,
+      groupId = { selectedProcess.pid.toLong() },
+      processId = selectedProcess::getPid) {
+      if (selectedStream != Common.Stream.getDefaultInstance() &&
+          selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
+        setDebugViewAttributes(selectedStream, false)
+        selectedStream = Common.Stream.getDefaultInstance()
+        selectedProcess = Common.Process.getDefaultInstance()
+        isConnected = false
+        endListeners.forEach { it() }
+      }
+    })
+  }
+
   override fun execute(command: LayoutInspectorCommand) {
     if (selectedStream == Common.Stream.getDefaultInstance() ||
         selectedProcess == Common.Process.getDefaultInstance() ||
-        !agentConnected) {
+        !isConnected) {
       return
     }
     val transportCommand = Command.newBuilder()
@@ -78,6 +138,12 @@ object DefaultInspectorClient : InspectorClient {
       .setPid(selectedProcess.pid)
       .build()
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
+
+    when (command.type) {
+      LayoutInspectorCommand.Type.STOP -> isCapturing = false
+      LayoutInspectorCommand.Type.START -> isCapturing = true
+      else -> {}
+    }
   }
 
   override fun getPayload(id: Int): ByteArray {
@@ -144,8 +210,8 @@ object DefaultInspectorClient : InspectorClient {
     // TODO: Probably need to detach from an existing process here
     selectedStream = stream
     selectedProcess = process
-    agentConnected = false
-    captureStarted = false
+    isConnected = false
+    isCapturing = false
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
@@ -166,15 +232,137 @@ object DefaultInspectorClient : InspectorClient {
       processId = process::getPid,
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
-      agentConnected = true
-      execute(LayoutInspectorCommand.newBuilder().setType(LayoutInspectorCommand.Type.START).build())
-      // TODO: verify that capture started successfully
+      isConnected = true
+      setDebugViewAttributes(selectedStream, true)
+      execute(LayoutInspectorCommand.Type.START)
 
+      // TODO: verify that capture started successfully
       transportPoller.unregisterListener(listener)
     }
     transportPoller.registerListener(listener)
 
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+  }
+
+  /**
+   * Attempt to connect to the specified [preferredProcess].
+   *
+   * The method called will retry itself up to MAX_RETRY_COUNT times.
+   */
+  override fun attach(preferredProcess: LayoutInspectorPreferredProcess) {
+    ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
+  }
+
+  private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
+    if (selectedStream != Common.Stream.getDefaultInstance() ||
+        selectedProcess != Common.Process.getDefaultInstance()) {
+      return
+    }
+    val processesMap = loadProcesses()
+    for ((stream, processes) in processesMap) {
+      if (preferredProcess.isDeviceMatch(stream.device)) {
+        for (process in processes) {
+          if (process.name == preferredProcess.packageName) {
+            attach(stream, process)
+            return
+          }
+        }
+      }
+    }
+    if (timesAttempted < MAX_RETRY_COUNT) {
+      JobScheduler.getScheduler().schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
+    }
+  }
+
+  private fun setDebugViewAttributes(stream: Common.Stream, enable: Boolean) {
+    adb?.let { future ->
+      Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
+        override fun onSuccess(bridge: AndroidDebugBridge?) {
+          var success = false
+          try {
+            success = bridge?.let { setDebugViewAttributes(it, stream, enable) } ?: false
+          }
+          catch (ex: Exception) {
+          }
+          if (!success && !enable) {
+            reportUnableToResetGlobalSettings()
+          }
+        }
+
+        override fun onFailure(ex: Throwable) {
+          if (!enable) {
+            reportUnableToResetGlobalSettings()
+          }
+        }
+      }, EdtExecutor.INSTANCE)
+    }
+  }
+
+  private fun reportUnableToResetGlobalSettings() {
+    ApplicationManager.getApplication().invokeLater {
+      val commands = createAdbDebugViewCommand(false)
+      var message = """Could not reset the state on your device.
+
+                       To fix this run the layout inspector again or manually run these commands:
+                       """.trimIndent()
+      commands.forEach { message += "\n $ abd shell $it" }
+
+      val dialog = dialog(
+        title = "Unable to connect to your device",
+        panel = panel {
+          row(JLabel(UIUtil.getErrorIcon())) {}
+          noteRow(message)
+        },
+        createActions = { listOf(OkButtonAction()) },
+        project = project)
+      dialog.show()
+    }
+  }
+
+  private class OkButtonAction : AbstractAction("OK") {
+    init {
+      putValue(DialogWrapper.DEFAULT_ACTION, true)
+    }
+
+    override fun actionPerformed(event: ActionEvent) {
+      val wrapper = DialogWrapper.findInstance(event.source as? Component)
+      wrapper?.close(DialogWrapper.OK_EXIT_CODE)
+    }
+  }
+
+
+  private fun setDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, enable: Boolean): Boolean {
+    val device = bridge.devices.find { isDeviceMatch(stream.device, it) } ?: return false
+    val receiver = CollectingOutputReceiver()
+    val commands = createAdbDebugViewCommand(enable)
+    if (!enable || selectedStream == stream) {
+      commands.forEach { device.executeShellCommand(it, receiver) }
+    }
+    return true
+  }
+
+  private fun createAdbDebugViewCommand(enable: Boolean): List<String> {
+    val packageName = findPackageName()
+    return when {
+      !enable -> listOf("settings delete global debug_view_attributes",
+                        "settings delete global debug_view_attributes_application_package")
+      packageName.isNotEmpty() -> listOf("settings put global debug_view_attributes_application_package $packageName")
+      else -> listOf("settings put global debug_view_attributes 1")
+    }
+  }
+
+  private fun findPackageName(): String {
+    var packageName = ""
+    for (module in ModuleManager.getInstance(project).modules) {
+      val modulePackageName = (AndroidFacet.getInstance(module) ?: continue).manifest?.`package`?.value ?: continue
+      if (packageName.isNotEmpty()) {
+        // Multiple Android package names:
+        return ""
+      }
+      packageName = modulePackageName
+    }
+    // Found a single Android package name:
+    return packageName
   }
 
   /**

@@ -20,6 +20,7 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static java.util.Arrays.asList;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;

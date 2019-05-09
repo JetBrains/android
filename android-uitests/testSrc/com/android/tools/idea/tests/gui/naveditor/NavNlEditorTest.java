@@ -229,16 +229,15 @@ public class NavNlEditorTest {
 
   @Test
   public void testAddDependency() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane().clickPath("app");
-    frame.invokeMenuPath("File", "New", "Android Resource File");
-    CreateResourceFileDialogFixture.find(frame)
-                                   .setFilename("nav")
-                                   .setType("navigation")
-                                   .clickOk();
-    GuiTests.findAndClickOkButton(frame.waitForDialog("Add Project Dependency"));
-    guiTest
-      .ideFrame()
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
+      .setFilename("nav")
+      .setType("navigation")
+      .clickOkAndWaitForDependencyDialog()
+      .clickOk()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .getLayoutEditor(false)
@@ -257,22 +256,23 @@ public class NavNlEditorTest {
 
   @Test
   public void testCancelAddDependency() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane().clickPath("app");
-    frame.invokeMenuPath("File", "New", "Android Resource File");
-    CreateResourceFileDialogFixture.find(frame)
-                                   .setFilename("nav")
-                                   .setType("navigation")
-                                   .clickOk();
-    GuiTests.findAndClickCancelButton(frame.waitForDialog("Add Project Dependency"));
-    GuiTests.findAndClickOkButton(frame.waitForDialog("Failed to Add Dependency"));
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
+      .setFilename("nav")
+      .setType("navigation")
+      .clickOkAndWaitForDependencyDialog()
+      .clickCancel()
+      .clickOk();
     assertFalse(guiTest
                   .ideFrame()
                   .getEditor()
                   .getLayoutEditor(false, false)
                   .canInteractWithSurface());
 
-    frame
+    guiTest.ideFrame()
       .getEditor()
       .open("app/build.gradle")
       .moveBetween("", "testImplementation")

@@ -17,13 +17,36 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.profiler.proto.Common
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.ui.Messages
 import kotlin.properties.Delegates
+
+// TODO: Set this to false before turning the dynamic layout inspector on by default
+private const val DEBUG = true
 
 class LayoutInspector(layoutInspectorModel: InspectorModel) {
   val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
-  val client = InspectorClient.instance
+  val client = InspectorClient.createOrGetDefaultInstance(layoutInspectorModel.project)
+
+  init {
+    client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::showError)
+  }
 
   var layoutInspectorModel: InspectorModel by Delegates.observable(layoutInspectorModel) { _, old, new ->
     modelChangeListeners.forEach { it(old, new) }
+  }
+
+  private fun showError(event: LayoutInspectorProto.LayoutInspectorEvent) {
+    Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(event.errorMessage)
+
+    @Suppress("ConstantConditionIf")
+    if (DEBUG) {
+      ApplicationManager.getApplication().invokeLater {
+        Messages.showErrorDialog(layoutInspectorModel.project, event.errorMessage, "Inspector Error")
+      }
+    }
   }
 }

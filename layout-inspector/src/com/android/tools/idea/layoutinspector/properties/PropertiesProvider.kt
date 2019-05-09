@@ -16,8 +16,9 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
@@ -39,20 +40,16 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
   private val client: InspectorClient?
     get() = model.client
 
-  fun requestProperties(view: InspectorView) {
-    if (view.id.isEmpty()) {
-      return
-    }
-    val id = view.id.toLong()
+  fun requestProperties(view: ViewNode) {
     val inspectorCommand = LayoutInspectorCommand.newBuilder()
       .setType(LayoutInspectorCommand.Type.GET_PROPERTIES)
-      .setViewId(id)
+      .setViewId(view.drawId)
       .build()
     client?.execute(inspectorCommand)
   }
 
-  fun loadProperties(event: LayoutInspectorEvent, expectedView: InspectorView?): PropertiesTable<InspectorPropertyItem> {
-    if (expectedView == null || expectedView.id.isEmpty() || event.properties.viewId != expectedView.id.toLong()) {
+  fun loadProperties(event: LayoutInspectorEvent, expectedView: ViewNode?): PropertiesTable<InspectorPropertyItem> {
+    if (expectedView == null || event.properties.viewId != expectedView.drawId) {
       return PropertiesTable.emptyTable()
     }
     val generator = Generator(event.properties, expectedView, model)
@@ -61,11 +58,12 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
 
   private class Generator(
     private val properties: PropertyEvent,
-    private val view: InspectorView,
+    private val view: ViewNode,
     private val model: InspectorPropertiesModel
   ) {
     // TODO: The module namespace probably should be retrieved from the module. Use the layout namespace for now:
-    private val stringTable = StringTable(properties.stringList, properties.layout.namespace)
+    private val stringTable = StringTable(properties.stringList)
+    private val layout = stringTable[properties.layout]
     private val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
 
     fun generate(): Table<String, String, InspectorPropertyItem> {
@@ -87,13 +85,19 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
           Type.INT64 -> fromInt64(property)?.toString()
           Type.DOUBLE -> fromDouble(property)?.toString()
           Type.FLOAT -> fromFloat(property)?.toString()
-          Type.RESOURCE -> stringTable[property.resourceValue]
+          Type.RESOURCE -> fromResource(property, layout)
           Type.COLOR -> fromColor(property)
           else -> ""
         }
         add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, isDeclared, source, view, model))
       }
       return table
+    }
+
+    private fun fromResource(property: Property, layout: ResourceReference?): String {
+      val reference = stringTable[property.resourceValue]
+      val url = layout?.let { reference?.getRelativeResourceUrl(layout.namespace) } ?: reference?.resourceUrl
+      return url?.toString() ?: ""
     }
 
     private fun fromFlags(flagValue: FlagValue): String {

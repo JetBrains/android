@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
@@ -77,7 +76,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
-  @Mock private GradleSyncSummary mySyncSummary;
   @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
@@ -99,7 +97,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
-    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     myProjectStructure = new ProjectStructureStub(project);
@@ -150,7 +147,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
   public void testSyncWithCachedModelsFinishedWithSyncIssues() {
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     long lastSyncTimestamp = 2L;
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
@@ -169,7 +166,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   public void testWithSyncIssueDuringProjectSetup() {
     // Simulate the case when sync issue happens during ProjectSetup.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(false).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     request.usingCachedGradleModels = false;
@@ -182,7 +179,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   }
 
   public void testWithExceptionDuringProjectSetup() {
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
     doThrow(new RuntimeException()).when(myProjectSetup).setUpProject(myProgressIndicator, false);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
@@ -203,7 +200,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
   public void testSyncFinishedWithSyncIssues() {
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     request.generateSourcesAfterSync = true;
@@ -226,13 +223,12 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
-
     verify(myGradleProjectInfo, times(1)).setNewProject(false);
     verify(myGradleProjectInfo, times(1)).setImportedProject(false);
   }
 
   public void testCleanIsInvokedWhenGeneratingSourcesAndPluginVersionsChanged() {
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     request.generateSourcesAfterSync = true;
@@ -262,7 +258,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     createAndroidModuleWithLanguageLevel("app", LanguageLevel.JDK_1_8);
     createAndroidModuleWithLanguageLevel("lib", LanguageLevel.JDK_1_7);
 
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myProgressIndicator, myTaskId, null);
 

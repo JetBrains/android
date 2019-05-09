@@ -57,7 +57,6 @@ public class GradleNotificationExtensionTest extends IdeaTestCase {
 
     myNotificationExtension.customize(myNotification, myProject, error);
 
-    verify(mySyncMessages, times(1)).removeProjectMessages();
     verify(myHandler1, times(1)).handleError(error, myNotification, myProject);
     verify(myHandler2, never()).handleError(error, myNotification, myProject);
   }

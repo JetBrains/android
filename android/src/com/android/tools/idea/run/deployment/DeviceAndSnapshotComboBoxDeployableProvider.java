@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
@@ -22,6 +24,8 @@ import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,9 +72,32 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       return myDevice.getAndroidVersion();
     }
 
+    @NotNull
     @Override
-    public boolean isApplicationRunningOnDeployable() {
-      return myDevice.isRunning(myPackageName);
+    public List<Client> searchClientsForPackage() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return Collections.emptyList();
+      }
+      return Deployable.searchClientsForPackage(iDevice, myPackageName);
+    }
+
+    @Override
+    public boolean isOnline() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
+      }
+      return iDevice.isOnline();
+    }
+
+    @Override
+    public boolean isUnauthorized() {
+      IDevice iDevice = myDevice.getDdmlibDevice();
+      if (iDevice == null) {
+        return false;
+      }
+      return iDevice.getState() == IDevice.DeviceState.UNAUTHORIZED;
     }
   }
 }

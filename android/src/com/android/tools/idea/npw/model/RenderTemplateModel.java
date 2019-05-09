@@ -23,6 +23,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.flags.StudioFlags;
@@ -51,12 +53,10 @@ import com.google.common.collect.Maps;
 import com.intellij.ide.scratch.ScratchFileService;
 import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -209,9 +209,11 @@ public final class RenderTemplateModel extends WizardModel {
     return myAndroidSdkInfo;
   }
 
+  @NotNull
   public List<File> getCreatedFiles() {
     return myCreatedFiles;
   }
+
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
@@ -230,7 +232,10 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   private class FreeMarkerTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
+    final List<File> myFilesToReformat = Lists.newArrayList();
+    private boolean myRenderSuccess;
 
+    @WorkerThread
     @Override
     public void init() {
       AndroidModuleTemplate paths = myTemplates.get().getPaths();
@@ -264,6 +269,7 @@ public final class RenderTemplateModel extends WizardModel {
       }
     }
 
+    @WorkerThread
     @Override
     public boolean doDryRun() {
       if (!myProject.get().isPresent() || myTemplateHandle == null) {
@@ -277,45 +283,50 @@ public final class RenderTemplateModel extends WizardModel {
       return renderTemplate(true, project, paths, null, null);
     }
 
+    @WorkerThread
     @Override
     public void render() {
       final AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
-      final List<File> filesToReformat = Lists.newArrayList();
 
-      boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
-        @Override
-        protected void run(@NotNull Result<Boolean> result) {
-          boolean success = renderTemplate(false, project, paths, myCreatedFiles, filesToReformat);
+      try {
+        WriteCommandAction.writeCommandAction(project).withName(myCommandName).run(() -> {
+          boolean success = renderTemplate(false, project, paths, myCreatedFiles, myFilesToReformat);
           if (success && myIconGenerator != null) {
             myIconGenerator.generateIconsToDisk(paths);
           }
+          myRenderSuccess = success;
+        });
+      }
+      catch (Throwable ignored) {
+      }
+    }
 
-          result.setResult(success);
-        }
-      }.execute().getResultObject();
+    @UiThread
+    @Override
+    public void finish() {
+      if (!myRenderSuccess) {
+        return;
+      }
 
-      if (success) {
-        if (isKotlinTemplate()) {
-          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, () -> {
-            // replace .java w/ .kt files
-            for (int i = 0; i < myCreatedFiles.size(); i++) {
-              File file = myCreatedFiles.get(i);
-              if (file.getName().endsWith(DOT_JAVA)) {
-                File ktFile =
-                  new File(file.getParent(), file.getName().replace(DOT_JAVA, DOT_KT));
-                myCreatedFiles.set(i, ktFile);
-              }
+      final Project project = myProject.getValue();
+      if (isKotlinTemplate()) {
+        JavaToKotlinHandler.convertJavaFilesToKotlin(project, myFilesToReformat, () -> {
+          // replace .java w/ .kt files
+          for (int i = 0; i < myCreatedFiles.size(); i++) {
+            File file = myCreatedFiles.get(i);
+            if (file.getName().endsWith(DOT_JAVA)) {
+              File ktFile = new File(file.getParent(), file.getName().replace(DOT_JAVA, DOT_KT));
+              myCreatedFiles.set(i, ktFile);
             }
-            if (myShouldOpenFiles) {
-              TemplateUtils.openEditors(project, myCreatedFiles, true);
-            }
-          });
-        }
-        else if (myShouldOpenFiles) {
-          // calling smartInvokeLater will make sure that files are open only when the project is ready
-          DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, myCreatedFiles, true));
-        }
+          }
+          if (myShouldOpenFiles) {
+            TemplateUtils.openEditors(project, myCreatedFiles, true);
+          }
+        });
+      }
+      else if (myShouldOpenFiles) {
+        TemplateUtils.openEditors(project, myCreatedFiles, true);
       }
     }
 
@@ -346,18 +357,16 @@ public final class RenderTemplateModel extends WizardModel {
         myTemplateValues.put(ACTIVITY_TEMPLATE_NAME, StringUtils.deleteWhitespace(template.getMetadata().getTitle()));
       }
 
-      // @formatter:off
-    final RenderingContext context = RenderingContext.Builder.newContext(template, project)
-      .withCommandName(myCommandName)
-      .withDryRun(dryRun)
-      .withShowErrors(true)
-      .withModuleRoot(paths.getModuleRoot())
-      .withModule(getModule())
-      .withParams(myTemplateValues)
-      .intoOpenFiles(filesToOpen)
-      .intoTargetFiles(filesToReformat)
-      .build();
-    // @formatter:on
+      final RenderingContext context = RenderingContext.Builder.newContext(template, project)
+        .withCommandName(myCommandName)
+        .withDryRun(dryRun)
+        .withShowErrors(true)
+        .withModuleRoot(paths.getModuleRoot())
+        .withModule(getModule())
+        .withParams(myTemplateValues)
+        .intoOpenFiles(filesToOpen)
+        .intoTargetFiles(filesToReformat)
+        .build();
       return template.render(context, dryRun);
     }
   }

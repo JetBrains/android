@@ -28,11 +28,11 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
-import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
+import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
@@ -90,7 +90,7 @@ public class AndroidStudioInitializer implements Runnable {
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
     renameSynchronizeAction();
-    initializeCodeStyleDefaults();
+    initializeCodeStyleSettings();
     setupResourceManagerActions();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
@@ -277,8 +277,8 @@ public class AndroidStudioInitializer implements Runnable {
     action.getTemplatePresentation().setText("S_ync with File System", true);
   }
 
-  private static void initializeCodeStyleDefaults() {
-    AndroidCodeStyleSettings.initializeDefaults(PropertiesComponent.getInstance());
+  private static void initializeCodeStyleSettings() {
+    AndroidCodeStyleSettings.initialize(PropertiesComponent.getInstance());
   }
 
   @NotNull

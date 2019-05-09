@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model
+package com.android.tools.idea.common.model
 
 import com.android.SdkConstants.ANDROID_URI
-import com.android.tools.idea.common.model.NlComponent
 import com.intellij.util.xml.DomManager
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.AttributeProcessingUtil
@@ -36,7 +35,9 @@ fun getObsoleteAttributes(component: NlComponent): Set<QualifiedName> {
     validAttributes.add(QualifiedName(xmlName.namespaceKey ?: ANDROID_URI, attributeDefinition.name))
     return@processAttributes null
   }
-  val currentAttibutes = tag.attributes.map { attibute -> QualifiedName(attibute.namespace, attibute.localName) }.toList()
+  val currentAttibutes = tag.attributes.map { attibute ->
+    QualifiedName(attibute.namespace, attibute.localName)
+  }.toList()
   return currentAttibutes.subtract(validAttributes)
 }
 
