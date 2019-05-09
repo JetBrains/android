@@ -1410,26 +1410,6 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_layout_after.xml", true)
   }
 
-  fun testAndroidPrefixCompletion1() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
-  fun testAndroidPrefixCompletion2() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
-  fun testAndroidPrefixCompletion3() {
-    doTestAndroidPrefixCompletion(null)
-  }
-
-  fun testAndroidPrefixCompletion4() {
-    doTestAndroidPrefixCompletion("andr:")
-  }
-
-  fun testAndroidPrefixCompletion5() {
-    doTestAndroidPrefixCompletion(null)
-  }
-
   fun testCreateResourceFromUsage1() {
     val virtualFile = copyFileToProject(getTestName(true) + ".xml")
     doCreateFileResourceFromUsage(virtualFile)
