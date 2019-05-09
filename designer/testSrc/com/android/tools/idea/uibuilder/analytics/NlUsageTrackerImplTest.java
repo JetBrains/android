@@ -31,7 +31,6 @@ import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.resources.ScreenOrientation.PORTRAIT;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertEditTextViewOption;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertFilterMatches;
@@ -65,24 +64,12 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.State;
-import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.AnalyticsSettingsData;
-import com.android.tools.analytics.LoggedUsage;
-import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.idea.common.analytics.BaseUsageTrackerImplTest;
 import com.android.tools.idea.common.analytics.UsageTrackerUtilTest;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.HtmlLinkManager;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
@@ -91,28 +78,19 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
-import com.google.wireless.android.sdk.stats.LayoutEditorState;
 import com.google.wireless.android.sdk.stats.LayoutFavoriteAttributeChangeEvent;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
 import com.google.wireless.android.sdk.stats.SearchOption;
-import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.ui.UIUtil;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
@@ -121,8 +99,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 import org.picocontainer.MutablePicoContainer;
 
-public class NlUsageTrackerImplTest extends AndroidTestCase {
-  private static final Executor SYNC_EXECUTOR = Runnable::run;
+public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private static final String ATTR_CUSTOM_NAME = "MyCustomPropertyName";
 
   @Language("XML")
@@ -139,92 +116,6 @@ public class NlUsageTrackerImplTest extends AndroidTestCase {
   private AttributeDefinition myElevationDefinition;
   private AttributeDefinition myTextDefinition;
   private AttributeDefinition myCustomDefinition;
-  private final VirtualTimeScheduler myVirtualTimeScheduler = new VirtualTimeScheduler();
-  private TestUsageTracker usageTracker;
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-
-    AnalyticsSettingsData settings = new AnalyticsSettingsData();
-    AnalyticsSettings.setInstanceForTest(settings);
-    usageTracker = new TestUsageTracker(myVirtualTimeScheduler);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      usageTracker.close();
-    } finally {
-      super.tearDown();
-    }
-  }
-
-  @NotNull
-  private AndroidStudioEvent getLastLogUsage() {
-    List<LoggedUsage> usages = usageTracker.getUsages();
-    assertNotEmpty(usages);
-    return usages.get(usages.size() - 1).getStudioEvent();
-  }
-
-  // b/110242994
-  public void ignore_testBasicLogging() {
-    NlUsageTracker tracker = getUsageTracker();
-
-    tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    assertEquals(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR, studioEvent.getCategory());
-    assertEquals(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT, studioEvent.getKind());
-    assertEquals(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE,
-                 studioEvent.getLayoutEditorEvent().getType());
-    // Verify state
-    LayoutEditorState state = studioEvent.getLayoutEditorEvent().getState();
-    assertEquals(LayoutEditorState.Type.LAYOUT, state.getType());
-    assertEquals(LayoutEditorState.Surfaces.BOTH, state.getSurfaces());
-    assertEquals(SystemInfo.isMac && UIUtil.isRetina() ? 100 : 50, state.getConfigZoomLevel());
-    assertEquals("mock", state.getConfigApiLevel());
-    assertEquals(LayoutEditorState.Orientation.PORTRAIT, state.getConfigOrientation());
-    usageTracker.getUsages().clear();
-
-    tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
-    studioEvent = getLastLogUsage();
-    assertEquals(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL,
-                 studioEvent.getLayoutEditorEvent().getType());
-
-    tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
-    studioEvent = getLastLogUsage();
-    assertEquals(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL,
-                 studioEvent.getLayoutEditorEvent().getType());
-  }
-
-  public void testRenderLogging() {
-    NlUsageTracker tracker = getUsageTracker();
-
-    Result renderResult = mock (Result.class);
-    when(renderResult.getStatus()).thenReturn(Result.Status.SUCCESS);
-    HtmlLinkManager linkManager = mock(HtmlLinkManager.class);
-    RenderLogger logger = mock(RenderLogger.class);
-    when(logger.getLinkManager()).thenReturn(linkManager);
-    ImmutableMap<String, Throwable> brokenClasses = ImmutableMap.of("com.test.mock", new Throwable("mock error"));
-    when(logger.getBrokenClasses()).thenReturn(brokenClasses);
-    RenderResult result = mock(RenderResult.class);
-    ViewInfo rootView = new ViewInfo("ConstraintLayout", null, 0, 0, 50, 50);
-    rootView.setChildren(ImmutableList.of(new ViewInfo("TextView", null, 0, 0, 30, 20)));
-    when(result.getRootViews()).thenReturn(ImmutableList.of(rootView));
-    when(result.getRenderResult()).thenReturn(renderResult);
-    when(result.getLogger()).thenReturn(logger);
-    when(result.getModule()).thenReturn(new MockModule(getProject(), getTestRootDisposable()));
-
-    tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, 230);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutEditorRenderResult loggedResult = studioEvent.getLayoutEditorEvent().getRenderResult();
-    assertEquals(Result.Status.SUCCESS.ordinal(), loggedResult.getResultCode());
-    assertEquals(230, loggedResult.getTotalRenderTimeMs());
-    assertEquals(2, loggedResult.getComponentCount());
-    assertEquals(1, loggedResult.getTotalIssueCount());
-    assertEquals(1, loggedResult.getErrorCount());
-    assertEquals(0, loggedResult.getFidelityWarningCount());
-  }
 
   public void testPaletteDropLogging() {
     NlUsageTracker tracker = getUsageTracker();
@@ -458,35 +349,17 @@ public class NlUsageTrackerImplTest extends AndroidTestCase {
     assertThat(logged.getActive(0).getAttributeName()).isEqualTo(ATTR_ELEVATION);
   }
 
-  private NlUsageTracker getUsageTracker() {
+  protected NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
     when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
+    NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
+    when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);
 
-    return new NlUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
-      @Override
-      boolean shouldLog(int percent) {
-        // Log everything in tests
-        return true;
-      }
-    };
-  }
-
-  private static Configuration getConfigurationMock() {
-    IAndroidTarget target = mock(IAndroidTarget.class);
-    when(target.getVersion()).thenReturn(new AndroidVersion(0, "mock"));
-
-    State state = mock(State.class);
-    when(state.getOrientation()).thenReturn(PORTRAIT);
-
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getTarget()).thenReturn(target);
-    when(configuration.getDeviceState()).thenReturn(state);
-
-    return configuration;
+    return new NlUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow);
   }
 
   private void initNeleModelMocks() {
