@@ -114,6 +114,12 @@ public final class StudioFlags {
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
+  public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(
+    PROFILER, "cpu.capture.stage", "Enable new capture stage",
+    "With the new System Trace design we have a cpu capture stage. This flag uses that flow instead of the legacy " +
+    "CpuProfilerStageView flow.",
+    false);
+
   public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
     PROFILER, "event.fragment", "Enable fragment profiling",
     "Shows fragment information in event profiler's activity bar and tooltip.",

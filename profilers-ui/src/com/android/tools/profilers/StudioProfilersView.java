@@ -30,6 +30,8 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.cpu.CpuCaptureStage;
+import com.android.tools.profilers.cpu.CpuCaptureStageView;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -149,6 +151,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder = new ViewBinder<>();
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
+    myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);

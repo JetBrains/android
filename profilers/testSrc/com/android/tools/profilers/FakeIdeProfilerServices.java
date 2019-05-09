@@ -167,6 +167,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLiveAllocationsSamplingEnabled = true;
 
   /**
+   * Toggle for cpu capture stage switching vs cpu profiler stage when handling captures.
+   */
+  private boolean myIsCaptureStageEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -263,6 +268,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
+
+      @Override
+      public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
 
       @Override
       public boolean isCpuNewRecordingWorkflowEnabled() {
@@ -488,4 +496,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableLiveAllocationsSampling(boolean enabled) {
     myLiveAllocationsSamplingEnabled = enabled;
   }
+
+  public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
 }
