@@ -16,14 +16,11 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
 
 /**
- * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on bottom
- * and the provided [JComponent] on top.
+ * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on bottom and the provided [JComponent] on top.
  */
 class IssuePanelSplitter(
     val surface: DesignSurface,
@@ -58,11 +55,7 @@ class IssuePanelSplitter(
   }
 
   private fun createIssuePanelMinimizeListener(issuePanel: IssuePanel) = IssuePanel.MinimizeListener { isMinimized ->
-    NlUsageTracker.getInstance(surface).logAction(
-        if (isMinimized)
-          LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL
-        else
-          LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL)
+    surface.analyticsManager.trackIssuePanel(isMinimized)
     updateSplitter(isMinimized, issuePanel.suggestedHeight)
 
     // Do not resize surface's content while opening the splitter

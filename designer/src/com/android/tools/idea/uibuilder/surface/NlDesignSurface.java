@@ -25,6 +25,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
@@ -101,11 +102,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private final RenderListener myRenderListener = this::modelRendered;
   private RenderIssueProvider myRenderIssueProvider;
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
+  @NotNull private final NlAnalyticsManager myAnalyticsManager;
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
     super(project, new SelectionModel(), parentDisposable);
     myInPreview = inPreview;
+    myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
+  }
+
+  @NotNull
+  @Override
+  public NlAnalyticsManager getAnalyticsManager() {
+    return myAnalyticsManager;
   }
 
   public boolean isPreviewSurface() {

@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -52,7 +53,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -67,7 +68,6 @@ import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -92,7 +92,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -895,21 +894,22 @@ public class LayoutlibSceneManager extends SceneManager {
     if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
+      NlAnalyticsManager analyticsManager = ((NlDesignSurface)surface).getAnalyticsManager();
       if (!StringUtil.equals(configuration.getTheme(), myPreviousTheme)) {
         myPreviousTheme = configuration.getTheme();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+        analyticsManager.trackThemeChange();
       }
       else if (configuration.getTarget() != null && !StringUtil.equals(configuration.getTarget().getVersionName(), myPreviousVersion)) {
         myPreviousVersion = configuration.getTarget().getVersionName();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+        analyticsManager.trackApiLevelChange();
       }
       else if (!configuration.getLocale().equals(myPreviousLocale)) {
         myPreviousLocale = configuration.getLocale();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+        analyticsManager.trackLanguageChange();
       }
       else if (configuration.getDevice() != null && !StringUtil.equals(configuration.getDevice().getDisplayName(), myPreviousDeviceName)) {
         myPreviousDeviceName = configuration.getDevice().getDisplayName();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+        analyticsManager.trackDeviceChange();
       }
     }
   }
@@ -948,9 +948,7 @@ public class LayoutlibSceneManager extends SceneManager {
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
                                                                         myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
-            NlUsageTracker.getInstance(surface).logRenderResult(trigger,
-                                                                myRenderResult,
-                                                                renderTimeMs);
+            CommonUsageTracker.Companion.getInstance(surface).logRenderResult(trigger, myRenderResult, renderTimeMs);
           }
           finally {
             myRenderResultLock.readLock().unlock();
