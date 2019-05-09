@@ -84,8 +84,11 @@ public class CpuProfiler extends StudioProfiler {
       // Open a CpuProfilerStage in import mode when selecting an imported session.
       long sessionId = myProfilers.getSession().getSessionId();
       assert mySessionTraceFiles.containsKey(sessionId);
-      CpuProfilerStage stage = new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(sessionId));
-      myProfilers.setStage(stage);
+      if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+        myProfilers.setStage(new CpuCaptureStage(myProfilers, mySessionTraceFiles.get(sessionId)));
+      } else {
+        myProfilers.setStage(new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(sessionId)));
+      }
     });
   }
 

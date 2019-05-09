@@ -572,6 +572,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(status.getStatus()));
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
+    else if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      goToCaptureStage(response.getTraceId());
+    }
     else {
       // Cache the capture metadata, it will be log when the capture is parsed the next time.
       myCaptureParser.trackCaptureMetadata(response.getTraceId(), captureMetadata);
@@ -581,6 +584,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (myProfilerConfigModel.getProfilingConfiguration().isDisableLiveAllocation()) {
       getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     }
+  }
+
+  private void goToCaptureStage(long traceId) {
+    getStudioProfilers().getIdeServices().getMainExecutor()
+      .execute(() -> getStudioProfilers().setStage(new CpuCaptureStage(getStudioProfilers(), traceId)));
   }
 
   @NotNull
@@ -765,22 +773,30 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void setAndSelectCapture(long traceId) {
-    CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
-    if (future == null) {
-      setCaptureState(myInProgressTraceInfo.equals(Cpu.CpuTraceInfo.getDefaultInstance()) ? CaptureState.IDLE : CaptureState.CAPTURING);
-    }
-    else {
-      future.handleAsync((capture, exception) -> {
+    // This workflow is called when a capture is clicked in the UI.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      // TODO (b/132268755): Request / Get Trace file if cached for CpuCaptureStage. Consider if we need to change how this is triggered.
+      // Not implemented due to not yet parsing / loading traces in the CpuCaptureStage.
+      goToCaptureStage(traceId);
+    } else {
+      CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
+      if (future == null) {
         setCaptureState(myInProgressTraceInfo.equals(Cpu.CpuTraceInfo.getDefaultInstance()) ? CaptureState.IDLE : CaptureState.CAPTURING);
-        if (capture != null) {
-          setAndSelectCapture(capture);
-          setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
-        }
-        return capture;
-      }, getStudioProfilers().getIdeServices().getMainExecutor());
+      }
+      else {
+        future.handleAsync((capture, exception) -> {
+          setCaptureState(myInProgressTraceInfo.equals(Cpu.CpuTraceInfo.getDefaultInstance()) ? CaptureState.IDLE : CaptureState.CAPTURING);
+          if (capture != null) {
+            setAndSelectCapture(capture);
+            setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
+          }
+          return capture;
+        }, getStudioProfilers().getIdeServices().getMainExecutor());
+      }
     }
   }
 
+  @VisibleForTesting
   public void setAndSelectCapture(@NotNull CpuCapture capture) {
     // We must build the thread model before setting the capture, otherwise we won't be able to properly select the thread after
     // CpuCaptureModel#setCapture updates the thread id.
