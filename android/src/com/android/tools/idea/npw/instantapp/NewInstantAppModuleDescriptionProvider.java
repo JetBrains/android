@@ -109,7 +109,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), true);
-      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateHandle.getMetadata().getMinSdk(), basePackage, true, true,
+      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateHandle.getMetadata().getMinSdk(), basePackage,
                                             getDescription());
     }
   }
