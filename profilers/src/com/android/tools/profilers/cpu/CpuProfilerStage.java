@@ -682,11 +682,17 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  private ByteString preProcessTrace(ByteString trace) {
+  private boolean needsPreProcessTrace() {
     // For simpleperf captures, if the flag is enabled, we need to pre-process the raw traces obtained from the device to the format that
     // can be parsed by SimpleperfTraceParser.
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isSimpleperfHostEnabled()
-        && myProfilerConfigModel.getProfilingConfiguration().getTraceType() == CpuTraceType.SIMPLEPERF) {
+    return (getStudioProfilers().getIdeServices().getFeatureConfig().isSimpleperfHostEnabled()
+        && myProfilerConfigModel.getProfilingConfiguration().getTraceType() == CpuTraceType.SIMPLEPERF);
+
+  }
+
+  private ByteString preProcessTrace(ByteString trace) {
+    if (needsPreProcessTrace()) {
+      assert myProfilerConfigModel.getProfilingConfiguration().getTraceType() == CpuTraceType.SIMPLEPERF;
       return getStudioProfilers().getIdeServices().getSimpleperfTracePreProcessor().preProcessTrace(trace);
     }
     return trace;
@@ -743,7 +749,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {
           saveTraceInfo(CpuCaptureParser.IMPORTED_TRACE_ID, parsedCapture,
                         // We don't know the CpuTraceMode used to generate the trace.
-                        CpuTraceMode.UNSPECIFIED_MODE);
+                        CpuTraceMode.UNSPECIFIED_MODE,
+                        // No need to update the trace content ever in import-trace mode.
+                        null);
           myTraceIdsIterator.addTrace(CpuCaptureParser.IMPORTED_TRACE_ID);
         }
         // Track import trace success
@@ -795,7 +803,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
-        saveTraceInfo(traceId, parsedCapture, myProfilerConfigModel.getProfilingConfiguration().getMode());
+        ByteString preprocessedTraceBytes = null;
+        if (needsPreProcessTrace()) {
+          preprocessedTraceBytes = traceBytes;
+        }
+        saveTraceInfo(traceId, parsedCapture, myProfilerConfigModel.getProfilingConfiguration().getMode(), preprocessedTraceBytes);
 
         // Update capture metadata
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
@@ -843,7 +855,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }
 
-  private void saveTraceInfo(long traceId, @NotNull CpuCapture capture, CpuTraceMode mode) {
+  private void saveTraceInfo(long traceId, @NotNull CpuCapture capture, CpuTraceMode mode, @Nullable ByteString preprocessedTrace) {
     long captureFrom = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin());
     long captureTo = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax());
 
@@ -858,11 +870,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setTraceFilePath(Strings.nullToEmpty(myCaptureParser.getTraceFilePath(traceId)))
       .addAllTids(threadIds).build();
 
-    SaveTraceInfoRequest request = SaveTraceInfoRequest.newBuilder()
+    SaveTraceInfoRequest.Builder requestBuilder = SaveTraceInfoRequest.newBuilder()
       .setSession(mySession)
-      .setTraceInfo(traceInfo)
-      .build();
-    getCpuClient().saveTraceInfo(request);
+      .setTraceInfo(traceInfo);
+    if (preprocessedTrace != null) {
+      requestBuilder.setPreprocessedTrace(preprocessedTrace);
+    }
+    getCpuClient().saveTraceInfo(requestBuilder.build());
   }
 
   /**
