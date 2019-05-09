@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.memorysettings;
 
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.project.AndroidNotification;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MemorySettings;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
@@ -36,29 +31,21 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.sun.management.OperatingSystemMXBean;
-import java.io.IOException;
 import java.util.Locale;
 import java.awt.Window;
 import org.jetbrains.annotations.Nullable;
-
 
 public class MemorySettingsUtil {
   private static final Logger LOG = Logger.getInstance(MemorySettingsUtil.class);
 
   // Show memory settings configuration only for machines with at least this much RAM.
   private static final int MIN_RAM_IN_GB_FOR_CONFIG = 5;
-
   private static final int LOW_IDE_XMX_CAP_IN_GB = 4;
   private static final int HIGH_IDE_XMX_CAP_IN_GB = 8;
 
-  private static final int LOW_GRADLE_DAEMON_XMX_IN_MB = 1024;
-  private static final int HIGH_GRADLE_DAEMON_XMX_IN_MB = 1536;
+  static final int NO_XMX_IN_VM_ARGS = -1;
 
-  public static final int MAX_GRADLE_DAEMON_XMX_IN_MB = 2048;
-  public static final int MAX_KOTLIN_DAEMON_XMX_IN_MB = 2048;
-  public static final int NO_XMX_IN_VM_ARGS = -1;
-
-  public static final int getIdeXmxCapInGB() {
+  static final int getIdeXmxCapInGB() {
     return StudioFlags.LOW_IDE_XMX_CAP.get() ? LOW_IDE_XMX_CAP_IN_GB : HIGH_IDE_XMX_CAP_IN_GB;
   }
 
@@ -93,55 +80,6 @@ public class MemorySettingsUtil {
     VMOptions.writeOption(VMOptions.MemoryKind.HEAP, newValue);
   }
 
-  @Nullable
-  public static Project getCurrentProject() {
-    Project result = null;
-    Window activeWindow = WindowManagerEx.getInstanceEx().getMostRecentFocusedWindow();
-    if (activeWindow != null) {
-      result = CommonDataKeys.PROJECT
-        .getData(DataManager.getInstance().getDataContext(activeWindow));
-    }
-    return result;
-  }
-
-  public static int getDefaultGradleDaemonXmx() {
-    return SystemInfo.is32Bit ? LOW_GRADLE_DAEMON_XMX_IN_MB : HIGH_GRADLE_DAEMON_XMX_IN_MB;
-  }
-
-  public static int getProjectGradleDaemonXmx() {
-    return DaemonMemorySettingsUtil.getGradleDaemonXmx(getCurrentProjectProperties());
-  }
-
-  public static int getDefaultKotlinDaemonXmx() {
-    // Kotlin Daemon inherits the memory settings from the Gradle daemon, unless specified explicitly.
-    return getProjectGradleDaemonXmx();
-  }
-
-  public static int getProjectKotlinDaemonXmx() {
-    int xmx = DaemonMemorySettingsUtil.getKotlinDaemonXmx(getCurrentProjectProperties());
-    return xmx > 0 ? xmx : getDefaultKotlinDaemonXmx();
-  }
-
-
-  @Nullable
-  public static GradleProperties getCurrentProjectProperties() {
-    return getProjectProperties(getCurrentProject());
-  }
-
-  public static void saveProjectDaemonXmx(int newGradleValue, int newKotlinValue) {
-    LOG.info(String.format(Locale.US, "saving new daemon Xmx value: Gradle %d, Kotlin %d", newGradleValue, newKotlinValue));
-    Project project = getCurrentProject();
-    GradleProperties properties = getProjectProperties(project);
-    if (properties == null) {
-      reportSaveError(project, "Null gradle properties", null);
-    } else try {
-      DaemonMemorySettingsUtil.setDaemonXmx(getProjectProperties(project), newGradleValue, newKotlinValue);
-    } catch (IOException e) {
-      String err = "Failed to save new Xmx value to gradle.properties";
-      reportSaveError(project, err, e);
-    }
-  }
-
   public static void log(MemorySettingsEvent.EventKind kind,
                          int currentIdeXmx, int currentGradleXmx, int currentKotlinXmx,
                          int recommendedIdeXmx, int recommendedGradleXmx, int recommendedKotlinXmx,
@@ -160,6 +98,17 @@ public class MemorySettingsUtil {
     }
   }
 
+  @Nullable
+  static Project getCurrentProject() {
+    Project result = null;
+    Window activeWindow = WindowManagerEx.getInstanceEx().getMostRecentFocusedWindow();
+    if (activeWindow != null) {
+      result = CommonDataKeys.PROJECT
+        .getData(DataManager.getInstance().getDataContext(activeWindow));
+    }
+    return result;
+  }
+
   private static MemorySettings.Builder createMemorySettings(int ideXmx, int gradleXmx, int kotlinXmx) {
     MemorySettings.Builder builder = MemorySettings.newBuilder();
     if (ideXmx > 0) {
@@ -173,25 +122,4 @@ public class MemorySettingsUtil {
     }
     return builder;
   }
-
-  private static void reportSaveError(Project project, String message, @Nullable Exception e) {
-    LOG.info(message, e);
-    if (e != null) {
-      String cause = e.getMessage();
-      if (isNotEmpty(cause)) {
-        message += String.format("<br>\nCause: %1$s", cause);
-      }
-    }
-    AndroidNotification.getInstance(project).showBalloon("Gradle Settings", message, ERROR);
-  }
-
-  @Nullable
-  private static GradleProperties getProjectProperties(Project project) {
-    try {
-      return project != null ? new GradleProperties(project) : null;
-    } catch (IOException e) {
-      return null;
-    }
-  }
-
 }
