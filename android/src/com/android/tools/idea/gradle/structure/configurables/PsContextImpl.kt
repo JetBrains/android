@@ -37,6 +37,7 @@ import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
@@ -45,6 +46,7 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.ExceptionUtil
 import java.util.function.Consumer
 
+private val LOG = Logger.getInstance(PsContextImpl::class.java)
 class PsContextImpl constructor(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
@@ -125,10 +127,12 @@ class PsContextImpl constructor(
     gradleSyncEventDispatcher.multicaster.syncStarted(project, false)
     gradleSync
       .requestProjectResolved(project, this)
-      .handleFailureOnEdt {
-        gradleSyncEventDispatcher.multicaster.syncFailed(project, it?.let { e -> ExceptionUtil.getRootCause(e).message }.orEmpty())
+      .handleFailureOnEdt {ex ->
+        LOG.warn("PSD failed to fetch Gradle models.", ex)
+        gradleSyncEventDispatcher.multicaster.syncFailed(project, ex?.let { e -> ExceptionUtil.getRootCause(e).message }.orEmpty())
       }
       .continueOnEdt {
+        LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
         this.project.refreshFrom(it)
         gradleSyncEventDispatcher.multicaster.syncSucceeded(project)
         this.project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
