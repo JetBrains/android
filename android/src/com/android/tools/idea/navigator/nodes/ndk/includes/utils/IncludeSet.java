@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +94,11 @@ public class IncludeSet {
         if (appendUsrInclude) {
           compilerFlag = getSysrootEquivalentPath(compilerFlag);
         }
-        includeFolders.add(compilerFlag);
+        // b/132348328 -- compilerFlag can be null for as-yet unknown reasons. Guard against it here but also:
+        // TODO(jomof) review model creation code to figure out why settings array value may be null
+        if (compilerFlag != null) {
+          includeFolders.add(compilerFlag);
+        }
         useNextFlagAsInclude = false;
         continue;
       }
@@ -122,7 +127,8 @@ public class IncludeSet {
   /**
    * Add a single include to the set. Convert to full path if it is relative. Remove end separator if present.
    */
-  public void add(@NotNull String include, @Nullable File compilerWorkingFolder) {
+  @VisibleForTesting
+  void add(@NotNull String include, @Nullable File compilerWorkingFolder) {
     String includePath = include;
     if (compilerWorkingFolder != null) {
       includePath = FilenameUtils.concat(compilerWorkingFolder.getAbsolutePath(), includePath);
