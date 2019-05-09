@@ -45,7 +45,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     ArrayList<ModuleTemplateGalleryEntry> res = new ArrayList<>();
 
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
+    List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
     for (File templateFile : applicationTemplates) {
       TemplateMetadata metadata = manager.getTemplateMetadata(templateFile);
       if (metadata == null || metadata.getFormFactor() == null) {
@@ -153,7 +153,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), false);
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, isLibrary(), false, myName);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, myName);
     }
   }
 }
