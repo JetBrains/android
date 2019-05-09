@@ -156,7 +156,6 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
           attrName.getPsi() != position) {
         return;
       }
-      addAndroidPrefixElement(position, parent, resultSet);
       final XmlAttribute attribute = (XmlAttribute)parent;
       final String namespace = attribute.getNamespace();
 
@@ -282,30 +281,6 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
         return null;
       });
     }
-  }
-
-  private static void addAndroidPrefixElement(PsiElement position, PsiElement parent, CompletionResultSet resultSet) {
-    if (position.getText().startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-      return;
-    }
-
-    final PsiElement grandparent = parent.getParent();
-    if (!(grandparent instanceof XmlTag)) {
-      return;
-    }
-
-    final DomElement element = DomManager.getDomManager(grandparent.getProject()).getDomElement((XmlTag)grandparent);
-    if (!(element instanceof LayoutElement) &&
-        !(element instanceof PreferenceElement)) {
-      return;
-    }
-
-    final String prefix = ((XmlTag)grandparent).getPrefixByNamespace(SdkConstants.ANDROID_URI);
-    if (prefix == null || prefix.length() < 3) {
-      return;
-    }
-    final LookupElementBuilder e = LookupElementBuilder.create(prefix + ":").withTypeText("[Namespace Prefix]", true);
-    resultSet.addElement(PrioritizedLookupElement.withPriority(e, Double.MAX_VALUE));
   }
 
   private static void customizeAddedAttributes(final AndroidFacet facet,

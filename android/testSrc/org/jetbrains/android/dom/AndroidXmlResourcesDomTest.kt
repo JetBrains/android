@@ -102,10 +102,6 @@ class AndroidXmlResourcesDomTest : AndroidDomTestCase("dom/xml") {
     doTestCompletion()
   }
 
-  fun testAndroidPrefixCompletion() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
   fun testHtmlAsXmlResource() {
     doTestHighlighting()
   }
