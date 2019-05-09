@@ -25,10 +25,9 @@ import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
@@ -37,7 +36,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -51,7 +50,7 @@ import javax.swing.JPanel
 /**
  * Panel that shows the device screen in the layout inspector.
  */
-class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
+class DeviceViewPanel(val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
   private val client = layoutInspector.client
 
   enum class ViewMode(val icon: Icon) {
@@ -83,13 +82,13 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   }
 
   private val myProcessSelectionAction = SelectProcessAction(client)
+  private val myStopLayoutInspectorAction = PauseLayoutInspectorAction(client)
 
   val contentPanel = DeviceViewContentPanel(layoutInspector, scale, viewMode)
   private val scrollPane = JBScrollPane(contentPanel)
 
   init {
     scrollPane.border = JBUI.Borders.empty()
-    client.register(Common.Event.EventGroupIds.SKIA_PICTURE) { handleSkiaPictureEvent(it) }
 
     layoutInspector.modelChangeListeners.add(::modelChanged)
 
@@ -137,6 +136,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
     leftGroup.add(myProcessSelectionAction)
+    leftGroup.add(myStopLayoutInspectorAction)
     leftGroup.add(showBordersCheckBox)
     leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
                   BorderLayout.CENTER)
@@ -169,22 +169,6 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     repaint()
   }
 
-  private fun handleSkiaPictureEvent(event: LayoutInspectorEvent) {
-    val application = ApplicationManager.getApplication()
-    application.executeOnPooledThread {
-      val bytes = client.getPayload(event.payloadId)
-      if (bytes.isNotEmpty()) {
-        SkiaParser().getViewTree(bytes)?.let {
-          layoutInspector.layoutInspectorModel.update(it)
-          application.invokeLater {
-            scrollPane.viewport.revalidate()
-            repaint()
-          }
-        }
-      }
-    }
-  }
-
   // TODO: Replace this with the process selector from the profiler
   private class SelectProcessAction(val client: InspectorClient) :
     DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
@@ -213,7 +197,8 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
             deviceAction.add(noProcessAction)
           }
           else {
-            for (process in processes) {
+            val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
+            for (process in sortedProcessList) {
               val processAction = object : AnAction("${process.name} (${process.pid})") {
                 override fun actionPerformed(event: AnActionEvent) {
                   client.attach(stream, process)
@@ -244,6 +229,23 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
       deviceNameBuilder.append(model)
 
       return deviceNameBuilder.toString()
+    }
+  }
+
+  private class PauseLayoutInspectorAction(val client: InspectorClient): AnAction() {
+    init {
+      templatePresentation.icon = StudioIcons.Profiler.Toolbar.PAUSE_LIVE
+      templatePresentation.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.PAUSE_LIVE)
+    }
+
+    override fun update(event: AnActionEvent) {
+      event.presentation.isEnabled = client.isConnected
+      event.presentation.icon = if (client.isCapturing) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
+    }
+
+    override fun actionPerformed(event: AnActionEvent) {
+      val command = if (client.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
+      client.execute(command)
     }
   }
 }

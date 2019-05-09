@@ -127,6 +127,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import icons.AndroidIcons;
 import icons.StudioIcons;
@@ -227,7 +228,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   @NotNull
   public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
-    Map<String, String> values = ImmutableMap.of("0dp", "match_constraint", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
+    Map<String, String> values = ImmutableMap.of("0dp", "0dp (match constraint)", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
     return ImmutableMap.of(ATTR_LAYOUT_WIDTH, values,
                            ATTR_LAYOUT_HEIGHT, values);
   }
@@ -1152,7 +1153,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static class MarginSelector extends DirectViewAction {
+
     private static final String PICK_A_DIMENSION = "Pick a Dimension";
+    private static final float DEFAULT_ICON_FONT_SIZE = 12f;
+    private static final int DEFAULT_ICON_WIDTH = 36;
+    private static final int DEFAULT_ICON_HEIGHT = 16;
 
     private final ActionListener myResourcePickerIconClickListener = new ActionListener() {
       @Override
@@ -1255,7 +1260,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(JBColor.foreground());
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, 12));
+            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUI.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
             String m = previousDisplay;
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
@@ -1271,12 +1276,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
           @Override
           public int getIconWidth() {
-            return 36;
+            return JBUI.scale(DEFAULT_ICON_WIDTH);
           }
 
           @Override
           public int getIconHeight() {
-            return 16;
+            return JBUI.scale(DEFAULT_ICON_HEIGHT);
           }
         };
       }

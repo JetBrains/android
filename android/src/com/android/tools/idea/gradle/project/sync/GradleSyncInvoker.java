@@ -30,7 +30,6 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.System.currentTimeMillis;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
@@ -46,6 +45,7 @@ import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
@@ -63,8 +63,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.DumbModeTask;
@@ -76,7 +74,6 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import java.util.List;
 import java.util.Objects;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -213,7 +210,7 @@ public class GradleSyncInvoker {
       clearStoredGradleJvmArgs(project);
     }
 
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeProjectMessages());
+    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
     // Do not sync Sdk/Jdk when running from tests, these will be set up by the test infra.
     if (!request.skipPreSyncChecks) {
       PreSyncCheckResult checkResult = runPreSyncChecks(project);
@@ -239,9 +236,6 @@ public class GradleSyncInvoker {
 
 
     boolean useNewGradleSync = NewGradleSync.isEnabled(project);
-    if (request.variantOnlySyncOptions == null) {
-      removeAndroidModels(project);
-    }
 
     GradleSync gradleSync = useNewGradleSync ? new NewGradleSync(project) : new IdeaGradleSync(project);
     gradleSync.sync(request, listener);
@@ -295,19 +289,6 @@ public class GradleSyncInvoker {
         return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
       }));
     return taskId;
-  }
-
-  // See issue: https://code.google.com/p/android/issues/detail?id=64508
-  private static void removeAndroidModels(@NotNull Project project) {
-    // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
-    // failure.
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        facet.getConfiguration().setModel(null);
-      }
-    }
   }
 
   @NotNull

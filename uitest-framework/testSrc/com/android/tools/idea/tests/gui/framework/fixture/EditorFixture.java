@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.editor.DesignerEditor;
+import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
@@ -58,6 +59,9 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBEditorTabs;
 import com.intellij.ui.tabs.impl.TabLabel;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -201,6 +205,17 @@ public class EditorFixture {
     getFocusedEditor();
     robot.pasteText(text);
     return this;
+  }
+
+  /**
+   * Replace current editor text by the given text. After calling this method, the selected editor tab will be Tab.EDITOR
+   *
+   * @param text the text to paste at the current editor position
+   */
+  public EditorFixture replaceText(@NotNull final String text) {
+    selectEditorTab(Tab.EDITOR);
+    invokeAction(EditorFixture.EditorAction.SELECT_ALL);
+    return pasteText(text);
   }
 
   /**
@@ -472,6 +487,18 @@ public class EditorFixture {
       });
     }
     return this;
+  }
+
+  @NotNull
+  public EditorFixture newFile(@NotNull Path relativePath, @NotNull final String text) throws IOException {
+    Path projectPath = Paths.get(myFrame.getProject().getBasePath());
+    Path filePath = projectPath.resolve(relativePath);
+    assert Files.notExists(filePath);
+
+    VirtualFile file = TestFileUtils.writeFileAndRefreshVfs(filePath, "");
+    assert  file != null;
+
+    return open(relativePath).replaceText(text);
   }
 
   @Nullable

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -26,8 +27,6 @@ import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.*;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -284,10 +283,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   private boolean shouldApplyChanges() {
-    return Boolean.TRUE.equals(myEnv.getCopyableUserData(ApplyChangesAction.KEY));
+    SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
+    return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CHANGES;
   }
 
   private boolean shouldApplyCodeChanges() {
-    return Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY));
+    SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
+    return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES;
   }
 }

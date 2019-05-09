@@ -61,11 +61,6 @@ public class EmbeddedDistributionPaths {
       if (localGMaven.isDirectory()) {
         repoPaths.add(localGMaven);
       }
-      File prebuiltOfflineM2 = new File(toCanonicalPath(getIdeHomePath() + toSystemDependentName("/../../prebuilts/tools/common/offline-m2")));
-      getLog().info("Looking for embedded Maven repo at '" + prebuiltOfflineM2.getPath() + "'");
-      if (prebuiltOfflineM2.isDirectory()) {
-        repoPaths.add(prebuiltOfflineM2);
-      }
     }
 
     // Add locally published offline studio repo

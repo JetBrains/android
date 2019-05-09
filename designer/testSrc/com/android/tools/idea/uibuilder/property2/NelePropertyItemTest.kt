@@ -26,6 +26,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_SRC_COMPAT
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
@@ -469,6 +470,34 @@ class NelePropertyItemTest {
       Pair(ERROR, "Unexpected resource type: 'string' expected: color"))
     assertThat(color.editingSupport.validation("@android:color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
     assertThat(color.editingSupport.validation("@color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+  }
+
+  @RunsInEdt
+  @Test
+  fun testDrawableValidation() {
+    projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    projectRule.fixture.copyFileToProject("mipmap/mipmap-hdpi/ic_launcher.png", "res/mipmap-hdpi/ic_launcher.png")
+    projectRule.fixture.copyFileToProject("mipmap/mipmap-mdpi/ic_launcher.png", "res/mipmap-mdpi/ic_launcher.png")
+    projectRule.fixture.copyFileToProject("mipmap/mipmap-xhdpi/ic_launcher.png", "res/mipmap-xhdpi/ic_launcher.png")
+    val util = SupportTestUtil(projectRule, createImageView())
+    val srcCompat = util.makeProperty(ANDROID_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
+    assertThat(srcCompat.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("#FF00FF")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("?android:attr/colorPrimary")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@color/translucentRed")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@android:drawable/btn_minus")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("#XYZ")).isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
+    assertThat(srcCompat.editingSupport.validation("?android:attr/no_color")).isEqualTo(
+      Pair(ERROR, "Cannot resolve theme reference: 'android:attr/no_color'"))
+    assertThat(srcCompat.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(srcCompat.editingSupport.validation("@string/hello")).isEqualTo(
+      Pair(ERROR, "Unexpected resource type: 'string' expected one of: color, drawable, mipmap"))
+    assertThat(srcCompat.editingSupport.validation("@android:color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(srcCompat.editingSupport.validation("@color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(srcCompat.editingSupport.validation("@mipmap/ic_launcher")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@mipmap/ic_not_found")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'ic_not_found'"))
   }
 
   @Test

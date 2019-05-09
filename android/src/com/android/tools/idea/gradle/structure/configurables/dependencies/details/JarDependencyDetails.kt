@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredJarDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.JPanel
@@ -26,20 +27,11 @@ import javax.swing.JPanel
 class JarDependencyDetails(
   private val myContext: PsContext,
   showScope: Boolean
-) : JarDependencyDetailsForm(), DependencyDetails {
+) : JarDependencyDetailsForm() {
 
   init {
-    myScopeLabel.isVisible = showScope
-    myScope.isVisible = showScope
-    myScope.addFocusListener(object: FocusAdapter() {
-      override fun focusLost(e: FocusEvent?) {
-        super.focusLost(e)
-        modifyConfiguration()
-      }
-    })
-    myScope.addActionListener {
-      modifyConfiguration()
-    }
+    myConfigurationLabel.isVisible = showScope
+    myConfiguration.isVisible = showScope
   }
 
   private var myDependency: PsJarDependency? = null
@@ -49,11 +41,16 @@ class JarDependencyDetails(
   }
 
   override fun display(dependency: PsBaseDependency) {
-    myDependency = dependency as PsJarDependency
-    myNameText.text = dependency.name
-    myIncludesText.text = dependency.includes.toString()
-    myExcludesText.text = dependency.excludes.toString()
-    myScope.text = dependency.joinedConfigurationNames
+    val d = dependency as PsJarDependency
+    if (myConfiguration.isVisible) {
+      displayConfiguration(d as PsDeclaredJarDependency, PsModule.ImportantFor.LIBRARY)
+    }
+    if (d != myDependency) {
+      myNameText.text = dependency.name
+      myIncludesText.text = dependency.includes.toString()
+      myExcludesText.text = dependency.excludes.toString()
+    }
+    myDependency = d
   }
 
   override fun getSupportedModelType(): Class<PsJarDependency> {
@@ -62,11 +59,5 @@ class JarDependencyDetails(
 
   override fun getModel(): PsJarDependency? {
     return myDependency
-  }
-
-  // TODO(xof): duplicate code with {Module,SingleLibrary}DependencyDetails
-  fun modifyConfiguration() {
-    val module = myDependency!!.parent
-    module.modifyDependencyConfiguration(myDependency as PsDeclaredJarDependency, myScope.text)
   }
 }

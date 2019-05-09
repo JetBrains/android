@@ -33,6 +33,7 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -325,7 +326,7 @@ public class AndroidJavaDocRenderer {
           hasGradleModel = true;
           String facetModuleName = reachableFacet.getModule().getName();
           assert reachableFacet.requiresAndroidModel();
-          AndroidProject androidProject = androidModel.getAndroidProject();
+          IdeAndroidProject androidProject = androidModel.getAndroidProject();
           Variant selectedVariant = androidModel.getSelectedVariant();
           Set<SourceProvider> selectedProviders = new HashSet<>();
 

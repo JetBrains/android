@@ -29,8 +29,6 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.DnDTransferComponent;
-import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -49,9 +47,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -287,25 +282,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  public ItemTransferable getSelectionAsTransferable() {
-    NlModel model = getModel();
-
-    ImmutableList<DnDTransferComponent> components =
-      getSelectionModel().getSelection().stream()
-                         .map(component -> {
-                           // TODO: improve this
-                           int w = 0;
-                           int h = 0;
-                           if (this instanceof NlDesignSurface) {
-                             w = NlComponentHelperKt.getW(component);
-                             h = NlComponentHelperKt.getW(component);
-                           }
-                           return new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), w, h);
-                         })
-                         .collect(
-        ImmutableCollectors.toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
-  }
+  public abstract ItemTransferable getSelectionAsTransferable();
 
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
@@ -501,6 +478,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public JComponent getPreferredFocusedComponent() {
     return myGlassPane;
+  }
+
+  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {}
+
+  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView == null) {
+      return;
+    }
+
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
+    if (component != null) {
+      // Notify that the user is interested in a component.
+      // A properties manager may move the focus to the most important attribute of the component.
+      // Such as the text attribute of a TextView
+      notifyComponentActivate(component, Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y));
+    }
   }
 
   private Timer myRepaintTimer = new Timer(15, (actionEvent) -> { repaint(); });

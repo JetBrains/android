@@ -25,11 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
 
@@ -39,26 +35,13 @@ import org.mockito.Mock;
 public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
 
-  private GradleSyncState mySyncState;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    Project project = getProject();
 
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
-
-    mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
-                                      GradleFiles.getInstance(project), messageBus, ProjectStructure.getInstance(project));
-  }
-
-  public void testSyncErrorsFailSync() throws Exception {
-    loadSimpleApplication();
-    mySyncState.getSummary().setSyncErrorsFound(true);
-
-    assertTrue(mySyncState.lastSyncFailed());
   }
 
   public void testCompoundSyncEnabled() throws Exception {

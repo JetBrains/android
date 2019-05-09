@@ -20,12 +20,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
@@ -45,7 +43,6 @@ import org.mockito.Mock;
 public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
-  @Mock private GradleSyncSummary mySyncSummary;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
   private VirtualFile myFile;
@@ -60,7 +57,6 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     initMocks(this);
 
-    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
@@ -111,8 +107,8 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     assertInstanceOf(createPanel(type), IndexingSensitiveNotificationPanel.class);
   }
 
-  public void testNotificationPanelTypeWithSyncErrors() {
-    when(mySyncSummary.hasSyncErrors()).thenReturn(true);
+  public void testProjectStructureNotificationPanelType() {
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();

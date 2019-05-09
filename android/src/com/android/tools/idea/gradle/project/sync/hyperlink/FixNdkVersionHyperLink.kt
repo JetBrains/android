@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.intellij.openapi.project.Project
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
-import java.io.File
+import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Set the value of ndk.dir to the given value then trigger a res-sync.
- */
-class SetNdkDirHyperlink(private val path : File, text : String) : NotificationHyperlink(
-  "use.existing.ndk:$path", text) {
+class FixNdkVersionHyperlink(
+  private val version: String,
+  private val buildFiles: List<VirtualFile>) : NotificationHyperlink(
+    "fix.ndk.version",
+   "Update NDK version to '$version' and sync project") {
+
   override fun execute(project: Project) {
+    // Remove any value old value from ndk.dir
     val localProperties = LocalProperties(project)
-    localProperties.androidNdkPath = path
+    localProperties.androidNdkPath = null
     localProperties.save()
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(
-      project,
-      TRIGGER_QF_NDK_INSTALLED)
+
+    // Rewrite android.ndkVersion.
+    val processor = FixNdkVersionProcessor(project, buildFiles, version)
+    processor.run()
   }
 }

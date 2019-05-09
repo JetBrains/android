@@ -16,6 +16,10 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.VIEW3
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -69,11 +73,11 @@ class DeviceViewPanelModelTest {
       Rectangle(60, 70, 10, 10))
 
     val model = model {
-      view("rootId", rects[0]) {
-        view("v1", rects[1]) {
-          view("v3", rects[2])
+      view(ROOT, rects[0]) {
+        view(VIEW1, rects[1]) {
+          view(VIEW3, rects[2])
         }
-        view("v2", rects[3])
+        view(VIEW2, rects[3])
       }
     }
 

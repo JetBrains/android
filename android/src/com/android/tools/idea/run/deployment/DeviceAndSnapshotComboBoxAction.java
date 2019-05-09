@@ -44,6 +44,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.util.ui.JBUI;
@@ -75,6 +77,12 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
 
   private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
+
+  /**
+   * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
+   * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
+   */
+  public static final Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE = Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
 
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
@@ -304,7 +312,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     group.add(myRunOnMultipleDevicesAction);
     group.add(myOpenAvdManagerAction);
 
-    AnAction action = getTroubleshootDeviceConnectionsAction();
+    AnAction action = ActionManager.getInstance().getAction("DeveloperServices.ConnectionAssistant");
 
     if (action == null) {
       return group;
@@ -360,22 +368,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .build();
   }
 
-  @Nullable
-  private static AnAction getTroubleshootDeviceConnectionsAction() {
-    AnAction action = ActionManager.getInstance().getAction("DeveloperServices.ConnectionAssistant");
-
-    if (action == null) {
-      return null;
-    }
-
-    Presentation presentation = action.getTemplatePresentation();
-
-    presentation.setIcon(null);
-    presentation.setText("Troubleshoot device connections");
-
-    return action;
-  }
-
   @Override
   public final void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
@@ -427,6 +419,17 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     RunProfile configuration = settings.getConfiguration();
+
+    // Run configurations can explicitly specify they target a local device through DEPLOY_TO_LOCAL_DEVICE.
+    if (configuration instanceof UserDataHolder) {
+      Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
+      if (deploysToLocalDevice != null && deploysToLocalDevice.booleanValue()) {
+        presentation.setDescription(null);
+        presentation.setEnabled(true);
+
+        return;
+      }
+    }
 
     if (!(configuration instanceof AndroidRunConfiguration || configuration instanceof AndroidTestRunConfiguration)) {
       presentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
@@ -490,9 +493,14 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
     // So we'll just make sure the following gets run on the EDT thread and wait for its result.
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+      RunManager runManager = RunManager.getInstance(project);
+      RunnerAndConfigurationSettings settings = runManager.getSelectedConfiguration();
 
-      if (settings == null) {
+      // There is a bug in {@link com.intellij.execution.impl.RunManagerImplKt#clear(boolean)} where it's possible the selected setting's
+      // RunConfiguration is be non-existent in the RunManager. This happens when temporary/shared RunnerAndConfigurationSettings are
+      // cleared from the list of RunnerAndConfigurationSettings, and the selected RunnerAndConfigurationSettings is temporary/shared and
+      // left dangling.
+      if (settings == null || runManager.findSettings(settings.getConfiguration()) == null) {
         return;
       }
 

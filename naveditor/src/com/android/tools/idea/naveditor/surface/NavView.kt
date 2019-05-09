@@ -18,10 +18,10 @@ package com.android.tools.idea.naveditor.surface
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
 import com.google.common.collect.ImmutableList
 import java.awt.Dimension
 

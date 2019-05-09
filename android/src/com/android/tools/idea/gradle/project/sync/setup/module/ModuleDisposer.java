@@ -66,6 +66,6 @@ public class ModuleDisposer {
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
-    return myIdeInfo.isAndroidStudio() && !GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues();
+    return myIdeInfo.isAndroidStudio() && !GradleSyncState.getInstance(project).lastSyncFailed();
   }
 }

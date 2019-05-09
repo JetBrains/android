@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -61,7 +61,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
       Charset modelEncoding = null;
       if (isOneDotTwoOrNewer) {
         try {
-          AndroidProject androidProject = androidModel.getAndroidProject();
+          IdeAndroidProject androidProject = androidModel.getAndroidProject();
           modelEncoding = Charset.forName(androidProject.getJavaCompileOptions().getEncoding());
         }
         catch (UnsupportedCharsetException ignore) {

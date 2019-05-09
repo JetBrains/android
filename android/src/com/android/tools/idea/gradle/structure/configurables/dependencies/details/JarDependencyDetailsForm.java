@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import org.jdesktop.swingx.JXLabel;
 
-public class JarDependencyDetailsForm {
+public abstract class JarDependencyDetailsForm implements ConfigurationDependencyDetails {
   protected JPanel myMainPanel;
   protected JXLabel myNameText;
   protected JXLabel myIncludesText;
@@ -28,6 +28,15 @@ public class JarDependencyDetailsForm {
   protected JXLabel myExcludesText;
   protected JBLabel myNameLabel;
   protected JBLabel myIncludesLabel;
-  protected JBLabel myScopeLabel;
-  protected JTextField myScope;
+  protected JBLabel myConfigurationLabel;
+  protected JComboBox<String> myConfiguration;
+
+  private void createUIComponents() {
+    myConfiguration = createConfigurationUI();
+  }
+
+  @Override
+  public JComboBox<String> getConfigurationUI() {
+    return myConfiguration;
+  }
 }

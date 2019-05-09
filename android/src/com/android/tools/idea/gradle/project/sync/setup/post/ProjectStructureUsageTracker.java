@@ -25,7 +25,6 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeLibrary;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -116,7 +115,7 @@ public class ProjectStructureUsageTracker {
       List<GradleNativeAndroidModule> gradleNativeAndroidModules = new ArrayList<>();
 
       String appId = AnonymizerUtil.anonymizeUtf8(model.getApplicationId());
-      AndroidProject androidProject = model.getAndroidProject();
+      IdeAndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
       if (gradleVersion == null) {
         gradleVersion = new GradleVersion(0, 0, 0);
@@ -204,7 +203,7 @@ public class ProjectStructureUsageTracker {
     }
   }
 
-  private static boolean areNativeLibrariesPresent(@NotNull AndroidProject androidProject) {
+  private static boolean areNativeLibrariesPresent(@NotNull IdeAndroidProject androidProject) {
     String modelVersion = androidProject.getModelVersion();
     // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
     if (modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1") || androidProject.getApiVersion() < 3) {

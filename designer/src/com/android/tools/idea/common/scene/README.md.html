@@ -56,6 +56,11 @@ anchor Placeholder, the dragged component should be added to the CoordinatorLayo
 visual effects should displayed at the anchor position.<br>
 (Note: Anchor is used to place floating views relative to other arbitrary content panes in Coordinator Layout.)
 
+(optional) `val isLiveUpdatable = false`
+---
+Determine if this Placeholder updates the attributes during dragging. The updated attributes are pending in the `AttributesTransaction`
+which is committed after mouse released.
+
 (optional) `val dominate = true`
 ----
 Determine if this Placeholder is visual visible and has higher priority than other Placeholder which are in the same level but not visible.
@@ -79,9 +84,13 @@ For example, LinearPlaceholder overrides this value since Linear Layout needs to
 -----
 The arguments describe the expected area of dragged widget. `snap` function checks if the dragged widget should effect to this `Placeholder`
 
-`fun updateAttributes(SceneComponent): Boolean`
+(optional) `fun updateLiveAttribute(SceneComponent, AttributeHolder, Int, Int)`
 -----
-Callback for updating specified attributes when this `Placeholder` is applied.
+Callback for updating specified attributes when this `Placeholder` is applied during dragging.
+
+`fun updateAttributes(SceneComponent, AttributeHolder, AttributeHolder)`
+-----
+Callback for updating specified attributes when this `Placeholder` is applied after releasing the mouse.
 
 After having a custom `Placeholder`, override `getPlaceholders(SceneComponent)` function in associated `ViewHandler` to provide them.<br>
 The `CommonDragTarget` will collect and interact with them automatically.

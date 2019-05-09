@@ -21,7 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_INSTALL_NDK_BUNDLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.SetNdkDirHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixNdkVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -75,8 +75,7 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
 
   private void loadProjectAndExpectMissingNdkError(@NotNull String expected,
                                                    @NotNull Collection<AndroidStudioEvent.GradleSyncQuickFix> syncQuickFixes,
-                                                   @NotNull AndroidStudioEvent.GradleSyncFailure syncFailure)
-    throws Exception {
+                                                   @NotNull AndroidStudioEvent.GradleSyncFailure syncFailure) throws Exception {
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
@@ -87,7 +86,7 @@ public class MissingNdkErrorHandlerTest extends AndroidGradleTestCase {
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(1);
-    assertThat(quickFixes.get(0)).isInstanceOf(SetNdkDirHyperlink.class);
+    assertThat(quickFixes.get(0)).isInstanceOf(FixNdkVersionHyperlink.class);
 
     assertEquals(syncFailure, myUsageReporter.getCollectedFailure());
     assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());

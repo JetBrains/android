@@ -22,6 +22,7 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -212,7 +213,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
     if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      AndroidProject model = project.getGradleProjectModel();
+      IdeAndroidProject model = project.getGradleProjectModel();
       if (model != null) {
         try {
           LintOptions lintOptions = model.getLintOptions();

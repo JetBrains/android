@@ -19,6 +19,7 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
@@ -137,7 +138,7 @@ public class IdeSdks {
   }
 
   @Nullable
-  public File getAndroidNdkPath() {
+  public LocalPackage getHighestLocalNdkPackage() {
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     // Look first at NDK side-by-side locations.
     // See go/ndk-sxs
@@ -147,9 +148,14 @@ public class IdeSdks {
       true,
       new StudioLoggerProgressIndicator(IdeSdks.class));
     if (ndk != null) {
-      return ndk.getLocation();
+      return ndk;
     }
-    ndk = sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
+    return sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
+  }
+
+  @Nullable
+  public File getAndroidNdkPath() {
+    LocalPackage ndk = getHighestLocalNdkPackage();
     if (ndk != null) {
       return ndk.getLocation();
     }
@@ -538,9 +544,10 @@ public class IdeSdks {
     return doGetJdkFromPathOrParent(SystemProperties.getJavaHome());
   }
 
+  @VisibleForTesting
   @Nullable
-  private static String doGetJdkFromPathOrParent(@Nullable String path) {
-    if ((path == null) || path == "") {
+  static String doGetJdkFromPathOrParent(@Nullable String path) {
+    if (isNullOrEmpty(path)) {
       return null;
     }
     File pathFile = new File(toSystemDependentName(path));
@@ -549,7 +556,11 @@ public class IdeSdks {
       return result;
     }
     // Sometimes JAVA_HOME is set to a JRE inside a JDK, see if this is the case
-    return doGetJdkFromPath(pathFile.getParentFile());
+    File parentFile = pathFile.getParentFile();
+    if (parentFile != null) {
+      return doGetJdkFromPath(parentFile);
+    }
+    return null;
   }
 
   @Nullable

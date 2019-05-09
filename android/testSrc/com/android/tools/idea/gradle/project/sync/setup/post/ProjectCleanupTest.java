@@ -53,7 +53,7 @@ public class ProjectCleanupTest extends IdeaTestCase {
 
   public void testCleanUpProjectWithFailedSync() {
     // last sync failed.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     Project project = getProject();
     myProjectCleanup.cleanUpProject(project, myModelsProvider, myIndicator);
@@ -68,7 +68,7 @@ public class ProjectCleanupTest extends IdeaTestCase {
     when(myStep2.invokeOnSkippedSync()).thenReturn(true);
 
     // sync successful.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
     // sync skipped.
     when(mySyncState.isSyncSkipped()).thenReturn(true);
 
@@ -82,7 +82,7 @@ public class ProjectCleanupTest extends IdeaTestCase {
 
   public void testCleanUpProject() {
     // sync successful.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
     // sync not skipped.
     when(mySyncState.isSyncSkipped()).thenReturn(false);
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.generator
 
-import com.android.builder.model.AndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.essentiallyEquals
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.legacyfacade.LegacyAndroidProjectStub
@@ -107,7 +107,7 @@ class ShippedSyncGeneratorTest : AndroidGradleTestCase() {
   }
 }
 
-private fun loadAndroidProjectFromJSON(path: Path, converter: PathConverter): AndroidProject {
+private fun loadAndroidProjectFromJSON(path: Path, converter: PathConverter): IdeAndroidProject {
   val androidProjectJSON = String(Files.readAllBytes(path.resolve(ANDROID_PROJECT_CACHE_PATH)))
   val debugVariantJSON = String(Files.readAllBytes(path.resolve(VARIANTS_CACHE_DIR_PATH).resolve("debug.json")))
   val androidProjectBuilder = AndroidProjectProto.AndroidProject.newBuilder()
