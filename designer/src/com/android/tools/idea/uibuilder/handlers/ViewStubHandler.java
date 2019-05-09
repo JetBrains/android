@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
@@ -61,7 +62,8 @@ public class ViewStubHandler extends ViewHandler {
           // Remove the view; the insertion was canceled
           return false;
         }
-        newChild.setAttribute(ANDROID_URI, ATTR_LAYOUT, src);
+
+        NlWriteCommandActionUtil.run(newChild, "Setting layout attribute", () -> newChild.setAttribute(ANDROID_URI, ATTR_LAYOUT, src));
         return true;
 
       default:

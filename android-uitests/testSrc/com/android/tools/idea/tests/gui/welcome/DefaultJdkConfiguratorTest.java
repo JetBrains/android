@@ -16,28 +16,27 @@
 package com.android.tools.idea.tests.gui.welcome;
 
 import static com.google.common.truth.Truth.assertThat;
-
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Tests to verify {@link DefaultJdkConfiguratorTest} is not used. This is done as an ui tests because the headless-implementation-class
- * is set to null.
+ * Tests to verify {@link DefaultJdkConfiguratorTest} is not used. This isn't a UI test, but it uses the UI-test framework because the
+ * critical logic is bypassed in headless environments.
  */
 @RunWith(GuiTestRemoteRunner.class)
 public class DefaultJdkConfiguratorTest {
-  /**
-   * Confirm {@link DefaultJdkConfigurator} is not a registered Application component and that the defaultJdkConfigured property is not set.
-   */
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
-  public void testDefaultJdkConfiguratorNotCalled() {
-    Application application = ApplicationManager.getApplication();
-    assertThat(application.getComponent(DefaultJdkConfigurator.class)).isNull();
+  public void defaultJdkConfiguratorNotCalled() {
+    assertThat(ApplicationManager.getApplication().getComponent(DefaultJdkConfigurator.class)).isNull();
     assertThat(PropertiesComponent.getInstance().getBoolean("defaultJdkConfigured", false)).isFalse();
   }
 }

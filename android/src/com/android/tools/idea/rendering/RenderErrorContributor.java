@@ -15,12 +15,30 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.CLASS_FLEXBOX_LAYOUT;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
+import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
+import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
+import static com.android.tools.lint.detector.api.Lint.editDistance;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
-import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -30,6 +48,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,6 +87,25 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JEditorPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.manifest.Application;
@@ -81,26 +119,6 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLFrameHyperlinkEvent;
-import java.awt.datatransfer.StringSelection;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
-import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
-import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
-import static com.android.tools.lint.detector.api.Lint.editDistance;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
@@ -325,28 +343,6 @@ public class RenderErrorContributor {
         )
         .build();
     }
-  }
-
-  private void reportOldNinePathRenderLib(@NotNull RenderLogger logger, @NotNull RenderTaskContext renderTaskContext) {
-    if (renderTaskContext.getConfiguration().getDensity() != Density.TV) {
-      return;
-    }
-
-    logger.getTraces().stream()
-      .map(Object::toString)
-      .filter(s -> s.contains("java.lang.IndexOutOfBoundsException: Index: 2, Size: 2"))
-      .findAny()
-      .ifPresent(s -> addIssue()
-        .setSummary("tvdpi not supported")
-        .setHtmlContent(new HtmlBuilder()
-                          .addBold(
-                            "It looks like you are using a render target where the layout library does not support the tvdpi density.")
-                          .newline().newline()
-                          .add(
-                            "Please try either updating to the latest available version (using the SDK manager), or if no updated " +
-                            "version is available for this specific version of Android, try using a more recent render target version.")
-                          .newline().newline())
-        .build());
   }
 
   private void reportMissingSize(@NotNull HtmlBuilder builder,
@@ -1406,7 +1402,6 @@ public class RenderErrorContributor {
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
     if (renderTask != null) {
-      reportOldNinePathRenderLib(logger, renderTask.getContext());
       reportRelevantCompilationErrors(logger, renderTask);
       reportMissingSizeAttributes(logger, renderTask.getContext(), renderTask.getXmlFile());
       reportMissingClasses(logger);

@@ -30,7 +30,7 @@ import java.nio.ByteBuffer
 class HistogramVisitor(private val classStore: ClassStore) : HProfVisitor() {
   private var completed = false
 
-  private var instanceCount = 0L
+  private var instanceCount = 0
 
   private var classToHistogramEntryInternal = HashMap<ClassDefinition, InternalHistogramEntry>()
 

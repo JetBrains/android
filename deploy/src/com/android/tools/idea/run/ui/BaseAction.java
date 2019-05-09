@@ -50,6 +50,7 @@ import com.intellij.openapi.util.Key;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,9 @@ public abstract class BaseAction extends AnAction {
   @NotNull
   private final Key<Boolean> myKey;
 
+  @NotNull
+  private final String myDescription;
+
   public BaseAction(@NotNull String id,
                     @NotNull String name,
                     @NotNull Key<Boolean> key,
@@ -78,6 +82,7 @@ public abstract class BaseAction extends AnAction {
     myName = name;
     myKey = key;
     myIcon = icon;
+    myDescription = description;
 
     KeymapManager manager = KeymapManager.getInstance();
     if (manager != null) {
@@ -126,12 +131,80 @@ public abstract class BaseAction extends AnAction {
     }
 
     RunConfiguration selectedRunConfig = configSettings.getConfiguration();
-    boolean isRelevant = isApplyChangesRelevant(selectedRunConfig);
-    presentation.setVisible(isRelevant);
-
-    if (isRelevant) {
-      presentation.setEnabled(isApplyChangesApplicable(project, selectedRunConfig) && checkCompatibility(project));
+    if (!isApplyChangesRelevant(selectedRunConfig)) {
+      presentation.setVisible(false);
+      return;
     }
+
+    presentation.setVisible(true);
+
+    if (isExecutorStarting(project, selectedRunConfig)) {
+      disableAction(presentation, "building and/or launching", "the selected configuration is currently building and/or launching");
+      return;
+    }
+
+    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
+    if (deployableProvider == null) {
+      disableAction(presentation, "no deployment provider", "there is no deployment provider specified");
+      return;
+    }
+
+    if (!deployableProvider.isDependentOnUserInput()) {
+      Deployable deployable;
+      try {
+        deployable = deployableProvider.getDeployable();
+        if (deployable == null) {
+          disableAction(presentation, "selected device is invalid", "the selected device is not valid");
+          return;
+        }
+
+        if (!deployable.isOnline()) {
+          if (deployable.isUnauthorized()) {
+            disableAction(presentation, "device not authorized", "the selected device is not authorized");
+          }
+          else {
+            disableAction(presentation, "device not connected", "the selected device is not connected");
+          }
+          return;
+        }
+
+        Future<AndroidVersion> versionFuture = deployable.getVersion();
+        if (!versionFuture.isDone()) {
+          // Don't stall the EDT - if the Future isn't ready, just return false.
+          disableAction(presentation, "unknown device API level", "its API level is currently unknown");
+          return;
+        }
+
+        if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
+          disableAction(presentation, "incompatible device API level", "its API level is lower than 26");
+          return;
+        }
+
+        if (!deployable.isApplicationRunningOnDeployable()) {
+          disableAction(presentation, "app not detected", "the app is not yet running or not debuggable");
+          return;
+        }
+      }
+      catch (InterruptedException ex) {
+        disableAction(presentation, "update interrupted", "its status update was interrupted");
+        LOG.warn(ex);
+        return;
+      }
+      catch (ExecutionException ex) {
+        disableAction(presentation, "unknown device API level", "its API level could not be determined");
+        LOG.warn(ex);
+        return;
+      }
+      catch (Exception ex) {
+        disableAction(presentation, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
+        LOG.warn(ex);
+        return;
+      }
+    }
+
+    presentation.setEnabled(true);
+    presentation.setText(myName);
+    presentation.setDescription(myDescription);
   }
 
   private static boolean isApplyChangesRelevant(@NotNull RunConfiguration runConfiguration) {
@@ -145,7 +218,10 @@ public abstract class BaseAction extends AnAction {
     return false;
   }
 
-  private static boolean isApplyChangesApplicable(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+  /**
+   * Check if there are any executors of the current {@link RunConfiguration} that is starting up. We should not swap when this is true.
+   */
+  private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
     for (Executor executor : executors) {
@@ -154,17 +230,10 @@ public abstract class BaseAction extends AnAction {
         continue;
       }
       if (ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId())) {
-        return false;
+        return true;
       }
     }
-
-    // Check if we have a running ProcessHandler/Executor corresponding to the current ExecutionTarget/RunConfiguration.
-    ProcessHandler processHandler = findRunningProcessHandler(project, runConfiguration);
-    if (processHandler == null || getExecutor(processHandler, null) == null) {
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   @Override
@@ -195,36 +264,8 @@ public abstract class BaseAction extends AnAction {
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 
-  private static boolean checkCompatibility(@NotNull Project project) {
-    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
-    if (deployableProvider == null) {
-      return false;
-    }
-
-    if (deployableProvider.isDependentOnUserInput()) {
-      return true;
-    }
-
-    Deployable deployable;
-    try {
-      deployable = deployableProvider.getDeployable();
-      if (deployable == null) {
-        return false;
-      }
-      Future<AndroidVersion> versionFuture = deployable.getVersion();
-      if (!versionFuture.isDone()) {
-        // Don't stall the EDT - if the Future isn't ready, just return false.
-        return false;
-      }
-      return versionFuture.get().getApiLevel() >= MIN_API_VERSION && deployable.isApplicationRunningOnDeployable();
-    }
-    catch (Exception e) {
-      return false;
-    }
-  }
-
   @Nullable
-  private static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+  protected static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       SwappableProcessHandler extension = handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
       if (extension == null) {
@@ -252,5 +293,11 @@ public abstract class BaseAction extends AnAction {
     return processHandler.isProcessTerminated() || processHandler.isProcessTerminating() || extension == null
            ? defaultExecutor
            : extension.getExecutor();
+  }
+
+  protected void disableAction(@NotNull Presentation presentation, @NotNull String tooltipReason, @NotNull String descriptionReason) {
+    presentation.setEnabled(false);
+    presentation.setText(String.format("%s (disabled: %s)", myName, tooltipReason));
+    presentation.setDescription(String.format("%s is disabled for this device because %s.", myName, descriptionReason));
   }
 }
