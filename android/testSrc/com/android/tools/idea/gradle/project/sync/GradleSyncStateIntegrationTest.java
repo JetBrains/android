@@ -53,8 +53,8 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
 
-    mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
-                                      GradleFiles.getInstance(project), messageBus, ProjectStructure.getInstance(project));
+    mySyncState = new GradleSyncState(project, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project), messageBus,
+                                      ProjectStructure.getInstance(project));
   }
 
   public void testInvalidateLastSync() throws Exception {
