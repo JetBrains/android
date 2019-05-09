@@ -322,7 +322,6 @@ class MergedManifestSnapshotFactory {
   }
 
   static class ModulePermissions implements PermissionHolder {
-    @VisibleForTesting
     static final ModulePermissions NOP_MODULE_PERMISSIONS = new ModulePermissions(AndroidVersion.DEFAULT,
                                                                                   AndroidVersion.DEFAULT,
                                                                                   ImmutableSet.of(),

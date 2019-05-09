@@ -100,7 +100,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Predicate<IDevice> filter) {
     myFilter = filter;
-    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
     myProjectTarget = projectTarget;
     mySupportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
                       ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
