@@ -50,9 +50,10 @@ public class PreSyncChecksTest extends AndroidGradleTestCase {
   public void testGetChecks() {
     PreSyncChecks checks = new PreSyncChecks();
     List<SyncCheck> strategies = checks.getStrategies();
-    assertThat(strategies).hasSize(2);
+    assertThat(strategies).hasSize(3);
 
     assertThat(strategies.get(0)).isInstanceOf(AndroidSdkPreSyncCheck.class);
     assertThat(strategies.get(1)).isInstanceOf(JdkPreSyncCheck.class);
+    assertThat(strategies.get(2)).isInstanceOf(GradleWrapperPreSyncCheck.class);
   }
 }
