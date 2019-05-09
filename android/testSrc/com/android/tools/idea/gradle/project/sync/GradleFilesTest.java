@@ -47,6 +47,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -291,6 +292,8 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertTrue(deleted);
     assertTrue(getAppBuildFile().exists());
     myGradleFiles.getSyncListener().syncStarted(getProject(), false);
+    // syncStarted adds a transaction to update the file hashes, ensure this is run before verifying
+    UIUtil.dispatchAllInvocationEvents();
     assertFalse(myGradleFiles.areGradleFilesModified());
     assertFalse(myGradleFiles.hasHashForFile(getAppBuildFile()));
   }
@@ -377,6 +380,9 @@ public class GradleFilesTest extends AndroidGradleTestCase {
                                        boolean expectedResult,
                                        boolean preCheckEnabled,
                                        @NotNull VirtualFile file) {
+    // Clear event queue as the hashing is added as a transaction
+    UIUtil.dispatchAllInvocationEvents();
+
     PsiFile psiFile = findPsiFile(file);
 
     FileEditorManager mockManager = mock(FileEditorManager.class);
