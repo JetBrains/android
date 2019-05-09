@@ -22,7 +22,7 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.Companion.t
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
 import com.android.tools.idea.diagnostics.hprof.visitors.HistogramVisitor
 
-class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
+class Histogram(val entries: List<HistogramEntry>, val instanceCount: Int) {
 
   private fun getTotals(): Pair<Long, Long> {
     var totalInstances = 0L
@@ -34,28 +34,6 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
     return Pair(totalInstances, totalBytes)
   }
 
-  fun prepareReport(name: String, topClassCount: Int): String {
-    val result = StringBuilder()
-    val appendToResult = { s: String -> result.appendln(s); Unit }
-    var counter = 1
-
-    TruncatingPrintBuffer(topClassCount, 2, appendToResult).use { buffer ->
-      entries.forEach { entry ->
-        buffer.println(formatEntryLine(counter, entry))
-        counter++
-      }
-      printSummary(buffer, this, name)
-    }
-    result.appendln()
-    result.appendln("Top 10 by bytes count:")
-    val entriesByBytes = entries.sortedByDescending { it.totalBytes }
-    for (i in 0 until 10) {
-      val entry = entriesByBytes[i]
-      result.appendln(formatEntryLine(i + 1, entry))
-    }
-    return result.toString()
-  }
-
   companion object {
     fun create(parser: HProfEventBasedParser, classStore: ClassStore): Histogram {
       val histogramVisitor = HistogramVisitor(classStore)
@@ -63,9 +41,9 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
       return histogramVisitor.createHistogram()
     }
 
-    fun prepareMergedHistogramReport(mainHistogram: Histogram, mainHistogramName: String,
-                                     secondaryHistogram: Histogram, secondaryHistogramName: String,
-                                     topClassCount: Int): String {
+    fun printMergedHistogram(mainHistogram: Histogram, mainHistogramName: String,
+                             secondaryHistogram: Histogram, secondaryHistogramName: String,
+                             topClassCount: Int): String {
       val result = StringBuilder()
       val appendToResult = { s: String -> result.appendln(s); Unit }
       var counter = 1
@@ -116,14 +94,5 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
                            toPaddedShortStringAsSize(entry2?.totalBytes ?: 0),
                            entry.classDefinition.prettyName)
     }
-
-    private fun formatEntryLine(counter: Int, entry: HistogramEntry): String {
-      return String.format("%5d: [%s/%s] %s",
-                           counter,
-                           toPaddedShortStringAsCount(entry.totalInstances),
-                           toPaddedShortStringAsSize(entry.totalBytes),
-                           entry.classDefinition.prettyName)
-    }
-
   }
 }

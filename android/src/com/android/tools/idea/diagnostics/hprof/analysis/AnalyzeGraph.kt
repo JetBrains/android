@@ -145,7 +145,7 @@ class AnalyzeGraph(private val nav: ObjectNavigator,
         .values
         .map { it.asHistogramEntry() }
         .sortedByDescending { it.totalInstances },
-      visitedCount.toLong())
+      visitedCount)
 
     val stopwatchUpdateSizes = Stopwatch.createStarted()
     // Update sizes for non-leaves

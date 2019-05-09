@@ -34,47 +34,29 @@ class FileBackedHashMap(
   }
 
   companion object {
-
-    private const val FILL_RATIO = 1.33
-
-    private fun getFileSize(size: Long, keySize: Int, valueSize: Int): Long {
-      return (size * FILL_RATIO).toLong() * (keySize + valueSize)
-    }
-
-    fun isSupported(size: Long, keySize: Int, valueSize: Int): Boolean {
-      return getFileSize(size, keySize, valueSize) < Int.MAX_VALUE
-    }
-
-    fun createEmpty(channel: FileChannel, size: Long, keySize: Int, valueSize: Int): FileBackedHashMap {
+    fun createEmpty(channel: FileChannel, size: Int, keySize: Int, valueSize: Int): FileBackedHashMap {
       if (keySize != 4 && keySize != 8) {
         throw IllegalArgumentException("keySize must be 4 or 8.")
       }
       if (valueSize < 0) {
         throw IllegalArgumentException("valueSize must be positive.")
       }
-      if (!isSupported(size, keySize, valueSize)) {
-        throw IllegalArgumentException("Size too large")
-      }
-      val fileSize = getFileSize(size, keySize, valueSize)
-      assert(fileSize <= Int.MAX_VALUE)
-      createEmptyFile(channel, fileSize)
+      createEmptyFile(channel, (size * 1.33).toInt() * (keySize + valueSize))
       val buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, channel.size())
       return FileBackedHashMap(buffer, keySize, valueSize)
     }
 
-    fun createEmptyFile(channel: FileChannel, size: Long) {
-      val bufferSize = 60_000
-      val emptyBuf = ByteBuffer.allocateDirect(bufferSize)
+    fun createEmptyFile(channel: FileChannel, size: Int) {
+      val emptyBuf = ByteBuffer.allocateDirect(60_000)
       var remaining = size
       while (remaining > 0) {
-        val toWrite = Math.min(emptyBuf.remaining().toLong(), remaining)
-        if (toWrite == emptyBuf.remaining().toLong()) {
+        val toWrite = Math.min(emptyBuf.remaining(), remaining)
+        if (toWrite == emptyBuf.remaining()) {
           channel.write(emptyBuf)
           emptyBuf.rewind()
         }
         else {
-          assert(toWrite <= bufferSize)
-          emptyBuf.limit(toWrite.toInt())
+          emptyBuf.limit(toWrite)
           channel.write(emptyBuf)
         }
         remaining -= toWrite

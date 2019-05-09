@@ -29,6 +29,9 @@ import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -42,6 +45,9 @@ class ComboBoxPropertyEditorModelTest {
 
   @JvmField @Rule
   val appRule = PropertyAppRule()
+
+  @JvmField @Rule
+  val edtRule = EdtRule()
 
   private fun createModel(): ComboBoxPropertyEditorModel {
     return createModel(FakeEnumSupport("visible", "invisible", "gone"))
@@ -86,6 +92,7 @@ class ComboBoxPropertyEditorModelTest {
     assertThat(model.property.value).isEqualTo("gone")
   }
 
+  @RunsInEdt
   @Test
   fun testSelectActionItemShouldNotUpdateValueOnFocusLoss() {
     val model = createModel()
@@ -99,7 +106,10 @@ class ComboBoxPropertyEditorModelTest {
     model.selectedItem = EnumValue.action(action)
     model.text = "More Fonts..." // Text from action enum value. Should be overwritten.
     model.popupMenuWillBecomeInvisible(false)
+    assertThat(model.property.value).isEqualTo("visible")
 
+    // The action is executed delayed on the UI event queue:
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(model.property.value).isEqualTo("gone")
   }
 
@@ -147,6 +157,7 @@ class ComboBoxPropertyEditorModelTest {
     verify(listener).valueChanged()
   }
 
+  @RunsInEdt
   @Test
   fun testEnterInPopupOnAction() {
     // setup
@@ -160,9 +171,15 @@ class ComboBoxPropertyEditorModelTest {
 
     // test
     model.popupMenuWillBecomeInvisible(false)
+    assertThat(model.isPopupVisible).isFalse()
+    assertThat(action.actionPerformedCount).isEqualTo(0)
+    assertThat(model.property.value).isEqualTo("visible")
+    verify(listener).valueChanged()
+
+    // The action is executed delayed on the UI event queue:
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(action.actionPerformedCount).isEqualTo(1)
     assertThat(model.property.value).isEqualTo("visible")
-    assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
   }
 

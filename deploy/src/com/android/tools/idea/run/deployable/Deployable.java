@@ -35,6 +35,16 @@ public interface Deployable {
    */
   boolean isApplicationRunningOnDeployable();
 
+  /**
+   * @return true if the underlying device is online, or false otherwise.
+   */
+  boolean isOnline();
+
+  /**
+   * @return true if the underlying device is unauthorized, or false otherwise.
+   */
+  boolean isUnauthorized();
+
   @NotNull
   static List<Client> searchClientsForPackage(@NotNull IDevice device, @NotNull String packageName) {
     return DeploymentApplicationService.getInstance().findClient(device, packageName);

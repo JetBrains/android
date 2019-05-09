@@ -19,6 +19,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
@@ -113,6 +114,7 @@ import com.intellij.openapi.roots.ExcludeFolder;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -127,6 +129,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -450,18 +453,19 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
     // prevent unnecessary file indexing, which decreases performance.)
-    File[] excludeFolderPaths = ApplicationManager.getApplication().runReadAction(
+    File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
       (Computable<File[]>)() -> {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
-          ContentEntry[] contentEntries = rootModel.getContentEntries();
-          ContentEntry parent = findParentContentEntry(centralBuildDirPath, Arrays.stream(contentEntries));
+          Collection<ContentEntry> contentEntries =
+            findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
 
           List<File> paths = Lists.newArrayList();
 
-          for (ExcludeFolder excluded : parent.getExcludeFolders()) {
-            String path = urlToPath(excluded.getUrl());
+          for (SourceFolder source : contentEntries.stream().flatMap(contentEntry -> Arrays.stream(contentEntry.getSourceFolders()))
+            .collect(Collectors.toSet())) {
+            String path = urlToPath(source.getUrl());
             if (isNotEmpty(path)) {
               paths.add(toSystemDependentPath(path));
             }
@@ -473,17 +477,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
         }
       });
 
-    assertThat(excludeFolderPaths).isNotEmpty();
-
-    boolean isExcluded = false;
-    for (File path : notNullize(excludeFolderPaths)) {
-      if (isAncestor(centralBuildParentDirPath, path, true)) {
-        isExcluded = true;
-        break;
-      }
-    }
-
-    assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
+    assertThat(sourceFolderPaths).isNotEmpty();
   }
 
   public void testGradleSyncActionAfterFailedSync() {

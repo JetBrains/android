@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.observable.adapters;
 
-import com.android.tools.idea.observable.AbstractProperty;
-import com.google.common.base.Strings;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static com.android.utils.DecimalUtils.trimInsignificantZeros;
 
+import com.android.tools.idea.observable.AbstractProperty;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParsePosition;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Adapter property that wraps a String type which represents a Double value.
@@ -31,8 +33,8 @@ import java.text.ParsePosition;
  * good value.
  */
 public final class StringToDoubleAdapterProperty extends AdapterProperty<String, Double> {
-
   @NotNull private final DecimalFormat myFormat;
+  @NotNull private final DecimalFormatSymbols mySymbols;
 
   /**
    * Defaults to 1 decimal point of precision.
@@ -46,33 +48,37 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
   }
 
   public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty, int numDecimals, int maxDecimals) {
-    super(wrappedProperty, 0d);
-    if (maxDecimals < numDecimals) {
-      throw new IllegalArgumentException("maxDecimals must be larger or equal to numDecimals");
-    }
-    myFormat = new DecimalFormat("0." + Strings.repeat("0", numDecimals) + Strings.repeat("#", maxDecimals - numDecimals),
-                                 new DecimalFormatSymbols());
+    this(wrappedProperty, createFormat(numDecimals, maxDecimals));
   }
 
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty, @NotNull DecimalFormat format) {
+    super(wrappedProperty, 0.);
+    myFormat = format;
+    mySymbols = format.getDecimalFormatSymbols();
+  }
+
+  private static DecimalFormat createFormat(int numDecimals, int maxDecimals) {
+    Preconditions.checkArgument(maxDecimals >= numDecimals, "maxDecimals may not be less than numDecimals");
+    String pattern = numDecimals == 0 ? "0" : "0." + Strings.repeat("0", numDecimals) + Strings.repeat("#", maxDecimals - numDecimals);
+    return new DecimalFormat(pattern, new DecimalFormatSymbols());
+  }
+
+  @Override
   @Nullable
-  @Override
   protected Double convertFromSourceType(@NotNull String value) {
-    try {
-      ParsePosition pos = new ParsePosition(0);
-      Number number = myFormat.parse(value, pos);
-      if (number != null && pos.getIndex() == value.length()) {
-        return number.doubleValue();
-      }
+    value = value.trim();
+    ParsePosition pos = new ParsePosition(0);
+    Number number = myFormat.parse(value, pos);
+    if (number == null || pos.getIndex() != value.length()) {
+      return null;
     }
-    catch (NumberFormatException ignored) {
-    }
-    return null;
+    return number.doubleValue();
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected String convertFromDestType(@NotNull Double value) {
-    return myFormat.format(value);
+    return trimInsignificantZeros(myFormat.format(value), mySymbols);
   }
 }
 
