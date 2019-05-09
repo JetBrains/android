@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.6.0-dev">
+<issues format="5" by="lint 3.6.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -14,7 +14,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="134"/>
+            line="136"/>
     </issue>
 
     <issue
@@ -53,16 +53,8 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="421"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="195"/>
+            line="198"/>
     </issue>
 
     <issue
@@ -70,7 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
-            line="454"/>
+            line="460"/>
     </issue>
 
     <issue

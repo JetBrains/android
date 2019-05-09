@@ -59,6 +59,9 @@ import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.google.common.collect.Iterators;
+import com.intellij.openapi.util.io.FileUtil;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -67,6 +70,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -851,6 +857,25 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.getStudioProfilers().getTimeline().setStreaming(true);
     myStage.setAndSelectCapture(capture);
     assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isFalse();
+  }
+
+  @Test
+  public void captureStageTransitionTest() throws Exception {
+    myServices.enableCpuCaptureStage(false);
+    // Needs to be set true else null is inserted into the capture parser.
+    myServices.setShouldParseLongTraces(true);
+    // Try to parse a simpleperf trace with ART config.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               Cpu.CpuTraceType.ART,
+                                                               Cpu.CpuTraceMode.SAMPLED);
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+    assertThat(myStage.getStudioProfilers().getStage()).isEqualTo(myStage);
+    myServices.enableCpuCaptureStage(true);
+    // Don't pass a capture to the test utils for now as we don't want to block on parsing.
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, null);
+    // Force a flush of the UI event queue.
+    assertThat(myStage.getStudioProfilers().getStage().getClass()).isAssignableTo(CpuCaptureStage.class);
   }
 
   @Test

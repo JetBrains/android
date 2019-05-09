@@ -32,6 +32,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
@@ -408,11 +413,7 @@ public class CpuCaptureParser {
                                          CpuTraceType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
-      File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", traceId), ".trace", true);
-      try (FileOutputStream out = new FileOutputStream(trace)) {
-        out.write(traceData.toByteArray());
-      }
-
+      File trace = CpuCaptureStage.saveCapture(traceId, traceData);
       TraceParser parser;
       if (profilerType == CpuTraceType.ART) {
         parser = new ArtTraceParser();
