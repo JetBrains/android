@@ -20,9 +20,9 @@ import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_S
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeLintOptions;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -216,7 +216,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       IdeAndroidProject model = project.getGradleProjectModel();
       if (model != null) {
         try {
-          LintOptions lintOptions = model.getLintOptions();
+          IdeLintOptions lintOptions = model.getLintOptions();
           final Map<String, Integer> overrides = lintOptions.getSeverityOverrides();
           if (overrides != null && !overrides.isEmpty()) {
             return new DefaultConfiguration(this, project, null) {
@@ -505,7 +505,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   private AndroidSdkHandler sdk = null;
 
   @Nullable
-  @Override
+@Override
   public AndroidSdkHandler getSdk() {
     if (sdk == null) {
       Module module = getModule();
