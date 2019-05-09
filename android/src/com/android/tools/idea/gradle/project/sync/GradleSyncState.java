@@ -110,7 +110,6 @@ public class GradleSyncState {
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
-  @NotNull private final GradleFiles myGradleFiles;
   @NotNull private final ProjectStructure myProjectStructure;
 
   @NotNull private final Object myLock = new Object();
@@ -158,10 +157,9 @@ public class GradleSyncState {
   public GradleSyncState(@NotNull Project project,
                          @NotNull AndroidProjectInfo androidProjectInfo,
                          @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull GradleFiles gradleFiles,
                          @NotNull MessageBus messageBus,
                          @NotNull ProjectStructure projectStructure) {
-    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, projectStructure, new StateChangeNotification(project),
+    this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
 
@@ -169,7 +167,6 @@ public class GradleSyncState {
   GradleSyncState(@NotNull Project project,
                   @NotNull AndroidProjectInfo androidProjectInfo,
                   @NotNull GradleProjectInfo gradleProjectInfo,
-                  @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification,
@@ -180,7 +177,6 @@ public class GradleSyncState {
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
-    myGradleFiles = gradleFiles;
     myProjectStructure = projectStructure;
 
     // Call in to make sure IndexingSuspender instance is constructed.
@@ -540,7 +536,7 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    return myGradleFiles.areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
+    return GradleFiles.getInstance(myProject).areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
   }
 
   /**
