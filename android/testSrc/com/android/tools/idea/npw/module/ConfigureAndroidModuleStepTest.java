@@ -70,7 +70,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     NewModuleModel newModuleModel = new NewModuleModel(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     ConfigureAndroidModuleStep configureAndroidModuleStep =
-      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", false, false, "Test Title");
+      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title");
 
     Disposer.register(getTestRootDisposable(), newModuleModel);
     Disposer.register(getTestRootDisposable(), configureAndroidModuleStep);
@@ -95,7 +95,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     NewModuleModel newModuleModel = new NewModuleModel(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     ConfigureAndroidModuleStep configureAndroidModuleStep =
-      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", false, false, "Test Title");
+      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title");
 
     Disposer.register(getTestRootDisposable(), newModuleModel);
     Disposer.register(getTestRootDisposable(), configureAndroidModuleStep);
