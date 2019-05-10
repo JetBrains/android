@@ -66,10 +66,7 @@ public class AndroidRunState implements RunProfileState {
 
     AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(
       env.getProject(), null, ((AndroidRunConfigurationBase)env.getRunProfile()).getUniqueID(), env.getExecutionTarget());
-    myPreviousSessionProcessHandler =
-      (existingSessionInfo != null && existingSessionInfo.getExecutorId().equals(env.getExecutor().getId()))
-      ? existingSessionInfo.getProcessHandler()
-      : null;
+    myPreviousSessionProcessHandler = existingSessionInfo != null ? existingSessionInfo.getProcessHandler() : null;
   }
 
   @Nullable
