@@ -71,17 +71,20 @@ private const val NOOP = "noop"
  * The intention is to hide implementation details in this class, and only
  * expose a minimal API in [PTable].
  */
-class PTableImpl(override val tableModel: PTableModel,
-                 override val context: Any?,
-                 private val rendererProvider: PTableCellRendererProvider,
-                 private val editorProvider: PTableCellEditorProvider,
-                 private val customToolTipHook: (MouseEvent) -> String? = { null })
-  : JBTable(PTableModelImpl(tableModel)), PTable {
+class PTableImpl(
+  override val tableModel: PTableModel,
+  override val context: Any?,
+  private val rendererProvider: PTableCellRendererProvider,
+  private val editorProvider: PTableCellEditorProvider,
+  private val customToolTipHook: (MouseEvent) -> String? = { null },
+  private val updatingUI: () -> Unit = {}
+) : JBTable(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter()
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
+  private var initialized = false
   override val backgroundColor: Color
     get() = super.getBackground()
   override val foregroundColor: Color
@@ -134,6 +137,8 @@ class PTableImpl(override val tableModel: PTableModel,
 
     getColumnModel().getColumn(0).resizable = false
     getColumnModel().getColumn(1).resizable = false
+
+    initialized = true
   }
 
   override fun doLayout() {
@@ -201,6 +206,11 @@ class PTableImpl(override val tableModel: PTableModel,
   override fun updateUI() {
     super.updateUI()
     customizeKeyMaps()
+    if (initialized) {  // This method is called but JTable.init
+      updatingUI()
+      rendererProvider.updateUI()
+      editorProvider.updateUI()
+    }
   }
 
   /**
@@ -687,7 +697,7 @@ private class NameRowFilter : RowFilter<TableModel, Int>() {
   private val comparator = SpeedSearchComparator(false)
   var pattern = ""
 
-  override fun include(entry: RowFilter.Entry<out TableModel, out Int>): Boolean {
+  override fun include(entry: Entry<out TableModel, out Int>): Boolean {
     val item = entry.getValue(0) as PTableItem
     if (isMatch(item.name)) {
       return true
