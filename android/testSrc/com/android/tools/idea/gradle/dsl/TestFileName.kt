@@ -638,6 +638,7 @@ enum class TestFileName(val path: String) {
   GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE_SUB("gradlePropertyModel/resolveVariablesInPropertiesFile_sub"),
   GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT("gradlePropertyModel/inScopeElement"),
   GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB("gradlePropertyModel/inScopeElement_sub"),
+  GRADLE_PROPERTY_MODEL_DUPLICATE_MAP_KEY("gradlePropertyModel/duplicateMapKey"),
   PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES("propertyDependency/buildScriptAppliedDependencies"),
   PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED("propertyDependency/buildScriptAppliedDependenciesApplied"),
   PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE("propertyDependency/buildScriptAppliedInParentModule"),
