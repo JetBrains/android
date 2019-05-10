@@ -42,7 +42,7 @@ fun recordUpgradeDialogEvent(
     .setRecommendedAndroidGradlePluginVersion(newPluginVersion)
     .setUserAction(userAction)
 
-  if (oldPluginVersion == null) {
+  if (oldPluginVersion != null) {
     dialogStats.currentAndroidGradlePluginVersion = oldPluginVersion
   }
 
