@@ -43,10 +43,11 @@ import javax.swing.border.Border
  */
 class CollapsibleLabel(
   val model: CollapsibleLabelModel,
-  font: Font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL),
+  fontSize: UIUtil.FontSize,
+  fontStyle: Int,
   vararg actions: AnAction
 ) : JPanel(BorderLayout()) {
-  private val label = MyLabel(model.name)
+  private val label = MyLabel(model.name, fontSize, fontStyle)
 
   // The label wil automatically display ellipsis at the end of a string that is too long for the width
   private val valueWithTrailingEllipsis = model.name
@@ -77,7 +78,6 @@ class CollapsibleLabel(
     add(button, BorderLayout.WEST)
     add(label, BorderLayout.CENTER)
     model.addValueChangedListener(ValueChangedListener { valueChanged() })
-    label.font = font
     if (actions.isNotEmpty()) {
       val buttons = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
       actions.forEach { buttons.add(FocusableActionButton(it)) }
@@ -100,9 +100,30 @@ class CollapsibleLabel(
     return "<html>" + HtmlEscapers.htmlEscaper().escape(text) + "</html>"
   }
 
-  private class MyLabel(label: String): JBLabel(label) {
+  private class MyLabel(label: String, val fontSize: UIUtil.FontSize, val fontStyle: Int): JBLabel(label) {
+    private var initialized = false
+
+    init {
+      setFont()
+      initialized = true
+    }
+
     override fun contains(x: Int, y: Int): Boolean {
       return isVisible && super.contains(x, y)
+    }
+
+    override fun updateUI() {
+      super.updateUI()
+      if (initialized) {
+        setFont()
+      }
+    }
+
+    private fun setFont() {
+      font = UIUtil.getLabelFont(fontSize)
+      if (fontStyle != Font.PLAIN) {
+        font = font.deriveFont(fontStyle)
+      }
     }
   }
 }
