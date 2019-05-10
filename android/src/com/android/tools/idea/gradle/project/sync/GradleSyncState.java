@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LO
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
@@ -84,6 +85,7 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -461,6 +463,13 @@ public class GradleSyncState {
     if (ideSdks.isUsingJavaHomeJdk()) {
       return;
     }
+    String javaHome = getJdkFromJavaHome();
+    if (javaHome == null) {
+      return;
+    }
+    if (ideSdks.validateJdkPath(new File(javaHome)) == null) {
+      return;
+    }
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
     quickFixes.add(new OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."));
     UseJavaHomeAsJdkHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
@@ -471,7 +480,7 @@ public class GradleSyncState {
     String msg = "Android Studio is using this JDK location:\n" +
                  ideSdks.getJdkPath() + "\n" +
                  "which is different to what Gradle uses by default:\n" +
-                 IdeSdks.getJdkFromJavaHome() + "\n" +
+                 javaHome + "\n" +
                  "Using different locations may spawn multiple Gradle daemons if\n" +
                  "Gradle tasks are run from command line while using Android Studio.\n";
     addWarningToJdkEventLog(msg, quickFixes);
