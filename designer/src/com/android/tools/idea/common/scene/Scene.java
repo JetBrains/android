@@ -892,8 +892,10 @@ public class Scene implements SelectionListener, Disposable {
       myHitListener.setTargetFilter(target -> myHitTarget != target);
       myHitListener.find(transform, myRoot, x, y);
       SceneComponent targetComponent = myHitTarget.getComponent();
-      if ((lassoTarget == null || lassoTarget.getIntersectingComponents().isEmpty())
-          && targetComponent != null && !inCurrentSelection(targetComponent)) {
+      if (lassoTarget == null // No need to select LassoTarget's component.
+          && targetComponent != null
+          && !inCurrentSelection(targetComponent)) {
+        // Select the target's component when it is first being dragged.
         myNewSelectedComponentsOnRelease.clear();
         myNewSelectedComponentsOnRelease.add(targetComponent);
         select(myNewSelectedComponentsOnRelease);
