@@ -110,17 +110,14 @@ public class WorkBenchLoadingPanel extends JPanel {
 
   private static class MyMessagePanel extends JPanel {
     private final JLabel myText = new JLabel("", SwingConstants.CENTER);
+    private boolean myInitialized;
 
     MyMessagePanel() {
       super(new BorderLayout());
       setOpaque(false);
-
-      // Similar to JBLoadingPanel.customizeStatusText but with a smaller font.
-      Font font = myText.getFont();
-      myText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
-      myText.setForeground(ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150));
-
       add(myText);
+      updateTextFont();
+      myInitialized = true;
     }
 
     public void setText(String text) {
@@ -129,6 +126,21 @@ public class WorkBenchLoadingPanel extends JPanel {
 
     public void setIcon(Icon icon) {
       myText.setIcon(icon);
+    }
+
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      if (myInitialized) {
+        updateTextFont();
+      }
+    }
+
+    private void updateTextFont() {
+      // Similar to JBLoadingPanel.customizeStatusText but with a smaller font.
+      Font font = UIUtil.getLabelFont();
+      myText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
+      myText.setForeground(ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150));
     }
   }
 }

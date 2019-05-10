@@ -69,6 +69,11 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     return editor
   }
 
+  fun updateUI() {
+    // After a LaF change: regenerate the editors to reflect the UI changes.
+    componentCache.clear()
+  }
+
   private fun createEditor(key: ControlKey,
                            property: P,
                            column: PTableColumn,
