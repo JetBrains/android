@@ -33,6 +33,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -55,7 +56,6 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   @VisibleForTesting
   val inspectorModel = InspectorPanelModel()
   private val inspector = InspectorPanelImpl(inspectorModel, parentDisposable)
-  private val boldFont = UIUtil.getLabelFont().deriveFont(Font.BOLD)
   private var lastAddedLine: InspectorLineModel? = null
   private var lastTitleLine: CollapsibleLabelModel? = null
 
@@ -113,12 +113,11 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
-    val label = CollapsibleLabel(model, boldFont, *actions)
-    label.font = boldFont
+    val label = CollapsibleLabel(model, UIUtil.FontSize.NORMAL, Font.BOLD, *actions)
     label.isOpaque = true
     label.innerBorder = JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, 0)
     label.border = JBUI.Borders.merge(JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
-                                      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
+                                      SideBorder(JBColor.border(), SideBorder.BOTTOM), true)
     addLine(model, null)
     inspector.addLineElement(label)
     label.background = UIUtil.getPanelBackground()
@@ -129,7 +128,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
-    val label = CollapsibleLabel(model)
+    val label = CollapsibleLabel(model, UIUtil.FontSize.SMALL, Font.PLAIN)
     label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
     editorModel.lineModel = model
     addLine(model, parent)
@@ -212,10 +211,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
 
   private fun addSeparator(bottomDivider: Boolean, parent: InspectorLineModel? = null): GenericInspectorLineModel {
     val component = JPanel()
-    val bottom = if (bottomDivider) 1 else 0
     component.preferredSize = JBDimension(0, TITLE_SEPARATOR_HEIGHT)
     component.background = inspector.background
-    component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, bottom, 0)
+    component.border = if (bottomDivider) SideBorder(JBColor.border(), SideBorder.BOTTOM) else JBUI.Borders.empty()
     val model = SeparatorLineModel()
     val wrapper = GenericLinePanel(component, model)
     addLine(model, parent)
