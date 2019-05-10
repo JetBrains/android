@@ -20,14 +20,26 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.Collections;
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class SelectDeviceAndSnapshotActionTest {
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+
+  @After
+  public void clearDevices() {
+    TestAsyncDevicesGetter.getService(myRule.getProject()).set(Collections.emptyList());
+  }
+
   @Test
   public void selectDeviceAndSnapshotActionSnapshotsIsEmpty() {
     Device device = new VirtualDevice.Builder()
@@ -38,7 +50,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(Mockito.mock(DeviceAndSnapshotComboBoxAction.class))
+      .setProject(myRule.getProject())
       .setDevice(device)
       .build();
 
@@ -59,6 +71,7 @@ public final class SelectDeviceAndSnapshotActionTest {
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(comboBoxAction)
+      .setProject(myRule.getProject())
       .setDevice(device)
       .build();
 
@@ -80,6 +93,7 @@ public final class SelectDeviceAndSnapshotActionTest {
     try {
       new SelectDeviceAndSnapshotAction.Builder()
         .setComboBoxAction(comboBoxAction)
+        .setProject(myRule.getProject())
         .setDevice(device)
         .build();
 
@@ -92,6 +106,8 @@ public final class SelectDeviceAndSnapshotActionTest {
   @Test
   public void selectDeviceAndSnapshotActionTwoDevicesHaveSameName() {
     // Arrange
+    Project project = myRule.getProject();
+
     Device lgeNexus5x1 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
       .setKey("00fff9d2279fa601")
@@ -104,12 +120,11 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    DeviceAndSnapshotComboBoxAction comboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
-    Mockito.when(comboBoxAction.getDevices()).thenReturn(Arrays.asList(lgeNexus5x1, lgeNexus5x2));
+    TestAsyncDevicesGetter.getService(project).set(Arrays.asList(lgeNexus5x1, lgeNexus5x2));
 
     // Act
     AnAction action = new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(comboBoxAction)
+      .setProject(project)
       .setDevice(lgeNexus5x1)
       .build();
 
@@ -120,18 +135,19 @@ public final class SelectDeviceAndSnapshotActionTest {
   @Test
   public void configurePresentationSetTextDoesntMangleDeviceName() {
     // Arrange
+    Project project = myRule.getProject();
+
     Device apiQ64Google = new VirtualDevice.Builder()
       .setName("apiQ_64_Google")
       .setKey("apiQ_64_Google")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    DeviceAndSnapshotComboBoxAction comboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
-    Mockito.when(comboBoxAction.getDevices()).thenReturn(Collections.singletonList(apiQ64Google));
+    TestAsyncDevicesGetter.getService(project).set(Collections.singletonList(apiQ64Google));
 
     // Act
     AnAction action = new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(comboBoxAction)
+      .setProject(project)
       .setDevice(apiQ64Google)
       .build();
 
