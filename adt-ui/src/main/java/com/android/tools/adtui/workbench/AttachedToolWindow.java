@@ -340,9 +340,14 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private static JPanel createTitlePanel(@NotNull String title, boolean includeSearchField, @NotNull SearchTextField searchField) {
     CardLayout layout = new CardLayout();
     JPanel titlePanel = new JPanel(layout);
-    JLabel titleLabel = new JBLabel(title);
+    JLabel titleLabel = new JBLabel(title) {
+      @Override
+      public void updateUI() {
+        super.updateUI();
+        setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+      }
+    };
     titleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
-    titleLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     titlePanel.add(titleLabel, LABEL_HEADER);
     if (includeSearchField) {
       // Override the preferred height of the search field in order to align all tool window headers
