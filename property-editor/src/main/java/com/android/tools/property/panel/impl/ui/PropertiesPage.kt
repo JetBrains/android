@@ -31,6 +31,7 @@ import com.android.tools.property.ptable2.PTableModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
@@ -40,14 +41,12 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Font
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.lang.Integer.max
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
 private const val TITLE_SEPARATOR_HEIGHT = 4
-const val MIN_VERTICAL_SCROLLING_UNIT_INCREMENT = 40
 
 /**
  * Provides a page for a tab defined by a [PropertiesViewTab].
@@ -101,7 +100,11 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     scrollPane.addComponentListener(object : ComponentAdapter() {
       override fun componentResized(event: ComponentEvent?) {
         // unitIncrement affects the scroll wheel speed
-        scrollPane.verticalScrollBar.unitIncrement = max(scrollPane.height, MIN_VERTICAL_SCROLLING_UNIT_INCREMENT * JBUI.scale(16)) / 4
+        // Each platform seem to behave differently to this value.
+        // - Windows seem to scroll faster
+        // - Unix about half speed of Windows
+        // - Mac doesn't seem to use this value
+        scrollPane.verticalScrollBar.unitIncrement = JBUI.scale(16) * (if (SystemInfo.isWindows) 1 else 2)
 
         // blockIncrement affects the page down speed, when clicking above/under the scroll thumb
         scrollPane.verticalScrollBar.blockIncrement = scrollPane.height
