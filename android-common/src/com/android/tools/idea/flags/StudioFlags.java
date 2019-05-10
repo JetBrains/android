@@ -101,7 +101,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_JDK_STEP = Flag.create(
     NPW, "first.run.jdk.step", "Show JDK setup step",
     "Show JDK Setup Step in Welcome Wizard",
-    true);
+    false);
 
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
