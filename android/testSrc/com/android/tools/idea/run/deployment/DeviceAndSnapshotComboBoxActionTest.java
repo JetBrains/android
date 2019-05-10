@@ -38,7 +38,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Clock;
@@ -97,7 +96,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       project -> null,
       myClock);
 
@@ -118,7 +117,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -143,7 +142,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -167,7 +166,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -213,7 +212,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> false,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       project -> properties,
       myClock);
 
@@ -240,7 +239,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -266,7 +265,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       project -> null,
       myClock);
 
@@ -290,7 +289,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -325,7 +324,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -368,7 +367,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -410,7 +409,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -446,7 +445,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> false,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -472,7 +471,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     AnAction action = new DeviceAndSnapshotComboBoxAction(
       () -> false,
       () -> false,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       project -> null,
       myClock);
 
@@ -585,14 +584,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       project -> null,
       myClock);
 
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.emptyList(), action.getDevices());
     assertNull(action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertNull(myPresentation.getIcon());
@@ -605,7 +603,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> false,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -646,14 +644,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -674,7 +671,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -682,7 +679,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -710,7 +706,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -718,7 +714,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -745,7 +740,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     AnAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> false,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -770,7 +765,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     AnAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> false,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -795,7 +790,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -803,7 +798,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -824,7 +818,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -833,7 +827,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -854,7 +847,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -863,7 +856,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -884,7 +876,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
+      AsyncDevicesGetter::getService,
       PropertiesComponent::getInstance,
       myClock);
 
@@ -893,7 +885,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
-    assertEquals(Collections.singletonList(builder.build()), action.getDevices());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
     assertNull(action.getSelectedSnapshot());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());

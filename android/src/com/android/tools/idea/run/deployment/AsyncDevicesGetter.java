@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface AsyncDevicesGetter {
+  @NotNull
+  static AsyncDevicesGetter getService(@NotNull Project project) {
+    return ServiceManager.getService(project, AsyncDevicesGetter.class);
+  }
+
   @NotNull
   List<Device> get();
 }
