@@ -24,18 +24,20 @@ final class Devices {
 
   @NotNull
   static String getName(@NotNull Device device, @NotNull Collection<Device> devices) {
+    String key = device.getKey();
     String name = device.getName();
-    StringBuilder builder = new StringBuilder(name);
 
     boolean match = devices.stream()
-      .filter(d -> !d.equals(device))
+      .filter(d -> !d.getKey().equals(key))
       .map(Device::getName)
       .anyMatch(name::equals);
+
+    StringBuilder builder = new StringBuilder(name);
 
     if (match) {
       builder
         .append(" [")
-        .append(device.getKey())
+        .append(key)
         .append(']');
     }
 
