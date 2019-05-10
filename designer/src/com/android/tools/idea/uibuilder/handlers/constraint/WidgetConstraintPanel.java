@@ -63,7 +63,9 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
-  private static final JBDimension PANEL_DIMENSION = JBUI.size(280, 215);
+  private static final int PANEL_WIDTH = 280;
+  private static final int PANEL_HEIGHT = 215;
+  private static final int PANEL_TITLE_HEIGHT = 20;
   private static final Color STROKE_COLOR = JBColor.namedColor("UIDesigner.stroke.acceleratorForeground", new JBColor(0x8A8A8A, 0x808080));
   private static final Color HIGH_STROKE_COLOR = JBColor.namedColor("UIDesigner.highStroke.foreground", new JBColor(0xB0B0B0, 0x6F7171));
   private static final Color THUMB_CIRCLE_COLOR = JBColor.namedColor("UIDesigner.percent.foreground", new JBColor(Gray._192, Gray._128));
@@ -74,6 +76,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private final AdtSecondaryPanel myCustomPanel = new AdtSecondaryPanel(new BorderLayout());
 
   @NotNull private final SingleWidgetView mMain;
+  private final JLabel mTitle;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   @NotNull final private WidgetSection myConstraintSection;
@@ -86,6 +89,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   public final static String HORIZONTAL_BIAS_SLIDER = "horizontalBiasSlider";
 
   private final WidgetConstraintModel myWidgetModel = new WidgetConstraintModel(() -> configureUI());
+
+  private boolean myInitialized;
 
   static class InspectorColorSet extends BlueprintColorSet {
     InspectorColorSet() {
@@ -107,7 +112,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
                                                                     : new WidgetEmptySection();
     myConstraintSection.setOpaque(false);
 
-    setPreferredSize(PANEL_DIMENSION);
+    setPreferredSize(JBUI.size(PANEL_WIDTH, PANEL_HEIGHT));
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
@@ -118,10 +123,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mVerticalSlider.addFocusListener(new ScrollToViewFocusListener(mVerticalSlider));
     mHorizontalSlider.addFocusListener(new ScrollToViewFocusListener(mHorizontalSlider));
 
-    JLabel title = new JLabel(PANEL_TITLE);
-    title.setSize(JBUI.size(280, 20));
-    title.setBorder(JBUI.Borders.emptyLeft(8));
-    add(title);
+    mTitle = new JLabel(PANEL_TITLE);
+    mTitle.setSize(JBUI.size(PANEL_WIDTH, PANEL_TITLE_HEIGHT));
+    mTitle.setBorder(JBUI.Borders.emptyLeft(8));
+    add(mTitle);
     add(mVerticalSlider);
     add(mMain);
     add(mHorizontalSlider);
@@ -141,6 +146,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     myCustomPanel.add(this, BorderLayout.NORTH);
     myCustomPanel.add(myConstraintSection, BorderLayout.CENTER);
     myCustomPanel.add(new MySeparator(), BorderLayout.SOUTH);
+    myInitialized = true;
   }
 
   @Override
@@ -161,10 +167,11 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   @Override
   public void updateUI() {
     super.updateUI();
-    if (mVerticalSlider != null) {
+    if (myInitialized) {
+      setPreferredSize(JBUI.size(PANEL_WIDTH, PANEL_HEIGHT));
+      mTitle.setSize(JBUI.size(PANEL_WIDTH, PANEL_TITLE_HEIGHT));
+      mTitle.setBorder(JBUI.Borders.emptyLeft(8));
       mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, mColorSet));
-    }
-    if (mHorizontalSlider != null) {
       mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, mColorSet));
     }
   }
@@ -250,23 +257,27 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     MySeparator() {
       super(new BorderLayout());
       add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.CENTER);
+    }
+
+    @Override
+    public void updateUI() {
+      super.updateUI();
       setBorder(JBUI.Borders.empty(4));
     }
   }
-
 
   /*-----------------------------------------------------------------------*/
   //Look and Feel for the sliders
   /*-----------------------------------------------------------------------*/
 
   static class WidgetSliderUI extends BasicSliderUI {
-    private static final JBDimension THUMB_SIZE = JBUI.size(18);
-    private static final int TRACK_THICKNESS = JBUI.scale(5);
-    private static final int ARC_SIZE = JBUI.scale(2);
-    private static final int SLIDER_LENGTH = JBUI.scale(120);
-    private static final Dimension V_SIZE = new Dimension(THUMB_SIZE.width, SLIDER_LENGTH);
-    private static final Dimension H_SIZE = new Dimension(SLIDER_LENGTH, THUMB_SIZE.height);
-    @NotNull private static Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUI.scaleFontSize(10));
+    private final JBDimension THUMB_SIZE = JBUI.size(18);
+    private final int TRACK_THICKNESS = JBUI.scale(5);
+    private final int ARC_SIZE = JBUI.scale(2);
+    private final int SLIDER_LENGTH = JBUI.scale(120);
+    private final Dimension V_SIZE = new Dimension(THUMB_SIZE.width, SLIDER_LENGTH);
+    private final Dimension H_SIZE = new Dimension(SLIDER_LENGTH, THUMB_SIZE.height);
+    @NotNull private Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUI.scaleFontSize(10));
     private ColorSet mColorSet;
 
     WidgetSliderUI(JSlider s, ColorSet colorSet) {
