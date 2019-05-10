@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
-    implements BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
+    implements Disposable, BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final ResourceNamespace myNamespace;
@@ -78,8 +78,6 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
   @Override
   public void dispose() {
-    super.dispose();
-
     Project project = myFacet.getModule().getProject();
     if (!project.isDisposed()) {
       BuildVariantUpdater.getInstance(project).removeSelectionChangeListener(this);
