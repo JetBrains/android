@@ -19,13 +19,11 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -402,7 +400,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    * Do not call outside of {@link MultiResourceRepository}.
    */
   @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NonNull
+  @NotNull
   ListMultimap<String, ResourceItem> getOrCreateMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     return getOrCreateMap(namespace, type);
   }
@@ -411,7 +409,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    * Package accessible version of {@link #getFullTable()}. Do not call outside of {@link MultiResourceRepository}.
    */
   @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NonNull
+  @NotNull
   ResourceTable getFullTablePackageAccessible() {
     return getFullTable();
   }
