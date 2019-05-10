@@ -16,12 +16,12 @@
 package com.android.tools.idea.ui.resourcemanager
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
-import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
-import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
-import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.explorer.ProjectResourcesBrowserViewModel
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
+import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
+import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
