@@ -21,7 +21,6 @@ import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
@@ -35,7 +34,6 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -86,8 +84,7 @@ public class ResourceFolderRegistry implements Disposable {
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
-    RemovalListener<VirtualFile, ResourceFolderRepository> removalListener = notification -> Disposer.dispose(notification.getValue());
-    return CacheBuilder.newBuilder().removalListener(removalListener).build();
+    return CacheBuilder.newBuilder().build();
   }
 
   @NotNull
@@ -108,14 +105,9 @@ public class ResourceFolderRegistry implements Disposable {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
-    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> {
-      ResourceFolderRepository newRepository = ResourceFolderRepository.create(facet, dir, namespace);
-      Disposer.register(this, newRepository);
-      return newRepository;
-    });
+    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
 
     assert repository.getNamespace().equals(namespace);
-    assert !Disposer.isDisposed(repository);
 
     // TODO(b/80179120): figure out why this is not always true.
     // assert repository.getFacet().equals(facet);
