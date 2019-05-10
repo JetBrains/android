@@ -599,7 +599,7 @@ public class IdeSdks {
    */
   @Nullable
   public Sdk getJdk() {
-    return getJdk(DEFAULT_JDK_VERSION);
+    return getJdk(getRunningVersionOrDefault());
   }
 
   @Nullable
