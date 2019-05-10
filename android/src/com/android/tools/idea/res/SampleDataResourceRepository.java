@@ -149,12 +149,10 @@ public class SampleDataResourceRepository extends MultiResourceRepository {
 
     LeafRepository predefinedItemsRepository =
         new LeafRepository("Predefined SampleData", androidFacet, ResourceNamespace.TOOLS);
-    Disposer.register(this, predefinedItemsRepository);
     predefinedItemsRepository.addPredefinedItems();
 
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(androidFacet);
     myUserItemsRepository = new LeafRepository("User-defined SampleData", androidFacet, repositoryManager.getNamespace());
-    Disposer.register(this, myUserItemsRepository);
     myUserItemsRepository.loadItems();
 
     setChildren(ImmutableList.of(predefinedItemsRepository, myUserItemsRepository), ImmutableList.of());

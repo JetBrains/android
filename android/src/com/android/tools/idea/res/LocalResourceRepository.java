@@ -34,7 +34,6 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -144,7 +143,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements Disposable, ModificationTracker {
+public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
 
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
@@ -174,9 +173,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   public String getLibraryName() {
     return null;
   }
-
-  @Override
-  public void dispose() {}
 
   public void addParent(@NotNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {
