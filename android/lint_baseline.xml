@@ -6,7 +6,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/org/jetbrains/android/dom/AndroidDomElementDescriptorProvider.java"
-            line="170"/>
+            line="165"/>
     </issue>
 
     <issue
@@ -143,14 +143,6 @@
         <location
             file="src/com/android/tools/idea/res/ModuleResourceRepository.java"
             line="275"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/run/deployment/SelectDeviceAndSnapshotAction.java"
-            line="88"/>
     </issue>
 
     <issue
