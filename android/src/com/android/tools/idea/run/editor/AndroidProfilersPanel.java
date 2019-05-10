@@ -21,8 +21,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.google.common.util.concurrent.Futures;
@@ -32,9 +32,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.HyperlinkLabel;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.ui.SimpleListCellRenderer;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -99,16 +98,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected());
     myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(CpuProfilerConfigsState.getInstance(myProject).getConfigs()
                                                                       .toArray(new CpuProfilerConfig[0])));
-    myStartupCpuConfigsComboBox.setRenderer(new ColoredListCellRenderer<CpuProfilerConfig>() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList<? extends CpuProfilerConfig> list,
-                                           CpuProfilerConfig value,
-                                           int index,
-                                           boolean selected,
-                                           boolean hasFocus) {
-        append(value.getName());
-      }
-    });
+    myStartupCpuConfigsComboBox.setRenderer(SimpleListCellRenderer.create("", CpuProfilerConfig::getName));
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
 
     if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {

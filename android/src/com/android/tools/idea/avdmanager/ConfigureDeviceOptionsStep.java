@@ -71,7 +71,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private ComboBox<IdDisplay> myDeviceTypeComboBox;
   private JTextField myDiagonalScreenSize;
   private StorageField myRamField;
-  private JComboBox myNavigationControlsCombo;
+  private JComboBox<Navigation> myNavigationControlsCombo;
   private TooltipLabel myHelpAndErrorLabel;
   private JCheckBox myIsScreenRound;
   private JBScrollPane myScrollPane;
@@ -159,7 +159,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myListeners.receive(selectedDeviceType, idDisplayOptional -> {
       if (idDisplayOptional.isPresent()) {
         IdDisplay selectedType = idDisplayOptional.get();
-        /**
+        /*
          * TODO When the user selects round, the following could be done to make the UI cleaner
          * if(selectedType == WEAR){
          *     disable and hide width textbox
@@ -218,17 +218,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class)) {
-      @Override
-      public ListCellRenderer getRenderer() {
-        return new ColoredListCellRenderer() {
-          @Override
-          protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-            append(((Navigation)value).getShortDisplayValue());
-          }
-        };
-      }
-    };
+    myNavigationControlsCombo = new ComboBox<>(new EnumComboBoxModel<>(Navigation.class));
+    myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);

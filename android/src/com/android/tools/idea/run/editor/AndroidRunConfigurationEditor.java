@@ -20,8 +20,8 @@ import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
@@ -44,6 +44,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.PanelWithAnchor;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -69,7 +70,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   // deploy options
   private ConfigurableCardPanel myDeployTargetConfigurableCardPanel;
-  private ComboBox myDeploymentTargetCombo;
+  private ComboBox<DeployTargetProvider> myDeploymentTargetCombo;
 
   // Misc. options tab
   private JCheckBox myClearLogCheckBox;
@@ -116,8 +117,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
     myDeployTargetConfigurables = builder.build();
 
-    myDeploymentTargetCombo.setModel(new CollectionComboBoxModel(myApplicableDeployTargetProviders));
-    myDeploymentTargetCombo.setRenderer(new DeployTargetProvider.Renderer());
+    myDeploymentTargetCombo.setModel(new CollectionComboBoxModel<>(myApplicableDeployTargetProviders));
+    myDeploymentTargetCombo.setRenderer(SimpleListCellRenderer.create("", DeployTargetProvider::getDisplayName));
     myDeploymentTargetCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
