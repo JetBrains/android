@@ -25,13 +25,16 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
@@ -44,14 +47,33 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
 
   override fun isAvailableInEditorOnly() = false
 
-  override fun isEnabledOnDataContext(dataContext: DataContext) = true
+  override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
+    val module = dataContext.getData(LangDataKeys.MODULE)
+    return module != null && GradleProjects.isIdeaAndroidModule(module)
+  }
 
-  override fun isEnabledOnElements(elements: Array<out PsiElement>) = true
+  override fun isEnabledOnElements(elements: Array<out PsiElement>) =
+    elements.any { ModuleUtilCore.findModuleForPsiElement(it)?.let { GradleProjects.isIdeaAndroidModule(it) } == true }
+
+  override fun isAvailableOnElementInEditorAndFile(element: PsiElement,
+                                                   editor: Editor,
+                                                   file: PsiFile,
+                                                   context: DataContext,
+                                                   place: String): Boolean {
+    val module = context.getData(LangDataKeys.MODULE)
+    return module != null && GradleProjects.isIdeaAndroidModule(module)
+  }
 
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
-    anActionEvent.presentation.isEnabledAndVisible = StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get()
+    val enabled = StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get()
+    if (!enabled) {
+      anActionEvent.presentation.isEnabledAndVisible = enabled
+    }
+    else {
+      super.update(anActionEvent)
+    }
   }
 
   override fun isAvailableForLanguage(language: Language) = true

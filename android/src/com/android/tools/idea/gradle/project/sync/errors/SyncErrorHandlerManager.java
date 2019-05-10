@@ -18,13 +18,21 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.build.FilePosition;
+import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker;
+import org.jetbrains.plugins.gradle.issue.GradleIssueData;
 
+import java.io.File;
+import java.util.Objects;
+
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.buildErrorMessage;
@@ -60,10 +68,29 @@ public class SyncErrorHandlerManager {
       PositionInFile positionInFile = errorAndLocation.getPositionInFile();
       NotificationData notificationData = mySyncMessages.createNotification(DEFAULT_GROUP, message, ERROR, positionInFile);
 
+      boolean isHandled = false;
       for (SyncErrorHandler errorHandler : myErrorHandlers) {
         if (errorHandler.handleError(errorToReport, notificationData, myProject)) {
+          isHandled = true;
           break;
         }
+      }
+      // re-use common gradle issues checkers
+      if (!isHandled) {
+        String projectPath = getBaseDirPath(myProject).getPath();
+        FilePosition filePosition = positionInFile != null
+                                    ? new FilePosition(new File(positionInFile.file.getPath()), positionInFile.line, positionInFile.column)
+                                    : null;
+        GradleIssueData issueData = new GradleIssueData(projectPath, error, null, filePosition);
+        GradleIssueChecker.getKnownIssuesCheckList().stream()
+          .map(checker -> checker.check(issueData))
+          .filter(Objects::nonNull)
+          .findFirst().ifPresent(issue -> {
+          notificationData.setMessage(issue.getDescription());
+          for (BuildIssueQuickFix quickFix : issue.getQuickFixes()) {
+            notificationData.setListener(quickFix.getId(), (notification, event) -> quickFix.runQuickFix(myProject));
+          }
+        });
       }
 
       if (notificationData.getNavigatable() == null) {

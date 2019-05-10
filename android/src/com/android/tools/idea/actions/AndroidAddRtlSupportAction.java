@@ -16,9 +16,12 @@
 
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.refactoring.rtl.RtlSupportManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -35,5 +38,11 @@ public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
     if (project != null) {
       new RtlSupportManager(project).showDialog();
     }
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    Module module = e.getData(LangDataKeys.MODULE);
+    e.getPresentation().setEnabledAndVisible(module != null && GradleProjects.isIdeaAndroidModule(module));
   }
 }
