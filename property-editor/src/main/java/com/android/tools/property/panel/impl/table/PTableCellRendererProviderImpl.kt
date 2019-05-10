@@ -45,4 +45,9 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
       PTableColumn.VALUE -> valueRenderer
     }
   }
+
+  override fun updateUI() {
+    nameRenderer.updateUI()
+    valueRenderer.updateUI()
+  }
 }
