@@ -25,25 +25,32 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
+import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBColor
+import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.JBUI
 import java.awt.Component
+import java.awt.event.ItemEvent
 import java.awt.event.MouseEvent
 import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.event.DocumentEvent
+import javax.swing.event.PopupMenuEvent
 
 private const val SEARCH_FIELD_LABEL = "Search resources by name"
 private const val ADD_BUTTON_LABEL = "Add resources to the module"
 private const val FILTERS_BUTTON_LABEL = "Filter displayed resources"
+private const val MODULE_PREFIX = "Module: "
 
 private val MIN_FIELD_SIZE = JBUI.scale(40)
 private val PREF_FIELD_SIZE = JBUI.scale(300)
@@ -59,7 +66,36 @@ class ResourceExplorerToolbar(
   private val toolbarViewModel: ResourceExplorerToolbarViewModel)
   : JPanel(), DataProvider by toolbarViewModel {
 
-  private val moduleSelectionAction = ModuleSelectionAction(toolbarViewModel)
+  private val moduleSelectionCombo = ComboBox<String>().apply {
+
+    model = CollectionComboBoxModel(toolbarViewModel.getAvailableModules().toMutableList())
+
+    renderer = object : ColoredListCellRenderer<String>() {
+      override fun customizeCellRenderer(
+        list: JList<out String>,
+        value: String,
+        index: Int,
+        selected: Boolean,
+        hasFocus: Boolean
+      ) {
+        append(MODULE_PREFIX + value)
+      }
+    }
+
+    addItemListener { event ->
+      if (event.stateChange == ItemEvent.SELECTED) {
+        val moduleName = event.itemSelectable.selectedObjects.first() as String
+        toolbarViewModel.onModuleSelected(moduleName)
+      }
+    }
+
+    addPopupMenuListener(object : PopupMenuListenerAdapter() {
+      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent?) {
+        (model as CollectionComboBoxModel).replaceAll(toolbarViewModel.getAvailableModules())
+      }
+    })
+  }
+
   private val searchAction = createSearchField()
 
   init {
@@ -67,16 +103,12 @@ class ResourceExplorerToolbar(
     val groupLayout = layout as GroupLayout
     val addAction = action(AddAction(toolbarViewModel))
     val separator = com.android.tools.idea.ui.resourcemanager.widget.Separator()
-
-    val moduleSelection = moduleSelectionAction.createCustomComponent(moduleSelectionAction.templatePresentation, "").apply {
-      border = JBUI.Borders.empty(2, 0)
-    }
     val filterAction = action(FilterAction(toolbarViewModel))
 
     val sequentialGroup = groupLayout.createSequentialGroup()
       .addFixedSizeComponent(addAction, true)
       .addFixedSizeComponent(separator)
-      .addComponent(moduleSelection, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
+      .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
       .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
       .addGap(GAP_SIZE, GAP_SIZE, Int.MAX_VALUE) // Align the rest of the components to the right
       .addFixedSizeComponent(filterAction)
@@ -84,7 +116,7 @@ class ResourceExplorerToolbar(
     val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addComponent(addAction)
       .addComponent(separator)
-      .addComponent(moduleSelection)
+      .addComponent(moduleSelectionCombo)
       .addComponent(searchAction)
       .addComponent(filterAction)
 
@@ -92,6 +124,11 @@ class ResourceExplorerToolbar(
     groupLayout.setVerticalGroup(verticalGroup)
 
     border = JBUI.Borders.merge(JBUI.Borders.empty(4, 2), JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
+    toolbarViewModel.updateUICallback = this::update
+  }
+
+  private fun update() {
+    moduleSelectionCombo.selectedItem = toolbarViewModel.currentModuleName
   }
 
   private fun createSearchField() = SearchTextField(true).apply {
@@ -105,23 +142,6 @@ class ResourceExplorerToolbar(
       }
     })
   }
-}
-
-/**
- * Dropdown to select the module from which resources are displayed.
- */
-private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewModel) : ComboBoxAction(), DumbAware {
-
-  init {
-    templatePresentation.text = viewModel.getSelectedModuleText()
-    isSmallVariant = true
-  }
-
-  override fun update(e: AnActionEvent) {
-    e.presentation.text = viewModel.getSelectedModuleText()
-  }
-
-  override fun createPopupActionGroup(button: JComponent?) = DefaultActionGroup(viewModel.getSelectModuleActions())
 }
 
 /**
