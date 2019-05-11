@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,35 +46,52 @@ import org.jetbrains.annotations.Nullable;
 
 public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   public static final String BUNDLE_ID = "DeveloperServices.WhatsNewAssistant";
-  private static final int UNKNOWN_VERSION = -1;
 
   private static AssistantBundleCreator ourTestCreator = null;
 
-  private WhatsNewAssistantURLProvider myURLProvider;
-  private WhatsNewAssistantConnectionOpener myConnectionOpener;
+  @NotNull private WhatsNewAssistantURLProvider myURLProvider;
+  @NotNull private WhatsNewAssistantConnectionOpener myConnectionOpener;
+  @NotNull private Revision myStudioRevision;
 
-  private int myLastSeenVersion = UNKNOWN_VERSION;
+  @NotNull private Revision myLastSeenVersion;
 
   /**
    * Constructor initializes default production field, will be replaced in testing
    */
   public WhatsNewAssistantBundleCreator() {
-    this(new WhatsNewAssistantURLProvider(), new WhatsNewAssistantConnectionOpener());
-  }
-
-  public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider) {
-    this(urlProvider, new WhatsNewAssistantConnectionOpener());
+    this(new WhatsNewAssistantURLProvider(),
+         Revision.safeParseRevision(ApplicationInfo.getInstance().getStrictVersion()),
+         new WhatsNewAssistantConnectionOpener());
   }
 
   public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
+                                        @NotNull Revision studioRevision) {
+    this(urlProvider, studioRevision, new WhatsNewAssistantConnectionOpener());
+  }
+
+  public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
+                                        @NotNull Revision studioRevision,
                                         @NotNull WhatsNewAssistantConnectionOpener connectionOpener) {
     myURLProvider = urlProvider;
     myConnectionOpener = connectionOpener;
+    myStudioRevision = studioRevision;
+
+    // Also check if it's Studio, just in case safeParseRevision didn't fail already
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      myStudioRevision = Revision.NOT_SPECIFIED;
+    }
+
+    myLastSeenVersion = Revision.NOT_SPECIFIED;
   }
 
   @VisibleForTesting
   void setURLProvider(@NotNull WhatsNewAssistantURLProvider urlProvider) {
     myURLProvider = urlProvider;
+  }
+
+  @VisibleForTesting
+  void setStudioRevision(@NotNull Revision revision) {
+    myStudioRevision = revision;
   }
 
   @NotNull
@@ -134,9 +151,11 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
     // Parse and return the new bundle
     WhatsNewAssistantBundle newBundle = parseBundle();
-    if (newBundle != null &&
-        (myLastSeenVersion == UNKNOWN_VERSION || newBundle.getVersion() > myLastSeenVersion)) {
-      return true;
+    if (newBundle != null) {
+      if (myLastSeenVersion.equals(Revision.NOT_SPECIFIED)) {
+        return true;
+      }
+      return newBundle.getVersion().compareTo(myLastSeenVersion) > 0;
     }
     return false;
   }
@@ -154,7 +173,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
     // Error can be caused by corrupt/empty .xml config. First delete the local file, then retry.
     try {
-      Path path = myURLProvider.getLocalConfig(getVersion());
+      Path path = myURLProvider.getLocalConfig(getStudioRevision());
       Files.delete(path);
     } catch (IOException e) {
       getLog().warn("Error deleting cached file", e);
@@ -172,28 +191,27 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    */
   @Nullable
   private WhatsNewAssistantBundle parseBundleWorker() {
-    Path path = myURLProvider.getLocalConfig(getVersion());
     try (InputStream configStream = openConfigStream()) {
       if (configStream == null)
         return null;
       return DefaultTutorialBundle.parse(configStream, WhatsNewAssistantBundle.class);
     }
     catch (Exception e) {
-      getLog().warn(String.format("Error parsing bundle from \"%s\"", path.toString()), e);
+      getLog().warn("Error parsing bundle", e);
       return null;
     }
   }
 
   @Nullable
   private InputStream openConfigStream() throws FileNotFoundException {
-    Path path = myURLProvider.getLocalConfig(getVersion());
+    Path path = myURLProvider.getLocalConfig(getStudioRevision());
     if (Files.exists(path)) {
       return new FileInputStream(path.toFile());
     }
     else {
       // If there is no existing config file, that means it has not been downloaded recently
       // and there is no cache, so we just display the default resource.
-      return myURLProvider.getResourceFileAsStream(this, getVersion());
+      return myURLProvider.getResourceFileAsStream(this, getStudioRevision());
     }
   }
 
@@ -201,11 +219,10 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    * Update the config xml, replacing or creating a file for the current version
    */
   private void updateConfig() {
-    URL webConfig = myURLProvider.getWebConfig(getVersion());
-    Path localConfigPath = myURLProvider.getLocalConfig(getVersion());
-
     // Download XML from server and overwrite the local file
     if (StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.get()) {
+      URL webConfig = myURLProvider.getWebConfig(getStudioRevision());
+      Path localConfigPath = myURLProvider.getLocalConfig(getStudioRevision());
       downloadConfig(webConfig, localConfigPath);
     }
   }
@@ -235,7 +252,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
       // Download to a temporary file first
       File temporaryConfig = null;
       try {
-        temporaryConfig = FileUtil.createTempFile("whatsnew-" + getVersion(), ".xml");
+        temporaryConfig = FileUtil.createTempFile("whatsnew-" + getStudioRevision(), ".xml");
         try (
           FileOutputStream outputStream = new FileOutputStream(temporaryConfig);
           FileChannel fileChannel = outputStream.getChannel()
@@ -256,12 +273,12 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     return false;
   }
 
-  private static String getVersion() {
-    Revision revision = Revision.parseRevision(ApplicationInfo.getInstance().getStrictVersion());
-    return String.format("%d.%d.%d", revision.getMajor(), revision.getMinor(), revision.getMicro());
+  @NotNull
+  private String getStudioRevision() {
+    return myStudioRevision.getMajor() + "." + myStudioRevision.getMinor() + "." + myStudioRevision.getMicro();
   }
 
-  public static boolean shouldShowWhatsNew() {
+  public boolean shouldShowWhatsNew() {
     if (!shouldShowReleaseNotes())
       return false;
     return hasResourceConfig();
@@ -280,14 +297,25 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    * Checks whether this version of Studio has a matching version resource.
    * @return true if a resource config exists for current Studio version
    */
-  private static boolean hasResourceConfig() {
-    try (InputStream stream = WhatsNewAssistantBundleCreator.class.getResourceAsStream("/" + getVersion() + ".xml")) {
-      return stream != null;
+  private boolean hasResourceConfig() {
+    try (InputStream stream = myURLProvider.getResourceFileAsStream(this, getStudioRevision())) {
+      if (stream == null) {
+        return false;
+      }
+      WhatsNewAssistantBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewAssistantBundle.class);
+      return isBundleRevisionSame(bundle.getVersion());
     }
-    catch (IOException e) {
+    catch (Exception e) {
       getLog().warn(e);
       return false;
     }
+  }
+
+  /**
+   * Returns true if the specified revision is the same major.minor as Studio
+   */
+  private boolean isBundleRevisionSame(@NotNull Revision revision) {
+    return revision.getMajor() == myStudioRevision.getMajor() && revision.getMinor() == myStudioRevision.getMinor();
   }
 
   @VisibleForTesting

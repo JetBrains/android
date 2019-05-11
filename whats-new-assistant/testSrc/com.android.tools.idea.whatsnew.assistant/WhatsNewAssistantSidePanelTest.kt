@@ -33,7 +33,9 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.stubbing.Answer
 import java.io.File
+import java.io.InputStream
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -54,7 +56,9 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
     Mockito.`when`(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenReturn(URL("file:" + resourceFile.path).openStream())
+      .thenAnswer(Answer<InputStream> {
+        URL("file:" + resourceFile.path).openStream()
+      })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
