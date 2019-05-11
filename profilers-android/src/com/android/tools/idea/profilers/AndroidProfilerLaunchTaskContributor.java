@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import static com.android.tools.idea.profilers.AndroidProfilerToolWindow.LAST_RUN_APP_INFO;
+import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -184,6 +185,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       default:
         break;
     }
+
+    Cpu.CpuTraceConfiguration.UserOptions traceOptions = CpuProfilerConfigConverter.toProto(startupConfig);
+    // TODO b/133321803 switch back to having daemon generates and provides the path.
+    String traceFilePath = String.format("%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
     CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
       .newBuilder()
       .setDeviceId(deviceId)
@@ -191,14 +196,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                           .setAppName(appPackageName)
                           .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
                           .setAbiCpuArch(cpuAbi)
-                          .setUserOptions(CpuProfilerConfigConverter.toProto(startupConfig)));
-    CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
+                          .setTempPath(traceFilePath)
+                          .setUserOptions(traceOptions));
+    client.getCpuClient().startStartupProfiling(requestBuilder.build());
 
-    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getUserOptions().getTraceType() != Cpu.CpuTraceType.ART) {
+    if (traceOptions.getTraceType() != Cpu.CpuTraceType.ART) {
       return "";
     }
 
-    StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(response.getFilePath());
+    StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(traceFilePath);
     if (startupConfig.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA) {
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }

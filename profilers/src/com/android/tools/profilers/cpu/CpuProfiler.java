@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
@@ -29,8 +30,10 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -161,9 +164,15 @@ public class CpuProfiler extends StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link TraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull CpuTraceInfo info, @NotNull OutputStream outputStream) {
-    // Copy temp trace file to the output stream.
+  static void saveCaptureToFile(@NotNull StudioProfilers profilers, @NotNull CpuTraceInfo info, @NotNull OutputStream outputStream) {
+
     try {
+      Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
+        .setStreamId(profilers.getSession().getStreamId())
+        .setId(String.valueOf(info.getTraceId()))
+        .build();
+      Transport.BytesResponse traceResponse = profilers.getClient().getTransportClient().getBytes(traceRequest);
+
       // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
       // Systrace Expected format = [HEADER|ZlipData]
       // As such exporting the file raw Systrace will only read the first header/data chunk.
@@ -172,10 +181,14 @@ public class CpuProfiler extends StudioProfiler {
       // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
       if (info.getTraceType() == CpuTraceType.ATRACE) {
-        AtraceExporter.export(new File(info.getTraceFilePath()), outputStream);
+        File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", info.getTraceId()), ".trace", true);
+        try (FileOutputStream out = new FileOutputStream(trace)) {
+          out.write(traceResponse.getContents().toByteArray());
+        }
+        AtraceExporter.export(trace, outputStream);
       }
       else {
-        FileUtil.copy(new FileInputStream(info.getTraceFilePath()), outputStream);
+        FileUtil.copy(new ByteArrayInputStream(traceResponse.getContents().toByteArray()), outputStream);
       }
     }
     catch (IOException exception) {

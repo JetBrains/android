@@ -36,7 +36,6 @@ import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
@@ -174,8 +173,14 @@ abstract class CpuUsageView extends JBPanel {
       DurationDataRenderer<CpuTraceInfo> traceRenderer =
         new DurationDataRenderer.Builder<>(myStage.getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
           .setDurationBg(CPU_CAPTURE_BACKGROUND)
-          .setIcon(StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK)
-          .setClickHander(traceInfo -> myStage.setAndSelectCapture(traceInfo.getTraceId()))
+          .setIconMapper(info -> info.getDurationUs() != Long.MAX_VALUE ? StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK : null)
+          .setLabelProvider(info -> info.getDurationUs() == Long.MAX_VALUE ? "In progress" : "")
+          .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+          .setClickHander(traceInfo -> {
+            if (traceInfo.getDurationUs() != Long.MAX_VALUE) {
+              myStage.setAndSelectCapture(traceInfo.getTraceId());
+            }
+          })
           .build();
 
       traceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
@@ -187,23 +192,6 @@ abstract class CpuUsageView extends JBPanel {
 
       myOverlayComponent.addDurationDataRenderer(traceRenderer);
       lineChart.addCustomRenderer(traceRenderer);
-
-      @SuppressWarnings("UseJBColor")
-      DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
-        new DurationDataRenderer.Builder<>(myStage.getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
-          .setDurationBg(CPU_CAPTURE_BACKGROUND)
-          .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
-          .build();
-
-      inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
-        .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
-      inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE_CAPTURED)
-        .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
-      inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_CAPTURED)
-        .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
-
-      myOverlayComponent.addDurationDataRenderer(inProgressTraceRenderer);
-      lineChart.addCustomRenderer(inProgressTraceRenderer);
 
       return lineChartPanel;
     }
