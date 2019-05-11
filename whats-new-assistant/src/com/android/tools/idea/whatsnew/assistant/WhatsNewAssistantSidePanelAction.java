@@ -16,6 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
@@ -48,7 +49,8 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
 
   @Override
   public void actionPerformed(AnActionEvent event) {
-    if (!WhatsNewAssistantBundleCreator.shouldShowWhatsNew()) {
+    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
+    if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       action.actionPerformed(event);
       return;
     }

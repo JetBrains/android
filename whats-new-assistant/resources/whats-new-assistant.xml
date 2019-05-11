@@ -19,7 +19,7 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="3500">
+    version="3.5.00">
   <feature
       name="What's New in 3.5">
     <tutorial
