@@ -54,11 +54,9 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
     val trace = Cpu.CpuTraceInfo.newBuilder()
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
-      .setTraceFilePath("Some Fake Path")
       .setTraceId(random.nextLong())
       .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
       .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
-      .addAllTids(threadIds)
       .build()
     myTable.insertTraceInfo(properties.session, trace)
   }

@@ -23,7 +23,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -58,7 +57,6 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     methodCalls.add((table) -> assertThat(table.getCpuDataByRequest(CpuProfiler.CpuDataRequest.getDefaultInstance())).isEmpty());
     methodCalls.add((table) -> assertThat(table.getProfilingStateData(Common.Session.getDefaultInstance())).isNull());
     methodCalls.add((table) -> assertThat(table.getThreadsDataByRequest(CpuProfiler.GetThreadsRequest.getDefaultInstance())).isEmpty());
-    methodCalls.add((table) -> assertThat(table.getTraceData(Common.Session.getDefaultInstance(), 0)).isNull());
     methodCalls.add((table) -> assertThat(table.getTraceInfo(CpuProfiler.GetTraceInfoRequest.getDefaultInstance())).isEmpty());
     methodCalls.add((table) -> table.insert(Common.Session.getDefaultInstance(), Cpu.CpuUsageData.getDefaultInstance()));
     methodCalls.add((table) -> {
@@ -73,9 +71,6 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       snapshots.add(CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.getDefaultInstance());
       table.insertSnapshot(Common.Session.getDefaultInstance(), 0, snapshots);
     });
-    methodCalls.add((table) -> table
-      .insertTrace(Common.Session.getDefaultInstance(), 0, Cpu.CpuTraceType.UNSPECIFIED_TYPE,
-                   Cpu.CpuTraceMode.UNSPECIFIED_MODE, ByteString.EMPTY));
     methodCalls.add((table) -> table.insertTraceInfo(Common.Session.getDefaultInstance(), Cpu.CpuTraceInfo.getDefaultInstance()));
     return methodCalls;
   }
@@ -124,14 +119,13 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     getTable().insertActivities(SESSION_THOUSANDS, SESSION_TWO_OFFSET, "Thread " + SESSION_TWO_OFFSET, activities);
 
     for (int i = 0; i < TEST_DATA_COUNT; i++) {
+      // spaces the trace infos by 2 time unit so we can query each sample at a time using [time:time+1]
+      long startTime = SESSION_ONE_OFFSET + i * 2;
       Cpu.CpuTraceInfo trace = Cpu.CpuTraceInfo
-        .newBuilder().setTraceId(SESSION_ONE_OFFSET + i)
+        .newBuilder().setTraceId(startTime)
         .setTraceType(Cpu.CpuTraceType.ART).setTraceMode(Cpu.CpuTraceMode.SAMPLED)
-        .setFromTimestamp(SESSION_ONE_OFFSET + i).setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
+        .setFromTimestamp(startTime).setToTimestamp(startTime + 1)
         .build();
-
-      getTable().insertTrace(SESSION_HUNDREDS, trace.getTraceId(), trace.getTraceType(), trace.getTraceMode(),
-                             ByteString.copyFromUtf8("100s club: " + i));
       getTable().insertTraceInfo(SESSION_HUNDREDS, trace);
     }
   }
@@ -264,21 +258,43 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
 
   @Test
   public void testGetTraceInfo() {
-    CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest
-      .newBuilder().setSession(SESSION_HUNDREDS).setFromTimestamp(0).setToTimestamp(Long.MAX_VALUE).build();
-    List<Cpu.CpuTraceInfo> traceInfo = getTable().getTraceInfo(request);
-    assertThat(traceInfo.size()).isEqualTo(TEST_DATA_COUNT);
-    for (int i = 0; i < traceInfo.size(); i++) {
-      assertThat(traceInfo.get(i).getFromTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);
-      assertThat(traceInfo.get(i).getToTimestamp()).isEqualTo(SESSION_ONE_OFFSET + 1 + i);
-      assertThat(traceInfo.get(i).getTraceId()).isEqualTo(SESSION_ONE_OFFSET + i);
+    for (int i = 0; i < TEST_DATA_COUNT; i++) {
+      long startTime = SESSION_ONE_OFFSET + i * 2;
+      CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
+        .setSession(SESSION_HUNDREDS).setFromTimestamp(startTime).setToTimestamp(startTime + 2).build();
+      List<Cpu.CpuTraceInfo> traceInfos = getTable().getTraceInfo(request);
+      assertThat(traceInfos.size()).isEqualTo(1);
+      Cpu.CpuTraceInfo traceInfo = traceInfos.get(0);
+      assertThat(traceInfo.getTraceId()).isEqualTo(startTime);
+      assertThat(traceInfo.getFromTimestamp()).isEqualTo(startTime);
+      assertThat(traceInfo.getToTimestamp()).isEqualTo(startTime + 1);
     }
   }
 
   @Test
-  public void testGetInvalidTraceByRequest() {
-    CpuTable.TraceData traceData = getTable().getTraceData(SESSION_HUNDREDS, -1);
-    assertThat(traceData).isNull();
+  public void testGetOngoingTraceInfo() {
+    Common.Session session = Common.Session.newBuilder().setSessionId(10L).build();
+    Cpu.CpuTraceInfo trace = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(10)
+      .setFromTimestamp(100)
+      .setToTimestamp(-1) // -1 for ongoing traces
+      .build();
+    getTable().insertTraceInfo(session, trace);
+
+    // before trace range
+    CpuProfiler.GetTraceInfoRequest.Builder request = CpuProfiler.GetTraceInfoRequest.newBuilder()
+      .setSession(session).setFromTimestamp(-10).setToTimestamp(100);
+    assertThat(getTable().getTraceInfo(request.build())).hasSize(0);
+
+    // within trace range
+    List<Cpu.CpuTraceInfo> traceInfos = getTable().getTraceInfo(request.setToTimestamp(101).build());
+    assertThat(traceInfos).hasSize(1);
+    assertThat(traceInfos.get(0).getTraceId()).isEqualTo(10);
+
+    // beyond trace range
+    traceInfos = getTable().getTraceInfo(request.setFromTimestamp(101).setToTimestamp(102).build());
+    assertThat(traceInfos).hasSize(1);
+    assertThat(traceInfos.get(0).getTraceId()).isEqualTo(10);
   }
 
   @Test

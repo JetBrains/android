@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
+import java.util.List;
 
 /**
  * An interface to perform method-level tracing using JDWP.
@@ -24,4 +26,5 @@ public interface LegacyCpuTraceProfiler {
   CpuProfilingAppStartResponse startProfilingApp(CpuProfilingAppStartRequest request);
   CpuProfilingAppStopResponse stopProfilingApp(CpuProfilingAppStopRequest request);
   ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request);
+  List<Cpu.CpuTraceInfo> getTraceInfo(GetTraceInfoRequest request);
 }
