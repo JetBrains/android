@@ -39,8 +39,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceRequest;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
 import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
@@ -202,11 +200,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuProfilingAppStopResponse response = CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
-      // Only add successfully captured traces to the database
-      if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
-        myCpuTable.insertTrace(
-          request.getSession(), response.getTraceId(), request.getTraceType(), request.getTraceMode(), response.getTrace());
-      }
     }
     observer.onNext(response);
     observer.onCompleted();
@@ -243,24 +236,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     else {
       observer.onNext(StartupProfilingResponse.getDefaultInstance());
     }
-    observer.onCompleted();
-  }
-
-  @Override
-  public void getTrace(GetTraceRequest request, StreamObserver<GetTraceResponse> observer) {
-    CpuTable.TraceData data = myCpuTable.getTraceData(request.getSession(), request.getTraceId());
-    GetTraceResponse.Builder builder = GetTraceResponse.newBuilder();
-    if (data == null) {
-      builder.setStatus(GetTraceResponse.Status.FAILURE);
-    }
-    else {
-      builder.setStatus(GetTraceResponse.Status.SUCCESS)
-        .setData(data.getTraceBytes())
-        .setTraceType(data.getTraceType())
-        .setTraceMode(data.getTraceMode());
-    }
-
-    observer.onNext(builder.build());
     observer.onCompleted();
   }
 
