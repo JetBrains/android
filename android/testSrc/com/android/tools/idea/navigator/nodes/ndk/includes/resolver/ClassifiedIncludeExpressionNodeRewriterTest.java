@@ -267,6 +267,26 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
+  public void testNdkDotZeroSxsExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.NDK_R19_0_SXS_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.println(result);
+    assertThat(dependencies).hasSize(1);
+    // The tag should be NDK r19 not NDK r19a ('a' is elided)
+    assertContainsInOrder(result,
+                          "NDK r19 (/usr/local/google/home/jomof/Android/Sdk/ndk/19.0.5345600)",
+                          "LLVM (NDK r19, /usr/local/google/home/jomof/Android/Sdk/ndk/19.0.5345600, " +
+                          "/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/usr/include/)");
+  }
+
+  @Test
   public void testNdk18SxsExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
