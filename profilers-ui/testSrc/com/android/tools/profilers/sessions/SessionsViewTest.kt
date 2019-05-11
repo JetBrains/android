@@ -511,9 +511,11 @@ class SessionsViewTest {
       .setTraceId(traceInfoId)
       .setFromTimestamp(TimeUnit.MINUTES.toNanos(1))
       .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
-      .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)
+      .setTraceType(Cpu.CpuTraceType.ART)
+      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
       .build()
     myCpuService.addTraceInfo(cpuTraceInfo)
+    myTransportService.addFile(traceInfoId.toString(), ByteString.copyFrom(TestUtils.getWorkspaceFile(VALID_TRACE_PATH).readBytes()))
 
     myTimer.currentTimeNs = 0
     mySessionsManager.beginSession(device, process)
@@ -526,14 +528,8 @@ class SessionsViewTest {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isFalse()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo("00:01:00.000")
-
-    // Prepare FakeCpuService to return a valid trace.
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setValidTrace(true)
-    val traceBytes = ByteString.copyFrom(TestUtils.getWorkspaceFile(VALID_TRACE_PATH).readBytes())
-    myCpuService.setTrace(traceBytes)
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Selecting the CpuCaptureSessionArtifact should open CPU profiler and select the capture
@@ -568,12 +564,14 @@ class SessionsViewTest {
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val sessionStartNs = 1L
 
-    // Sets an ongoing profiling configuration in the service
-    val configuration = Cpu.CpuTraceConfiguration.newBuilder()
-      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE))
-      .build()
-    myCpuService.setOngoingCaptureConfiguration(configuration, sessionStartNs + 1)
-
+    // Sets an ongoing trace info in the service
+    myCpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
+                                .setTraceId(1)
+                                .setTraceType(Cpu.CpuTraceType.ATRACE)
+                                .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+                                .setFromTimestamp(sessionStartNs + 1)
+                                .setToTimestamp(-1)
+                                .build())
     myTimer.currentTimeNs = sessionStartNs
     mySessionsManager.beginSession(device, process)
     val session = mySessionsManager.selectedSession

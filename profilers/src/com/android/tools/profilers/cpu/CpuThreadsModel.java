@@ -296,7 +296,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         }
       }
       else {
-        mySeries = createThreadStateDataSeries();
+        mySeries = createThreadStateDataSeries(capture);
         // If we have an Atrace capture selected then we need to create a MergeCaptureDataSeries
         if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
           AtraceCpuCapture atraceCpuCapture = (AtraceCpuCapture)capture;
@@ -310,14 +310,15 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 
-    private DataSeries<CpuProfilerStage.ThreadState> createThreadStateDataSeries() {
+    private DataSeries<CpuProfilerStage.ThreadState> createThreadStateDataSeries(@Nullable CpuCapture capture) {
       return myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()
              ?
              new CpuThreadStateDataSeries(myProfilers.getClient().getTransportClient(),
                                           mySession.getStreamId(),
                                           mySession.getPid(),
-                                          myThreadId)
-             : new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, myThreadId);
+                                          myThreadId,
+                                          capture)
+             : new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, myThreadId, capture);
     }
 
     public int getThreadId() {

@@ -19,12 +19,15 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.profilers.LegacyCpuTraceProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -69,6 +72,11 @@ public class CpuServiceProxyTest {
     @Override
     public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
       return ProfilingStateResponse.newBuilder().build();
+    }
+
+    @Override
+    public List<Cpu.CpuTraceInfo> getTraceInfo(GetTraceInfoRequest request) {
+      return Collections.emptyList();
     }
   }
 }

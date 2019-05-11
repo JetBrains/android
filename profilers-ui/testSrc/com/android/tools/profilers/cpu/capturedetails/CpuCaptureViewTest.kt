@@ -19,15 +19,14 @@ import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.ART
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.ATRACE
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.SIMPLEPERF
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.ReferenceWalker
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStage
@@ -61,11 +60,12 @@ class CpuCaptureViewTest {
 
   init {
     val cpuService = FakeCpuService()
+    val transportService = FakeTransportService(timer)
     grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService,
-                                  FakeTransportService(timer), FakeProfilerService(timer),
+                                  transportService, FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
+    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService)
   }
 
   private lateinit var captureView: CpuCaptureView
@@ -84,8 +84,7 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(traceType = ART)
+      captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
     }
 
     stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
@@ -107,7 +106,6 @@ class CpuCaptureViewTest {
   @Test
   fun whenRecordingThereShouldBeInstanceOfRecordingPane() {
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       startCapturing()
     }
     ReferenceWalker(captureView).assertReachable(CpuCaptureView.RecordingPane::class.java)
@@ -116,7 +114,6 @@ class CpuCaptureViewTest {
   @Test
   fun stopButtonDisabledWhenStopCapturing() {
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       startCapturing()
     }
     val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
@@ -124,7 +121,7 @@ class CpuCaptureViewTest {
       it.text == CpuProfilerToolbar.STOP_TEXT
     }
     assertThat(stopButton.isEnabled).isTrue()
-    cpuProfiler.stopCapturing()
+    cpuProfiler.stopCapturing(1, true, 10, 20, ART, CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
 
     assertThat(stopButton.isEnabled).isFalse()
   }
@@ -132,7 +129,6 @@ class CpuCaptureViewTest {
   @Test
   fun technologyIsPresentInRecordingPane() {
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
       startCapturing()
     }
     val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
@@ -145,8 +141,8 @@ class CpuCaptureViewTest {
   @Test
   fun testTraceEventTitleForATrace() {
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
-      captureTrace(traceType = ATRACE)
+      captureTrace(traceType = ATRACE,
+                   traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
     }
 
     val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
@@ -178,8 +174,7 @@ class CpuCaptureViewTest {
     }
 
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(id = 1, fromUs = 0, toUs = 100, traceType = ART)
+      captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
     }
 
     stageView.stage.selectionModel.apply {
@@ -193,8 +188,7 @@ class CpuCaptureViewTest {
   @Test
   fun showsDetailsPaneWhenSelectingCapture() {
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(traceType = ART)
+      captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
     }
 
     assertThat(getCapturePane()).isInstanceOf(DetailsCapturePane::class.java)
@@ -242,8 +236,7 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(traceType = ART)
+      cpuProfiler.captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
     }
 
     // In one chart, we'll open our filter and set it to something
@@ -273,7 +266,7 @@ class CpuCaptureViewTest {
     // be preserved
     run {
       val prevCapture = stage.capture
-      cpuProfiler.captureTrace(id = 101)
+      cpuProfiler.captureTrace(id = 101, traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
       assertThat(stage.capture).isNotEqualTo(prevCapture)
     }
 
@@ -305,8 +298,7 @@ class CpuCaptureViewTest {
     val stage = cpuProfiler.stage
 
     cpuProfiler.apply {
-      setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(traceType = ART)
+      captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
     }
 
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)
