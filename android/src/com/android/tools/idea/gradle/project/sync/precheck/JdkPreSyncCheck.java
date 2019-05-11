@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.precheck;
 
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.failure;
+import static com.android.tools.idea.sdk.IdeSdks.isJdkSameVersion;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -28,32 +28,23 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-// We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
-// See https://code.google.com/p/android/issues/detail?id=172714
+// Step to check if the selected Jdk is valid.
+// Verify the Jdk in the following ways,
+// 1. Jdk location has been set and has a valid Jdk home directory.
+// 2. The selected Jdk has the same version with IDE, this is to avoid serialization problems.
+// 3. The Jdk installation is complete, i.e. the has java executable, runtime and etc.
+// 4. The selected Jdk is compatible with current platform.
 class JdkPreSyncCheck extends AndroidStudioSyncCheck {
   @Override
   @NotNull
   PreSyncCheckResult doCheckCanSyncAndTryToFix(@NotNull Project project) {
-    Sdk jdk = IdeSdks.getInstance().getJdk();
-    String errorMessage = null;
-    if (!isValidJdk(jdk)) {
-      errorMessage = "Could not run JVM from the selected JDK.\n" +
-                     "Please ensure JDK installation is valid and compatible with the current OS (" +
-                      SystemInfo.getOsNameAndVersion() + ", " + SystemInfo.OS_ARCH + ").\n" +
-                     "If you are using embedded JDK, please make sure to download Android Studio bundle compatible\n" +
-                     "with the current OS. For example, for x86 systems please choose a 32 bits download option.\n" +
-                     "Selected JDK location is " + (jdk != null ? jdk.getHomePath() : "not set");
-    }
-    else if (!Jdks.getInstance().isApplicableJdk(jdk, JDK_1_8)) {
-      errorMessage = "Please use JDK 8 or newer.";
-    }
-
+    String errorMessage = getErrorMessage(IdeSdks.getInstance().getJdk());
     if (errorMessage != null) {
       SyncMessage syncMessage = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, errorMessage);
       List<NotificationHyperlink> quickFixes = Jdks.getInstance().getWrongJdkQuickFixes(project);
@@ -61,17 +52,44 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
 
       GradleSyncMessages.getInstance(project).report(syncMessage);
 
-      return failure(errorMessage);
+      return failure("Invalid Jdk");
     }
-
     return SUCCESS;
   }
 
-  private static boolean isValidJdk(@Nullable Sdk jdk) {
+  @Nullable
+  private static String getErrorMessage(@Nullable Sdk jdk) {
+    // Jdk location is not set.
     if (jdk == null) {
-      return false;
+      return "Jdk location is not set.";
     }
     String jdkHomePath = jdk.getHomePath();
-    return jdkHomePath != null && checkForJdk(new File(jdkHomePath)) && Jdks.isJdkRunnableOnPlatform(jdk);
+    if (jdkHomePath == null) {
+      return "Could not find valid Jdk home from the selected Jdk location.";
+    }
+
+    String selectedJdkMsg = "Selected Jdk location is " + jdkHomePath + ".\n";
+
+    // Check if the version of selected Jdk is the same with the Jdk IDE uses.
+    JavaSdkVersion runningJdkVersion = IdeSdks.getInstance().getRunningVersionOrDefault();
+    if (!isJdkSameVersion(new File(jdkHomePath), runningJdkVersion)) {
+      return "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk " +
+             runningJdkVersion.getDescription() + " directory.\n" + selectedJdkMsg;
+    }
+
+    // Check Jdk installation is complete.
+    if (!checkForJdk(jdkHomePath)) {
+      return "The Jdk installation is invalid.\n" + selectedJdkMsg;
+    }
+
+    // Check if the Jdk is compatible with platform.
+    if (!Jdks.isJdkRunnableOnPlatform(jdk)) {
+      return "The selected Jdk could not run on current OS.\n" +
+             "If you are using embedded Jdk, please make sure to download Android Studio bundle compatible\n" +
+             "with the current OS. For example, for x86 systems please choose a 32 bits download option.\n" +
+             selectedJdkMsg;
+    }
+
+    return null;
   }
 }
