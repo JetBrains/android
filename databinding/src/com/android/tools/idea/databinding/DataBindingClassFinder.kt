@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding.finders
+package com.android.tools.idea.databinding
 
-import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -31,8 +30,12 @@ import com.intellij.psi.search.GlobalSearchScope
  * class would find the generated "ActivityMainBinding" class.
  *
  * See [LightBindingClass]
+ *
+ * TODO(b/129543644): This class cannot change its name or package location until we remove
+ *  hardcoded references to it from the Kotlin plugin.
+ *  Move back to: finders.LayoutBindingClassFinder
  */
-class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProjectComponent) : PsiElementFinder() {
+class DataBindingClassFinder(private val dataBindingComponent: DataBindingProjectComponent) : PsiElementFinder() {
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     for (facet in dataBindingComponent.getDataBindingEnabledFacets()) {
