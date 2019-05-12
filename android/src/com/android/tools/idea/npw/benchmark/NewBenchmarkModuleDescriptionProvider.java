@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.benchmark;
 
-import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
 import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -79,7 +78,8 @@ public class NewBenchmarkModuleDescriptionProvider implements ModuleDescriptionP
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
       Project project = model.getProject().getValue();
-      return new ConfigureBenchmarkModuleStep(new NewBenchmarkModuleModel(project, myTemplateHandle, model.getProjectSyncInvoker()), getName());
+      NewBenchmarkModuleModel benchmarkModuleModel = new NewBenchmarkModuleModel(project, myTemplateHandle, model.getProjectSyncInvoker());
+      return new ConfigureBenchmarkModuleStep(benchmarkModuleModel, getName(), myTemplateHandle.getMetadata().getMinSdk());
     }
   }
 }
