@@ -17,9 +17,11 @@ package com.android.tools.idea.npw.benchmark;
 
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.RenderTemplateModel.getInitialSourceLanguage;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -50,7 +52,8 @@ public final class NewBenchmarkModuleModel extends WizardModel {
 
   @NotNull private final StringProperty myModuleName = new StringValueProperty("benchmark");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
-  @NotNull private final OptionalProperty<Language> myLanguage = new OptionalValueProperty<>(Language.KOTLIN);
+  @NotNull private final OptionalProperty<Language> myLanguage;
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myMinSdk = new OptionalValueProperty<>();
 
   public NewBenchmarkModuleModel(@NotNull Project project,
                                  @NotNull TemplateHandle templateHandle,
@@ -58,6 +61,8 @@ public final class NewBenchmarkModuleModel extends WizardModel {
     myProject = project;
     myTemplateHandle = templateHandle;
     myProjectSyncInvoker = projectSyncInvoker;
+
+    myLanguage = new OptionalValueProperty<>(getInitialSourceLanguage(project));
   }
 
   @NotNull
@@ -80,6 +85,11 @@ public final class NewBenchmarkModuleModel extends WizardModel {
     return myLanguage;
   }
 
+  @NotNull
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> minSdk() {
+    return myMinSdk;
+  }
+
   @Override
   protected void handleFinished() {
     AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
@@ -88,12 +98,12 @@ public final class NewBenchmarkModuleModel extends WizardModel {
     new TemplateValueInjector(myTemplateValues)
       .setProjectDefaults(myProject, moduleName().get())
       .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
-      .setJavaVersion(myProject);
+      .setJavaVersion(myProject)
+      .setLanguage(myLanguage.getValue())
+      .setBuildVersion(myMinSdk.getValue(), myProject);
 
     myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
     myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, true);
-    myTemplateValues.put(TemplateMetadata.ATTR_LANGUAGE, myLanguage.getValue().getName());
-    myTemplateValues.put(TemplateMetadata.ATTR_KOTLIN_SUPPORT, myLanguage.getValue() == Language.KOTLIN);
 
     File moduleRoot = modulePaths.getModuleRoot();
     assert moduleRoot != null;

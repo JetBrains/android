@@ -389,7 +389,7 @@ public final class RenderTemplateModel extends WizardModel {
    * If it *does* have a Kotlin facet, then remember the previous selection (if there was no previous selection yet, default to Kotlin)
    */
   @NotNull
-  static Language getInitialSourceLanguage(@Nullable Project project) {
+  public static Language getInitialSourceLanguage(@Nullable Project project) {
     if (project != null && AndroidStudioKotlinPluginUtils.hasAnyKotlinModules(project)) {
       return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN);
     }
