@@ -17,12 +17,15 @@ package com.android.tools.idea.lang.roomSql.refactoring
 
 import com.android.tools.idea.lang.roomSql.COMMENTS
 import com.android.tools.idea.lang.roomSql.IDENTIFIERS
+import com.android.tools.idea.lang.roomSql.NotRenamableElement
 import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.android.tools.idea.lang.roomSql.STRING_LITERALS
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
+import com.android.tools.idea.lang.roomSql.resolution.PsiElementForFakeColumn
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchema
 import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
+import com.android.tools.idea.lang.roomSql.resolution.SqlColumn
 import com.android.tools.idea.lang.roomSql.resolution.SqlDefinition
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner
 import com.intellij.lang.cacheBuilder.WordOccurrence
@@ -36,6 +39,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.cache.impl.id.ScanningIdIndexer
 import com.intellij.psi.search.searches.ReferencesSearch
@@ -76,24 +80,30 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
-    val element = queryParameters.elementToSearch
+    var element = queryParameters.elementToSearch
+    if (element is NotRenamableElement) {
+      element = element.delegate
+    }
 
-    val (word, referenceTarget) = runReadAction {
+    val (words, referenceTarget) = runReadAction {
       // Return early if possible: this method is called by various inspections on all kinds of PSI elements, in most cases we don't have to
       // do anything which means we don't block a FJ thread by building a Room schema.
-      when (element) {
-        is PsiClass -> {
-          if (!element.definesSqlTable()) return@runReadAction null
-        }
+      val definesSqlSchema = when (element) {
+        is PsiElementForFakeColumn -> true
+        is PsiClass -> element.definesSqlTable()
         is PsiField -> {
-          val psiClass = element.containingClass ?: return@runReadAction null
+          val psiClass = element.containingClass
           // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
-          if (psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable()) return@runReadAction null
+          !(psiClass == null || psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable())
         }
-        else -> return@runReadAction null
+        else -> false
       }
 
-      getNameDefinition(element)?.let(this::chooseWordAndElement)
+      if (!definesSqlSchema) {
+        return@runReadAction null
+      }
+
+      getNameDefinition(element)?.let(this::chooseWordsAndElement)
     } ?: return
 
     // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
@@ -104,7 +114,9 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     //     defined, which is not how Room works.
     //   - We look for references to the right element: if a table/column name is overridden using annotations, the PSI references may not
     //     point to the class/field itself, but we still want to show these references in "find usages".
-    queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, referenceTarget)
+    for (word in words) {
+      queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, referenceTarget)
+    }
   }
 
   private fun PsiClass.definesSqlTable(): Boolean {
@@ -114,21 +126,33 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
            hasAnnotation(RoomAnnotations.DATABASE_VIEW.newName())
   }
 
-  private fun chooseWordAndElement(definition: SqlDefinition): Pair<String, PsiElement>? {
-    val name = definition.name ?: return null
+  /**
+   * Returns set of words and element for given [SqlDefinition] to check during search usage process
+   *
+   * Some columns can be used by [SqlColumn.alternativeNames] and in search we need to find usages of all of them
+   */
+  private fun chooseWordsAndElement(definition: SqlDefinition): Pair<List<String>, PsiElement>? {
+    val names = ArrayList<String>()
+    if (definition.name != null) names.add(definition.name!!)
+    if (definition is SqlColumn) names.addAll(definition.alternativeNames)
 
-    val word = when {
-      RoomNameElementManipulator.needsQuoting(name) -> {
-        // We need to figure out how a reference to this element looks like in the IdIndex. We find the first "word" in the quoted name and
-        // look for it in the index, as any reference for this table will include this word in its text.
-        val processor = CommonProcessors.FindFirstProcessor<WordOccurrence>()
-        RoomFindUsagesProvider().wordsScanner.processWords(RoomNameElementManipulator.getValidName(name), processor)
-        processor.foundValue?.let { it.baseText.substring(it.start, it.end) } ?: name
+    if (names.isEmpty()) return null
+
+    val words = names.map { name ->
+      when {
+        RoomNameElementManipulator.needsQuoting(name) -> {
+          // We need to figure out how a reference to this element looks like in the IdIndex.
+          // We find the first "word" in the quoted name and look for it in the index,
+          // as any reference for this table will include this word in its text.
+          val processor = CommonProcessors.FindFirstProcessor<WordOccurrence>()
+          RoomFindUsagesProvider().wordsScanner.processWords(RoomNameElementManipulator.getValidName(name), processor)
+          processor.foundValue?.let { it.baseText.substring(it.start, it.end) } ?: name
+        }
+        else -> name
       }
-      else -> name
     }
 
-    return Pair(word, definition.resolveTo)
+    return Pair(words, definition.resolveTo)
   }
 
   private fun getNameDefinition(element: PsiElement): SqlDefinition? {
@@ -141,6 +165,12 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
           ?.findTable(element.containingClass ?: return null)
           ?.columns
           ?.find { it.definingElement == element }
+      }
+      is PsiElementForFakeColumn -> {
+        getSchema(element.tablePsiElement)
+          ?.findTable(element.tablePsiElement)
+          ?.columns
+          ?.find { PsiManager.getInstance(element.project).areElementsEquivalent(it.definingElement, element) }
       }
       else -> null
     }
