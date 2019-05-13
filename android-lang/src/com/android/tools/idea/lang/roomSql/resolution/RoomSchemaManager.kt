@@ -126,18 +126,25 @@ class RoomSchemaManager(val project: Project) {
       type,
       tableName,
       pointerManager.createSmartPsiElementPointer(tableNameElement),
-      createColumns(psiClass, tableName)
+      createColumns(psiClass, tableName, type)
     )
   }
 
-  private fun createColumns(psiClass: PsiClass, tableName: String): Set<SqlColumn> {
-    val fromFields = createColumnsFromFields(psiClass)
+  private fun createColumns(psiClass: PsiClass, tableName: String, type: RoomTable.Type): Set<SqlColumn> {
+    val columns = createColumnsFromFields(psiClass).toHashSet<SqlColumn>()
+    val tableElement = pointerManager.createSmartPsiElementPointer(psiClass).element!!
+    val primaryKeyElement = columns.find { it.isPrimaryKey }
+    if (psiClass.annotations.any(::isFtsAnnotation)) {
+      // In Fts tables we can use table name as a column in queries.
+      columns.add(RoomFtsTableColumn(tableElement, tableName))
+    }
+    if (primaryKeyElement == null && type != RoomTable.Type.VIEW) {
+      // ROWID can be referenced in queries using multiple special names [alternativePrimaryKeysNames], but doesn't need to be declared.
+      // See [SQLite docs](https://sqlite.org/lang_createtable.html#rowid).
+      columns.add(RoomRowidColumn(PsiElementForFakeColumn(tableElement), getPrimaryKeyNames(psiClass)))
+    }
 
-    return if (psiClass.annotations.any(::isFtsAnnotation)) {
-      fromFields + RoomFtsColumn(pointerManager.createSmartPsiElementPointer(psiClass), tableName)
-    } else {
-      fromFields
-    }.toSet()
+    return columns
   }
 
   private fun isFtsAnnotation(psiAnnotation: PsiAnnotation): Boolean {
@@ -147,6 +154,10 @@ class RoomSchemaManager(val project: Project) {
       RoomAnnotations.FTS4.isEquals(qName) -> true
       else -> false
     }
+  }
+
+  private fun getPrimaryKeyNames(psiClass: PsiClass): Set<String> {
+    return if (psiClass.annotations.any(::isFtsAnnotation)) PRIMARY_KEY_NAMES_FOR_FTS else PRIMARY_KEY_NAMES
   }
 
   private fun createColumnsFromFields(psiClass: PsiClass, namePrefix: String = ""): Sequence<RoomFieldColumn> {
@@ -165,10 +176,14 @@ class RoomSchemaManager(val project: Project) {
             annotationAttributeName = "name"
           )
             ?.let { (columnName, columnNameElement) ->
+              val isPrimaryKey = psiField.modifierList?.findAnnotation(RoomAnnotations.PRIMARY_KEY) != null
+
               RoomFieldColumn(
                 pointerManager.createSmartPsiElementPointer(psiField),
                 namePrefix + columnName,
-                pointerManager.createSmartPsiElementPointer(columnNameElement)
+                pointerManager.createSmartPsiElementPointer(columnNameElement),
+                isPrimaryKey,
+                if (isPrimaryKey) getPrimaryKeyNames(psiClass) else emptySet()
               )
             }
 
