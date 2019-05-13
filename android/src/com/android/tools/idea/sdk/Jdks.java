@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -266,11 +267,19 @@ public class Jdks {
     List<NotificationHyperlink> quickFixes = Lists.newArrayList();
 
     if (myIdeInfo.isAndroidStudio()) {
-      NotificationHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
-      if (useJavaHomeHyperlink != null) {
-        quickFixes.add(useJavaHomeHyperlink);
+      IdeSdks ideSdks = IdeSdks.getInstance();
+      if (!ideSdks.isUsingJavaHomeJdk()) {
+        String javaHome = getJdkFromJavaHome();
+        if (javaHome != null) {
+          if (ideSdks.validateJdkPath(new File(javaHome)) != null) {
+            NotificationHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
+            if (useJavaHomeHyperlink != null) {
+              quickFixes.add(useJavaHomeHyperlink);
+            }
+          }
+        }
       }
-      else {
+      if (quickFixes.isEmpty()) {
         File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
         if (embeddedJdkPath != null && isJdkRunnableOnPlatform(embeddedJdkPath.getAbsolutePath())) {
           quickFixes.add(new UseEmbeddedJdkHyperlink());
