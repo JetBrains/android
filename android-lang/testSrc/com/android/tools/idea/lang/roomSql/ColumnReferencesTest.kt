@@ -20,7 +20,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.find.FindManager
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.psi.PsiLiteralExpression
+import com.intellij.psi.PsiManager
+import com.intellij.testFramework.TestActionEvent
 
 class ColumnReferencesTest : RoomLightTestCase() {
 
@@ -1661,5 +1665,84 @@ class ColumnReferencesTest : RoomLightTestCase() {
       }
       """.trimIndent()
     )
+  }
+
+  fun testResolvePrimaryIdColumnByDifferentNames() {
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.PrimaryKey;
+
+      @Entity
+      class User {
+        @PrimaryKey
+        int myId;
+      }
+      """
+    )
+
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT rowId, myId, oid FROM User") List<String> getNames();
+        }
+    """.trimIndent())
+
+
+    myFixture.moveCaret("|rowId")
+    var element = myFixture.elementAtCaret
+    myFixture.moveCaret("|myId")
+    // use areElementsEquivalent instead of simple equalsTo cause we wrap realPsiElement into [NotRenamableElement]
+    assertThat(PsiManager.getInstance(element.project).areElementsEquivalent(element, myFixture.elementAtCaret))
+    myFixture.moveCaret("|oid")
+    assertThat(PsiManager.getInstance(element.project).areElementsEquivalent(element, myFixture.elementAtCaret))
+  }
+
+  fun testCannotRenameColumnThatUserDoesNotDefine() {
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.PrimaryKey;
+
+      @Entity
+      class User {
+        @PrimaryKey
+        int myId;
+      }
+      """
+    )
+
+    myFixture.configureByText("UserDao.java",
+      //language=JAVA
+      """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT rowi<caret>d, myId FROM User") List<String> getStrings();
+        }
+    """.trimIndent())
+
+    var renameAction = myFixture.testAction(ActionManager.getInstance().getAction(IdeActions.ACTION_RENAME))
+    assertThat(renameAction.isEnabledAndVisible).isFalse()
+
+    //check that we still can rename column by name that user explicitly defined
+    myFixture.moveCaret("my|Id")
+    renameAction = myFixture.testAction(ActionManager.getInstance().getAction(IdeActions.ACTION_RENAME))
+    assertThat(renameAction.isEnabledAndVisible).isTrue()
   }
 }

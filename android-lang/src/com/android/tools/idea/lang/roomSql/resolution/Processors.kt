@@ -22,10 +22,16 @@ import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
 
 /**
- * [Processor] that finds a table/column with a given name.
+ * [Processor] that finds a table with a given name.
  */
-class FindByNameProcessor<T : SqlDefinition>(private val nameToLookFor: String) : CommonProcessors.FindProcessor<T>() {
-  override fun accept(t: T): Boolean = nameToLookFor.equals(t.name, ignoreCase = true)
+class FindTableByNameProcessor(private val nameToLookFor: String) : CommonProcessors.FindProcessor<SqlTable>() {
+  override fun accept(t: SqlTable): Boolean = nameToLookFor.equals(t.name, ignoreCase = true)
+}
+
+class FindColumnByNameProcessor(private val nameToLookFor: String) : CommonProcessors.FindProcessor<SqlColumn>() {
+  override fun accept(c: SqlColumn): Boolean {
+    return nameToLookFor.equals(c.name, ignoreCase = true) || c.alternativeNames.any{ it.equals(nameToLookFor, ignoreCase = true) }
+  }
 }
 
 /**

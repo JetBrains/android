@@ -76,19 +76,58 @@ data class RoomFieldColumn(
   override val name: String,
 
   /** The [PsiElement] that defines the column name. */
-  val nameElement: PsiElementPointer = psiField
+  val nameElement: PsiElementPointer = psiField,
+  override val isPrimaryKey: Boolean = false,
+  override val alternativeNames: Set<String> = emptySet()
 ) : SqlColumn {
   override val type: SqlType? get() = psiField.element?.type?.presentableText?.let(::JavaFieldSqlType)
   override val definingElement: PsiElement get() = psiField.element!!
   override val resolveTo: PsiElement get() = nameElement.element!!
 }
 
-data class RoomFtsColumn(
-  val psiClass: PsiClassPointer,
+/**
+ * Represents column that equals table name in Fts table.
+ */
+data class RoomFtsTableColumn(
+  override val definingElement: PsiElement,
   override val name: String
 ) : SqlColumn {
-  override val type = FtsSqlType
-  override val definingElement: PsiElement get() = psiClass.element!!
+  override val type: SqlType = FtsSqlType
+}
+
+/**
+ * @see https://sqlite.org/lang_createtable.html#rowid
+ */
+val PRIMARY_KEY_NAMES = setOf("rowid", "oid", "_rowid_")
+val PRIMARY_KEY_NAMES_FOR_FTS = setOf("rowid", "oid", "_rowid_", "docid")
+
+/**
+ * Represents special SQLite column `rowid` which are not explicitly defined in Room entities
+ *
+ * @see https://sqlite.org/lang_createtable.html#rowid
+ */
+data class RoomRowidColumn(
+  override val definingElement: PsiElement,
+  override val alternativeNames: Set<String> = PRIMARY_KEY_NAMES
+) : SqlColumn {
+  override val type: SqlType = JavaFieldSqlType("int")
+  override val isPrimaryKey: Boolean = true
+  override val name: String? = null
+}
+
+/**
+ * Represent PsiElement that is used for [RoomRowidColumn]
+ *
+ * There is no real field for [RoomRowidColumn] so we resolve it to [PsiElementForFakeColumn] that navigate to table column belongs to.
+ */
+data class PsiElementForFakeColumn(val tablePsiElement: PsiClass): PsiElement by tablePsiElement {
+  override fun getNavigationElement(): PsiElement {
+    return tablePsiElement
+  }
+
+  override fun isEquivalentTo(another: PsiElement?): Boolean {
+    return another is PsiElementForFakeColumn && another.tablePsiElement == tablePsiElement
+  }
 }
 
 data class Dao(val psiClass: PsiClassPointer)
