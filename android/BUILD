@@ -602,7 +602,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-wearable/16.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/support/wearable/2.4.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/0.4-devpreview:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/1.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/wearable/wearable/2.3.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/wearable/wearable/2.4.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
