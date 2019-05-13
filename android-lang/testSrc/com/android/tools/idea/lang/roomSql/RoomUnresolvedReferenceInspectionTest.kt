@@ -513,8 +513,75 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
           @Query("SELECT oid FROM user WHERE oid = 1")
           String oid();
+        }
+    """.trimIndent())
 
-          @Query("SELECT docid FROM mail WHERE body MATCH :query")
+    myFixture.checkHighlighting()
+  }
+
+  fun testDocIdWorksForFtsTable() {
+    //language=JAVA
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      @Fts4
+      public class Mail {
+        String body;
+      }
+      """.trimIndent()
+    )
+
+    //language=JAVA
+    myFixture.configureByText("SomeDao.java", """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+         @Query("SELECT docid FROM mail")
+          List<Integer> search(String query);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testDocIdDoesNotWorkForNotFtsTable() {
+    //language=JAVA
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      public class Mail {
+        String body;
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureByText("SomeDao.java",
+      //language=JAVA
+      """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+
+        @Dao
+        public interface SomeDao {
+         @Query("SELECT ${"docid" highlightedAs ERROR} FROM mail")
           List<Integer> search(String query);
         }
     """.trimIndent())
