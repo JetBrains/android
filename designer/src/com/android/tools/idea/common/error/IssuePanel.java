@@ -78,6 +78,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   private boolean hasUserSeenNewErrors;
   private boolean isMinimized;
+  private boolean myInitialized;
 
   public IssuePanel(@NotNull DesignSurface designSurface, @NotNull IssueModel issueModel) {
     super(new BorderLayout());
@@ -107,6 +108,17 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     setMinimized(true);
     setMinimumSize(JBUI.size(200));
     UIManager.addPropertyChangeListener(this);
+    myInitialized = true;
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (myInitialized) {
+      updateTitlebarStyle();
+      updateErrorList();
+      setMinimumSize(JBUI.size(200));
+    }
   }
 
   @NotNull
@@ -265,7 +277,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   private void updateTitlebarStyle() {
     // If there are new errors and the panel is minimized, set the title to bold
-    myTitleLabel.setFont(myTitleLabel.getFont().deriveFont(!isMinimized() || hasUserSeenNewErrors ? Font.PLAIN : Font.BOLD));
+    Font font = UIUtil.getLabelFont();
+    if (!hasUserSeenNewErrors && isMinimized()) {
+      font = font.deriveFont(Font.BOLD);
+    }
+    myTitleLabel.setFont(font);
 
     int warningCount = myIssueModel.getWarningCount();
     int errorCount = myIssueModel.getErrorCount();
@@ -536,20 +552,34 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     private final JLabel myMessageLabel = createLabel("Message");
     private final JLabel mySourceLabel = createLabel("Source");
     private int[] myColumnsX;
+    private boolean myInitialized;
 
-    public ColumnHeaderPanel() {
+    private ColumnHeaderPanel() {
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
       mySourceLabel.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 1, 0, 0, JBColor.border()),
         BorderFactory.createEmptyBorder(0, JBUI.scale(6), 0, 0)));
       add(myMessageLabel);
       add(mySourceLabel);
+      myInitialized = true;
+    }
+
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      if (myInitialized) {
+        myMessageLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+        mySourceLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+        mySourceLabel.setBorder(BorderFactory.createCompoundBorder(
+          BorderFactory.createMatteBorder(0, 1, 0, 0, JBColor.border()),
+          BorderFactory.createEmptyBorder(0, JBUI.scale(6), 0, 0)));
+      }
     }
 
     @NotNull
     private static JLabel createLabel(@Nullable String message) {
       JLabel label = new JLabel(message);
-      label.setFont(label.getFont().deriveFont(JBUI.scale(11f)));
+      label.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
       return label;
     }
 
