@@ -32,6 +32,7 @@ import com.intellij.util.CollectionQuery;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,7 @@ import org.junit.runners.JUnit4;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -187,7 +189,7 @@ public class NlPaletteModelTest {
     assertThat(projectComponents).isNull();
 
     CountDownLatch latch = new CountDownLatch(1);
-    model.setUpdateListener((paletteModel, layoutType) -> latch.countDown());
+    model.addUpdateListener((paletteModel, layoutType) -> latch.countDown());
 
     model.loadAdditionalComponents(LayoutFileType.INSTANCE, (project) -> {
       PsiClass customView = mock(PsiClass.class);
@@ -239,13 +241,15 @@ public class NlPaletteModelTest {
   }
 
   private static Palette getPaletteWhenAdditionalComponentsReady(NlPaletteModel model) throws InterruptedException {
-    CountDownLatch latch = new CountDownLatch(2);
-    // We should receive two updates: one for the initial palette that doesn't include
-    // any third-party components, and then another once the additional components are registered.
-    model.setUpdateListener((m, t) -> latch.countDown());
+    CountDownLatch latch = new CountDownLatch(1);
+    // We should receive one update: once the additional components are registered.
+    NlPaletteModel.UpdateListener listener = (m, t) -> latch.countDown();
+    model.addUpdateListener(listener);
     model.getPalette(LayoutFileType.INSTANCE);
-    latch.await();
-    model.setUpdateListener(null);
+    if (!latch.await(5, TimeUnit.SECONDS)) {
+      fail("Did not receive the expected listener callbacks");
+    }
+    model.removeUpdateListener(listener);
     return model.getPalette(LayoutFileType.INSTANCE);
   }
 
