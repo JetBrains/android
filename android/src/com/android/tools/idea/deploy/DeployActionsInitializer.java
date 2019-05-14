@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -118,6 +119,10 @@ public class DeployActionsInitializer {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null; // Only support projects with Android facets.
+    }
+    else if (facet.isDisposed()) {
+      Logger.getInstance(DeployActionsInitializer.class).warn("Facet is disposed for the selected configuration.");
+      return null;
     }
 
     DeployTargetProvider currentTargetProvider = androidRunConfig.getDeployTargetContext().getCurrentDeployTargetProvider();
