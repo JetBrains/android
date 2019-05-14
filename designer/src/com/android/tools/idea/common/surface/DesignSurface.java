@@ -40,7 +40,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -66,6 +65,7 @@ import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -344,7 +344,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
         }
-      }, EdtExecutor.INSTANCE);
+      }, EdtExecutorService.getInstance());
   }
 
   /**
@@ -418,7 +418,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
         }
-      }, EdtExecutor.INSTANCE);
+      }, EdtExecutorService.getInstance());
 
     if (myIsActive) {
       model.activate(this);
