@@ -21,7 +21,6 @@ import com.android.tools.apk.analyzer.dex.DexFiles;
 import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.common.util.concurrent.*;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.icons.AllIcons;
@@ -35,6 +34,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -136,7 +136,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
       public void onFailure(@NotNull Throwable t) {
         Messages.showErrorDialog("Error constructing dex file: " + t, "View Dex Bytecode");
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
 
   }
 

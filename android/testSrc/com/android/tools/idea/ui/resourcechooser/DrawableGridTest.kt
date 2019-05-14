@@ -19,9 +19,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRenderer
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -42,7 +42,11 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.swing.*
+import javax.swing.DefaultListModel
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 class DrawableGridTest {
 
@@ -102,6 +106,7 @@ class DrawableGridTest {
 
     UIUtil.invokeAndWaitIfNeeded(Runnable {
       renderer.simulateRender(image)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     })
 
     renderer.waitForRender()

@@ -42,7 +42,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
@@ -79,6 +78,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -420,7 +420,7 @@ public class LayoutlibSceneManager extends SceneManager {
           .thenRunAsync(() ->
             // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
             mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
-          , EdtExecutor.INSTANCE);
+          , EdtExecutorService.getInstance());
       }
     }
 

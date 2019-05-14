@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.transport
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.transport.TransportClient
@@ -43,6 +42,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -294,7 +294,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
             reportUnableToResetGlobalSettings()
           }
         }
-      }, EdtExecutor.INSTANCE)
+      }, EdtExecutorService.getInstance())
     }
   }
 

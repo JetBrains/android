@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.sqlite
 
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.sqlite.controllers.SqliteController
 import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
 import com.android.tools.idea.sqlite.model.SqliteModel
@@ -28,6 +27,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
@@ -49,7 +49,7 @@ class SqliteEditor(private val project: Project, private val sqliteFile: Virtual
     controller = SqliteController(
       this, model,
       sqliteView, service,
-      EdtExecutor.INSTANCE, PooledThreadExecutor.INSTANCE
+      EdtExecutorService.getInstance(), PooledThreadExecutor.INSTANCE
     )
     controller.setUp()
   }
