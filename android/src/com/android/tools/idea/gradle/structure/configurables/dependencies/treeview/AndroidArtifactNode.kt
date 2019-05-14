@@ -27,8 +27,7 @@ class AndroidArtifactNode : AbstractPsModelNode<PsChildModel> {
   private val myChildren: List<AbstractPsModelNode<*>>
 
   constructor(parent: AbstractPsNode, artifact: PsAndroidArtifact) : super(parent, artifact, parent.uiSettings) {
-    autoExpandNode = parent !is AndroidArtifactNode
-
+    autoExpandNode = false
     val additionalChildren =
       artifact
         .takeUnless { it.resolvedName == AndroidProject.ARTIFACT_MAIN }
@@ -39,7 +38,7 @@ class AndroidArtifactNode : AbstractPsModelNode<PsChildModel> {
   }
 
   constructor(parent: AbstractPsNode, javaModule: PsJavaModule) : super(parent, javaModule, parent.uiSettings) {
-    autoExpandNode = parent !is AndroidArtifactNode
+    autoExpandNode = false
     myChildren = createNodesForResolvedDependencies(this, javaModule.resolvedDependencies)
   }
 

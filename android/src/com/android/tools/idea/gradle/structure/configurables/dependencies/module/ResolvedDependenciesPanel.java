@@ -103,7 +103,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     getHeader().setPreferredFocusedComponent(myTree);
 
     myTreeBuilder = new ResolvedDependenciesTreeBuilder(
-      module, myTree, treeModel, dependencySelection, this, myContext.getUiSettings());
+      module, myTree, treeModel, myContext.getUiSettings());
 
     module.add(event -> myTreeBuilder.reset(), this);
 
@@ -183,17 +183,8 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   public ActionCallback setSelection(@Nullable Collection<PsBaseDependency> selection) {
     if (selection == null || selection.isEmpty()) {
       myTreeBuilder.clearSelection();
-      return ActionCallback.DONE;
     }
-    else {
-      myIgnoreTreeSelectionEvents = true;
-      try {
-        return myTreeBuilder.selectMatchingNodes(selection.stream().findFirst().get(), true);
-      }
-      finally {
-        myIgnoreTreeSelectionEvents = false;
-      }
-    }
+    return ActionCallback.DONE;
   }
 
   public void add(@NotNull SelectionChangeListener<PsBaseDependency> listener) {
