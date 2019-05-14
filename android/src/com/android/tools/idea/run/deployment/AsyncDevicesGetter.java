@@ -37,7 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class AsyncDevicesGetter {
+public class AsyncDevicesGetter {
   @NotNull
   private final Project myProject;
 
