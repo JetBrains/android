@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.finders;
 
-import com.android.tools.idea.databinding.DataBindingComponentClassFinder;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
@@ -30,14 +29,13 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A finder responsible for finding data binding packages missing in the app.
@@ -48,7 +46,7 @@ import java.util.Set;
  *
  * Therefore, this finder is registered with a reduced priority, so it will only suggest packages
  * that were not previously suggested, while data binding class finders are added with a higher
- * priority. See {@link LayoutBindingClassFinder}, {@link DataBindingComponentClassFinder} and
+ * priority. See {@link LayoutBindingClassFinder}, {@link BindingComponentClassFinder} and
  * {@link BrClassFinder} for the class-focused finders.
  *
  * See also: https://issuetracker.google.com/37120280
