@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
+import com.android.repository.Revision
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
@@ -42,6 +43,8 @@ import java.util.concurrent.TimeUnit
 class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
   private val TIMEOUT_MILLISECONDS: Long = 30000
   private lateinit var mockUrlProvider: WhatsNewAssistantURLProvider
+
+  private val studioRevision = Revision.parseRevision("3.3.0")
 
   override fun setUp() {
     super.setUp()
@@ -79,6 +82,7 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     val bundleCreator: WhatsNewAssistantBundleCreator? = AssistantBundleCreator.EP_NAME
       .findExtension(WhatsNewAssistantBundleCreator::class.java)
     bundleCreator!!.setURLProvider(mockUrlProvider)
+    bundleCreator.setStudioRevision(studioRevision)
 
     val completeFuture = SettableFuture.create<String>()
     val callback = object: FutureCallback<String> {
