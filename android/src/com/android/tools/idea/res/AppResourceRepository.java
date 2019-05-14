@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -25,6 +24,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
@@ -87,7 +87,7 @@ class AppResourceRepository extends MultiResourceRepository {
                                   @NotNull Collection<AarResourceRepository> libraryResources) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
-    setChildren(localResources, libraryResources);
+    setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
   }
 
   /**
@@ -155,7 +155,7 @@ class AppResourceRepository extends MultiResourceRepository {
       myResourceDirs = null;
     }
     invalidateResourceDirs();
-    setChildren(localResources, libraryResources);
+    setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
     ResourceIdManager.get(myFacet.getModule()).resetDynamicIds();
