@@ -216,11 +216,12 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   }
 
   /**
-   * Update the config xml, replacing or creating a file for the current version
+   * Update the config xml, replacing or creating a file for the current version.
+   * If Studio version is 0.0.0 (dev build) then skip
    */
   private void updateConfig() {
     // Download XML from server and overwrite the local file
-    if (StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.get()) {
+    if (StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.get() && !myStudioRevision.equals(Revision.parseRevision("0.0.0rc0"))) {
       URL webConfig = myURLProvider.getWebConfig(getStudioRevision());
       Path localConfigPath = myURLProvider.getLocalConfig(getStudioRevision());
       downloadConfig(webConfig, localConfigPath);
@@ -297,13 +298,15 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    * Checks whether this version of Studio has a matching version resource.
    * @return true if a resource config exists for current Studio version
    */
-  private boolean hasResourceConfig() {
+  @VisibleForTesting
+  boolean hasResourceConfig() {
     try (InputStream stream = myURLProvider.getResourceFileAsStream(this, getStudioRevision())) {
       if (stream == null) {
         return false;
       }
       WhatsNewAssistantBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewAssistantBundle.class);
-      return isBundleRevisionSame(bundle.getVersion());
+      // If Studio version is 0.0.0 (dev build) then return true, as an exception so we can show local file for editing
+      return myStudioRevision.equals(Revision.parseRevision("0.0.0rc0")) || isBundleRevisionSame(bundle.getVersion());
     }
     catch (Exception e) {
       getLog().warn(e);
@@ -312,7 +315,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   }
 
   /**
-   * Returns true if the specified revision is the same major.minor as Studio
+   * Returns true if the specified revision is the same major.minor as Studio.
    */
   private boolean isBundleRevisionSame(@NotNull Revision revision) {
     return revision.getMajor() == myStudioRevision.getMajor() && revision.getMinor() == myStudioRevision.getMinor();
