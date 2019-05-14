@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,16 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
+import com.android.annotations.concurrency.Slow;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -40,6 +41,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
 import java.awt.image.WritableRaster;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -470,6 +478,74 @@ public class ImageUtils {
     }
     g2.dispose();
     return scaled;
+  }
+
+  /**
+   * Creates a {@link BufferedImage} from the provided inputStream and scale it to fit
+   * into the provided dimension while keeping the original aspect ratio.
+   * <p>
+   * The particularity of this method is that if the original image is more than twice
+   * the size of the target dimensions, it doesn't load the full image in memory
+   * but only reads enough pixels to have quality good enough for the target size.
+   * <p>
+   * For example, if an image measures 100x100 pixels, and the target dimension
+   * is 10x10 (10 times smaller), only the pixels at x and y coordinates
+   * 0, 9, 19,..., 99 will be read.
+   * <p>
+   * See {@link ImageReadParam#setSourceSubsampling(int, int, int, int)} for more details.
+   *
+   * @param dimension   The dimension in which the image will be rendered.
+   *                    The image will keep its original aspect ratio and will
+   *                    be fitted inside these dimension.
+   * @param inputStream the input
+   * @return the image file as a {@link BufferedImage}
+   * @throws IOException
+   * @see ImageReadParam#setSourceSubsampling(int, int, int, int)
+   */
+  @Nullable
+  @Slow
+  public static BufferedImage readImageAtScale(InputStream inputStream, Dimension dimension) throws IOException {
+    ImageInputStream imageStream = ImageIO.createImageInputStream(inputStream);
+
+    // Find all image readers that recognize the image format
+    Iterator<ImageReader> readerIterator = ImageIO.getImageReaders(imageStream);
+    if (!readerIterator.hasNext()) {
+      return null;
+    }
+
+    ImageReader reader = readerIterator.next();
+    reader.setInput(imageStream);
+    ImageReadParam readParams = reader.getDefaultReadParam();
+
+    double srcW = (double)reader.getWidth(0);
+    double srcH = (double)reader.getHeight(0);
+    double scale = srcW > srcH
+                   ? dimension.width / srcW
+                   : dimension.height / srcH;
+
+
+    // If the target size is at least twice as small as the origin, we do the subsampling.
+    // otherwise we just scale
+    if (scale < 0.5) {
+      // Because subsampling actually skip pixels, the end result quality is lower
+      // than a downscaling (which average neighbouring pixels). To minimize the loss
+      // of quality, we double the initial scale value so the subsampling is reduced and
+      // replaced by a downscaling step.
+      scale *= 2;
+      double xStep = Math.floor(1 / scale);
+      double yStep = Math.floor(1 / scale);
+
+      readParams.setSourceSubsampling((int)xStep, (int)yStep, 0, 0);
+    }
+
+    // Read the image, with the optional downsampling.
+    BufferedImage intermediateImage = reader.read(0, readParams);
+
+    // Do a final scale to be sure that the image fits in the provided dimension
+    double finalScale = srcW > srcH
+                        ? dimension.width / (double)intermediateImage.getWidth()
+                        : dimension.height / (double)intermediateImage.getHeight();
+    return scale(intermediateImage, finalScale, finalScale);
   }
 
   /**
