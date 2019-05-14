@@ -146,7 +146,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
     List<DebuggerTask> tasks = new ArrayList<>(debuggerSessions.size());
 
     if (debuggerSessions.isEmpty()) {
-      return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.ERROR).build();
+      return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.NO_DEBUGGER_SESSIONS).build();
     }
 
     // A bit of a hack. Exceptions posted to background tasks ends up on the log only. We are going to gather
