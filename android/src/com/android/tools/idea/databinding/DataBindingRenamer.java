@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.databinding.LightBindingClass.LightDataBindingField;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.codeStyle.NameUtil;
@@ -79,7 +79,7 @@ public class DataBindingRenamer extends AutomaticRenamer {
                                          @NotNull String newFieldName, @NotNull String oldFieldName) {
     if (element instanceof ValueResourceElementWrapper) {
       String[] words = NameUtil.splitNameIntoWords(newFieldName);
-      return SdkConstants.NEW_ID_PREFIX + String.join("_", words).toLowerCase();
+      return NEW_ID_PREFIX + StringUtil.toLowerCase(String.join("_", words));
     }
     return super.suggestNameForElement(element, suggester, newFieldName, oldFieldName);
   }
