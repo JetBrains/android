@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding.finders;
 
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
@@ -37,16 +37,12 @@ import java.util.List;
  * A finder responsible for finding all the generated DataBindingComponents in this project.
  *
  * See {@link LightBindingComponentClass}
- *
- * TODO(b/129543644): This class cannot change its name or package location until we remove
- *  hardcoded references to it from the Kotlin plugin.
- *  Move back to: finders.BindingComponentCacheFinder
  */
-public class DataBindingComponentClassFinder extends PsiElementFinder {
+public class BindingComponentClassFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
   private CachedValue<List<PsiClass>> myClasses;
 
-  public DataBindingComponentClassFinder(final DataBindingProjectComponent component) {
+  public BindingComponentClassFinder(final DataBindingProjectComponent component) {
     myComponent = component;
     myClasses = CachedValuesManager.getManager(component.getProject()).createCachedValue(
       () -> {
