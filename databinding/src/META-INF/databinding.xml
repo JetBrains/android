@@ -19,8 +19,8 @@
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
