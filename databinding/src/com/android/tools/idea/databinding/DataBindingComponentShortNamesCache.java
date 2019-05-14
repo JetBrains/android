@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
+import com.android.tools.idea.databinding.finders.BindingComponentClassFinder;
 import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
@@ -41,8 +42,8 @@ import org.jetbrains.annotations.NotNull;
 public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   private DataBindingProjectComponent myComponent;
   private static final String[] ourClassNames = new String[]{SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT};
-  private DataBindingComponentClassFinder myClassFinder;
-  public DataBindingComponentShortNamesCache(DataBindingProjectComponent component, DataBindingComponentClassFinder componentClassFinder) {
+  private BindingComponentClassFinder myClassFinder;
+  public DataBindingComponentShortNamesCache(DataBindingProjectComponent component, BindingComponentClassFinder componentClassFinder) {
     myComponent = component;
     myClassFinder = componentClassFinder;
   }
