@@ -23,6 +23,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.containers.Stack;
 import com.intellij.util.ui.JBUI;
 
+import java.util.Locale;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -120,7 +121,7 @@ public class FormScalingUtil {
 
     // Mark the component (implicitly the whole tree) as scaled so that it won't be scaled
     // again if re-appearing in a subtree in a later call.
-    root.putClientProperty(SCALE_FACTOR_KEY, new Float(myScaleFactor));
+    root.putClientProperty(SCALE_FACTOR_KEY, Float.valueOf(myScaleFactor));
   }
 
   /**
@@ -339,7 +340,7 @@ public class FormScalingUtil {
   }
 
   private void logScale(int value, int scaledValue) {
-    if (DEBUG) LOG.info(String.format("%1$s = %2$d (from %3$d)", buildStackString(), scaledValue, value));
+    if (DEBUG) LOG.info(String.format(Locale.US, "%1$s = %2$d (from %3$d)", buildStackString(), scaledValue, value));
   }
 
   private static String getComponentName(Component c) {
