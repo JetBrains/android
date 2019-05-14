@@ -130,29 +130,40 @@ public abstract class BaseAction extends AnAction {
       return;
     }
 
+    DisableMessage disableMessage = getDisableMessage(project);
+    if (disableMessage == null) {
+      presentation.setVisible(true);
+      presentation.setEnabled(true);
+      presentation.setText(myName);
+      presentation.setDescription(myDescription);
+    }
+    else {
+      disableAction(presentation, disableMessage);
+    }
+  }
+
+  @Nullable
+  public static DisableMessage getDisableMessage(@NotNull Project project) {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(project).getSelectedConfiguration();
     if (configSettings == null) {
-      presentation.setVisible(false);
-      return;
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no configuration selected", "there is no configuration selected");
     }
 
     RunConfiguration selectedRunConfig = configSettings.getConfiguration();
     if (!isApplyChangesRelevant(selectedRunConfig)) {
-      presentation.setVisible(false);
-      return;
+      return new DisableMessage(DisableMessage.DisableMode.INVISIBLE, "unsupported configuration",
+                                "the selected configuration is not supported");
     }
 
-    presentation.setVisible(true);
-
     if (isExecutorStarting(project, selectedRunConfig)) {
-      disableAction(presentation, "building and/or launching", "the selected configuration is currently building and/or launching");
-      return;
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "building and/or launching",
+                                "the selected configuration is currently building and/or launching");
     }
 
     DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
     if (deployableProvider == null) {
-      disableAction(presentation, "no deployment provider", "there is no deployment provider specified");
-      return;
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no deployment provider",
+                                "there is no deployment provider specified");
     }
 
     if (!deployableProvider.isDependentOnUserInput()) {
@@ -160,57 +171,52 @@ public abstract class BaseAction extends AnAction {
       try {
         deployable = deployableProvider.getDeployable();
         if (deployable == null) {
-          disableAction(presentation, "selected device is invalid", "the selected device is not valid");
-          return;
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
         }
 
         if (!deployable.isOnline()) {
           if (deployable.isUnauthorized()) {
-            disableAction(presentation, "device not authorized", "the selected device is not authorized");
+            return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
+                                      "the selected device is not authorized");
           }
           else {
-            disableAction(presentation, "device not connected", "the selected device is not connected");
+            return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
           }
-          return;
         }
 
         Future<AndroidVersion> versionFuture = deployable.getVersion();
         if (!versionFuture.isDone()) {
           // Don't stall the EDT - if the Future isn't ready, just return false.
-          disableAction(presentation, "unknown device API level", "its API level is currently unknown");
-          return;
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
         }
 
         if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
-          disableAction(presentation, "incompatible device API level", "its API level is lower than 26");
-          return;
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
+                                    "its API level is lower than 26");
         }
 
         if (deployable.searchClientsForPackage().isEmpty()) {
-          disableAction(presentation, "app not detected", "the app is not yet running or not debuggable");
-          return;
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
+                                    "the app is not yet running or not debuggable");
         }
       }
       catch (InterruptedException ex) {
-        disableAction(presentation, "update interrupted", "its status update was interrupted");
         LOG.warn(ex);
-        return;
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
       }
       catch (ExecutionException ex) {
-        disableAction(presentation, "unknown device API level", "its API level could not be determined");
         LOG.warn(ex);
-        return;
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
+                                  "its API level could not be determined");
       }
       catch (Exception ex) {
-        disableAction(presentation, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
         LOG.warn(ex);
-        return;
+        return new DisableMessage(
+          DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
       }
     }
 
-    presentation.setEnabled(true);
-    presentation.setText(myName);
-    presentation.setDescription(myDescription);
+    return null;
   }
 
   private static boolean isApplyChangesRelevant(@NotNull RunConfiguration runConfiguration) {
@@ -333,9 +339,35 @@ public abstract class BaseAction extends AnAction {
            : extension.getExecutor();
   }
 
-  protected void disableAction(@NotNull Presentation presentation, @NotNull String tooltipReason, @NotNull String descriptionReason) {
+  protected void disableAction(@NotNull Presentation presentation, @NotNull DisableMessage disableMessage) {
+    presentation.setVisible(disableMessage.myDisableMode != DisableMessage.DisableMode.INVISIBLE);
     presentation.setEnabled(false);
-    presentation.setText(String.format("%s (disabled: %s)", myName, tooltipReason));
-    presentation.setDescription(String.format("%s is disabled for this device because %s.", myName, descriptionReason));
+    presentation.setText(String.format("%s (disabled: %s)", myName, disableMessage.myTooltip));
+    presentation.setDescription(String.format("%s is disabled for this device because %s.", myName, disableMessage.myDescription));
+  }
+
+  public static final class DisableMessage {
+    public enum DisableMode {
+      INVISIBLE,
+      DISABLED
+    }
+
+    @NotNull
+    private final DisableMode myDisableMode;
+    @NotNull
+    private final String myTooltip;
+    @NotNull
+    private final String myDescription;
+
+    public DisableMessage(@NotNull DisableMode disableMode, @NotNull String tooltip, @NotNull String description) {
+      myDisableMode = disableMode;
+      myTooltip = tooltip;
+      myDescription = description;
+    }
+
+    @NotNull
+    public String getDescription() {
+      return myDescription;
+    }
   }
 }
