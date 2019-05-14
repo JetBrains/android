@@ -25,7 +25,6 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.stats.withProjectId
 import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
@@ -36,6 +35,7 @@ import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle
 
@@ -70,7 +70,7 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
         override fun onFailure(t: Throwable?) {
           refreshDependencyState(project)
         }
-      }, EdtExecutor.INSTANCE)
+      }, EdtExecutorService.getInstance())
     }
 
     private fun setLoading(loading: Boolean) {

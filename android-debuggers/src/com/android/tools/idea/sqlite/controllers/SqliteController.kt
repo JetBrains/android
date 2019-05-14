@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.SqliteService
@@ -33,6 +32,7 @@ import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.Executor
 
 /**
@@ -46,7 +46,7 @@ class SqliteController(
   private val model: SqliteModel,
   private val sqliteView: SqliteView,
   private val sqliteService: SqliteService,
-  edtExecutor: EdtExecutor,
+  edtExecutor: EdtExecutorService,
   taskExecutor: Executor
 ) : Disposable {
   companion object {

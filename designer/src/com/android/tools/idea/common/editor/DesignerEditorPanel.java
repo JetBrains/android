@@ -23,7 +23,6 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.util.SyncUtil;
@@ -37,6 +36,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -178,7 +178,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     }
 
     modelSetFuture.whenCompleteAsync(
-      (result, ex) -> myWorkBench.init(myContentPanel, mySurface, myToolWindowDefinitions.apply(model.getFacet())), EdtExecutor.INSTANCE);
+      (result, ex) -> myWorkBench.init(myContentPanel, mySurface, myToolWindowDefinitions.apply(model.getFacet())),
+      EdtExecutorService.getInstance());
   }
 
   @Nullable
