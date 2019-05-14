@@ -7,28 +7,36 @@ parts {
       y 0
     }
   }
-  landscape {
+  portrait {
     background {
       image back.png
     }
     onion {
-      image fore.png
+          image fore.png
+    }
+    buttons {
+      home {
+        image button.png
+        x 872
+        y 1816
+      }
     }
   }
 }
 layouts {
-  landscape {
-    width 1698
-    height 2116
+  main {
+    width 1974
+    height 2140
+    event EV_SW:0:1
     part1 {
-      name landscape
+      name portrait
       x 0
       y 0
     }
     part2 {
       name device
-      x 267
-      y 194
+      x 418
+      y 273
     }
   }
 }
