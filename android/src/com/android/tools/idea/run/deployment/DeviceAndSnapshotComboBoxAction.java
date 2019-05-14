@@ -105,11 +105,11 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @VisibleForTesting
-  DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
-                                  @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
-                                  @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
-                                  @NotNull Function<Project, PropertiesComponent> getProperties,
-                                  @NotNull Clock clock) {
+  public DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
+                                         @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                                         @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
+                                         @NotNull Function<Project, PropertiesComponent> getProperties,
+                                         @NotNull Clock clock) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
