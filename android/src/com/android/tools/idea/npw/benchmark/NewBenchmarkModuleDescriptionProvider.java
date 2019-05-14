@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.benchmark;
 import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -36,11 +35,7 @@ import org.jetbrains.annotations.Nullable;
 public class NewBenchmarkModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
-    if (StudioFlags.NPW_BENCHMARK_TEMPLATE_MODULE.get()) {
-      return Collections.singletonList(new BenchmarkModuleTemplateGalleryEntry());
-    } else {
-      return Collections.EMPTY_LIST;
-    }
+    return Collections.singletonList(new BenchmarkModuleTemplateGalleryEntry());
   }
 
   private static class BenchmarkModuleTemplateGalleryEntry implements ModuleGalleryEntry {
@@ -48,7 +43,8 @@ public class NewBenchmarkModuleDescriptionProvider implements ModuleDescriptionP
     private TemplateHandle myTemplateHandle;
 
     BenchmarkModuleTemplateGalleryEntry() {
-      myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Benchmark Module"));
+      myTemplateHandle =
+        new TemplateHandle(TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Benchmark Module"));
     }
 
     @Nullable
