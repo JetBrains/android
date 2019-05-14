@@ -18,9 +18,7 @@ package com.android.tools.adtui;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestResources;
-import com.android.tools.adtui.imagediff.ImageDiffTest;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
-import com.intellij.openapi.util.io.FileUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -29,7 +27,6 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import junit.framework.TestCase;
@@ -330,5 +327,23 @@ public class ImageUtilsTest extends TestCase {
     assertThat(ImageUtils.calcFullyDisplayZoomFactor(100, 100, 160, 160)).isLessThan(100 / 160.0);
     assertThat(ImageUtils.calcFullyDisplayZoomFactor(100, 100, 100, 160)).isLessThan(100 / 160.0);
     assertThat(ImageUtils.calcFullyDisplayZoomFactor(160, 160, 100, 100)).isLessThan(160 / 100.0);
+  }
+
+  public void testReadImageAtScale() throws IOException {
+    File imageFile = TestResources.getFile(ImageUtilsTest.class, "/imageutils/star.png");
+    BufferedImage golden = readImage("/imageutils/star_golden.png");
+    BufferedImage image = ImageUtils.readImageAtScale(new FileInputStream(imageFile), new Dimension(40, 40));
+    ImageDiffUtil.assertImageSimilar("star_scale_down.png", golden, image, 0.0);
+  }
+
+  /**
+   * Check that when requesting an image with the same size as the original, we indeed
+   * get the same image as the original
+   */
+  public void testReadImageAtScaleNoScale() throws IOException {
+    File imageFile = TestResources.getFile(ImageUtilsTest.class, "/imageutils/star.png");
+    BufferedImage golden = readImage("/imageutils/star.png");
+    BufferedImage image = ImageUtils.readImageAtScale(new FileInputStream(imageFile), new Dimension(252, 200));
+    ImageDiffUtil.assertImageSimilar("star_scale_down.png", golden, image, 0.0);
   }
 }
