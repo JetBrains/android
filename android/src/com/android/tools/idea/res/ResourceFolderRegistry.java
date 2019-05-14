@@ -38,6 +38,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
@@ -234,6 +236,11 @@ public class ResourceFolderRegistry implements Disposable {
     }
   }
 
+  /**
+   * This VfsListener handles {@link VFileEvent}s for resource folder.
+   * When an event happens on a file within a folder with a corresponding
+   * {@link ResourceFolderRepository}, the event is delegated to it.
+   */
   private class VfsListener implements BulkFileListener {
     @UiThread
     @Override
@@ -248,6 +255,56 @@ public class ResourceFolderRegistry implements Disposable {
         else if (event instanceof VFilePropertyChangeEvent &&
                  ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
           onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
+        }
+      }
+    }
+
+    @Override
+    public void after(@NotNull List<? extends VFileEvent> events) {
+      for (VFileEvent event : events) {
+        if (event instanceof VFileCreateEvent) {
+          VFileCreateEvent createEvent = (VFileCreateEvent)event;
+          onFileOrDirectoryCreated(createEvent.getParent(), createEvent.getChildName());
+        }
+        else if (event instanceof VFileCopyEvent) {
+          VFileCopyEvent copyEvent = (VFileCopyEvent)event;
+          onFileOrDirectoryCreated(copyEvent.getNewParent(), copyEvent.getNewChildName());
+        }
+      }
+    }
+
+    private void onFileOrDirectoryCreated(@NotNull VirtualFile parent, @NotNull String childName) {
+      VirtualFile file = null;
+      for (VirtualFile dir = parent.isDirectory() ? parent : parent.getParent(); dir != null; dir = dir.getParent()) {
+        for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+          ResourceFolderRepository repository = cache.getIfPresent(dir);
+          if (repository != null) {
+            if (file == null) {
+              file = parent.findChild(childName);
+              if (file == null) {
+                // The file is not found, there is no need to continue iterating over
+                // the repositories.
+                return;
+              }
+            }
+
+            if (file.isDirectory()) {
+              // ResourceFolderRepository doesn't handle event on a whole folder
+              // so we pass all the children
+              for (VirtualFile child : file.getChildren()) {
+                if (!child.isDirectory()) {
+                  // There is no need to visit subdirectories because Android does not support them.
+                  // If a base resource directory is created (e.g res/), a whole
+                  // ResourceFolderRepository will be created separately so we don't need to handle
+                  // this case here.
+                  repository.onFileCreated(child);
+                }
+              }
+            }
+            else {
+              repository.onFileCreated(file);
+            }
+          }
         }
       }
     }
