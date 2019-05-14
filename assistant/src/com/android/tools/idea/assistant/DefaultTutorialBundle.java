@@ -31,10 +31,10 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Locale;
 import javax.swing.Icon;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -588,7 +588,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       if (myCodeType == null) {
         return null;
       }
-      String type = myCodeType.trim().toUpperCase(Locale.ENGLISH);
+      String type = StringUtil.toUpperCase(myCodeType.trim());
 
       // If the list grows much, consider using a static map.
       if (type.equals("JAVA")) {

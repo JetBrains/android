@@ -408,7 +408,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   @NotNull
   private static String getDeviceState(@NotNull IDevice device) {
     IDevice.DeviceState state = device.getState();
-    return state != null ? capitalize(state.name().toLowerCase()) : "";
+    return state != null ? capitalize(StringUtil.toLowerCase(state.name())) : "";
   }
 
   private void fireSelectedDevicesChanged() {

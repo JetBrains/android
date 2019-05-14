@@ -47,6 +47,7 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,7 +55,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -610,7 +610,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (indexOfDot == -1) {
       return false;
     }
-    String extension = file.getName().substring(indexOfDot + 1).toLowerCase(Locale.US);
+    String extension = StringUtil.toLowerCase(file.getName().substring(indexOfDot + 1));
     if (myImportHandlers.get(extension) == null) {
       return false;
     }

@@ -23,6 +23,7 @@ import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ExecutionStatus;
@@ -88,7 +89,7 @@ public class AndroidMavenExecutor {
       String message = processor.getMessage();
       if (!success) {
         LOG.info(message);
-        String lcmessage = message.toLowerCase();
+        String lcmessage = StringUtil.toLowerCase(message);
         int buildErrorIndex = lcmessage.indexOf(BUILD_ERROR_INDICATOR);
         if (buildErrorIndex >= 0) {
           result.get(CompilerMessageCategory.ERROR).add(message.substring(buildErrorIndex));

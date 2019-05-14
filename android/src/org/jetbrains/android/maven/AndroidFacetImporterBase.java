@@ -21,6 +21,7 @@ import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1277,7 +1278,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       if (myDirectory) {
         // we're looking for for resource directory
 
-        if (outputPath.toLowerCase().startsWith(myResourceOutputPath.toLowerCase())) {
+        if (StringUtil.toLowerCase(outputPath).startsWith(StringUtil.toLowerCase(myResourceOutputPath))) {
           final String parentPath = outputPath.substring(0, myResourceOutputPath.length());
           if (FileUtil.pathsEqual(parentPath, myResourceOutputPath)) {
 

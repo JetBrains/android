@@ -23,6 +23,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.google.common.collect.Maps;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
@@ -191,7 +192,7 @@ public class FlagManager {
         return null;
       }
       @SuppressWarnings("UnnecessaryFullyQualifiedName")
-      String flagFileName = base.toLowerCase(java.util.Locale.US) + ".png"; //$NON-NLS-1$
+      String flagFileName = StringUtil.toLowerCase(base) + ".png"; //$NON-NLS-1$
       try {
         flagImage = IconLoader.findIcon("/icons/flags/" + flagFileName, AndroidIcons.class);
       } catch (Throwable t) {

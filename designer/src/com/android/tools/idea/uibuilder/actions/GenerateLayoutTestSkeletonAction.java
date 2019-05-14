@@ -46,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
@@ -297,7 +296,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   @NotNull
   private static String getTagSymbol(@NotNull String tagName) {
     tagName = tagName.substring(1 + tagName.lastIndexOf('.'));
-    return TemplateUtils.camelCaseToUnderlines(tagName).toUpperCase(Locale.ROOT);
+    return StringUtil.toUpperCase(TemplateUtils.camelCaseToUnderlines(tagName));
   }
 
   private static void appendTreeComparison(@NotNull List<NlComponent> components, @NotNull StringBuilder builder) {

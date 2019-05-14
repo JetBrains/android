@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.statelist;
 
 import android.R;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Optional;
 
 enum State {
@@ -54,7 +54,7 @@ enum State {
   @NotNull
   @Override
   public final String toString() {
-    return "state_" + myText.toLowerCase(Locale.ROOT).replace(' ', '_');
+    return "state_" + StringUtil.toLowerCase(myText).replace(' ', '_');
   }
 
   @Nullable
