@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     bundle_data = glob(["**"]),
     iml_files = ["intellij.android.adt.branding.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
