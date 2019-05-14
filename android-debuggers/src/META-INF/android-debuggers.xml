@@ -20,4 +20,8 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.sqlite.SqliteEditorProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl"/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.explorer">
+    <fileHandler implementation="com.android.tools.idea.SqliteFileHandler"/>
+  </extensions>
 </idea-plugin>
