@@ -97,11 +97,6 @@ public final class StudioFlags {
     "Show 'Automotive' templates in 'New Project', 'New Module' and 'New component' wizards. Also present 'Automotive' devices in AVD.",
     true);
 
-  public static final Flag<Boolean> NPW_BENCHMARK_TEMPLATE_MODULE = Flag.create(
-    NPW, "benchmark.template.module", "Enable benchmark module template",
-    "If enabled, the new module wizard will show an option to create a benchmark module",
-    true);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
     NPW, "first.run.wizard.show", "Show Welcome Wizard always",
     "Show the Welcome Wizard when Studio starts",
