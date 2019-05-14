@@ -31,7 +31,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -59,6 +58,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.BorderLayout;
@@ -425,8 +425,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
           else {
             Disposer.dispose(model);
           }
-        }, EdtExecutor.INSTANCE);
-      }, EdtExecutor.INSTANCE);
+        }, EdtExecutorService.getInstance());
+      }, EdtExecutorService.getInstance());
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
@@ -44,6 +43,7 @@ import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -295,7 +295,7 @@ class ResourceExplorerView(
         updatePending = false
         displayResources(resourceLists)
         selectIndicesIfNeeded(selectedValue, selectedIndices)
-      }, EdtExecutor.INSTANCE)
+      }, EdtExecutorService.getInstance())
 
     if (!future.isDone) {
       JobScheduler.getScheduler().schedule(
