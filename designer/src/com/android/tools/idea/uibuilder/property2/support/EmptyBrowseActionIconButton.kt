@@ -23,7 +23,7 @@ import javax.swing.Icon
 import javax.swing.ImageIcon
 
 /**
- * An lazy empty icon generator at the same size of the resource picker icon.
+ * A lazy empty icon generator at the same size of the resource picker icon.
  */
 object EmptyBrowseActionIconButton : ActionIconButton {
   private var emptyIcon: Icon? = null
