@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.editors;
 
-import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
-
 import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -43,26 +41,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.ui.AsyncProcessIcon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Predicate;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -70,6 +48,20 @@ import org.jdom.xpath.XPath;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
+
+import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 
 public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
@@ -389,7 +381,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     if (StringUtil.isEmpty(text)) {
       return;
     }
-    String override = SEARCH_OVERRIDES.get(text.toLowerCase(Locale.US));
+    String override = SEARCH_OVERRIDES.get(StringUtil.toLowerCase(text));
     if (override != null) {
       text = override;
     }

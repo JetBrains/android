@@ -28,6 +28,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -219,7 +219,7 @@ public final class PathValidator implements Validator<File> {
 
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return RESERVED_WINDOWS_FILENAMES.contains(file.getName().toLowerCase(Locale.US));
+      return RESERVED_WINDOWS_FILENAMES.contains(StringUtil.toLowerCase(file.getName()));
     }
 
     @NotNull

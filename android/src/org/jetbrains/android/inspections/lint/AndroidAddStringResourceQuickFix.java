@@ -5,6 +5,7 @@ import com.android.resources.ResourceType;
 import com.google.common.base.CharMatcher;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -14,8 +15,6 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.intentions.AndroidAddStringResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Locale;
 
 import static com.google.common.base.CharMatcher.inRange;
 
@@ -54,7 +53,7 @@ public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAc
 
   @NotNull
   static String buildResourceName(@NotNull String value) {
-    final String result = DISALLOWED_CHARS.trimAndCollapseFrom(value, '_').toLowerCase(Locale.US);
+    final String result = StringUtil.toLowerCase(DISALLOWED_CHARS.trimAndCollapseFrom(value, '_'));
     if (!result.isEmpty() && CharMatcher.javaDigit().matches(result.charAt(0))) {
       return "_" + result;
     }

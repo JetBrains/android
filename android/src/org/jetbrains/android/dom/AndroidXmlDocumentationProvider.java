@@ -1,7 +1,8 @@
 package org.jetbrains.android.dom;
 
-import com.android.resources.ResourceUrl;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.utils.Pair;
@@ -28,14 +29,13 @@ import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -390,7 +390,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       List<String> formatLabels = new ArrayList<>(formats.size());
 
       for (AttributeFormat format : formats) {
-        formatLabels.add(format.name().toLowerCase(Locale.US));
+        formatLabels.add(StringUtil.toLowerCase(format.name()));
       }
       Collections.sort(formatLabels);
 
