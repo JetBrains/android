@@ -63,8 +63,8 @@ public class CodeSwapAction extends BaseAction {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
       if (AndroidCommonUtils.isTestConfiguration(id)) {
-        e.getPresentation().setEnabled(false);
-        return;
+        disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
+                                                              "the selected configuration is a test configuration"));
       }
     }
   }
