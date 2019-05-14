@@ -15,17 +15,25 @@
  */
 package com.android.tools.adtui;
 
-import com.android.testutils.TestResources;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
+import static com.google.common.truth.Truth.assertThat;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
+import com.android.testutils.TestResources;
+import com.android.tools.adtui.imagediff.ImageDiffTest;
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.intellij.openapi.util.io.FileUtil;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
+import javax.imageio.ImageIO;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ImageUtilsTest extends TestCase {
   public void testScaleImage() throws Exception {
@@ -237,13 +245,13 @@ public class ImageUtilsTest extends TestCase {
    * such that the resulting image is transparent except for a minimum bounding
    * rectangle of the selected elements.
    *
-   * @param image the source image
-   * @param rectangles the set of rectangles to copy
+   * @param image       the source image
+   * @param rectangles  the set of rectangles to copy
    * @param boundingBox the bounding rectangle of the set of rectangles to copy, can be
-   *            computed by {@link ImageUtils#getBoundingRectangle}
-   * @param scale a scale factor to apply to the result, e.g. 0.5 to shrink the
-   *            destination down 50%, 1.0 to leave it alone and 2.0 to zoom in by
-   *            doubling the image size
+   *                    computed by {@link ImageUtils#getBoundingRectangle}
+   * @param scale       a scale factor to apply to the result, e.g. 0.5 to shrink the
+   *                    destination down 50%, 1.0 to leave it alone and 2.0 to zoom in by
+   *                    doubling the image size
    * @return a rendered image, or null
    */
   public static BufferedImage drawRectangles(BufferedImage image,
@@ -272,8 +280,8 @@ public class ImageUtilsTest extends TestCase {
       return null;
     }
 
-    int destWidth = (int) (scale * boundingBox.width);
-    int destHeight = (int) (scale * boundingBox.height);
+    int destWidth = (int)(scale * boundingBox.width);
+    int destHeight = (int)(scale * boundingBox.height);
     BufferedImage dest = new BufferedImage(destWidth, destHeight, image.getType());
 
     Graphics2D g = dest.createGraphics();
