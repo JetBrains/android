@@ -21,7 +21,6 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
-import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -72,7 +71,7 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
   fun testDisabled() {
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(false)
 
-    TestCase.assertFalse(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
+    assertFalse(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
   }
 
   @Test
@@ -82,7 +81,7 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     `when`(mockBundler.config).thenReturn(URL("file:test.file"))
     WhatsNewAssistantBundleCreator.setTestCreator(mockBundler)
 
-    TestCase.assertTrue(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
+    assertTrue(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
 
     WhatsNewAssistantBundleCreator.setTestCreator(null)
   }
@@ -95,10 +94,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     // Expected bundle file is server-3.3.0.xml
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(bundle)
+    assertNotNull(bundle)
     if (bundle != null) {
-      TestCase.assertEquals("3.3.10", bundle.version.toString())
-      TestCase.assertEquals("Test What's New from Server", bundle.name)
+      assertEquals("3.3.10", bundle.version.toString())
+      assertEquals("Test What's New from Server", bundle.name)
     }
   }
 
@@ -114,10 +113,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(bundle)
+    assertNotNull(bundle)
     if (bundle != null) {
-      TestCase.assertEquals("3.3.0", bundle.version.toString())
-      TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
+      assertEquals("3.3.0", bundle.version.toString())
+      assertEquals("Test What's New from Class Resource", bundle.name)
     }
   }
 
@@ -130,20 +129,20 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     // First expected bundle file is server-3.3.0.xml
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(bundle)
+    assertNotNull(bundle)
     if (bundle != null) {
-      TestCase.assertEquals("3.3.10", bundle.version.toString())
-      TestCase.assertEquals("Test What's New from Server", bundle.name)
+      assertEquals("3.3.10", bundle.version.toString())
+      assertEquals("Test What's New from Server", bundle.name)
     }
 
     // Change server file to one that doesn't exist, meaning no connection
     `when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
     // Expected bundle file is still server-3.3.0.xml because it was downloaded on the first fetch
     val newBundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(newBundle)
+    assertNotNull(newBundle)
     if (newBundle != null) {
-      TestCase.assertEquals("3.3.10", newBundle.version.toString())
-      TestCase.assertEquals("Test What's New from Server", newBundle.name)
+      assertEquals("3.3.10", newBundle.version.toString())
+      assertEquals("Test What's New from Server", newBundle.name)
     }
   }
 
@@ -157,10 +156,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(bundle)
+    assertNotNull(bundle)
     if (bundle != null) {
-      TestCase.assertEquals("3.3.0", bundle.version.toString())
-      TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
+      assertEquals("3.3.0", bundle.version.toString())
+      assertEquals("Test What's New from Class Resource", bundle.name)
     }
   }
 
@@ -172,10 +171,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(bundle)
+    assertNotNull(bundle)
     if (bundle != null) {
-      TestCase.assertEquals("3.3.0", bundle.version.toString())
-      TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
+      assertEquals("3.3.0", bundle.version.toString())
+      assertEquals("Test What's New from Class Resource", bundle.name)
     }
   }
 
@@ -192,10 +191,10 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
 
     // So parseBundle should delete the empty file and retry, resulting in defaultresource-3.3.0.xml
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
-    TestCase.assertNotNull(bundle)
+    assertNotNull(bundle)
     if (bundle != null) {
-      TestCase.assertEquals("3.3.0", bundle.version.toString())
-      TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
+      assertEquals("3.3.0", bundle.version.toString())
+      assertEquals("Test What's New from Class Resource", bundle.name)
     }
   }
 
@@ -211,17 +210,34 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
 
     // Disabled download means last seen version is from default resource, so "3.3.0" = "3.3.0"
-    TestCase.assertFalse(bundleCreator.isNewConfigVersion)
+    assertFalse(bundleCreator.isNewConfigVersion)
 
     // After enabling download, the new file will be server-3.3.0.xml, version "3.3.10"
     StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true)
-    TestCase.assertTrue(bundleCreator.isNewConfigVersion)
+    assertTrue(bundleCreator.isNewConfigVersion)
 
     // And running once again should be false because last seen is now "3.3.10"
-    TestCase.assertFalse(bundleCreator.isNewConfigVersion)
+    assertFalse(bundleCreator.isNewConfigVersion)
 
     // Disabling download again should use local-3.3.0.xml, cached from the download, version "3.3.10"
     StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
-    TestCase.assertFalse(bundleCreator.isNewConfigVersion)
+    assertFalse(bundleCreator.isNewConfigVersion)
+  }
+
+  @Test
+  fun testHasResourceConfig() {
+    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
+
+    // Both the resource file and the Studio version are 3.3.0
+    assertTrue(bundleCreator.hasResourceConfig())
+
+    // Different versions
+    bundleCreator.setStudioRevision(Revision.parseRevision("3.4.1rc0"))
+    assertFalse(bundleCreator.hasResourceConfig())
+
+    // Should return true for 0.0.0 because of dev build
+    bundleCreator.setStudioRevision(Revision.parseRevision("0.0.0rc0"))
+    assertTrue(bundleCreator.hasResourceConfig())
   }
 }
