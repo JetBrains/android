@@ -1075,8 +1075,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return true;
   }
 
+  /**
+   * Returns true if the given element represents a resource folder
+   * (e.g. res/values-en-rUS or layout-land, *not* the root res/ folder)
+   */
   private boolean isResourceFolder(@Nullable PsiElement parent) {
-    // Returns true if the given element represents a resource folder (e.g. res/values-en-rUS or layout-land, *not* the root res/ folder)
     if (parent instanceof PsiDirectory) {
       PsiDirectory directory = (PsiDirectory)parent;
       PsiDirectory parentDirectory = directory.getParentDirectory();
@@ -1088,8 +1091,27 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return false;
   }
 
+  /**
+   * Returns true if the given element represents a resource folder
+   * (e.g. res/values-en-rUS or layout-land, *not* the root res/ folder)
+   */
+  private boolean isResourceFolder(@NotNull VirtualFile virtualFile) {
+    if (virtualFile.isDirectory()) {
+      VirtualFile parentDirectory = virtualFile.getParent();
+      if (parentDirectory != null) {
+        return parentDirectory.equals(myResourceDir);
+      }
+    }
+    return false;
+  }
+
   private boolean isResourceFile(@NotNull PsiFile psiFile) {
     return isResourceFolder(psiFile.getParent());
+  }
+
+  private boolean isResourceFile(@NotNull VirtualFile virtualFile) {
+    VirtualFile parent = virtualFile.getParent();
+    return parent != null && isResourceFolder(parent);
   }
 
   @Override
@@ -1416,25 +1438,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     @Override
     public void childAdded(@NotNull PsiTreeChangeEvent event) {
       PsiFile psiFile = event.getFile();
-      if (psiFile == null) {
-        // Called when you've added a file
-        PsiElement child = event.getChild();
-        if (child instanceof PsiFile) {
-          psiFile = (PsiFile)child;
-          if (isRelevantFile(psiFile)) {
-            addFile(psiFile);
-          }
-        } else if (child instanceof PsiDirectory) {
-          PsiDirectory directory = (PsiDirectory)child;
-          if (isResourceFolder(directory)) {
-            for (PsiFile file : directory.getFiles()) {
-              if (isRelevantFile(file)) {
-                addFile(file);
-              }
-            }
-          }
-        }
-      } else if (isRelevantFile(psiFile)) {
+      if (psiFile != null && isRelevantFile(psiFile)) {
         if (isScanPending(psiFile)) {
           return;
         }
@@ -2006,18 +2010,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             }
           } // else: can ignore this edit
         }
-      } else {
-        PsiElement parent = event.getParent();
-        if (isResourceFolder(parent)) {
-          PsiElement newChild = event.getNewChild();
-          // File removals are handled by VfsListener.
-          if (newChild instanceof PsiFile) {
-            PsiFile newFile = (PsiFile)newChild;
-            if (isRelevantFile(newFile)) {
-              addFile(newFile);
-            }
-          }
-        }
       }
 
       myIgnoreChildrenChanged = true;
@@ -2348,6 +2340,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
      */
     private boolean affectsDataBinding(@NotNull XmlTag xmlTag) {
       return ArrayUtil.contains(xmlTag.getLocalName(), TAGS_DATA_BINDING);
+    }
+  }
+
+  void onFileCreated(@NotNull VirtualFile file) {
+    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    if (folderType == null) {
+      return;
+    }
+
+    if (isResourceFile(file) && isRelevantFile(file)) {
+      PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(file);
+      if (psiFile != null) {
+        rescanImmediately(psiFile, folderType);
+      }
     }
   }
 
