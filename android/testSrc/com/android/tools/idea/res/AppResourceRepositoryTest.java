@@ -243,7 +243,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertThat(appResources.getResources(appNamespace, ResourceType.ID).keySet()).containsExactly("action_flip", "action_next");
 
     assertThat(projectResources.getNamespaces()).containsExactly(appNamespace, localLibNamespace);
-    assertThat(appResources.getNamespaces()).containsExactly(appNamespace, localLibNamespace, aarLibNamespace);
+    assertThat(appResources.getNamespaces()).containsExactly(appNamespace, localLibNamespace, aarLibNamespace, ResourceNamespace.TOOLS);
 
     assertOnlyValue(appResources, appNamespace, "app_name", "Animations Demo");
     assertOnlyValue(appResources, localLibNamespace, "app_name", "Different App Name");

@@ -90,7 +90,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
-                             @NotNull Collection<? extends AarResourceRepository> libraryResources) {
+                             @NotNull Collection<? extends AarResourceRepository> libraryResources,
+                             @NotNull Collection<? extends ResourceRepository> otherResources) {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
         child.removeParent(this);
@@ -98,7 +99,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       setModificationCount(ourModificationCounter.incrementAndGet());
       myLocalResources = ImmutableList.copyOf(localResources);
       myLibraryResources = ImmutableList.copyOf(libraryResources);
-      myChildren = ImmutableList.<ResourceRepository>builder().addAll(myLocalResources).addAll(myLibraryResources).build();
+      int size = myLocalResources.size() + myLibraryResources.size() + otherResources.size();
+      myChildren = ImmutableList.<ResourceRepository>builderWithExpectedSize(size)
+          .addAll(myLocalResources).addAll(myLibraryResources).addAll(otherResources).build();
 
       ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> mapBuilder = ImmutableListMultimap.builder();
       computeLeafs(this, mapBuilder);
