@@ -25,7 +25,6 @@ import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +97,7 @@ public class GotItMessage {
     panel.myRoot.setBackground(GotItPanel.BACKGROUND);
     panel.myMessagePanel.setOpaque(false);
     panel.myButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    panel.myButtonLabel.setText(panel.myButtonLabel.getText().toUpperCase(Locale.US));
+    panel.myButtonLabel.setText(StringUtil.toUpperCase(panel.myButtonLabel.getText()));
     final BalloonBuilder builder = JBPopupFactory.getInstance().createBalloonBuilder(panel.myRoot);
     if (myDisposable != null) {
       builder.setDisposable(myDisposable);

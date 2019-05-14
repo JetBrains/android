@@ -20,6 +20,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
@@ -43,7 +44,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
@@ -339,7 +339,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
         if (extension == null) {
           extension = "Source";
         } else {
-          extension = extension.toUpperCase(Locale.US);
+          extension = StringUtil.toUpperCase(extension);
         }
         myPngLabel.setText(extension);
 
