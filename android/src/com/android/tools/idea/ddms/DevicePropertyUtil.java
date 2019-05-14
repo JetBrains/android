@@ -23,7 +23,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
 import java.util.Set;
 
 public class DevicePropertyUtil {
@@ -32,7 +31,7 @@ public class DevicePropertyUtil {
 
   @VisibleForTesting
   static String fixManufacturerName(@NotNull String manufacturer) {
-    String allCaps = manufacturer.toUpperCase(Locale.US);
+    String allCaps = StringUtil.toUpperCase(manufacturer);
     return ourManufacturerNameIsAcronym.contains(allCaps) ?
            allCaps : StringUtil.capitalizeWords(manufacturer, true);
   }

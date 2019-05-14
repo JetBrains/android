@@ -55,7 +55,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -395,7 +394,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       List<String> formatLabels = new ArrayList<>(formats.size());
 
       for (AttributeFormat format : formats) {
-        formatLabels.add(format.name().toLowerCase(Locale.US));
+        formatLabels.add(StringUtil.toLowerCase(format.name()));
       }
       Collections.sort(formatLabels);
 

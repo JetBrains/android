@@ -135,7 +135,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -515,7 +514,7 @@ public class AndroidResourceUtil {
    */
   @NotNull
   public static String getValidResourceFileName(@NotNull String base) {
-    return base.replace('-', '_').replace(' ', '_').toLowerCase(Locale.US);
+    return StringUtil.toLowerCase(base.replace('-', '_').replace(' ', '_'));
   }
 
   @Nullable
