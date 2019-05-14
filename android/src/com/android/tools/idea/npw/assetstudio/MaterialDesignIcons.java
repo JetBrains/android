@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,7 +147,7 @@ public final class MaterialDesignIcons {
 
   @NotNull
   private static String getIconDirectoryPath(String categoryName) {
-    return PATH + categoryName.toLowerCase(Locale.ENGLISH) + '/';
+    return PATH + StringUtil.toLowerCase(categoryName) + '/';
   }
 
   private static URL getResourceUrl(String iconPath) {

@@ -53,6 +53,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -67,7 +68,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -438,7 +438,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedFiles())
       .anyMatch(file -> {
         String extension = file.getExtension();
-        return extension != null && nativeExtensions.contains(extension.toLowerCase(Locale.US));
+        return extension != null && nativeExtensions.contains(StringUtil.toLowerCase(extension));
       });
   }
 

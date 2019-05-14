@@ -33,6 +33,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.util.AndroidBundle;
@@ -83,7 +84,7 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
 
   static boolean isValidExtension(VirtualFile file) {
     @NonNls String extension = file.getExtension();
-    return extension != null && SUPPORTED_EXTENSIONS.contains(extension.toLowerCase());
+    return extension != null && SUPPORTED_EXTENSIONS.contains(StringUtil.toLowerCase(extension));
   }
 
   @Override

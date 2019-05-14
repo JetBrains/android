@@ -617,11 +617,11 @@ public class InferSupportAnnotations {
       ResourceType type = null;
       if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName()) && qualifiedName.endsWith(RES_SUFFIX)) {
         String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length(), qualifiedName.length() - RES_SUFFIX.length());
-        type = ResourceType.fromClassName(name.toLowerCase(Locale.US));
+        type = ResourceType.fromClassName(StringUtil.toLowerCase(name));
       }
       else if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.newName()) && qualifiedName.endsWith(RES_SUFFIX)) {
         String name = qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length(), qualifiedName.length() - RES_SUFFIX.length());
-        type = ResourceType.fromClassName(name.toLowerCase(Locale.US));
+        type = ResourceType.fromClassName(StringUtil.toLowerCase(name));
       }
       else if (COLOR_INT_ANNOTATION.isEquals(qualifiedName)) {
         type = COLOR_INT_MARKER_TYPE;
