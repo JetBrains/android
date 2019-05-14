@@ -157,7 +157,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     mySourceSet = sourceSet;
     myRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
 
-    setChildren(delegates, ImmutableList.of());
+    setChildren(delegates, ImmutableList.of(), ImmutableList.of());
 
     ResourceFolderListener resourceFolderListener = new ResourceFolderListener() {
       @Override
@@ -235,7 +235,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       removed.removeParent(this);
     }
 
-    setChildren(resources, Collections.emptyList());
+    setChildren(resources, ImmutableList.of(), ImmutableList.of());
   }
 
   @Override

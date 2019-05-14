@@ -36,7 +36,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -46,7 +45,6 @@ import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -130,7 +128,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
   static SampleDataResourceItem getFromStaticDataSource(@NotNull String name,
                                                         @NotNull Function<OutputStream, Exception> source,
                                                         @NotNull ContentType contentType) {
-    return new SampleDataResourceItem(name, SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, source, () -> 1L, null, contentType);
+    return new SampleDataResourceItem(name, PredefinedSampleDataResourceRepository.NAMESPACE, source, () -> 1L, null, contentType);
   }
 
   /**
